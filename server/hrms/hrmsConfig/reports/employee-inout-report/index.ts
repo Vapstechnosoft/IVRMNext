@@ -195,8 +195,10 @@ export async function getEmployeeInOutReportDepartments(
                 if (Array.isArray(response.data)) {
                     dataArray = response.data;
                 } else if (response.data && typeof response.data === 'object') {
-                    // Try to find array in nested structure
-                    if (Array.isArray(response.data.$values)) {
+                    // Try to find array in nested structure - check for 'departments' first (API specific)
+                    if (Array.isArray(response.data.departments)) {
+                        dataArray = response.data.departments;
+                    } else if (Array.isArray(response.data.$values)) {
                         dataArray = response.data.$values;
                     } else if (Array.isArray(response.data.departmentList)) {
                         dataArray = response.data.departmentList;
@@ -276,8 +278,10 @@ export async function getEmployeeInOutReportDesignations(
                 if (Array.isArray(response.data)) {
                     dataArray = response.data;
                 } else if (response.data && typeof response.data === 'object') {
-                    // Try to find array in nested structure
-                    if (Array.isArray(response.data.$values)) {
+                    // Try to find array in nested structure - check for 'designations' first (API specific)
+                    if (Array.isArray(response.data.designations)) {
+                        dataArray = response.data.designations;
+                    } else if (Array.isArray(response.data.$values)) {
                         dataArray = response.data.$values;
                     } else if (Array.isArray(response.data.designationlList)) {
                         dataArray = response.data.designationlList;
@@ -363,13 +367,13 @@ export async function getEmployeeInOutReportEmployees(
                 if (Array.isArray(response.data)) {
                     dataArray = response.data;
                 } else if (response.data && typeof response.data === 'object') {
-                    // Try to find array in nested structure
-                    if (Array.isArray(response.data.$values)) {
+                    // Try to find array in nested structure - check for 'employees' first (API specific)
+                    if (Array.isArray(response.data.employees)) {
+                        dataArray = response.data.employees;
+                    } else if (Array.isArray(response.data.$values)) {
                         dataArray = response.data.$values;
                     } else if (Array.isArray(response.data.employeeList)) {
                         dataArray = response.data.employeeList;
-                    } else if (Array.isArray(response.data.employees)) {
-                        dataArray = response.data.employees;
                     } else if (Array.isArray(response.data.EmployeeTempDto)) {
                         dataArray = response.data.EmployeeTempDto;
                     } else if (Array.isArray(response.data.employeedropdownlist)) {

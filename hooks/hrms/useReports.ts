@@ -6,7 +6,9 @@
  */
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { getFOMonthEndReportData } from '@/server/hrms/attendance-management/reports/fo-monthend-report';
+import { getLeaveReport, getLeaveReportDepartments, getLeaveReportData, getPeriodLeaveReport, getPeriodLeaveReportDepartments, getPeriodLeaveReportDesignation, getPeriodLeaveReportEmployees, getPeriodLeaveReportData, getLeaveReportYearwise } from '@/server/hrms/leave-management/reports/leave-report';
 import { getEmployeeAdvanceReportOnload, searchEmployeeAdvanceReport } from '@/server/hrms/hrmsConfig/reports/advance-report';
 import { getBankCashReportOnload, searchBankCashReport } from '@/server/hrms/hrmsConfig/reports/bank-cash-report';
 import { getCumulativeSalaryReportOnload, searchCumulativeSalaryReport } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
@@ -1131,5 +1133,829 @@ export function useSearchEmployeeAdvanceReport() {
             console.error('Error searching advance report:', error);
             toast.error(error.message || 'Failed to search advance report');
         }
+    });
+}
+
+// ============================================================================
+// LEAVE REPORT
+// ============================================================================
+
+/**
+ * Hook to fetch leave report data
+ * POST /api/LeaveReportWrapperFacade/GetLeaveReport
+ */
+export function useLeaveReport(request?: { MI_Id?: number }, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, request?.MI_Id],
+        queryFn: async () => {
+            try {
+                const response = await getLeaveReport({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch leave report');
+                }
+
+                // Extract leave report list from API response
+                const data = response.data;
+                
+                // Map GridviewDetails, leaveReportList, reportList, or leaveList to reportList
+                let reportList: any[] = [];
+                
+                if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    reportList = data.GridviewDetails;
+                } else if (data.leaveReportList && Array.isArray(data.leaveReportList)) {
+                    reportList = data.leaveReportList;
+                } else if (data.reportList && Array.isArray(data.reportList)) {
+                    reportList = data.reportList;
+                } else if (data.leaveList && Array.isArray(data.leaveList)) {
+                    reportList = data.leaveList;
+                } else if (Array.isArray(data)) {
+                    reportList = data;
+                }
+
+                // Map to leave report format matching LeaveReportRow interface
+                const mappedReportList = reportList.map((item: any, index: number) => ({
+                    slNo: index + 1,
+                    employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    leaveName: item.HRML_LeaveName || item.leaveName || '',
+                    fromDate: item.HRELAP_FromDate || item.fromDate || '',
+                    toDate: item.HRELAP_ToDate || item.toDate || '',
+                    appliedDays: item.HRELAP_TotalDays || item.appliedDays || 0,
+                    leaveStatus: (item.HRELAP_ApplicationStatus || item.leaveStatus || 'Pending') as 'Approved' | 'Pending' | 'Rejected',
+                    leaveBalance: item.HRELS_TotalLeaves || item.leaveBalance || 0
+                }));
+
+                return {
+                    success: true,
+                    data: {
+                        reportList: mappedReportList
+                    },
+                    rawData: data,
+                    message: response.message || 'Leave report fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch leave report');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this might be filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch departments for period leave report
+ * POST /api/LeaveReportWrapperFacade/PeriodGetDepartments
+ */
+export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'period-departments', request?.MI_Id, request?.emptypes],
+        queryFn: async () => {
+            try {
+                const response = await getPeriodLeaveReportDepartments({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    emptypes: request?.emptypes || []
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch departments for period leave report');
+                }
+
+                // Extract and map department options from API response
+                const data = response.data;
+                
+                // Map DepartmentTempDto to departmentOptions
+                const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
+                    label: item.HRMD_DepartmentName || item.label || '',
+                    value: String(item.HRMD_Id || item.value || '')
+                })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                // Also check other possible locations
+                if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
+                    const mapped = data.departmentdropdownlist.map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || item.name || '',
+                        value: String(item.HRMD_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        departmentOptions.push(...mapped);
+                    }
+                }
+
+                // Check GridviewDetails as fallback
+                if (departmentOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    const mapped = data.GridviewDetails.map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || item.name || '',
+                        value: String(item.HRMD_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        departmentOptions.push(...mapped);
+                    }
+                }
+
+                // Check departmentList or departments as fallback
+                if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
+                    const mapped = data.departmentList.map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || item.name || '',
+                        value: String(item.HRMD_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        departmentOptions.push(...mapped);
+                    }
+                }
+
+                if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
+                    const mapped = data.departments.map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || item.name || '',
+                        value: String(item.HRMD_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        departmentOptions.push(...mapped);
+                    }
+                }
+
+                return {
+                    success: true,
+                    data: {
+                        departmentOptions
+                    },
+                    rawData: data,
+                    message: response.message || 'Departments for period leave report fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch departments for period leave report');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch designations for period leave report
+ * POST /api/LeaveReportWrapperFacade/PeriodGetDesignation
+ */
+export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'period-designations', request?.MI_Id, request?.emptypes],
+        queryFn: async () => {
+            try {
+                const response = await getPeriodLeaveReportDesignation({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    emptypes: request?.emptypes || []
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch designations for period leave report');
+                }
+
+                // Extract and map designation options from API response
+                const data = response.data;
+                
+                // Map DesignationTempDto to designationOptions
+                const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
+                    label: item.HRMDES_DesignationName || item.label || '',
+                    value: String(item.HRMDES_Id || item.value || '')
+                })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                // Also check other possible locations
+                if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
+                    const mapped = data.designationdropdownlist.map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || item.name || '',
+                        value: String(item.HRMDES_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        designationOptions.push(...mapped);
+                    }
+                }
+
+                // Check GridviewDetails as fallback
+                if (designationOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    const mapped = data.GridviewDetails.map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || item.name || '',
+                        value: String(item.HRMDES_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        designationOptions.push(...mapped);
+                    }
+                }
+
+                // Check designationList or designations as fallback
+                if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
+                    const mapped = data.designationList.map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || item.name || '',
+                        value: String(item.HRMDES_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        designationOptions.push(...mapped);
+                    }
+                }
+
+                if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
+                    const mapped = data.designations.map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || item.name || '',
+                        value: String(item.HRMDES_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        designationOptions.push(...mapped);
+                    }
+                }
+
+                return {
+                    success: true,
+                    data: {
+                        designationOptions
+                    },
+                    rawData: data,
+                    message: response.message || 'Designations for period leave report fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch designations for period leave report');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch employees for period leave report
+ * POST /api/LeaveReportWrapperFacade/PeriodGetEmployees
+ */
+export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[] }, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'period-employees', request?.MI_Id, request?.emptypes, request?.empdept],
+        queryFn: async () => {
+            try {
+                const response = await getPeriodLeaveReportEmployees({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    emptypes: request?.emptypes || [],
+                    empdept: request?.empdept || []
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch employees for period leave report');
+                }
+
+                // Extract employee list from API response
+                const data = response.data;
+                
+                // Map GridviewDetails, employeeList, employees, or employeelist to employeeList
+                let employeeList: any[] = [];
+                
+                if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    employeeList = data.GridviewDetails;
+                } else if (data.employeeList && Array.isArray(data.employeeList)) {
+                    employeeList = data.employeeList;
+                } else if (data.employees && Array.isArray(data.employees)) {
+                    employeeList = data.employees;
+                } else if (data.employeelist && Array.isArray(data.employeelist)) {
+                    employeeList = data.employeelist;
+                } else if (Array.isArray(data)) {
+                    employeeList = data;
+                }
+
+                // Map to employee format for dropdowns
+                const employeeOptions = employeeList.map((item: any) => ({
+                    id: item.HRME_Id || item.id || 0,
+                    employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    departmentId: item.HRMD_Id || item.departmentId || 0,
+                    departmentName: item.HRMD_DepartmentName || item.departmentName || '',
+                    designationId: item.HRMDES_Id || item.designationId || 0,
+                    designationName: item.HRMDES_DesignationName || item.designationName || '',
+                    label: `${item.HRME_EmployeeCode || ''} - ${`${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim()}`.trim() || item.label || '',
+                    value: String(item.HRME_Id || item.value || item.id || '')
+                })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                return {
+                    success: true,
+                    data: {
+                        employeeOptions,
+                        employeeList: employeeList.map((item: any) => ({
+                            id: item.HRME_Id || item.id || 0,
+                            employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                            employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                            departmentId: item.HRMD_Id || item.departmentId || 0,
+                            departmentName: item.HRMD_DepartmentName || item.departmentName || '',
+                            designationId: item.HRMDES_Id || item.designationId || 0,
+                            designationName: item.HRMDES_DesignationName || item.designationName || ''
+                        }))
+                    },
+                    rawData: data,
+                    message: response.message || 'Employees for period leave report fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch employees for period leave report');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch departments for leave report
+ * POST /api/LeaveReportWrapperFacade/GetDepartments
+ */
+export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'departments', request?.MI_Id, request?.emptypes],
+        queryFn: async () => {
+            try {
+                const response = await getLeaveReportDepartments({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    emptypes: request?.emptypes || []
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch departments');
+                }
+
+                // Extract and map department options from API response
+                const data = response.data;
+                
+                // Map DepartmentTempDto to departmentOptions
+                const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
+                    label: item.HRMD_DepartmentName || item.label || '',
+                    value: String(item.HRMD_Id || item.value || '')
+                })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                // Also check other possible locations
+                if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
+                    const mapped = data.departmentdropdownlist.map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || item.name || '',
+                        value: String(item.HRMD_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        departmentOptions.push(...mapped);
+                    }
+                }
+
+                // Check GridviewDetails as fallback
+                if (departmentOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    const mapped = data.GridviewDetails.map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || item.name || '',
+                        value: String(item.HRMD_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        departmentOptions.push(...mapped);
+                    }
+                }
+
+                // Check departmentList or departments as fallback
+                if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
+                    const mapped = data.departmentList.map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || item.name || '',
+                        value: String(item.HRMD_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        departmentOptions.push(...mapped);
+                    }
+                }
+
+                if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
+                    const mapped = data.departments.map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || item.name || '',
+                        value: String(item.HRMD_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        departmentOptions.push(...mapped);
+                    }
+                }
+
+                return {
+                    success: true,
+                    data: {
+                        departmentOptions
+                    },
+                    rawData: data,
+                    message: response.message || 'Departments fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch departments');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch designations for leave report
+ * POST /api/LeaveReportWrapperFacade/GetDesignation
+ */
+export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'designations', request?.MI_Id, request?.emptypes],
+        queryFn: async () => {
+            try {
+                const response = await getPeriodLeaveReportDesignation({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    emptypes: request?.emptypes || []
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch designations');
+                }
+
+                // Extract and map designation options from API response
+                const data = response.data;
+                
+                // Map DesignationTempDto to designationOptions
+                const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
+                    label: item.HRMDES_DesignationName || item.label || '',
+                    value: String(item.HRMDES_Id || item.value || '')
+                })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                // Also check other possible locations
+                if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
+                    const mapped = data.designationdropdownlist.map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || item.name || '',
+                        value: String(item.HRMDES_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        designationOptions.push(...mapped);
+                    }
+                }
+
+                // Check GridviewDetails as fallback
+                if (designationOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    const mapped = data.GridviewDetails.map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || item.name || '',
+                        value: String(item.HRMDES_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        designationOptions.push(...mapped);
+                    }
+                }
+
+                // Check designationList or designations as fallback
+                if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
+                    const mapped = data.designationList.map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || item.name || '',
+                        value: String(item.HRMDES_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        designationOptions.push(...mapped);
+                    }
+                }
+
+                if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
+                    const mapped = data.designations.map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || item.name || '',
+                        value: String(item.HRMDES_Id || item.value || item.id || '')
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    if (mapped.length > 0) {
+                        designationOptions.push(...mapped);
+                    }
+                }
+
+                return {
+                    success: true,
+                    data: {
+                        designationOptions
+                    },
+                    rawData: data,
+                    message: response.message || 'Designations fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch designations');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch employees for leave report
+ * POST /api/LeaveReportWrapperFacade/GetEmployees
+ */
+export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[] }, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'employees', request?.MI_Id, request?.emptypes, request?.empdept],
+        queryFn: async () => {
+            try {
+                const response = await getPeriodLeaveReportEmployees({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    emptypes: request?.emptypes || [],
+                    empdept: request?.empdept || []
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch employees');
+                }
+
+                // Extract employee list from API response
+                const data = response.data;
+                
+                // Map GridviewDetails, employeeList, employees, or employeelist to employeeList
+                let employeeList: any[] = [];
+                
+                if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    employeeList = data.GridviewDetails;
+                } else if (data.employeeList && Array.isArray(data.employeeList)) {
+                    employeeList = data.employeeList;
+                } else if (data.employees && Array.isArray(data.employees)) {
+                    employeeList = data.employees;
+                } else if (data.employeelist && Array.isArray(data.employeelist)) {
+                    employeeList = data.employeelist;
+                } else if (Array.isArray(data)) {
+                    employeeList = data;
+                }
+
+                // Map to employee format for dropdowns
+                const employeeOptions = employeeList.map((item: any) => ({
+                    id: item.HRME_Id || item.id || 0,
+                    employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    departmentId: item.HRMD_Id || item.departmentId || 0,
+                    departmentName: item.HRMD_DepartmentName || item.departmentName || '',
+                    designationId: item.HRMDES_Id || item.designationId || 0,
+                    designationName: item.HRMDES_DesignationName || item.designationName || '',
+                    label: `${item.HRME_EmployeeCode || ''} - ${`${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim()}`.trim() || item.label || '',
+                    value: String(item.HRME_Id || item.value || item.id || '')
+                })).filter((item: { label: string; value: string }) => item.label && item.value);
+
+                return {
+                    success: true,
+                    data: {
+                        employeeOptions,
+                        employeeList: employeeList.map((item: any) => ({
+                            id: item.HRME_Id || item.id || 0,
+                            employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                            employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                            departmentId: item.HRMD_Id || item.departmentId || 0,
+                            departmentName: item.HRMD_DepartmentName || item.departmentName || '',
+                            designationId: item.HRMDES_Id || item.designationId || 0,
+                            designationName: item.HRMDES_DesignationName || item.designationName || ''
+                        }))
+                    },
+                    rawData: data,
+                    message: response.message || 'Employees fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch employees');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch leave report data with filters
+ * POST /api/LeaveReportWrapperFacade/GetReport
+ */
+export function useLeaveReportData(request?: { 
+    MI_Id?: number; 
+    selectedLeave?: string; 
+    selectedEmployee?: string; 
+    HRELTD_FromDate?: string; 
+    HRELT_ToDate?: string; 
+    Edit_flag?: boolean; 
+    selectedreport?: number[]; 
+    UserId?: number;
+}, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'report-data', request],
+        queryFn: async () => {
+            try {
+                const response = await getLeaveReportData({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    selectedLeave: request?.selectedLeave || '',
+                    selectedEmployee: request?.selectedEmployee || '',
+                    HRELTD_FromDate: request?.HRELTD_FromDate || '',
+                    HRELT_ToDate: request?.HRELT_ToDate || '',
+                    Edit_flag: request?.Edit_flag ?? true,
+                    selectedreport: request?.selectedreport || [],
+                    UserId: request?.UserId || 0
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch leave report data');
+                }
+
+                // Extract report list from API response
+                const data = response.data;
+                
+                // Map GridviewDetails, reportList, leaveReportList, or reportData to reportList
+                let reportList: any[] = [];
+                
+                if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    reportList = data.GridviewDetails;
+                } else if (data.reportList && Array.isArray(data.reportList)) {
+                    reportList = data.reportList;
+                } else if (data.leaveReportList && Array.isArray(data.leaveReportList)) {
+                    reportList = data.leaveReportList;
+                } else if (data.reportData && Array.isArray(data.reportData)) {
+                    reportList = data.reportData;
+                } else if (Array.isArray(data)) {
+                    reportList = data;
+                }
+
+                // Map to leave report format matching LeaveReportRow interface
+                const mappedReportList = reportList.map((item: any, index: number) => ({
+                    slNo: index + 1,
+                    employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    leaveName: item.HRML_LeaveName || item.leaveName || '',
+                    fromDate: item.HRELAP_FromDate || item.HRELTD_FromDate || item.fromDate || '',
+                    toDate: item.HRELAP_ToDate || item.HRELT_ToDate || item.toDate || '',
+                    appliedDays: item.HRELAP_TotalDays || item.appliedDays || 0,
+                    leaveStatus: (item.HRELAP_ApplicationStatus || item.leaveStatus || 'Pending') as 'Approved' | 'Pending' | 'Rejected',
+                    leaveBalance: item.HRELS_TotalLeaves || item.leaveBalance || 0
+                }));
+
+                return {
+                    success: true,
+                    data: {
+                        reportList: mappedReportList
+                    },
+                    rawData: data,
+                    message: response.message || 'Leave report data fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch leave report data');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch period leave report data with filters
+ * POST /api/LeaveReportWrapperFacade/PeriodGetReport
+ */
+export function usePeriodLeaveReportData(request?: { 
+    MI_Id?: number; 
+    selectedLeave?: string; 
+    selectedEmployee?: string; 
+    HRELTD_FromDate?: string; 
+    HRELT_ToDate?: string; 
+    Edit_flag?: boolean; 
+    selectedreport?: number[]; 
+    UserId?: number;
+}, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'period-report-data', request],
+        queryFn: async () => {
+            try {
+                const response = await getPeriodLeaveReportData({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    selectedLeave: request?.selectedLeave || '',
+                    selectedEmployee: request?.selectedEmployee || '',
+                    HRELTD_FromDate: request?.HRELTD_FromDate || '',
+                    HRELT_ToDate: request?.HRELT_ToDate || '',
+                    Edit_flag: request?.Edit_flag ?? true,
+                    selectedreport: request?.selectedreport || [],
+                    UserId: request?.UserId || 0
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch period leave report data');
+                }
+
+                // Extract period report list from API response
+                const data = response.data;
+                
+                // Map GridviewDetails, periodReportList, leavePeriodReportList, or reportData to reportList
+                let reportList: any[] = [];
+                
+                if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    reportList = data.GridviewDetails;
+                } else if (data.periodReportList && Array.isArray(data.periodReportList)) {
+                    reportList = data.periodReportList;
+                } else if (data.leavePeriodReportList && Array.isArray(data.leavePeriodReportList)) {
+                    reportList = data.leavePeriodReportList;
+                } else if (data.reportData && Array.isArray(data.reportData)) {
+                    reportList = data.reportData;
+                } else if (Array.isArray(data)) {
+                    reportList = data;
+                }
+
+                // Map to period leave report format
+                const mappedReportList = reportList.map((item: any, index: number) => ({
+                    slNo: index + 1,
+                    employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    leaveName: item.HRML_LeaveName || item.leaveName || '',
+                    period: item.period || item.periodName || '',
+                    openingBalance: item.HRELS_OBLeaves || item.openingBalance || 0,
+                    creditedLeaves: item.HRELS_CreditedLeaves || item.creditedLeaves || 0,
+                    totalLeaves: item.HRELS_TotalLeaves || item.totalLeaves || 0,
+                    carryForward: item.HRELS_CBLeaves || item.carryForward || 0,
+                    transactionLeaves: item.HRELS_TransLeaves || item.transactionLeaves || 0,
+                    encashedLeaves: item.HRELS_EncashedLeaves || item.encashedLeaves || 0,
+                    departmentName: item.HRMD_DepartmentName || item.departmentName || '',
+                    designationName: item.HRMDES_DesignationName || item.designationName || ''
+                }));
+
+                return {
+                    success: true,
+                    data: {
+                        reportList: mappedReportList
+                    },
+                    rawData: data,
+                    message: response.message || 'Period leave report data fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch period leave report data');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
+    });
+}
+
+/**
+ * Hook to fetch yearwise leave report data with filters
+ * POST /api/LeaveReportWrapperFacade/GetReportYearwise
+ */
+export function useLeaveReportYearwise(request?: { 
+    MI_Id?: number; 
+    selectedLeave?: string; 
+    selectedEmployee?: string; 
+    HRELTD_FromDate?: string; 
+    HRELT_ToDate?: string; 
+    Edit_flag?: boolean; 
+    selectedreport?: number[]; 
+    UserId?: number;
+    valreturn?: string;
+}, enabled: boolean = true) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'yearwise-report', request],
+        queryFn: async () => {
+            try {
+                const response = await getLeaveReportYearwise({
+                    MI_Id: request?.MI_Id || HRMS_MI_ID,
+                    selectedLeave: request?.selectedLeave || '',
+                    selectedEmployee: request?.selectedEmployee || '',
+                    HRELTD_FromDate: request?.HRELTD_FromDate || '',
+                    HRELT_ToDate: request?.HRELT_ToDate || '',
+                    Edit_flag: request?.Edit_flag ?? true,
+                    selectedreport: request?.selectedreport || [],
+                    UserId: request?.UserId || 0,
+                    valreturn: request?.valreturn || ''
+                });
+
+                if (!response.success || !response.data) {
+                    throw new Error(response.message || 'Failed to fetch yearwise leave report data');
+                }
+
+                // Extract yearwise report list from API response
+                const data = response.data;
+                
+                // Map GridviewDetails, yearwiseReportList, leaveYearwiseReportList, or reportData to reportList
+                let reportList: any[] = [];
+                
+                if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
+                    reportList = data.GridviewDetails;
+                } else if (data.yearwiseReportList && Array.isArray(data.yearwiseReportList)) {
+                    reportList = data.yearwiseReportList;
+                } else if (data.leaveYearwiseReportList && Array.isArray(data.leaveYearwiseReportList)) {
+                    reportList = data.leaveYearwiseReportList;
+                } else if (data.reportData && Array.isArray(data.reportData)) {
+                    reportList = data.reportData;
+                } else if (Array.isArray(data)) {
+                    reportList = data;
+                }
+
+                // Map to yearwise leave report format
+                const mappedReportList = reportList.map((item: any, index: number) => ({
+                    slNo: index + 1,
+                    employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    leaveName: item.HRML_LeaveName || item.leaveName || '',
+                    year: item.year || item.yearName || '',
+                    openingBalance: item.HRELS_OBLeaves || item.openingBalance || 0,
+                    creditedLeaves: item.HRELS_CreditedLeaves || item.creditedLeaves || 0,
+                    totalLeaves: item.HRELS_TotalLeaves || item.totalLeaves || 0,
+                    carryForward: item.HRELS_CBLeaves || item.carryForward || 0,
+                    transactionLeaves: item.HRELS_TransLeaves || item.transactionLeaves || 0,
+                    encashedLeaves: item.HRELS_EncashedLeaves || item.encashedLeaves || 0,
+                    departmentName: item.HRMD_DepartmentName || item.departmentName || '',
+                    designationName: item.HRMDES_DesignationName || item.designationName || ''
+                }));
+
+                const dataAny = data as any;
+                return {
+                    success: true,
+                    data: {
+                        reportList: mappedReportList,
+                        valreturn: dataAny.valreturn || ''
+                    },
+                    rawData: data,
+                    message: response.message || 'Yearwise leave report data fetched successfully'
+                };
+            } catch (error: any) {
+                throw new Error(error?.message || 'Failed to fetch yearwise leave report data');
+            }
+        },
+        enabled: enabled && request?.MI_Id !== undefined, // Only fetch when MI_Id is provided
+        staleTime: 0 // Don't cache as this is filter-dependent
     });
 }

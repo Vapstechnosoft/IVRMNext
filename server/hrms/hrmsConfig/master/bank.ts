@@ -224,22 +224,94 @@ export async function saveMasterBank(data: MasterBankInput, roleId: number): Pro
         roleId: roleId
     };
     
+    // Enhanced debug logging for edit mode
+    if (isEditMode) {
+        console.log('🔵 [DEBUG] ========== EDIT BANK REQUEST ==========');
+        console.log('🔵 [DEBUG] Request URL:', url);
+        console.log('🔵 [DEBUG] Base URL Key: hrms');
+        console.log('🔵 [DEBUG] Role ID:', roleId);
+        console.log('🔵 [DEBUG] Input Data (from form):');
+        console.log('🔵 [DEBUG] - HRMBD_Id:', data.HRMBD_Id);
+        console.log('🔵 [DEBUG] - MI_Id:', data.MI_Id);
+        console.log('🔵 [DEBUG] - HRMBD_BankName:', data.HRMBD_BankName);
+        console.log('🔵 [DEBUG] - HRMBD_BranchName:', data.HRMBD_BranchName);
+        console.log('🔵 [DEBUG] - HRMBD_BankAccountNo:', data.HRMBD_BankAccountNo);
+        console.log('🔵 [DEBUG] - HRMBD_IFSCCode:', data.HRMBD_IFSCCode);
+        console.log('🔵 [DEBUG] - HRMBD_BankAddress:', data.HRMBD_BankAddress);
+        console.log('🔵 [DEBUG] - HRMBD_ActiveFlag:', data.HRMBD_ActiveFlag);
+        console.log('🔵 [DEBUG] Request Body (being sent to API):');
+        console.log('🔵 [DEBUG]', JSON.stringify(requestBody, null, 2));
+        console.log('🔵 [DEBUG] Bank Detail Object:');
+        console.log('🔵 [DEBUG]', JSON.stringify(bankDetail, null, 2));
+    }
+    
     try {
+        if (isEditMode) {
+            console.log('🔵 [DEBUG] Calling api.post for EDIT...');
+        }
         const response = await api.post<MasterBankResponse>('hrms', url, requestBody);
+        
+        if (isEditMode) {
+            console.log('🔵 [DEBUG] ========== EDIT BANK RESPONSE ==========');
+            console.log('🔵 [DEBUG] Full Response Object:');
+            console.log('🔵 [DEBUG]', JSON.stringify(response, null, 2));
+            console.log('🔵 [DEBUG] Response Structure Analysis:');
+            console.log('🔵 [DEBUG] - response.success:', response?.success);
+            console.log('🔵 [DEBUG] - response.message:', response?.message);
+            console.log('🔵 [DEBUG] - response.retrunMsg:', (response as any)?.retrunMsg);
+            console.log('🔵 [DEBUG] - response.HRMBD_Id (top-level):', (response as any)?.HRMBD_Id);
+            console.log('🔵 [DEBUG] - response.data type:', typeof response?.data);
+            console.log('🔵 [DEBUG] - response.data:', response?.data);
+            if (response?.data) {
+                console.log('🔵 [DEBUG] - response.data.HRMBD_Id:', (response.data as any)?.HRMBD_Id);
+                console.log('🔵 [DEBUG] - response.data.bankdetailList exists:', !!(response.data as any)?.bankdetailList);
+                console.log('🔵 [DEBUG] - response.data.bankdetailList length:', Array.isArray((response.data as any)?.bankdetailList) ? (response.data as any).bankdetailList.length : 'Not an array');
+            }
+            console.log('🔵 [DEBUG] - response.bankdetailList (top-level):', (response as any)?.bankdetailList);
+            console.log('🔵 [DEBUG] - response.bankdetailList length:', Array.isArray((response as any)?.bankdetailList) ? (response as any).bankdetailList.length : 'Not an array');
+        }
         
         // Check for error messages in retrunMsg
         const errorMsg: string = (response.retrunMsg || response.data?.retrunMsg || '') as string;
         const bankId = (response as any)?.HRMBD_Id || (response.data as any)?.HRMBD_Id || 0;
         
+        if (isEditMode) {
+            console.log('🔵 [DEBUG] ========== RESPONSE PARSING ==========');
+            console.log('🔵 [DEBUG] Error Message (retrunMsg):', errorMsg);
+            console.log('🔵 [DEBUG] Bank ID from top-level:', (response as any)?.HRMBD_Id);
+            console.log('🔵 [DEBUG] Bank ID from data:', (response.data as any)?.HRMBD_Id);
+            console.log('🔵 [DEBUG] Combined bankId:', bankId);
+            console.log('🔵 [DEBUG] Expected bankId (from input):', data.HRMBD_Id);
+            console.log('🔵 [DEBUG] Bank ID Match:', bankId === data.HRMBD_Id);
+        }
+        
         // For edit mode, check top-level response first (it contains the updated record)
         // For add mode, check the last item in bankdetailList (newly added item)
         const bankList = response.data?.bankdetailList || (response as any).bankdetailList || [];
+        
+        if (isEditMode) {
+            console.log('🔵 [DEBUG] Bank List Analysis:');
+            console.log('🔵 [DEBUG] - bankList source: response.data?.bankdetailList =', !!response.data?.bankdetailList);
+            console.log('🔵 [DEBUG] - bankList source: (response as any).bankdetailList =', !!(response as any).bankdetailList);
+            console.log('🔵 [DEBUG] - bankList length:', bankList.length);
+            console.log('🔵 [DEBUG] - bankList items:', JSON.stringify(bankList, null, 2));
+        }
+        
         let updatedBankItem = null;
         let lastBankId = 0;
         
         if (isEditMode && data.HRMBD_Id) {
             // For edit: Find the specific bank in the list by ID, or use top-level response
             updatedBankItem = bankList.find((bank: any) => bank.HRMBD_Id === data.HRMBD_Id);
+            
+            if (isEditMode) {
+                console.log('🔵 [DEBUG] Searching for bank with ID:', data.HRMBD_Id);
+                console.log('🔵 [DEBUG] - Found in bankList:', !!updatedBankItem);
+                if (updatedBankItem) {
+                    console.log('🔵 [DEBUG] - Found bank item:', JSON.stringify(updatedBankItem, null, 2));
+                }
+            }
+            
             // If not found in list, use top-level response data
             if (!updatedBankItem && bankId === data.HRMBD_Id) {
                 updatedBankItem = {
@@ -251,6 +323,11 @@ export async function saveMasterBank(data: MasterBankInput, roleId: number): Pro
                     HRMBD_BankAddress: (response as any)?.HRMBD_BankAddress || '',
                     HRMBD_ActiveFlag: (response as any)?.HRMBD_ActiveFlag || false
                 };
+                
+                if (isEditMode) {
+                    console.log('🔵 [DEBUG] Using top-level response data as updatedBankItem');
+                    console.log('🔵 [DEBUG] Top-level bank item:', JSON.stringify(updatedBankItem, null, 2));
+                }
             }
             lastBankId = updatedBankItem?.HRMBD_Id || bankId;
         } else {
@@ -262,15 +339,35 @@ export async function saveMasterBank(data: MasterBankInput, roleId: number): Pro
         console.log('🟢 [SERVER] Response - retrunMsg:', errorMsg, 'HRMBD_Id:', bankId || lastBankId);
         
         if (isEditMode) {
-            console.log('🟢 [SERVER] Edit Response Details:');
-            console.log('🟢 [SERVER] - Submitted IFSC:', data.HRMBD_IFSCCode);
-            console.log('🟢 [SERVER] - Response HRMBD_Id:', bankId || lastBankId);
-            console.log('🟢 [SERVER] - Top-level IFSC:', (response as any)?.HRMBD_IFSCCode);
+            console.log('🔵 [DEBUG] ========== FIELD COMPARISON ==========');
+            console.log('🔵 [DEBUG] Submitted Data:');
+            console.log('🔵 [DEBUG] - HRMBD_Id:', data.HRMBD_Id);
+            console.log('🔵 [DEBUG] - HRMBD_BankName:', data.HRMBD_BankName);
+            console.log('🔵 [DEBUG] - HRMBD_BranchName:', data.HRMBD_BranchName);
+            console.log('🔵 [DEBUG] - HRMBD_BankAccountNo:', data.HRMBD_BankAccountNo);
+            console.log('🔵 [DEBUG] - HRMBD_IFSCCode:', data.HRMBD_IFSCCode);
+            console.log('🔵 [DEBUG] - HRMBD_BankAddress:', data.HRMBD_BankAddress);
+            console.log('🔵 [DEBUG] - HRMBD_ActiveFlag:', data.HRMBD_ActiveFlag);
+            console.log('🔵 [DEBUG] Response Data (Top-level):');
+            console.log('🔵 [DEBUG] - HRMBD_Id:', (response as any)?.HRMBD_Id);
+            console.log('🔵 [DEBUG] - HRMBD_BankName:', (response as any)?.HRMBD_BankName);
+            console.log('🔵 [DEBUG] - HRMBD_BranchName:', (response as any)?.HRMBD_BranchName);
+            console.log('🔵 [DEBUG] - HRMBD_BankAccountNo:', (response as any)?.HRMBD_BankAccountNo);
+            console.log('🔵 [DEBUG] - HRMBD_IFSCCode:', (response as any)?.HRMBD_IFSCCode);
+            console.log('🔵 [DEBUG] - HRMBD_BankAddress:', (response as any)?.HRMBD_BankAddress);
+            console.log('🔵 [DEBUG] - HRMBD_ActiveFlag:', (response as any)?.HRMBD_ActiveFlag);
+            console.log('🔵 [DEBUG] Updated Bank Item (from list or top-level):');
             if (updatedBankItem) {
-                console.log('🟢 [SERVER] - Updated Bank Item IFSC:', updatedBankItem.HRMBD_IFSCCode);
-                console.log('🟢 [SERVER] - IFSC Match:', data.HRMBD_IFSCCode === updatedBankItem.HRMBD_IFSCCode);
+                console.log('🔵 [DEBUG]', JSON.stringify(updatedBankItem, null, 2));
+                console.log('🔵 [DEBUG] Field Matches:');
+                console.log('🔵 [DEBUG] - BankName Match:', data.HRMBD_BankName === updatedBankItem.HRMBD_BankName);
+                console.log('🔵 [DEBUG] - BranchName Match:', data.HRMBD_BranchName === updatedBankItem.HRMBD_BranchName);
+                console.log('🔵 [DEBUG] - AccountNo Match:', data.HRMBD_BankAccountNo === updatedBankItem.HRMBD_BankAccountNo);
+                console.log('🔵 [DEBUG] - IFSC Match:', data.HRMBD_IFSCCode === updatedBankItem.HRMBD_IFSCCode);
+                console.log('🔵 [DEBUG] - Address Match:', data.HRMBD_BankAddress === updatedBankItem.HRMBD_BankAddress);
+                console.log('🔵 [DEBUG] - ActiveFlag Match:', data.HRMBD_ActiveFlag === updatedBankItem.HRMBD_ActiveFlag);
             } else {
-                console.log('🟢 [SERVER] - Updated bank item not found in response');
+                console.log('🔵 [DEBUG] - Updated bank item not found in response');
             }
         }
         
@@ -327,10 +424,20 @@ export async function saveMasterBank(data: MasterBankInput, roleId: number): Pro
         const isSuccess = hasValidId && (isUpdateSuccess || bankList.length > 0);
         
         if (isEditMode) {
-            console.log('🟢 [SERVER] Edit Success Check:');
-            console.log('🟢 [SERVER] - hasValidId:', hasValidId, '(bankId:', bankId, 'lastBankId:', lastBankId, ')');
-            console.log('🟢 [SERVER] - isUpdateSuccess:', isUpdateSuccess, '(retrunMsg:', errorMsg, ')');
-            console.log('🟢 [SERVER] - isSuccess:', isSuccess);
+            console.log('🔵 [DEBUG] ========== SUCCESS DETECTION ==========');
+            console.log('🔵 [DEBUG] Success Criteria:');
+            console.log('🔵 [DEBUG] - hasValidId:', hasValidId);
+            console.log('🔵 [DEBUG]   * bankId > 0:', bankId > 0, '(value:', bankId, ')');
+            console.log('🔵 [DEBUG]   * lastBankId > 0:', lastBankId > 0, '(value:', lastBankId, ')');
+            console.log('🔵 [DEBUG] - isUpdateSuccess:', isUpdateSuccess);
+            console.log('🔵 [DEBUG]   * errorMsg === "Update":', errorMsg === 'Update');
+            console.log('🔵 [DEBUG]   * errorMsg === "Saved":', errorMsg === 'Saved');
+            console.log('🔵 [DEBUG]   * errorMsg === "Add":', errorMsg === 'Add');
+            console.log('🔵 [DEBUG]   * errorMsg value:', errorMsg);
+            console.log('🔵 [DEBUG] - bankList.length > 0:', bankList.length > 0, '(length:', bankList.length, ')');
+            console.log('🔵 [DEBUG] - Final isSuccess:', isSuccess);
+            console.log('🔵 [DEBUG] - response.success:', response?.success);
+            console.log('🔵 [DEBUG] - response.data?.success:', (response.data as any)?.success);
         } else {
             console.log('🟢 [SERVER] Success check - hasValidId:', hasValidId, 'isUpdateSuccess:', isUpdateSuccess, 'isSuccess:', isSuccess);
         }
@@ -359,18 +466,44 @@ export async function saveMasterBank(data: MasterBankInput, roleId: number): Pro
         
         // Otherwise return generic error
         if (isEditMode) {
+            console.log('🔵 [DEBUG] ========== EDIT FAILED ==========');
+            console.log('🔵 [DEBUG] Failure Reasons:');
+            console.log('🔵 [DEBUG] - hasValidId:', hasValidId);
+            console.log('🔵 [DEBUG] - isUpdateSuccess:', isUpdateSuccess);
+            console.log('🔵 [DEBUG] - bankList.length:', bankList.length);
+            console.log('🔵 [DEBUG] - errorMsg:', errorMsg);
+            console.log('🔵 [DEBUG] - bankId:', bankId);
+            console.log('🔵 [DEBUG] - lastBankId:', lastBankId);
+            console.log('🔵 [DEBUG] - response.success:', response?.success);
+            console.log('🔵 [DEBUG] - response.message:', response?.message);
             console.log('❌ [SERVER] Edit failed - retrunMsg:', errorMsg, 'HRMBD_Id:', bankId || lastBankId);
             console.log('❌ [SERVER] ============================');
         } else {
             console.log('❌ [SERVER] Save failed - retrunMsg:', errorMsg, 'HRMBD_Id:', bankId || lastBankId);
         }
-        return {
+        
+        const errorResponse = {
             success: false,
             message: response.message || errorMsg || 'Failed to save bank. Please check the data and try again.',
             data: null
         };
+        
+        if (isEditMode) {
+            console.log('🔵 [DEBUG] Returning error response:', JSON.stringify(errorResponse, null, 2));
+        }
+        
+        return errorResponse;
     } catch (error: any) {
+        if (isEditMode) {
+            console.error('🔴 [DEBUG] ========== EDIT EXCEPTION ==========');
+            console.error('🔴 [DEBUG] Exception during edit operation');
+        }
         console.error('🔴 [SERVER] API Error:', error?.message || error);
+        console.error('🔴 [SERVER] Error stack:', error?.stack);
+        if (error?.response) {
+            console.error('🔴 [SERVER] Error response status:', error.response.status);
+            console.error('🔴 [SERVER] Error response data:', JSON.stringify(error.response.data, null, 2));
+        }
         throw error;
     }
 }
@@ -384,9 +517,12 @@ export async function activateDeactivateMasterBank(data: {
     HRMBD_ActiveFlag: boolean;
     MI_Id?: number;
 }) {
-    console.log('🟠 [API] activateDeactivateMasterBank called');
-    console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
-    console.log('🟠 [API] Toggling to:', data.HRMBD_ActiveFlag ? 'ACTIVE' : 'INACTIVE');
+    console.log('🔵 [DEBUG] ========== ACTIVATE/DEACTIVATE BANK ==========');
+    console.log('🔵 [DEBUG] Input Data:');
+    console.log('🔵 [DEBUG] - HRMBD_Id:', data.HRMBD_Id);
+    console.log('🔵 [DEBUG] - HRMBD_ActiveFlag:', data.HRMBD_ActiveFlag, `(${data.HRMBD_ActiveFlag ? 'ACTIVATE' : 'DEACTIVATE'})`);
+    console.log('🔵 [DEBUG] - MI_Id:', data.MI_Id || 30, '(using:', data.MI_Id || 30, ')');
+    console.log('🔵 [DEBUG] Full input data:', JSON.stringify(data, null, 2));
     
     const url = '/api/MasterBankFacade/deactivateRecordById';
     const currentDate = new Date().toISOString();
@@ -420,32 +556,87 @@ export async function activateDeactivateMasterBank(data: {
         roleId: data.MI_Id || 30
     };
     
-    console.log('🟠 [API] Request URL:', url);
-    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
-    console.log('🟠 [API] Calling api.post...');
+    console.log('🔵 [DEBUG] Request Details:');
+    console.log('🔵 [DEBUG] - URL:', url);
+    console.log('🔵 [DEBUG] - Base URL Key: hrms');
+    console.log('🔵 [DEBUG] - Method: POST');
+    console.log('🔵 [DEBUG] - Current Date:', currentDate);
+    console.log('🔵 [DEBUG] Request Body:');
+    console.log('🔵 [DEBUG]', JSON.stringify(requestBody, null, 2));
+    console.log('🔵 [DEBUG] Request Body Analysis:');
+    console.log('🔵 [DEBUG] - HRMBD_Id in request:', requestBody.HRMBD_Id);
+    console.log('🔵 [DEBUG] - HRMBD_ActiveFlag in request:', requestBody.HRMBD_ActiveFlag);
+    console.log('🔵 [DEBUG] - HRMBD_ActiveFlag in bankdetailList[0]:', requestBody.bankdetailList[0]?.HRMBD_ActiveFlag);
+    console.log('🔵 [DEBUG] - Flags match:', requestBody.HRMBD_ActiveFlag === requestBody.bankdetailList[0]?.HRMBD_ActiveFlag);
     
     try {
+        console.log('🔵 [DEBUG] Calling api.post...');
         const response = await api.post<MasterBankResponse>('hrms', url, requestBody);
         
-        console.log('🟢 [API] Toggle response received:', JSON.stringify(response, null, 2));
-        console.log('🟢 [API] Response HRMBD_Id:', (response as any)?.HRMBD_Id);
-        console.log('🟢 [API] Response HRMBD_ActiveFlag:', (response as any)?.HRMBD_ActiveFlag);
-        console.log('🟢 [API] Response retrunMsg:', (response as any)?.retrunMsg);
+        console.log('🔵 [DEBUG] ========== TOGGLE RESPONSE ==========');
+        console.log('🔵 [DEBUG] Full Response Object:');
+        console.log('🔵 [DEBUG]', JSON.stringify(response, null, 2));
+        console.log('🔵 [DEBUG] Response Structure Analysis:');
+        console.log('🔵 [DEBUG] - response.success:', response?.success);
+        console.log('🔵 [DEBUG] - response.message:', response?.message);
+        console.log('🔵 [DEBUG] - response.retrunMsg:', (response as any)?.retrunMsg);
+        console.log('🔵 [DEBUG] - response.HRMBD_Id (top-level):', (response as any)?.HRMBD_Id);
+        console.log('🔵 [DEBUG] - response.HRMBD_ActiveFlag (top-level):', (response as any)?.HRMBD_ActiveFlag);
+        console.log('🔵 [DEBUG] - response.data type:', typeof response?.data);
+        if (response?.data) {
+            console.log('🔵 [DEBUG] - response.data:', response.data);
+            console.log('🔵 [DEBUG] - response.data.HRMBD_Id:', (response.data as any)?.HRMBD_Id);
+            console.log('🔵 [DEBUG] - response.data.HRMBD_ActiveFlag:', (response.data as any)?.HRMBD_ActiveFlag);
+            console.log('🔵 [DEBUG] - response.data.bankdetailList exists:', !!(response.data as any)?.bankdetailList);
+            console.log('🔵 [DEBUG] - response.data.bankdetailList length:', Array.isArray((response.data as any)?.bankdetailList) ? (response.data as any).bankdetailList.length : 'Not an array');
+        }
+        console.log('🔵 [DEBUG] - response.bankdetailList (top-level):', (response as any)?.bankdetailList);
+        console.log('🔵 [DEBUG] - response.bankdetailList length:', Array.isArray((response as any)?.bankdetailList) ? (response as any).bankdetailList.length : 'Not an array');
         
         // Check success based on response
         const responseData = response as any;
         const returnedId = responseData?.HRMBD_Id || 0;
+        const returnedFlag = responseData?.HRMBD_ActiveFlag;
         const toggleBankList = responseData?.bankdetailList || responseData?.data?.bankdetailList || [];
         const hasBankList = toggleBankList.length > 0;
+        
+        console.log('🔵 [DEBUG] ========== RESPONSE PARSING ==========');
+        console.log('🔵 [DEBUG] Extracted Values:');
+        console.log('🔵 [DEBUG] - returnedId:', returnedId);
+        console.log('🔵 [DEBUG] - returnedFlag:', returnedFlag);
+        console.log('🔵 [DEBUG] - Expected ID:', data.HRMBD_Id);
+        console.log('🔵 [DEBUG] - Expected Flag:', data.HRMBD_ActiveFlag);
+        console.log('🔵 [DEBUG] - ID Match:', returnedId === data.HRMBD_Id);
+        console.log('🔵 [DEBUG] - Flag Match:', returnedFlag === data.HRMBD_ActiveFlag);
+        console.log('🔵 [DEBUG] - toggleBankList source: responseData?.bankdetailList =', !!responseData?.bankdetailList);
+        console.log('🔵 [DEBUG] - toggleBankList source: responseData?.data?.bankdetailList =', !!responseData?.data?.bankdetailList);
+        console.log('🔵 [DEBUG] - toggleBankList length:', toggleBankList.length);
+        console.log('🔵 [DEBUG] - toggleBankList items:', JSON.stringify(toggleBankList, null, 2));
         
         // Also check for the ID in the list
         const toggledBankInList = toggleBankList.find((bank: any) => bank.HRMBD_Id === data.HRMBD_Id);
         const hasIdInList = !!toggledBankInList;
         
+        console.log('🔵 [DEBUG] Bank List Search:');
+        console.log('🔵 [DEBUG] - Searching for HRMBD_Id:', data.HRMBD_Id);
+        console.log('🔵 [DEBUG] - Found in list:', hasIdInList);
+        if (toggledBankInList) {
+            console.log('🔵 [DEBUG] - Found bank item:', JSON.stringify(toggledBankInList, null, 2));
+            console.log('🔵 [DEBUG] - Found bank HRMBD_ActiveFlag:', toggledBankInList.HRMBD_ActiveFlag);
+            console.log('🔵 [DEBUG] - Flag matches expected:', toggledBankInList.HRMBD_ActiveFlag === data.HRMBD_ActiveFlag);
+        }
+        
         // Success if we get an ID back, have bankdetailList, or find the toggled bank in the list
         const isSuccess = returnedId > 0 || hasBankList || hasIdInList || responseData?.retrunMsg === 'Update';
         
-        console.log('🟢 [API] Toggle success check - returnedId:', returnedId, 'hasBankList:', hasBankList, 'hasIdInList:', hasIdInList, 'isSuccess:', isSuccess);
+        console.log('🔵 [DEBUG] ========== SUCCESS DETECTION ==========');
+        console.log('🔵 [DEBUG] Success Criteria:');
+        console.log('🔵 [DEBUG] - returnedId > 0:', returnedId > 0, '(value:', returnedId, ')');
+        console.log('🔵 [DEBUG] - hasBankList:', hasBankList, '(length:', toggleBankList.length, ')');
+        console.log('🔵 [DEBUG] - hasIdInList:', hasIdInList);
+        console.log('🔵 [DEBUG] - responseData?.retrunMsg === "Update":', responseData?.retrunMsg === 'Update', '(value:', responseData?.retrunMsg, ')');
+        console.log('🔵 [DEBUG] - Final isSuccess:', isSuccess);
+        console.log('🔵 [DEBUG] - response.success:', response?.success);
         
         const formattedResponse = {
             success: isSuccess,
@@ -455,15 +646,33 @@ export async function activateDeactivateMasterBank(data: {
             data: responseData
         };
         
-        console.log('🟢 [API] Formatted toggle response:', JSON.stringify(formattedResponse, null, 2));
+        console.log('🔵 [DEBUG] ========== FORMATTED RESPONSE ==========');
+        console.log('🔵 [DEBUG]', JSON.stringify(formattedResponse, null, 2));
+        
+        if (!isSuccess) {
+            console.log('🔵 [DEBUG] ========== TOGGLE FAILED ==========');
+            console.log('🔵 [DEBUG] Failure Analysis:');
+            console.log('🔵 [DEBUG] - returnedId:', returnedId, '(expected > 0)');
+            console.log('🔵 [DEBUG] - hasBankList:', hasBankList, '(expected true)');
+            console.log('🔵 [DEBUG] - hasIdInList:', hasIdInList, '(expected true)');
+            console.log('🔵 [DEBUG] - retrunMsg:', responseData?.retrunMsg, '(expected "Update")');
+            console.log('🔵 [DEBUG] - response.success:', response?.success);
+        } else {
+            console.log('✅ [DEBUG] Toggle operation successful!');
+        }
         
         return formattedResponse as any;
     } catch (error: any) {
-        console.log('🔴 [API] Toggle error occurred');
-        console.error('🔴 [API] Error:', error);
-        console.error('🔴 [API] Error message:', error?.message);
-        console.error('🔴 [API] Error response:', error?.response);
-        console.error('🔴 [API] Error response data:', error?.response?.data);
+        console.log('🔴 [DEBUG] ========== TOGGLE EXCEPTION ==========');
+        console.log('🔴 [DEBUG] Exception during toggle operation');
+        console.error('🔴 [DEBUG] Error:', error);
+        console.error('🔴 [DEBUG] Error message:', error?.message);
+        console.error('🔴 [DEBUG] Error stack:', error?.stack);
+        if (error?.response) {
+            console.error('🔴 [DEBUG] Error response status:', error.response.status);
+            console.error('🔴 [DEBUG] Error response headers:', error.response.headers);
+            console.error('🔴 [DEBUG] Error response data:', JSON.stringify(error.response.data, null, 2));
+        }
         throw error;
     }
 }

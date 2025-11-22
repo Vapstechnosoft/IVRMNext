@@ -84,13 +84,18 @@ function ReligionCategoryMappingPageContent({
 }) {
     const { openAddForm } = useFormContext<ReligionCategoryMappingDetail>();
 
-    // Extract data from response - the API returns:
-    // { success, message, data: { data: [...], total, page, page_size, ... } }
-    // Where data.data is the mapping array (extracted from data.get_masterlist)
+    // Extract data from response - the API now returns:
+    // { success, message, data: { data: { mapping: [...], religion_list: [...], caste_list: [...] }, total, page, page_size, ... } }
+    // Where data.data.mapping is the mapping array, data.data.religion_list is religion list, data.data.caste_list is caste list
     const responseData = response?.data;
-    const rows = Array.isArray(responseData?.data) 
-        ? responseData.data 
-        : (responseData?.get_masterlist ?? []);
+    const dataObj = responseData?.data;
+    
+    // Extract mapping array from new structure (data.mapping) or fallback to old structure
+    const rows = Array.isArray(dataObj?.mapping)
+        ? dataObj.mapping
+        : Array.isArray(dataObj)
+          ? dataObj
+          : (responseData?.get_masterlist ?? []);
 
     return (
         <div className='min-h-screen'>
