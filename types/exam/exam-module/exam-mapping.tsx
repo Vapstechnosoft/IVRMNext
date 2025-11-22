@@ -360,3 +360,28 @@ export interface IExamMarksProcessCondition {
     eycE_ExamFlg: boolean;
     examDetails: ExamDetail[];
 }
+
+export interface IExamWiseRemarksGrid {
+    asmS_Id: number;
+    asmC_SectionName: string;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmaY_Order: number;
+    emE_Id: number;
+    emE_ExamName: string;
+    emE_ExamOrder: number;
+}
+
+export interface IExamWiseStudentRemarksStudent {
+    amsT_FirstName: string;
+    amsT_Id: number;
+    amsT_RegistrationNo: string;
+    amaY_RollNo: number;
+    amsT_AdmNo: string;
+    emeR_Remarks: string | null;
+    estmP_TotalObtMarks: number;
+    estmP_TotalMaxMarks: number;
+    estmP_Percentage: number;
+}

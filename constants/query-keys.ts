@@ -172,6 +172,7 @@ export const EXAM_QUERY_KEYS = {
     LIFE_SKILLS_AREA_MAPPING: 'life-skills-area-mapping',
 
     EXAM_MARKS_PROCESS_CONDITION: 'exam-marks-process-condition',
+    EXAM_WISE_REMARKS_DATA_GRID: 'exam-wise-remarks-data-grid',
 
     EXAM_STANDARD: 'exam-standared'
 };
