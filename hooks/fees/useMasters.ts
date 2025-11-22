@@ -38,7 +38,6 @@ import {
 } from '@/server/fees/masters/concession_category_head_group_mapping';
 import { getFeeOtherStudent } from '@/server/fees/masters/fee_other_student';
 import { getMasterTermsPeriod } from '@/server/fees/masters/fee_terms_period';
-import { getfeeInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterFeeYearlyRebateSettinFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
 import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
@@ -347,18 +346,51 @@ export const useMasterGroup = (searchParams?: ApiSearchparams) => {
 
 //due date
 
-export const useMasterFeeInstallmentDueDate = (searchParams?: ApiSearchparams) => {
+// export const useMasterFeeInstallmentDueDate = (searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT_DUE_DATE, searchParams ?? {}],
+//             queryFn: async () => getfeeInstallmentDueDate(searchParams),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT_DUE_DATE]
+//             });
+//         }
+//     };
+// };
+
+export const useMasterFeeInstallmentList = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT_DUE_DATE, searchParams ?? {}],
-            queryFn: async () => getfeeInstallmentDueDate(searchParams),
+            queryFn: async () => getfeeInstallmentList(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_INSTALLMENT_DUE_DATE]
+            });
+        }
+    };
+};
+
+export const useMasterFeeInstallmentDropDown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_INSATALLMENT_DROP_DOWN],
+            queryFn: async () => getInstallmentDropDown()
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_INSATALLMENT_DROP_DOWN]
             });
         }
     };

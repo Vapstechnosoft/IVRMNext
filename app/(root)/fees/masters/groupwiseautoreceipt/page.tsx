@@ -12,22 +12,23 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterGroupWiseAutoReciptColumns } from './_components/columns';
 import DeleteMasterAutoReceiptForm from './_components/delete-form';
 import UpdateMasterClassForm from './_components/update-form';
 
-export default function MasterClassPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function MasterClassPage(props: {
+    searchParams: SearchParams;
+}) {
+    const _searchParams = use(props.searchParams);
+
     const [academicYearId, setAcademicYearId] = useState<number | null>(null);
     const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
-    const {
-        data: response,
-        isLoading,
-        error,
-        refetch
-    } = useFeeMasterGroupwiseAutoReceipt(academicYearId || 0, searchQuery ? { search_query: searchQuery } : undefined);
+    const { data: response, isLoading, error, refetch } = useFeeMasterGroupwiseAutoReceipt(academicYearId || 0, _searchParams);
 
     // Refetch whenever academicYearId or searchQuery changes
     useEffect(() => {

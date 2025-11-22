@@ -47,10 +47,8 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
         mode: 'onChange',
 
         defaultValues: {
-            // asmay_Id: row.asmay_Id || 0,
-            // fmt_id: row.fmt_id || 0,
-            asmay_Id: 231,
-            fmt_id: 187,
+            asmay_Id: row.asmaY_Id,
+            fmt_id: row.fmT_Id,
             fmtP_Year: row.fmtP_Year ? String(row.fmtP_Year) : '',
             from_Month: row.fromMonth || '',
             to_Month: row.fmtToMonth || '',
@@ -67,13 +65,10 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
         if (!row) return;
 
         console.log('Loaded row data:', row);
-        // row.fmt_id = 187; // Temporary fix for term id
-        // row.asmay_Id = 231; // Temporary fix for academic year id
 
-        // Reset form data with the row data
         reset({
-            asmay_Id: row.asmay_Id,
-            fmt_id: row.fmt_id,
+            asmay_Id: row.asmaY_Id,
+            fmt_id: row.fmT_Id,
             fmtP_Year: row.fmtP_Year ? String(row.fmtP_Year) : '',
             from_Month: row.fromMonth ?? '',
             to_Month: row.fmtToMonth ?? '',
@@ -81,8 +76,8 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
         });
 
         console.log('Form reset with data:', {
-            asmay_Id: row.asmay_Id,
-            fmt_id: row.fmt_id,
+            asmay_Id: row.asmaY_Id,
+            fmt_id: row.fmT_Id,
             fmtP_Year: row.fmtP_Year ? String(row.fmtP_Year) : '',
             from_Month: row.fromMonth ?? '',
             to_Month: row.fmtToMonth ?? '',
@@ -90,7 +85,7 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
         });
 
         // Set selected academic year and fetch split years
-        setSelectedAcademicYear(231);
+        setSelectedAcademicYear(row.asmaY_Id);
     }, [row, reset]);
 
     // Load Split Academic Year
@@ -158,6 +153,7 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
                     render={({ field }) => (
                         <Select
                             value={String(field.value ?? '')}
+                            disabled
                             onValueChange={(val) => {
                                 field.onChange(Number(val));
                                 setSelectedAcademicYear(Number(val)); // Update selected academic year
@@ -183,69 +179,13 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
                 <Label className='min-w-[150px] text-right'>
                     Term<span className='text-red-500'>*</span>
                 </Label>
-                {/* <Controller
-                    name="fmt_id"
-                    control={control}
-                    render={({ field }) => (
-                        <Select
-                            value={String(field.value ?? "")}
-                            onValueChange={(value) => field.onChange(Number(value))}
-                        >
-                            <SelectTrigger className="min-w-[400px] text-center">
-                                <SelectValue placeholder="--Select Term--" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {terms?.data?.map((item) => (
-                                    <SelectItem key={item.fmT_Id} value={item.fmT_Id.toString()}>
-                                        {item.fmT_Name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-
-                    
-                /> */}
-                {/* <Controller
-                                                name='fmt_id'
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <Select
-                                                        onValueChange={(value) => {
-                                                            field.onChange(Number(value));
-                                                        }}
-                                                        value={field.value?.toString() || undefined}>
-                                                        <SelectTrigger className="min-w-[400px] text-center">
-                                                            <SelectValue placeholder='Select Term' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {termsLoading ? (
-                                                                <SelectItem value='loading' disabled>
-                                                                    Loading Terms...
-                                                                </SelectItem>
-                                                            ) : termsError ? (
-                                                                <SelectItem value='error' disabled>
-                                                                    Error loading Terms
-                                                                </SelectItem>
-                                                            ) : (
-                                                                terms?.data?.map((item) => (
-                                                                    <SelectItem key={item.fmT_Id} value={item.fmT_Id.toString()}>
-                                                                        {item.fmT_Name}
-                                                                    </SelectItem>
-                                                                ))
-                                                            )}
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            /> */}
-
                 <Controller
                     name='fmt_id'
                     control={control}
                     render={({ field }) => (
-                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
+                        <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()} disabled>
                             <SelectTrigger className='min-w-[400px]'>
-                                <SelectValue placeholder='Select Group' />
+                                <SelectValue placeholder='Select Term' />
                             </SelectTrigger>
                             <SelectContent>
                                 {terms?.data?.map((g) => (
@@ -273,7 +213,9 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
                         <Select
                             value={String(field.value ?? '')}
                             onValueChange={(val) => field.onChange(val)}
-                            disabled={!selectedAcademicYear || splitAcademicYear.length === 0}>
+                            //disabled={!selectedAcademicYear || splitAcademicYear.length === 0}
+                            disabled
+                        >
                             <SelectTrigger className='min-w-[400px] text-center'>
                                 <SelectValue placeholder='--Select Year--' />
                             </SelectTrigger>

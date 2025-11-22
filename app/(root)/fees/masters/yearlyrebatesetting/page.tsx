@@ -4,7 +4,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterFeeYearlyRebateSettingFacade } from '@/hooks/fees/useMasters';
-import type { IMasterYearlyRebateSettingsList } from '@/types/fees/masters/masters';
+import type { IMasterFeeYearlyRebateSettingFacade } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterYearlyReabteSetting from './_components/add-form';
@@ -22,7 +22,7 @@ export default function MasterYearlyRebateSettings(props: {
     const tableProps = useDataTableProps(response);
 
     return (
-        <FormProvider<IMasterYearlyRebateSettingsList>>
+        <FormProvider<IMasterFeeYearlyRebateSettingFacade>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
                     {/* Header */}
@@ -42,7 +42,7 @@ export default function MasterYearlyRebateSettings(props: {
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <GenericDataTable<IMasterYearlyRebateSettingsList>
+                        <GenericDataTable<IMasterFeeYearlyRebateSettingFacade>
                             {...tableProps}
                             columns={YearlyRebateSettingColumns}
                             isLoading={isLoading}
@@ -63,7 +63,7 @@ export default function MasterYearlyRebateSettings(props: {
 }
 
 function AddButton() {
-    const { openAddForm } = useFormContext<IMasterYearlyRebateSettingsList>();
+    const { openAddForm } = useFormContext<IMasterFeeYearlyRebateSettingFacade>();
     return (
         <Button type='button' onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
             <Plus className='h-4 w-4' />
@@ -83,7 +83,7 @@ function FormSections() {
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IMasterYearlyRebateSettingsList>();
+    } = useFormContext<IMasterFeeYearlyRebateSettingFacade>();
 
     return (
         <>

@@ -64,24 +64,24 @@ export interface IMasterClassYearlyCategoryList {
 
 //installment fees
 
-export interface IMasterFeesInstallmentList {
-    fmI_Id: number;
-    mI_Id: number;
-    fmI_Name: string;
-    fmI_No_Of_Installments: number;
-    fmI_Installment_Type: string;
-    ftI_Name?: string;
-    fmI_ActiceFlag?: boolean | number;
-    installments?: Array<{
-        sno?: number;
-        ftI_Id?: number;
-        ftI_Name?: string;
-        fdate?: string;
-        tdate?: string;
-        aplc?: string;
-        ddate?: string;
-    }>;
-}
+// export interface IMasterFeesInstallmentList {
+//     fmI_Id: number;
+//     mI_Id: number;
+//     fmI_Name: string;
+//     fmI_No_Of_Installments: number;
+//     fmI_Installment_Type: string;
+//     ftI_Name?: string;
+//     fmI_ActiceFlag?: boolean | number;
+//     installments?: Array<{
+//         sno?: number;
+//         ftI_Id?: number;
+//         ftI_Name?: string;
+//         fdate?: string;
+//         tdate?: string;
+//         aplc?: string;
+//         ddate?: string;
+//     }>;
+// }
 //groups
 export interface IMasterGroupList {
     fmG_Id: number;
@@ -241,6 +241,7 @@ export interface IMasterYearlyRebateSettingsList {
     fyG_PartialRebate: string;
     fyG_PartialRebateAmtOrPercentageValue?: number | string;
     fyg_date: string;
+    fyrebseT_Id: number;
 }
 
 export interface IMasterGroupsGrouping {
@@ -356,24 +357,37 @@ export interface FeeInstallmentList {
     ftI_Name: string;
 }
 
+// export interface IMasterFeesInstallmentList {
+//     fmI_Id: number;
+//     mI_Id: number;
+//     fmI_Name: string;
+//     fmI_No_Of_Installments: number;
+//     fmI_Installment_Type: string;
+//     ftI_Name?: string;
+//     fmI_ActiceFlag?: boolean | number;
+//     installments?: Array<{
+//         sno?: number;
+//         ftI_Id?: number;
+//         ftI_Name?: string;
+//         fdate?: string;
+//         tdate?: string;
+//         aplc?: string;
+//         ddate?: string;
+//     }>;
+// }
+
 export interface IMasterFeesInstallmentList {
+    ftidD_Id: number;
+    ftI_Name: string;
+    ftidD_FromDate: string;
+    ftidD_ToDate: string;
+    ftidD_ApplicableDate: string;
+    ftidD_DueDate: string;
+    ftI_Id: number;
+    asmaY_Id: number;
     fmI_Id: number;
-    mI_Id: number;
-    fmI_Name: string;
-    fmI_No_Of_Installments: number;
-    fmI_Installment_Type: string;
-    ftI_Name?: string;
-    fmI_ActiceFlag?: boolean | number;
-    installments?: Array<{
-        sno?: number;
-        ftI_Id?: number;
-        ftI_Name?: string;
-        fdate?: string;
-        tdate?: string;
-        aplc?: string;
-        ddate?: string;
-    }>;
 }
+
 export interface IMasterClassYearlyList {
     fmG_GroupName: string;
     fmG_Id: any;
@@ -395,7 +409,12 @@ export interface IMasterFeeHeadDropdownList {
     fmH_FeeName: string;
 }
 
-export interface IMasterFeeInstallmentDropdownList {
+// export interface IMasterFeeInstallmentDropdownList {
+//     fmI_Id: number;
+//     fmI_Name: string;
+// }
+
+export interface IMasterFeeInstallmentDropDown {
     fmI_Id: number;
     fmI_Name: string;
 }
@@ -591,8 +610,8 @@ export interface IMasterTermsPeriodList {
     feeFlag: string;
     fmtP_Id: number;
     user_Id: number;
-    asmay_Id: number;
-    fmt_id: number;
+    asmaY_Id: number;
+    fmT_Id: number;
 }
 
 export interface IMasterStudentFeeGroupMappingList {

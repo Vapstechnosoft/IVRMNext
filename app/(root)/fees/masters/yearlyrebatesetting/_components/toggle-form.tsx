@@ -3,10 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterFeeYearlyGroup } from '@/hooks/fees/useMasters';
+import { useMasterFeeYearlyRebateSettingFacade } from '@/hooks/fees/useMasters';
 import { YearlyRebateSettingsSchema } from '@/schemas/fees/masters';
-import { toggleMasterclassYearlyCategory } from '@/server/fees/masters/fees_yearly_group';
-import type { IMasterYearlyRebateSettingsList } from '@/types/fees/masters/masters';
+import { toggleYearlyRebateSetting } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
+import type { IMasterFeeYearlyRebateSettingFacade } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
@@ -14,14 +14,14 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof YearlyRebateSettingsSchema.delete>;
 
 interface ToggleRebateSettingFormProps {
-    rowData: IMasterYearlyRebateSettingsList;
+    rowData: IMasterFeeYearlyRebateSettingFacade;
     onClose: () => void;
 }
 
 export default function ToggleRebateSettingColumnForm({ rowData, onClose }: ToggleRebateSettingFormProps) {
-    const { refetchAll } = useMasterFeeYearlyGroup();
+    const { refetchAll } = useMasterFeeYearlyRebateSettingFacade();
 
-    const isActive = Boolean(rowData.asmcl_ActiveFlag);
+    const isActive = Boolean(rowData.fyrebseT_ActiveId);
 
     const {
         register,
@@ -48,7 +48,7 @@ export default function ToggleRebateSettingColumnForm({ rowData, onClose }: Togg
         if (!fyG_Id) return;
 
         try {
-            const response = await toggleMasterclassYearlyCategory(30, fyG_Id);
+            const response = await toggleYearlyRebateSetting(rowData.fyrebseT_Id);
 
             if (response.success) {
                 refetchAll();

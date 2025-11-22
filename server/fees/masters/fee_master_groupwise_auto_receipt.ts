@@ -7,6 +7,7 @@ import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/master
 export async function getFeeMasterGroupwiseAutoReceipt(asmay_Id: number, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'academicyear,fgaR_PrefixName,fgaR_SuffixName');
     const url = `/FeeMasterGroupwiseAutoReceipt/GetMasterGroupwiseAutoReceiptList?asmay_Id=${asmay_Id}&${urlParams}`;
+    console.info('FeeMasterGroupwiseAutoReceipt URL:', url);
 
     return await api.get<IMasterGroupWiseAutoReciptList[]>('fees', url);
 }
