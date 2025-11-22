@@ -97,7 +97,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
             submerchantIds: data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) || [],
 
-            fpgD_MerchantKey: data.fpgD_MerchantKey,
+            fpgD_AuthorisationKey: data.fpgD_MerchantKey,
             impG_Id: data.impG_Id,
             fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
         };
@@ -141,26 +141,37 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     <label htmlFor='fpgD_Image'>
                         Image<span className='text-red-500'>*</span>
                     </label>
-                    <InputText
+                    {/* <InputText
                         id='fpgD_Image'
                         {...register('fpgD_Image')}
                         error={errors.fpgD_Image?.message}
                         onKeyDown={(e) => {
-                            // Block minus, plus, special chars used in number inputs
+                           
                             if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
                                 e.preventDefault();
                             }
 
-                            // Block other special characters
+                            
                             if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
                                 e.preventDefault();
                             }
                         }}
                         onInput={(e) => {
                             const input = e.target as HTMLInputElement;
-                            // Keep only alphanumeric values
+                            
                             input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
                         }}
+                    /> */}
+                    <InputText
+                        //   label="Image"
+                        //   required
+                        id='fpgD_Image'
+                        {...register('fpgD_Image', {
+                            required: 'Image URL is required',
+                            validate: (value) =>
+                                value.startsWith('http://') || value.startsWith('https://') || 'URL must begin with http:// or https://'
+                        })}
+                        error={errors.fpgD_Image?.message}
                     />
                 </div>
 
@@ -168,27 +179,37 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     <label htmlFor='fpgD_URL'>
                         URL<span className='text-red-500'>*</span>
                     </label>
+
                     <InputText
+                        id='fpgD_URL'
+                        {...register('fpgD_URL', {
+                            required: 'URL is required',
+                            validate: (value) =>
+                                value.startsWith('http://') || value.startsWith('https://') || 'URL must begin with http:// or https://'
+                        })}
+                        error={errors.fpgD_URL?.message}
+                    />
+                    {/* <InputText
                         id='fpgD_URL'
                         {...register('fpgD_URL')}
                         error={errors.fpgD_URL?.message}
                         onKeyDown={(e) => {
-                            // Block minus, plus, special chars used in number inputs
+                           
                             if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
                                 e.preventDefault();
                             }
 
-                            // Block other special characters
+                           
                             if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
                                 e.preventDefault();
                             }
                         }}
                         onInput={(e) => {
                             const input = e.target as HTMLInputElement;
-                            // Keep only alphanumeric values
+                           
                             input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
                         }}
-                    />
+                    /> */}
                 </div>
             </div>
 

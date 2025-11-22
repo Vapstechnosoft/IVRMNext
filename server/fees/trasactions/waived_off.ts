@@ -2,7 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IFeeTransactionWaivedOffList } from '@/types/fees/transactions/transactions';
+import type { IFeeClassList, IFeeSectionList, IFeeTransactionWaivedOffList } from '@/types/fees/transactions/transactions';
 
 export async function addOrUpdateTransactionWaivedOff(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
@@ -18,4 +18,14 @@ export async function addOrUpdateFeeTerm(data: any) {
 export async function toggleFeeTerm(id: number) {
     const url = `/FeeFineSlabFacade/Toggle/${id}`;
     return await api.put('fees', url);
+}
+
+export async function getsectiondetails() {
+    const url = 'FeeStudentTransaction/section-details';
+    return await api.get<IFeeSectionList[]>('fees', url);
+}
+
+export async function getClassdetails() {
+    const url = 'FeeStudentTransaction/class-details';
+    return await api.get<IFeeClassList[]>('fees', url);
 }

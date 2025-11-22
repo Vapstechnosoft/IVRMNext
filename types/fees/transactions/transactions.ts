@@ -362,3 +362,37 @@ export interface IThirdPartyTransactionEditdata {
     fmA_Id: number;
     fsS_ToBePaid: number;
 }
+
+export interface IFeeSectionList {
+    asmS_Id: number;
+    mI_Id: number;
+    asmC_SectionName: string;
+    asmC_SectionCode: string;
+    asmC_Order: number;
+    asmC_ActiveFlag: number;
+    asmC_MaxCapacity: number;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface IFeeClassList {
+    asmcL_Id: number;
+    mI_Id: number;
+    asmcL_ClassName: string;
+    asmcL_MinAgeYear: number;
+    asmcL_MinAgeMonth: number;
+    asmcL_MinAgeDays: number;
+    asmcL_MaxAgeYear: number;
+    asmcL_MaxAgeMonth: number;
+    asmcL_MaxAgeDays: number;
+    asmcL_Order: number;
+    asmcL_ClassCode: string;
+    asmcL_ActiveFlag: boolean;
+    asmcL_MaxCapacity: number;
+    asmcL_PreadmFlag: number;
+    asmcL_StreamFlg: string | null;
+    asmcL_CreatedBy: string | null;
+    asmcL_UpdatedBy: string | null;
+    createdDate: string;
+    updatedDate: string;
+}
