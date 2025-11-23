@@ -197,7 +197,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             }
 
             if (rowData.previousSchoolDetails && Array.isArray(rowData.previousSchoolDetails) && rowData.previousSchoolDetails.length > 0) {
-                replacePreviousSchools(rowData.previousSchoolDetails);
+                // Keep only the first previous school entry in the form (show single entry only)
+                const firstPrev = rowData.previousSchoolDetails[0];
+                replacePreviousSchools([firstPrev]);
             }
 
             if (rowData.selectedSourceDetails) {
@@ -245,7 +247,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
     const [sameAsResidential, setSameAsResidential] = useState(false);
 
-    const [previousSchool, setPreviousSchool] = useState({
+    const [, setPreviousSchool] = useState({
         pasrpS_Id: 0,
         pasR_Id: 0,
         pasrpS_PrvSchoolName: '',
@@ -2830,6 +2832,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     value={field.value || 0}
                                                                     onChange={(value) => field.onChange(Number.isNaN(value) ? 0 : value)}
                                                                     minValue={0}
+                                                                    maxDigits={15}
                                                                 />
                                                             )}
                                                         />
@@ -3379,9 +3382,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     {previousSchoolFields.map((field, index) => (
                                                         <div key={field.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
                                                             <div className='mb-3 flex items-center justify-between'>
-                                                                <h4 className='font-medium text-gray-700 text-sm'>
-                                                                    Previous School {index + 1}
-                                                                </h4>
+                                                                <h4 className='font-medium text-gray-700 text-sm'>Previous School</h4>
                                                                 {/* <Button
                                                                     type='button'
                                                                     variant='ghost'
