@@ -135,15 +135,36 @@ export const studentApplicationFormSchema = {
         pasA_MotherMotherTongue: createStringOnlyOptionalSchema('Mother`s Mother Tongue', 1, 100),
         pasA_MotherBusiness: createOptionalStringSchema('Mother Business', 1, 150),
         pasA_MotherCompany: createOptionalStringSchema('Mother Company', 1, 150),
-
+        // Siblings Details (array, like add schema)
         siblingsDetails: z
             .array(
                 z.object({
+                    pasR_Id: z.number().int().optional(),
+                    pasrS_SchoolName: createOptionalAlphaNumericSchema('School Name', 1, 150).optional(),
+                    pasrS_Age: z.number().int().optional(),
+                    pasrS_Gender: createStringOnlyOptionalSchema('Gender', 1, 50),
+                    pasrS_Institution: createOptionalAlphaNumericSchema('Institution', 1, 150).optional(),
+                    pasrS_DOB: z.string().optional(),
+                    verrejstatus: z.string().optional(),
                     pasrS_Id: z.number().int().optional(),
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
                     pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),
                     pasrS_SiblingsAdmissionNo: createOptionalNumberOnlyStringSchema('Sibling Admission No', 1, 50),
                     pasrS_SiblingsSection: createStringOnlyOptionalSchema('Sibling Section', 1, 50)
+                })
+            )
+            .optional(),
+
+        // Previous School Details (array, like siblingsDetails)
+        previousSchoolDetails: z
+            .array(
+                z.object({
+                    pasrpS_PrvSchoolName: createOptionalAlphaNumericSchema('Previous School Name', 1, 150),
+                    pasrpS_PreviousClass: createOptionalNumberOnlyStringSchema('Previous Class', 1, 100),
+                    pasrpS_Board: createStringOnlyOptionalSchema('Board', 1, 100),
+                    pasrpS_LeftYear: createOptionalNumberOnlyStringSchema('Left Year', 1, 10),
+                    pasrpS_LeftReason: createStringOnlyOptionalSchema('Reason for Leaving', 1, 150),
+                    pasrpS_Address: createOptionalStringWithLettersSchema('School Address', 1, 200)
                 })
             )
             .optional(),
@@ -163,14 +184,7 @@ export const studentApplicationFormSchema = {
         pasR_AltContactEmail: createEmailSchema('Alternate Contact Email', 1, 50, true),
 
         // Previous School Details
-        previousSchoolDetails: z.object({
-            pasrpS_PrvSchoolName: createOptionalAlphaNumericSchema('Previous School Name', 1, 150),
-            pasrpS_PreviousClass: createOptionalNumberOnlyStringSchema('Previous Class', 1, 100),
-            pasrpS_Board: createStringOnlyOptionalSchema('Board', 1, 100),
-            pasrpS_LeftYear: createOptionalNumberOnlyStringSchema('Left Year', 1, 10),
-            pasrpS_LeftReason: createStringOnlyOptionalSchema('Reason for Leaving', 1, 150),
-            pasrpS_Address: createOptionalStringWithLettersSchema('School Address', 1, 200)
-        }),
+
         //Other Details
         pasA_AdmittingReason: createOptionalStringSchema('Admitting Reason', 1, 250),
         pasA_WillingToContributeRemarks: createOptionalStringSchema('Willing to Contribute Remarks', 1, 250),
@@ -316,6 +330,13 @@ export const studentApplicationFormUpdateSchema = {
         siblingsDetails: z
             .array(
                 z.object({
+                    pasR_Id: z.number().int().optional(),
+                    pasrS_SchoolName: createOptionalAlphaNumericSchema('School Name', 1, 150).optional(),
+                    pasrS_Age: z.number().int().optional(),
+                    pasrS_Gender: createStringOnlyOptionalSchema('Gender', 1, 50),
+                    pasrS_Institution: createOptionalAlphaNumericSchema('Institution', 1, 150).optional(),
+                    pasrS_DOB: z.string().optional(),
+                    verrejstatus: z.string().optional(),
                     pasrS_Id: z.number().int().optional(),
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
                     pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),

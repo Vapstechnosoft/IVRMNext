@@ -187,6 +187,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
             setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
+            // if (rowData.hasOwnProperty("pasR_BirthPlace")) {
+            //   setValue("pasR_BirthPlace", rowData.pasR_BirthPlace ?? undefined);
+            // }
 
             // Handle siblingsDetails and previousSchoolDetails arrays AFTER all other fields
             if (rowData.siblingsDetails && Array.isArray(rowData.siblingsDetails) && rowData.siblingsDetails.length > 0) {
@@ -1218,7 +1221,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 label='Academic Year'
                                                 required
                                                 id='academic_year'
-                                                placeholder='Enter first name'
+                                                placeholder='Academic Year'
                                                 defaultValue={activePreadmission?.data?.asmaY_Year}
                                                 className='w-fit font-semibold'
                                                 disabled
@@ -1425,7 +1428,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         )}>
                                                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                                                         {field.value ? (
-                                                                            format(field.value, 'PPP')
+                                                                            format(field.value, 'dd/MM/yyyy')
                                                                         ) : (
                                                                             <span>Pick a date</span>
                                                                         )}
@@ -1468,7 +1471,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
-                                                                    phoneValues['pasR_MobileNo'] ??
+                                                                    phoneValues.pasR_MobileNo ??
                                                                     (field.value != null ? String(field.value) : null)
                                                                 }
                                                                 onChange={(phone: any, countryData: any) =>
@@ -2449,7 +2452,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_FatherMobleNo'] ??
+                                                                            phoneValues.pasR_FatherMobleNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2784,7 +2787,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_MotherMobleNo'] ??
+                                                                            phoneValues.pasR_MotherMobleNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2878,7 +2881,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_AltContactNo'] ??
+                                                                            phoneValues.pasR_AltContactNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -3348,7 +3351,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                         <div className='space-y-4'>
                                             <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
                                             <div className='mb-2'>
-                                                <Button
+                                                {/* <Button
                                                     type='button'
                                                     variant='outline'
                                                     onClick={() =>
@@ -3365,7 +3368,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     className='w-fit'>
                                                     <span className='mr-2'>+</span>
                                                     Add Previous School
-                                                </Button>
+                                                </Button> */}
                                             </div>
                                             {previousSchoolFields.length === 0 ? (
                                                 <p className='text-gray-500 text-sm'>
@@ -3379,7 +3382,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <h4 className='font-medium text-gray-700 text-sm'>
                                                                     Previous School {index + 1}
                                                                 </h4>
-                                                                <Button
+                                                                {/* <Button
                                                                     type='button'
                                                                     variant='ghost'
                                                                     size='sm'
@@ -3387,7 +3390,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     disabled={isSubmitting}
                                                                     className='h-8 w-fit bg-error text-white'>
                                                                     Remove
-                                                                </Button>
+                                                                </Button> */}
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                 <Controller
@@ -3653,7 +3656,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             ) : (
                                                 <>
                                                     <Save className='mr-2 h-4 w-4' />
-                                                    Submit Application
+                                                    Update Application
                                                 </>
                                             )}
                                         </Button>
