@@ -139,6 +139,13 @@ export const studentApplicationFormSchema = {
         siblingsDetails: z
             .array(
                 z.object({
+                    pasR_Id: z.number().int().optional(),
+                    pasrS_SchoolName: createOptionalAlphaNumericSchema('School Name', 1, 150).optional(),
+                    pasrS_Age: z.number().int().optional(),
+                    pasrS_Gender: createStringOnlyOptionalSchema('Gender', 1, 50),
+                    pasrS_Institution: createOptionalAlphaNumericSchema('Institution', 1, 150).optional(),
+                    pasrS_DOB: z.string().optional(),
+                    verrejstatus: z.string().optional(),
                     pasrS_Id: z.number().int().optional(),
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
                     pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),
@@ -323,6 +330,13 @@ export const studentApplicationFormUpdateSchema = {
         siblingsDetails: z
             .array(
                 z.object({
+                    pasR_Id: z.number().int().optional(),
+                    pasrS_SchoolName: createOptionalAlphaNumericSchema('School Name', 1, 150).optional(),
+                    pasrS_Age: z.number().int().optional(),
+                    pasrS_Gender: createStringOnlyOptionalSchema('Gender', 1, 50),
+                    pasrS_Institution: createOptionalAlphaNumericSchema('Institution', 1, 150).optional(),
+                    pasrS_DOB: z.string().optional(),
+                    verrejstatus: z.string().optional(),
                     pasrS_Id: z.number().int().optional(),
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
                     pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),

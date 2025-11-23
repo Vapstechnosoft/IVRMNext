@@ -404,7 +404,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     pamR_Id: item.pamR_Id
                 })),
                 siblingsDetails: (getValues('siblingsDetails') || []).map((sibling: any) => ({
-                    pasrS_Id: sibling.pasrS_Id || 0,
+                    pasR_Id: sibling.pasR_Id || 0,
+                    pasrS_SchoolName: sibling.pasrS_SchoolName || '',
+                    pasrS_Age: sibling.pasrS_Age || 0,
+                    pasrS_Gender: sibling.pasrS_Gender || '',
+                    pasrS_Institution: sibling.pasrS_Institution || '',
+                    pasrS_DOB: sibling.pasrS_DOB || '',
+                    verrejstatus: sibling.verrejstatus || '',
                     pasrS_SiblingsName: sibling.pasrS_SiblingsName || '',
                     pasrS_SiblingsClass: sibling.pasrS_SiblingsClass || '',
                     pasrS_SiblingsAdmissionNo: sibling.pasrS_SiblingsAdmissionNo || '',
@@ -533,10 +539,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         trigger(fieldName as any);
     };
 
-    // Add these functions after handleSameAsResidential
     const addSibling = () => {
         appendSibling({
-            pasrS_Id: 0,
+            pasR_Id: 0,
+            pasrS_SchoolName: '',
+            pasrS_Age: 0,
+            pasrS_Gender: '',
+            pasrS_Institution: '',
+            pasrS_DOB: '',
+            verrejstatus: '',
             pasrS_SiblingsName: '',
             pasrS_SiblingsClass: '',
             pasrS_SiblingsAdmissionNo: '',
