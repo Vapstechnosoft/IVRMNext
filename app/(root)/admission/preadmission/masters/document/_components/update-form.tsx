@@ -130,6 +130,10 @@ export default function UpdateMasterDocumentForm({ onSuccess, className = '', se
                             {errors.amsmD_FLAG && <FormError>{errors.amsmD_FLAG.message}</FormError>}
                         </div>
                     </div>
+
+                    <div className='text-grey-600 text-sm'>
+                        Note: Only files with formats <span className='font-medium'>pdf, jpg, jpeg, png</span> are accepted.
+                    </div>
                 </div>
 
                 {/* Action Buttons */}

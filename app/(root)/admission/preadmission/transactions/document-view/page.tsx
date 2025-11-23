@@ -12,7 +12,7 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
-import { use, useRef, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import { DocumentViewColoumn } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -33,6 +33,8 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
     const [classId, setClassId] = useState(0);
     const [academicYearId, setAcademicYearId] = useState(0);
 
+    // (moved) effects that depend on refetchStudents are placed after hook below
+
     // Table selection
     const [selectedStudents, setSelectedStudents] = useState<IPreadmissionDocumentView[]>([]);
 
@@ -42,6 +44,20 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
         error,
         refetch: refetchStudents
     } = useDocumentView(academicYearId ?? 0, classId, searchParams);
+
+    // Auto-select first academic year when options load so details populate
+    useEffect(() => {
+        if ((academicYearId ?? 0) === 0 && academicYearOptions?.data && academicYearOptions.data.length > 0) {
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+        }
+    }, [academicYearOptions]);
+
+    // When academic year changes, ensure students data is fetched immediately
+    useEffect(() => {
+        if (academicYearId && typeof refetchStudents === 'function') {
+            refetchStudents();
+        }
+    }, [academicYearId, refetchStudents]);
 
     const tableProps = useDataTableProps(response);
 
