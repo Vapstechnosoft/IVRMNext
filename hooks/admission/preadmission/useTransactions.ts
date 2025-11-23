@@ -25,7 +25,7 @@ import {
     getPreadmissionStudentList
 } from '@/server/admission/preadmission/transactions/transfer_preadmission_status';
 import type { ApiSearchparams } from '@/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useReligionDropdown = () => {
     const queryClient = useQueryClient();
@@ -340,22 +340,17 @@ export const useDocumentView = (asmay_id: number, asmcl_id: number, searchParams
     };
 };
 
-export const useDocumentDownload = (pasr_id: number) => {
+export const useDocumentDownload = () => {
     const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_DOWNLOAD, pasr_id],
-            queryFn: async () => getDocumentpdf(pasr_id),
-            staleTime: 0,
-            enabled: !!pasr_id
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
+    return useMutation({
+        mutationFn: async (pasr_id: number) => getDocumentpdf(pasr_id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.DOCUMENT_DOWNLOAD]
             });
         }
-    };
+    });
 };
 
 export const useStudentApplicationForm = (pasr_id: number) => {

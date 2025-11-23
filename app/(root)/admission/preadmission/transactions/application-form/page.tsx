@@ -22,16 +22,11 @@ export default function StudentApplicationPage(props: {
 }) {
     const searchParams = use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
-    const {
-        data: response,
-        isLoading,
-        error,
-        refetch: refetchAll
-    } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
+    const { data: response, isLoading, error, refetch } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
 
     return (
         <FormProvider<IPreadmissionStudentApplicationList>>
-            <StudentApplicationPageContent response={response} isLoading={isLoading} error={error} refetch={refetchAll} />
+            <StudentApplicationPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -59,6 +54,11 @@ function StudentApplicationPageContent({
         }
     }, [session?.data?.role]);
 
+    const onCloseSuccessDialog = () => {
+        setSuccessOpen(false);
+        window.location.reload();
+    };
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -79,7 +79,7 @@ function StudentApplicationPageContent({
                         title={successType === 'update' ? 'Application Updated Successfully' : 'Application Submitted Successfully'}
                         message={successType === 'update' ? 'Application updated successfully' : 'Successfully submitted application form'}
                         onClose={() => {
-                            setSuccessOpen(false);
+                            onCloseSuccessDialog();
                             refetch();
                         }}
                     />
