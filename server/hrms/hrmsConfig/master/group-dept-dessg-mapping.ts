@@ -30,7 +30,7 @@ function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, s
 
 /**
  * Get onload details for group department designation mapping with search, sort, and pagination
- * POST /api/GroupDeptDessgFacade/onloadgetdetails
+ * POST /api/MasterGroupDeptDessgFacade/onloadgetdetails
  */
 export async function getGroupDeptDessgMappingList(
     searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>,
@@ -42,7 +42,7 @@ export async function getGroupDeptDessgMappingList(
         LogInUserId?: number;
     }
 ) {
-    const url = '/api/GroupDeptDessgFacade/onloadgetdetails';
+    const url = '/api/MasterGroupDeptDessgFacade/onloadgetdetails';
     
     // Normalize searchParams (convert strings to proper types)
     const normalizedParams = normalizeSearchParams(searchParams);
@@ -80,60 +80,69 @@ export async function getGroupDeptDessgMappingList(
     try {
         const response = await api.post<any>('hrms', url, requestBody);
         
-        // Debug logging (remove in production if needed)
-        if (process.env.NODE_ENV === 'development') {
-            // Debug logging removed for production
-        }
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
         
-        // Extract data from new response structure: data.gridviewdata, data.groupTypedropdown, data.departmentdropdown, data.designationdropdown
+        // Response structure from API:
+        // {
+        //   "success": true,
+        //   "message": "Data fetched successfully",
+        //   "data": {
+        //     "groupTypedropdown": [...],
+        //     "departmentdropdown": [...],
+        //     "designationdropdown": [...],
+        //     "gridviewdata": [...]
+        //   },
+        //   "total": null,
+        //   "page": null,
+        //   "page_size": null
+        // }
+        
+        // Extract data from response structure
         let gridviewdata: GroupDeptDessgMappingDetail[] = [];
         let groupTypedropdown: any[] = [];
         let departmentdropdown: any[] = [];
         let designationdropdown: any[] = [];
         
-        if (response && typeof response === 'object' && 'data' in response) {
+        if (response && typeof response === 'object') {
             const responseData = response.data;
             
-            // Extract gridviewdata array (new structure: data.gridviewdata)
+            // Extract from data object
             if (responseData && typeof responseData === 'object') {
+                // Extract gridviewdata array
                 if (Array.isArray(responseData.gridviewdata)) {
                     gridviewdata = responseData.gridviewdata;
-                } else if (Array.isArray(responseData)) {
-                    // Backward compatibility: if data is directly an array
-                    gridviewdata = responseData;
-                } else if (Array.isArray((response as any).gridviewdata)) {
-                    // Fallback: check root level
-                    gridviewdata = (response as any).gridviewdata;
                 }
                 
-                // Extract groupTypedropdown (new structure: data.groupTypedropdown)
+                // Extract groupTypedropdown
                 if (Array.isArray(responseData.groupTypedropdown)) {
                     groupTypedropdown = responseData.groupTypedropdown;
-                } else if (Array.isArray((response as any).groupTypedropdown)) {
-                    // Fallback: check root level
-                    groupTypedropdown = (response as any).groupTypedropdown;
                 }
                 
-                // Extract departmentdropdown (new structure: data.departmentdropdown)
+                // Extract departmentdropdown
                 if (Array.isArray(responseData.departmentdropdown)) {
                     departmentdropdown = responseData.departmentdropdown;
-                } else if (Array.isArray((response as any).departmentdropdown)) {
-                    // Fallback: check root level
-                    departmentdropdown = (response as any).departmentdropdown;
                 }
                 
-                // Extract designationdropdown (new structure: data.designationdropdown)
+                // Extract designationdropdown
                 if (Array.isArray(responseData.designationdropdown)) {
                     designationdropdown = responseData.designationdropdown;
-                } else if (Array.isArray((response as any).designationdropdown)) {
-                    // Fallback: check root level
-                    designationdropdown = (response as any).designationdropdown;
                 }
             }
         }
         
         // Use API's total if provided, otherwise use array length
         const total = response?.total ?? (Array.isArray(gridviewdata) ? gridviewdata.length : 0);
+        
+        console.log('🟢 [API] Response parsing:');
+        console.log('🟢 [API] - success:', response?.success);
+        console.log('🟢 [API] - message:', response?.message);
+        console.log('🟢 [API] - gridviewdata length:', gridviewdata.length);
+        console.log('🟢 [API] - groupTypedropdown length:', groupTypedropdown.length);
+        console.log('🟢 [API] - departmentdropdown length:', departmentdropdown.length);
+        console.log('🟢 [API] - designationdropdown length:', designationdropdown.length);
+        console.log('🟢 [API] - total:', total);
+        console.log('🟢 [API] - page:', response?.page);
+        console.log('🟢 [API] - page_size:', response?.page_size);
         
         // Return in the expected format
         const transformedResponse: GroupDeptDessgMappingResponse = {
@@ -170,102 +179,135 @@ export async function getGroupDeptDessgMappingList(
 
 /**
  * Save/Update group department designation mapping
- * POST /api/GroupDeptDessgFacade/savedata (create)
- * POST /api/GroupDeptDessgFacade/Editdata (update)
+ * POST /api/MasterGroupDeptDessgFacade/savedata (both create and update)
  */
 export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput) {
-    const isNewRecord = !data.hrgtddS_Id || data.hrgtddS_Id === 0;
-    const url = isNewRecord ? '/api/GroupDeptDessgFacade/savedata' : '/api/GroupDeptDessgFacade/Editdata';
+    const url = '/api/MasterGroupDeptDessgFacade/savedata';
     
-    // Get the first designation ID from designationids array if HRMDES_Id is not set or is 0
-    // This ensures HRMDES_Id is set when using multi-select designations
+    console.log('🟠 [API] saveGroupDeptDessgMapping called');
+    console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
+    
+    // Get designation IDs from designationids array
     const designationIds = data.designationids || [];
-    const firstDesignationId = designationIds.length > 0 ? designationIds[0] : 0;
-    const hrmdesId = data.hrmdeS_Id && data.hrmdeS_Id !== 0 ? data.hrmdeS_Id : firstDesignationId;
     
-    // Ensure HRGTDDS_Id is properly set - it should be > 0 for updates to exclude from duplicate check
-    const hrgtddS_Id = data.hrgtddS_Id && data.hrgtddS_Id > 0 ? data.hrgtddS_Id : 0;
-    
-    const requestBody: LoadDataRequest = {
-        HRGTDDS_Id: hrgtddS_Id,
-        MI_Id: 30,
-        HRMGT_Id: data.hrmgT_Id,
-        HRMD_Id: data.hrmD_Id,
-        HRMDES_Id: hrmdesId,
-        HRGTDDS_ActiveFlg: data.hrgtddS_ActiveFlg,
-        HRGTDDS_CreatedBy: data.hrgtddS_CreatedBy || data.logInUserId || 5,
-        HRGTDDS_UpdatedBy: data.hrgtddS_UpdatedBy || data.logInUserId || 5,
-        HRGTDDS_CreatedDate: isNewRecord ? '0001-01-01T00:00:00' : (data.hrgtddS_CreatedDate || new Date().toISOString()),
-        HRGTDDS_UpdatedDate: new Date().toISOString(),
-        groupTypedropdown: [],
-        departmentdropdown: [],
-        designationdropdown: [],
-        gridviewdata: [],
-        designationids: designationIds,
-        LogInUserId: data.logInUserId || 5,
-        HRMGT_EmployeeGroupType: data.hrmgT_EmployeeGroupType || '',
-        HRMD_DepartmentName: data.hrmD_DepartmentName || '',
-        HRMDES_DesignationName: data.hrmdeS_DesignationName || '',
-        returnval: false,
-        msg: ''
-    };
-    
-    const response = await api.post<GroupDeptDessgMappingResponse>('hrms', url, requestBody);
-    
-    // Handle case where backend returns data directly in response.data with returnval/msg
-    // Transform returnval/msg to success/message format
-    // Note: Some APIs return returnval=false even on success, so we check msg content too
-    if (response && typeof response === 'object') {
-        // If response has data field with returnval, transform it
-        if ('data' in response && response.data && typeof response.data === 'object' && 'returnval' in response.data) {
-            const rawData = response.data as unknown as GroupDeptDessgMappingResponse;
-            const message = rawData.msg || '';
-            // Check if message indicates success (Saved, Updated, Edited, etc.)
-            // Some APIs return returnval=false even on success, so prioritize message content
-            const isSuccessMessage = message.toLowerCase().includes('saved') || 
-                                   message.toLowerCase().includes('updated') || 
-                                   message.toLowerCase().includes('edited') ||
-                                   message.toLowerCase().includes('edited successfully') ||
-                                   message.toLowerCase().includes('success');
-            // Use returnval if true, otherwise trust the message
-            const success = rawData.returnval === true || (rawData.returnval === false && isSuccessMessage);
-            return {
-                success: success,
-                message: message,
-                data: rawData
-            } as ApiResponse<GroupDeptDessgMappingResponse>;
-        }
-        
-        // If response itself has returnval (direct response from axios)
-        if ('returnval' in response) {
-            const rawResponse = response as unknown as GroupDeptDessgMappingResponse;
-            const message = rawResponse.msg || '';
-            const isSuccessMessage = message.toLowerCase().includes('saved') || 
-                                   message.toLowerCase().includes('updated') || 
-                                   message.toLowerCase().includes('edited') ||
-                                   message.toLowerCase().includes('edited successfully') ||
-                                   message.toLowerCase().includes('success');
-            // Use returnval if true, otherwise trust the message
-            const success = rawResponse.returnval === true || (rawResponse.returnval === false && isSuccessMessage);
-            return {
-                success: success,
-                message: message,
-                data: rawResponse
-            } as ApiResponse<GroupDeptDessgMappingResponse>;
-        }
-        
-        // If already in ApiResponse format
-        if ('success' in response) {
-            return response as ApiResponse<GroupDeptDessgMappingResponse>;
-        }
+    // Validate that we have at least one designation ID
+    if (designationIds.length === 0) {
+        throw new Error('At least one valid designation ID is required');
     }
     
-    // Default fallback
-    return {
-        success: false,
-        message: 'Unknown error occurred',
-        data: response as unknown as GroupDeptDessgMappingResponse
-    } as ApiResponse<GroupDeptDessgMappingResponse>;
+    // Filter out 0 values from designation IDs
+    const validDesignationIds = designationIds.filter((id): id is number => typeof id === 'number' && !Number.isNaN(id) && id > 0);
+    
+    if (validDesignationIds.length === 0) {
+        throw new Error('At least one valid designation ID is required');
+    }
+    
+    // Validate that we have valid group type and department IDs
+    if (!data.hrmgT_Id || data.hrmgT_Id === 0) {
+        throw new Error('Group Type ID is required and must be greater than 0');
+    }
+    
+    if (!data.hrmD_Id || data.hrmD_Id === 0) {
+        throw new Error('Department ID is required and must be greater than 0');
+    }
+    
+    // Request body matches the exact structure from Swagger
+    // Structure: { MI_Id, HRMGT_Id, HRMD_Id, HRMDES_Ids[], UserId }
+    const requestBody = {
+        MI_Id: data.mI_Id || 30,
+        HRMGT_Id: data.hrmgT_Id,
+        HRMD_Id: data.hrmD_Id,
+        HRMDES_Ids: validDesignationIds,
+        UserId: data.logInUserId || 0
+    };
+    
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    console.log('🟠 [API] Calling api.post...');
+    
+    try {
+        const response = await api.post<any>('hrms', url, requestBody);
+        
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        
+        // Extract response data
+        const responseData = response?.data || response;
+        const success = response?.success ?? false;
+        const message = response?.message || responseData?.msg || responseData?.retrunMsg || '';
+        
+        // Check for error messages (even if success is true, error message means failure)
+        const messageLower = message.toLowerCase();
+        const hasError = messageLower.includes('error') || 
+                        messageLower.includes('failed') ||
+                        messageLower.includes('exception') ||
+                        messageLower.includes('duplicate');
+        
+        // Check if the operation was successful
+        // Success indicators:
+        // 1. No error message
+        // 2. response.success === true
+        // 3. response.data.returnval === true (if present)
+        // 4. Message contains success keywords
+        const returnval = responseData?.returnval ?? false;
+        const hasSuccessMessage = message && !hasError && (
+            messageLower.includes('saved') ||
+            messageLower.includes('successfully') ||
+            messageLower.includes('added') ||
+            messageLower.includes('updated')
+        );
+        
+        // Success only if no error AND (success flag OR returnval OR has success message)
+        const isSuccess = !hasError && (success || returnval || hasSuccessMessage);
+        
+        console.log('🟢 [API] Response parsing:');
+        console.log('🟢 [API] - success:', success);
+        console.log('🟢 [API] - message:', message);
+        console.log('🟢 [API] - hasError:', hasError);
+        console.log('🟢 [API] - returnval:', returnval);
+        console.log('🟢 [API] - hasSuccessMessage:', hasSuccessMessage);
+        console.log('🟢 [API] - Final isSuccess:', isSuccess);
+        
+        // Determine the message to return - prioritize API message
+        let finalMessage = message;
+        if (!finalMessage) {
+            if (isSuccess) {
+                finalMessage = 'Mapping saved successfully';
+            } else {
+                finalMessage = 'Failed to save mapping';
+            }
+        }
+        
+        // Return response matching Swagger structure
+        return {
+            success: isSuccess,
+            message: finalMessage,
+            data: responseData,
+            total: response?.total ?? null,
+            page: response?.page ?? null,
+            page_size: response?.page_size ?? null
+        } as ApiResponse<GroupDeptDessgMappingResponse>;
+    } catch (error: any) {
+        console.log('🔴 [API] Error occurred in api.post');
+        console.error('🔴 [API] Error:', error);
+        console.error('🔴 [API] Error message:', error?.message);
+        console.error('🔴 [API] Error response:', error?.response);
+        console.error('🔴 [API] Error response data:', error?.response?.data);
+        
+        // Extract error message from response if available
+        const errorMessage = error?.response?.data?.message || 
+                           error?.response?.data?.msg ||
+                           error?.message || 
+                           'Failed to save mapping';
+        
+        return {
+            success: false,
+            message: errorMessage,
+            data: null,
+            total: null,
+            page: null,
+            page_size: null
+        } as unknown as ApiResponse<GroupDeptDessgMappingResponse>;
+    }
 }
 
 /**

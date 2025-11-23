@@ -94,6 +94,7 @@ import {
 } from '@/server/hrms/hrmsConfig/master/payroll-standard';
 import {
     activateDeactivateReligionCategoryMapping,
+    getReligionCategoryMappingDetails,
     getReligionCategoryMappingList,
     saveReligionCategoryMapping
 } from '@/server/hrms/hrmsConfig/master/religion-category-mapping';
@@ -633,13 +634,13 @@ export const useMasterGender = (roleId: number, searchParams?: ApiSearchparams) 
 // LOAN
 // ============================================================================
 
-export function useMasterLoan(roleId: number) {
+export function useMasterLoan(roleId: number, searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_LOAN, roleId],
-        queryFn: async () => getMasterLoanList(roleId),
-        staleTime: 5 * 60 * 1000
+        queryKey: [HRMS_QUERY_KEYS.MASTER_LOAN, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterLoanList(roleId, searchParams),
+        staleTime: 0
     });
 
     const saveMutation = useMutation({
@@ -747,13 +748,13 @@ export const useMasterMaritalStatus = (roleId: number, searchParams?: ApiSearchp
 // SPECIALIZATION
 // ============================================================================
 
-export function useMasterSpecialization(roleId: number) {
+export function useMasterSpecialization(roleId: number, searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
 
     const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_SPECIALIZATION, roleId],
-        queryFn: async () => getMasterSpecializationList(roleId),
-        staleTime: 5 * 60 * 1000
+        queryKey: [HRMS_QUERY_KEYS.MASTER_SPECIALIZATION, roleId, searchParams ?? {}],
+        queryFn: async () => getMasterSpecializationList(roleId, searchParams),
+        staleTime: 0
     });
 
     const saveMutation = useMutation({
@@ -775,10 +776,17 @@ export function useMasterSpecialization(roleId: number) {
         }
     });
 
+    const refetchAll = () => {
+        queryClient.invalidateQueries({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_SPECIALIZATION]
+        });
+    };
+
     return {
         listQuery,
         saveMutation,
-        toggleMutation
+        toggleMutation,
+        refetchAll
     };
 }
 
@@ -1057,21 +1065,45 @@ export function useMasterEarningsDeductions(roleId: number) {
 
     const saveMutation = useMutation({
         mutationFn: (data: MasterEarningsDeductionsInput) => {
-            console.log('🟣 [HOOK] saveMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            const timestamp = new Date().toISOString();
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🟣 [BROWSER-HOOK] saveMutation.mutationFn called');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🟣 [BROWSER-HOOK] Timestamp:', timestamp);
+            console.log('🟣 [BROWSER-HOOK] Data:', JSON.stringify(data, null, 2));
+            console.log('🟣 [BROWSER-HOOK] Calling saveMasterEarningsDeductions...');
+            console.log('───────────────────────────────────────────────────────────────');
             return saveMasterEarningsDeductions(data);
         },
         onSuccess: (response) => {
-            console.log('🟣 [HOOK] saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
-            console.log('🟣 [HOOK] Invalidating earnings/deductions queries...');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🟢 [BROWSER-HOOK] saveMutation.onSuccess');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🟢 [BROWSER-HOOK] Response:', JSON.stringify(response, null, 2));
+            console.log('🟢 [BROWSER-HOOK] Response.success:', response?.success);
+            console.log('🟢 [BROWSER-HOOK] Response.message:', response?.message);
+            console.log('🟢 [BROWSER-HOOK] Invalidating earnings/deductions queries...');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
             });
-            console.log('🟣 [HOOK] Earnings/deductions queries invalidated - table should refresh');
+            console.log('🟢 [BROWSER-HOOK] Earnings/deductions queries invalidated - table should refresh');
+            console.log('═══════════════════════════════════════════════════════════════');
         },
         onError: (error: any) => {
-            console.log('🔴 [HOOK] saveMutation.onError - Error:', error);
-            console.log('🔴 [HOOK] Error message:', error?.message);
-            console.log('🔴 [HOOK] Error response:', error?.response);
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🔴 [BROWSER-HOOK] saveMutation.onError');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.error('🔴 [BROWSER-HOOK] Error Type:', error?.constructor?.name || 'Unknown');
+            console.error('🔴 [BROWSER-HOOK] Error:', error);
+            console.error('🔴 [BROWSER-HOOK] Error message:', error?.message);
+            console.error('🔴 [BROWSER-HOOK] Error stack:', error?.stack);
+            
+            if (error?.response) {
+                console.error('🔴 [BROWSER-HOOK] Error response status:', error.response?.status);
+                console.error('🔴 [BROWSER-HOOK] Error response data:', JSON.stringify(error.response?.data, null, 2));
+            }
+            
+            console.log('═══════════════════════════════════════════════════════════════');
         }
     });
 
@@ -1081,19 +1113,114 @@ export function useMasterEarningsDeductions(roleId: number) {
             HRMED_ActiveFlag: boolean;
             MI_Id?: number;
         }) => {
-            console.log('🟣 [HOOK] toggleMutation.mutationFn called with data:', JSON.stringify(data, null, 2));
+            const timestamp = new Date().toISOString();
+            const targetState = data.HRMED_ActiveFlag ? 'ACTIVE' : 'INACTIVE';
+            
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🟣 [BROWSER-HOOK] toggleMutation.mutationFn called');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🟣 [BROWSER-HOOK] Timestamp:', timestamp);
+            console.log('🟣 [BROWSER-HOOK] Data:', JSON.stringify(data, null, 2));
+            console.log('🟣 [BROWSER-HOOK] Target State:', targetState);
+            console.log('🟣 [BROWSER-HOOK] Calling activateDeactivateMasterEarningsDeductions...');
+            console.log('───────────────────────────────────────────────────────────────');
             return activateDeactivateMasterEarningsDeductions(data);
         },
         onSuccess: (response) => {
-            console.log('🟣 [HOOK] toggleMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
-            });
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🟢 [BROWSER-HOOK] toggleMutation.onSuccess');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🟢 [BROWSER-HOOK] Response:', JSON.stringify(response, null, 2));
+            console.log('🟢 [BROWSER-HOOK] Response.success:', response?.success);
+            console.log('🟢 [BROWSER-HOOK] Response.message:', response?.message);
+            
+            // Use the complete data from toggle response to update the cache
+            if (response?.success && response?.data) {
+                const toggleResponseData = response.data;
+                
+                console.log('🟢 [BROWSER-HOOK] Updating cache with complete data from toggle response...');
+                console.log('🟢 [BROWSER-HOOK] Toggle response data keys:', Object.keys(toggleResponseData || {}));
+                console.log('🟢 [BROWSER-HOOK] earningdetectionList count:', toggleResponseData?.earningdetectionList?.length || 0);
+                console.log('🟢 [BROWSER-HOOK] earningList count:', toggleResponseData?.earningList?.length || 0);
+                console.log('🟢 [BROWSER-HOOK] detectionList count:', toggleResponseData?.detectionList?.length || 0);
+                
+                // Get current cached data for pagination/metadata
+                const queryKey = [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, roleId];
+                const currentData = queryClient.getQueryData(queryKey) as any;
+                
+                // Transform toggle response data to match the list query response format
+                // Use the complete data from toggle response as-is (backend handles filtering)
+                const updatedData = {
+                    success: true,
+                    message: response.message || 'Data updated successfully',
+                    data: {
+                        HRMED_Id: toggleResponseData.HRMED_Id || 0,
+                        MI_Id: toggleResponseData.MI_Id || roleId,
+                        HRMED_Name: toggleResponseData.HRMED_Name || null,
+                        HRMED_EDTypeFlag: toggleResponseData.HRMED_EDTypeFlag || null,
+                        HRMED_EarnDedFlag: toggleResponseData.HRMED_EarnDedFlag || null,
+                        HRMED_AmountPercentFlag: toggleResponseData.HRMED_AmountPercentFlag || null,
+                        HRMED_AmountPercent: toggleResponseData.HRMED_AmountPercent || null,
+                        HRMED_ActiveFlag: toggleResponseData.HRMED_ActiveFlag ?? false,
+                        HRMED_RoundOffFlag: toggleResponseData.HRMED_RoundOffFlag || null,
+                        earningdetectionList: toggleResponseData.earningdetectionList || null,
+                        retrunMsg: toggleResponseData.retrunMsg || '',
+                        roleId: toggleResponseData.roleId || 0,
+                        HRMED_ReviseFlg: toggleResponseData.HRMED_ReviseFlg ?? false,
+                        earningList: toggleResponseData.earningList || null,
+                        detectionList: toggleResponseData.detectionList || null,
+                        eardettypelist: toggleResponseData.eardettypelist || null,
+                        eardettypeDropdown: toggleResponseData.eardettypeDropdown || null,
+                        perc_OfDTO: toggleResponseData.perc_OfDTO || null,
+                        selectedearningdetectionList: toggleResponseData.selectedearningdetectionList || null,
+                        percentOff: toggleResponseData.percentOff || null,
+                        HREED_Amount: toggleResponseData.HREED_Amount || null,
+                        arrearlist: toggleResponseData.arrearlist || [],
+                        grosslist: toggleResponseData.grosslist || [],
+                        EarningsDeductionsDTO: toggleResponseData.EarningsDeductionsDTO || null,
+                        HRMED_Order: toggleResponseData.HRMED_Order || null
+                    },
+                    total: currentData?.total || null,
+                    page: currentData?.page || 1,
+                    page_size: currentData?.page_size || 10
+                };
+                
+                console.log('🟢 [BROWSER-HOOK] Updated data structure:', {
+                    hasData: !!updatedData.data,
+                    earningdetectionListCount: updatedData.data.earningdetectionList?.length || 0,
+                    earningListCount: updatedData.data.earningList?.length || 0,
+                    detectionListCount: updatedData.data.detectionList?.length || 0
+                });
+                
+                // Update the cache with the complete data from toggle response
+                queryClient.setQueryData(queryKey, updatedData);
+                
+                console.log('🟢 [BROWSER-HOOK] Cache updated with complete data from toggle response');
+            } else {
+                // Fallback: invalidate queries if response doesn't have complete data
+                console.log('🟢 [BROWSER-HOOK] Response missing complete data, invalidating queries...');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
+                });
+            }
+            
+            console.log('═══════════════════════════════════════════════════════════════');
         },
         onError: (error: any) => {
-            console.log('🔴 [HOOK] toggleMutation.onError - Error:', error);
-            console.log('🔴 [HOOK] Error message:', error?.message);
-            console.log('🔴 [HOOK] Error response:', error?.response);
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🔴 [BROWSER-HOOK] toggleMutation.onError');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.error('🔴 [BROWSER-HOOK] Error Type:', error?.constructor?.name || 'Unknown');
+            console.error('🔴 [BROWSER-HOOK] Error:', error);
+            console.error('🔴 [BROWSER-HOOK] Error message:', error?.message);
+            console.error('🔴 [BROWSER-HOOK] Error stack:', error?.stack);
+            
+            if (error?.response) {
+                console.error('🔴 [BROWSER-HOOK] Error response status:', error.response?.status);
+                console.error('🔴 [BROWSER-HOOK] Error response data:', JSON.stringify(error.response?.data, null, 2));
+            }
+            
+            console.log('═══════════════════════════════════════════════════════════════');
         }
     });
 

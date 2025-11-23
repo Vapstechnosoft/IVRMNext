@@ -1,6 +1,4 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
@@ -11,7 +9,7 @@ import { type GPSLocationReportFilters, GPSLocationReportFilters as GPSLocationR
 export default function GPSLocationReportPage() {
     const db = createLocalCrud<GPSLog>('attendance:gps-location-attendance'); // reuse same storage
     const [showReport, setShowReport] = useState(false);
-    const [selectedRows, setSelectedRows] = useState<GPSLog[]>([]);
+    const [_selectedRows, setSelectedRows] = useState<GPSLog[]>([]);
     const [filters, setFilters] = useState<GPSLocationReportFilters>({
         filterType: 'Between Date',
         fromDate: '',
@@ -27,11 +25,10 @@ export default function GPSLocationReportPage() {
         return data.filter((r) => {
             if (filters.filterType === 'Employee Wise') {
                 return filters.employee ? r.employeeName === filters.employee : false;
-            } else {
-                const okFrom = filters.fromDate ? new Date(r.gpsDate) >= new Date(filters.fromDate) : true;
-                const okTo = filters.toDate ? new Date(r.gpsDate) <= new Date(filters.toDate) : true;
-                return okFrom && okTo;
             }
+            const okFrom = filters.fromDate ? new Date(r.gpsDate) >= new Date(filters.fromDate) : true;
+            const okTo = filters.toDate ? new Date(r.gpsDate) <= new Date(filters.toDate) : true;
+            return okFrom && okTo;
         });
     }, [data, filters]);
 
@@ -50,12 +47,9 @@ export default function GPSLocationReportPage() {
         setSelectedRows([]);
     };
 
-    const handleExport = () => {
-        /* TODO: implement export functionality */
-        console.log('Exporting selected rows:', selectedRows);
-    };
+    const handleExport = () => {};
 
-    const handleRowSelectionChange = (rows: GPSLog[]) => {
+    const _handleRowSelectionChange = (rows: GPSLog[]) => {
         setSelectedRows(rows);
     };
 

@@ -53,7 +53,10 @@ export default function SpecializationForm({ selectedRow, onSuccess }: Specializ
                 toast.error(res?.message || (isEditMode ? 'Failed to update specialization' : 'Failed to add specialization'));
             }
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || error?.message || (isEditMode ? 'Failed to update specialization' : 'Failed to add specialization');
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                (isEditMode ? 'Failed to update specialization' : 'Failed to add specialization');
             toast.error(errorMessage);
         }
     };
@@ -67,7 +70,7 @@ export default function SpecializationForm({ selectedRow, onSuccess }: Specializ
                 <InputText
                     id='HRMSPL_SpecialisationName'
                     placeholder='Enter specialization name'
-                    {...register('HRMSPL_SpecialisationName', SPECIALIZATION_VALIDATION.specializationName)}
+                    {...register('HRMSPL_SpecialisationName', SPECIALIZATION_VALIDATION.HRMSPL_SpecialisationName)}
                 />
                 {errors.HRMSPL_SpecialisationName && <FormError>{errors.HRMSPL_SpecialisationName.message}</FormError>}
             </div>

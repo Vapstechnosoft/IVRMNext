@@ -32,7 +32,7 @@ export default function DepartmentSalaryReportPage() {
     // State
     const [salaryRecords, setSalaryRecords] = useState<DepartmentSalaryRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<DepartmentSalaryRecord[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, _setIsLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
 
     const [filters, setFilters] = useState<DepartmentSalaryFilters>({

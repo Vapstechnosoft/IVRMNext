@@ -8,7 +8,7 @@ import { useEmployeeShiftMapping } from '@/hooks/hrms/attendance-management/useM
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddEmployeeShiftMappingForm from './_components/add-form';
-import { employeeShiftMappingColumns, type EmployeeShiftMapping } from './_components/columns';
+import { type EmployeeShiftMapping, employeeShiftMappingColumns } from './_components/columns';
 import DeleteEmployeeShiftMappingForm from './_components/delete-form';
 import UpdateEmployeeShiftMappingForm from './_components/update-form';
 
@@ -141,9 +141,7 @@ function FormSections() {
             )}
 
             {/* Delete Form */}
-            {isDeleteFormOpen && selectedRow && (
-                <DeleteEmployeeShiftMappingForm rowData={selectedRow} onClose={closeDeleteForm} />
-            )}
+            {isDeleteFormOpen && selectedRow && <DeleteEmployeeShiftMappingForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

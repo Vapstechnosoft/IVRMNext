@@ -8,8 +8,8 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import type { ApiSearchparams } from '@/types';
 import type { DepartmentDetail } from '@/types/hrms/master-department';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../department/_components/columns';
@@ -17,7 +17,7 @@ import DepartmentForm from '../../department/_components/department-form';
 
 export default function DepartmentTab() {
     const roleId = HRMS_MI_ID;
-    
+
     // Read pagination and search params from URL
     const [page] = useQueryState('page', parseAsInteger.withDefault(1));
     const [page_size] = useQueryState('page_size', parseAsInteger.withDefault(10));
@@ -25,7 +25,7 @@ export default function DepartmentTab() {
     const [search_column] = useQueryState('search_column', parseAsString.withDefault(''));
     const [sort_column] = useQueryState('sort_column', parseAsString.withDefault(''));
     const [sort_direction] = useQueryState('sort_direction', parseAsString.withDefault(''));
-    
+
     const searchParams: ApiSearchparams = {
         page,
         page_size,
@@ -34,7 +34,7 @@ export default function DepartmentTab() {
         sort_column: sort_column || undefined,
         sort_direction: sort_direction || undefined
     };
-    
+
     const { listQuery, refetchAll } = useMasterDepartment(roleId, searchParams);
 
     return (

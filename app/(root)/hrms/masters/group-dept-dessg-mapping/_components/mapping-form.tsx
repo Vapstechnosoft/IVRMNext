@@ -185,18 +185,22 @@ export default function MappingForm({ selectedRow, onSuccess, className = '' }: 
     };
 
     // Memoize arrays to prevent unnecessary re-renders
-    // Extract from new response structure: data.groupTypedropdown, data.departmentdropdown, data.designationdropdown
+    // Extract from response structure: response.data.data.groupTypedropdown (nested in ApiResponse)
+    // The API returns: { success, message, data: { data: { groupTypedropdown, ... }, groupTypedropdown, ... } }
     const groupTypes = useMemo(() => {
-        const data = response?.data as any;
-        return data?.groupTypedropdown || data?.data?.groupTypedropdown || [];
+        const responseData = response?.data as any;
+        // Try nested structure first (data.data.groupTypedropdown), then root level (data.groupTypedropdown)
+        return responseData?.data?.groupTypedropdown || responseData?.groupTypedropdown || [];
     }, [response?.data]);
     const departments = useMemo(() => {
-        const data = response?.data as any;
-        return data?.departmentdropdown || data?.data?.departmentdropdown || [];
+        const responseData = response?.data as any;
+        // Try nested structure first (data.data.departmentdropdown), then root level (data.departmentdropdown)
+        return responseData?.data?.departmentdropdown || responseData?.departmentdropdown || [];
     }, [response?.data]);
     const designations = useMemo(() => {
-        const data = response?.data as any;
-        return data?.designationdropdown || data?.data?.designationdropdown || [];
+        const responseData = response?.data as any;
+        // Try nested structure first (data.data.designationdropdown), then root level (data.designationdropdown)
+        return responseData?.data?.designationdropdown || responseData?.designationdropdown || [];
     }, [response?.data]);
 
     // Convert designations to MultiSelect format

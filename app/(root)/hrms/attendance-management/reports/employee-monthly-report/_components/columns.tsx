@@ -48,29 +48,28 @@ export const employeeMonthlyReportColumns: ColumnDef<MonthlyRow>[] = [
     { accessorKey: 'employeeCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' /> },
     { accessorKey: 'employeeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' /> },
     { accessorKey: 'designation', header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' /> },
-    { 
-        accessorKey: 'dateOfJoining', 
+    {
+        accessorKey: 'dateOfJoining',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date of Joining' />,
         cell: ({ row }) => {
             const date = row.getValue('dateOfJoining') as string | undefined;
             return date ? new Date(date).toLocaleDateString('en-GB') : '-';
         }
     },
-    { 
-        accessorKey: 'totalWorkingDays', 
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Working Days' /> 
+    {
+        accessorKey: 'totalWorkingDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Working Days' />
     },
-    { 
-        accessorKey: 'totalPresentDays', 
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Present Days' /> 
+    {
+        accessorKey: 'totalPresentDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Present Days' />
     },
-    { 
-        accessorKey: 'totalAbsentDays', 
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Absent Days' /> 
+    {
+        accessorKey: 'totalAbsentDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Absent Days' />
     },
-    { 
-        accessorKey: 'totalHolidayPunches', 
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Holiday Punches' /> 
+    {
+        accessorKey: 'totalHolidayPunches',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Holiday Punches' />
     }
 ];
-

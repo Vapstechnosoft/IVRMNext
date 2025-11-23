@@ -55,7 +55,8 @@ function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
                     toast.error(res?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`);
                 }
             } catch (error: any) {
-                const errorMessage = error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`;
+                const errorMessage =
+                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`;
                 toast.error(errorMessage);
             }
         },

@@ -7,13 +7,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { employeeYearlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { cn } from '@/lib/utils';
+import { employeeYearlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 export type EmployeeYearlyReportFilters = z.infer<typeof employeeYearlyReportFilterSchema>;
@@ -72,7 +72,16 @@ export function EmployeeYearlyReportFilters({
         setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
         setValue('mode', filters.mode || [], { shouldDirty: false, shouldValidate: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.employee, filters.fromDate, filters.toDate, filters.mode?.join(',')]);
+    }, [
+        filters.allOrIndividual,
+        filters.type?.join(','),
+        filters.department?.join(','),
+        filters.designation?.join(','),
+        filters.employee,
+        filters.fromDate,
+        filters.toDate,
+        filters.mode?.join(',')
+    ]);
 
     const handleFilterChange = (key: keyof EmployeeYearlyReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -98,10 +107,14 @@ export function EmployeeYearlyReportFilters({
                             Type <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            options={groupTypes.length > 0 ? groupTypes : [
-                                { label: 'Permanent', value: 'Permanent' },
-                                { label: 'Contract', value: 'Contract' }
-                            ]}
+                            options={
+                                groupTypes.length > 0
+                                    ? groupTypes
+                                    : [
+                                          { label: 'Permanent', value: 'Permanent' },
+                                          { label: 'Contract', value: 'Contract' }
+                                      ]
+                            }
                             onValueChange={(values) => handleFilterChange('type', values)}
                             defaultValue={filters.type || []}
                             placeholder='Select Types'
@@ -161,9 +174,7 @@ export function EmployeeYearlyReportFilters({
                             <label htmlFor='employee-select' className='font-medium text-sm'>
                                 Employee <span className='text-red-500'>*</span>
                             </label>
-                            <Select
-                                value={employeeValue || undefined}
-                                onValueChange={(value) => handleFilterChange('employee', value)}>
+                            <Select value={employeeValue || undefined} onValueChange={(value) => handleFilterChange('employee', value)}>
                                 <SelectTrigger id='employee-select' className={errors.employee ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

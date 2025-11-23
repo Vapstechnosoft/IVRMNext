@@ -48,9 +48,9 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
         sort_column: normalizedParams.sort_column || '',
         sort_direction: normalizedParams.sort_direction || '',
         is_export: false,
-        miid: 30,
-        loginUserId: 0,
-        userRole: ''
+        MIID: 30,
+        LoginUserId: 0,
+        UserRole: ''
     };
 
     console.log('📤 [SERVER] getMasterHoliday request body:', JSON.stringify(requestBody, null, 2));
@@ -154,13 +154,41 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
             message: error?.message,
             status: error?.response?.status,
             statusText: error?.response?.statusText,
-            data: error?.response?.data
+            responseData: error?.response?.data,
+            fullError: error
         });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to fetch master holiday data';
+        
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
         
         // Return error response in expected format
         return {
             success: false,
-            message: error?.response?.data?.msg || error?.message || 'Failed to fetch master holiday data',
+            message: errorMessage,
             data: {
                 yeardropdown: [],
                 departmentType: [],
@@ -203,16 +231,23 @@ export async function addOrUpdateMasterHoliday(
     });
 
     // Find IDs from dropdown data
-    const yearItem = dropdownData?.yeardropdown?.find((y) => y.hrmlY_LeaveYear === data.calendarYear);
+    // API field names are uppercase: HRMLY_LeaveYear, HRMD_DepartmentName, FOHTWD_HolidayWDType
+    const yearItem = dropdownData?.yeardropdown?.find((y: any) => 
+        (y.HRMLY_LeaveYear || y.hrmlY_LeaveYear) === data.calendarYear
+    );
     const departmentItem = data.department 
-        ? dropdownData?.departmentType?.find((d) => d.hrmD_DepartmentName === data.department)
+        ? dropdownData?.departmentType?.find((d: any) => 
+            (d.HRMD_DepartmentName || d.hrmD_DepartmentName) === data.department
+        )
         : null;
-    const holidayTypeItem = dropdownData?.holidayType?.find((h) => h.fohtwD_HolidayWDType === data.holidayType);
+    const holidayTypeItem = dropdownData?.holidayType?.find((h: any) => 
+        (h.FOHTWD_HolidayWDType || h.fohtwD_HolidayWDType) === data.holidayType
+    );
 
     console.log('🔍 [SERVER] Found IDs:', {
-        yearId: yearItem?.hrmlY_Id || 'NOT FOUND',
-        departmentId: departmentItem?.hrmD_Id || (data.department ? 'NOT FOUND' : 'NOT PROVIDED'),
-        holidayTypeId: holidayTypeItem?.fohwdT_Id || 'NOT FOUND',
+        yearId: (yearItem as any)?.HRMLY_Id || yearItem?.hrmlY_Id || 'NOT FOUND',
+        departmentId: (departmentItem as any)?.HRMD_Id || departmentItem?.hrmD_Id || (data.department ? 'NOT FOUND' : 'NOT PROVIDED'),
+        holidayTypeId: (holidayTypeItem as any)?.FOHWDT_Id || holidayTypeItem?.fohwdT_Id || 'NOT FOUND',
         yearSearch: data.calendarYear,
         deptSearch: data.department || 'NOT PROVIDED',
         holidayTypeSearch: data.holidayType
@@ -222,8 +257,12 @@ export async function addOrUpdateMasterHoliday(
     const selectedDaysDate: { date: string; dayname: string }[] = [];
     
     // Get day names from dayslist
+    // API field names are uppercase: FOMD_DayCode, FOMD_DayName
     const daysMap = new Map(
-        dropdownData?.dayslist?.map((day) => [day.fomD_DayCode, day.fomD_DayName]) || []
+        dropdownData?.dayslist?.map((day: any) => [
+            day.FOMD_DayCode || day.fomD_DayCode || '',
+            day.FOMD_DayName || day.fomD_DayName || ''
+        ]) || []
     );
     
     if (data.selectedDays && data.selectedDays.length > 0) {
@@ -232,9 +271,12 @@ export async function addOrUpdateMasterHoliday(
             // Get the year's date range from dropdown data
             const yearItem = dropdownData?.yeardropdown?.find((y) => y.hrmlY_LeaveYear === data.calendarYear);
             
-            if (yearItem && yearItem.hrmlY_FromDate && yearItem.hrmlY_ToDate) {
-                const fromDateObj = new Date(yearItem.hrmlY_FromDate);
-                const toDateObj = new Date(yearItem.hrmlY_ToDate);
+            // API field names are uppercase: HRMLY_FromDate, HRMLY_ToDate
+            const fromDate = (yearItem as any)?.HRMLY_FromDate || yearItem?.hrmlY_FromDate;
+            const toDate = (yearItem as any)?.HRMLY_ToDate || yearItem?.hrmlY_ToDate;
+            if (yearItem && fromDate && toDate) {
+                const fromDateObj = new Date(fromDate);
+                const toDateObj = new Date(toDate);
                 const currentDate = new Date(fromDateObj);
                 
                 console.log('📅 [SERVER] Building selectedDaysDate for WEEK DAY using year range:', {
@@ -337,9 +379,9 @@ export async function addOrUpdateMasterHoliday(
     
     const requestBody: MasterHolidaySaveRequest & { fomhwD_Id?: number; fomhwdD_Id?: number } = {
         mI_Id: 30,
-        hrmlY_Id: yearItem?.hrmlY_Id || 0,
-        fohwdT_Id: holidayTypeItem?.fohwdT_Id || 0,
-        hrmD_Id: departmentItem?.hrmD_Id || 0,
+        hrmlY_Id: (yearItem as any)?.HRMLY_Id || yearItem?.hrmlY_Id || 0,
+        fohwdT_Id: (holidayTypeItem as any)?.FOHWDT_Id || holidayTypeItem?.fohwdT_Id || 0,
+        hrmD_Id: (departmentItem as any)?.HRMD_Id || departmentItem?.hrmD_Id || 0,
         day_flag: data.selectedDays && data.selectedDays.length > 0,
         fO_Start_Date: startDate,
         fomhwdD_ToDate: endDate,

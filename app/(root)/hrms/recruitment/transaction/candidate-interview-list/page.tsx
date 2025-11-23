@@ -11,7 +11,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function CandidateInterviewListPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     // Mock data for now - replace with actual API call
     const response = { data: [], totalItems: 0, isLoading: false, error: null };
 
@@ -59,4 +59,3 @@ function CandidateInterviewListPageContent({
         </div>
     );
 }
-

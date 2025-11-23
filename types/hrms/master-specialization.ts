@@ -1,9 +1,13 @@
 export interface MasterSpecializationResponse {
-    success: boolean;
-    message: string;
-    data: {
+    success?: boolean;
+    message?: string;
+    data?: SpecializationItem[] | {
         alldata: SpecializationItem[];
     };
+    alldata?: SpecializationItem[];
+    total?: number | null;
+    page?: number | null;
+    page_size?: number | null;
 }
 
 export interface SpecializationItem {

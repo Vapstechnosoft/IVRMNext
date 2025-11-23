@@ -53,4 +53,3 @@ export const foMonthEndReportColumns: ColumnDef<FOMonthEndReportRow>[] = [
     { accessorKey: 'timeOut', header: ({ column }) => <DataTableColumnHeader column={column} title='Time Out' /> },
     { accessorKey: 'status', header: ({ column }) => <DataTableColumnHeader column={column} title='Status' /> }
 ];
-

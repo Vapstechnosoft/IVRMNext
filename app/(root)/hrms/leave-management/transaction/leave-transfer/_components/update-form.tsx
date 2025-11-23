@@ -109,7 +109,7 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                             <div>
-                                <label htmlFor='type-multiselect' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='type-multiselect' className='mb-2 block font-medium text-sm'>
                                     Type
                                 </label>
                                 <Controller
@@ -128,7 +128,7 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                             </div>
 
                             <div>
-                                <label htmlFor='department-multiselect' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='department-multiselect' className='mb-2 block font-medium text-sm'>
                                     Department
                                 </label>
                                 <Controller
@@ -147,7 +147,7 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                             </div>
 
                             <div>
-                                <label htmlFor='designation-multiselect' className='font-medium text-sm mb-2 block'>
+                                <label htmlFor='designation-multiselect' className='mb-2 block font-medium text-sm'>
                                     Designation
                                 </label>
                                 <Controller
@@ -276,4 +276,3 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
         </div>
     );
 }
-

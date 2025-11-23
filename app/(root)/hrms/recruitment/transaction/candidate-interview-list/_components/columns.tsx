@@ -73,4 +73,3 @@ export const candidateInterviewListColumns: ColumnDef<CandidateInterviewListItem
         )
     }
 ];
-

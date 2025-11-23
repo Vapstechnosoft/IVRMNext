@@ -8,6 +8,80 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useEmployeeOnload, useSaveEmployee } from '@/hooks/hrms/useEmployee';
 import { zodResolver } from '@hookform/resolvers/zod';
+
+// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
+const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
+    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
+    if (value == null || value === undefined || value === '') {
+        console.error('🔴 [SafeSelectItem - add-form] EMPTY VALUE DETECTED:', {
+            value,
+            valueType: typeof value,
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // Convert to string
+    const strValue = String(value);
+
+    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
+    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - add-form] EMPTY STRING DETECTED:', {
+            originalValue: value,
+            strValue,
+            strValueLength: strValue.length,
+            trimmed: strValue.trim(),
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    const trimmedValue = strValue.trim();
+
+    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
+    if (trimmedValue === '' || trimmedValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - add-form] EMPTY TRIMMED VALUE DETECTED:', {
+            originalValue: value,
+            strValue,
+            trimmedValue,
+            trimmedLength: trimmedValue.length,
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
+    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - add-form] FINAL CHECK FAILED - trimmedValue is empty:', {
+            originalValue: value,
+            strValue,
+            trimmedValue,
+            trimmedLength: trimmedValue?.length,
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // Only render if we have a valid non-empty string
+    return (
+        <SelectItem {...props} value={trimmedValue}>
+            {children}
+        </SelectItem>
+    );
+};
+
+// Helper function to ensure SelectItem value is never empty string
+const ensureNonEmptyValue = (value: any): string | null => {
+    if (value == null) return null;
+    const str = String(value).trim();
+    return str !== '' ? str : null;
+};
 import { Save } from 'lucide-react';
 import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -190,13 +264,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <SelectValue placeholder='Select employee type' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {employeeTypes.map((type: any) => (
-                                                <SelectItem
-                                                    key={type.HRMET_Id || type.hrmET_Id}
-                                                    value={String(type.HRMET_Id || type.hrmET_Id)}>
-                                                    {type.HRMET_EmployeeType || type.hrmET_EmployeeType}
-                                                </SelectItem>
-                                            ))}
+                                            {employeeTypes
+                                                .filter((type: any) => {
+                                                    const typeId = type.HRMET_Id ?? type.hrmET_Id;
+                                                    return ensureNonEmptyValue(typeId) != null;
+                                                })
+                                                .map((type: any) => {
+                                                    const typeId = type.HRMET_Id ?? type.hrmET_Id;
+                                                    const typeIdStr = ensureNonEmptyValue(typeId);
+                                                    if (!typeIdStr) return null;
+                                                    return (
+                                                        <SafeSelectItem key={typeId} value={typeIdStr}>
+                                                            {type.HRMET_EmployeeType || type.hrmET_EmployeeType}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -218,13 +301,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <SelectValue placeholder='Select group type' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {groupTypes.map((group: any) => (
-                                                <SelectItem
-                                                    key={group.HRMGT_Id || group.hrmgT_Id}
-                                                    value={String(group.HRMGT_Id || group.hrmgT_Id)}>
-                                                    {group.HRMGT_EmployeeGroupType || group.hrmgT_EmployeeGroupType}
-                                                </SelectItem>
-                                            ))}
+                                            {groupTypes
+                                                .filter((group: any) => {
+                                                    const groupId = group.HRMGT_Id ?? group.hrmgT_Id;
+                                                    return ensureNonEmptyValue(groupId) != null;
+                                                })
+                                                .map((group: any) => {
+                                                    const groupId = group.HRMGT_Id ?? group.hrmgT_Id;
+                                                    const groupIdStr = ensureNonEmptyValue(groupId);
+                                                    if (!groupIdStr) return null;
+                                                    return (
+                                                        <SafeSelectItem key={groupId} value={groupIdStr}>
+                                                            {group.HRMGT_EmployeeGroupType || group.hrmgT_EmployeeGroupType}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -246,11 +338,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <SelectValue placeholder='Select department' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {departments.map((dept: any) => (
-                                                <SelectItem key={dept.HRMD_Id || dept.hrmD_Id} value={String(dept.HRMD_Id || dept.hrmD_Id)}>
-                                                    {dept.HRMD_DepartmentName || dept.hrmD_DepartmentName}
-                                                </SelectItem>
-                                            ))}
+                                            {departments
+                                                .filter((dept: any) => {
+                                                    const deptId = dept.HRMD_Id ?? dept.hrmD_Id;
+                                                    return deptId != null && deptId !== '' && String(deptId).trim() !== '';
+                                                })
+                                                .map((dept: any) => {
+                                                    const deptId = dept.HRMD_Id ?? dept.hrmD_Id;
+                                                    const deptIdStr = String(deptId).trim();
+                                                    if (!deptIdStr || deptIdStr === '') return null;
+                                                    return (
+                                                        <SafeSelectItem key={deptId} value={deptIdStr}>
+                                                            {dept.HRMD_DepartmentName || dept.hrmD_DepartmentName}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -272,13 +375,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <SelectValue placeholder='Select designation' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {designations.map((desig: any) => (
-                                                <SelectItem
-                                                    key={desig.HRMDES_Id || desig.hrmdeS_Id}
-                                                    value={String(desig.HRMDES_Id || desig.hrmdeS_Id)}>
-                                                    {desig.HRMDES_DesignationName || desig.hrmdeS_DesignationName}
-                                                </SelectItem>
-                                            ))}
+                                            {designations
+                                                .filter((desig: any) => {
+                                                    const desigId = desig.HRMDES_Id ?? desig.hrmdeS_Id;
+                                                    return ensureNonEmptyValue(desigId) != null;
+                                                })
+                                                .map((desig: any) => {
+                                                    const desigId = desig.HRMDES_Id ?? desig.hrmdeS_Id;
+                                                    const desigIdStr = ensureNonEmptyValue(desigId);
+                                                    if (!desigIdStr) return null;
+                                                    return (
+                                                        <SafeSelectItem key={desigId} value={desigIdStr}>
+                                                            {desig.HRMDES_DesignationName || desig.hrmdeS_DesignationName}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -300,13 +412,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <SelectValue placeholder='Select grade' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {grades.map((grade: any) => (
-                                                <SelectItem
-                                                    key={grade.HRMG_Id || grade.hrmG_Id}
-                                                    value={String(grade.HRMG_Id || grade.hrmG_Id)}>
-                                                    {grade.HRMG_GradeName || grade.hrmG_GradeName}
-                                                </SelectItem>
-                                            ))}
+                                            {grades
+                                                .filter((grade: any) => {
+                                                    const gradeId = grade.HRMG_Id ?? grade.hrmG_Id;
+                                                    return ensureNonEmptyValue(gradeId) != null;
+                                                })
+                                                .map((grade: any) => {
+                                                    const gradeId = grade.HRMG_Id ?? grade.hrmG_Id;
+                                                    const gradeIdStr = ensureNonEmptyValue(gradeId);
+                                                    if (!gradeIdStr) return null;
+                                                    return (
+                                                        <SafeSelectItem key={gradeId} value={gradeIdStr}>
+                                                            {grade.HRMG_GradeName || grade.hrmG_GradeName}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -354,13 +475,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <SelectValue placeholder='Select gender' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {genders.map((gender: any) => (
-                                                <SelectItem
-                                                    key={gender.IVRMMG_Id || gender.ivrmmmG_Id}
-                                                    value={String(gender.IVRMMG_Id || gender.ivrmmmG_Id)}>
-                                                    {gender.IVRMMG_GenderName || gender.ivrmmmG_GenderName}
-                                                </SelectItem>
-                                            ))}
+                                            {genders
+                                                .filter((gender: any) => {
+                                                    const genderId = gender.IVRMMG_Id ?? gender.ivrmmmG_Id;
+                                                    return ensureNonEmptyValue(genderId) != null;
+                                                })
+                                                .map((gender: any) => {
+                                                    const genderId = gender.IVRMMG_Id ?? gender.ivrmmmG_Id;
+                                                    const genderIdStr = ensureNonEmptyValue(genderId);
+                                                    if (!genderIdStr) return null;
+                                                    return (
+                                                        <SafeSelectItem key={genderId} value={genderIdStr}>
+                                                            {gender.IVRMMG_GenderName || gender.ivrmmmG_GenderName}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -382,13 +512,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <SelectValue placeholder='Select marital status' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {maritalStatuses.map((status: any) => (
-                                                <SelectItem
-                                                    key={status.IVRMMMS_Id || status.ivrmmmsId}
-                                                    value={String(status.IVRMMMS_Id || status.ivrmmmsId)}>
-                                                    {status.IVRMMMS_MaritalStatus || status.ivrmmms_MaritalStatus}
-                                                </SelectItem>
-                                            ))}
+                                            {maritalStatuses
+                                                .filter((status: any) => {
+                                                    const statusId = status.IVRMMMS_Id ?? status.ivrmmmsId;
+                                                    return ensureNonEmptyValue(statusId) != null;
+                                                })
+                                                .map((status: any) => {
+                                                    const statusId = status.IVRMMMS_Id ?? status.ivrmmmsId;
+                                                    const statusIdStr = ensureNonEmptyValue(statusId);
+                                                    if (!statusIdStr) return null;
+                                                    return (
+                                                        <SafeSelectItem key={statusId} value={statusIdStr}>
+                                                            {status.IVRMMMS_MaritalStatus || status.ivrmmms_MaritalStatus}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -410,13 +549,22 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <SelectValue placeholder='Select religion' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {religions.map((religion: any) => (
-                                                <SelectItem
-                                                    key={religion.IVRMMR_Id || religion.religionId}
-                                                    value={String(religion.IVRMMR_Id || religion.religionId)}>
-                                                    {religion.IVRMMR_Name || religion.religionName}
-                                                </SelectItem>
-                                            ))}
+                                            {religions
+                                                .filter((religion: any) => {
+                                                    const religionId = religion.IVRMMR_Id ?? religion.religionId;
+                                                    return ensureNonEmptyValue(religionId) != null;
+                                                })
+                                                .map((religion: any) => {
+                                                    const religionId = religion.IVRMMR_Id ?? religion.religionId;
+                                                    const religionIdStr = ensureNonEmptyValue(religionId);
+                                                    if (!religionIdStr) return null;
+                                                    return (
+                                                        <SafeSelectItem key={religionId} value={religionIdStr}>
+                                                            {religion.IVRMMR_Name || religion.religionName}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}

@@ -8,7 +8,7 @@ import { useMasterDriverShift } from '@/hooks/hrms/attendance-management/useMast
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterDriverShiftForm from './_components/add-form';
-import { driverShiftColumns, type DriverShift } from './_components/columns';
+import { type DriverShift, driverShiftColumns } from './_components/columns';
 import DeleteMasterDriverShiftForm from './_components/delete-form';
 import UpdateMasterDriverShiftForm from './_components/update-form';
 

@@ -6,8 +6,8 @@ import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { gpsLocationReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { cn } from '@/lib/utils';
+import { gpsLocationReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, X } from 'lucide-react';
@@ -159,9 +159,7 @@ export function GPSLocationReportFilters({
                             <label htmlFor='employee-select' className='font-medium text-sm'>
                                 Employee <span className='text-red-500'>*</span>
                             </label>
-                            <Select
-                                value={filters.employee || undefined}
-                                onValueChange={(value) => handleFilterChange('employee', value)}>
+                            <Select value={filters.employee || undefined} onValueChange={(value) => handleFilterChange('employee', value)}>
                                 <SelectTrigger id='employee-select' className={errors.employee ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

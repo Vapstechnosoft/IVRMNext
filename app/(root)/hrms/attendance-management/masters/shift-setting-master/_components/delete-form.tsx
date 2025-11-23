@@ -65,4 +65,3 @@ export default function DeleteShiftSettingMasterForm({ rowData, onClose }: Delet
         </AdaptiveDialog>
     );
 }
-

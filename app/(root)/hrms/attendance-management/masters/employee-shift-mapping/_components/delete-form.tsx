@@ -65,4 +65,3 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
         </AdaptiveDialog>
     );
 }
-

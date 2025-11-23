@@ -4,15 +4,15 @@ import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
-import { Save, X, CalendarIcon } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { format, differenceInDays } from 'date-fns';
-import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { differenceInDays, format } from 'date-fns';
+import { CalendarIcon, Save, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditTransaction } from './columns';
 
 interface LeaveCreditTransactionFormProps {

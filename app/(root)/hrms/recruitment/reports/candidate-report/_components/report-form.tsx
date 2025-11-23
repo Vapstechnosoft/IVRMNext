@@ -129,4 +129,3 @@ export default function CandidateReportForm({ onGenerateReport, isLoading = fals
         </form>
     );
 }
-

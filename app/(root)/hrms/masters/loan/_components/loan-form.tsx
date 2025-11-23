@@ -56,17 +56,25 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
             const res = await saveMutation.mutateAsync(data);
 
             if (res?.success) {
-                toast.success(isEditMode ? 'Loan type updated successfully' : 'Loan type added successfully');
+                // Use the actual message from the API response
+                const successMsg = res?.message || (isEditMode ? 'Loan type updated successfully' : 'Loan type added successfully');
+                toast.success(successMsg);
                 if (!isEditMode) {
                     reset();
                 }
                 refetchAll();
                 if (onSuccess) onSuccess();
             } else {
-                toast.error(res?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type'));
+                // Show the actual error message from the API response
+                const errorMsg = res?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+                toast.error(errorMsg);
             }
-        } catch (_error: any) {
-            toast.error(isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+        } catch (error: any) {
+            // Handle actual errors (network errors, etc.)
+            const errorMsg =
+                error?.response?.data?.message || error?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+            console.error('🔴 [BROWSER] Loan form error:', error);
+            toast.error(errorMsg);
         }
     };
 
@@ -88,7 +96,7 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
                         <InputText
                             id='HRML_LoanType'
                             placeholder='Enter loan type'
-                            {...register('HRML_LoanType', LOAN_TYPE_VALIDATION.loanType)}
+                            {...register('HRML_LoanType', LOAN_TYPE_VALIDATION.HRML_LoanType)}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         {errors.HRML_LoanType && <FormError>{errors.HRML_LoanType.message}</FormError>}
@@ -97,7 +105,7 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
                     <Controller
                         name='HRML_Max'
                         control={control}
-                        rules={LOAN_TYPE_VALIDATION.maxLoanAmount}
+                        rules={LOAN_TYPE_VALIDATION.HRML_Max}
                         render={({ field }) => {
                             // Callback ref to attach input listener when element is mounted
                             const containerRefCallback = (containerElement: HTMLDivElement | null) => {

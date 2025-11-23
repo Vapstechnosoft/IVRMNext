@@ -27,17 +27,17 @@ interface Candidate {
 export default function CandidateReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleGenerateReport = async (filters: { institution: string; candidateId: string }) => {
+    const handleGenerateReport = async (_filters: { institution: string; candidateId: string }) => {
         setIsLoading(true);
         try {
             // TODO: Replace with actual API call
             // const response = await getCandidateReport(filters);
             // setSelectedCandidate(response.data);
-            
+
             // Mock data for now
             setSelectedCandidate(null);
         } catch (error: any) {
@@ -86,10 +86,7 @@ function CandidateReportPageContent({
                     variant='outline'
                     size='md'
                     className='shadow-lg duration-300'>
-                    <CandidateReportForm
-                        onGenerateReport={onGenerateReport}
-                        isLoading={isLoading}
-                    />
+                    <CandidateReportForm onGenerateReport={onGenerateReport} isLoading={isLoading} />
                 </CollapsibleSection>
 
                 {/* Candidate Details View */}
@@ -111,26 +108,28 @@ function CandidateReportPageContent({
                                     <CardContent>
                                         <div className='grid grid-cols-2 gap-4 text-sm'>
                                             <div className='font-medium'>Candidate Name:</div>
-                                            <div>{`${selectedCandidate.firstName} ${selectedCandidate.middleName || ''} ${selectedCandidate.lastName}`.trim()}</div>
-                                            
+                                            <div>
+                                                {`${selectedCandidate.firstName} ${selectedCandidate.middleName || ''} ${selectedCandidate.lastName}`.trim()}
+                                            </div>
+
                                             <div className='font-medium'>Mobile No:</div>
                                             <div>{selectedCandidate.mobileNo}</div>
-                                            
+
                                             <div className='font-medium'>Email Id:</div>
                                             <div>{selectedCandidate.emailId}</div>
-                                            
+
                                             <div className='font-medium'>Experience (Year):</div>
                                             <div>{selectedCandidate.experience || '-'}</div>
-                                            
+
                                             <div className='font-medium'>Current Company:</div>
                                             <div>{selectedCandidate.currentCompany || '-'}</div>
-                                            
+
                                             <div className='font-medium'>Reference Code:</div>
                                             <div>{selectedCandidate.referenceCode || '-'}</div>
-                                            
+
                                             <div className='font-medium'>Last CTC:</div>
                                             <div>{selectedCandidate.lastCTC || '-'}</div>
-                                            
+
                                             <div className='font-medium'>Expected CTC:</div>
                                             <div>{selectedCandidate.expectedCTC || '-'}</div>
                                         </div>
@@ -161,7 +160,7 @@ function CandidateReportPageContent({
                                 </div>
                                 {selectedCandidate.resumeCV && (
                                     <a
-                                        className='text-primary hover:underline text-sm font-medium'
+                                        className='font-medium text-primary text-sm hover:underline'
                                         href={selectedCandidate.resumeCV}
                                         target='_blank'
                                         rel='noreferrer'
@@ -172,7 +171,7 @@ function CandidateReportPageContent({
                             </div>
                         </div>
                     ) : (
-                        <div className='text-muted-foreground text-center py-8 text-sm'>
+                        <div className='py-8 text-center text-muted-foreground text-sm'>
                             Select institution and candidate, then click REPORT to view details.
                         </div>
                     )}

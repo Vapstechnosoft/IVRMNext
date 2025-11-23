@@ -111,7 +111,11 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                 <Label htmlFor='HRMBD_BankName'>
                     Bank Name <span className='text-destructive'>*</span>
                 </Label>
-                <InputText id='HRMBD_BankName' placeholder='Enter bank name' {...register('HRMBD_BankName', BANK_VALIDATION.bankName)} />
+                <InputText
+                    id='HRMBD_BankName'
+                    placeholder='Enter bank name'
+                    {...register('HRMBD_BankName', BANK_VALIDATION.HRMBK_BankName)}
+                />
                 {errors.HRMBD_BankName && <FormError>{errors.HRMBD_BankName.message}</FormError>}
             </div>
             <div className='group flex flex-col gap-1.5'>
@@ -121,7 +125,7 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                 <InputText
                     id='HRMBD_BranchName'
                     placeholder='Enter branch name'
-                    {...register('HRMBD_BranchName', BANK_VALIDATION.branchName)}
+                    {...register('HRMBD_BranchName', BANK_VALIDATION.HRMBK_BranchName)}
                 />
                 {errors.HRMBD_BranchName && <FormError>{errors.HRMBD_BranchName.message}</FormError>}
             </div>
@@ -132,7 +136,7 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                 <InputText
                     id='HRMBD_BankAccountNo'
                     placeholder='Enter account number'
-                    {...register('HRMBD_BankAccountNo', BANK_VALIDATION.accountNumber)}
+                    {...register('HRMBD_BankAccountNo', BANK_VALIDATION.HRMBK_AccountNumber)}
                 />
                 {errors.HRMBD_BankAccountNo && <FormError>{errors.HRMBD_BankAccountNo.message}</FormError>}
             </div>
@@ -143,7 +147,7 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                 <InputText
                     id='HRMBD_IFSCCode'
                     placeholder='Enter IFSC code (e.g., ABCD0123456)'
-                    {...register('HRMBD_IFSCCode', BANK_VALIDATION.ifscCode)}
+                    {...register('HRMBD_IFSCCode', BANK_VALIDATION.HRMBK_IFSCCode)}
                 />
                 {errors.HRMBD_IFSCCode && <FormError>{errors.HRMBD_IFSCCode.message}</FormError>}
             </div>
@@ -155,7 +159,7 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                     <InputText
                         id='HRMBD_BankAddress'
                         placeholder='Enter bank address'
-                        {...register('HRMBD_BankAddress', BANK_VALIDATION.bankAddress)}
+                        {...register('HRMBD_BankAddress', BANK_VALIDATION.HRMBK_BankAddress)}
                     />
                     {errors.HRMBD_BankAddress && <FormError>{errors.HRMBD_BankAddress.message}</FormError>}
                 </div>

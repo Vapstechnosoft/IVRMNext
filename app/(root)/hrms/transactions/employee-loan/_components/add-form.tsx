@@ -62,22 +62,16 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             HREL_Id: 0,
             MI_Id: HRMS_MI_ID,
             HRME_Id: data.employeeId,
-            roleId: 2,
-            HRMLN_Id: data.loanTypeId,
             HREL_AppliedDate: data.startDate,
+            HREL_EmpLoanId: '',
+            HRMLN_Id: data.loanTypeId,
             HREL_LoanAmount: data.amount,
             HREL_LoanInsallments: data.installments,
-            HREL_LoanStatus: 'Applied',
-            HREL_SanctionedAmount: 0,
-            HREL_TotalPrincipalPaid: 0,
-            HREL_TotalInterestPaid: 0,
-            HREL_TotalPending: 0,
-            HREL_LoanInterest: data.loanInterest || 0,
             HREL_LaonEMI: data.loanEMI || 0,
+            HREL_LoanInterest: data.loanInterest || 0,
             HREL_ModeOfPayment: data.modeOfPayment || '',
-            HREL_ReferenceNo: data.referenceNo || '',
-            HREL_ActiveFlag: true,
-            HREL_NoofInstallment: data.installments
+            HREL_ReferenceNo: data.referenceNo || 0,
+            ASMAY_Id: 0
         };
 
         saveLoan(loanData, {
@@ -223,7 +217,6 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                             <div className='space-y-2'>
                                 <Label>Reference No.</Label>
                                 <InputText
-                                    label='Reference No.'
                                     id='referenceNo'
                                     placeholder='Enter reference number (max 20 characters, numbers only)'
                                     {...field}

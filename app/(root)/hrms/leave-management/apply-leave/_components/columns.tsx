@@ -37,7 +37,9 @@ export type ApplyLeave = {
 };
 
 // Table columns for Leave Balance
-export const leaveBalanceColumns: ColumnDef<LeaveBalanceRow & { slNo?: number; total?: number; fromDate?: string; toDate?: string; noOfDays?: number }>[] = [
+export const leaveBalanceColumns: ColumnDef<
+    LeaveBalanceRow & { slNo?: number; total?: number; fromDate?: string; toDate?: string; noOfDays?: number }
+>[] = [
     {
         accessorKey: 'slNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl No' />,

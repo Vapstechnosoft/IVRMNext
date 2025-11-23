@@ -86,7 +86,7 @@ export default function MaritalStatusForm({ selectedRow, onSuccess }: MaritalSta
                 <InputText
                     id='IVRMMMS_MaritalStatus'
                     placeholder='Enter marital status'
-                    {...register('IVRMMMS_MaritalStatus', MARITAL_STATUS_VALIDATION.maritalStatus)}
+                    {...register('IVRMMMS_MaritalStatus', MARITAL_STATUS_VALIDATION.HRMMS_MaritalStatus)}
                 />
                 {errors.IVRMMMS_MaritalStatus && <FormError>{errors.IVRMMMS_MaritalStatus.message}</FormError>}
             </div>

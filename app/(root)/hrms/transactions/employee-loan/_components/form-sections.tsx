@@ -22,6 +22,8 @@ export default function FormSections({ onloadData, onSuccess }: FormSectionsProp
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
+                        title='Add Employee Loan'
+                        description='Fill in the details below to add a new employee loan'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -51,6 +53,8 @@ export default function FormSections({ onloadData, onSuccess }: FormSectionsProp
             {isEditFormOpen && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
+                        title='Edit Employee Loan'
+                        description='Update the details below to edit the employee loan'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

@@ -191,4 +191,3 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
         </div>
     );
 }
-

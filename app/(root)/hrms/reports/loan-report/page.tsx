@@ -303,7 +303,7 @@ export default function LoanReportPage() {
 
                             if (loanAmount > 0) {
                                 records.push({
-                                    id: (index + 1000000), // Use a large number to avoid conflicts
+                                    id: index + 1000000, // Use a large number to avoid conflicts
                                     employeeCode: employeeCode,
                                     employeeName: employeeName,
                                     groupType: 'N/A',

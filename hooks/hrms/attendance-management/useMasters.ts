@@ -2,7 +2,7 @@
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { addOrUpdateEmployeeMissingLog, deleteEmployeeMissingLog, getEmployeeMissingLogs } from '@/server/hrms/attendance-management/masters/employee-missing-logs';
-import { addOrUpdateEmployeeShiftMapping, deleteEmployeeShiftMapping, getEmployeeShiftMapping } from '@/server/hrms/attendance-management/masters/employee-shift-mapping';
+import { addOrUpdateEmployeeShiftMapping, deleteEmployeeShiftMapping, getEmployeeShiftMapping, getEmployeeShiftMappingDropdowns, getEmployeeShiftMappingShiftNames, getEmployeeShiftMappingEditData, getEmployeeShiftMappingEmployees } from '@/server/hrms/attendance-management/masters/employee-shift-mapping';
 import { addOrUpdateMasterDriverShift, deleteMasterDriverShift, getMasterDriverShift } from '@/server/hrms/attendance-management/masters/master-driver-shift';
 import { addOrUpdateMasterHoliday, deleteMasterHoliday, getMasterHoliday } from '@/server/hrms/attendance-management/masters/master-holiday';
 import { addOrUpdateMasterShift, deleteMasterShift, getMasterShift } from '@/server/hrms/attendance-management/masters/master-shift';
@@ -288,13 +288,13 @@ export const useDeleteShiftSettingMaster = () => {
     });
 };
 
-export const useEmployeeShiftMapping = () => {
+export const useEmployeeShiftMapping = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING],
-            queryFn: async () => getEmployeeShiftMapping(),
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, searchParams ?? {}],
+            queryFn: async () => getEmployeeShiftMapping(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -344,6 +344,48 @@ export const useDeleteEmployeeShiftMapping = () => {
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to delete employee shift mapping');
         }
+    });
+};
+
+export const useEmployeeShiftMappingDropdowns = () => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'dropdowns'],
+        queryFn: async () => getEmployeeShiftMappingDropdowns(),
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingShiftNames = (fomsId: number = 0) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'shiftNames', fomsId],
+        queryFn: async () => getEmployeeShiftMappingShiftNames(fomsId),
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingEditData = (foestId: number | null) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'edit', foestId],
+        queryFn: async () => {
+            if (!foestId) {
+                return { success: false, message: 'Invalid ID', data: null };
+            }
+            return getEmployeeShiftMappingEditData(foestId);
+        },
+        enabled: !!foestId && foestId > 0, // Only fetch if we have a valid ID
+        staleTime: 0 // Don't cache edit data
+    });
+};
+
+export const useEmployeeShiftMappingEmployees = (params: {
+    groupTypeIds?: number[];
+    departmentIds?: number[];
+    designationIds?: number[];
+}) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'employees', params],
+        queryFn: async () => getEmployeeShiftMappingEmployees(params),
+        staleTime: 2 * 60 * 1000 // Cache for 2 minutes
     });
 };
 

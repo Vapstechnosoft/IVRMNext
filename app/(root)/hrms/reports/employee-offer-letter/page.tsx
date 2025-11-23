@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { useFilterEmployeeOfferAndExperienceData, useGetEmployeeDetailsBySelection } from '@/hooks/hrms/useReports';
 import { createLocalCrud } from '@/lib/localdb';
 import { format } from 'date-fns';
 import { Printer, X } from 'lucide-react';
@@ -17,11 +18,15 @@ import {
 } from './_components/filters';
 
 export default function EmployeeOfferLetterPage() {
-    // Database instances
+    // API hooks
+    const filterMutation = useFilterEmployeeOfferAndExperienceData();
+    const searchMutation = useGetEmployeeDetailsBySelection();
+
+    // Database instances (for dropdowns - group types, departments, designations)
     const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
     const departmentDB = createLocalCrud<Department>('master:department');
     const designationDB = createLocalCrud<Designation>('master:designation');
-    const employeeDB = createLocalCrud<Employee>('employee:register');
+    const employeeDB = createLocalCrud<Employee>('master:employee');
 
     // State
     const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
@@ -164,33 +169,76 @@ export default function EmployeeOfferLetterPage() {
         ];
     };
 
-    // Filter employees based on selected criteria
+    // Filter employees using API when filters change
     useEffect(() => {
-        let filtered = employees;
-
-        if (filters.type) {
-            filtered = filtered.filter((emp) => {
-                const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
-                return selectedType && emp.groupTypeId === selectedType.id;
-            });
+        // Only call API if we have at least one filter selected
+        if (!filters.type && !filters.department && !filters.designation) {
+            setFilteredEmployees([]);
+            setEmployees([]);
+            return;
         }
 
-        if (filters.department) {
-            filtered = filtered.filter((emp) => {
-                const selectedDept = departments.find((d) => d.departmentName === filters.department);
-                return selectedDept && emp.departmentId === selectedDept.id;
-            });
-        }
+        // Find IDs for selected filters
+        const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
+        const selectedDept = departments.find((d) => d.departmentName === filters.department);
+        const selectedDesig = designations.find((d) => d.designationName === filters.designation);
 
-        if (filters.designation) {
-            filtered = filtered.filter((emp) => {
-                const selectedDesig = designations.find((d) => d.designationName === filters.designation);
-                return selectedDesig && emp.designationId === selectedDesig.id;
-            });
-        }
+        const filterRequest = {
+            MI_Id: 30,
+            HRMGT_Id: selectedType?.id || 0,
+            HRMD_Id: selectedDept?.id || 0,
+            HRMDES_Id: selectedDesig?.id || 0,
+            LogInUserId: 0
+        };
 
-        setFilteredEmployees(filtered);
-    }, [filters.type, filters.department, filters.designation, employees, groupTypes, departments, designations]);
+        filterMutation.mutate(filterRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    const employeeList = response.data.employeedropdown || [];
+                    const mappedEmployees: Employee[] = employeeList.map((emp: any) => ({
+                        id: emp.HRME_Id || 0,
+                        createdAt: new Date(),
+                        employeeCode: emp.HRME_EmployeeCode || '',
+                        employeeName:
+                            `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
+                        employeeFirstName: emp.HRME_EmployeeFirstName || '',
+                        employeeMiddleName: emp.HRME_EmployeeMiddleName,
+                        employeeLastName: emp.HRME_EmployeeLastName || '',
+                        groupTypeId: emp.HRMGT_Id || 0,
+                        departmentId: emp.HRMD_Id || 0,
+                        designationId: emp.HRMDES_Id || 0,
+                        departmentName: emp.HRMD_DepartmentName || '',
+                        designationName: emp.HRMDES_DesignationName || '',
+                        dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
+                        dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : undefined,
+                        employmentType:
+                            emp.HRMET_EmployeeType === 'Permanent'
+                                ? 'Permanent'
+                                : emp.HRMET_EmployeeType === 'Probationary'
+                                  ? 'Probationary'
+                                  : 'Permanent',
+                        gender: (emp.IVRMMG_GenderName === 'Male' ? 'Male' : emp.IVRMMG_GenderName === 'Female' ? 'Female' : undefined) as
+                            | 'Male'
+                            | 'Female'
+                            | 'Other'
+                            | undefined
+                    }));
+
+                    setEmployees(mappedEmployees);
+                    setFilteredEmployees(mappedEmployees);
+                } else {
+                    toast.error(response.message || 'Failed to filter employees');
+                    setEmployees([]);
+                    setFilteredEmployees([]);
+                }
+            },
+            onError: (error: any) => {
+                toast.error(error?.message || 'Failed to filter employees');
+                setEmployees([]);
+                setFilteredEmployees([]);
+            }
+        });
+    }, [filters.type, filters.department, filters.designation, groupTypes, departments, designations]);
 
     const handleFilterChange = (key: keyof OfferLetterFilters, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
@@ -212,8 +260,69 @@ export default function EmployeeOfferLetterPage() {
             return;
         }
 
-        setShowReport(true);
-        toast.success(`${filters.reportType} generated successfully`);
+        // Find IDs for selected filters
+        const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
+        const selectedDept = departments.find((d) => d.departmentName === filters.department);
+        const selectedDesig = designations.find((d) => d.designationName === filters.designation);
+
+        const searchRequest = {
+            MI_Id: 30,
+            HRMGT_Id: selectedType?.id || 0,
+            HRMD_Id: selectedDept?.id || 0,
+            HRMDES_Id: selectedDesig?.id || 0,
+            LogInUserId: 0
+        };
+
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    const employeeList = response.data.employeedropdown || [];
+                    const mappedEmployees: Employee[] = employeeList.map((emp: any) => ({
+                        id: emp.HRME_Id || 0,
+                        createdAt: new Date(),
+                        employeeCode: emp.HRME_EmployeeCode || '',
+                        employeeName:
+                            `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
+                        employeeFirstName: emp.HRME_EmployeeFirstName || '',
+                        employeeMiddleName: emp.HRME_EmployeeMiddleName,
+                        employeeLastName: emp.HRME_EmployeeLastName || '',
+                        groupTypeId: emp.HRMGT_Id || 0,
+                        departmentId: emp.HRMD_Id || 0,
+                        designationId: emp.HRMDES_Id || 0,
+                        departmentName: emp.HRMD_DepartmentName || '',
+                        designationName: emp.HRMDES_DesignationName || '',
+                        dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
+                        dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : undefined,
+                        employmentType:
+                            emp.HRMET_EmployeeType === 'Permanent'
+                                ? 'Permanent'
+                                : emp.HRMET_EmployeeType === 'Probationary'
+                                  ? 'Probationary'
+                                  : 'Permanent',
+                        gender: (emp.IVRMMG_GenderName === 'Male' ? 'Male' : emp.IVRMMG_GenderName === 'Female' ? 'Female' : undefined) as
+                            | 'Male'
+                            | 'Female'
+                            | 'Other'
+                            | undefined
+                    }));
+
+                    // Update employees list and find selected employee
+                    setEmployees(mappedEmployees);
+                    const selectedEmp = mappedEmployees.find((emp) => emp.id.toString() === filters.selectedEmployee);
+                    if (selectedEmp) {
+                        setShowReport(true);
+                        toast.success(`${filters.reportType} generated successfully`);
+                    } else {
+                        toast.error('Selected employee not found in the filtered results');
+                    }
+                } else {
+                    toast.error(response.message || 'Failed to get employee details');
+                }
+            },
+            onError: (error: any) => {
+                toast.error(error?.message || 'Failed to get employee details');
+            }
+        });
     };
 
     const handleCancel = () => {

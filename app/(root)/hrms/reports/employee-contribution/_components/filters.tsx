@@ -247,7 +247,9 @@ export function EmployeeContributionFilters({
                             ) : (
                                 <Select
                                     value={filters.selectedEarningHead > 0 ? filters.selectedEarningHead.toString() : ''}
-                                    onValueChange={(value) => handleInternalFilterChange('selectedEarningHead', Number.parseInt(value) || 0)}>
+                                    onValueChange={(value) =>
+                                        handleInternalFilterChange('selectedEarningHead', Number.parseInt(value) || 0)
+                                    }>
                                     <SelectTrigger id='earningHead'>
                                         <SelectValue placeholder='Select Head' />
                                     </SelectTrigger>
@@ -278,7 +280,9 @@ export function EmployeeContributionFilters({
                             ) : (
                                 <Select
                                     value={filters.selectedDeductionHead > 0 ? filters.selectedDeductionHead.toString() : ''}
-                                    onValueChange={(value) => handleInternalFilterChange('selectedDeductionHead', Number.parseInt(value) || 0)}>
+                                    onValueChange={(value) =>
+                                        handleInternalFilterChange('selectedDeductionHead', Number.parseInt(value) || 0)
+                                    }>
                                     <SelectTrigger id='deductionHead'>
                                         <SelectValue placeholder='Select Head' />
                                     </SelectTrigger>
@@ -374,7 +378,8 @@ export function EmployeeContributionFilters({
                                     .filter((emp) => emp.HRME_Id != null && (emp.HRME_EmployeeFirstName || emp.HRME_EmployeeCode))
                                     .map((emp) => ({
                                         label: emp.HRME_EmployeeFirstName
-                                            ? `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim() || emp.HRME_EmployeeCode
+                                            ? `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim() ||
+                                              emp.HRME_EmployeeCode
                                             : emp.HRME_EmployeeCode || '',
                                         value: emp.HRME_Id.toString()
                                     }))}

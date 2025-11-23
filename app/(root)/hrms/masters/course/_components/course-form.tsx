@@ -108,7 +108,7 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                 <Input
                     id='HRMC_QulaificationName'
                     placeholder='Enter qualification name'
-                    {...register('HRMC_QulaificationName', COURSE_VALIDATION.courseName)}
+                    {...register('HRMC_QulaificationName', COURSE_VALIDATION.HRMC_QualificationName)}
                 />
                 {errors.HRMC_QulaificationName && <FormError>{errors.HRMC_QulaificationName.message}</FormError>}
             </div>
@@ -119,7 +119,7 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                 <Input
                     id='HRMC_QualificationDesc'
                     placeholder='Enter description'
-                    {...register('HRMC_QualificationDesc', COURSE_VALIDATION.courseDescription)}
+                    {...register('HRMC_QualificationDesc', COURSE_VALIDATION.HRMC_QualificationDescription)}
                 />
                 {errors.HRMC_QualificationDesc && <FormError>{errors.HRMC_QualificationDesc.message}</FormError>}
             </div>

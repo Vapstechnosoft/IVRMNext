@@ -113,11 +113,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                     <label htmlFor='leaveType' className='mb-2 block font-medium text-sm'>
                                         Leave Type <span className='text-red-500'>*</span>
                                     </label>
-                                    <Select 
-                                        value={field.value} 
-                                        onValueChange={field.onChange}
-                                        disabled={isLoadingDropdowns}
-                                    >
+                                    <Select value={field.value} onValueChange={field.onChange} disabled={isLoadingDropdowns}>
                                         <SelectTrigger id='leaveType' className={errors.leaveType ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : 'Select Leave Type'} />
                                         </SelectTrigger>
@@ -129,7 +125,7 @@ export default function UpdateMasterLeaveForm({ onSuccess, onCancel, className =
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}

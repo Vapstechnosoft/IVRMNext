@@ -7,6 +7,120 @@ import React from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
+// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
+const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
+    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
+    if (value == null || value === undefined || value === '') {
+        console.error('🔴 [SafeSelectItem - address-tab] EMPTY VALUE DETECTED:', {
+            value,
+            valueType: typeof value,
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // Convert to string
+    const strValue = String(value);
+
+    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
+    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - address-tab] EMPTY STRING DETECTED:', {
+            originalValue: value,
+            strValue,
+            strValueLength: strValue.length,
+            trimmed: strValue.trim(),
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    const trimmedValue = strValue.trim();
+
+    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
+    if (trimmedValue === '' || trimmedValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - address-tab] EMPTY TRIMMED VALUE DETECTED:', {
+            originalValue: value,
+            strValue,
+            trimmedValue,
+            trimmedLength: trimmedValue.length,
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
+    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - address-tab] FINAL CHECK FAILED - trimmedValue is empty:', {
+            originalValue: value,
+            strValue,
+            trimmedValue,
+            trimmedLength: trimmedValue?.length,
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // Only render if we have a valid non-empty string
+    return (
+        <SelectItem {...props} value={trimmedValue}>
+            {children}
+        </SelectItem>
+    );
+};
+
+// Helper function to ensure SelectItem value is never empty string
+const ensureNonEmptyValue = (value: any, fallback: any = null): string | null => {
+    // Handle null/undefined
+    if (value == null || value === undefined) {
+        if (fallback != null && fallback !== undefined) {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Handle empty string explicitly
+    if (value === '') {
+        if (fallback != null && fallback !== undefined && fallback !== '') {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Convert to string
+    const str = String(value);
+
+    // Check if empty or whitespace
+    if (str === '' || str.trim() === '') {
+        if (fallback != null && fallback !== undefined && fallback !== '') {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Final check - ensure it's not empty
+    const trimmed = str.trim();
+    if (trimmed === '' || trimmed.length === 0) {
+        return null;
+    }
+
+    return trimmed;
+};
+
 interface AddressTabProps {
     control: any;
     register: any;
@@ -19,7 +133,17 @@ interface AddressTabProps {
     onClear?: () => void;
 }
 
-export function AddressTab({ control, register, errors, isSubmitting, watch, setValue, countries = [], states = [], onClear }: AddressTabProps) {
+export function AddressTab({
+    control,
+    register,
+    errors,
+    isSubmitting,
+    watch,
+    setValue,
+    countries = [],
+    states = [],
+    onClear
+}: AddressTabProps) {
     const sameAsCommunicationAddress = watch('sameAsCommunicationAddress');
 
     // Watch communication address fields
@@ -83,21 +207,33 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
                                                 <SelectValue placeholder='Select Country' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {countries.map((country: any, index: number) => {
-                                                    const countryId =
-                                                        country.IVRMMC_Id || country.IVRMMCO_Id || country.value || country.id || index;
-                                                    const countryName =
-                                                        country.IVRMMC_CountryName ||
-                                                        country.IVRMMCO_CountryName ||
-                                                        country.label ||
-                                                        country.name ||
-                                                        `Country ${countryId}`;
-                                                    return (
-                                                        <SelectItem key={countryId} value={countryId.toString()}>
-                                                            {countryName}
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                                {countries
+                                                    .filter((country: any, index: number) => {
+                                                        const countryId =
+                                                            country.IVRMMC_Id ?? country.IVRMMCO_Id ?? country.value ?? country.id ?? index;
+                                                        return countryId != null && countryId !== '' && String(countryId).trim() !== '';
+                                                    })
+                                                    .map((country: any, index: number) => {
+                                                        const countryIdRaw =
+                                                            country.IVRMMC_Id ?? country.IVRMMCO_Id ?? country.value ?? country.id ?? index;
+                                                        const countryIdStr = ensureNonEmptyValue(countryIdRaw, index);
+                                                        // Ensure value is never empty string
+                                                        if (!countryIdStr || countryIdStr.trim() === '' || countryIdStr === '') return null;
+                                                        const finalCountryId = String(countryIdStr).trim();
+                                                        if (finalCountryId === '') return null;
+                                                        const countryName =
+                                                            country.IVRMMC_CountryName ||
+                                                            country.IVRMMCO_CountryName ||
+                                                            country.label ||
+                                                            country.name ||
+                                                            `Country ${countryIdRaw}`;
+                                                        return (
+                                                            <SafeSelectItem key={countryIdRaw} value={finalCountryId}>
+                                                                {countryName}
+                                                            </SafeSelectItem>
+                                                        );
+                                                    })
+                                                    .filter(Boolean)}
                                             </SelectContent>
                                         </Select>
                                     </>
@@ -116,15 +252,27 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
                                                 <SelectValue placeholder='Select State' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {states.map((state: any, index: number) => {
-                                                    const stateId = state.IVRMMS_Id || state.value || state.id || index;
-                                                    const stateName = state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
-                                                    return (
-                                                        <SelectItem key={stateId} value={stateId.toString()}>
-                                                            {stateName}
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                                {states
+                                                    .filter((state: any, index: number) => {
+                                                        const stateId = state.IVRMMS_Id || state.value || state.id || index;
+                                                        return stateId != null && stateId !== '' && String(stateId).trim() !== '';
+                                                    })
+                                                    .map((state: any, index: number) => {
+                                                        const stateId = state.IVRMMS_Id ?? state.value ?? state.id ?? index;
+                                                        const stateIdStr = ensureNonEmptyValue(stateId, index);
+                                                        // Ensure value is never empty string
+                                                        if (!stateIdStr || stateIdStr.trim() === '' || stateIdStr === '') return null;
+                                                        const finalStateId = String(stateIdStr).trim();
+                                                        if (finalStateId === '') return null;
+                                                        const stateName =
+                                                            state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
+                                                        return (
+                                                            <SafeSelectItem key={stateId} value={finalStateId}>
+                                                                {stateName}
+                                                            </SafeSelectItem>
+                                                        );
+                                                    })
+                                                    .filter(Boolean)}
                                             </SelectContent>
                                         </Select>
                                     </>
@@ -191,21 +339,33 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
                                                 <SelectValue placeholder='Select Country' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {countries.map((country: any, index: number) => {
-                                                    const countryId =
-                                                        country.IVRMMC_Id || country.IVRMMCO_Id || country.value || country.id || index;
-                                                    const countryName =
-                                                        country.IVRMMC_CountryName ||
-                                                        country.IVRMMCO_CountryName ||
-                                                        country.label ||
-                                                        country.name ||
-                                                        `Country ${countryId}`;
-                                                    return (
-                                                        <SelectItem key={countryId} value={countryId.toString()}>
-                                                            {countryName}
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                                {countries
+                                                    .filter((country: any, index: number) => {
+                                                        const countryId =
+                                                            country.IVRMMC_Id ?? country.IVRMMCO_Id ?? country.value ?? country.id ?? index;
+                                                        return countryId != null && countryId !== '' && String(countryId).trim() !== '';
+                                                    })
+                                                    .map((country: any, index: number) => {
+                                                        const countryIdRaw =
+                                                            country.IVRMMC_Id ?? country.IVRMMCO_Id ?? country.value ?? country.id ?? index;
+                                                        const countryIdStr = ensureNonEmptyValue(countryIdRaw, index);
+                                                        // Ensure value is never empty string
+                                                        if (!countryIdStr || countryIdStr.trim() === '' || countryIdStr === '') return null;
+                                                        const finalCountryId = String(countryIdStr).trim();
+                                                        if (finalCountryId === '') return null;
+                                                        const countryName =
+                                                            country.IVRMMC_CountryName ||
+                                                            country.IVRMMCO_CountryName ||
+                                                            country.label ||
+                                                            country.name ||
+                                                            `Country ${countryIdRaw}`;
+                                                        return (
+                                                            <SafeSelectItem key={countryIdRaw} value={finalCountryId}>
+                                                                {countryName}
+                                                            </SafeSelectItem>
+                                                        );
+                                                    })
+                                                    .filter(Boolean)}
                                             </SelectContent>
                                         </Select>
                                     </>
@@ -224,15 +384,27 @@ export function AddressTab({ control, register, errors, isSubmitting, watch, set
                                                 <SelectValue placeholder='Select State' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {states.map((state: any, index: number) => {
-                                                    const stateId = state.IVRMMS_Id || state.value || state.id || index;
-                                                    const stateName = state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
-                                                    return (
-                                                        <SelectItem key={stateId} value={stateId.toString()}>
-                                                            {stateName}
-                                                        </SelectItem>
-                                                    );
-                                                })}
+                                                {states
+                                                    .filter((state: any, index: number) => {
+                                                        const stateId = state.IVRMMS_Id || state.value || state.id || index;
+                                                        return stateId != null && stateId !== '' && String(stateId).trim() !== '';
+                                                    })
+                                                    .map((state: any, index: number) => {
+                                                        const stateId = state.IVRMMS_Id ?? state.value ?? state.id ?? index;
+                                                        const stateIdStr = ensureNonEmptyValue(stateId, index);
+                                                        // Ensure value is never empty string
+                                                        if (!stateIdStr || stateIdStr.trim() === '' || stateIdStr === '') return null;
+                                                        const finalStateId = String(stateIdStr).trim();
+                                                        if (finalStateId === '') return null;
+                                                        const stateName =
+                                                            state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
+                                                        return (
+                                                            <SafeSelectItem key={stateId} value={finalStateId}>
+                                                                {stateName}
+                                                            </SafeSelectItem>
+                                                        );
+                                                    })
+                                                    .filter(Boolean)}
                                             </SelectContent>
                                         </Select>
                                     </>

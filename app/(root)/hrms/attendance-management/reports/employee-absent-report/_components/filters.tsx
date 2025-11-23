@@ -7,8 +7,8 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { employeeAbsentReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { cn } from '@/lib/utils';
+import { employeeAbsentReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, X } from 'lucide-react';
@@ -213,9 +213,7 @@ export function EmployeeAbsentReportFilters({
                             <label className='font-medium text-sm' htmlFor='employee'>
                                 Employee <span className='text-red-500'>*</span>
                             </label>
-                            <Select
-                                value={filters.employee || undefined}
-                                onValueChange={(value) => handleFilterChange('employee', value)}>
+                            <Select value={filters.employee || undefined} onValueChange={(value) => handleFilterChange('employee', value)}>
                                 <SelectTrigger id='employee' className={errors.employee ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

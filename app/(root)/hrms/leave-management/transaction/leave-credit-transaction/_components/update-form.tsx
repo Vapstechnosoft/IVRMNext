@@ -1,13 +1,12 @@
 'use client';
 
+import { Save, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { Save, X } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -52,7 +51,7 @@ const designationOptions = [
     { label: 'Manager HR', value: 'Manager HR' }
 ];
 const employeeOptions = ['Steffi Halian', 'Shruthi NA', 'Bindhushree N', 'Chaithra NS', 'Balu Prabhakar'];
-const leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
+const _leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
 
 export default function UpdateLeaveCreditTransactionForm({
     onSuccess,
@@ -379,13 +378,7 @@ export default function UpdateLeaveCreditTransactionForm({
                         <Label htmlFor='total-days-input'>
                             Total Days :<span className='text-red-500'>*</span>
                         </Label>
-                        <Input
-                            id='total-days-input'
-                            type='number'
-                            readOnly
-                            value={totalDays || 0}
-                            className='bg-muted'
-                        />
+                        <Input id='total-days-input' type='number' readOnly value={totalDays || 0} className='bg-muted' />
                     </div>
                 </div>
 
@@ -399,25 +392,25 @@ export default function UpdateLeaveCreditTransactionForm({
                             <RadioGroup value={field.value || 'none'} onValueChange={field.onChange} className='space-y-2'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='full' id='loss-of-pay-full' />
-                                    <Label htmlFor='loss-of-pay-full' className='font-normal cursor-pointer'>
+                                    <Label htmlFor='loss-of-pay-full' className='cursor-pointer font-normal'>
                                         Loss Of Pay
                                     </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='half' id='loss-of-pay-half' />
-                                    <Label htmlFor='loss-of-pay-half' className='font-normal cursor-pointer'>
+                                    <Label htmlFor='loss-of-pay-half' className='cursor-pointer font-normal'>
                                         Loss Of Pay Half Day
                                     </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='oneFourth' id='loss-of-pay-one-fourth' />
-                                    <Label htmlFor='loss-of-pay-one-fourth' className='font-normal cursor-pointer'>
+                                    <Label htmlFor='loss-of-pay-one-fourth' className='cursor-pointer font-normal'>
                                         Loss Of Pay One Fourth Day
                                     </Label>
                                 </div>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='threeFourth' id='loss-of-pay-three-fourth' />
-                                    <Label htmlFor='loss-of-pay-three-fourth' className='font-normal cursor-pointer'>
+                                    <Label htmlFor='loss-of-pay-three-fourth' className='cursor-pointer font-normal'>
                                         Loss Of Pay Three Fourth Day
                                     </Label>
                                 </div>

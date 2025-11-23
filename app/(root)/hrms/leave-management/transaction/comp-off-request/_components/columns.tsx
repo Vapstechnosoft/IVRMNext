@@ -2,9 +2,9 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { CompOffRequestItem, EmployeeLeaveDetail } from '@/types/hrms/leave-management/comp-off-request';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
-import type { CompOffRequestItem, EmployeeLeaveDetail } from '@/types/hrms/leave-management/comp-off-request';
 
 export type { CompOffRequestItem, EmployeeLeaveDetail };
 
@@ -17,7 +17,7 @@ export const compOffRequestColumns = (
         id: 'select',
         header: () => {
             const isAllSelected = allRequests.length > 0 && selectedRows.size === allRequests.length;
-            const isIndeterminate = selectedRows.size > 0 && selectedRows.size < allRequests.length;
+            const _isIndeterminate = selectedRows.size > 0 && selectedRows.size < allRequests.length;
             return (
                 <Checkbox
                     checked={isAllSelected}
@@ -96,7 +96,7 @@ export const compOffRequestColumns = (
         header: ({ column }) => <DataTableColumnHeader column={column} title='DR Status' />,
         cell: () => (
             <div className='flex items-center justify-center'>
-                <Eye className='h-4 w-4 text-blue-600 cursor-pointer hover:text-blue-800' />
+                <Eye className='h-4 w-4 cursor-pointer text-blue-600 hover:text-blue-800' />
             </div>
         )
     }
@@ -150,12 +150,7 @@ export const employeeLeaveDetailColumns: ColumnDef<EmployeeLeaveDetail>[] = [
                 Pending: 'text-blue-700',
                 Rejected: 'text-red-700'
             };
-            return (
-                <div className={`font-medium ${statusColors[status] || 'text-gray-700'}`}>
-                    {status}
-                </div>
-            );
+            return <div className={`font-medium ${statusColors[status] || 'text-gray-700'}`}>{status}</div>;
         }
     }
 ];
-

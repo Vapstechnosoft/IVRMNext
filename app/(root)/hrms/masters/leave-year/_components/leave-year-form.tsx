@@ -133,7 +133,7 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
                 <InputText
                     id='HRMLY_LeaveYear'
                     placeholder='e.g., 2025-2026'
-                    {...register('HRMLY_LeaveYear', LEAVE_YEAR_VALIDATION.leaveYear)}
+                    {...register('HRMLY_LeaveYear', LEAVE_YEAR_VALIDATION.HRMLY_LeaveYear)}
                 />
                 {errors.HRMLY_LeaveYear && <FormError>{errors.HRMLY_LeaveYear.message}</FormError>}
             </div>

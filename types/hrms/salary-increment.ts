@@ -51,20 +51,57 @@ export interface SalaryIncrementGridItem {
 
 // Onload Response
 export interface SalaryIncrementOnloadResponse {
-    MI_Id: number;
-    roleId: number;
-    employeelist: EmployeeDropdown[];
-    earningdeductiontype: EarningDeductionType[];
-    leaveyeardropdown: LeaveYearDropdown[];
-    monthdropdown: MonthDropdown[];
-    griddata: SalaryIncrementGridItem[];
-    retrunMsg?: string;
+    MI_Id: number | null;
+    roleId: number | null;
+    HREIC_Id: number | null;
+    HRME_Id: number | null;
+    HREIC_LastIncrementDate: string | null;
+    HREIC_IncrementDueDate: string | null;
+    HREIC_IncrementDate: string | null;
+    Fromdate: string | null;
+    Todate: string | null;
+    HREIC_ArrearApplicableFlg: boolean | null;
+    HREIC_ArrearGivenFlg: boolean | null;
+    HREIC_ArrearMonths: number | null;
+    UserId: number | null;
+    HREIC_ActiveFlag: boolean | null;
+    HREICED_Id: number | null;
+    HRMED_Id: number | null;
+    HREICED_Amount: number | null;
+    HREICED_Percentage: string | null;
+    HREICED_ActiveFlag: boolean | null;
+    retrunMsg: string | null;
+    Status: string | null;
+    monthdropdown: MonthDropdown[] | null;
+    griddata: SalaryIncrementGridItem[] | null;
+    Reportdata: any | null;
+    employeelist: EmployeeDropdown[] | null;
+    earningdeductiontype: EarningDeductionType[] | null;
+    getempsdetails: any | null;
+    leaveyeardropdown: LeaveYearDropdown[] | null;
+    Type: string | null;
+    Option: string | null;
+    Month: number | null;
+    Year: number | null;
+    selected_hrmeID: number | null;
+    employee: any | null;
 }
 
 // Onload Request
 export interface SalaryIncrementOnloadRequest {
-    MI_Id: number;
-    roleId: number;
+    page?: number;
+    page_size?: number;
+    search_query?: string;
+    search_column?: string;
+    sort_column?: string;
+    sort_direction?: string;
+    is_export?: boolean;
+    MIID?: number;
+    LoginUserId?: number;
+    UserRole?: string;
+    // Legacy support
+    MI_Id?: number;
+    roleId?: number;
 }
 
 // Save Request
@@ -85,8 +122,8 @@ export interface SalaryIncrementSaveRequest {
 }
 
 // Save Response
-export interface SalaryIncrementSaveResponse extends SalaryIncrementOnloadResponse {
-    HREIC_Id?: number;
+export interface SalaryIncrementSaveResponse extends Omit<SalaryIncrementOnloadResponse, 'HREIC_Id'> {
+    HREIC_Id?: number | null;
 }
 
 // Delete Request

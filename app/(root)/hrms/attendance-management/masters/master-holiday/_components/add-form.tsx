@@ -8,13 +8,13 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterHoliday, useSaveMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
-import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
 import { cn } from '@/lib/utils';
 import { holidayMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -35,26 +35,54 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
     const { refetchAll } = useMasterHoliday();
     const { mutate: saveMasterHoliday, isPending } = useSaveMasterHoliday();
 
+    // Debug: Log dropdown data structure
+    React.useEffect(() => {}, [dropdownData]);
+
     // Extract dropdown data from API response
+    // API field names are uppercase: HRMLY_LeaveYear, HRMD_DepartmentName, FOHTWD_HolidayWDType, FOMD_DayCode, FOMD_DayName
     const calendarYears = useMemo(() => {
-        return dropdownData?.yeardropdown?.map((year) => year.hrmlY_LeaveYear) || [];
+        if (!dropdownData?.yeardropdown) {
+            console.warn('⚠️ [ADD FORM] No yeardropdown in dropdownData');
+            return [];
+        }
+        const years = dropdownData.yeardropdown.map((year: any) => year.HRMLY_LeaveYear || year.hrmlY_LeaveYear || '').filter(Boolean);
+        return years;
     }, [dropdownData?.yeardropdown]);
 
     const departments = useMemo(() => {
-        return dropdownData?.departmentType?.map((dept) => dept.hrmD_DepartmentName) || [];
+        if (!dropdownData?.departmentType) {
+            console.warn('⚠️ [ADD FORM] No departmentType in dropdownData');
+            return [];
+        }
+        const depts = dropdownData.departmentType
+            .map((dept: any) => dept.HRMD_DepartmentName || dept.hrmD_DepartmentName || '')
+            .filter(Boolean);
+        return depts;
     }, [dropdownData?.departmentType]);
 
     const holidayTypes = useMemo(() => {
-        return dropdownData?.holidayType?.map((type) => type.fohtwD_HolidayWDType) || [];
+        if (!dropdownData?.holidayType) {
+            console.warn('⚠️ [ADD FORM] No holidayType in dropdownData');
+            return [];
+        }
+        const types = dropdownData.holidayType
+            .map((type: any) => type.FOHTWD_HolidayWDType || type.fohtwD_HolidayWDType || '')
+            .filter(Boolean);
+        return types;
     }, [dropdownData?.holidayType]);
 
     const weekDays = useMemo(() => {
-        return (
-            dropdownData?.dayslist?.map((day) => ({
-                value: day.fomD_DayCode,
-                label: day.fomD_DayName
-            })) || []
-        );
+        if (!dropdownData?.dayslist) {
+            console.warn('⚠️ [ADD FORM] No dayslist in dropdownData');
+            return [];
+        }
+        const days = dropdownData.dayslist
+            .map((day: any) => ({
+                value: day.FOMD_DayCode || day.fomD_DayCode || '',
+                label: day.FOMD_DayName || day.fomD_DayName || ''
+            }))
+            .filter((day: { value: string; label: string }) => day.value && day.label);
+        return days;
     }, [dropdownData?.dayslist]);
 
     const {
@@ -96,13 +124,12 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
     };
 
     const onSubmit: SubmitHandler<MasterHolidayForm> = async (data) => {
-        console.log('🟢 [CLIENT] Form submitted!', data);
         try {
             // Date validation - only for PUBLIC HOLIDAY and WEEK END
             // WEEK DAY doesn't require dates, so skip validation for it
             const requiresDates = data.holidayType === 'PUBLIC HOLIDAY' || data.holidayType === 'WEEK END';
             const isWeekDay = data.holidayType === 'WEEK DAY';
-            
+
             // For WEEK DAY, validate that at least one day is selected and department is provided
             if (isWeekDay) {
                 if (!data.selectedDays || data.selectedDays.length === 0) {
@@ -110,32 +137,23 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                     toast.error('At least one day must be selected for WEEK DAY holiday type');
                     return;
                 }
-                
+
                 if (!data.department || data.department.trim() === '') {
                     console.error('❌ [CLIENT] Validation failed: Department required for WEEK DAY');
                     toast.error('Department is required for WEEK DAY holiday type');
                     return;
                 }
             }
-            
-            console.log('🟢 [CLIENT] Holiday type check:', {
-                holidayType: data.holidayType,
-                requiresDates,
-                isWeekDay,
-                hasFromDate: !!data.fromDate,
-                hasToDate: !!data.toDate,
-                selectedDaysCount: data.selectedDays?.length || 0
-            });
-            
+
             if (requiresDates && data.fromDate) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 today.setMinutes(0, 0, 0);
 
                 // Parse date string with explicit time to avoid timezone issues
-                const fromDateStr = data.fromDate.includes('T') ? data.fromDate : data.fromDate + 'T00:00:00';
-                const toDateStr = data.toDate && data.toDate.includes('T') ? data.toDate : (data.toDate ? data.toDate + 'T00:00:00' : null);
-                
+                const fromDateStr = data.fromDate.includes('T') ? data.fromDate : `${data.fromDate}T00:00:00`;
+                const toDateStr = data.toDate?.includes('T') ? data.toDate : data.toDate ? `${data.toDate}T00:00:00` : null;
+
                 const fromDateObj = new Date(fromDateStr);
                 fromDateObj.setHours(0, 0, 0, 0);
                 const toDateObj = toDateStr ? new Date(toDateStr) : null;
@@ -143,26 +161,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                     toDateObj.setHours(0, 0, 0, 0);
                 }
                 const selectedYear = Number.parseInt(data.calendarYear);
-
-                console.log('🟢 [CLIENT] Date validation:', {
-                    holidayType: data.holidayType,
-                    requiresDates,
-                    today: today.toISOString(),
-                    todayLocal: today.toString(),
-                    fromDate: fromDateObj.toISOString(),
-                    fromDateLocal: fromDateObj.toString(),
-                    toDate: toDateObj?.toISOString(),
-                    toDateLocal: toDateObj?.toString(),
-                    fromDateString: data.fromDate,
-                    toDateString: data.toDate,
-                    selectedYear,
-                    fromDateYear: fromDateObj.getFullYear(),
-                    toDateYear: toDateObj?.getFullYear(),
-                    isFromDatePast: fromDateObj < today,
-                    fromDateTimestamp: fromDateObj.getTime(),
-                    todayTimestamp: today.getTime(),
-                    timeDifference: fromDateObj.getTime() - today.getTime()
-                });
 
                 if (fromDateObj < today) {
                     console.error('❌ [CLIENT] Validation failed: Start date is in the past', {
@@ -205,41 +203,17 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                 return;
             }
 
-            console.log('🟢 [CLIENT] Submitting master holiday:', {
-                data,
-                dropdownData: {
-                    hasYear: !!dropdownData.yeardropdown,
-                    hasDept: !!dropdownData.departmentType,
-                    hasHolidayType: !!dropdownData.holidayType
-                }
-            });
-
             const submitData = {
                 calendarYear: data.calendarYear,
                 department: data.department,
                 holidayType: data.holidayType,
                 name: data.name || '',
                 // Send selectedDays if they exist, regardless of selectDay checkbox state
-                selectedDays: (data.selectedDays && data.selectedDays.length > 0) ? data.selectedDays : [],
-                fromDate: requiresDates ? (data.fromDate || '') : '', // Only include dates if required
-                toDate: requiresDates ? (data.toDate || '') : '', // Only include dates if required
+                selectedDays: data.selectedDays && data.selectedDays.length > 0 ? data.selectedDays : [],
+                fromDate: requiresDates ? data.fromDate || '' : '', // Only include dates if required
+                toDate: requiresDates ? data.toDate || '' : '', // Only include dates if required
                 isActive: data.isActive
             };
-            
-            console.log('🟢 [CLIENT] Selected days check:', {
-                selectDay: data.selectDay,
-                selectedDays: data.selectedDays,
-                selectedDaysLength: data.selectedDays?.length || 0,
-                willSend: (data.selectedDays && data.selectedDays.length > 0) ? data.selectedDays : []
-            });
-
-            console.log('🟢 [CLIENT] Prepared submit data:', submitData);
-            console.log('🚀 [CLIENT] Calling saveMasterHoliday mutation...');
-            console.log('🚀 [CLIENT] Mutation parameters:', {
-                hasData: !!submitData,
-                hasDropdownData: !!dropdownData,
-                dataKeys: submitData ? Object.keys(submitData) : []
-            });
 
             saveMasterHoliday(
                 {
@@ -248,41 +222,15 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                 },
                 {
                     onSuccess: (response) => {
-                        console.log('🟡 ========== FORM onSuccess CALLBACK ==========');
-                        console.log('✅ [CLIENT] Form onSuccess callback called');
-                        console.log('📥 [CLIENT] Full Response in form callback:', JSON.stringify(response, null, 2));
-                        console.log('📥 [CLIENT] Response in form callback:', {
-                            hasResponse: !!response,
-                            responseType: typeof response,
-                            success: response?.success,
-                            successType: typeof response?.success,
-                            successStrictTrue: response?.success === true,
-                            message: response?.message,
-                            messageType: typeof response?.message,
-                            responseKeys: response && typeof response === 'object' ? Object.keys(response) : []
-                        });
-                        
                         // Check if mutation hook already handled success/error
                         const isSuccess = response?.success === true;
-                        
+
                         if (isSuccess) {
-                            console.log('✅ [CLIENT] Form callback - Response is SUCCESS');
-                            console.log('🔄 [CLIENT] Resetting form...');
                             reset();
-                            
-                            console.log('🔄 [CLIENT] Calling refetchAll...');
                             refetchAll();
-                            
-                            console.log('✅ [CLIENT] Calling onSuccess prop...');
                             onSuccess?.();
-                            
-                            console.log('✅ [CLIENT] Form submission completed successfully');
                         } else {
-                            console.log('⚠️ [CLIENT] Form callback - Response indicates failure, but mutation hook should have handled it');
-                            console.log('⚠️ [CLIENT] Success value:', response?.success);
-                            console.log('⚠️ [CLIENT] Message:', response?.message);
                         }
-                        console.log('🟡 ========== END FORM onSuccess CALLBACK ==========');
                     },
                     onError: (error) => {
                         console.error('🔴 ========== FORM onError CALLBACK ==========');
@@ -330,14 +278,20 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             </label>
                             <Select value={calendarYear || ''} onValueChange={(value) => setValue('calendarYear', value)}>
                                 <SelectTrigger id='calendarYear' className={errors.calendarYear ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='--Select--' />
+                                    <SelectValue placeholder={calendarYears.length === 0 ? 'Loading...' : '--Select--'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {calendarYears.map((year) => (
-                                        <SelectItem key={year} value={year}>
-                                            {year}
+                                    {calendarYears.length === 0 ? (
+                                        <SelectItem value='' disabled>
+                                            No years available
                                         </SelectItem>
-                                    ))}
+                                    ) : (
+                                        calendarYears.map((year) => (
+                                            <SelectItem key={year} value={year}>
+                                                {year}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                             {!calendarYear && (
@@ -357,14 +311,20 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             </label>
                             <Select value={department || ''} onValueChange={(value) => setValue('department', value)}>
                                 <SelectTrigger id='department' className={errors.department ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='--Select--' />
+                                    <SelectValue placeholder={departments.length === 0 ? 'Loading...' : '--Select--'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {departments.map((dept) => (
-                                        <SelectItem key={dept} value={dept}>
-                                            {dept}
+                                    {departments.length === 0 ? (
+                                        <SelectItem value='' disabled>
+                                            No departments available
                                         </SelectItem>
-                                    ))}
+                                    ) : (
+                                        departments.map((dept) => (
+                                            <SelectItem key={dept} value={dept}>
+                                                {dept}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                             {!department && (
@@ -384,14 +344,20 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             </label>
                             <Select value={holidayType || ''} onValueChange={(value) => setValue('holidayType', value)}>
                                 <SelectTrigger id='holidayType' className={errors.holidayType ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='--Select--' />
+                                    <SelectValue placeholder={holidayTypes.length === 0 ? 'Loading...' : '--Select--'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {holidayTypes.map((type) => (
-                                        <SelectItem key={type} value={type}>
-                                            {type}
+                                    {holidayTypes.length === 0 ? (
+                                        <SelectItem value='' disabled>
+                                            No holiday types available
                                         </SelectItem>
-                                    ))}
+                                    ) : (
+                                        holidayTypes.map((type) => (
+                                            <SelectItem key={type} value={type}>
+                                                {type}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                             {!holidayType && (

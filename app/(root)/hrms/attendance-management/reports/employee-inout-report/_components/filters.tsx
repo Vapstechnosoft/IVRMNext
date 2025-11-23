@@ -7,13 +7,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { employeeInOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { cn } from '@/lib/utils';
+import { employeeInOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 export type EmployeeInOutReportFilters = z.infer<typeof employeeInOutReportFilterSchema>;
@@ -72,7 +72,7 @@ export function EmployeeInOutReportFilters({
     // Use watch to get the current form value, which updates immediately when changed
     const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
     const queryValue = watch('query') || filters.query || '';
-    
+
     // Watch form values for MultiSelect defaultValue to prevent reset issues
     const typeValue = watch('type') || filters.type || [];
     const departmentValue = watch('department') || filters.department || [];
@@ -89,7 +89,16 @@ export function EmployeeInOutReportFilters({
         setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
         setValue('timeInTimeOut', filters.timeInTimeOut, { shouldDirty: false, shouldValidate: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.query, filters.fromDate, filters.toDate, filters.timeInTimeOut]);
+    }, [
+        filters.allOrIndividual,
+        filters.type?.join(','),
+        filters.department?.join(','),
+        filters.designation?.join(','),
+        filters.query,
+        filters.fromDate,
+        filters.toDate,
+        filters.timeInTimeOut
+    ]);
 
     const handleFilterChange = (key: keyof EmployeeInOutReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -152,7 +161,13 @@ export function EmployeeInOutReportFilters({
                                 }, 0);
                             }}
                             defaultValue={Array.isArray(departmentValue) ? departmentValue.map(String) : []}
-                            placeholder={isLoadingDepartments ? 'Loading...' : departments.length === 0 ? 'No departments available' : 'Select Departments'}
+                            placeholder={
+                                isLoadingDepartments
+                                    ? 'Loading...'
+                                    : departments.length === 0
+                                      ? 'No departments available'
+                                      : 'Select Departments'
+                            }
                             className={`w-full ${errors.department ? 'border-red-500' : ''}`}
                             maxHeight={240}
                             disabled={isLoadingDepartments || (typeValue?.length === 0 && groupTypes.length > 0)}
@@ -176,7 +191,13 @@ export function EmployeeInOutReportFilters({
                                 }, 0);
                             }}
                             defaultValue={Array.isArray(designationValue) ? designationValue.map(String) : []}
-                            placeholder={isLoadingDesignations ? 'Loading...' : designations.length === 0 ? 'No designations available' : 'Select Designations'}
+                            placeholder={
+                                isLoadingDesignations
+                                    ? 'Loading...'
+                                    : designations.length === 0
+                                      ? 'No designations available'
+                                      : 'Select Designations'
+                            }
                             className={`w-full ${errors.designation ? 'border-red-500' : ''}`}
                             maxHeight={240}
                             disabled={isLoadingDesignations || (departmentValue?.length === 0 && departments.length > 0)}
@@ -212,11 +233,21 @@ export function EmployeeInOutReportFilters({
                                 onValueChange={(value) => handleFilterChange('query', value)}
                                 disabled={isLoadingEmployees || employees.length === 0}>
                                 <SelectTrigger id='employee' className={errors.query ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder={isLoadingEmployees ? 'Loading...' : employees.length === 0 ? 'No employees available' : '--Select--'} />
+                                    <SelectValue
+                                        placeholder={
+                                            isLoadingEmployees
+                                                ? 'Loading...'
+                                                : employees.length === 0
+                                                  ? 'No employees available'
+                                                  : '--Select--'
+                                        }
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {isLoadingEmployees ? (
-                                        <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
                                     ) : employees.length > 0 ? (
                                         employees.map((emp) => (
                                             <SelectItem key={emp.value} value={emp.value}>
@@ -224,7 +255,9 @@ export function EmployeeInOutReportFilters({
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <SelectItem value='no-data' disabled>No employees available</SelectItem>
+                                        <SelectItem value='no-data' disabled>
+                                            No employees available
+                                        </SelectItem>
                                     )}
                                 </SelectContent>
                             </Select>

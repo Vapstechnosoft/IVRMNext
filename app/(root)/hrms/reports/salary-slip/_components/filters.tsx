@@ -68,7 +68,7 @@ export function SalarySlipFilters({
     onGenerateSlip,
     onCancel
 }: SalarySlipFiltersProps) {
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
+    const [_currentYear, setCurrentYear] = useState<number | null>(null);
 
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
@@ -198,23 +198,27 @@ export function SalarySlipFilters({
                         <SelectContent>
                             {months
                                 .filter((month: any) => {
-                                    const value = month.monthName || month.IVRM_Month_Name || month.monthId?.toString() || month.IVRM_Month_Id?.toString();
+                                    const value =
+                                        month.monthName ||
+                                        month.IVRM_Month_Name ||
+                                        month.monthId?.toString() ||
+                                        month.IVRM_Month_Id?.toString();
                                     return value && value.trim() !== '';
                                 })
                                 .map((month: any, index: number) => {
-                                    const monthValue = month.monthName || month.IVRM_Month_Name || month.monthId?.toString() || month.IVRM_Month_Id?.toString();
+                                    const monthValue =
+                                        month.monthName ||
+                                        month.IVRM_Month_Name ||
+                                        month.monthId?.toString() ||
+                                        month.IVRM_Month_Id?.toString();
                                     const monthLabel = month.monthName || month.IVRM_Month_Name || month.monthId || month.IVRM_Month_Id;
                                     return (
-                                        <SelectItem
-                                            key={`month-${index}-${monthValue}`}
-                                            value={monthValue}>
+                                        <SelectItem key={`month-${index}-${monthValue}`} value={monthValue}>
                                             {monthLabel}
                                         </SelectItem>
                                     );
                                 })}
-                            {months.length === 0 && (
-                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>No months available</div>
-                            )}
+                            {months.length === 0 && <div className='px-2 py-1.5 text-muted-foreground text-sm'>No months available</div>}
                         </SelectContent>
                     </Select>
                 </div>
@@ -231,23 +235,21 @@ export function SalarySlipFilters({
                         <SelectContent>
                             {years
                                 .filter((year: any) => {
-                                    const value = year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
+                                    const value =
+                                        year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
                                     return value && value.trim() !== '';
                                 })
                                 .map((year: any, index: number) => {
-                                    const yearValue = year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
+                                    const yearValue =
+                                        year.yearName || year.HRMLY_LeaveYear || year.yearId?.toString() || year.HRMLY_Id?.toString();
                                     const yearLabel = year.yearName || year.HRMLY_LeaveYear || year.yearId || year.HRMLY_Id;
                                     return (
-                                        <SelectItem
-                                            key={`year-${index}-${yearValue}`}
-                                            value={yearValue}>
+                                        <SelectItem key={`year-${index}-${yearValue}`} value={yearValue}>
                                             {yearLabel}
                                         </SelectItem>
                                     );
                                 })}
-                            {years.length === 0 && (
-                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>No years available</div>
-                            )}
+                            {years.length === 0 && <div className='px-2 py-1.5 text-muted-foreground text-sm'>No years available</div>}
                         </SelectContent>
                     </Select>
                 </div>

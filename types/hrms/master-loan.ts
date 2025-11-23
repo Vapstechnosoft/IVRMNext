@@ -1,9 +1,13 @@
 export interface MasterLoanResponse {
-    success: boolean;
-    message: string;
-    data: {
+    success?: boolean;
+    message?: string;
+    data?: MasterLoanDetail[] | {
         gmasterloanList: MasterLoanDetail[];
     };
+    gmasterloanList?: MasterLoanDetail[];
+    total?: number | null;
+    page?: number | null;
+    page_size?: number | null;
 }
 
 export interface MasterLoanDetail {

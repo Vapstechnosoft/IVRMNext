@@ -22,26 +22,17 @@ export type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> 
     isActive: boolean;
 };
 
-const departments = ['All', 'Teaching', 'Non Teaching', 'Administrative', 'JUNIOR SCHOOL', 'SENIOR SCHOOL', 'OFFICE STAFF'];
-const holidayTypes = ['PUBLIC HOLIDAY', 'WEEK END', 'WEEK DAY', 'VACATION', 'NATIONAL HOLIDAY', 'FESTIVAL', 'OPTIONAL HOLIDAY'];
-const weekDays = [
-    { value: 'SUN', label: 'SUN' },
-    { value: 'MON', label: 'MON' },
-    { value: 'TUE', label: 'TUE' },
-    { value: 'WED', label: 'WED' },
-    { value: 'THU', label: 'THU' },
-    { value: 'FRI', label: 'FRI' },
-    { value: 'SAT', label: 'SAT' }
-];
-
 interface HolidayFormProps {
     editingHoliday: MasterHolidayForm | null;
     calendarYears: string[];
+    departments: string[];
+    holidayTypes: string[];
+    weekDays: Array<{ value: string; label: string }>;
     onSubmit: (data: MasterHolidayForm) => void;
     onCancel: () => void;
 }
 
-export function HolidayForm({ editingHoliday, calendarYears, onSubmit, onCancel }: HolidayFormProps) {
+export function HolidayForm({ editingHoliday, calendarYears, departments, holidayTypes, weekDays, onSubmit, onCancel }: HolidayFormProps) {
     const {
         register,
         handleSubmit,

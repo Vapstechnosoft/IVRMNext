@@ -68,13 +68,24 @@ function ActionButtonsCell({ rowData }: { rowData: LeaveYearDetail }) {
     const handleToggle = useCallback(
         async (data: LeaveYearDetail, newState: boolean) => {
             try {
-                await toggleMutation.mutateAsync({
+                const response = await toggleMutation.mutateAsync({
                     HRMLY_Id: data.HRMLY_Id,
                     HRMLY_ActiveFlag: newState
                 });
-                toast.success(`Leave Year ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} leave year`);
+
+                // Check the response success status
+                if (response?.success) {
+                    toast.success(response.message || `Leave Year ${newState ? 'activated' : 'deactivated'} successfully`);
+                } else {
+                    // Show the error message from the API response
+                    const errorMessage = response?.message || `Failed to ${newState ? 'activate' : 'deactivate'} leave year`;
+                    toast.error(errorMessage);
+                }
+            } catch (error: any) {
+                // Handle actual errors (network errors, etc.)
+                const errorMessage =
+                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} leave year`;
+                toast.error(errorMessage);
             }
         },
         [toggleMutation]

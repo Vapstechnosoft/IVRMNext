@@ -6,7 +6,6 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import type { ReportListItem } from '@/types/hrms/attendance-management/master-holiday';
 
 export interface MasterHoliday {
     id: number;
@@ -95,7 +94,14 @@ export const masterHolidayColumns: ColumnDef<MasterHoliday>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: MasterHoliday }) {
-    const { openDeleteForm } = useFormContext<MasterHoliday>();
+    const { openEditForm, openDeleteForm } = useFormContext<MasterHoliday>();
+
+    const handleEdit = useCallback(
+        (data: MasterHoliday) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
 
     const handleDelete = useCallback(
         (data: MasterHoliday) => {
@@ -107,7 +113,8 @@ function ActionButtonsCell({ rowData }: { rowData: MasterHoliday }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: false, toggle: false, delete: true }}
+            buttons={{ edit: true, toggle: false, delete: true }}
+            onEdit={handleEdit}
             onDelete={handleDelete}
         />
     );

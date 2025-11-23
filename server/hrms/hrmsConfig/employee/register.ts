@@ -595,7 +595,72 @@ export async function saveQualification(qualifications: SaveQualificationRequest
 export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SavePersonalDetails';
     
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟠 [TERMINAL] Employee Personal Details Save Endpoint Called');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟠 [TERMINAL] Timestamp:', new Date().toISOString());
+    console.log('🟠 [TERMINAL] Endpoint:', url);
+    console.log('🟠 [TERMINAL] Operation:', payload.HRME_Id && payload.HRME_Id > 0 ? 'UPDATE' : 'CREATE');
+    console.log('🟠 [TERMINAL] HRME_Id:', payload.HRME_Id || 0);
+    console.log('───────────────────────────────────────────────────────────────');
+    
     try {
+        // Log complete payload structure
+        console.log('🟠 [TERMINAL] Complete Payload Structure:');
+        console.log('🟠 [TERMINAL] Payload keys:', Object.keys(payload));
+        console.log('🟠 [TERMINAL] Payload size:', JSON.stringify(payload).length, 'bytes');
+        
+        // Log critical required fields
+        console.log('🟠 [TERMINAL] Critical Required Fields:');
+        console.log('   - HRME_Id:', payload.HRME_Id);
+        console.log('   - MI_Id:', payload.MI_Id);
+        console.log('   - HRME_EmployeeFirstName:', payload.HRME_EmployeeFirstName || 'MISSING');
+        console.log('   - HRME_EmployeeLastName:', payload.HRME_EmployeeLastName || 'MISSING');
+        console.log('   - HRME_EmployeeCode:', payload.HRME_EmployeeCode || 'MISSING');
+        console.log('   - HRMET_Id (Employee Type):', payload.HRMET_Id || 'MISSING');
+        console.log('   - HRMGT_Id (Employee Group):', payload.HRMGT_Id || 'MISSING');
+        console.log('   - HRMD_Id (Department):', payload.HRMD_Id || 'MISSING');
+        console.log('   - HRMDES_Id (Designation):', payload.HRMDES_Id || 'MISSING');
+        console.log('   - HRMG_Id (Grade):', payload.HRMG_Id || 'MISSING');
+        console.log('   - HRME_MobileNo:', payload.HRME_MobileNo || 'MISSING');
+        console.log('   - HRME_PerStateId:', payload.HRME_PerStateId || 'MISSING');
+        console.log('   - HRME_PerCountryId:', payload.HRME_PerCountryId || 'MISSING');
+        console.log('   - HRME_PerPincode:', payload.HRME_PerPincode || 'MISSING');
+        console.log('   - HRME_LocStateId:', payload.HRME_LocStateId || 'MISSING');
+        console.log('   - HRME_LocCountryId:', payload.HRME_LocCountryId || 'MISSING');
+        console.log('   - HRME_LocPincode:', payload.HRME_LocPincode || 'MISSING');
+        console.log('   - IVRMMMS_Id (Marital Status):', payload.IVRMMMS_Id || 'MISSING');
+        console.log('   - IVRMMG_Id (Gender):', payload.IVRMMG_Id || 'MISSING');
+        console.log('   - CasteCategoryId:', payload.CasteCategoryId || 'MISSING');
+        console.log('   - CasteId:', payload.CasteId || 'MISSING');
+        console.log('   - ReligionId:', payload.ReligionId || 'MISSING');
+        
+        // Check for missing required fields
+        const missingFields: string[] = [];
+        if (!payload.HRME_EmployeeFirstName) missingFields.push('HRME_EmployeeFirstName');
+        if (!payload.HRMET_Id || payload.HRMET_Id === 0) missingFields.push('HRMET_Id');
+        if (!payload.HRMGT_Id || payload.HRMGT_Id === 0) missingFields.push('HRMGT_Id');
+        if (!payload.HRMD_Id || payload.HRMD_Id === 0) missingFields.push('HRMD_Id');
+        if (!payload.HRMDES_Id || payload.HRMDES_Id === 0) missingFields.push('HRMDES_Id');
+        if (!payload.HRMG_Id || payload.HRMG_Id === 0) missingFields.push('HRMG_Id');
+        if (!payload.HRME_MobileNo || payload.HRME_MobileNo === 0) missingFields.push('HRME_MobileNo');
+        if (!payload.HRME_PerStateId || payload.HRME_PerStateId === 0) missingFields.push('HRME_PerStateId');
+        if (!payload.HRME_PerCountryId || payload.HRME_PerCountryId === 0) missingFields.push('HRME_PerCountryId');
+        if (!payload.HRME_PerPincode || payload.HRME_PerPincode === 0) missingFields.push('HRME_PerPincode');
+        if (!payload.HRME_LocStateId || payload.HRME_LocStateId === 0) missingFields.push('HRME_LocStateId');
+        if (!payload.HRME_LocCountryId || payload.HRME_LocCountryId === 0) missingFields.push('HRME_LocCountryId');
+        if (!payload.HRME_LocPincode || payload.HRME_LocPincode === 0) missingFields.push('HRME_LocPincode');
+        
+        if (missingFields.length > 0) {
+            console.log('⚠️ [TERMINAL] WARNING: Missing or invalid required fields:', missingFields);
+        } else {
+            console.log('✅ [TERMINAL] All critical required fields are present');
+        }
+        
+        console.log('🟠 [TERMINAL] Full Payload (JSON):', JSON.stringify(payload, null, 2));
+        console.log('🟠 [TERMINAL] Calling api.post...');
+        console.log('───────────────────────────────────────────────────────────────');
+        
         console.log('🔍 [OTHER DETAILS SAVE] Server-side - Starting save:', {
             employeeId: payload.HRME_Id || 'N/A',
             otherDetailsFields: {
@@ -638,7 +703,32 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
         // Note: This endpoint returns string responses like "Update", "Add", "Duplicate"
         // The apiService will throw an error when response is a string due to 'in' operator check
         // We handle this in the outer catch block
+        const startTime = Date.now();
         const response = await api.post<SavePersonalDetailsResponse>('hrms', url, payload);
+        const duration = Date.now() - startTime;
+        
+        console.log('🟢 [TERMINAL] API Response Received');
+        console.log('🟢 [TERMINAL] Request Duration:', duration, 'ms');
+        console.log('🟢 [TERMINAL] Response Type:', typeof response);
+        console.log('🟢 [TERMINAL] Raw Response:', JSON.stringify(response, null, 2));
+        
+        // Log response structure
+        if (typeof response === 'object' && response !== null) {
+            console.log('🟢 [TERMINAL] Response Keys:', Object.keys(response));
+            if ('success' in response) {
+                console.log('🟢 [TERMINAL] Response.success:', (response as any).success);
+            }
+            if ('message' in response) {
+                console.log('🟢 [TERMINAL] Response.message:', (response as any).message);
+            }
+            if ('data' in response) {
+                console.log('🟢 [TERMINAL] Response.data exists:', !!(response as any).data);
+            }
+        } else if (typeof response === 'string') {
+            console.log('🟢 [TERMINAL] Response is a string:', response);
+        }
+        
+        console.log('───────────────────────────────────────────────────────────────');
         
         console.log('🔍 [OTHER DETAILS SAVE] Server-side - Response received:', {
             success: typeof response === 'object' && response !== null && 'success' in response ? (response as any).success : typeof response === 'string',
@@ -666,6 +756,51 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
             data: response as unknown as SavePersonalDetailsResponse
         };
     } catch (error: any) {
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error in Save Personal Details');
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error Type:', typeof error);
+        console.log('🔴 [TERMINAL] Error Message:', typeof error === 'string' ? error : error?.message);
+        console.log('🔴 [TERMINAL] Error Status:', error?.response?.status);
+        console.log('🔴 [TERMINAL] Error Status Text:', error?.response?.statusText);
+        console.log('🔴 [TERMINAL] Error Response Data:', JSON.stringify(error?.response?.data, null, 2));
+        console.log('🔴 [TERMINAL] Error Response Headers:', error?.response?.headers);
+        console.log('🔴 [TERMINAL] Full Error Object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+        
+        // Check if error is a validation error
+        if (error?.response?.data) {
+            const errorData = error.response.data;
+            console.log('🔴 [TERMINAL] Error Data Type:', typeof errorData);
+            console.log('🔴 [TERMINAL] Error Data Keys:', typeof errorData === 'object' && errorData !== null ? Object.keys(errorData) : []);
+            
+            // Check for validation errors
+            if (errorData?.errors) {
+                console.log('🔴 [TERMINAL] Validation Errors:', JSON.stringify(errorData.errors, null, 2));
+            }
+            
+            // Check if error data is a string (like "Required", "Duplicate", etc.)
+            if (typeof errorData === 'string') {
+                console.log('🔴 [TERMINAL] Error Data is String:', errorData);
+                console.log('🔴 [TERMINAL] String contains "Required":', errorData.includes('Required') || errorData.includes('required'));
+            }
+        }
+        
+        // Check if error message contains "Required"
+        const errorMsgForCheck = typeof error === 'string' ? error : error?.message || '';
+        const errorDataString = typeof error?.response?.data === 'string' ? error.response.data : '';
+        const hasRequiredError = errorMsgForCheck.includes('Required') || 
+                                errorMsgForCheck.includes('required') ||
+                                errorDataString.includes('Required') ||
+                                errorDataString.includes('required');
+        
+        if (hasRequiredError) {
+            console.log('⚠️ [TERMINAL] "Required" error detected!');
+            console.log('⚠️ [TERMINAL] This suggests a required field is missing or invalid');
+            console.log('⚠️ [TERMINAL] Check the payload above for missing required fields');
+        }
+        
+        console.log('───────────────────────────────────────────────────────────────');
+        
         console.error('🔍 [OTHER DETAILS SAVE] Server-side - Error:', {
             message: typeof error === 'string' ? error : error?.message,
             status: error?.response?.status,

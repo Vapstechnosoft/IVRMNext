@@ -90,7 +90,7 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
                 <Controller
                     name='HRMPT_SalaryFrom'
                     control={control}
-                    rules={PROFESSIONAL_TAX_VALIDATION.salaryFrom}
+                    rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_AmountFrom}
                     render={({ field }) => <Input type='number' id='HRMPT_SalaryFrom' value={field.value} onChange={field.onChange} />}
                 />
                 {errors.HRMPT_SalaryFrom && <FormError>{errors.HRMPT_SalaryFrom.message}</FormError>}
@@ -102,7 +102,7 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
                 <Controller
                     name='HRMPT_SalaryTo'
                     control={control}
-                    rules={PROFESSIONAL_TAX_VALIDATION.salaryTo}
+                    rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_AmountTo}
                     render={({ field }) => <Input type='number' id='HRMPT_SalaryTo' value={field.value} onChange={field.onChange} />}
                 />
                 {errors.HRMPT_SalaryTo && <FormError>{errors.HRMPT_SalaryTo.message}</FormError>}
@@ -114,7 +114,7 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
                 <Controller
                     name='HRMPT_PTax'
                     control={control}
-                    rules={PROFESSIONAL_TAX_VALIDATION.professionalTaxAmount}
+                    rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_ProfessionalTax}
                     render={({ field }) => <Input type='number' id='HRMPT_PTax' value={field.value} onChange={field.onChange} />}
                 />
                 {errors.HRMPT_PTax && <FormError>{errors.HRMPT_PTax.message}</FormError>}

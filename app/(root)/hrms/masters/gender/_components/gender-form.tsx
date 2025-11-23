@@ -97,7 +97,7 @@ export default function GenderForm({ selectedRow, onSuccess }: GenderFormProps) 
                 <InputText
                     id='IVRMMG_GenderName'
                     placeholder='Enter gender name'
-                    {...register('IVRMMG_GenderName', GENDER_VALIDATION.genderName)}
+                    {...register('IVRMMG_GenderName', GENDER_VALIDATION.HRMGEN_GenderName)}
                 />
                 {errors.IVRMMG_GenderName && <FormError>{errors.IVRMMG_GenderName.message}</FormError>}
             </div>

@@ -137,5 +137,6 @@ export interface MasterEarningsDeductionsSaveRequest {
     HRMED_AmountPercent: string;
     HRMED_RoundOffFlag: string;
     HRMED_ReviseFlg: boolean;
+    HRMED_Order?: number;
     perc_OfDTO: PercOfDTO[];
 }

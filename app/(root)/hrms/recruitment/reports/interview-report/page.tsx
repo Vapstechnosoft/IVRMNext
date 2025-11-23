@@ -5,27 +5,27 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { useSession } from 'next-auth/react';
 import { use, useEffect, useState } from 'react';
-import InterviewReportForm from './_components/report-form';
 import { interviewReportColumns } from './_components/columns';
+import InterviewReportForm from './_components/report-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function InterviewReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     const [reportData, setReportData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<any>(null);
 
-    const handleGenerateReport = async (filters: any) => {
+    const handleGenerateReport = async (_filters: any) => {
         setIsLoading(true);
         setError(null);
         try {
             // TODO: Replace with actual API call
             // const response = await generateInterviewReport(filters);
             // setReportData(response.data);
-            
+
             // Mock data for now
             setReportData([]);
         } catch (err: any) {
@@ -71,9 +71,7 @@ function InterviewReportPageContent({
                     variant='outline'
                     size='md'
                     className='shadow-lg duration-300'>
-                    <InterviewReportForm
-                        onGenerateReport={onGenerateReport}
-                    />
+                    <InterviewReportForm onGenerateReport={onGenerateReport} />
                 </CollapsibleSection>
 
                 {/* Data Table Section */}

@@ -10,6 +10,10 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { getFOMonthEndReportData } from '@/server/hrms/attendance-management/reports/fo-monthend-report';
 import { getLeaveReport, getLeaveReportDepartments, getLeaveReportData, getPeriodLeaveReport, getPeriodLeaveReportDepartments, getPeriodLeaveReportDesignation, getPeriodLeaveReportEmployees, getPeriodLeaveReportData, getLeaveReportYearwise } from '@/server/hrms/leave-management/reports/leave-report';
 import { getEmployeeAdvanceReportOnload, searchEmployeeAdvanceReport } from '@/server/hrms/hrmsConfig/reports/advance-report';
+import {
+    filterEmployeeOfferAndExperienceData,
+    getEmployeeDetailsBySelection
+} from '@/server/hrms/hrmsConfig/reports/employee-offer-and-experience-report';
 import { getBankCashReportOnload, searchBankCashReport } from '@/server/hrms/hrmsConfig/reports/bank-cash-report';
 import { getCumulativeSalaryReportOnload, searchCumulativeSalaryReport } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
 import {
@@ -61,6 +65,10 @@ import {
 import { filterEmployeesByYearMonth, generateSalarySlip, getSalarySlipOnload } from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
 import type { ApiSearchparams } from '@/types';
 import type { EmployeeAdvanceReportSearchRequest } from '@/types/hrms/reports/advance-report';
+import type {
+    EmployeeOfferAndExperienceReportFilterRequest,
+    EmployeeOfferAndExperienceReportSearchRequest
+} from '@/types/hrms/reports/employee-offer-and-experience-report';
 import type { BankCashReportSearchRequest } from '@/types/hrms/reports/bank-cash-report';
 import type { CumulativeSalaryReportSearchRequest } from '@/types/hrms/reports/cumulative-salary-report';
 import type {
@@ -1132,6 +1140,44 @@ export function useSearchEmployeeAdvanceReport() {
         onError: (error: Error) => {
             console.error('Error searching advance report:', error);
             toast.error(error.message || 'Failed to search advance report');
+        }
+    });
+}
+
+// ============================================================================
+// EMPLOYEE OFFER AND EXPERIENCE REPORT
+// ============================================================================
+
+export function useFilterEmployeeOfferAndExperienceData() {
+    const _queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: EmployeeOfferAndExperienceReportFilterRequest) => filterEmployeeOfferAndExperienceData(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to filter employee data');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error filtering employee offer and experience data:', error);
+            toast.error(error.message || 'Failed to filter employee data');
+        }
+    });
+}
+
+export function useGetEmployeeDetailsBySelection() {
+    const _queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: EmployeeOfferAndExperienceReportSearchRequest) => getEmployeeDetailsBySelection(data),
+        onSuccess: (response) => {
+            if (!response.success) {
+                toast.error(response.message || 'Failed to get employee details');
+            }
+        },
+        onError: (error: Error) => {
+            console.error('Error getting employee details by selection:', error);
+            toast.error(error.message || 'Failed to get employee details');
         }
     });
 }

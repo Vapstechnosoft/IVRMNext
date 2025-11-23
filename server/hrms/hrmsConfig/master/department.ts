@@ -198,38 +198,134 @@ export async function activateDeactivateMasterDepartment(data: {
     roleId?: number;
 }) {
     const url = '/api/MasterDepartmentFacade/deactivateRecordById';
+    const targetState = data.HRMD_ActiveFlag ? 'activate' : 'deactivate';
     
-    console.log('🟠 [API] activateDeactivateMasterDepartment called');
-    console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
-    console.log('🟠 [API] Action:', data.HRMD_ActiveFlag ? 'Activate' : 'Deactivate');
-    
-    const now = new Date().toISOString();
-    const requestBody: SaveDepartmentRequest = {
-        CreatedDate: now,
-        UpdatedDate: now,
+    // Request body matches Swagger: HRMD_Id, MI_Id, UserId
+    const requestBody = {
         HRMD_Id: data.HRMD_Id,
-        MI_Id: 30,
-        HRMD_DepartmentName: 'string',
-        HRMD_Order: 0,
-        HRMD_ActiveFlag: data.HRMD_ActiveFlag,
-        departmentList: [],
-        retrunMsg: 'string',
-        HRMDC_ID: 0,
-        roleId: data.roleId || 30,
-        HRMD_InternalTrainingMinimumHrs: 0,
-        DeraptmentDTO: []
+        MI_Id: data.roleId || 30,
+        UserId: 0
     };
     
+    console.log('🟠 [API] activateDeactivateMasterDepartment called');
+    console.log('🟠 [API] Target state:', targetState);
+    console.log('🟠 [API] HRMD_Id:', data.HRMD_Id);
     console.log('🟠 [API] Request URL:', url);
-    console.log('🟠 [API] Calling api.post...');
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
     
     try {
         const response = await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
-        console.log('🟢 [API] Toggle response:', JSON.stringify(response, null, 2));
-        console.log('🟢 [API] Response.retrunMsg:', (response as any)?.retrunMsg);
-        return response;
+        
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        console.log('🟢 [API] Response.success:', response?.success);
+        console.log('🟢 [API] Response.message:', response?.message);
+        console.log('🟢 [API] Response.data:', response?.data);
+        
+        // Handle the response format - extract data from response.data
+        const responseData = response as any;
+        const mainData = responseData?.data || responseData;
+        
+        // Extract retrunMsg and message from the correct location
+        const retrunMsg = mainData?.retrunMsg || 
+                         responseData?.retrunMsg || 
+                         response?.message || 
+                         '';
+        const responseMessage = response?.message || '';
+        
+        // Extract HRMD_Id and HRMD_ActiveFlag from response
+        const returnedId = mainData?.HRMD_Id || responseData?.HRMD_Id || 0;
+        const returnedActiveFlag = mainData?.HRMD_ActiveFlag;
+        
+        // Check if departmentList contains the record with the correct active flag
+        const departmentList = mainData?.departmentList || responseData?.departmentList || [];
+        const recordInList = departmentList.find((item: any) => item.HRMD_Id === data.HRMD_Id);
+        const flagMatchesInList = recordInList ? recordInList.HRMD_ActiveFlag === data.HRMD_ActiveFlag : false;
+        
+        console.log('🟢 [API] Parsed values:');
+        console.log('🟢 [API] - returnedId:', returnedId);
+        console.log('🟢 [API] - returnedActiveFlag:', returnedActiveFlag);
+        console.log('🟢 [API] - retrunMsg:', retrunMsg);
+        console.log('🟢 [API] - responseMessage:', responseMessage);
+        console.log('🟢 [API] - departmentList count:', departmentList.length);
+        console.log('🟢 [API] - recordInList:', recordInList ? 'found' : 'not found');
+        console.log('🟢 [API] - flagMatchesInList:', flagMatchesInList);
+        
+        // Check for success messages - "Deactivated" or "Activated" indicate success
+        const retrunMsgLower = retrunMsg ? String(retrunMsg).toLowerCase().trim() : '';
+        const responseMessageLower = responseMessage ? String(responseMessage).toLowerCase().trim() : '';
+        
+        const isSuccessMessage = retrunMsgLower === 'deactivated' || 
+                                retrunMsgLower === 'activated' ||
+                                responseMessageLower === 'deactivated' ||
+                                responseMessageLower === 'activated';
+        
+        // Check for error messages
+        const hasErrorInRetrunMsg = retrunMsgLower && (
+            retrunMsgLower.includes('error') ||
+            retrunMsgLower.includes('failed')
+        );
+        
+        const hasErrorInMessage = responseMessageLower && (
+            responseMessageLower.includes('error') ||
+            responseMessageLower.includes('failed')
+        );
+        
+        const isError = hasErrorInRetrunMsg || hasErrorInMessage;
+        
+        console.log('🟢 [API] Success detection:');
+        console.log('🟢 [API] - isSuccessMessage:', isSuccessMessage);
+        console.log('🟢 [API] - isError:', isError);
+        console.log('🟢 [API] - retrunMsgLower:', retrunMsgLower);
+        console.log('🟢 [API] - responseMessageLower:', responseMessageLower);
+        
+        // Success indicators:
+        // 1. Success message ("Deactivated" or "Activated")
+        // 2. No error message
+        // 3. returnedId matches the requested ID (or > 0)
+        // 4. Flag matches in the list (if record found in list)
+        const idMatches = returnedId === data.HRMD_Id || returnedId > 0;
+        const flagMatches = returnedActiveFlag !== undefined ? returnedActiveFlag === data.HRMD_ActiveFlag : flagMatchesInList;
+        
+        // CRITICAL: If there's an error message, it's ALWAYS a failure
+        // If there's a success message ("Deactivated"/"Activated"), it's a success
+        const finalIsSuccess = !isError && (isSuccessMessage || (idMatches && flagMatches));
+        
+        console.log('🟢 [API] Final validation:');
+        console.log('🟢 [API] - idMatches:', idMatches);
+        console.log('🟢 [API] - flagMatches:', flagMatches);
+        console.log('🟢 [API] - finalIsSuccess:', finalIsSuccess);
+        
+        // Determine the message to return
+        let message = '';
+        if (finalIsSuccess) {
+            // Use the actual message from the backend
+            message = retrunMsg || responseMessage || (data.HRMD_ActiveFlag ? 'Department activated successfully' : 'Department deactivated successfully');
+        } else if (retrunMsg && retrunMsg.trim()) {
+            // Use the actual error message from the backend
+            message = retrunMsg.trim();
+        } else if (responseMessage && responseMessage.trim()) {
+            message = responseMessage.trim();
+        } else {
+            message = `Failed to ${targetState} department`;
+        }
+        
+        console.log('🟢 [API] Final message:', message);
+        
+        const formattedResponse = {
+            success: finalIsSuccess,
+            message: message,
+            data: responseData
+        };
+        
+        console.log('🟢 [API] Formatted response:', JSON.stringify(formattedResponse, null, 2));
+        
+        return formattedResponse as any;
     } catch (error: any) {
-        console.log('🔴 [API] Toggle error:', error);
+        console.log('🔴 [API] Error occurred in activateDeactivateMasterDepartment');
+        console.error('🔴 [API] Error:', error);
+        console.error('🔴 [API] Error message:', error?.message);
+        console.error('🔴 [API] Error response:', error?.response);
+        console.error('🔴 [API] Error response data:', error?.response?.data);
         throw error;
     }
 }

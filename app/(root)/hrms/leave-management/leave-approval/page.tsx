@@ -57,7 +57,9 @@ function LeaveApprovalPageContent({
     const columns = useMemo(() => getLeaveApprovalColumns({ onApprove: handleApprove, onReject: handleReject }), []);
 
     // Filter pending leaves
-    const pendingLeaves = (response?.data || []).filter((item: LeaveApprovalRow) => item.leaveStatus === 'Applied' || item.leaveStatus === 'Pending');
+    const pendingLeaves = (response?.data || []).filter(
+        (item: LeaveApprovalRow) => item.leaveStatus === 'Applied' || item.leaveStatus === 'Pending'
+    );
 
     return (
         <div className='min-h-screen'>

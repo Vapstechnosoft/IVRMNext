@@ -40,8 +40,14 @@ function MasterEarningsDeductionsPageContent({
     const { openAddForm } = useFormContext<EarningsDeductionDetail>();
     const { saveOrderMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
     // Memoize arrays to prevent unnecessary re-renders
-    const rows: EarningsDeductionDetail[] = useMemo(() => response?.earningdetectionList ?? [], [response?.earningdetectionList]);
-    const typeDropdown = useMemo(() => response?.eardettypeDropdown ?? [], [response?.eardettypeDropdown]);
+    // Use earningdetectionList array which contains all records (earnings and deductions)
+    const rows: EarningsDeductionDetail[] = useMemo(() => {
+        // Use earningdetectionList which contains all records
+        const earningdetectionList = Array.isArray(response?.data?.earningdetectionList) ? response.data.earningdetectionList : [];
+
+        return earningdetectionList;
+    }, [response?.data?.earningdetectionList]);
+    const typeDropdown = useMemo(() => response?.data?.eardettypeDropdown ?? [], [response?.data?.eardettypeDropdown]);
 
     const [isEditOrderMode, setIsEditOrderMode] = useState(false);
     const [editedRows, setEditedRows] = useState<EarningsDeductionDetail[]>([]);

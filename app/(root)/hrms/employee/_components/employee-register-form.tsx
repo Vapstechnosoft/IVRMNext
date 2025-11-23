@@ -272,16 +272,19 @@ const formSchema = z
                 })
             )
             .optional(),
-        // Address tab fields
-        contactAddress: z.string().min(1, 'Contact Address is required').max(100, 'Contact Address must not exceed 100 characters'),
+        // Address tab fields (optional in base schema, will be validated conditionally)
+        contactAddress: z.string().max(100, 'Contact Address must not exceed 100 characters').optional(),
         contactArea: z.string().optional(),
-        contactCountry: z.string().min(1, 'Contact Country is required'),
-        contactState: z.string().min(1, 'Contact State is required'),
-        contactCity: z.string().min(1, 'Contact City is required'),
+        contactCountry: z.string().optional(),
+        contactState: z.string().optional(),
+        contactCity: z.string().optional(),
         contactPincode: z
             .string()
-            .min(1, 'Contact Pincode is required')
-            .refine((val) => validatePincode(val), 'Pincode must be a valid numerical value (5-10 digits)'),
+            .optional()
+            .refine((val) => {
+                if (!val) return true;
+                return validatePincode(val);
+            }, 'Pincode must be a valid numerical value (5-10 digits)'),
         permanentAddress: z.string().max(100, 'Permanent Address must not exceed 100 characters').optional(),
         permanentArea: z.string().optional(),
         permanentCountry: z.string().optional(),
@@ -328,8 +331,8 @@ const formSchema = z
         msTeamsUserName: z.string().max(100, 'MS Teams UserName must not exceed 100 characters').optional(),
         msTeamsPassword: z.string().max(255, 'MS Teams Password must not exceed 255 characters').optional(),
         employeeLeft: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-        lastWorkingDay: z.string().min(1, 'Last Working day is required'),
-        reasonForLeaving: z.string().min(1, 'Reason for leaving is required').max(50, 'Reason for leaving must not exceed 50 characters')
+        lastWorkingDay: z.string().optional(),
+        reasonForLeaving: z.string().max(50, 'Reason for leaving must not exceed 50 characters').optional()
     })
     .refine(
         (data) => {
@@ -346,27 +349,6 @@ const formSchema = z
     )
     .refine(
         (data) => {
-            // Validate permanent address if not same as communication address
-            if (!data.sameAsCommunicationAddress) {
-                if (
-                    !data.permanentAddress ||
-                    !data.permanentCountry ||
-                    !data.permanentState ||
-                    !data.permanentCity ||
-                    !data.permanentPincode
-                ) {
-                    return false;
-                }
-            }
-            return true;
-        },
-        {
-            message: 'Permanent Address fields are required when "Same As Communication Address" is not checked',
-            path: ['permanentAddress']
-        }
-    )
-    .refine(
-        (data) => {
             // Validate Date of Stop Pension is required when Stop Pension is checked
             if (data.stopPension && !data.dateOfStopPension) {
                 return false;
@@ -376,6 +358,24 @@ const formSchema = z
         {
             message: 'Date of Stop Pension is required when Stop Pension is checked',
             path: ['dateOfStopPension']
+        }
+    )
+    .refine(
+        (data) => {
+            // Validate lastWorkingDay and reasonForLeaving are required when employeeLeft is true
+            if (data.employeeLeft) {
+                if (!data.lastWorkingDay) {
+                    return false;
+                }
+                if (!data.reasonForLeaving) {
+                    return false;
+                }
+            }
+            return true;
+        },
+        {
+            message: 'Last Working Day and Reason for Leaving are required when Employee Left is checked',
+            path: ['lastWorkingDay']
         }
     );
 
@@ -598,10 +598,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         reset,
         watch,
         setValue,
+        trigger,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(formSchema),
-        mode: 'onBlur',
+        mode: 'onSubmit', // Changed from 'onBlur' to only validate on submit
+        reValidateMode: 'onSubmit', // Only re-validate on submit, not on change
         defaultValues: formDefaultValues
     });
 
@@ -986,21 +988,69 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         const tabFields: Record<string, { fields: (keyof FormFields)[]; defaults?: Partial<FormFields> }> = {
             employee: {
                 fields: [
-                    'firstName', 'middleName', 'lastName', 'employeeCode', 'typeOfEmployment', 'employeeGroup',
-                    'school', 'designation', 'grade', 'fatherName', 'motherName', 'dateOfBirth', 'dateOfJoining',
-                    'dateOfConfirmation', 'dateOfRetirement', 'gender', 'maritalStatus', 'religion', 'casteCategory',
-                    'caste', 'bloodGroup', 'salaryType', 'modeOfPayment', 'subjectTaught', 'epf', 'ppf',
-                    'phdResearchGuide', 'recognitionYear', 'teachingNonTeaching', 'pfApplicable', 'ptMaxAmount',
-                    'pfMaxAmount', 'pfFixedAmount', 'pfAccNo', 'uanNumber', 'pfDate', 'esiApplicable', 'esiAccNo',
-                    'gratuityAccNo', 'esiDate', 'nationalSSN', 'aadharNo', 'panCardNo', 'mobileDetails', 'emailDetails',
+                    'firstName',
+                    'middleName',
+                    'lastName',
+                    'employeeCode',
+                    'typeOfEmployment',
+                    'employeeGroup',
+                    'school',
+                    'designation',
+                    'grade',
+                    'fatherName',
+                    'motherName',
+                    'dateOfBirth',
+                    'dateOfJoining',
+                    'dateOfConfirmation',
+                    'dateOfRetirement',
+                    'gender',
+                    'maritalStatus',
+                    'religion',
+                    'casteCategory',
+                    'caste',
+                    'bloodGroup',
+                    'salaryType',
+                    'modeOfPayment',
+                    'subjectTaught',
+                    'epf',
+                    'ppf',
+                    'phdResearchGuide',
+                    'recognitionYear',
+                    'teachingNonTeaching',
+                    'pfApplicable',
+                    'ptMaxAmount',
+                    'pfMaxAmount',
+                    'pfFixedAmount',
+                    'pfAccNo',
+                    'uanNumber',
+                    'pfDate',
+                    'esiApplicable',
+                    'esiAccNo',
+                    'gratuityAccNo',
+                    'esiDate',
+                    'nationalSSN',
+                    'aadharNo',
+                    'panCardNo',
+                    'mobileDetails',
+                    'emailDetails',
                     'bankDetails'
                 ]
             },
             address: {
                 fields: [
-                    'contactAddress', 'contactArea', 'contactCountry', 'contactState', 'contactCity', 'contactPincode',
-                    'permanentAddress', 'permanentArea', 'permanentCountry', 'permanentState', 'permanentCity',
-                    'permanentPincode', 'sameAsCommunicationAddress'
+                    'contactAddress',
+                    'contactArea',
+                    'contactCountry',
+                    'contactState',
+                    'contactCity',
+                    'contactPincode',
+                    'permanentAddress',
+                    'permanentArea',
+                    'permanentCountry',
+                    'permanentState',
+                    'permanentCity',
+                    'permanentPincode',
+                    'sameAsCommunicationAddress'
                 ]
             },
             qualification: {
@@ -1014,14 +1064,27 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             },
             medical: {
                 fields: [
-                    'employeeHeight', 'employeeHeightUnit', 'employeeWeight', 'employeeWeightUnit',
-                    'eyeSightIssue', 'anyHealthIssue', 'identificationMark'
+                    'employeeHeight',
+                    'employeeHeightUnit',
+                    'employeeWeight',
+                    'employeeWeightUnit',
+                    'eyeSightIssue',
+                    'anyHealthIssue',
+                    'identificationMark'
                 ]
             },
             other: {
                 fields: [
-                    'biometricCode', 'rfCardId', 'punchRelaxation', 'stopPension', 'dateOfStopPension',
-                    'msTeamsUserName', 'msTeamsPassword', 'employeeLeft', 'lastWorkingDay', 'reasonForLeaving'
+                    'biometricCode',
+                    'rfCardId',
+                    'punchRelaxation',
+                    'stopPension',
+                    'dateOfStopPension',
+                    'msTeamsUserName',
+                    'msTeamsPassword',
+                    'employeeLeft',
+                    'lastWorkingDay',
+                    'reasonForLeaving'
                 ]
             }
         };
@@ -1030,7 +1093,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         if (!tabConfig) return;
 
         const fieldsToReset = tabConfig.fields;
-        
+
         // Reset each field to its default empty value
         fieldsToReset.forEach((field) => {
             const currentValue = watch(field);
@@ -1173,15 +1236,82 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
 
     const onSubmit = async (data: FormFields) => {
         try {
-            // Employee Tab: Just validate and move to Address tab (no API call)
+            // Employee Tab: Just validate employee fields and move to Address tab (no API call)
             if (activeTab === 'employee') {
-                // Check if there are any validation errors
-                const errorCount = Object.keys(errors).length;
-                if (errorCount > 0) {
-                    toast.error(`Please fix ${errorCount} validation error(s) before proceeding`);
-                    return;
+                // Validate only employee tab fields
+                const employeeErrors: string[] = [];
+
+                // Required employee fields
+                if (!data.firstName || data.firstName.trim() === '') {
+                    employeeErrors.push('Name of the Employee is required');
+                }
+                if (!data.employeeCode || data.employeeCode.trim() === '') {
+                    employeeErrors.push('Employee Code is required');
+                }
+                if (!data.typeOfEmployment || data.typeOfEmployment === '0' || data.typeOfEmployment === '') {
+                    employeeErrors.push('Type of Employment is required');
+                }
+                if (!data.employeeGroup || data.employeeGroup === '0' || data.employeeGroup === '') {
+                    employeeErrors.push('Employee Group is required');
+                }
+                if (!data.school || data.school === '0' || data.school === '') {
+                    employeeErrors.push('Department is required');
+                }
+                if (!data.designation || data.designation === '0' || data.designation === '') {
+                    employeeErrors.push('Designation is required');
+                }
+                if (!data.grade || data.grade === '0' || data.grade === '') {
+                    employeeErrors.push('Grade is required');
+                }
+                if (!data.fatherName || data.fatherName.trim() === '') {
+                    employeeErrors.push("Father's Name is required");
+                }
+                if (!data.motherName || data.motherName.trim() === '') {
+                    employeeErrors.push("Mother's Name is required");
+                }
+                if (!data.dateOfBirth || data.dateOfBirth.trim() === '') {
+                    employeeErrors.push('Date of Birth is required');
+                }
+                if (!data.dateOfJoining || data.dateOfJoining.trim() === '') {
+                    employeeErrors.push('Date of Joining is required');
+                }
+                if (!data.gender || data.gender === '0' || data.gender === '') {
+                    employeeErrors.push('Gender is required');
                 }
 
+                // Validate mobile number if provided
+                const mobileNo = data.mobileDetails?.[0]?.mobileNo;
+                if (mobileNo && mobileNo.trim() !== '' && !validateMobileNumber(mobileNo)) {
+                    employeeErrors.push('Mobile Number must be 10 digits');
+                }
+
+                // Validate email if provided
+                const emailId = data.emailDetails?.[0]?.emailId;
+                if (emailId && emailId.trim() !== '' && !validateEmail(emailId)) {
+                    employeeErrors.push('Email must be a valid email address');
+                }
+
+                // Validate Aadhar if provided
+                if (data.aadharNo && data.aadharNo.trim() !== '' && !validateAadharNumber(data.aadharNo)) {
+                    employeeErrors.push('Aadhar Number must be 12 digits');
+                }
+
+                // Validate PAN if provided
+                if (data.panCardNo && data.panCardNo.trim() !== '' && !validatePANNumber(data.panCardNo)) {
+                    employeeErrors.push('PAN Number must be in format ABCDE1234F');
+                }
+
+                // Validate date of confirmation if provided
+                if (data.dateOfConfirmation && data.dateOfJoining) {
+                    if (new Date(data.dateOfConfirmation) < new Date(data.dateOfJoining)) {
+                        employeeErrors.push('Date of Confirmation must be after Date of Joining');
+                    }
+                }
+
+                if (employeeErrors.length > 0) {
+                    toast.error(employeeErrors[0] || 'Please fill all required employee fields');
+                    return;
+                }
                 toast.success('Employee details validated. Please fill Address details.');
                 setActiveTab('address');
                 return;
@@ -1189,8 +1319,126 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
 
             // Address Tab: Save Employee + Address together (same endpoint)
             if (activeTab === 'address') {
+                // First validate employee fields (same as employee tab)
+                const employeeErrors: string[] = [];
+
+                if (!data.firstName || data.firstName.trim() === '') {
+                    employeeErrors.push('Name of the Employee is required');
+                }
+                if (!data.employeeCode || data.employeeCode.trim() === '') {
+                    employeeErrors.push('Employee Code is required');
+                }
+                if (!data.typeOfEmployment || data.typeOfEmployment === '0' || data.typeOfEmployment === '') {
+                    employeeErrors.push('Type of Employment is required');
+                }
+                if (!data.employeeGroup || data.employeeGroup === '0' || data.employeeGroup === '') {
+                    employeeErrors.push('Employee Group is required');
+                }
+                if (!data.school || data.school === '0' || data.school === '') {
+                    employeeErrors.push('Department is required');
+                }
+                if (!data.designation || data.designation === '0' || data.designation === '') {
+                    employeeErrors.push('Designation is required');
+                }
+                if (!data.grade || data.grade === '0' || data.grade === '') {
+                    employeeErrors.push('Grade is required');
+                }
+                if (!data.fatherName || data.fatherName.trim() === '') {
+                    employeeErrors.push("Father's Name is required");
+                }
+                if (!data.motherName || data.motherName.trim() === '') {
+                    employeeErrors.push("Mother's Name is required");
+                }
+                if (!data.dateOfBirth || data.dateOfBirth.trim() === '') {
+                    employeeErrors.push('Date of Birth is required');
+                }
+                if (!data.dateOfJoining || data.dateOfJoining.trim() === '') {
+                    employeeErrors.push('Date of Joining is required');
+                }
+                if (!data.gender || data.gender === '0' || data.gender === '') {
+                    employeeErrors.push('Gender is required');
+                }
+
+                // Validate mobile number if provided
+                const mobileNo = data.mobileDetails?.[0]?.mobileNo;
+                if (mobileNo && mobileNo.trim() !== '' && !validateMobileNumber(mobileNo)) {
+                    employeeErrors.push('Mobile Number must be 10 digits');
+                }
+
+                // Validate email if provided
+                const emailId = data.emailDetails?.[0]?.emailId;
+                if (emailId && emailId.trim() !== '' && !validateEmail(emailId)) {
+                    employeeErrors.push('Email must be a valid email address');
+                }
+
+                // Validate Aadhar if provided
+                if (data.aadharNo && data.aadharNo.trim() !== '' && !validateAadharNumber(data.aadharNo)) {
+                    employeeErrors.push('Aadhar Number must be 12 digits');
+                }
+
+                // Validate PAN if provided
+                if (data.panCardNo && data.panCardNo.trim() !== '' && !validatePANNumber(data.panCardNo)) {
+                    employeeErrors.push('PAN Number must be in format ABCDE1234F');
+                }
+
+                // Validate date of confirmation if provided
+                if (data.dateOfConfirmation && data.dateOfJoining) {
+                    if (new Date(data.dateOfConfirmation) < new Date(data.dateOfJoining)) {
+                        employeeErrors.push('Date of Confirmation must be after Date of Joining');
+                    }
+                }
+
+                // Then validate required address fields
+                const addressErrors: string[] = [];
+                if (!data.contactAddress || data.contactAddress.trim() === '') {
+                    addressErrors.push('Contact Address is required');
+                }
+                if (!data.contactCountry || data.contactCountry === '0' || data.contactCountry === '') {
+                    addressErrors.push('Contact Country is required');
+                }
+                if (!data.contactState || data.contactState === '0' || data.contactState === '') {
+                    addressErrors.push('Contact State is required');
+                }
+                if (!data.contactCity || data.contactCity.trim() === '') {
+                    addressErrors.push('Contact City is required');
+                }
+                if (!data.contactPincode || data.contactPincode.trim() === '') {
+                    addressErrors.push('Contact Pincode is required');
+                } else if (!validatePincode(data.contactPincode)) {
+                    addressErrors.push('Contact Pincode must be a valid numerical value (5-10 digits)');
+                }
+
+                // Validate permanent address if "Same As Communication Address" is not checked
+                if (!data.sameAsCommunicationAddress) {
+                    if (!data.permanentAddress || data.permanentAddress.trim() === '') {
+                        addressErrors.push('Permanent Address is required when "Same As Communication Address" is not checked');
+                    }
+                    if (!data.permanentCountry || data.permanentCountry === '0' || data.permanentCountry === '') {
+                        addressErrors.push('Permanent Country is required when "Same As Communication Address" is not checked');
+                    }
+                    if (!data.permanentState || data.permanentState === '0' || data.permanentState === '') {
+                        addressErrors.push('Permanent State is required when "Same As Communication Address" is not checked');
+                    }
+                    if (!data.permanentCity || data.permanentCity.trim() === '') {
+                        addressErrors.push('Permanent City is required when "Same As Communication Address" is not checked');
+                    }
+                    if (!data.permanentPincode || data.permanentPincode.trim() === '') {
+                        addressErrors.push('Permanent Pincode is required when "Same As Communication Address" is not checked');
+                    } else if (!validatePincode(data.permanentPincode)) {
+                        addressErrors.push('Permanent Pincode must be a valid numerical value (5-10 digits)');
+                    }
+                }
+
+                // Combine all errors
+                const allErrors = [...employeeErrors, ...addressErrors];
+
+                if (allErrors.length > 0) {
+                    toast.error(allErrors[0] || 'Please fill all required fields');
+                    return;
+                }
+
                 const payload = mapFormDataToApiFormat(data);
-                // Removed debug log
+
                 savePersonalDetails(payload, {
                     onSuccess: async (response) => {
                         const responseData = (response as any)?.data;
@@ -1218,9 +1466,22 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         if ((response as any)?.success) {
                             toast.success('Employee and Address details saved successfully');
                             setActiveTab('qualification');
+                        } else {
                         }
                     },
                     onError: (error: any) => {
+                        // Check if error message contains "Required"
+                        const errorMessage = error?.message || '';
+                        const errorDataString = typeof error?.response?.data === 'string' ? error.response.data : '';
+                        const hasRequiredError =
+                            errorMessage.includes('Required') ||
+                            errorMessage.includes('required') ||
+                            errorDataString.includes('Required') ||
+                            errorDataString.includes('required');
+
+                        if (hasRequiredError) {
+                        }
+
                         console.error('🔍 [SAVE] ERROR:', error?.message);
                         toast.error(error.message || 'Failed to save employee details');
                     }
@@ -1448,6 +1709,22 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     return;
                 }
 
+                // Validate lastWorkingDay and reasonForLeaving if employeeLeft is true
+                if (data.employeeLeft) {
+                    const otherDetailsErrors: string[] = [];
+                    if (!data.lastWorkingDay || data.lastWorkingDay.trim() === '') {
+                        otherDetailsErrors.push('Last Working Day is required when Employee Left is checked');
+                    }
+                    if (!data.reasonForLeaving || data.reasonForLeaving.trim() === '') {
+                        otherDetailsErrors.push('Reason for Leaving is required when Employee Left is checked');
+                    }
+
+                    if (otherDetailsErrors.length > 0) {
+                        toast.error(otherDetailsErrors[0] || 'Please fill all required fields');
+                        return;
+                    }
+                }
+
                 // Other Details fields are part of the main employee object, so use the same endpoint
                 const payload = mapFormDataToApiFormat(data) as any;
 
@@ -1499,7 +1776,15 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             countries: onloadData?.countrydropdownlist || [],
             states: Array.isArray(onloadData?.AllState) ? onloadData.AllState : [], // AllState might be null, so check if it's an array
             courses: onloadData?.coursedropdownlist || [],
-            specialisations: onloadData?.SpecialisationList || []
+            specialisations: onloadData?.SpecialisationList || [],
+            // New dropdown lists from API (fallback to empty arrays if not provided)
+            teachingNonTeaching: onloadData?.teachingNonTeachingList || onloadData?.teachingNonTeachingdropdownlist || [],
+            bloodGroups: onloadData?.bloodGroupList || onloadData?.bloodGroupdropdownlist || [],
+            salaryTypes: onloadData?.salaryTypeList || onloadData?.salaryTypedropdownlist || [],
+            modeOfPayment: onloadData?.modeOfPaymentList || onloadData?.modeOfPaymentdropdownlist || [],
+            addressTypes: onloadData?.addressTypeList || onloadData?.addressTypedropdownlist || [],
+            phoneTypes: onloadData?.phoneTypeList || onloadData?.phoneTypedropdownlist || [],
+            cgpaPercentageTypes: onloadData?.cgpaPercentageTypeList || onloadData?.cgpaPercentageTypedropdownlist || []
         };
 
         return opts;

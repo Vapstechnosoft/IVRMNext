@@ -5,8 +5,8 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { foMonthEndReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { useFOMonthEndReportOnload } from '@/hooks/hrms/useReports';
+import { foMonthEndReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -58,7 +58,10 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
                         <label htmlFor='year-select' className='font-medium text-sm'>
                             Year <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={filters.year} onValueChange={(value) => handleFilterChange('year', value)} disabled={isLoadingOnload}>
+                        <Select
+                            value={filters.year}
+                            onValueChange={(value) => handleFilterChange('year', value)}
+                            disabled={isLoadingOnload}>
                             <SelectTrigger id='year-select' className={errors.year ? 'border-red-500' : ''}>
                                 <SelectValue placeholder={isLoadingOnload ? 'Loading...' : '--Select--'} />
                             </SelectTrigger>
@@ -77,7 +80,10 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
                         <label htmlFor='month-select' className='font-medium text-sm'>
                             Month <span className='text-red-500'>*</span>
                         </label>
-                        <Select value={filters.month} onValueChange={(value) => handleFilterChange('month', value)} disabled={isLoadingOnload}>
+                        <Select
+                            value={filters.month}
+                            onValueChange={(value) => handleFilterChange('month', value)}
+                            disabled={isLoadingOnload}>
                             <SelectTrigger id='month-select' className={errors.month ? 'border-red-500' : ''}>
                                 <SelectValue placeholder={isLoadingOnload ? 'Loading...' : '--Select--'} />
                             </SelectTrigger>

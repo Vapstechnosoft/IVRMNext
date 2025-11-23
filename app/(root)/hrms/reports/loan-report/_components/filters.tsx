@@ -48,7 +48,7 @@ export function LoanReportFilters({
     onSearch,
     onCancel
 }: LoanReportFiltersProps) {
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
+    const [_currentYear, setCurrentYear] = useState<number | null>(null);
 
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
@@ -292,7 +292,6 @@ export function LoanReportFilters({
                     onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('🔵 SEARCH button clicked');
                         onSearch();
                     }}
                     disabled={isLoading}>

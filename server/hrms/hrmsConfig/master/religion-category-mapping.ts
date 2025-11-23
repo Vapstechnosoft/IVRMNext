@@ -158,257 +158,308 @@ export async function getReligionCategoryMappingList(
 
 /**
  * Save or Update religion category mapping record
- * POST /api/ReligionCategory_MappingFacade/savedata (both create and update)
+ * POST /api/ReligionCategory_MappingFacade (both create and update)
  */
 export async function saveReligionCategoryMapping(data: ReligionCategoryMappingInput) {
-    const url = '/api/ReligionCategory_MappingFacade/savedata';
+    const url = '/api/ReligionCategory_MappingFacade';
     const isNewRecord = !data.IRCC_Id || data.IRCC_Id === 0;
+    
+    console.log('🟠 [API] saveReligionCategoryMapping called');
+    console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
+    console.log('🟠 [API] Is New Record:', isNewRecord);
     
     // Get the category IDs from categoryids array if available, otherwise use IMCC_Id
     const categoryIds = data.categoryids && Array.isArray(data.categoryids) && data.categoryids.length > 0 
         ? data.categoryids.filter((id): id is number => typeof id === 'number' && !Number.isNaN(id) && id > 0)
         : (data.IMCC_Id && data.IMCC_Id > 0 ? [data.IMCC_Id] : []);
     
-    // Validate that we have at least one category ID (for nested array)
+    // Validate that we have at least one category ID
     if (categoryIds.length === 0) {
         throw new Error('At least one valid category ID is required');
     }
     
-    // Get the actual religion ID and category ID (first category for backward compatibility)
+    // Get the actual religion ID
     const actualReligionId = data.IVRMMR_Id && data.IVRMMR_Id > 0 ? data.IVRMMR_Id : 0;
-    const actualCategoryId = categoryIds[0];
     
-    // Ensure IRCC_Id is properly set - it should be > 0 for updates to exclude from duplicate check
-    const irccId = data.IRCC_Id && data.IRCC_Id > 0 ? data.IRCC_Id : 0;
-    
-    // Validate that we have valid IDs for the nested arrays
+    // Validate that we have valid religion ID
     if (actualReligionId === 0) {
         throw new Error('Religion ID is required and must be greater than 0');
     }
     
-    // Root level values are always 0 (as per old project structure)
-    // Actual IDs go in religion_list and caste_list arrays
-    const requestBody: ReligionCategoryMappingRequest = {
+    // Ensure IRCC_Id is properly set - it should be 0 for new records, > 0 for updates
+    const irccId = data.IRCC_Id && data.IRCC_Id > 0 ? data.IRCC_Id : 0;
+    
+    // Request body matches the exact structure from Swagger
+    // Structure: { IRCC_Id, MI_Id, IVRMMR_Id, IMCC_Ids[], UserId }
+    const requestBody = {
         IRCC_Id: irccId,
         MI_Id: data.MI_Id || 30,
-        UserId: data.UserId || 0,
-        IVRMMR_Id: 0, // Root level is always 0 in old project
-        IMCC_Id: 0, // Root level is always 0 in old project
-        IRCC_ActiveFlg: data.IRCC_ActiveFlg ?? true,
-        IRCC_CreatedBy: data.IRCC_CreatedBy || 0,
-        IRCC_UpdatedBy: data.IRCC_UpdatedBy || 0,
-        IRCC_CreatedDate: isNewRecord ? new Date().toISOString() : (data.IRCC_CreatedDate || new Date().toISOString()),
-        IRCC_UpdatedDate: new Date().toISOString(),
-        religion_list: [
-            {
-                CreatedDate: new Date().toISOString(),
-                UpdatedDate: new Date().toISOString(),
-                IVRMMR_Id: actualReligionId, // Actual religion ID goes here
-                IVRMMR_Name: data.IVRMMR_Name || 'string',
-                Is_Active: true
-            }
-        ],
-        get_masterlist: [],
-        caste_list: [
-            {
-                CreatedDate: new Date().toISOString(),
-                UpdatedDate: new Date().toISOString(),
-                IMCC_Id: actualCategoryId, // Actual category ID goes here (first category)
-                IMCC_CategoryName: data.IMCC_CategoryName || 'string',
-                IMCC_CategoryCode: data.IMCC_CategoryCode || 'string',
-                IMCC_CategoryDesc: data.IMCC_CategoryDesc || 'string'
-            }
-        ],
-        editlist: [],
-        returnval: true, // Default to true as per old project
-        castid: [], // Empty array as per old project (not used for saving)
-        duplicate: true, // Default to true as per old project
-        IVRMMR_Name: data.IVRMMR_Name || 'string',
-        IMCC_CategoryName: data.IMCC_CategoryName || 'string',
-        msg: '' // Empty string - backend will populate the actual message
+        IVRMMR_Id: actualReligionId,
+        IMCC_Ids: categoryIds, // Array of category IDs (filtered to remove 0s)
+        UserId: data.UserId || 0
     };
     
-    const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    console.log('🟠 [API] Calling api.post...');
     
-    // Handle case where backend returns data directly in response.data with returnval/msg
-    // Transform returnval/msg to success/message format
-    // Note: Some APIs return returnval=false even on success, so we check msg content too
-    if (response && typeof response === 'object') {
-        // If response has data field with returnval, transform it
-        if ('data' in response && response.data && typeof response.data === 'object' && 'returnval' in response.data) {
-            const rawData = response.data as unknown as ReligionCategoryMappingResponse;
-            let message = rawData.msg || '';
-            
-            // If message is empty or "string", provide a default success message
-            if (!message || message.trim() === '' || message.toLowerCase() === 'string') {
-                message = isNewRecord ? 'Mapping saved successfully' : 'Mapping updated successfully';
-            }
-            
-            // Check if message indicates success (Saved, Updated, Edited, etc.)
-            // Some APIs return returnval=false even on success, so prioritize message content
-            const isSuccessMessage = message.toLowerCase().includes('saved') || 
-                                   message.toLowerCase().includes('updated') || 
-                                   message.toLowerCase().includes('edited') ||
-                                   message.toLowerCase().includes('edited successfully') ||
-                                   message.toLowerCase().includes('success');
-            // Use returnval if true, otherwise trust the message
-            const success = rawData.returnval === true || (rawData.returnval === false && isSuccessMessage);
-            return {
-                success: success,
-                message: message,
-                data: rawData
-            } as ApiResponse<ReligionCategoryMappingResponse>;
+    try {
+        const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
+        
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        console.log('🟢 [API] Response.success:', response?.success);
+        console.log('🟢 [API] Response.message:', response?.message);
+        console.log('🟢 [API] Response.data:', response?.data);
+        
+        // Handle the response format - prioritize standard ApiResponse format
+        const responseData = response as any;
+        const mainData = responseData?.data || responseData;
+        
+        // Extract message from multiple possible locations
+        const responseMessage = response?.message || '';
+        const dataMsg = mainData?.msg || responseData?.msg || '';
+        const retrunMsg = mainData?.retrunMsg || responseData?.retrunMsg || '';
+        
+        // Prioritize response.message, then data.msg, then retrunMsg
+        const message = responseMessage || dataMsg || retrunMsg || '';
+        
+        // Extract returnval if present
+        const returnval = mainData?.returnval ?? responseData?.returnval;
+        
+        console.log('🟢 [API] Parsed values:');
+        console.log('🟢 [API] - response.success:', response?.success);
+        console.log('🟢 [API] - response.message:', responseMessage);
+        console.log('🟢 [API] - data.msg:', dataMsg);
+        console.log('🟢 [API] - returnval:', returnval);
+        console.log('🟢 [API] - Final message:', message);
+        
+        // Check for success indicators
+        // 1. response.success === true (highest priority)
+        // 2. Message contains success keywords ("Updated", "Saved", "Add", etc.)
+        // 3. returnval === true (but some APIs return false even on success)
+        const messageLower = message ? String(message).toLowerCase().trim() : '';
+        const isSuccessMessage = messageLower === 'updated' ||
+                                messageLower === 'saved' ||
+                                messageLower === 'add' ||
+                                messageLower.includes('success') ||
+                                messageLower.includes('updated') ||
+                                messageLower.includes('saved');
+        
+        // Determine success: prioritize response.success, then check message
+        const isSuccess = response?.success === true || 
+                         (response?.success !== false && isSuccessMessage) ||
+                         returnval === true;
+        
+        console.log('🟢 [API] Success detection:');
+        console.log('🟢 [API] - response.success === true:', response?.success === true);
+        console.log('🟢 [API] - isSuccessMessage:', isSuccessMessage);
+        console.log('🟢 [API] - returnval === true:', returnval === true);
+        console.log('🟢 [API] - Final isSuccess:', isSuccess);
+        
+        // Determine the final message
+        let finalMessage = message;
+        if (!finalMessage || finalMessage.trim() === '' || finalMessage.toLowerCase() === 'string') {
+            finalMessage = isNewRecord ? 'Mapping saved successfully' : 'Mapping updated successfully';
         }
         
-        // If response itself has returnval (direct response from axios)
-        if ('returnval' in response) {
-            const rawResponse = response as unknown as ReligionCategoryMappingResponse;
-            let message = rawResponse.msg || '';
-            
-            // If message is empty or "string", provide a default success message
-            if (!message || message.trim() === '' || message.toLowerCase() === 'string') {
-                message = isNewRecord ? 'Mapping saved successfully' : 'Mapping updated successfully';
-            }
-            
-            const isSuccessMessage = message.toLowerCase().includes('saved') || 
-                                   message.toLowerCase().includes('updated') || 
-                                   message.toLowerCase().includes('edited') ||
-                                   message.toLowerCase().includes('edited successfully') ||
-                                   message.toLowerCase().includes('success');
-            // Use returnval if true, otherwise trust the message
-            const success = rawResponse.returnval === true || (rawResponse.returnval === false && isSuccessMessage);
-            return {
-                success: success,
-                message: message,
-                data: rawResponse
-            } as ApiResponse<ReligionCategoryMappingResponse>;
-        }
+        const formattedResponse = {
+            success: isSuccess,
+            message: finalMessage,
+            data: responseData
+        };
         
-        // If already in ApiResponse format
-        if ('success' in response) {
-            return response as ApiResponse<ReligionCategoryMappingResponse>;
+        console.log('🟢 [API] Formatted response:', JSON.stringify(formattedResponse, null, 2));
+        
+        return formattedResponse as ApiResponse<ReligionCategoryMappingResponse>;
+    } catch (error: any) {
+        console.log('🔴 [API] Error occurred in saveReligionCategoryMapping');
+        console.error('🔴 [API] Error:', error);
+        console.error('🔴 [API] Error message:', error?.message);
+        console.error('🔴 [API] Error response:', error?.response);
+        console.error('🔴 [API] Error response data:', error?.response?.data);
+        console.error('🔴 [API] Error status:', error?.response?.status);
+        if (error?.response?.status === 404) {
+            throw new Error('Endpoint not found. Please check the API URL and request structure.');
         }
+        throw error;
     }
+}
+
+/**
+ * Get religion category mapping record by ID
+ * POST /api/ReligionCategory_MappingFacade/getRecordById
+ */
+export async function getReligionCategoryMappingDetails(id: number) {
+    const url = '/api/ReligionCategory_MappingFacade/getRecordById';
     
-    // Default fallback
-    return {
-        success: false,
-        message: 'Unknown error occurred',
-        data: response as unknown as ReligionCategoryMappingResponse
-    } as ApiResponse<ReligionCategoryMappingResponse>;
+    // Request body matches the exact structure from Swagger
+    const requestBody = {
+        IRCC_Id: id
+    };
+    
+    console.log('🟠 [API] getReligionCategoryMappingDetails called');
+    console.log('🟠 [API] IRCC_Id:', id);
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    
+    try {
+        const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
+        
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        console.log('🟢 [API] Response.success:', response?.success);
+        console.log('🟢 [API] Response.message:', response?.message);
+        console.log('🟢 [API] Response.data:', response?.data);
+        
+        return response;
+    } catch (error: any) {
+        console.log('🔴 [API] Error occurred in getReligionCategoryMappingDetails');
+        console.error('🔴 [API] Error:', error);
+        console.error('🔴 [API] Error message:', error?.message);
+        console.error('🔴 [API] Error response:', error?.response);
+        console.error('🔴 [API] Error response data:', error?.response?.data);
+        console.error('🔴 [API] Error status:', error?.response?.status);
+        if (error?.response?.status === 404) {
+            throw new Error('Record not found or endpoint not available');
+        }
+        throw error;
+    }
 }
 
 /**
  * Activate/Deactivate religion category mapping
- * POST /api/ReligionCategory_MappingFacade/masterDecative
+ * POST /api/ReligionCategory_MappingFacade/deactivateRecordById
  */
-export async function activateDeactivateReligionCategoryMapping(data: ReligionCategoryMappingDetail & { IRCC_ActiveFlg: boolean }) {
-    const url = '/api/ReligionCategory_MappingFacade/masterDecative';
+export async function activateDeactivateReligionCategoryMapping(data: {
+    IRCC_Id: number;
+    IRCC_ActiveFlg: boolean;
+    MI_Id?: number;
+    UserId?: number;
+}) {
+    const url = '/api/ReligionCategory_MappingFacade/deactivateRecordById';
+    const targetState = data.IRCC_ActiveFlg ? 'activate' : 'deactivate';
     
-    // Structure matches old project: root level IDs are 0, nested arrays contain objects with 0 IDs
-    const requestBody: ReligionCategoryMappingRequest = {
+    // Request body matches the exact structure from Swagger
+    const requestBody = {
         IRCC_Id: data.IRCC_Id,
-        MI_Id: data.MI_Id || 30,
-        UserId: data.UserId || 0,
-        IVRMMR_Id: 0, // Root level is always 0 in old project
-        IMCC_Id: 0, // Root level is always 0 in old project
-        IRCC_ActiveFlg: data.IRCC_ActiveFlg,
-        IRCC_CreatedBy: data.IRCC_CreatedBy || 0,
-        IRCC_UpdatedBy: data.IRCC_UpdatedBy || 0,
-        IRCC_CreatedDate: data.IRCC_CreatedDate || new Date().toISOString(),
-        IRCC_UpdatedDate: new Date().toISOString(),
-        religion_list: [
-            {
-                CreatedDate: new Date().toISOString(),
-                UpdatedDate: new Date().toISOString(),
-                IVRMMR_Id: 0, // Always 0 in nested array for deactivate
-                IVRMMR_Name: 'string',
-                Is_Active: true
-            }
-        ],
-        get_masterlist: [],
-        caste_list: [
-            {
-                CreatedDate: new Date().toISOString(),
-                UpdatedDate: new Date().toISOString(),
-                IMCC_Id: 0, // Always 0 in nested array for deactivate
-                IMCC_CategoryName: 'string',
-                IMCC_CategoryCode: 'string',
-                IMCC_CategoryDesc: 'string'
-            }
-        ],
-        editlist: [],
-        returnval: true, // Default to true as per old project
-        castid: [], // Empty array as per old project
-        duplicate: true, // Default to true as per old project
-        IVRMMR_Name: 'string',
-        IMCC_CategoryName: 'string',
-        msg: '' // Empty string - backend will populate the actual message
+        MI_Id: data.MI_Id || 0,
+        UserId: data.UserId || 0
     };
     
-    const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
+    console.log('🟠 [API] activateDeactivateReligionCategoryMapping called');
+    console.log('🟠 [API] Target state:', targetState);
+    console.log('🟠 [API] IRCC_Id:', data.IRCC_Id);
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
     
-    // Handle case where backend returns data directly in response.data with returnval/msg
-    // Transform returnval/msg to success/message format
-    // Note: Some APIs return returnval=false even on success, so we check msg content too
-    if (response && typeof response === 'object') {
-        // If response has data field with returnval, transform it
-        if ('data' in response && response.data && typeof response.data === 'object' && 'returnval' in response.data) {
-            const rawData = response.data as unknown as ReligionCategoryMappingResponse;
-            let message = rawData.msg || '';
-            
-            // If message is empty or "string", provide a default success message
-            if (!message || message.trim() === '' || message.toLowerCase() === 'string') {
-                message = data.IRCC_ActiveFlg ? 'Mapping activated successfully' : 'Mapping deactivated successfully';
-            }
-            
-            // Check if message indicates success (Activated, Deactivated, Updated, etc.)
-            const isSuccessMessage = message.toLowerCase().includes('activated') || 
-                                   message.toLowerCase().includes('deactivated') || 
-                                   message.toLowerCase().includes('updated') ||
-                                   message.toLowerCase().includes('success');
-            // Use returnval if true, otherwise trust the message
-            const success = rawData.returnval === true || (rawData.returnval === false && isSuccessMessage);
-            return {
-                success: success,
-                message: message,
-                data: rawData
-            } as ApiResponse<ReligionCategoryMappingResponse>;
+    try {
+        const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
+        
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        console.log('🟢 [API] Response.success:', response?.success);
+        console.log('🟢 [API] Response.message:', response?.message);
+        console.log('🟢 [API] Response.data:', response?.data);
+        
+        // Handle the response format - extract data from response.data
+        const responseData = response as any;
+        const mainData = responseData?.data || responseData;
+        
+        // Extract retrunMsg and message from the correct location
+        const retrunMsg = mainData?.retrunMsg || 
+                         responseData?.retrunMsg || 
+                         response?.message || 
+                         '';
+        const responseMessage = response?.message || '';
+        
+        // Extract IRCC_Id from response
+        const returnedId = mainData?.IRCC_Id || responseData?.IRCC_Id || 0;
+        const returnedActiveFlag = mainData?.IRCC_ActiveFlg;
+        
+        console.log('🟢 [API] Parsed values:');
+        console.log('🟢 [API] - returnedId:', returnedId);
+        console.log('🟢 [API] - returnedActiveFlag:', returnedActiveFlag);
+        console.log('🟢 [API] - retrunMsg:', retrunMsg);
+        console.log('🟢 [API] - responseMessage:', responseMessage);
+        
+        // Check for success messages - "Deactivated" or "Activated" indicate success
+        const retrunMsgLower = retrunMsg ? String(retrunMsg).toLowerCase().trim() : '';
+        const responseMessageLower = responseMessage ? String(responseMessage).toLowerCase().trim() : '';
+        
+        const isSuccessMessage = retrunMsgLower === 'deactivated' || 
+                                retrunMsgLower === 'activated' ||
+                                responseMessageLower === 'deactivated' ||
+                                responseMessageLower === 'activated';
+        
+        // Check for error messages
+        const hasErrorInRetrunMsg = retrunMsgLower && (
+            retrunMsgLower.includes('error') ||
+            retrunMsgLower.includes('failed')
+        );
+        
+        const hasErrorInMessage = responseMessageLower && (
+            responseMessageLower.includes('error') ||
+            responseMessageLower.includes('failed')
+        );
+        
+        const isError = hasErrorInRetrunMsg || hasErrorInMessage;
+        
+        console.log('🟢 [API] Success detection:');
+        console.log('🟢 [API] - isSuccessMessage:', isSuccessMessage);
+        console.log('🟢 [API] - isError:', isError);
+        console.log('🟢 [API] - retrunMsgLower:', retrunMsgLower);
+        console.log('🟢 [API] - responseMessageLower:', responseMessageLower);
+        
+        // Success indicators:
+        // 1. Success message ("Deactivated" or "Activated")
+        // 2. No error message
+        // 3. returnedId matches the requested ID (or > 0)
+        // 4. Flag matches (if provided in response)
+        const idMatches = returnedId === data.IRCC_Id || returnedId > 0;
+        const flagMatches = returnedActiveFlag !== undefined ? returnedActiveFlag === data.IRCC_ActiveFlg : true;
+        
+        // CRITICAL: If there's an error message, it's ALWAYS a failure
+        // If there's a success message ("Deactivated"/"Activated"), it's a success
+        const finalIsSuccess = !isError && (isSuccessMessage || (idMatches && flagMatches));
+        
+        console.log('🟢 [API] Final validation:');
+        console.log('🟢 [API] - idMatches:', idMatches);
+        console.log('🟢 [API] - flagMatches:', flagMatches);
+        console.log('🟢 [API] - finalIsSuccess:', finalIsSuccess);
+        
+        // Determine the message to return
+        let message = '';
+        if (finalIsSuccess) {
+            // Use the actual message from the backend
+            message = retrunMsg || responseMessage || (data.IRCC_ActiveFlg ? 'Mapping activated successfully' : 'Mapping deactivated successfully');
+        } else if (retrunMsg && retrunMsg.trim()) {
+            // Use the actual error message from the backend
+            message = retrunMsg.trim();
+        } else if (responseMessage && responseMessage.trim()) {
+            message = responseMessage.trim();
+        } else {
+            message = `Failed to ${targetState} mapping`;
         }
         
-        // If response itself has returnval (direct response from axios)
-        if ('returnval' in response) {
-            const rawResponse = response as unknown as ReligionCategoryMappingResponse;
-            let message = rawResponse.msg || '';
-            
-            // If message is empty or "string", provide a default success message
-            if (!message || message.trim() === '' || message.toLowerCase() === 'string') {
-                message = data.IRCC_ActiveFlg ? 'Mapping activated successfully' : 'Mapping deactivated successfully';
-            }
-            
-            const isSuccessMessage = message.toLowerCase().includes('activated') || 
-                                   message.toLowerCase().includes('deactivated') || 
-                                   message.toLowerCase().includes('updated') ||
-                                   message.toLowerCase().includes('success');
-            // Use returnval if true, otherwise trust the message
-            const success = rawResponse.returnval === true || (rawResponse.returnval === false && isSuccessMessage);
-            return {
-                success: success,
-                message: message,
-                data: rawResponse
-            } as ApiResponse<ReligionCategoryMappingResponse>;
-        }
+        console.log('🟢 [API] Final message:', message);
         
-        // If already in ApiResponse format
-        if ('success' in response) {
-            return response as ApiResponse<ReligionCategoryMappingResponse>;
+        const formattedResponse = {
+            success: finalIsSuccess,
+            message: message,
+            data: responseData
+        };
+        
+        console.log('🟢 [API] Formatted response:', JSON.stringify(formattedResponse, null, 2));
+        
+        return formattedResponse as any;
+    } catch (error: any) {
+        console.log('🔴 [API] Error occurred in activateDeactivateReligionCategoryMapping');
+        console.error('🔴 [API] Error:', error);
+        console.error('🔴 [API] Error message:', error?.message);
+        console.error('🔴 [API] Error response:', error?.response);
+        console.error('🔴 [API] Error response data:', error?.response?.data);
+        console.error('🔴 [API] Error status:', error?.response?.status);
+        if (error?.response?.status === 404) {
+            throw new Error('Endpoint not found. Please check the API URL and request structure.');
         }
+        throw error;
     }
-    
-    // Default fallback
-    return {
-        success: false,
-        message: 'Unknown error occurred',
-        data: response as unknown as ReligionCategoryMappingResponse
-    } as ApiResponse<ReligionCategoryMappingResponse>;
 }

@@ -1,30 +1,21 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useCumulativeSalaryReportList, useCumulativeSalaryReportOnload } from '@/hooks/hrms/useReports';
 import type { ApiSearchparams } from '@/types';
-import { Download, Printer } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { use, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type CumulativeSalaryRecord, cumulativeSalaryColumns } from './_components/columns';
+import type { CumulativeSalaryRecord } from './_components/columns';
 import { CumulativeSalaryReportFilters, type ReportFilters } from './_components/filters';
+import { CumulativeSalaryReportTemplate } from './_components/report-template';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function CumulativeSalaryReportPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
     const router = useRouter();
-
-    console.log('🔵 [CUMULATIVE SALARY] Component rendered/re-rendered', {
-        rawSearchParams,
-        month: rawSearchParams?.month,
-        year: rawSearchParams?.year,
-        timestamp: new Date().toISOString()
-    });
 
     // Convert Next.js searchParams to ApiSearchparams format
     const searchParams: ApiSearchparams = {
@@ -123,16 +114,6 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
     const [showReport, setShowReport] = useState(false);
     const hasInitializedShowReport = useRef(false);
 
-    console.log('🔵 [CUMULATIVE SALARY] Search criteria check', {
-        month,
-        year,
-        hasSearchCriteria,
-        groupType,
-        department,
-        designation,
-        showReport
-    });
-
     // React Query hook for dropdowns - always enabled to get filter options
     const { data: onloadData, isLoading: onloadLoading, error: onloadError } = useCumulativeSalaryReportOnload(MI_Id);
 
@@ -146,17 +127,6 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
     // Get year and month IDs from dropdowns for API
     const yearId = years.find((y) => y.HRMLY_LeaveYear === year)?.HRMLY_Id;
     const monthId = months.find((m) => m.IVRM_Month_Name.trim() === month)?.IVRM_Month_Id;
-
-    console.log('🔵 [CUMULATIVE SALARY] Month/Year ID lookup', {
-        month,
-        year,
-        monthId,
-        yearId,
-        monthsAvailable: months.length,
-        yearsAvailable: years.length,
-        monthMatch: months.find((m) => m.IVRM_Month_Name.trim() === month),
-        yearMatch: years.find((y) => y.HRMLY_LeaveYear === year)
-    });
 
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useCumulativeSalaryReportList(
@@ -176,38 +146,9 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
         hasSearchCriteria // Only fetch when month and year are selected
     );
 
-    console.log('🔵 [CUMULATIVE SALARY] Report query state', {
-        isLoading: reportListQuery.isLoading,
-        isFetching: reportListQuery.isFetching,
-        hasData: !!reportListQuery.data,
-        dataSuccess: reportListQuery.data?.success,
-        enabled: hasSearchCriteria,
-        monthId,
-        yearId,
-        monthName: month,
-        yearName: year,
-        filterParams: {
-            month: monthId?.toString(),
-            year: yearId?.toString(),
-            groupTypeIdList: groupType.length > 0 ? groupType : undefined,
-            hrmD_IdList: department.length > 0 ? department : undefined,
-            hrmdeS_IdList: designation.length > 0 ? designation : undefined
-        },
-        queryStatus: reportListQuery.status,
-        queryError: reportListQuery.error
-    });
-
     // Debug: Check if query should be refetching
     useEffect(() => {
         if (hasSearchCriteria) {
-            console.log('🔵 [CUMULATIVE SALARY] Query should be enabled, checking if it needs to refetch...', {
-                hasSearchCriteria,
-                monthId,
-                yearId,
-                isLoading: reportListQuery.isLoading,
-                isFetching: reportListQuery.isFetching,
-                hasData: !!reportListQuery.data
-            });
         }
     }, [hasSearchCriteria, monthId, yearId, reportListQuery.isLoading, reportListQuery.isFetching, reportListQuery.data]);
 
@@ -242,16 +183,6 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
     }, [hasSearchCriteria]); // Only depend on hasSearchCriteria to avoid loops
 
     const onSubmit = async (data: ReportFilters) => {
-        console.log('🔵 [CUMULATIVE SALARY] onSubmit function called', {
-            data,
-            month: data.month,
-            year: data.year,
-            groupType: data.groupType,
-            department: data.department,
-            designation: data.designation,
-            timestamp: new Date().toISOString()
-        });
-
         // Show the report template immediately, even without data
         setShowReport(true);
 
@@ -264,8 +195,6 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
             // Still show the template even if validation fails
             return;
         }
-
-        console.log('🔵 [CUMULATIVE SALARY] Validation passed, building URL params...');
 
         // Build URL params
         const params = new URLSearchParams();
@@ -287,13 +216,7 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
         params.set('page', '1');
 
         const finalUrl = `/hrms/reports/cumulative-salary-report?${params.toString()}`;
-        console.log('🔵 [CUMULATIVE SALARY] Navigating to:', finalUrl);
-        console.log('🔵 [CUMULATIVE SALARY] URL params:', params.toString());
-
-        // Navigate with new params
-        console.log('🔵 [CUMULATIVE SALARY] About to call router.push with URL:', finalUrl);
         router.push(finalUrl);
-        console.log('🔵 [CUMULATIVE SALARY] router.push called');
 
         // Note: router.refresh() is for server components, but we're using client component
         // The component should re-render automatically when URL changes
@@ -408,12 +331,30 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
         );
     }, [reportData]);
 
-    const tableProps = useDataTableProps({
-        data: reportData,
-        total: reportListQuery.data?.data?.total || 0,
-        success: reportListQuery.data?.success ?? true,
-        message: reportListQuery.data?.message
-    });
+    // Get institution details from API response if available
+    const institutionDetails = useMemo(() => {
+        // Try to get institution details from the API response
+        const response = reportListQuery.data?.data;
+        if (response && typeof response === 'object' && 'institutionDetails' in response) {
+            return (response as any).institutionDetails;
+        }
+        // Try to get from onload data
+        if (onloadData?.data && typeof onloadData.data === 'object' && 'institutionDetails' in onloadData.data) {
+            return (onloadData.data as any).institutionDetails;
+        }
+        return null;
+    }, [reportListQuery.data, onloadData]);
+
+    // Build school name and address
+    const schoolName = institutionDetails?.MI_Name || '';
+    const schoolAddress = useMemo(() => {
+        if (!institutionDetails) return '';
+        const addressParts = [];
+        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
+        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
+        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
+        return addressParts.join(', ');
+    }, [institutionDetails]);
 
     // Show error if API fails
     useEffect(() => {
@@ -476,7 +417,6 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
                     years={years}
                     onSubmit={handleSubmit(
                         (data) => {
-                            console.log('🔵 [CUMULATIVE SALARY] handleSubmit wrapper called with data:', data);
                             return onSubmit(data);
                         },
                         (errors) => {
@@ -494,62 +434,18 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
                         headerClassName=''>
-                        {/* Report Header */}
-                        <div className='mb-4 flex items-center justify-between rounded-lg border bg-card p-4'>
-                            <div>
-                                <h3 className='font-semibold text-foreground text-lg'>
-                                    Cumulative Salary Report - {watch('month')} {watch('year')}
-                                </h3>
-                                <p className='text-muted-foreground text-sm'>Total Records: {tableProps.totalItems} employees</p>
-                            </div>
-                            <div className='flex gap-2'>
-                                <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                    Export
-                                </Button>
-                                <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                    Print
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* Data Table */}
-                        <GenericDataTable<CumulativeSalaryRecord>
-                            {...tableProps}
-                            columns={cumulativeSalaryColumns}
+                        <CumulativeSalaryReportTemplate
+                            schoolName={schoolName}
+                            schoolAddress={schoolAddress}
+                            month={watch('month') || month}
+                            year={watch('year') || year}
+                            reportData={reportData}
+                            totals={totals}
                             isLoading={reportListQuery.isLoading}
-                            error={reportListQuery.error}
-                            showViewOptions={true}
-                            columnPinning={{ left: ['slNo'] }}
-                            loadingMessage='Loading salary report...'
-                            noDataTitle='No Salary Data Found'
-                            noDataDescription='No salary data found for the selected criteria'
-                            errorTitle='Error Loading Salary Report'
+                            onPrint={handlePrint}
+                            onExport={handleExport}
+                            onCancel={handleCancel}
                         />
-
-                        {/* Totals Row */}
-                        {reportData.length > 0 && (
-                            <div className='mt-4 border-t bg-muted/50 p-4'>
-                                <div className='grid grid-cols-19 gap-2 font-semibold text-sm'>
-                                    <div className='col-span-3 text-right'>Total:</div>
-                                    <div className='text-right'>₹{totals.basic.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.da.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.hra.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.conveyance.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.medical.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.splAllowance.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.grossEarning.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.pf.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.esi.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.others.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.pt.toLocaleString()}</div>
-                                    <div className='text-right'>₹{totals.grossDeduction.toLocaleString()}</div>
-                                    <div className='text-center'>-</div>
-                                    <div className='text-center'>-</div>
-                                    <div className='text-right text-green-600'>₹{totals.netSalary.toLocaleString()}</div>
-                                    <div className='text-center'>-</div>
-                                </div>
-                            </div>
-                        )}
                     </CollapsibleSection>
                 ) : (
                     <div className='flex items-center justify-center rounded-lg bg-muted/50 py-12'>
