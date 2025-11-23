@@ -1218,7 +1218,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 label='Academic Year'
                                                 required
                                                 id='academic_year'
-                                                placeholder='Enter first name'
+                                                placeholder='Academic Year'
                                                 defaultValue={activePreadmission?.data?.asmaY_Year}
                                                 className='w-fit font-semibold'
                                                 disabled
@@ -3348,7 +3348,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                         <div className='space-y-4'>
                                             <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
                                             <div className='mb-2'>
-                                                <Button
+                                                {/* <Button
                                                     type='button'
                                                     variant='outline'
                                                     onClick={() =>
@@ -3365,7 +3365,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     className='w-fit'>
                                                     <span className='mr-2'>+</span>
                                                     Add Previous School
-                                                </Button>
+                                                </Button> */}
                                             </div>
                                             {previousSchoolFields.length === 0 ? (
                                                 <p className='text-gray-500 text-sm'>
@@ -3379,7 +3379,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <h4 className='font-medium text-gray-700 text-sm'>
                                                                     Previous School {index + 1}
                                                                 </h4>
-                                                                <Button
+                                                                {/* <Button
                                                                     type='button'
                                                                     variant='ghost'
                                                                     size='sm'
@@ -3387,7 +3387,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     disabled={isSubmitting}
                                                                     className='h-8 w-fit bg-error text-white'>
                                                                     Remove
-                                                                </Button>
+                                                                </Button> */}
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                 <Controller
@@ -3653,7 +3653,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             ) : (
                                                 <>
                                                     <Save className='mr-2 h-4 w-4' />
-                                                    Submit Application
+                                                    Update Application
                                                 </>
                                             )}
                                         </Button>
