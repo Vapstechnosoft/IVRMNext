@@ -15,6 +15,10 @@ export const ROUTES = {
                 CONFIGURATION_SUB_MENUS: {
                     MASTER_ACADEMIC_YEAR: '/academic-year'
                 },
+                SECTION: '/section',
+                SECTION_SUB_MENUS: {
+                    NEW_SECTION: '/new-class'
+                },
                 MASTERS: '/masters',
                 MASTERS_SUB_MENUS: {
                     MASTERS_CLASS: '/class',
