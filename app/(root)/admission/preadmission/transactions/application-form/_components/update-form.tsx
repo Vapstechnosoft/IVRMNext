@@ -187,6 +187,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
             setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
+            // if (rowData.hasOwnProperty("pasR_BirthPlace")) {
+            //   setValue("pasR_BirthPlace", rowData.pasR_BirthPlace ?? undefined);
+            // }
 
             // Handle siblingsDetails and previousSchoolDetails arrays AFTER all other fields
             if (rowData.siblingsDetails && Array.isArray(rowData.siblingsDetails) && rowData.siblingsDetails.length > 0) {
@@ -1425,7 +1428,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         )}>
                                                                         <CalendarIcon className='mr-2 h-4 w-4' />
                                                                         {field.value ? (
-                                                                            format(field.value, 'PPP')
+                                                                            format(field.value, 'dd/MM/yyyy')
                                                                         ) : (
                                                                             <span>Pick a date</span>
                                                                         )}
@@ -1468,7 +1471,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
-                                                                    phoneValues['pasR_MobileNo'] ??
+                                                                    phoneValues.pasR_MobileNo ??
                                                                     (field.value != null ? String(field.value) : null)
                                                                 }
                                                                 onChange={(phone: any, countryData: any) =>
@@ -2449,7 +2452,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_FatherMobleNo'] ??
+                                                                            phoneValues.pasR_FatherMobleNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2784,7 +2787,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_MotherMobleNo'] ??
+                                                                            phoneValues.pasR_MotherMobleNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2878,7 +2881,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_AltContactNo'] ??
+                                                                            phoneValues.pasR_AltContactNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>

@@ -337,9 +337,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    const goToStep = (step: number) => {
-        setCurrentStep(step);
-    };
+    // const goToStep = (step: number) => {
+    //   setCurrentStep(step);
+    // };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (data.pasR_UndertakingFlag === 0) {
@@ -529,9 +529,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         remove(index);
     };
 
-    const updatePreviousSchool = (field: string, value: string) => {
-        setPreviousSchool({ ...previousSchool, [field]: value });
-    };
+    // const updatePreviousSchool = (field: string, value: string) => {
+    //   setPreviousSchool({ ...previousSchool, [field]: value });
+    // };
 
     const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
         try {
@@ -1190,7 +1190,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         error && 'border-red-500'
                                                                     )}>
                                                                     <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                                    {field.value ? (
+                                                                        format(field.value, 'dd/MM/yyyy')
+                                                                    ) : (
+                                                                        <span>Pick a date</span>
+                                                                    )}
                                                                 </Button>
                                                             </PopoverTrigger>
                                                             <PopoverContent className='w-auto p-0' align='start'>
@@ -1222,12 +1226,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <div>
                                                             <Label htmlFor='pasR_MobileNo'>
-                                                                Mobile No.<span className='ml-1 text-red-500'>*</span>
+                                                                Mobile No.
+                                                                <span className='ml-1 text-red-500'>*</span>
                                                             </Label>
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
-                                                                    phoneValues['pasR_MobileNo'] ??
+                                                                    phoneValues.pasR_MobileNo ??
                                                                     (field.value != null ? String(field.value) : null)
                                                                 }
                                                                 onChange={(phone: any, countryData: any) =>
@@ -2194,7 +2199,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_FatherMobleNo'] ??
+                                                                            phoneValues.pasR_FatherMobleNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2509,7 +2514,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_MotherMobleNo'] ??
+                                                                            phoneValues.pasR_MotherMobleNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2604,7 +2609,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_AltContactNo'] ??
+                                                                            phoneValues.pasR_AltContactNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>

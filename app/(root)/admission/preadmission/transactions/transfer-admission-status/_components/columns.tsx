@@ -74,11 +74,12 @@ export const transferAdmissionColumns: ColumnDef<IPreadmissionApplicationList>[]
             title: 'Applied Class'
         }
     },
+
     {
         accessorKey: 'current_status',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Current Status' />,
         cell: ({ row }) => <div>{row.getValue('current_status')}</div>,
-        enableSorting: false,
+        enableSorting: true,
         enableHiding: true,
         meta: {
             title: 'Current Status'
@@ -88,7 +89,7 @@ export const transferAdmissionColumns: ColumnDef<IPreadmissionApplicationList>[]
         accessorKey: 'applied_by',
         header: ({ column }) => <DataTableColumnHeader column={column} title='User Name' />,
         cell: ({ row }) => <div>{row.getValue('applied_by')}</div>,
-        enableSorting: false,
+        enableSorting: true,
         enableHiding: true
     }
 ];
