@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterMaritalStatus } from '@/hooks/hrms/useMasters';
 import { MARITAL_STATUS_VALIDATION } from '@/lib/validation/hrms-master-validation';
@@ -25,6 +25,7 @@ export default function MaritalStatusForm({ selectedRow, onSuccess }: MaritalSta
         reset,
         formState: { errors }
     } = useForm<MasterMaritalStatusInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             IVRMMMS_MaritalStatus: '',
@@ -83,12 +84,13 @@ export default function MaritalStatusForm({ selectedRow, onSuccess }: MaritalSta
                 <Label htmlFor='IVRMMMS_MaritalStatus'>
                     Marital Status <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='IVRMMMS_MaritalStatus'
                     placeholder='Enter marital status'
+                    maxLength={MARITAL_STATUS_VALIDATION.HRMMS_MaritalStatus.maxLength?.value}
+                    error={errors.IVRMMMS_MaritalStatus?.message}
                     {...register('IVRMMMS_MaritalStatus', MARITAL_STATUS_VALIDATION.HRMMS_MaritalStatus)}
                 />
-                {errors.IVRMMMS_MaritalStatus && <FormError>{errors.IVRMMMS_MaritalStatus.message}</FormError>}
             </div>
             <div className='col-span-full'>
                 <Button type='submit' className='mt-2' disabled={saveMutation.isPending}>

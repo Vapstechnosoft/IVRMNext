@@ -282,7 +282,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                                 </SelectTrigger>
                                 <SelectContent>
                                     {calendarYears.length === 0 ? (
-                                        <SelectItem value='' disabled>
+                                        <SelectItem value='__no_years__' disabled>
                                             No years available
                                         </SelectItem>
                                     ) : (
@@ -315,7 +315,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                                 </SelectTrigger>
                                 <SelectContent>
                                     {departments.length === 0 ? (
-                                        <SelectItem value='' disabled>
+                                        <SelectItem value='__no_departments__' disabled>
                                             No departments available
                                         </SelectItem>
                                     ) : (
@@ -348,7 +348,7 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                                 </SelectTrigger>
                                 <SelectContent>
                                     {holidayTypes.length === 0 ? (
-                                        <SelectItem value='' disabled>
+                                        <SelectItem value='__no_holiday_types__' disabled>
                                             No holiday types available
                                         </SelectItem>
                                     ) : (

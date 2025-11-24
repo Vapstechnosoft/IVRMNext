@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEmployeeMissingLogs } from '@/hooks/hrms/attendance-management/useMasters';
 import { Plus, X } from 'lucide-react';
@@ -87,46 +88,48 @@ function FormSections() {
             {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
-                    <CollapsibleSection
+                    <HRMSCollapsibleSection
+                        title='Add Employee Missing Log'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+                        closeButton={
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddEmployeeMissingLogForm onSuccess={closeAddForm} />
-                        </div>
-                    </CollapsibleSection>
+                        }>
+                        <AddEmployeeMissingLogForm onSuccess={closeAddForm} />
+                    </HRMSCollapsibleSection>
                 </div>
             )}
 
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
-                    <CollapsibleSection
+                    <HRMSCollapsibleSection
+                        title='Update Employee Missing Log'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
+                        closeButton={
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateEmployeeMissingLogForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                        </div>
-                    </CollapsibleSection>
+                        }>
+                        <UpdateEmployeeMissingLogForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                    </HRMSCollapsibleSection>
                 </div>
             )}
         </>

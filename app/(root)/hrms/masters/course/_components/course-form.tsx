@@ -28,6 +28,7 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
         reset,
         formState: { errors, isDirty }
     } = useForm<MasterCourseInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRMC_QulaificationName: '',
@@ -108,6 +109,9 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                 <Input
                     id='HRMC_QulaificationName'
                     placeholder='Enter qualification name'
+                    maxLength={COURSE_VALIDATION.HRMC_QualificationName.maxLength?.value}
+                    aria-invalid={errors.HRMC_QulaificationName ? true : undefined}
+                    data-error={errors.HRMC_QulaificationName ? 'true' : undefined}
                     {...register('HRMC_QulaificationName', COURSE_VALIDATION.HRMC_QualificationName)}
                 />
                 {errors.HRMC_QulaificationName && <FormError>{errors.HRMC_QulaificationName.message}</FormError>}
@@ -119,6 +123,9 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                 <Input
                     id='HRMC_QualificationDesc'
                     placeholder='Enter description'
+                    maxLength={COURSE_VALIDATION.HRMC_QualificationDescription.maxLength?.value}
+                    aria-invalid={errors.HRMC_QualificationDesc ? true : undefined}
+                    data-error={errors.HRMC_QualificationDesc ? 'true' : undefined}
                     {...register('HRMC_QualificationDesc', COURSE_VALIDATION.HRMC_QualificationDescription)}
                 />
                 {errors.HRMC_QualificationDesc && <FormError>{errors.HRMC_QualificationDesc.message}</FormError>}

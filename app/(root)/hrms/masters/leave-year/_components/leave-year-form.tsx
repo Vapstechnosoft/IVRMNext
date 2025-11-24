@@ -1,17 +1,13 @@
 import { Button } from '@/components/ui/button';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
-import { cn } from '@/lib/utils';
 import { LEAVE_YEAR_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import type { LeaveYearDetail, MasterLeaveYearInput } from '@/types/hrms/master-leave-year';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -25,9 +21,6 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
     const { saveMutation, refetchAll } = useMasterLeaveYear(roleId);
     const isEditMode = !!selectedRow;
 
-    const [fromDateOpen, setFromDateOpen] = useState(false);
-    const [toDateOpen, setToDateOpen] = useState(false);
-
     const {
         register,
         handleSubmit,
@@ -38,13 +31,14 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
         trigger,
         formState: { errors, isDirty }
     } = useForm<MasterLeaveYearInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRMLY_LeaveYear: '',
             HRMLY_FromDate: '',
             HRMLY_ToDate: '',
             HRMLY_ActiveFlag: true,
-            HRMLY_LeaveYearOrder: 1
+            HRMLY_LeaveYearOrder: undefined
         }
     });
 
@@ -64,8 +58,18 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
     useEffect(() => {
         if (fromDate) {
             trigger('HRMLY_ToDate');
+            // Clear To Date if it's less than or equal to the new From Date
+            if (toDate) {
+                const from = new Date(fromDate);
+                from.setHours(0, 0, 0, 0);
+                const to = new Date(toDate);
+                to.setHours(0, 0, 0, 0);
+                if (to <= from) {
+                    setValue('HRMLY_ToDate', '', { shouldValidate: true });
+                }
+            }
         }
-    }, [fromDate, trigger]);
+    }, [fromDate, toDate, trigger, setValue]);
 
     useEffect(() => {
         if (toDate) {
@@ -130,157 +134,76 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
                 <Label htmlFor='HRMLY_LeaveYear'>
                     Leave Year <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='HRMLY_LeaveYear'
-                    placeholder='e.g., 2025-2026'
+                    placeholder='2025'
+                    maxLength={4}
+                    error={errors.HRMLY_LeaveYear?.message}
                     {...register('HRMLY_LeaveYear', LEAVE_YEAR_VALIDATION.HRMLY_LeaveYear)}
                 />
-                {errors.HRMLY_LeaveYear && <FormError>{errors.HRMLY_LeaveYear.message}</FormError>}
             </div>
 
-            <div className='group flex flex-col gap-1.5'>
-                <Label htmlFor='HRMLY_FromDate'>
-                    From Date <span className='text-destructive'>*</span>
-                </Label>
-                <Controller
-                    name='HRMLY_FromDate'
-                    control={control}
-                    rules={{
-                        required: 'From Date is required',
-                        validate: (value) => {
-                            if (!value) return true;
-                            if (!toDate) return true;
-                            // Normalize dates to start of day for accurate comparison
-                            const from = new Date(value);
-                            from.setHours(0, 0, 0, 0);
-                            const to = new Date(toDate);
-                            to.setHours(0, 0, 0, 0);
-                            if (from >= to) {
-                                return 'From Date must be less than To Date';
-                            }
-                            return true;
+            <Controller
+                name='HRMLY_FromDate'
+                control={control}
+                rules={{
+                    required: 'From Date is required',
+                    validate: (value) => {
+                        if (!value) return true;
+                        if (!toDate) return true;
+                        // Normalize dates to start of day for accurate comparison
+                        const from = new Date(value);
+                        from.setHours(0, 0, 0, 0);
+                        const to = new Date(toDate);
+                        to.setHours(0, 0, 0, 0);
+                        if (from >= to) {
+                            return 'From Date must be less than To Date';
                         }
-                    }}
-                    render={({ field }) => (
-                        <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant='outline'
-                                    className={cn('w-full justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
-                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                    {field.value ? format(new Date(field.value), 'PPP') : <span>Pick from date</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0' align='start'>
-                                <DatePickerWithYear
-                                    mode='single'
-                                    selected={field.value ? new Date(field.value) : undefined}
-                                    onSelect={(date) => {
-                                        if (date) {
-                                            const dateStr = format(date, 'yyyy-MM-dd');
-                                            field.onChange(dateStr);
-                                            // If To Date exists and is less than or equal to selected date, clear it
-                                            if (toDate) {
-                                                const to = new Date(toDate);
-                                                to.setHours(0, 0, 0, 0);
-                                                const selected = new Date(date);
-                                                selected.setHours(0, 0, 0, 0);
-                                                if (to <= selected) {
-                                                    setValue('HRMLY_ToDate', '', { shouldValidate: true });
-                                                }
-                                            }
-                                            setValue('HRMLY_FromDate', dateStr, { shouldValidate: true });
-                                        } else {
-                                            field.onChange('');
-                                        }
-                                        setFromDateOpen(false);
-                                    }}
-                                    disabled={(date) => {
-                                        // Disable dates that are greater than or equal to To Date (if To Date is selected)
-                                        if (toDate) {
-                                            const to = new Date(toDate);
-                                            to.setHours(0, 0, 0, 0);
-                                            const checkDate = new Date(date);
-                                            checkDate.setHours(0, 0, 0, 0);
-                                            return checkDate >= to;
-                                        }
-                                        return false;
-                                    }}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    )}
-                />
-                {errors.HRMLY_FromDate && <FormError>{errors.HRMLY_FromDate.message}</FormError>}
-            </div>
+                        return true;
+                    }
+                }}
+                render={({ field, fieldState }) => (
+                    <DateField
+                        field={field}
+                        fieldState={fieldState}
+                        label='From Date'
+                        placeholder='Pick from date'
+                    />
+                )}
+            />
 
-            <div className='group flex flex-col gap-1.5'>
-                <Label htmlFor='HRMLY_ToDate'>
-                    To Date <span className='text-destructive'>*</span>
-                </Label>
-                <Controller
-                    name='HRMLY_ToDate'
-                    control={control}
-                    rules={{
-                        required: 'To Date is required',
-                        validate: (value) => {
-                            if (!value) return true;
-                            if (!fromDate) return true;
-                            // Normalize dates to start of day for accurate comparison
-                            const from = new Date(fromDate);
-                            from.setHours(0, 0, 0, 0);
-                            const to = new Date(value);
-                            to.setHours(0, 0, 0, 0);
-                            if (to <= from) {
-                                return 'To Date must be greater than From Date';
-                            }
-                            return true;
+            <Controller
+                name='HRMLY_ToDate'
+                control={control}
+                rules={{
+                    required: 'To Date is required',
+                    validate: (value) => {
+                        if (!value) return true;
+                        if (!fromDate) return true;
+                        // Normalize dates to start of day for accurate comparison
+                        const from = new Date(fromDate);
+                        from.setHours(0, 0, 0, 0);
+                        const to = new Date(value);
+                        to.setHours(0, 0, 0, 0);
+                        if (to <= from) {
+                            return 'To Date must be greater than From Date';
                         }
-                    }}
-                    render={({ field }) => (
-                        <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant='outline'
-                                    className={cn('w-full justify-start text-left font-normal', !field.value && 'text-muted-foreground')}>
-                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                    {field.value ? format(new Date(field.value), 'PPP') : <span>Pick to date</span>}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0' align='start'>
-                                <DatePickerWithYear
-                                    mode='single'
-                                    selected={field.value ? new Date(field.value) : undefined}
-                                    onSelect={(date) => {
-                                        if (date) {
-                                            const dateStr = format(date, 'yyyy-MM-dd');
-                                            field.onChange(dateStr);
-                                            setValue('HRMLY_ToDate', dateStr, { shouldValidate: true });
-                                        } else {
-                                            field.onChange('');
-                                        }
-                                        setToDateOpen(false);
-                                    }}
-                                    disabled={(date) => {
-                                        // Disable dates that are less than or equal to From Date
-                                        if (fromDate) {
-                                            const from = new Date(fromDate);
-                                            from.setHours(0, 0, 0, 0);
-                                            const checkDate = new Date(date);
-                                            checkDate.setHours(0, 0, 0, 0);
-                                            return checkDate <= from;
-                                        }
-                                        return false;
-                                    }}
-                                    initialFocus
-                                />
-                            </PopoverContent>
-                        </Popover>
-                    )}
-                />
-                {errors.HRMLY_ToDate && <FormError>{errors.HRMLY_ToDate.message}</FormError>}
-            </div>
+                        return true;
+                    }
+                }}
+                render={({ field, fieldState }) => {
+                    const fromDateObj = fromDate ? new Date(fromDate) : undefined;
+                    return (
+                        <DateField
+                            field={field}
+                            fieldState={fieldState}
+                            label='To Date'
+                            placeholder='Pick to date'
+                            fromDate={fromDateObj}
+                        />
+                    );
+                }}
+            />
 
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMLY_LeaveYearOrder'>Order</Label>

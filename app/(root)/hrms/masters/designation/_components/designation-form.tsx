@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDesignation } from '@/hooks/hrms/useMasters';
 import { designationSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -92,11 +92,12 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <InputText
+                        <HRMSInputText
                             label='Designation Name'
                             required
                             id='HRMDES_DesignationName'
                             placeholder='Enter designation name'
+                            maxLength={50}
                             {...register('HRMDES_DesignationName')}
                             error={errors.HRMDES_DesignationName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

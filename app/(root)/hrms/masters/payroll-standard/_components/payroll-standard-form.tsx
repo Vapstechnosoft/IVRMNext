@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
@@ -313,7 +313,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 </div>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <InputText
+                        <HRMSInputText
                             label='PF Account Prefix'
                             id='HRC_PFAccPrefix'
                             {...register('HRC_PFAccPrefix')}
@@ -1145,7 +1145,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 </div>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <InputText
+                        <HRMSInputText
                             label='ESI Account Prefix'
                             id='HRC_ESIAccPrefix'
                             {...register('HRC_ESIAccPrefix')}

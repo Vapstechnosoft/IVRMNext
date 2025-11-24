@@ -359,6 +359,7 @@ export const useEmployeeShiftMappingShiftNames = (fomsId: number = 0) => {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'shiftNames', fomsId],
         queryFn: async () => getEmployeeShiftMappingShiftNames(fomsId),
+        enabled: fomsId > 0, // Only fetch when a valid shift ID is provided
         staleTime: 5 * 60 * 1000 // Cache for 5 minutes
     });
 };

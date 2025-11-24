@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useEmployeeById, useEmployeeOnload, useSaveEmployee } from '@/hooks/hrms/useEmployee';
@@ -223,7 +223,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Basic Information</h3>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        <InputText
+                        <HRMSInputText
                             label='Employee Code'
                             required
                             id='HRME_EmployeeCode'
@@ -233,7 +233,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputText
+                        <HRMSInputText
                             label='First Name'
                             required
                             id='HRME_EmployeeFirstName'
@@ -243,7 +243,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputText
+                        <HRMSInputText
                             label='Middle Name'
                             id='HRME_EmployeeMiddleName'
                             placeholder='Enter middle name'
@@ -252,7 +252,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputText
+                        <HRMSInputText
                             label='Last Name'
                             id='HRME_EmployeeLastName'
                             placeholder='Enter last name'
@@ -449,7 +449,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Personal Details</h3>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        <InputText
+                        <HRMSInputText
                             label='Date of Birth'
                             type='date'
                             id='HRME_DOB'
@@ -458,7 +458,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputText
+                        <HRMSInputText
                             label='Date of Joining'
                             type='date'
                             id='HRME_DOJ'
@@ -575,7 +575,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             {errors.ReligionId && <FormError>{errors.ReligionId.message}</FormError>}
                         </div>
 
-                        <InputText
+                        <HRMSInputText
                             label='Blood Group'
                             id='HRME_BloodGroup'
                             placeholder='Enter blood group'
@@ -584,7 +584,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputText
+                        <HRMSInputText
                             label='Father Name'
                             id='HRME_FatherName'
                             placeholder='Enter father name'
@@ -593,7 +593,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputText
+                        <HRMSInputText
                             label='Mother Name'
                             id='HRME_MotherName'
                             placeholder='Enter mother name'
@@ -608,7 +608,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Contact Details</h3>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
+                        <HRMSInputText
                             label='Mobile Number'
                             type='tel'
                             id='HRME_MobileNo'
@@ -618,7 +618,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputText
+                        <HRMSInputText
                             label='Email ID'
                             type='email'
                             id='HRME_EmailId'

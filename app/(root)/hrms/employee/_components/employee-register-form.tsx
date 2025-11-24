@@ -602,8 +602,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(formSchema),
-        mode: 'onSubmit', // Changed from 'onBlur' to only validate on submit
-        reValidateMode: 'onSubmit', // Only re-validate on submit, not on change
+        mode: 'onChange', // Validate immediately on change
+        reValidateMode: 'onChange', // Re-validate on change
         defaultValues: formDefaultValues
     });
 

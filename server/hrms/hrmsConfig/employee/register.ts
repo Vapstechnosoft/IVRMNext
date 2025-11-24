@@ -1660,6 +1660,48 @@ export async function saveDeductionDetails(deductions: SaveDeductionDetailsReque
 }
 
 /**
+ * Get States by Country ID
+ * GET /api/EmployeeRegistrationNew/getstateDropdownByCountryId/{id}
+ */
+export async function getStatesByCountryId(countryId: number) {
+    const url = `/api/EmployeeRegistrationNew/getstateDropdownByCountryId/${countryId}`;
+    
+    try {
+        const response = await api.get<EmployeeRegisterOnloadResponse>('hrms', url);
+        
+        // The backend returns raw data with AllState array
+        // Wrap it to match the expected ApiResponse structure
+        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+            // Already wrapped - check if data has AllState or if response itself has AllState
+            const responseData = (response as any).data;
+            const allState = responseData?.AllState || (response as any)?.AllState || [];
+            return {
+                success: true,
+                message: 'States loaded successfully',
+                data: {
+                    AllState: allState
+                } as unknown as EmployeeRegisterOnloadResponse
+            };
+        }
+        
+        // Extract AllState from response (response might be the data object directly)
+        const allState = (response as any)?.AllState || (response as any)?.data?.AllState || [];
+        
+        // Wrap raw response data
+        return {
+            success: true,
+            message: 'States loaded successfully',
+            data: {
+                AllState: allState
+            } as unknown as EmployeeRegisterOnloadResponse
+        };
+    } catch (error: any) {
+        console.error('🔍 [SERVER] getStatesByCountryId ERROR:', error?.message);
+        throw serializeError(error, 'Failed to load states');
+    }
+}
+
+/**
  * Activate/Deactivate Employee Registration
  * POST /api/EmployeeRegistrationNew/deactivateRecordById
  */

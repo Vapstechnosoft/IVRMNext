@@ -1,11 +1,12 @@
 ﻿'use client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import React from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
+import { useStatesByCountryId } from '@/hooks/hrms/useEmployeeRegister';
 
 // Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
 const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
@@ -157,6 +158,20 @@ export function AddressTab({
     // Watch permanent address country for state filtering
     const permanentCountry = watch('permanentCountry');
 
+    // Convert country string to number for API call
+    const contactCountryId = contactCountry ? Number(contactCountry) : null;
+    const permanentCountryId = permanentCountry ? Number(permanentCountry) : null;
+
+    // Fetch states for contact country
+    const { data: contactStates = [], isLoading: isLoadingContactStates } = useStatesByCountryId(contactCountryId);
+    
+    // Fetch states for permanent country
+    const { data: permanentStates = [], isLoading: isLoadingPermanentStates } = useStatesByCountryId(permanentCountryId);
+
+    // Use fetched states if country is selected (even if empty), otherwise fall back to passed states
+    const availableContactStates = contactCountryId ? contactStates : states;
+    const availablePermanentStates = permanentCountryId ? permanentStates : states;
+
     // Copy communication address to permanent address when checkbox is checked
     React.useEffect(() => {
         if (sameAsCommunicationAddress) {
@@ -170,20 +185,39 @@ export function AddressTab({
         }
     }, [sameAsCommunicationAddress]); // Only depend on checkbox state, not communication address fields
 
-    // Log when country changes to help debug state loading
+    // Clear state when country changes
     React.useEffect(() => {
-        // Country change handled by state loading logic
         if (contactCountry) {
-            // State loading logic handled elsewhere
+            // State will be loaded by the hook, but we should clear the selected state if it doesn't belong to the new country
+            const currentStateId = contactState ? Number(contactState) : null;
+            if (currentStateId && contactStates.length > 0) {
+                const stateExists = contactStates.some((state: any) => 
+                    (state.IVRMMS_Id || state.value || state.id) === currentStateId
+                );
+                if (!stateExists) {
+                    setValue('contactState', '');
+                }
+            }
+        } else {
+            setValue('contactState', '');
         }
-    }, [contactCountry, states.length]);
+    }, [contactCountry, contactStates, contactState, setValue]);
 
     React.useEffect(() => {
-        // Country change handled by state loading logic
         if (permanentCountry) {
-            // State loading logic handled elsewhere
+            const currentStateId = watch('permanentState') ? Number(watch('permanentState')) : null;
+            if (currentStateId && permanentStates.length > 0) {
+                const stateExists = permanentStates.some((state: any) => 
+                    (state.IVRMMS_Id || state.value || state.id) === currentStateId
+                );
+                if (!stateExists) {
+                    setValue('permanentState', '');
+                }
+            }
+        } else {
+            setValue('permanentState', '');
         }
-    }, [permanentCountry, states.length]);
+    }, [permanentCountry, permanentStates, watch, setValue]);
     return (
         <div className='space-y-6'>
             {/* Contact Address */}
@@ -192,8 +226,8 @@ export function AddressTab({
                     <h3 className='font-semibold'>Contact Address:</h3>
                 </div>
                 <div className='grid grid-cols-1 gap-4'>
-                    <InputText label='Address' id='contactAddress' {...register('contactAddress')} error={errors.contactAddress?.message} />
-                    <InputText label='Area' id='contactArea' {...register('contactArea')} error={errors.contactArea?.message} />
+                    <HRMSInputText label='Address' id='contactAddress' maxLength={100} {...register('contactAddress')} error={errors.contactAddress?.message} />
+                    <HRMSInputText label='Area' id='contactArea' {...register('contactArea')} error={errors.contactArea?.message} />
                     <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
                         <div className='flex-1 space-y-2'>
                             <Controller
@@ -252,27 +286,31 @@ export function AddressTab({
                                                 <SelectValue placeholder='Select State' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {states
-                                                    .filter((state: any, index: number) => {
-                                                        const stateId = state.IVRMMS_Id || state.value || state.id || index;
-                                                        return stateId != null && stateId !== '' && String(stateId).trim() !== '';
-                                                    })
-                                                    .map((state: any, index: number) => {
-                                                        const stateId = state.IVRMMS_Id ?? state.value ?? state.id ?? index;
-                                                        const stateIdStr = ensureNonEmptyValue(stateId, index);
-                                                        // Ensure value is never empty string
-                                                        if (!stateIdStr || stateIdStr.trim() === '' || stateIdStr === '') return null;
-                                                        const finalStateId = String(stateIdStr).trim();
-                                                        if (finalStateId === '') return null;
-                                                        const stateName =
-                                                            state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
-                                                        return (
-                                                            <SafeSelectItem key={stateId} value={finalStateId}>
-                                                                {stateName}
-                                                            </SafeSelectItem>
-                                                        );
-                                                    })
-                                                    .filter(Boolean)}
+                                                {isLoadingContactStates ? (
+                                                    <SelectItem value="loading" disabled>Loading states...</SelectItem>
+                                                ) : (
+                                                    availableContactStates
+                                                        .filter((state: any, index: number) => {
+                                                            const stateId = state.IVRMMS_Id || state.value || state.id || index;
+                                                            return stateId != null && stateId !== '' && String(stateId).trim() !== '';
+                                                        })
+                                                        .map((state: any, index: number) => {
+                                                            const stateId = state.IVRMMS_Id ?? state.value ?? state.id ?? index;
+                                                            const stateIdStr = ensureNonEmptyValue(stateId, index);
+                                                            // Ensure value is never empty string
+                                                            if (!stateIdStr || stateIdStr.trim() === '' || stateIdStr === '') return null;
+                                                            const finalStateId = String(stateIdStr).trim();
+                                                            if (finalStateId === '') return null;
+                                                            const stateName =
+                                                                state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
+                                                            return (
+                                                                <SafeSelectItem key={stateId} value={finalStateId}>
+                                                                    {stateName}
+                                                                </SafeSelectItem>
+                                                            );
+                                                        })
+                                                        .filter(Boolean)
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </>
@@ -282,12 +320,13 @@ export function AddressTab({
                     </div>
                     <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
                         <div className='flex-1 space-y-2'>
-                            <InputText label='City' id='contactCity' {...register('contactCity')} error={errors.contactCity?.message} />
+                            <HRMSInputText label='City' id='contactCity' {...register('contactCity')} error={errors.contactCity?.message} />
                         </div>
                         <div className='flex-1 space-y-2'>
-                            <InputText
+                            <HRMSInputText
                                 label='Pincode'
                                 id='contactPincode'
+                                maxLength={10}
                                 {...register('contactPincode')}
                                 error={errors.contactPincode?.message}
                             />
@@ -312,14 +351,15 @@ export function AddressTab({
                     <Label htmlFor='sameAsCommunicationAddress'>Same As Communication Address</Label>
                 </div>
                 <div className='grid grid-cols-1 gap-4'>
-                    <InputText
+                    <HRMSInputText
                         label='Address'
                         id='permanentAddress'
+                        maxLength={100}
                         {...register('permanentAddress')}
                         error={errors.permanentAddress?.message}
                         disabled={sameAsCommunicationAddress}
                     />
-                    <InputText
+                    <HRMSInputText
                         label='Area'
                         id='permanentArea'
                         {...register('permanentArea')}
@@ -384,27 +424,31 @@ export function AddressTab({
                                                 <SelectValue placeholder='Select State' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {states
-                                                    .filter((state: any, index: number) => {
-                                                        const stateId = state.IVRMMS_Id || state.value || state.id || index;
-                                                        return stateId != null && stateId !== '' && String(stateId).trim() !== '';
-                                                    })
-                                                    .map((state: any, index: number) => {
-                                                        const stateId = state.IVRMMS_Id ?? state.value ?? state.id ?? index;
-                                                        const stateIdStr = ensureNonEmptyValue(stateId, index);
-                                                        // Ensure value is never empty string
-                                                        if (!stateIdStr || stateIdStr.trim() === '' || stateIdStr === '') return null;
-                                                        const finalStateId = String(stateIdStr).trim();
-                                                        if (finalStateId === '') return null;
-                                                        const stateName =
-                                                            state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
-                                                        return (
-                                                            <SafeSelectItem key={stateId} value={finalStateId}>
-                                                                {stateName}
-                                                            </SafeSelectItem>
-                                                        );
-                                                    })
-                                                    .filter(Boolean)}
+                                                {isLoadingPermanentStates ? (
+                                                    <SelectItem value="loading" disabled>Loading states...</SelectItem>
+                                                ) : (
+                                                    availablePermanentStates
+                                                        .filter((state: any, index: number) => {
+                                                            const stateId = state.IVRMMS_Id || state.value || state.id || index;
+                                                            return stateId != null && stateId !== '' && String(stateId).trim() !== '';
+                                                        })
+                                                        .map((state: any, index: number) => {
+                                                            const stateId = state.IVRMMS_Id ?? state.value ?? state.id ?? index;
+                                                            const stateIdStr = ensureNonEmptyValue(stateId, index);
+                                                            // Ensure value is never empty string
+                                                            if (!stateIdStr || stateIdStr.trim() === '' || stateIdStr === '') return null;
+                                                            const finalStateId = String(stateIdStr).trim();
+                                                            if (finalStateId === '') return null;
+                                                            const stateName =
+                                                                state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
+                                                            return (
+                                                                <SafeSelectItem key={stateId} value={finalStateId}>
+                                                                    {stateName}
+                                                                </SafeSelectItem>
+                                                            );
+                                                        })
+                                                        .filter(Boolean)
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </>
@@ -414,7 +458,7 @@ export function AddressTab({
                     </div>
                     <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
                         <div className='flex-1 space-y-2'>
-                            <InputText
+                            <HRMSInputText
                                 label='City'
                                 id='permanentCity'
                                 {...register('permanentCity')}
@@ -423,9 +467,10 @@ export function AddressTab({
                             />
                         </div>
                         <div className='flex-1 space-y-2'>
-                            <InputText
+                            <HRMSInputText
                                 label='Pincode'
                                 id='permanentPincode'
+                                maxLength={10}
                                 {...register('permanentPincode')}
                                 error={errors.permanentPincode?.message}
                                 disabled={sameAsCommunicationAddress}

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterBank } from '@/hooks/hrms/useMasters';
 import { BANK_VALIDATION } from '@/lib/validation/hrms-master-validation';
@@ -25,6 +25,7 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
         reset,
         formState: { errors, isDirty }
     } = useForm<MasterBankInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRMBD_BankName: '',
@@ -111,57 +112,62 @@ export default function BankForm({ selectedRow, onSuccess }: BankFormProps) {
                 <Label htmlFor='HRMBD_BankName'>
                     Bank Name <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='HRMBD_BankName'
                     placeholder='Enter bank name'
+                    maxLength={BANK_VALIDATION.HRMBK_BankName.maxLength?.value}
+                    error={errors.HRMBD_BankName?.message}
                     {...register('HRMBD_BankName', BANK_VALIDATION.HRMBK_BankName)}
                 />
-                {errors.HRMBD_BankName && <FormError>{errors.HRMBD_BankName.message}</FormError>}
             </div>
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMBD_BranchName'>
                     Branch Name <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='HRMBD_BranchName'
                     placeholder='Enter branch name'
+                    maxLength={BANK_VALIDATION.HRMBK_BranchName.maxLength?.value}
+                    error={errors.HRMBD_BranchName?.message}
                     {...register('HRMBD_BranchName', BANK_VALIDATION.HRMBK_BranchName)}
                 />
-                {errors.HRMBD_BranchName && <FormError>{errors.HRMBD_BranchName.message}</FormError>}
             </div>
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMBD_BankAccountNo'>
                     Account Number <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='HRMBD_BankAccountNo'
                     placeholder='Enter account number'
+                    maxLength={BANK_VALIDATION.HRMBK_AccountNumber.maxLength?.value}
+                    error={errors.HRMBD_BankAccountNo?.message}
                     {...register('HRMBD_BankAccountNo', BANK_VALIDATION.HRMBK_AccountNumber)}
                 />
-                {errors.HRMBD_BankAccountNo && <FormError>{errors.HRMBD_BankAccountNo.message}</FormError>}
             </div>
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMBD_IFSCCode'>
                     IFSC Code <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='HRMBD_IFSCCode'
                     placeholder='Enter IFSC code (e.g., ABCD0123456)'
+                    maxLength={11}
+                    error={errors.HRMBD_IFSCCode?.message}
                     {...register('HRMBD_IFSCCode', BANK_VALIDATION.HRMBK_IFSCCode)}
                 />
-                {errors.HRMBD_IFSCCode && <FormError>{errors.HRMBD_IFSCCode.message}</FormError>}
             </div>
             <div className='col-span-full'>
                 <div className='group flex flex-col gap-1.5'>
                     <Label htmlFor='HRMBD_BankAddress'>
-                        Bank Address <span className='text-destructive'>*</span>
+                        Bank Address
                     </Label>
-                    <InputText
+                    <HRMSInputText
                         id='HRMBD_BankAddress'
                         placeholder='Enter bank address'
+                        maxLength={BANK_VALIDATION.HRMBK_BankAddress.maxLength?.value}
+                        error={errors.HRMBD_BankAddress?.message}
                         {...register('HRMBD_BankAddress', BANK_VALIDATION.HRMBK_BankAddress)}
                     />
-                    {errors.HRMBD_BankAddress && <FormError>{errors.HRMBD_BankAddress.message}</FormError>}
                 </div>
             </div>
             <div className='col-span-full flex gap-2'>

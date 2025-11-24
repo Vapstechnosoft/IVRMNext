@@ -7,7 +7,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useEmployeeShiftMappingDropdowns } from '@/hooks/hrms/attendance-management/useMasters';
+import { useEmployeeShiftMappingDropdowns, useEmployeeShiftMappingShiftNames } from '@/hooks/hrms/attendance-management/useMasters';
 import { useFilterEmployeesBySelection } from '@/hooks/hrms/useReports';
 import { createLocalCrud } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
@@ -60,8 +60,22 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
     const [employeeOptions, setEmployeeOptions] = useState<Array<{ label: string; value: string }>>([]);
     const filterEmployeesMutation = useFilterEmployeesBySelection();
 
-    // Fetch all employees on mount
+    // Use employees from API dropdown data if available, otherwise fetch from separate API
     useEffect(() => {
+        // First, try to use employees from the dropdown API response
+        if (dropdownData?.data?.employees && dropdownData.data.employees.length > 0) {
+            const apiEmployees = dropdownData.data.employees.map((emp: any) => ({
+                label: emp.label || '',
+                value: emp.value || ''
+            })).filter((opt: { label: string; value: string }) => opt.label && opt.value);
+            
+            if (apiEmployees.length > 0) {
+                setEmployeeOptions(apiEmployees);
+                return;
+            }
+        }
+        
+        // Fallback: Fetch all employees from separate API
         const request = {
             MI_Id: HRMS_MI_ID,
             LogInUserId: 0,
@@ -95,7 +109,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [dropdownData]);
 
     const shiftStore = createLocalCrud<MasterShift>('attendance:master-shift');
     const [availableShifts, setAvailableShifts] = React.useState<MasterShift[]>([]);
@@ -204,9 +218,96 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
     const lunchStartTime = watch('lunchStartTime');
     const lunchEndTime = watch('lunchEndTime');
 
-    // When shift is selected, populate timing fields
-    useEffect(() => {
+    // Get shift names and IDs from API dropdown data or available shifts
+    const shiftOptions = useMemo(() => {
+        if (dropdownData?.data?.shifts && dropdownData.data.shifts.length > 0) {
+            return dropdownData.data.shifts.map((shift: any) => ({
+                label: shift.label || shift.value || '',
+                value: shift.value || shift.label || '',
+                id: shift.id || 0
+            }));
+        }
+        return availableShifts.map((shift) => ({
+            label: shift.shiftName,
+            value: shift.shiftName,
+            id: shift.id || 0
+        })).filter((shift) => shift.label);
+    }, [dropdownData, availableShifts]);
+
+    // Get the selected shift's ID
+    const selectedShiftId = useMemo(() => {
         if (selectedShiftName) {
+            const selectedShift = shiftOptions.find((shift: { value: string; id?: number }) => shift.value === selectedShiftName);
+            return selectedShift?.id || 0;
+        }
+        return 0;
+    }, [selectedShiftName, shiftOptions]);
+
+    // Fetch shift details when a shift is selected
+    const { data: shiftDetailsData, isLoading: isLoadingShiftDetails } = useEmployeeShiftMappingShiftNames(
+        selectedShiftId > 0 ? selectedShiftId : 0
+    );
+
+    // When shift is selected, populate timing fields from API response
+    useEffect(() => {
+        if (selectedShiftId > 0 && shiftDetailsData?.data) {
+            // Get shift details from API response
+            // The response might be an array or a single object
+            const shiftDetailsArray = Array.isArray(shiftDetailsData.data) 
+                ? shiftDetailsData.data 
+                : [shiftDetailsData.data];
+            
+            if (shiftDetailsArray.length > 0) {
+                const shiftDetails = shiftDetailsArray[0];
+                
+                // Map API response fields to form fields
+                // The API response structure may vary, so we handle multiple possible formats
+                const shiftStartTime = shiftDetails.FOMST_IHalfLoginTime || 
+                                       shiftDetails.IHalfLoginTime || 
+                                       shiftDetails.shiftStartTime || 
+                                       shiftDetails.startTime || '';
+                const shiftEndTime = shiftDetails.FOMST_IIHalfLogoutTime || 
+                                    shiftDetails.IIHalfLogoutTime || 
+                                    shiftDetails.shiftEndTime || 
+                                    shiftDetails.endTime || '';
+                const lunchStartTime = shiftDetails.FOMST_IHalfLogoutTime || 
+                                       shiftDetails.IHalfLogoutTime || 
+                                       shiftDetails.lunchStartTime || '';
+                const lunchEndTime = shiftDetails.FOMST_IIHalfLoginTime || 
+                                    shiftDetails.IIHalfLoginTime || 
+                                    shiftDetails.lunchEndTime || '';
+                const totalWorkingHours = shiftDetails.FOMST_FDWHrMin || 
+                                         shiftDetails.FDWHrMin || 
+                                         shiftDetails.totalWorkingHours || '';
+                const halfDayWorkingHours = shiftDetails.FOMST_HDWHrMin || 
+                                           shiftDetails.HDWHrMin || 
+                                           shiftDetails.halfDayWorkingHours || '';
+                const delayPerShift = shiftDetails.FOMST_DelayPerShiftHrMin || 
+                                     shiftDetails.DelayPerShiftHrMin || 
+                                     shiftDetails.delayPerShift || '';
+                const earlyPerShift = shiftDetails.FOMST_EarlyPerShiftHrMin || 
+                                     shiftDetails.EarlyPerShiftHrMin || 
+                                     shiftDetails.earlyPerShift || '';
+                const lunchHours = shiftDetails.FOMST_LunchHoursDuration || 
+                                  shiftDetails.LunchHoursDuration || 
+                                  shiftDetails.lunchHours || '';
+
+                // Clean time strings (remove extra spaces)
+                const cleanTime = (time: string) => time ? String(time).trim() : '';
+
+                // Populate form fields with API data (only if values exist)
+                if (shiftStartTime) setValue('shiftStartTime', cleanTime(shiftStartTime));
+                if (shiftEndTime) setValue('shiftEndTime', cleanTime(shiftEndTime));
+                if (lunchStartTime) setValue('lunchStartTime', cleanTime(lunchStartTime));
+                if (lunchEndTime) setValue('lunchEndTime', cleanTime(lunchEndTime));
+                if (totalWorkingHours) setValue('totalWorkingHours', cleanTime(totalWorkingHours));
+                if (halfDayWorkingHours) setValue('halfDayWorkingHours', cleanTime(halfDayWorkingHours));
+                if (delayPerShift) setValue('delayPerShift', cleanTime(delayPerShift));
+                if (earlyPerShift) setValue('earlyPerShift', cleanTime(earlyPerShift));
+                if (lunchHours) setValue('lunchHours', cleanTime(lunchHours));
+            }
+        } else if (selectedShiftName && !isLoadingShiftDetails) {
+            // Fallback: Use local shift data if API data not available and not loading
             const selectedShift = availableShifts.find((shift) => shift.shiftName === selectedShiftName);
             if (selectedShift) {
                 setValue('shiftStartTime', selectedShift.startTime);
@@ -217,7 +318,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedShiftName, availableShifts]); // setValue is stable from react-hook-form
+    }, [selectedShiftId, shiftDetailsData, selectedShiftName, availableShifts, isLoadingShiftDetails]); // setValue is stable from react-hook-form
 
     // Calculate total working hours when start/end times change
     useEffect(() => {
@@ -345,42 +446,55 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
         }
     };
 
-    // Prepare options for MultiSelect from API data
+    // Helper function to remove duplicates by value
+    const removeDuplicateOptions = (options: Array<{ label: string; value: string }>) => {
+        const seen = new Set<string>();
+        return options.filter((option) => {
+            if (seen.has(option.value)) {
+                return false;
+            }
+            seen.add(option.value);
+            return true;
+        });
+    };
+
+    // Prepare options for MultiSelect from API data - remove duplicates to prevent React key errors
     const typeMultiSelectOptions = React.useMemo(() => {
-        return (dropdownData?.data?.employeeTypes || []).map((item: any) => ({
+        const options = (dropdownData?.data?.employeeTypes || []).map((item: any) => ({
             label: item.label || item.name || '',
             value: item.value || String(item.id || '')
         }));
+        return removeDuplicateOptions(options);
     }, [dropdownData]);
 
     const departmentMultiSelectOptions = React.useMemo(() => {
-        return (dropdownData?.data?.departments || []).map((item: any) => ({
+        const options = (dropdownData?.data?.departments || []).map((item: any) => ({
             label: item.label || item.name || '',
             value: item.value || String(item.id || '')
         }));
+        return removeDuplicateOptions(options);
     }, [dropdownData]);
 
     const designationMultiSelectOptions = React.useMemo(() => {
-        return (dropdownData?.data?.designations || []).map((item: any) => ({
+        const options = (dropdownData?.data?.designations || []).map((item: any) => ({
             label: item.label || item.name || '',
             value: item.value || String(item.id || '')
         }));
+        return removeDuplicateOptions(options);
     }, [dropdownData]);
 
     const dayTypeMultiSelectOptions = React.useMemo(() => {
-        return (dropdownData?.data?.dayTypes || []).map((item: any) => ({
+        const options = (dropdownData?.data?.dayTypes || []).map((item: any) => ({
             label: item.label || item.name || '',
             value: item.value || String(item.id || '')
         }));
+        return removeDuplicateOptions(options);
     }, [dropdownData]);
 
-    // Get shift names from API dropdown data or available shifts
+    // Extract shift names for the dropdown
     const shiftNames = useMemo(() => {
-        if (dropdownData?.data?.shifts && dropdownData.data.shifts.length > 0) {
-            return dropdownData.data.shifts.map((shift: any) => shift.value || shift.label || '');
-        }
-        return availableShifts.map((shift) => shift.shiftName).filter(Boolean);
-    }, [dropdownData, availableShifts]);
+        return shiftOptions.map((shift: { value: string; id?: number }) => shift.value).filter(Boolean);
+    }, [shiftOptions]);
 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
@@ -493,7 +607,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
                             <SelectValue placeholder={shiftNames.length === 0 ? 'No shifts available' : '--Select--'} />
                         </SelectTrigger>
                         <SelectContent>
-                            {shiftNames.map((shift) => (
+                            {shiftNames.map((shift: string) => (
                                 <SelectItem key={shift} value={shift}>
                                     {shift}
                                 </SelectItem>

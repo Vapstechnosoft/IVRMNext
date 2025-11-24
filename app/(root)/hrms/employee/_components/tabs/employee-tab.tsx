@@ -2,14 +2,11 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Upload, X } from 'lucide-react';
 
 // Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
 const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
@@ -168,33 +165,35 @@ export function EmployeeTab({
             <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
                 {/* Left Column */}
                 <div className='space-y-4'>
-                    <InputText
+                    <HRMSInputText
                         label='First Name'
                         required
                         id='firstName'
+                        maxLength={100}
                         {...register('firstName', {
                             required: 'First Name is required'
                         })}
                         error={errors.firstName?.message}
                     />
 
-                    <InputText label='Middle Name' id='middleName' {...register('middleName')} error={errors.middleName?.message} />
+                    <HRMSInputText label='Middle Name' id='middleName' maxLength={100} {...register('middleName')} error={errors.middleName?.message} />
 
-                    <InputText label='Last Name' id='lastName' {...register('lastName')} error={errors.lastName?.message} />
+                    <HRMSInputText label='Last Name' id='lastName' maxLength={100} {...register('lastName')} error={errors.lastName?.message} />
 
-                    <InputText
+                    <HRMSInputText
                         label='Employee Code'
                         required
                         id='employeeCode'
+                        maxLength={20}
                         {...register('employeeCode', {
                             required: 'Employee code is required'
                         })}
                         error={errors.employeeCode?.message}
                     />
 
-                    <InputText label="Father's Name" id='fatherName' {...register('fatherName')} error={errors.fatherName?.message} />
+                    <HRMSInputText label="Father's Name" id='fatherName' maxLength={100} {...register('fatherName')} error={errors.fatherName?.message} />
 
-                    <InputText label="Mother's Name" id='motherName' {...register('motherName')} error={errors.motherName?.message} />
+                    <HRMSInputText label="Mother's Name" id='motherName' maxLength={100} {...register('motherName')} error={errors.motherName?.message} />
 
                     <Controller
                         name='typeOfEmployment'
@@ -359,7 +358,7 @@ export function EmployeeTab({
                         )}
                     />
 
-                    <InputText
+                    <HRMSInputText
                         label='Subject Taught'
                         id='subjectTaught'
                         placeholder='Enter subject taught'
@@ -407,64 +406,26 @@ export function EmployeeTab({
                     <Controller
                         name='dateOfJoining'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>
-                                    Date Of Joining <span className='text-red-500'>*</span>
-                                </Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={'outline'}
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date Of Joining'
+                                placeholder='Pick date of joining'
+                            />
                         )}
                     />
 
                     <Controller
                         name='dateOfConfirmation'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>Date Of Confirmation</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={'outline'}
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date Of Confirmation'
+                                placeholder='Pick date of confirmation'
+                            />
                         )}
                     />
 
@@ -503,7 +464,7 @@ export function EmployeeTab({
 
                     {/* Recognition Year - Conditional on PHD Research Guide */}
                     {watch?.('phdResearchGuide') ? (
-                        <InputText
+                        <HRMSInputText
                             label='Recognition Year'
                             id='recognitionYear'
                             {...register('recognitionYear')}
@@ -524,22 +485,8 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.teachingNonTeaching || [])
-                                            .filter((item: any) => {
-                                                const val = item.value ?? item.name ?? item.label ?? item;
-                                                return val != null && val !== '' && String(val).trim() !== '';
-                                            })
-                                            .map((item: any, index: number) => {
-                                                const val = ensureNonEmptyValue(item.value ?? item.name ?? item.label ?? item, index);
-                                                if (!val) return null;
-                                                const label = item.label ?? item.name ?? item.value ?? String(item);
-                                                return (
-                                                    <SafeSelectItem key={val} value={val}>
-                                                        {label}
-                                                    </SafeSelectItem>
-                                                );
-                                            })
-                                            .filter(Boolean)}
+                                        <SelectItem value='Teaching'>Teaching</SelectItem>
+                                        <SelectItem value='Non Teaching'>Non Teaching</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -571,38 +518,20 @@ export function EmployeeTab({
                                 </div>
                             </div>
 
-                            <InputText label='PF Acc No.' id='pfAccNo' {...register('pfAccNo')} error={errors.pfAccNo?.message} />
+                            <HRMSInputText label='PF Acc No.' id='pfAccNo' maxLength={20} {...register('pfAccNo')} error={errors.pfAccNo?.message} />
 
-                            <InputText label='UAN Number' id='uanNumber' {...register('uanNumber')} error={errors.uanNumber?.message} />
+                            <HRMSInputText label='UAN Number' id='uanNumber' maxLength={20} {...register('uanNumber')} error={errors.uanNumber?.message} />
 
                             <Controller
                                 name='pfDate'
                                 control={control}
-                                render={({ field }) => (
-                                    <div className='space-y-2'>
-                                        <Label>PF Date</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant={'outline'}
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <DatePickerWithYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='PF Date'
+                                        placeholder='Pick PF date'
+                                    />
                                 )}
                             />
                         </div>
@@ -622,11 +551,12 @@ export function EmployeeTab({
                     {/* ESI Fields - Conditional on ESI Applicable */}
                     {watch?.('esiApplicable') ? (
                         <div className='space-y-4 border-green-500 border-l-4 pl-4'>
-                            <InputText label='ESI Acc No.' id='esiAccNo' {...register('esiAccNo')} error={errors.esiAccNo?.message} />
+                            <HRMSInputText label='ESI Acc No.' id='esiAccNo' maxLength={20} {...register('esiAccNo')} error={errors.esiAccNo?.message} />
 
-                            <InputText
+                            <HRMSInputText
                                 label='Gratuity Acc No.'
                                 id='gratuityAccNo'
+                                maxLength={20}
                                 {...register('gratuityAccNo')}
                                 error={errors.gratuityAccNo?.message}
                             />
@@ -634,37 +564,19 @@ export function EmployeeTab({
                             <Controller
                                 name='esiDate'
                                 control={control}
-                                render={({ field }) => (
-                                    <div className='space-y-2'>
-                                        <Label>ESI Date</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant={'outline'}
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <DatePickerWithYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='ESI Date'
+                                        placeholder='Pick ESI date'
+                                    />
                                 )}
                             />
                         </div>
                     ) : null}
 
-                    <InputText label='National SSN' id='nationalSSN' {...register('nationalSSN')} error={errors.nationalSSN?.message} />
+                    <HRMSInputText label='National SSN' id='nationalSSN' maxLength={20} {...register('nationalSSN')} error={errors.nationalSSN?.message} />
                 </div>
 
                 {/* Right Column */}
@@ -815,64 +727,26 @@ export function EmployeeTab({
                     <Controller
                         name='dateOfBirth'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>
-                                    Date Of Birth <span className='text-red-500'>*</span>
-                                </Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={'outline'}
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date Of Birth'
+                                placeholder='Pick date of birth'
+                            />
                         )}
                     />
 
                     <Controller
                         name='dateOfRetirement'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>Date of Retirement</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={'outline'}
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date of Retirement'
+                                placeholder='Pick date of retirement'
+                            />
                         )}
                     />
 
@@ -970,31 +844,15 @@ export function EmployeeTab({
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {(options?.phoneTypes || [])
-                                                                .filter((item: any) => {
-                                                                    const val = item.value ?? item.name ?? item.label ?? item;
-                                                                    return val != null && val !== '' && String(val).trim() !== '';
-                                                                })
-                                                                .map((item: any, index: number) => {
-                                                                    const val = ensureNonEmptyValue(
-                                                                        item.value ?? item.name ?? item.label ?? item,
-                                                                        index
-                                                                    );
-                                                                    if (!val) return null;
-                                                                    const label = item.label ?? item.name ?? item.value ?? String(item);
-                                                                    return (
-                                                                        <SafeSelectItem key={val} value={val}>
-                                                                            {label}
-                                                                        </SafeSelectItem>
-                                                                    );
-                                                                })
-                                                                .filter(Boolean)}
+                                                            <SelectItem value='Default'>Default</SelectItem>
+                                                            <SelectItem value='Alternate'>Alternate</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 )}
                                             />
-                                            <InputText
+                                            <HRMSInputText
                                                 placeholder='Enter mobile number'
+                                                maxLength={15}
                                                 {...register(`mobileDetails.${index}.mobileNo`)}
                                                 className='min-w-[200px] flex-1'
                                             />
@@ -1046,32 +904,16 @@ export function EmployeeTab({
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {(options?.phoneTypes || [])
-                                                                .filter((item: any) => {
-                                                                    const val = item.value ?? item.name ?? item.label ?? item;
-                                                                    return val != null && val !== '' && String(val).trim() !== '';
-                                                                })
-                                                                .map((item: any, index: number) => {
-                                                                    const val = ensureNonEmptyValue(
-                                                                        item.value ?? item.name ?? item.label ?? item,
-                                                                        index
-                                                                    );
-                                                                    if (!val) return null;
-                                                                    const label = item.label ?? item.name ?? item.value ?? String(item);
-                                                                    return (
-                                                                        <SafeSelectItem key={val} value={val}>
-                                                                            {label}
-                                                                        </SafeSelectItem>
-                                                                    );
-                                                                })
-                                                                .filter(Boolean)}
+                                                            <SelectItem value='Default'>Default</SelectItem>
+                                                            <SelectItem value='Alternate'>Alternate</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 )}
                                             />
-                                            <InputText
+                                            <HRMSInputText
                                                 type='email'
                                                 placeholder='Enter email address'
+                                                maxLength={100}
                                                 {...register(`emailDetails.${index}.emailId`)}
                                                 className='min-w-[200px] flex-1'
                                             />
@@ -1103,9 +945,9 @@ export function EmployeeTab({
                         />
                     </div>
 
-                    <InputText label='Aadhaar No.' id='aadharNo' {...register('aadharNo')} error={errors.aadharNo?.message} />
+                    <HRMSInputText label='Aadhaar No.' id='aadharNo' maxLength={12} {...register('aadharNo')} error={errors.aadharNo?.message} />
 
-                    <InputText label='PAN Card No.' id='panCardNo' {...register('panCardNo')} error={errors.panCardNo?.message} />
+                    <HRMSInputText label='PAN Card No.' id='panCardNo' maxLength={10} {...register('panCardNo')} error={errors.panCardNo?.message} />
 
                     <Controller
                         name='bloodGroup'
@@ -1118,22 +960,14 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.bloodGroups || [])
-                                            .filter((item: any) => {
-                                                const val = item.value ?? item.name ?? item.label ?? item;
-                                                return val != null && val !== '' && String(val).trim() !== '';
-                                            })
-                                            .map((item: any, index: number) => {
-                                                const val = ensureNonEmptyValue(item.value ?? item.name ?? item.label ?? item, index);
-                                                if (!val) return null;
-                                                const label = item.label ?? item.name ?? item.value ?? String(item);
-                                                return (
-                                                    <SafeSelectItem key={val} value={val}>
-                                                        {label}
-                                                    </SafeSelectItem>
-                                                );
-                                            })
-                                            .filter(Boolean)}
+                                        <SelectItem value='A+'>A+</SelectItem>
+                                        <SelectItem value='A-'>A-</SelectItem>
+                                        <SelectItem value='B+'>B+</SelectItem>
+                                        <SelectItem value='B-'>B-</SelectItem>
+                                        <SelectItem value='AB+'>AB+</SelectItem>
+                                        <SelectItem value='AB-'>AB-</SelectItem>
+                                        <SelectItem value='O+'>O+</SelectItem>
+                                        <SelectItem value='O-'>O-</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -1151,22 +985,8 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.salaryTypes || [])
-                                            .filter((item: any) => {
-                                                const val = item.value ?? item.name ?? item.label ?? item;
-                                                return val != null && val !== '' && String(val).trim() !== '';
-                                            })
-                                            .map((item: any, index: number) => {
-                                                const val = ensureNonEmptyValue(item.value ?? item.name ?? item.label ?? item, index);
-                                                if (!val) return null;
-                                                const label = item.label ?? item.name ?? item.value ?? String(item);
-                                                return (
-                                                    <SafeSelectItem key={val} value={val}>
-                                                        {label}
-                                                    </SafeSelectItem>
-                                                );
-                                            })
-                                            .filter(Boolean)}
+                                        <SelectItem value='monthly'>monthly</SelectItem>
+                                        <SelectItem value='hourly'>hourly</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -1186,22 +1006,8 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.modeOfPayment || [])
-                                            .filter((item: any) => {
-                                                const val = item.value ?? item.name ?? item.label ?? item;
-                                                return val != null && val !== '' && String(val).trim() !== '';
-                                            })
-                                            .map((item: any, index: number) => {
-                                                const val = ensureNonEmptyValue(item.value ?? item.name ?? item.label ?? item, index);
-                                                if (!val) return null;
-                                                const label = item.label ?? item.name ?? item.value ?? String(item);
-                                                return (
-                                                    <SafeSelectItem key={val} value={val}>
-                                                        {label}
-                                                    </SafeSelectItem>
-                                                );
-                                            })
-                                            .filter(Boolean)}
+                                        <SelectItem value='Bank'>Bank</SelectItem>
+                                        <SelectItem value='Cash'>Cash</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -1323,8 +1129,9 @@ export function EmployeeTab({
                                                         />
                                                     </div>
                                                     <div>
-                                                        <InputText
+                                                        <HRMSInputText
                                                             placeholder='Bank Account No.'
+                                                            maxLength={20}
                                                             {...register(`bankDetails.${index}.bankAccountNo`)}
                                                             className='w-full'
                                                         />

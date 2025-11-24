@@ -15,7 +15,8 @@ import {
     saveDeductionDetails,
     saveArrearDetails,
     activateDeactivateEmployee,
-    getEmployeeSalaryDetails
+    getEmployeeSalaryDetails,
+    getStatesByCountryId
 } from '@/server/hrms/hrmsConfig/employee/register';
 import type {
     SavePersonalDetailsRequest,
@@ -555,6 +556,28 @@ export function useEmployeeSalaryDetails(employeeId: number | null, employeeCode
             });
         },
         enabled: !!employeeId && !!employeeCode && employeeId > 0,
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+}
+
+/**
+ * Hook to fetch states by country ID
+ */
+export function useStatesByCountryId(countryId: number | null | undefined) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'states', countryId],
+        queryFn: () => {
+            if (!countryId || countryId === 0) {
+                return Promise.resolve([]);
+            }
+            return getStatesByCountryId(countryId).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message || 'Failed to load states');
+                }
+                return Array.isArray(res.data?.AllState) ? res.data.AllState : [];
+            });
+        },
+        enabled: !!countryId && countryId > 0,
         staleTime: 1000 * 60 * 5 // 5 minutes
     });
 }

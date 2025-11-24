@@ -312,84 +312,96 @@ export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput
 
 /**
  * Activate/Deactivate group department designation mapping
- * POST /api/GroupDeptDessgFacade/masterDecative
+ * POST /api/MasterGroupDeptDessgFacade/deactivateRecordById
  */
 export async function activateDeactivateGroupDeptDessgMapping(data: GroupDeptDessgMappingDetail & { HRGTDDS_ActiveFlg: boolean }) {
-    const url = '/api/GroupDeptDessgFacade/masterDecative';
-    const requestBody: LoadDataRequest = {
+    const url = '/api/MasterGroupDeptDessgFacade/deactivateRecordById';
+    
+    // Simple request body as per API specification
+    const requestBody = {
         HRGTDDS_Id: data.HRGTDDS_Id,
-        MI_Id: data.MI_Id || 30,
-        HRMGT_Id: data.HRMGT_Id || 0,
-        HRMD_Id: data.HRMD_Id || 0,
-        HRMDES_Id: data.HRMDES_Id || 0,
-        HRGTDDS_ActiveFlg: data.HRGTDDS_ActiveFlg,
-        HRGTDDS_CreatedBy: data.HRGTDDS_CreatedBy || 5,
-        HRGTDDS_UpdatedBy: data.HRGTDDS_UpdatedBy || 5,
-        HRGTDDS_CreatedDate: data.HRGTDDS_CreatedDate || new Date().toISOString(),
-        HRGTDDS_UpdatedDate: new Date().toISOString(),
-        groupTypedropdown: [],
-        departmentdropdown: [],
-        designationdropdown: [],
-        gridviewdata: [],
-        designationids: [],
-        LogInUserId: data.HRGTDDS_UpdatedBy || 5,
-        HRMGT_EmployeeGroupType: data.HRMGT_EmployeeGroupType || '',
-        HRMD_DepartmentName: data.HRMD_DepartmentName || '',
-        HRMDES_DesignationName: data.HRMDES_DesignationName || '',
-        returnval: false,
-        msg: ''
+        MI_Id: data.MI_Id || 30
     };
     
-    const response = await api.post<GroupDeptDessgMappingResponse>('hrms', url, requestBody);
+    console.log('🟠 [API] activateDeactivateGroupDeptDessgMapping called');
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    console.log('🟠 [API] Action:', data.HRGTDDS_ActiveFlg ? 'Activate' : 'Deactivate');
     
-    // Handle case where backend returns data directly in response.data with returnval/msg
-    // Transform returnval/msg to success/message format
-    if (response && typeof response === 'object') {
-        // If response has data field with returnval, transform it
-        if ('data' in response && response.data && typeof response.data === 'object' && 'returnval' in response.data) {
-            const rawData = response.data as unknown as GroupDeptDessgMappingResponse;
-            const message = rawData.msg || '';
-            // Check if message indicates success (Activated, Deactivated, etc.)
-            const isSuccessMessage = message.toLowerCase().includes('activated') || 
-                                   message.toLowerCase().includes('deactivated') || 
-                                   message.toLowerCase().includes('updated') || 
-                                   message.toLowerCase().includes('success');
-            // Use returnval if true, otherwise trust the message
-            const success = rawData.returnval === true || (rawData.returnval === false && isSuccessMessage);
-            return {
-                success: success,
-                message: message,
-                data: rawData
-            } as ApiResponse<GroupDeptDessgMappingResponse>;
+    try {
+        const response: any = await api.post<any>('hrms', url, requestBody);
+        
+        console.log('🟢 [API] Deactivate response:', JSON.stringify(response, null, 2));
+        
+        // Handle the API response structure
+        // Response format: { success: boolean, message: string, data: {...} }
+        if (response && typeof response === 'object') {
+            // If response already has success field (standard ApiResponse format)
+            if ('success' in response) {
+                return {
+                    success: response.success,
+                    message: response.message || 'Updated successfully',
+                    data: response.data || response
+                } as ApiResponse<GroupDeptDessgMappingResponse>;
+            }
+            
+            // If response has data field with returnval
+            if ('data' in response && response.data && typeof response.data === 'object') {
+                const responseData: any = response.data;
+                const message = response.message || responseData.msg || 'Updated successfully';
+                const success = response.success !== undefined ? response.success : (responseData.returnval === true || message.toLowerCase().includes('success') || message.toLowerCase().includes('updated'));
+                
+                return {
+                    success: success,
+                    message: message,
+                    data: responseData
+                } as ApiResponse<GroupDeptDessgMappingResponse>;
+            }
+            
+            // If response itself is the data object
+            if ('returnval' in response || 'HRGTDDS_Id' in response) {
+                const rawResponse: any = response;
+                const message = rawResponse.msg || response.message || 'Updated successfully';
+                const success = rawResponse.returnval === true || message.toLowerCase().includes('success') || message.toLowerCase().includes('updated');
+                
+                return {
+                    success: success,
+                    message: message,
+                    data: rawResponse
+                } as ApiResponse<GroupDeptDessgMappingResponse>;
+            }
         }
         
-        // If response itself has returnval (direct response from axios)
-        if ('returnval' in response) {
-            const rawResponse = response as unknown as GroupDeptDessgMappingResponse;
-            const message = rawResponse.msg || '';
-            const isSuccessMessage = message.toLowerCase().includes('activated') || 
-                                   message.toLowerCase().includes('deactivated') || 
-                                   message.toLowerCase().includes('updated') || 
-                                   message.toLowerCase().includes('success');
-            // Use returnval if true, otherwise trust the message
-            const success = rawResponse.returnval === true || (rawResponse.returnval === false && isSuccessMessage);
-            return {
-                success: success,
-                message: message,
-                data: rawResponse
-            } as ApiResponse<GroupDeptDessgMappingResponse>;
+        // Default: assume success if we got a response
+        return {
+            success: true,
+            message: (response as any)?.message || 'Updated successfully',
+            data: response as unknown as GroupDeptDessgMappingResponse
+        } as ApiResponse<GroupDeptDessgMappingResponse>;
+    } catch (error: any) {
+        console.error('🔴 [API] Deactivate error:', error);
+        console.error('🔴 [API] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            responseData: error?.response?.data
+        });
+        
+        // Extract error message
+        let errorMessage = 'Failed to update record';
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (apiError?.message) {
+                errorMessage = apiError.message;
+            } else if (apiError?.msg) {
+                errorMessage = apiError.msg;
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
         }
         
-        // If already in ApiResponse format
-        if ('success' in response) {
-            return response as ApiResponse<GroupDeptDessgMappingResponse>;
-        }
+        throw new Error(errorMessage);
     }
-    
-    // Default fallback
-    return {
-        success: false,
-        message: 'Unknown error occurred',
-        data: response as unknown as GroupDeptDessgMappingResponse
-    } as ApiResponse<GroupDeptDessgMappingResponse>;
 }

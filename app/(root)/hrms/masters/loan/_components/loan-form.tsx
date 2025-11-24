@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import { LOAN_TYPE_VALIDATION } from '@/lib/validation/hrms-master-validation';
@@ -29,6 +29,7 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
         setValue,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<MasterLoanInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRML_LoanType: '',
@@ -93,13 +94,14 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
                         <Label htmlFor='HRML_LoanType'>
                             Loan Type <span className='text-destructive'>*</span>
                         </Label>
-                        <InputText
+                        <HRMSInputText
                             id='HRML_LoanType'
                             placeholder='Enter loan type'
+                            maxLength={LOAN_TYPE_VALIDATION.HRML_LoanType.maxLength?.value}
+                            error={errors.HRML_LoanType?.message}
                             {...register('HRML_LoanType', LOAN_TYPE_VALIDATION.HRML_LoanType)}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        {errors.HRML_LoanType && <FormError>{errors.HRML_LoanType.message}</FormError>}
                     </div>
 
                     <Controller

@@ -52,11 +52,11 @@ export function PFForm3AFilters({
                         </SelectTrigger>
                         <SelectContent>
                             {isLoading ? (
-                                <SelectItem value='' disabled>
+                                <SelectItem value='__loading__' disabled>
                                     Loading...
                                 </SelectItem>
                             ) : years.length === 0 ? (
-                                <SelectItem value='' disabled>
+                                <SelectItem value='__no_data__' disabled>
                                     No data available
                                 </SelectItem>
                             ) : (
@@ -81,11 +81,11 @@ export function PFForm3AFilters({
                         </SelectTrigger>
                         <SelectContent>
                             {isLoading ? (
-                                <SelectItem value='' disabled>
+                                <SelectItem value='__loading__' disabled>
                                     Loading...
                                 </SelectItem>
                             ) : employees.length === 0 ? (
-                                <SelectItem value='' disabled>
+                                <SelectItem value='__no_employees__' disabled>
                                     No employees available
                                 </SelectItem>
                             ) : (

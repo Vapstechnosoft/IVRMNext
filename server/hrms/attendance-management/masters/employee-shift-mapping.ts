@@ -70,8 +70,45 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
             dataType: typeof response?.data
         });
         
-        // Extract shift names from response
-        // The API response structure may vary, so we handle multiple possible formats
+        // When FOMS_Id > 0, the API returns shift timing details for that specific shift
+        // When FOMS_Id = 0, the API returns a list of all shift names
+        if (fomsId > 0) {
+            // Return shift timing details as-is for the selected shift
+            // The response structure may contain timing fields like:
+            // FOMST_IHalfLoginTime, FOMST_IHalfLogoutTime, FOMST_IIHalfLoginTime, 
+            // FOMST_IIHalfLogoutTime, FOMST_FDWHrMin, FOMST_HDWHrMin, etc.
+            const responseData = response?.data || {};
+            
+            // If data is an array, get the first item (should be the selected shift details)
+            if (Array.isArray(responseData) && responseData.length > 0) {
+                return {
+                    success: response?.success ?? true,
+                    data: responseData, // Return the array of shift details
+                    message: response?.message || 'Shift details retrieved successfully'
+                };
+            }
+            // If data is an object, return it directly or extract from nested properties
+            else if (typeof responseData === 'object' && responseData !== null) {
+                const shiftDetails = responseData.report_list?.[0] || 
+                                    responseData.data || 
+                                    responseData.shiftDetails || 
+                                    responseData;
+                return {
+                    success: response?.success ?? true,
+                    data: Array.isArray(shiftDetails) ? shiftDetails : [shiftDetails],
+                    message: response?.message || 'Shift details retrieved successfully'
+                };
+            }
+            
+            // Fallback: return empty array if structure is unexpected
+            return {
+                success: response?.success ?? true,
+                data: [],
+                message: response?.message || 'Shift details retrieved successfully'
+            };
+        }
+        
+        // When FOMS_Id = 0, return list of shift names for dropdown
         let shiftNames: Array<{ label: string; value: string; id: number }> = [];
         
         if (response?.data) {
@@ -148,54 +185,108 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
 
 /**
  * Get dropdown data for employee shift mapping form
- * Fetches employee types, departments, designations, day types, and shifts from APIs
+ * Fetches employee types, departments, designations, day types, and shifts from API
+ * POST /api/EmployeeShiftMappingFacade/getdetails
  */
 export async function getEmployeeShiftMappingDropdowns() {
+    const url = '/api/EmployeeShiftMappingFacade/getdetails';
+    const requestBody = {
+        MI_Id: 30
+    };
+    
     try {
-        // Fetch employee onload data for types, departments, designations
-        const employeeOnload = await getEmployeeOnload(30, 0);
-        const employeeData = (employeeOnload?.data || {}) as any;
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
         
-        // Fetch master holiday data for day types (holidayType)
-        const holidayData = await getMasterHoliday();
-        const holidayDropdownData = holidayData?.data || {};
+        console.log('📥 [SERVER] Get details API response:', {
+            success: response?.success,
+            hasData: !!response?.data,
+            dataType: typeof response?.data
+        });
         
-        // Fetch shift names from the dedicated API endpoint
-        const shiftNamesResponse = await getEmployeeShiftMappingShiftNames(0);
-        const shiftNames = shiftNamesResponse?.data || [];
+        // Extract data from response
+        const responseData = response?.data || {};
+        
+        // Helper function to remove duplicates based on ID
+        const removeDuplicatesById = <T extends { id?: number; value?: string }>(items: T[], getId: (item: T) => string | number): T[] => {
+            const seen = new Set<string | number>();
+            return items.filter((item) => {
+                const id = getId(item);
+                if (seen.has(id)) {
+                    return false;
+                }
+                seen.add(id);
+                return true;
+            });
+        };
+        
+        // Map stf_types to employeeTypes (types) - remove duplicates by HRMGT_Id
+        const employeeTypesRaw = (responseData.stf_types || []).map((item: any) => ({
+            label: item.HRMGT_EmployeeGroupType || item.label || item.name || '',
+            value: String(item.HRMGT_Id || item.value || item.id || ''),
+            id: item.HRMGT_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        const employeeTypes = removeDuplicatesById(employeeTypesRaw, (item) => (item.id || item.value || '') as string | number);
+        
+        // Map Department_types to departments - remove duplicates by HRMD_Id
+        const departmentsRaw = (responseData.Department_types || []).map((item: any) => ({
+            label: item.HRMD_DepartmentName || item.label || item.name || '',
+            value: String(item.HRMD_Id || item.value || item.id || ''),
+            id: item.HRMD_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        const departments = removeDuplicatesById(departmentsRaw, (item) => (item.id || item.value || '') as string | number);
+        
+        // Map Designation_types to designations - remove duplicates by HRMDES_Id
+        const designationsRaw = (responseData.Designation_types || []).map((item: any) => ({
+            label: item.HRMDES_DesignationName || item.label || item.name || '',
+            value: String(item.HRMDES_Id || item.value || item.id || ''),
+            id: item.HRMDES_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        const designations = removeDuplicatesById(designationsRaw, (item) => (item.id || item.value || '') as string | number);
+        
+        // Map holiday_types to dayTypes - remove duplicates by FOHWDT_Id
+        const dayTypesRaw = (responseData.holiday_types || []).map((item: any) => ({
+            label: item.FOHTWD_HolidayWDType || item.label || item.name || '',
+            value: String(item.FOHWDT_Id || item.value || item.id || ''),
+            id: item.FOHWDT_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        const dayTypes = removeDuplicatesById(dayTypesRaw, (item) => (item.id || item.value || '') as string | number);
+        
+        // Map sfname to shifts
+        const shifts = (responseData.sfname || []).map((item: any) => ({
+            label: item.FOMS_ShiftName || item.label || item.name || '',
+            value: item.FOMS_ShiftName || item.value || item.name || '',
+            id: item.FOMS_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        
+        // Map employeelist to employees (for employee dropdown)
+        // Note: employeelist items contain HRME_EmployeeFirstName and may have employee IDs
+        const employees = (responseData.employeelist || []).map((item: any) => {
+            const employeeName = item.HRME_EmployeeFirstName || item.label || item.name || '';
+            // Use employee code if available, otherwise use employee name as value
+            const employeeValue = item.HRME_EmployeeCode || item.HRME_EmployeeCode || String(item.HRME_Id || item.FOEST_Id || '');
+            return {
+                label: employeeName,
+                value: employeeValue || employeeName, // Fallback to name if no code/ID available
+                id: item.HRME_Id || item.FOEST_Id || 0
+            };
+        }).filter((item: { label: string; value: string }) => item.label && item.value);
+        
+        // Remove duplicates based on value (in case same employee appears multiple times)
+        const uniqueEmployees = employees.filter((emp: { label: string; value: string; id: number }, index: number, self: Array<{ label: string; value: string; id: number }>) => 
+            index === self.findIndex((e: { label: string; value: string; id: number }) => e.value === emp.value)
+        );
         
         return {
-            success: true,
+            success: response?.success ?? true,
             data: {
-                // Employee types from employee onload
-                employeeTypes: (employeeData.employeeTypedropdownlist || []).map((item: any) => ({
-                    label: item.HRMET_EmployeeTypeName || item.label || item.name || '',
-                    value: String(item.HRMET_Id || item.value || item.id || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value),
-                
-                // Departments from employee onload
-                departments: (employeeData.departmentdropdownlist || []).map((item: any) => ({
-                    label: item.HRMD_DepartmentName || item.label || item.name || '',
-                    value: String(item.HRMD_Id || item.value || item.id || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value),
-                
-                // Designations from employee onload
-                designations: (employeeData.designationdropdownlist || []).map((item: any) => ({
-                    label: item.HRMDES_DesignationName || item.label || item.name || '',
-                    value: String(item.HRMDES_Id || item.value || item.id || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value),
-                
-                // Day types from master holiday (holidayType)
-                dayTypes: (holidayDropdownData.holidayType || []).map((item: any) => ({
-                    label: item.fohtwD_HolidayWDType || item.label || item.name || '',
-                    value: String(item.fohwdT_Id || item.value || item.id || ''),
-                    id: item.fohwdT_Id || item.id || 0
-                })).filter((item: { label: string; value: string }) => item.label && item.value),
-                
-                // Shifts from dedicated shift names API
-                shifts: shiftNames
+                employeeTypes,
+                departments,
+                designations,
+                dayTypes,
+                shifts,
+                employees: uniqueEmployees
             },
-            message: 'Dropdown data retrieved successfully'
+            message: response?.message || 'Dropdown data retrieved successfully'
         };
     } catch (error: any) {
         console.error('❌ [SERVER] Failed to fetch employee shift mapping dropdowns:', error);
@@ -244,7 +335,8 @@ export async function getEmployeeShiftMappingDropdowns() {
                 departments: [],
                 designations: [],
                 dayTypes: [],
-                shifts: []
+                shifts: [],
+                employees: []
             },
             message: errorMessage
         };

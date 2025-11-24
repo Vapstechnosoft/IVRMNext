@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
 import type { ApiSearchparams } from '@/types';
@@ -88,32 +89,43 @@ function MasterHolidayPageContent({
     const { openAddForm } = useFormContext<MasterHoliday>();
 
     // Transform API response to MasterHoliday format
+    // Server already extracts nested structure, so response.data contains the actual data
+    // report_list contains objects with properties:
+    // { FOHWDT_Id, FOMHWDD_Id, FOMHWDD_Name, FOMHWDD_FromDate, FOMHWDD_ToDate, FOMHWD_ActiveFlg, FOHTWD_HolidayWDType, HRMD_DepartmentName }
     const transformedData = useMemo(() => {
-        if (!response?.data?.report_list) {
+        // Server extracts nested data, so report_list is at response.data.report_list
+        const reportList = response?.data?.report_list || [];
+        
+        if (!Array.isArray(reportList) || reportList.length === 0) {
             return [];
         }
-        const reportList = response.data.report_list as ReportListItem[];
-        return reportList.map(
-            (item): MasterHoliday => ({
-                id: item.FOMHWDD_Id,
-                createdAt: new Date(),
-                calendarYear: '', // Extract from API if available
-                department: item.HRMD_DepartmentName,
-                holidayType: item.FOHTWD_HolidayWDType,
-                name: item.FOMHWDD_Name,
-                selectedDays: [],
-                fromDate: item.FOMHWDD_FromDate,
-                toDate: item.FOMHWDD_ToDate,
-                isActive: item.FOMHWD_ActiveFlg
-            })
-        );
+        
+        return reportList
+            .filter((item) => item && typeof item === 'object')
+            .map(
+                (item: any): MasterHoliday => {
+                    return {
+                        id: item.FOMHWDD_Id || item.fomhwD_Id || 0,
+                        createdAt: new Date(),
+                        calendarYear: '', // Extract from API if available
+                        department: item.HRMD_DepartmentName || item.hrmD_DepartmentName || '',
+                        holidayType: item.FOHTWD_HolidayWDType || item.fohtwD_HolidayWDType || '',
+                        name: item.FOMHWDD_Name || item.fomhwD_Name || '',
+                        selectedDays: [],
+                        fromDate: item.FOMHWDD_FromDate || item.fomhwD_FromDate || '',
+                        toDate: item.FOMHWDD_ToDate || item.fomhwD_ToDate || '',
+                        isActive: item.FOMHWD_ActiveFlg ?? item.fomhwD_ActiveFlg ?? false
+                    };
+                }
+            );
     }, [response]);
 
     // Create a response object that useDataTableProps expects
     // useDataTableProps expects: { data: [...], total: number, success: boolean, message: string }
-    // Note: total comes from response.total (server already extracted it from inner response)
+    // Note: total comes from response.data.total (nested structure)
     const tableResponse = useMemo(() => {
-        const total = response?.total || 0;
+        // Total is at response.data.total (nested structure)
+        const total = response?.data?.total || response?.total || 0;
 
         return {
             data: transformedData,
@@ -195,46 +207,48 @@ function FormSections({ dropdownData }: { dropdownData: any }) {
             {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
-                    <CollapsibleSection
+                    <HRMSCollapsibleSection
+                        title='Add Master Holiday'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                        <div className='relative'>
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'
+                        closeButton={
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterHolidayForm onSuccess={closeAddForm} dropdownData={dropdownData} />
-                        </div>
-                    </CollapsibleSection>
+                        }>
+                        <AddMasterHolidayForm onSuccess={closeAddForm} dropdownData={dropdownData} />
+                    </HRMSCollapsibleSection>
                 </div>
             )}
 
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
-                    <CollapsibleSection
+                    <HRMSCollapsibleSection
+                        title='Update Master Holiday'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
-                        <div className='relative'>
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
+                        closeButton={
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterHolidayForm selectedRow={selectedRow} onSuccess={closeEditForm} dropdownData={dropdownData} />
-                        </div>
-                    </CollapsibleSection>
+                        }>
+                        <UpdateMasterHolidayForm selectedRow={selectedRow} onSuccess={closeEditForm} dropdownData={dropdownData} />
+                    </HRMSCollapsibleSection>
                 </div>
             )}
 

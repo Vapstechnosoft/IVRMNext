@@ -94,14 +94,7 @@ export const masterHolidayColumns: ColumnDef<MasterHoliday>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: MasterHoliday }) {
-    const { openEditForm, openDeleteForm } = useFormContext<MasterHoliday>();
-
-    const handleEdit = useCallback(
-        (data: MasterHoliday) => {
-            openEditForm(data);
-        },
-        [openEditForm]
-    );
+    const { openDeleteForm } = useFormContext<MasterHoliday>();
 
     const handleDelete = useCallback(
         (data: MasterHoliday) => {
@@ -113,8 +106,7 @@ function ActionButtonsCell({ rowData }: { rowData: MasterHoliday }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: true }}
-            onEdit={handleEdit}
+            buttons={{ edit: false, toggle: false, delete: true }}
             onDelete={handleDelete}
         />
     );

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
@@ -30,6 +30,7 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
         trigger,
         formState: { errors, isDirty }
     } = useForm<MasterEarningsDeductionsInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRMED_Name: '',
@@ -148,12 +149,13 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
                 <Label htmlFor='HRMED_Name'>
                     Name <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='HRMED_Name'
                     placeholder='Enter earning/deduction name'
+                    maxLength={EARNING_DEDUCTION_VALIDATION.HRMED_Name.maxLength?.value}
+                    error={errors.HRMED_Name?.message}
                     {...register('HRMED_Name', EARNING_DEDUCTION_VALIDATION.HRMED_Name)}
                 />
-                {errors.HRMED_Name && <FormError>{errors.HRMED_Name.message}</FormError>}
             </div>
 
             <div className='group flex flex-col gap-1.5'>
@@ -227,9 +229,11 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
                 <Label htmlFor='HRMED_AmountPercent'>
                     {calculationType === 'Percentage' ? 'Percentage' : 'Amount'} <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='HRMED_AmountPercent'
                     placeholder={`Enter ${calculationType === 'Percentage' ? 'percentage' : 'amount'}`}
+                    maxLength={calculationType === 'Percentage' ? 5 : undefined}
+                    error={errors.HRMED_AmountPercent?.message}
                     {...register('HRMED_AmountPercent', {
                         required: EARNING_DEDUCTION_VALIDATION.HRMED_AmountPercent.required,
                         validate: (value) => {
@@ -260,7 +264,6 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
                         }
                     })}
                 />
-                {errors.HRMED_AmountPercent && <FormError>{errors.HRMED_AmountPercent.message}</FormError>}
             </div>
             <div className='group flex flex-col gap-1.5'>
                 <Label htmlFor='HRMED_Order'>Order</Label>

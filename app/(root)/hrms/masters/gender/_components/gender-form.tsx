@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGender } from '@/hooks/hrms/useMasters';
 import { GENDER_VALIDATION } from '@/lib/validation/hrms-master-validation';
@@ -25,6 +25,7 @@ export default function GenderForm({ selectedRow, onSuccess }: GenderFormProps) 
         reset,
         formState: { errors, isDirty }
     } = useForm<MasterGenderInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             IVRMMG_GenderName: '',
@@ -94,12 +95,13 @@ export default function GenderForm({ selectedRow, onSuccess }: GenderFormProps) 
                 <Label htmlFor='IVRMMG_GenderName'>
                     Gender Name <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='IVRMMG_GenderName'
                     placeholder='Enter gender name'
+                    maxLength={GENDER_VALIDATION.HRMGEN_GenderName.maxLength?.value}
+                    error={errors.IVRMMG_GenderName?.message}
                     {...register('IVRMMG_GenderName', GENDER_VALIDATION.HRMGEN_GenderName)}
                 />
-                {errors.IVRMMG_GenderName && <FormError>{errors.IVRMMG_GenderName.message}</FormError>}
             </div>
             <div className='col-span-full flex gap-2'>
                 <Button type='submit' className='mt-2' disabled={saveMutation.isPending || (isEditMode && !isDirty)}>

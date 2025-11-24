@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
 import { employeeTypeSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -79,11 +79,12 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <InputText
+                        <HRMSInputText
                             label='Employee Type'
                             required
                             id='HRMET_EmployeeType'
                             placeholder='Enter employee type'
+                            maxLength={50}
                             {...register('HRMET_EmployeeType')}
                             error={errors.HRMET_EmployeeType?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

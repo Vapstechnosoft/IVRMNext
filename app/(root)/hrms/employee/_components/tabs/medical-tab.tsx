@@ -1,7 +1,8 @@
 ﻿'use client';
 
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
+import { cn } from '@/lib/utils';
 import { StandardTabActions } from './standard-tab-actions';
 
 export function MedicalRecordTab({ control, register, errors, isSubmitting, onClear }: any) {
@@ -15,14 +16,14 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
 
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                 <div className='grid grid-cols-2 gap-2'>
-                    <InputText
+                    <HRMSInputText
                         label="Employee's Height"
                         id='employeeHeight'
                         placeholder='Height'
                         {...register('employeeHeight')}
                         error={errors.employeeHeight?.message}
                     />
-                    <InputText
+                    <HRMSInputText
                         label='Unit of measure (Height)'
                         id='employeeHeightUnit'
                         placeholder='Unit of measure'
@@ -31,22 +32,23 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                     />
                 </div>
 
-                <InputText
+                <HRMSInputText
                     label='Eye Sight Issue'
                     id='eyeSightIssue'
+                    maxLength={255}
                     {...register('eyeSightIssue')}
                     error={errors.eyeSightIssue?.message}
                 />
 
                 <div className='grid grid-cols-2 gap-2'>
-                    <InputText
+                    <HRMSInputText
                         label="Employee's Weight"
                         id='employeeWeight'
                         placeholder='Weight'
                         {...register('employeeWeight')}
                         error={errors.employeeWeight?.message}
                     />
-                    <InputText
+                    <HRMSInputText
                         label='Unit of measure (Weight)'
                         id='employeeWeightUnit'
                         placeholder='Unit of measure'
@@ -55,9 +57,10 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                     />
                 </div>
 
-                <InputText
+                <HRMSInputText
                     label='Any Health Issue'
                     id='anyHealthIssue'
+                    maxLength={500}
                     {...register('anyHealthIssue')}
                     error={errors.anyHealthIssue?.message}
                 />
@@ -67,10 +70,19 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                 <Label>Identification Mark</Label>
                 <textarea
                     id='identificationMark'
+                    maxLength={255}
                     {...register('identificationMark')}
-                    className='min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                    className={cn(
+                        'min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                        errors.identificationMark
+                            ? 'border-destructive focus-visible:ring-destructive'
+                            : 'border-input focus-visible:ring-ring'
+                    )}
                     placeholder='Enter identification mark details...'
                 />
+                {errors.identificationMark && (
+                    <div className='font-medium text-[0.8rem] text-destructive'>{errors.identificationMark.message}</div>
+                )}
             </div>
             <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
         </div>

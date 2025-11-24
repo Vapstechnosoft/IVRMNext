@@ -3,9 +3,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
@@ -221,9 +222,10 @@ export function QualificationTab({
                             <div className='space-y-4'>
                                 {/* Row 1: Qualification, Course */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='Qualification *'
                                         id={`qualificationDetails.${index}.qualification`}
+                                        maxLength={50}
                                         {...register(`qualificationDetails.${index}.qualification`)}
                                     />
 
@@ -293,24 +295,27 @@ export function QualificationTab({
 
                                 {/* Row 2: College, University */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='College *'
                                         id={`qualificationDetails.${index}.college`}
+                                        maxLength={100}
                                         {...register(`qualificationDetails.${index}.college`)}
                                     />
 
-                                    <InputText
+                                    <HRMSInputText
                                         label='University *'
                                         id={`qualificationDetails.${index}.university`}
+                                        maxLength={100}
                                         {...register(`qualificationDetails.${index}.university`)}
                                     />
                                 </div>
 
                                 {/* Row 3: Year Of Passing, Country, State - all in same row */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='Year Of Passing *'
                                         id={`qualificationDetails.${index}.yearOfPassing`}
+                                        maxLength={4}
                                         {...register(`qualificationDetails.${index}.yearOfPassing`)}
                                     />
 
@@ -417,15 +422,17 @@ export function QualificationTab({
 
                                 {/* Row 4: Registration No., Result */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='Registration No.'
                                         id={`qualificationDetails.${index}.registrationNo`}
+                                        maxLength={50}
                                         {...register(`qualificationDetails.${index}.registrationNo`)}
                                     />
 
-                                    <InputText
+                                    <HRMSInputText
                                         label='Result *'
                                         id={`qualificationDetails.${index}.result`}
+                                        maxLength={20}
                                         {...register(`qualificationDetails.${index}.result`)}
                                     />
                                 </div>
@@ -469,7 +476,7 @@ export function QualificationTab({
                                     />
 
                                     {/* CGPA or Percentage input - dynamically shown based on selection */}
-                                    <InputText
+                                    <HRMSInputText
                                         label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
                                         id={`qualificationDetails.${index}.cgpa`}
                                         {...register(`qualificationDetails.${index}.cgpa`)}
@@ -568,15 +575,17 @@ export function QualificationTab({
 
                                 {/* Row 8: Thesis Title and Medical Council - side by side, always visible */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='Thesis Title'
                                         id={`qualificationDetails.${index}.thesisTitle`}
+                                        maxLength={255}
                                         {...register(`qualificationDetails.${index}.thesisTitle`)}
                                     />
 
-                                    <InputText
+                                    <HRMSInputText
                                         label='Medical Council'
                                         id={`qualificationDetails.${index}.medicalCouncil`}
+                                        maxLength={50}
                                         {...register(`qualificationDetails.${index}.medicalCouncil`)}
                                     />
                                 </div>
@@ -620,50 +629,24 @@ export function QualificationTab({
                                         }}
                                     />
 
-                                    <InputText
+                                    <HRMSInputText
                                         label='Guide Name'
                                         id={`qualificationDetails.${index}.guideName`}
+                                        maxLength={100}
                                         {...register(`qualificationDetails.${index}.guideName`)}
                                     />
 
                                     <Controller
                                         name={`qualificationDetails.${index}.qualifiedDate`}
                                         control={control}
-                                        render={({ field }) => {
-                                            const [open, setOpen] = useState(false);
-                                            return (
-                                                <div className='flex flex-col gap-1.5'>
-                                                    <Label>Qualified Date</Label>
-                                                    <Popover open={open} onOpenChange={setOpen}>
-                                                        <PopoverTrigger asChild>
-                                                            <Button
-                                                                variant='outline'
-                                                                className='h-9 w-full justify-start text-left font-normal'
-                                                                type='button'>
-                                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                {field.value ? (
-                                                                    format(new Date(field.value), 'PPP')
-                                                                ) : (
-                                                                    <span>Select date</span>
-                                                                )}
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className='w-auto p-0'>
-                                                            <DatePickerWithYear
-                                                                mode='single'
-                                                                selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date) => {
-                                                                    if (date) {
-                                                                        field.onChange(date.toISOString().split('T')[0]);
-                                                                        setOpen(false);
-                                                                    }
-                                                                }}
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                </div>
-                                            );
-                                        }}
+                                        render={({ field, fieldState }) => (
+                                            <DateField
+                                                field={field}
+                                                fieldState={fieldState}
+                                                label='Qualified Date'
+                                                placeholder='Pick qualified date'
+                                            />
+                                        )}
                                     />
                                 </div>
                             </div>

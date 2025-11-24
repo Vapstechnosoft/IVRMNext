@@ -253,8 +253,8 @@ export async function addOrUpdateMasterHoliday(
         holidayTypeSearch: data.holidayType
     });
 
-    // Build selectedDaysDate array
-    const selectedDaysDate: { date: string; dayname: string }[] = [];
+    // Build selectedDaysDate array - API expects Date and Dayname (capital D)
+    const selectedDaysDate: { Date: string; Dayname: string }[] = [];
     
     // Get day names from dayslist
     // API field names are uppercase: FOMD_DayCode, FOMD_DayName
@@ -297,8 +297,8 @@ export async function addOrUpdateMasterHoliday(
                         // Format date as YYYY-MM-DD (date only, no time) - API might expect this format
                         const dateStr = currentDate.toISOString().split('T')[0];
                         selectedDaysDate.push({
-                            date: dateStr,
-                            dayname: dayName
+                            Date: dateStr,  // Capital D
+                            Dayname: dayName  // Capital D
                         });
                     }
                     
@@ -310,8 +310,8 @@ export async function addOrUpdateMasterHoliday(
                 for (const dayCode of data.selectedDays) {
                     const dayName = daysMap.get(dayCode) || dayCode;
                     selectedDaysDate.push({
-                        date: '', // Fallback: empty date
-                        dayname: dayName
+                        Date: '', // Fallback: empty date - Capital D
+                        Dayname: dayName  // Capital D
                     });
                 }
             }
@@ -342,8 +342,8 @@ export async function addOrUpdateMasterHoliday(
                     // Format date as YYYY-MM-DD (date only, no time) - API might expect this format
                     const dateStr = currentDate.toISOString().split('T')[0];
                     selectedDaysDate.push({
-                        date: dateStr,
-                        dayname: dayName
+                        Date: dateStr,  // Capital D
+                        Dayname: dayName  // Capital D
                     });
                 }
 
@@ -377,21 +377,22 @@ export async function addOrUpdateMasterHoliday(
     // For updates, id should be the existing record ID
     const isEdit = data.id && data.id > 0;
     
-    const requestBody: MasterHolidaySaveRequest & { fomhwD_Id?: number; fomhwdD_Id?: number } = {
-        mI_Id: 30,
-        hrmlY_Id: (yearItem as any)?.HRMLY_Id || yearItem?.hrmlY_Id || 0,
-        fohwdT_Id: (holidayTypeItem as any)?.FOHWDT_Id || holidayTypeItem?.fohwdT_Id || 0,
-        hrmD_Id: (departmentItem as any)?.HRMD_Id || departmentItem?.hrmD_Id || 0,
-        day_flag: data.selectedDays && data.selectedDays.length > 0,
-        fO_Start_Date: startDate,
-        fomhwdD_ToDate: endDate,
-        fomhwD_HolidayWDName: data.name || '',
-        userid: 0,
+    // API expects exact field names with specific capitalization
+    const requestBody: MasterHolidaySaveRequest & { FOMHWD_Id?: number; FOMHWDD_Id?: number } = {
+        MI_Id: 30,  // Capital M, Capital I
+        HRMLY_Id: (yearItem as any)?.HRMLY_Id || yearItem?.hrmlY_Id || 0,  // All caps
+        FOHWDT_Id: (holidayTypeItem as any)?.FOHWDT_Id || holidayTypeItem?.fohwdT_Id || 0,  // All caps
+        HRMD_Id: (departmentItem as any)?.HRMD_Id || departmentItem?.hrmD_Id || 0,  // All caps
+        Day_flag: data.selectedDays && data.selectedDays.length > 0,  // Capital D
+        FO_Start_Date: startDate,  // Capital F, S, D
+        FOMHWDD_ToDate: endDate,  // All caps
+        FOMHWD_HolidayWDName: data.name || '',  // All caps
+        Userid: 0,  // Capital U
         selectedDaysDate: selectedDaysDate,
         // Include IDs for edit mode (API might need these)
         ...(isEdit ? { 
-            fomhwD_Id: data.id,
-            fomhwdD_Id: data.id // May need to get the detail ID separately
+            FOMHWD_Id: data.id,  // All caps
+            FOMHWDD_Id: data.id // All caps - May need to get the detail ID separately
         } : {})
     };
     
@@ -400,7 +401,7 @@ export async function addOrUpdateMasterHoliday(
         hasId: !!data.id,
         id: data.id,
         requestBodyKeys: Object.keys(requestBody),
-        day_flag: requestBody.day_flag,
+        day_flag: requestBody.Day_flag,
         selectedDaysDateCount: requestBody.selectedDaysDate.length
     });
 
@@ -584,30 +585,43 @@ export async function addOrUpdateMasterHoliday(
 
 /**
  * Delete master holiday
+ * POST /api/MasterHolidayFacade/advdelete
+ * Request body: { FOMHWDD_Id: number }
  */
 export async function deleteMasterHoliday(id: number) {
-    const requestBody = {
-        fomhwdD_Id: id
-    };
-
     const url = '/api/MasterHolidayFacade/delete';
+    
+    const requestBody = {
+        FOMHWDD_Id: id
+    };
+    
+    console.log('🗑️ [SERVER] deleteMasterHoliday called');
+    console.log('📥 [SERVER] Delete ID (FOMHWDD_Id):', id);
+    console.log('📤 [SERVER] Request body:', JSON.stringify(requestBody, null, 2));
+    console.log('🌐 [SERVER] API URL:', url);
+    console.log('🌐 [SERVER] Method: POST');
     
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
         
+        console.log('📥 [SERVER] Delete API response:', JSON.stringify(response, null, 2));
+        
         // Transform response to match expected format
+        // Response structure: { success: true, message: "success", data: { returnval: true, ... } }
         const responseData = response as any;
         
-        // Check for success indicators
-        const returnval = responseData?.returnval;
+        // Check nested structure for success indicators
+        const nestedData = responseData?.data;
+        const returnval = nestedData?.returnval;
+        const apiSuccess = responseData?.success === true;
         const returnvalBool = returnval === true || returnval === 'true' || returnval === 1 || returnval === '1';
-        const hasSuccessField = 'success' in responseData && responseData.success === true;
         
-        // Multiple ways to determine success
-        const isSuccess = returnvalBool || hasSuccessField || responseData?.success === true;
+        // Success if API success is true AND returnval is true
+        const isSuccess = apiSuccess && returnvalBool;
         
         // Extract error message from response if available
-        const apiErrorMessage = responseData?.msg || 
+        const apiErrorMessage = nestedData?.msg || 
+                               responseData?.msg ||
                                responseData?.errorMessage || 
                                responseData?.error ||
                                (responseData?.errors && Array.isArray(responseData.errors) 
@@ -616,20 +630,61 @@ export async function deleteMasterHoliday(id: number) {
         
         // Determine message
         const message = isSuccess 
-            ? 'Master holiday deleted successfully'
+            ? (responseData?.message || 'Master holiday deleted successfully')
             : (apiErrorMessage || 'Failed to delete master holiday');
+        
+        console.log('✅ [SERVER] Delete result:', {
+            isSuccess,
+            message,
+            apiSuccess,
+            returnval,
+            returnvalBool
+        });
         
         return {
             success: isSuccess,
             message: message,
-            data: responseData
+            data: nestedData || responseData
         };
     } catch (error: any) {
-        console.error('Failed to delete master holiday:', error);
+        console.error('❌ [SERVER] Failed to delete master holiday:', error);
+        console.error('❌ [SERVER] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            data: error?.response?.data
+        });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to delete master holiday';
+        
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
         
         return {
             success: false,
-            message: error?.response?.data?.msg || error?.message || 'Failed to delete master holiday',
+            message: errorMessage,
             data: error?.response?.data
         };
     }

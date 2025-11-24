@@ -3,7 +3,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Plus, Trash2, Upload } from 'lucide-react';
 import { useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
@@ -59,16 +59,18 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                             </div>
 
                             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-                                <InputText
+                                <HRMSInputText
                                     label='Document Name'
                                     id={`documentList.${index}.documentName`}
+                                    maxLength={255}
                                     {...register(`documentList.${index}.documentName`)}
                                     placeholder='Enter document name'
                                 />
 
-                                <InputText
+                                <HRMSInputText
                                     label='Description'
                                     id={`documentList.${index}.documentDescription`}
+                                    maxLength={500}
                                     {...register(`documentList.${index}.documentDescription`)}
                                     placeholder='Enter description'
                                 />
