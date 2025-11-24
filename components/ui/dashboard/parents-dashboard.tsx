@@ -141,16 +141,6 @@ export default function ParentsDashboard() {
         );
     }
 
-    const onShowModal = () => {
-        if (showPdfModal) {
-            setShowPdfModal(false);
-            setPdfBase64(null);
-            setAppId(0);
-        } else {
-            setShowPdfModal(true);
-        }
-    };
-
     return (
         <div className='container mx-auto p-6'>
             <div className='space-y-6'>
@@ -286,6 +276,7 @@ export default function ParentsDashboard() {
                             setShowPdfModal(open);
                             if (!open) {
                                 setPdfBase64(null); // Clear PDF when closing
+                                setAppId(0);
                             }
                         }}>
                         <DialogContent
