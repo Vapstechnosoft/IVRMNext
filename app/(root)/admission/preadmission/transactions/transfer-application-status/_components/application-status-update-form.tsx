@@ -5,6 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { isAlphabetsOnly } from '@/schemas/validationSchemas';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { AlertCircle, CheckCircle2, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -75,6 +76,14 @@ export function ApplicationStatusUpdateDialog({
     };
 
     const handleRemarksChange = (pasrId: number, remarks: string) => {
+        if (remarks && !isAlphabetsOnly(remarks)) {
+            setErrors((prev) => ({
+                ...prev,
+                [pasrId]: 'Remarks should contain only alphabets'
+            }));
+            return;
+        }
+
         setApplicationStatusUpdates((prev) => ({
             ...prev,
             [pasrId]: { ...prev[pasrId], remarks }
@@ -99,6 +108,9 @@ export function ApplicationStatusUpdateDialog({
                 isValid = false;
             } else if (!update.remarks.trim()) {
                 newErrors[Number(pasrId)] = 'Please enter remarks';
+                isValid = false;
+            } else if (!isAlphabetsOnly(update.remarks)) {
+                newErrors[Number(pasrId)] = 'Remarks should contain only alphabets';
                 isValid = false;
             }
         });

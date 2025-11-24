@@ -305,3 +305,7 @@ export function createOptionalAlphaNumericSchemaNotOptional(field: string, min: 
             .optional()
     );
 }
+
+export function isAlphabetsOnly(text: string): boolean {
+    return /^[a-zA-Z\s]*$/.test(text);
+}

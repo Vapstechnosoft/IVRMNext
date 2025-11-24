@@ -80,6 +80,7 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
 
                         <InputTextarea
                             label='Description'
+                            required
                             id='amsmD_Description'
                             placeholder='Enter description'
                             {...register('amsmD_Description')}
@@ -113,6 +114,10 @@ export default function AddDocumentForm({ onSuccess, className = '' }: AddDocume
                             />
                             {errors.amsmD_FLAG && <FormError>{errors.amsmD_FLAG.message}</FormError>}
                         </div>
+                    </div>
+
+                    <div className='text-grey-600 text-sm'>
+                        Note: Only files with formats <span className='font-medium'>pdf, jpg, jpeg, png</span> are accepted.
                     </div>
                 </div>
 

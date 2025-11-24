@@ -10,7 +10,7 @@ export async function getPreadmissionAdmissionStatusDropdown() {
 }
 
 export async function getPreadmissionStudentList(asmay_id: number, asmcl_id: number, pamst_id: number, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'PASR_RegistrationNo,student_name,PASR_Sex,applied_class_name');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'PASR_RegistrationNo,student_name,PASR_Sex,applied_class_name,current_status');
     const url = `/transfer_preadmission_status/preadmission_student_list?asmay_id=${asmay_id}&asmcl_id=${asmcl_id}&pamst_id=${pamst_id}&${urlParams}`;
     return await api.get<IPreadmissionApplicationList[]>('preadmission', url);
 }

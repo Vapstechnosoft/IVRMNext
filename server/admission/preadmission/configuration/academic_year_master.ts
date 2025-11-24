@@ -5,7 +5,10 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterAcademicYearMasterList, IMasterSetOrderList } from '@/types/admission/preadmission/configaration';
 
 export async function getPreAdmissionYear(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,asmaY_AcademicYearCode');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'asmaY_Year,asmaY_AcademicYearCode,asmaY_Order,asmaY_From_Date,asmaY_Cut_Of_Date,asmaY_To_Date'
+    );
     const url = `/configuration/academic_year?${urlParams}`;
     return await api.get<IMasterAcademicYearMasterList[]>('preadmission', url);
 }
