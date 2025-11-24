@@ -61,6 +61,7 @@ export interface IAcademicYearandClassandsection {
 }
 
 export interface IExamReportCard {
+    amsT_Id: number;
     amsT_FirstName: string;
     amsT_FatherName?: string;
     amsT_DOB?: string;

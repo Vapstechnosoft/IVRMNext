@@ -762,7 +762,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 62,
-                                            name: 'VVEHPC_ExamReportCard',
+                                            name: 'Progress Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vvehpc_exam-report-card',
                                             title: 'VVEHPC_ExamReportCard',
