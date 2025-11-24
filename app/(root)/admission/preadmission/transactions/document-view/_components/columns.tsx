@@ -91,7 +91,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     },
     {
         accessorKey: 'application_form',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application Form' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Application Form' />,
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
@@ -138,8 +138,19 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                     </Button>
 
                     {showPdfModal && (
-                        <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                            <DialogContent className='flex h-[90vh] max-w-5xl flex-col p-0'>
+                        <Dialog
+                            open={showPdfModal}
+                            onOpenChange={(open) => {
+                                setShowPdfModal(open);
+                                if (!open) {
+                                    setPdfBase64(null);
+                                }
+                            }}>
+                            <DialogContent
+                                className='flex h-[90vh] max-w-5xl flex-col p-0'
+                                onInteractOutside={(e) => {
+                                    e.preventDefault();
+                                }}>
                                 <DialogHeader className='p-0'>
                                     <DialogTitle className='pt-3 text-center font-semibold text-lg'>
                                         Pre Admission Application Form

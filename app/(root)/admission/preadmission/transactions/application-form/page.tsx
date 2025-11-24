@@ -23,10 +23,17 @@ export default function StudentApplicationPage(props: {
     const searchParams = use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: response, isLoading, error, refetch } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
+    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
 
     return (
         <FormProvider<IPreadmissionStudentApplicationList>>
-            <StudentApplicationPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
+            <StudentApplicationPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                refetch={refetch}
+                masterConfig={masterConfig}
+            />
         </FormProvider>
     );
 }
@@ -35,12 +42,14 @@ function StudentApplicationPageContent({
     response,
     isLoading,
     error,
-    refetch
+    refetch,
+    masterConfig
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetch: () => void;
+    masterConfig: any;
 }) {
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(response);
@@ -82,6 +91,7 @@ function StudentApplicationPageContent({
                             onCloseSuccessDialog();
                             refetch();
                         }}
+                        fee_required={masterConfig?.data?.ispaC_ApplFeeFlag}
                     />
                 )}
                 {/* Forms */}
@@ -116,6 +126,7 @@ function StudentApplicationPageContent({
     );
 }
 
+import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import UpdateStudentApplicationForm from './_components/update-form';
 
 function FormSections({

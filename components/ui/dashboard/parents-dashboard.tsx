@@ -13,6 +13,7 @@ import { ArrowUpRight, CreditCard, Eye, Loader2, User } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function ParentsDashboard() {
     const router = useRouter();
@@ -21,21 +22,37 @@ export default function ParentsDashboard() {
 
     const [appId, setAppId] = useState(0);
     const [showPdfModal, setShowPdfModal] = useState(false);
-    const { data: pdfData, isLoading } = useDocumentDownload(appId);
+    const { mutate: downloadDocument, isPending: isLoading } = useDocumentDownload();
     const [iframeLoading, setIframeLoading] = useState(false);
-
-    const pdfBase64: string | null | undefined =
-        typeof pdfData?.data === 'string'
-            ? pdfData.data
-            : Array.isArray(pdfData?.data)
-              ? ((pdfData.data[0] as unknown as string) ?? null)
-              : null;
+    const [pdfBase64, setPdfBase64] = useState<string | null>(null);
 
     useEffect(() => {
         if (showPdfModal && pdfBase64 && appId > 0) {
             setIframeLoading(true);
         }
         if (!showPdfModal) setIframeLoading(false);
+    }, [showPdfModal, pdfBase64, appId]);
+
+    useEffect(() => {
+        // Trigger download when modal opens and user is authorized
+        if (showPdfModal && !pdfBase64 && appId > 0) {
+            downloadDocument(appId, {
+                onSuccess: (data) => {
+                    const base64 =
+                        typeof data?.data === 'string'
+                            ? data.data
+                            : Array.isArray(data?.data)
+                              ? ((data.data[0] as unknown as string) ?? null)
+                              : null;
+                    setPdfBase64(base64);
+                },
+                onError: (error) => {
+                    console.error('Failed to load document:', error);
+                    toast.error('Failed to load document');
+                    setPdfBase64(null);
+                }
+            });
+        }
     }, [showPdfModal, pdfBase64, appId]);
 
     const applications: IParentsDashboardStudentResponse[] = parentDashboard?.data || [];
@@ -123,6 +140,16 @@ export default function ParentsDashboard() {
             </div>
         );
     }
+
+    const onShowModal = () => {
+        if (showPdfModal) {
+            setShowPdfModal(false);
+            setPdfBase64(null);
+            setAppId(0);
+        } else {
+            setShowPdfModal(true);
+        }
+    };
 
     return (
         <div className='container mx-auto p-6'>
@@ -215,7 +242,9 @@ export default function ParentsDashboard() {
                                                     className='w-fit bg-green-600 font-semibold text-white hover:bg-green-700'
                                                     disabled={application.payment_status === 1}
                                                     suffix={
-                                                        <ArrowUpRight className='size-4 transition-all ease-linear group-hover:translate-x-2' />
+                                                        application.payment_status === 0 && (
+                                                            <ArrowUpRight className='size-4 transition-all ease-linear group-hover:translate-x-2' />
+                                                        )
                                                     }>
                                                     <CreditCard className='h-4 w-4' />
                                                     {application.payment_status === 0 ? 'Pay Admission Fee' : 'Paid'}
@@ -251,8 +280,19 @@ export default function ParentsDashboard() {
                     </Card>
                 ))}
                 {showPdfModal && (
-                    <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                        <DialogContent className='flex h-[90vh] max-w-5xl flex-col p-0'>
+                    <Dialog
+                        open={showPdfModal}
+                        onOpenChange={(open) => {
+                            setShowPdfModal(open);
+                            if (!open) {
+                                setPdfBase64(null); // Clear PDF when closing
+                            }
+                        }}>
+                        <DialogContent
+                            className='flex h-[90vh] max-w-5xl flex-col p-0'
+                            onInteractOutside={(e) => {
+                                e.preventDefault(); // Prevents closing when clicking outside
+                            }}>
                             <DialogHeader className='p-0'>
                                 <DialogTitle className='pt-3 text-center font-semibold text-lg'>Preadmission Application Form</DialogTitle>
                             </DialogHeader>

@@ -331,9 +331,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setCurrentStep((prev) => Math.max(prev - 1, 1));
     };
 
-    // const goToStep = (step: number) => {
-    //   setCurrentStep(step);
-    // };
+    const goToStep = (step: number) => {
+        setCurrentStep(step);
+    };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         // Add photo validation
@@ -2693,9 +2693,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     <div className='space-y-6'>
                                         <div>
                                             <h2 className='font-bold text-2xl text-gray-900'>Document Upload</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>
+                                            <p className='text-sm *:text-gray-500'>
                                                 Please upload the required documents. Documents marked with{' '}
                                                 <span className='text-red-500'>*</span> are mandatory.
+                                            </p>
+                                            <p className='text-red-500 text-sm'>
+                                                NOTE: All documents uploaded should be self-attested by parents
                                             </p>
                                         </div>
 

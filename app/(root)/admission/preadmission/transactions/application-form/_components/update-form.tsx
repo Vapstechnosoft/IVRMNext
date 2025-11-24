@@ -2935,6 +2935,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 Please upload the required documents. Documents marked with{' '}
                                                 <span className='text-red-500'>*</span> are mandatory.
                                             </p>
+                                            <p className='text-red-500 text-sm'>
+                                                NOTE: All documents uploaded should be self-attested by parents
+                                            </p>
                                         </div>
 
                                         {preadmissionDocumentsLoading ? (
@@ -3382,7 +3385,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <h4 className='font-medium text-gray-700 text-sm'>
                                                                     Previous School {index + 1}
                                                                 </h4>
-                                                                {/* <Button
+                                                                <Button
                                                                     type='button'
                                                                     variant='ghost'
                                                                     size='sm'
@@ -3390,7 +3393,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     disabled={isSubmitting}
                                                                     className='h-8 w-fit bg-error text-white'>
                                                                     Remove
-                                                                </Button> */}
+                                                                </Button>
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                 <Controller

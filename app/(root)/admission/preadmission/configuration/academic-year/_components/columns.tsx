@@ -10,6 +10,7 @@ const formatDate = (date: unknown): string => {
     if (!date) return 'N/A';
     return format(new Date(date), 'dd-MM-yyyy');
 };
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
@@ -77,7 +78,15 @@ export const masterAcademicYearColumns: ColumnDef<IMasterAcademicYearMasterList>
         enableSorting: true,
         enableHiding: true
     },
-
+    {
+        accessorKey: 'asmaY_Pre_ActiveFlag',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap' />,
+        cell: ({ row }) => (
+            <div className='text-center'>{getStatusBadge((row.getValue('asmaY_Pre_ActiveFlag') as number) === 1 ? 'yes' : 'no')}</div>
+        ),
+        enableSorting: false,
+        enableHiding: true
+    },
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
