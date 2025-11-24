@@ -163,6 +163,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/class-teacher',
                                             title: 'Master Class Teacher',
                                             description: 'Manage Master Class Teacher Details'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Master Class Held',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/class-held',
+                                            title: 'Master Class Held',
+                                            description: 'Manage Master Class Held Details'
                                         }
                                     ]
                                 },
@@ -220,7 +228,7 @@ export async function getUserAccessibleModules() {
                                     pages: [
                                         {
                                             id: 17,
-                                            name: ' Master Academic Year',
+                                            name: 'Master Academic Year',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/configuration/academic-year',
                                             title: 'Master Academic Year ',
@@ -252,21 +260,6 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 }
-                                // {
-                                //   id: 4,
-                                //   name: "Reports",
-                                //   icon: "Settings",
-                                //   pages: [
-                                //     {
-                                //       id: 21,
-                                //       name: "Student Count Report",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/student-count-report",
-                                //       title: "Student Count Report",
-                                //       description: "Student Count Report",
-                                //     },
-                                //   ],
-                                // },
                             ]
                         }
                     ]

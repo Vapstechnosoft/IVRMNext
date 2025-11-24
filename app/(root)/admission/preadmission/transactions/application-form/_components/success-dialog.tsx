@@ -7,15 +7,17 @@ export default function ApplicationFormSuccessDialog({
     isOpen,
     onClose,
     title = 'Application Submitted Successfully',
-    message = 'Successfully submitted application form'
+    message = 'Successfully submitted application form',
+    fee_required = false
 }: {
     isOpen: boolean;
     onClose: () => void;
     title?: string;
     message?: string;
+    fee_required?: boolean;
 }) {
     return (
-        <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4'>
+        <div className='flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4'>
             <AdaptiveDialog
                 title={title}
                 isOpen={isOpen}
@@ -23,9 +25,9 @@ export default function ApplicationFormSuccessDialog({
                 size='md'
                 showCloseButton={true}
                 isTitleRequired={false}
-                className='overflow-hidden'>
+                className='max-h-[95vh] overflow-scroll'>
                 <AdaptiveBody className='max-h-none overflow-visible p-0'>
-                    <div className='flex flex-col items-center space-y-6 py-2 text-center'>
+                    <div className='flex flex-col items-center space-y-4 text-center'>
                         {/* Animated Success Icon */}
                         <div className='relative'>
                             <div className='absolute inset-0 animate-pulse rounded-full bg-green-400 opacity-30 blur-2xl' />
@@ -45,6 +47,22 @@ export default function ApplicationFormSuccessDialog({
                         {/* Info Cards */}
                         {!title.includes('Updated') && (
                             <div className='fade-in slide-in-from-bottom-4 w-full animate-in space-y-3 delay-500 duration-500'>
+                                {fee_required && (
+                                    <div className='rounded-lg border border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50 p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md'>
+                                        <div className='flex items-start gap-3'>
+                                            <div className='mt-0.5 rounded-lg bg-amber-500 p-2'>
+                                                <Clock className='h-4 w-4 text-white' />
+                                            </div>
+                                            <div className='flex-1 text-left'>
+                                                <h3 className='mb-1 font-semibold text-slate-900 text-sm'>Fee Required</h3>
+                                                <p className='text-slate-600 text-xs leading-relaxed'>
+                                                    Please make payment to complete your application. You can access the payment link from
+                                                    your application list.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className='rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md'>
                                     <div className='flex items-start gap-3'>
                                         <div className='mt-0.5 rounded-lg bg-blue-500 p-2'>
@@ -68,20 +86,6 @@ export default function ApplicationFormSuccessDialog({
                                             <h3 className='mb-1 font-semibold text-slate-900 text-sm'>Email Confirmation Sent</h3>
                                             <p className='text-slate-600 text-xs leading-relaxed'>
                                                 Check your inbox for confirmation details
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className='rounded-lg border border-amber-100 bg-gradient-to-r from-amber-50 to-orange-50 p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md'>
-                                    <div className='flex items-start gap-3'>
-                                        <div className='mt-0.5 rounded-lg bg-amber-500 p-2'>
-                                            <Clock className='h-4 w-4 text-white' />
-                                        </div>
-                                        <div className='flex-1 text-left'>
-                                            <h3 className='mb-1 font-semibold text-slate-900 text-sm'>Processing Time</h3>
-                                            <p className='text-slate-600 text-xs leading-relaxed'>
-                                                Review typically takes 2-3 business days
                                             </p>
                                         </div>
                                     </div>
