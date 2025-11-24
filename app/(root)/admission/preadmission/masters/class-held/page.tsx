@@ -121,7 +121,7 @@ export default function MasterClassHeldPage() {
                 month: row.month,
                 classHeld: Number.parseInt(row.classHeld) || 0
             }));
-        setValue('classHeldData', selectedRows, { shouldValidate: true });
+        setValue('classHeldData', selectedRows as unknown as FormFields['classHeldData'], { shouldValidate: true });
     }, [classHeldData, setValue]);
 
     const handleSelectAll = (checked: boolean) => {
