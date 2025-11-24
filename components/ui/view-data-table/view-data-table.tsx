@@ -53,7 +53,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         columns,
         data,
         totalItems,
-        pageSizeOptions = [10, 20, 30, 40, 50],
+        pageSizeOptions = [10, 20, 30, 40, 50, 60],
         isLoading,
         showExportOptions = false,
         showViewOptions = true,

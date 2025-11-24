@@ -20,14 +20,17 @@ import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate>;
+type FormFields = z.infer<typeof vvehpc_examreportcardSchema.addOrUpdate> & {
+    applicableFlag: boolean;
+    nonApplicableFlag: boolean;
+    page_size: number;
+};
 
-interface Props {
+export default function ProgressCardReportForm({
+    onSuccess
+}: {
     onSuccess?: (payload: any) => void;
-    onStudentListChange?: (students: { amsT_Id: number }[]) => void;
-}
-
-export default function ProgressCardReportForm({ onSuccess, onStudentListChange }: Props) {
+}) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(vvehpc_examreportcardSchema.addOrUpdate),
         mode: 'all',
@@ -44,7 +47,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { isSubmitting } = formState;
 
-    // Dropdown states
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
@@ -58,16 +60,9 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
     const selectedSection = useWatch({ control, name: 'asmS_Id' });
     const studentList = useWatch({ control, name: 'studentList' });
+
     const hasStudentsSelected = Array.isArray(studentList) && studentList.length > 0;
 
-    // Keep parent in sync with selected students
-    useEffect(() => {
-        if (onStudentListChange && Array.isArray(studentList)) {
-            onStudentListChange(studentList);
-        }
-    }, [studentList, onStudentListChange]);
-
-    // Load Academic Years
     useEffect(() => {
         if (academicError) {
             toast.error(academicError.message || 'Error loading academic years');
@@ -81,7 +76,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
         }
     }, [academicData, academicError]);
 
-    // Load Classes
     useEffect(() => {
         if (!selectedYear) return;
         (async () => {
@@ -99,7 +93,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
         })();
     }, [selectedYear, setValue]);
 
-    // Load Sections
     useEffect(() => {
         if (!selectedYear || !selectedClass) return;
         (async () => {
@@ -116,7 +109,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
         })();
     }, [selectedYear, selectedClass, setValue]);
 
-    // Load Students
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
@@ -138,7 +130,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    // Load Exams
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
@@ -152,31 +143,36 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    // Submit
+    // Generate current date in ISO format
+    const getCurrentDateTime = () => new Date().toISOString();
+
     const onSubmit = async (data: FormFields) => {
         if (!hasStudentsSelected) {
             toast.error('Please select at least one student');
             return;
         }
 
-        const payload = {
-            mI_Id: 30,
+        const currentDateTime = new Date().toISOString();
+
+        // EXACT PAYLOAD REQUIRED BY BACKEND — NO EXTRA FIELDS
+        const payload: any = {
+            mI_Id: 30, // or data.mI_Id if dynamic
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
-            amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
-            toDate: new Date().toISOString()
+            amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','), // must be string
+            fromDate: currentDateTime,
+            toDate: currentDateTime
+            // DO NOT include: applicableFlag, nonApplicableFlag, page_size, etc.
         };
+        console.log('Sending payload:', payload); // Add this to verify!
 
         onSuccess?.(payload);
     };
-
-    // Student helpers
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
-            const all = students.map((s) => ({ amsT_Id: s.amsT_Id }));
-            setValue('studentList', all, { shouldValidate: true });
+            setValue('studentList', [...students], { shouldValidate: true });
             setAllStudentsSelected(true);
         } else {
             setValue('studentList', [], { shouldValidate: true });
@@ -185,7 +181,7 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
     };
 
     const handleStudentChange = (selectedValues: string[]) => {
-        const selected = students.filter((s) => selectedValues.includes(s.amsT_Id.toString())).map((s) => ({ amsT_Id: s.amsT_Id }));
+        const selected = students.filter((s) => selectedValues.includes(s.amsT_Id.toString()));
         setValue('studentList', selected, { shouldValidate: true });
         setAllStudentsSelected(selected.length === students.length && students.length > 0);
     };
@@ -196,9 +192,7 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                            {/* LEFT – Dropdowns */}
                             <div className='space-y-6'>
-                                {/* Academic Year */}
                                 <Controller
                                     control={control}
                                     name='asmaY_Id'
@@ -228,7 +222,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
                                     )}
                                 />
 
-                                {/* Class */}
                                 <Controller
                                     control={control}
                                     name='asmcL_Id'
@@ -258,7 +251,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
                                     )}
                                 />
 
-                                {/* Section */}
                                 <Controller
                                     control={control}
                                     name='asmS_Id'
@@ -288,7 +280,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
                                     )}
                                 />
 
-                                {/* Exam */}
                                 <Controller
                                     control={control}
                                     name='emE_Id'
@@ -319,7 +310,6 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
                                 />
                             </div>
 
-                            {/* RIGHT – Student Multi-Select */}
                             <div className='space-y-6'>
                                 <div className='flex flex-col gap-2 sm:flex-row sm:items-start'>
                                     <Label className='flex items-center gap-2 font-medium text-sm sm:w-32'>
@@ -351,6 +341,7 @@ export default function ProgressCardReportForm({ onSuccess, onStudentListChange 
                         </div>
 
                         <hr className='my-6 border-gray-300' />
+
                         <div className='flex justify-center gap-3'>
                             <Button type='submit' disabled={isSubmitting || !hasStudentsSelected} className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}

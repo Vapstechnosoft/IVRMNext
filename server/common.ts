@@ -776,8 +776,8 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Cumulative Report Details'
                                         },
                                         {
-                                            id: 64,
-                                            name: 'VVEHPC_ExamReportCard',
+                                            id: 62,
+                                            name: 'Progress Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vvehpc_exam-report-card',
                                             title: 'VVEHPC_ExamReportCard',
