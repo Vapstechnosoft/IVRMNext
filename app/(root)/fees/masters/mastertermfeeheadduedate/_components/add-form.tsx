@@ -299,7 +299,6 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                             <td className='border border-gray-300 px-4 py-2 font-medium'>{index + 1}</td>
                                             <td className='border border-gray-300 px-4 py-2 font-semibold text-gray-700'>{item.insname}</td>
 
-                                            {/* From Date */}
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
@@ -313,7 +312,6 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                                 />
                                             </td>
 
-                                            {/* To Date */}
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
@@ -327,7 +325,6 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                                 />
                                             </td>
 
-                                            {/* Applicable Date */}
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
@@ -341,7 +338,6 @@ export default function AddFeeTermsHeadDueDateFormForm({ onSuccess, termname = '
                                                 />
                                             </td>
 
-                                            {/* Due Date */}
                                             <td className='border border-gray-300 px-2 py-1'>
                                                 <input
                                                     type='date'
