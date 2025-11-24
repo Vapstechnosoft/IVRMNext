@@ -49,7 +49,10 @@ export interface ReligionCategoryMappingResponse {
     success?: boolean;
     message?: string;
     data?: ReligionCategoryMappingDetail[] | {
-        get_masterlist: ReligionCategoryMappingDetail[];
+        mapping?: ReligionCategoryMappingDetail[];
+        religion_list?: ReligionItem[];
+        caste_list?: CasteItem[];
+        get_masterlist?: ReligionCategoryMappingDetail[];
     };
     get_masterlist?: ReligionCategoryMappingDetail[];
     IRCC_Id?: number;

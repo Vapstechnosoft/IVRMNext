@@ -36,7 +36,40 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
     } = useForm<FormFields>({
         resolver: zodResolver(feeConfigSchema.addOrUpdate),
         mode: 'onChange',
-        defaultValues: {}
+        defaultValues: {
+            FMC_Id: row.fmC_Id ? String(row.fmC_Id) : '',
+            MI_Id: 30,
+            FMC_GroupOrTermFlg: row.fmC_GroupOrTermFlg ? String(row.fmC_GroupOrTermFlg) : 'T',
+            FMC_StudentwiseJVFlag: row.fmC_StudentwiseJVFlag ? String(row.fmC_StudentwiseJVFlag) : 'S',
+
+            FMC_Areawise_FeeFlg: String(row.fmC_Areawise_FeeFlg ?? '0'),
+            FMC_TransportFeeAreaFlag: String(row.fmC_TransportFeeAreaFlag ?? '0'),
+            FMC_TransportFeeZoneFlag: String(row.fmC_TransportFeeZoneFlag ?? '0'),
+            FMC_DOACheckFlag: String(row.fmC_DOACheckFlag ?? '0'),
+            FMC_GroupRemarksFlag: String(row.fmC_GroupRemarksFlag ?? '0'),
+            FMC_RClassFlag: String(row.fmC_RClassFlag ?? '0'),
+            FMC_RSectionFlag: String(row.fmC_RSectionFlag ?? '0'),
+            FMC_RInstallmentsFlag: String(row.fmC_RInstallmentsFlag ?? '0'),
+            FMC_RInstallmentsMergeFlag: String(row.fmC_RInstallmentsMergeFlag ?? '0'),
+            FMC_RFineFlag: String(row.fmC_RFineFlag ?? '0'),
+            FMC_RWaivedFlag: String(row.fmC_RWaivedFlag ?? '0'),
+            FMC_RBalanceFlag: String(row.fmC_RBalanceFlag ?? '0'),
+            FMC_RAmountFlag: String(row.fmC_RAmountFlag ?? '0'),
+            FMC_RBankFlag: String(row.fmC_RBankFlag ?? '0'),
+            FMC_ChallanOptionFlag: String(row.fmC_ChallanOptionFlag ?? '0'),
+            FMC_RDueDateFlag: String(row.fmC_RDueDateFlag ?? '0'),
+            FMC_RFeeHeaderFlag: String(row.fmC_RFeeHeaderFlag ?? '0'),
+            FMC_RAddressFlag: String(row.fmC_RAddressFlag ?? '0'),
+            FMC_RRemarksFlag: String(row.fmC_RRemarksFlag ?? '0'),
+            FMC_RFatherNameFlag: String(row.fmC_RFatherNameFlag ?? '0'),
+            FMC_MotherNameFlag: String(row.fmC_MotherNameFlag ?? '0'),
+            FMC_RHeaderTitleFlag: String(row.fmC_RHeaderTitleFlag ?? '0'),
+            FMC_RPaymentDetailsFlag: String(row.fmC_RPaymentDetailsFlag ?? '0'),
+            FMC_RAmountReceivedFlag: String(row.fmC_RAmountReceivedFlag ?? '0'),
+            FMC_RCurrentDateFlag: String(row.fmC_RCurrentDateFlag ?? '0'),
+            FMC_Fine_Column: String(row.fmC_Fine_Column ?? '0'),
+            FMC_ArrearColumn: String(row.fmC_ArrearColumn ?? '0')
+        }
     });
 
     // ✅ Utility to normalize 0/1/true/false to string "0"/"1"

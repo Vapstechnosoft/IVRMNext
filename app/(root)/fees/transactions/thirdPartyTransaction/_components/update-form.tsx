@@ -25,6 +25,7 @@ import {
     useeditThirdpartytrasaction
 } from '@/hooks/fees/useTrasactions';
 
+import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
 import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
@@ -88,6 +89,8 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
         refetchEditData()
             .then(() => {
                 const editeddata = editDataResponse?.data?.[0];
+
+                console.log('Edited Data:', editeddata);
                 if (editeddata) {
                     const matchedBank = bankdata?.data?.find((b) => b.fmbanK_BankName === editeddata.fyP_Bank_Name);
                     reset({
@@ -338,6 +341,41 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 <InputText {...register('towards')} className='min-w-[400px]' />
             </div>
 
+            <div className='flex items-center gap-4'>
+                <Label className='min-w-[150px] text-right'>
+                    Date <span className='text-red-500'>*</span>
+                </Label>
+
+                <Controller
+                    name='date'
+                    control={control}
+                    defaultValue={format(new Date(), 'yyyy-MM-dd')}
+                    render={({ field }) => {
+                        const selectedDate = field.value ? new Date(field.value) : new Date();
+                        return (
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        className={cn('justify-start text-left font-normal', errors.date ? 'border-red-500' : '')}>
+                                        <Calendar className='mr-2 h-4 w-4' />
+                                        {format(selectedDate, 'dd/MM/yyyy')}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-auto p-0'>
+                                    <CalendarPicker
+                                        mode='single'
+                                        selected={selectedDate}
+                                        onSelect={(d) => field.onChange(d ? format(d, 'yyyy-MM-dd') : '')}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        );
+                    }}
+                />
+            </div>
+
             {/* Payment Mode */}
             <div className='flex items-center justify-center space-x-6 rounded-lg border bg-white px-4 py-2'>
                 <Controller
@@ -447,8 +485,62 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                     </div>
 
                     <div className='flex items-center gap-4'>
-                        <Label className='min-w-[150px] text-right'>Cheque No</Label>
+                        <Label className='min-w-[150px] text-right'>
+                            Cheque No<span className='text-red-500'>*</span>
+                        </Label>
                         <InputText {...register('chequeNo')} />
+                    </div>
+                </>
+            )}
+
+            {watchPaymentMode === 'S' && (
+                <>
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right'>
+                            Transaction Date<span className='text-red-500'>*</span>
+                        </Label>
+                        <Controller
+                            name='chequeDate'
+                            control={control}
+                            render={({ field }) => {
+                                const d = field.value ? new Date(field.value) : new Date();
+                                return (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button type='button' variant='outline'>
+                                                <Calendar className='mr-2 h-4 w-4' />
+                                                {format(d, 'dd/MM/yyyy')}
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-auto p-0'>
+                                            <CalendarPicker
+                                                mode='single'
+                                                selected={d}
+                                                onSelect={(date) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                );
+                            }}
+                        />
+                    </div>
+
+                    {/* Card No */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[150px] text-right'>
+                            Card No <span className='text-red-500'>*</span>
+                        </Label>
+                        {/* <InputText {...register('chequeNo')} placeholder='Enter Card Number' error={errors.chequeNo?.message} /> */}
+                        <InputText
+                            {...register('chequeNo', {
+                                onChange: (e) => {
+                                    const onlyNumbers = e.target.value.replace(/[^0-9]/g, '');
+                                    e.target.value = onlyNumbers; // force update input
+                                }
+                            })}
+                            placeholder='Enter Card Number'
+                            error={errors.chequeNo?.message}
+                        />
                     </div>
                 </>
             )}

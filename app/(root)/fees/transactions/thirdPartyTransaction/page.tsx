@@ -9,6 +9,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddThirdPartyTransactionForm from './_components/add-form';
 import { feethirdpartytrasactionColumns } from './_components/columns';
+import ReceiptPage from './_components/receipt';
 import ToggleThirdPartyForm from './_components/toggle-form';
 import UpdateThirdPartyForm from './_components/update-form';
 
@@ -84,10 +85,12 @@ function FormSections() {
         isEditFormOpen,
         isToggleFormOpen,
         isDeleteFormOpen,
+        isDetailsViewOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
+        closeDetailsView,
         addFormRef,
         editFormRef
     } = useFormContext<IFeeThirdPartyTransaction>();
@@ -118,6 +121,8 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {isDetailsViewOpen && selectedRow && <ReceiptPage rowData={selectedRow} onClose={closeDetailsView} />}
 
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>

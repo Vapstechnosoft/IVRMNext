@@ -390,8 +390,8 @@ export const GENDER_VALIDATION = {
     genderName: {
         required: VALIDATION_MESSAGES.REQUIRED('Gender Name'),
         maxLength: {
-            value: 5,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Gender Name', 5)
+            value: 6,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Gender Name', 6)
         },
         pattern: {
             value: VALIDATION_PATTERNS.ALPHABET_ONLY,

@@ -94,6 +94,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         reset,
         trigger,
         setValue,
+        getValues,
         setError,
         clearErrors,
         formState: { errors, isSubmitting }
@@ -103,14 +104,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         defaultValues: {
             pasA_WillingToContributeFlg: 0,
             pasR_UndertakingFlag: 0,
-            previousSchoolDetails: {
-                pasrpS_PrvSchoolName: '',
-                pasrpS_PreviousClass: '',
-                pasrpS_Board: '',
-                pasrpS_LeftYear: '',
-                pasrpS_LeftReason: '',
-                pasrpS_Address: ''
-            }
+            previousSchoolDetails: [
+                {
+                    pasrpS_PrvSchoolName: '',
+                    pasrpS_PreviousClass: '',
+                    pasrpS_Board: '',
+                    pasrpS_LeftYear: '',
+                    pasrpS_LeftReason: '',
+                    pasrpS_Address: ''
+                }
+            ],
+            siblingsDetails: []
         }
     });
 
@@ -132,16 +136,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
     const [ineligibleClasses, setIneligibleClasses] = useState<IPreadmissionClassDropdown[]>([]);
 
-    const [previousSchool, setPreviousSchool] = useState({
-        pasrpS_Id: 0,
-        pasR_Id: 0,
-        pasrpS_PrvSchoolName: '',
-        pasrpS_PreviousClass: '',
-        pasrpS_Board: '',
-        pasrpS_LeftYear: '',
-        pasrpS_LeftReason: '',
-        pasrpS_Address: ''
-    });
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
     const [uploadedDocuments, setUploadedDocuments] = useState<
         Array<{
@@ -342,6 +336,39 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+        // Add photo validation
+        if (!studentPhoto?.pasR_Student_Pic_Path) {
+            toast.error('Please upload student photo');
+            setCurrentStep(1);
+            return;
+        }
+
+        if (!fatherPhoto?.pasR_FatherPhoto) {
+            toast.error('Please upload father photo');
+            setCurrentStep(3);
+            return;
+        }
+
+        if (!motherPhoto?.pasR_MotherPhoto) {
+            toast.error('Please upload mother photo');
+            setCurrentStep(3);
+            return;
+        }
+
+        // Add baptism certificate validation for Roman Catholic
+        const selectedReligionId = watch('religion_Id');
+        const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
+        const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+        if (isRomanCatholic) {
+            const baptismDoc = preadmissionDocuments?.data?.find((doc) => doc.amsmD_DocumentName === 'Baptism Certificate');
+            if (baptismDoc && !isDocumentUploaded(baptismDoc.amsmD_Id)) {
+                toast.error('Baptism Certificate is required for Roman Catholic religion');
+                setCurrentStep(4);
+                return;
+            }
+        }
+
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
             return;
@@ -380,28 +407,35 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
                     pamR_Id: item.pamR_Id
                 })),
-                siblingsDetails: siblingFields.map((sibling: any) => ({
-                    ...sibling,
-                    verrejstatus: '',
-                    pasrS_SchoolName: '',
-                    pasrS_Age: 0,
-                    pasrS_Gender: '',
-                    pasrS_Institution: '',
-                    pasrS_DOB: ''
+                siblingsDetails: (getValues('siblingsDetails') || []).map((sibling: any) => ({
+                    pasR_Id: sibling.pasR_Id || 0,
+                    pasrS_SchoolName: sibling.pasrS_SchoolName || '',
+                    pasrS_Age: sibling.pasrS_Age || 0,
+                    pasrS_Gender: sibling.pasrS_Gender || '',
+                    pasrS_Institution: sibling.pasrS_Institution || '',
+                    pasrS_DOB: sibling.pasrS_DOB || '',
+                    verrejstatus: sibling.verrejstatus || '',
+                    pasrS_SiblingsName: sibling.pasrS_SiblingsName || '',
+                    pasrS_SiblingsClass: sibling.pasrS_SiblingsClass || '',
+                    pasrS_SiblingsAdmissionNo: sibling.pasrS_SiblingsAdmissionNo || '',
+                    pasrS_SiblingsSection: sibling.pasrS_SiblingsSection || ''
                 })),
-                previousSchoolList:
-                    previousSchool.pasrpS_PrvSchoolName !== ''
-                        ? [
-                              {
-                                  ...previousSchool,
-                                  pasrpS_TcNo: '',
-                                  pasrpS_PreviousPer: '',
-                                  pasrpS_PreviousGrade: '',
-                                  pasrpS_PreviousMarks: '',
-                                  pasrpS_ConcOrScholarshipFlg: ''
-                              }
-                          ]
-                        : [],
+                // CHANGE THIS: Use array from form data
+                previousSchoolList: (data.previousSchoolDetails || []).map((school: any) => ({
+                    pasrpS_Id: 0,
+                    pasR_Id: 0,
+                    pasrpS_PrvSchoolName: school.pasrpS_PrvSchoolName || '',
+                    pasrpS_PreviousClass: school.pasrpS_PreviousClass || '',
+                    pasrpS_Board: school.pasrpS_Board || '',
+                    pasrpS_LeftYear: school.pasrpS_LeftYear || '',
+                    pasrpS_LeftReason: school.pasrpS_LeftReason || '',
+                    pasrpS_Address: school.pasrpS_Address || '',
+                    pasrpS_TcNo: '',
+                    pasrpS_PreviousPer: '',
+                    pasrpS_PreviousGrade: '',
+                    pasrpS_PreviousMarks: '',
+                    pasrpS_ConcOrScholarshipFlg: ''
+                })),
                 examSubjectDTO: [],
                 elesubsubject: [],
                 selectedDocuments: uploadedDocuments.map((doc) => ({
@@ -436,19 +470,14 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         setSelectedSourceItems([]);
         setSelectedReferenceItems([]);
         setSameAsResidential(false);
-        setPreviousSchool({
-            pasrpS_Id: 0,
-            pasR_Id: 0,
-            pasrpS_PrvSchoolName: '',
-            pasrpS_PreviousClass: '',
-            pasrpS_Board: '',
-            pasrpS_LeftYear: '',
-            pasrpS_LeftReason: '',
-            pasrpS_Address: ''
-        });
+        // REMOVE: setPreviousSchool(...);
         setUploadedDocuments([]);
         setStudentPhoto(null);
         setStudentPhotoError(null);
+        setFatherPhoto(null);
+        setFatherPhotoError(null);
+        setMotherPhoto(null);
+        setMotherPhotoError(null);
         setDocumentErrors({});
     };
 
@@ -514,10 +543,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         trigger(fieldName as any);
     };
 
-    // Add these functions after handleSameAsResidential
     const addSibling = () => {
         appendSibling({
-            pasrS_Id: 0,
+            pasR_Id: 0,
+            pasrS_SchoolName: '',
+            pasrS_Age: 0,
+            pasrS_Gender: '',
+            pasrS_Institution: '',
+            pasrS_DOB: '',
+            verrejstatus: '',
             pasrS_SiblingsName: '',
             pasrS_SiblingsClass: '',
             pasrS_SiblingsAdmissionNo: '',
@@ -529,9 +563,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         remove(index);
     };
 
-    const updatePreviousSchool = (field: string, value: string) => {
-        setPreviousSchool({ ...previousSchool, [field]: value });
-    };
+    // const updatePreviousSchool = (field: string, value: string) => {
+    //     setPreviousSchool({ ...previousSchool, [field]: value });
+    // };
 
     const handleDocumentUpload = async (amsmD_Id: number, file: File, documentName: string) => {
         try {
@@ -1006,7 +1040,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                 label='Academic Year'
                                                 required
                                                 id='academic_year'
-                                                placeholder='Enter first name'
+                                                placeholder='Academic Year'
                                                 defaultValue={activePreadmission?.data?.asmaY_Year}
                                                 className='w-fit font-semibold'
                                                 disabled
@@ -1190,7 +1224,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         error && 'border-red-500'
                                                                     )}>
                                                                     <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                                    {field.value ? (
+                                                                        format(field.value, 'dd/MM/yyyy')
+                                                                    ) : (
+                                                                        <span>Pick a date</span>
+                                                                    )}
                                                                 </Button>
                                                             </PopoverTrigger>
                                                             <PopoverContent className='w-auto p-0' align='start'>
@@ -1222,12 +1260,13 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field }) => (
                                                         <div>
                                                             <Label htmlFor='pasR_MobileNo'>
-                                                                Mobile No.<span className='ml-1 text-red-500'>*</span>
+                                                                Mobile No.
+                                                                <span className='ml-1 text-red-500'>*</span>
                                                             </Label>
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
-                                                                    phoneValues['pasR_MobileNo'] ??
+                                                                    phoneValues.pasR_MobileNo ??
                                                                     (field.value != null ? String(field.value) : null)
                                                                 }
                                                                 onChange={(phone: any, countryData: any) =>
@@ -2194,7 +2233,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_FatherMobleNo'] ??
+                                                                            phoneValues.pasR_FatherMobleNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2509,7 +2548,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_MotherMobleNo'] ??
+                                                                            phoneValues.pasR_MotherMobleNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2604,7 +2643,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues['pasR_AltContactNo'] ??
+                                                                            phoneValues.pasR_AltContactNo ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
@@ -2654,9 +2693,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                     <div className='space-y-6'>
                                         <div>
                                             <h2 className='font-bold text-2xl text-gray-900'>Document Upload</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>
+                                            <p className='text-sm *:text-gray-500'>
                                                 Please upload the required documents. Documents marked with{' '}
                                                 <span className='text-red-500'>*</span> are mandatory.
+                                            </p>
+                                            <p className='text-red-500 text-sm'>
+                                                NOTE: All documents uploaded should be self-attested by parents
                                             </p>
                                         </div>
 
@@ -3077,86 +3119,85 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
                                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                 <Controller
-                                                    name='previousSchoolDetails.pasrpS_PrvSchoolName'
                                                     control={control}
+                                                    name='previousSchoolDetails.0.pasrpS_PrvSchoolName'
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='Previous School Name'
-                                                            id='pasrpS_PrvSchoolName'
+                                                            id='previous_school_name'
                                                             placeholder='Enter school name'
                                                             {...field}
-                                                            error={errors.previousSchoolDetails?.pasrpS_PrvSchoolName?.message}
+                                                            error={errors.previousSchoolDetails?.[0]?.pasrpS_PrvSchoolName?.message}
                                                         />
                                                     )}
                                                 />
                                                 <Controller
-                                                    name='previousSchoolDetails.pasrpS_PreviousClass'
                                                     control={control}
+                                                    name='previousSchoolDetails.0.pasrpS_PreviousClass'
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='Previous Class'
-                                                            id='pasrpS_PreviousClass'
+                                                            id='previous_class'
                                                             placeholder='Enter class'
                                                             {...field}
-                                                            error={errors.previousSchoolDetails?.pasrpS_PreviousClass?.message}
+                                                            error={errors.previousSchoolDetails?.[0]?.pasrpS_PreviousClass?.message}
                                                         />
                                                     )}
                                                 />
                                                 <Controller
-                                                    name='previousSchoolDetails.pasrpS_Board'
                                                     control={control}
+                                                    name='previousSchoolDetails.0.pasrpS_Board'
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='Board'
-                                                            id='pasrpS_Board'
+                                                            id='board'
                                                             placeholder='Enter board'
                                                             {...field}
-                                                            error={errors.previousSchoolDetails?.pasrpS_Board?.message}
+                                                            error={errors.previousSchoolDetails?.[0]?.pasrpS_Board?.message}
                                                         />
                                                     )}
                                                 />
                                                 <Controller
-                                                    name='previousSchoolDetails.pasrpS_LeftYear'
                                                     control={control}
+                                                    name='previousSchoolDetails.0.pasrpS_LeftYear'
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='Left Year'
-                                                            id='pasrpS_LeftYear'
+                                                            id='left_year'
                                                             placeholder='Enter year'
                                                             {...field}
-                                                            error={errors.previousSchoolDetails?.pasrpS_LeftYear?.message}
+                                                            error={errors.previousSchoolDetails?.[0]?.pasrpS_LeftYear?.message}
                                                         />
                                                     )}
                                                 />
                                                 <Controller
-                                                    name='previousSchoolDetails.pasrpS_LeftReason'
                                                     control={control}
+                                                    name='previousSchoolDetails.0.pasrpS_LeftReason'
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='Reason for Leaving'
-                                                            id='pasrpS_LeftReason'
+                                                            id='left_reason'
                                                             placeholder='Enter reason'
                                                             {...field}
-                                                            error={errors.previousSchoolDetails?.pasrpS_LeftReason?.message}
+                                                            error={errors.previousSchoolDetails?.[0]?.pasrpS_LeftReason?.message}
                                                         />
                                                     )}
                                                 />
                                                 <Controller
-                                                    name='previousSchoolDetails.pasrpS_Address'
                                                     control={control}
+                                                    name='previousSchoolDetails.0.pasrpS_Address'
                                                     render={({ field }) => (
                                                         <InputText
                                                             label='School Address'
-                                                            id='pasrpS_Address'
+                                                            id='school_address'
                                                             placeholder='Enter address'
                                                             {...field}
-                                                            error={errors.previousSchoolDetails?.pasrpS_Address?.message}
+                                                            error={errors.previousSchoolDetails?.[0]?.pasrpS_Address?.message}
                                                         />
                                                     )}
                                                 />
                                             </div>
                                         </div>
-
                                         <InputTextarea
                                             label={'Reason for Admitting Child'}
                                             id='pasA_AdmittingReason'

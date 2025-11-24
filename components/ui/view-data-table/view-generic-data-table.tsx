@@ -76,7 +76,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         LoadingIcon = RefreshCw,
         ErrorIcon = Database,
         LoadingComponent,
-        ErrorComponent
+        ErrorComponent,
+        currentApiParams
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -177,6 +178,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                         onSearchQueryChange(value);
                     }
                 }}
+                currentApiParams={currentApiParams}
             />
         </div>
     );

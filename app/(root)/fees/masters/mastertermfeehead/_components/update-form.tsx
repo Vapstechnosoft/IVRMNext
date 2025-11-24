@@ -46,7 +46,10 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterTermFeeHeadSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            fmT_Id: row.fmT_Id || 0
+        }
     });
 
     function OnReset() {

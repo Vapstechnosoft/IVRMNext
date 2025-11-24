@@ -78,24 +78,77 @@ export async function getGroupDeptDessgMappingList(
     };
     
     try {
-        const response = await api.post<GroupDeptDessgMappingResponse>('hrms', url, requestBody);
+        const response = await api.post<any>('hrms', url, requestBody);
         
-        // Transform response to match expected structure
-        // The API returns data array directly, or in gridviewdata for backward compatibility
-        const gridviewdata = Array.isArray(response?.data) 
-            ? response.data 
-            : (response?.gridviewdata || (response as any)?.data?.gridviewdata || []);
+        // Debug logging (remove in production if needed)
+        if (process.env.NODE_ENV === 'development') {
+            // Debug logging removed for production
+        }
+        
+        // Extract data from new response structure: data.gridviewdata, data.groupTypedropdown, data.departmentdropdown, data.designationdropdown
+        let gridviewdata: GroupDeptDessgMappingDetail[] = [];
+        let groupTypedropdown: any[] = [];
+        let departmentdropdown: any[] = [];
+        let designationdropdown: any[] = [];
+        
+        if (response && typeof response === 'object' && 'data' in response) {
+            const responseData = response.data;
+            
+            // Extract gridviewdata array (new structure: data.gridviewdata)
+            if (responseData && typeof responseData === 'object') {
+                if (Array.isArray(responseData.gridviewdata)) {
+                    gridviewdata = responseData.gridviewdata;
+                } else if (Array.isArray(responseData)) {
+                    // Backward compatibility: if data is directly an array
+                    gridviewdata = responseData;
+                } else if (Array.isArray((response as any).gridviewdata)) {
+                    // Fallback: check root level
+                    gridviewdata = (response as any).gridviewdata;
+                }
+                
+                // Extract groupTypedropdown (new structure: data.groupTypedropdown)
+                if (Array.isArray(responseData.groupTypedropdown)) {
+                    groupTypedropdown = responseData.groupTypedropdown;
+                } else if (Array.isArray((response as any).groupTypedropdown)) {
+                    // Fallback: check root level
+                    groupTypedropdown = (response as any).groupTypedropdown;
+                }
+                
+                // Extract departmentdropdown (new structure: data.departmentdropdown)
+                if (Array.isArray(responseData.departmentdropdown)) {
+                    departmentdropdown = responseData.departmentdropdown;
+                } else if (Array.isArray((response as any).departmentdropdown)) {
+                    // Fallback: check root level
+                    departmentdropdown = (response as any).departmentdropdown;
+                }
+                
+                // Extract designationdropdown (new structure: data.designationdropdown)
+                if (Array.isArray(responseData.designationdropdown)) {
+                    designationdropdown = responseData.designationdropdown;
+                } else if (Array.isArray((response as any).designationdropdown)) {
+                    // Fallback: check root level
+                    designationdropdown = (response as any).designationdropdown;
+                }
+            }
+        }
         
         // Use API's total if provided, otherwise use array length
         const total = response?.total ?? (Array.isArray(gridviewdata) ? gridviewdata.length : 0);
         
         // Return in the expected format
         const transformedResponse: GroupDeptDessgMappingResponse = {
-            ...response,
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: gridviewdata,
-            gridviewdata: gridviewdata,
+            data: {
+                gridviewdata: gridviewdata,
+                groupTypedropdown: groupTypedropdown,
+                departmentdropdown: departmentdropdown,
+                designationdropdown: designationdropdown
+            },
+            gridviewdata: gridviewdata, // For backward compatibility
+            groupTypedropdown: groupTypedropdown,
+            departmentdropdown: departmentdropdown,
+            designationdropdown: designationdropdown,
             total: total,
             page: (typeof response?.page === 'number' ? response.page : page) || page,
             page_size: (typeof response?.page_size === 'number' ? response.page_size : page_size) || page_size

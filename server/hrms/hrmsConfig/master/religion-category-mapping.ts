@@ -2,7 +2,7 @@
 
 import { api, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { ReligionCategoryMappingInput, ReligionCategoryMappingResponse, ReligionCategoryMappingRequest, ReligionCategoryMappingDetail } from '@/types/hrms/religion-category-mapping';
+import type { ReligionCategoryMappingInput, ReligionCategoryMappingResponse, ReligionCategoryMappingRequest, ReligionCategoryMappingDetail, ReligionItem, CasteItem } from '@/types/hrms/religion-category-mapping';
 
 /**
  * Helper function to convert searchParams from URL (strings) to proper types
@@ -77,24 +77,66 @@ export async function getReligionCategoryMappingList(
     };
     
     try {
-        const response = await api.post<ReligionCategoryMappingResponse>('hrms', url, requestBody);
+        const response = await api.post<any>('hrms', url, requestBody);
         
-        // Transform response to match expected structure
-        // The API returns data array directly, or in get_masterlist for backward compatibility
-        const get_masterlist = Array.isArray(response?.data) 
-            ? response.data 
-            : (response?.get_masterlist || (response as any)?.data?.get_masterlist || []);
+        // Debug logging (remove in production if needed)
+        if (process.env.NODE_ENV === 'development') {
+            // Debug logging removed for production
+        }
+        
+        // Extract data from new response structure: data.mapping, data.religion_list, data.caste_list
+        let mappingData: ReligionCategoryMappingDetail[] = [];
+        let religionList: ReligionItem[] = [];
+        let casteList: CasteItem[] = [];
+        
+        if (response && typeof response === 'object' && 'data' in response) {
+            const responseData = response.data;
+            
+            // Extract mapping array (new structure: data.mapping)
+            if (responseData && typeof responseData === 'object') {
+                if (Array.isArray(responseData.mapping)) {
+                    mappingData = responseData.mapping;
+                } else if (Array.isArray(responseData)) {
+                    // Backward compatibility: if data is directly an array
+                    mappingData = responseData;
+                } else if (Array.isArray(responseData.get_masterlist)) {
+                    // Backward compatibility: old structure
+                    mappingData = responseData.get_masterlist;
+                }
+                
+                // Extract religion_list (new structure: data.religion_list)
+                if (Array.isArray(responseData.religion_list)) {
+                    religionList = responseData.religion_list;
+                } else if (Array.isArray((response as any).religion_list)) {
+                    // Fallback: check root level
+                    religionList = (response as any).religion_list;
+                }
+                
+                // Extract caste_list (new structure: data.caste_list)
+                if (Array.isArray(responseData.caste_list)) {
+                    casteList = responseData.caste_list;
+                } else if (Array.isArray((response as any).caste_list)) {
+                    // Fallback: check root level
+                    casteList = (response as any).caste_list;
+                }
+            }
+        }
         
         // Use API's total if provided, otherwise use array length
-        const total = response?.total ?? (Array.isArray(get_masterlist) ? get_masterlist.length : 0);
+        const total = response?.total ?? (Array.isArray(mappingData) ? mappingData.length : 0);
         
         // Return in the expected format
         const transformedResponse: ReligionCategoryMappingResponse = {
-            ...response,
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: get_masterlist,
-            get_masterlist: get_masterlist,
+            data: {
+                mapping: mappingData,
+                religion_list: religionList,
+                caste_list: casteList
+            },
+            get_masterlist: mappingData, // For backward compatibility
+            religion_list: religionList,
+            caste_list: casteList,
             total: total,
             page: (typeof response?.page === 'number' ? response.page : page) || page,
             page_size: (typeof response?.page_size === 'number' ? response.page_size : page_size) || page_size
@@ -124,7 +166,7 @@ export async function saveReligionCategoryMapping(data: ReligionCategoryMappingI
     
     // Get the category IDs from categoryids array if available, otherwise use IMCC_Id
     const categoryIds = data.categoryids && Array.isArray(data.categoryids) && data.categoryids.length > 0 
-        ? data.categoryids.filter((id): id is number => typeof id === 'number' && !isNaN(id) && id > 0)
+        ? data.categoryids.filter((id): id is number => typeof id === 'number' && !Number.isNaN(id) && id > 0)
         : (data.IMCC_Id && data.IMCC_Id > 0 ? [data.IMCC_Id] : []);
     
     // Validate that we have at least one category ID (for nested array)

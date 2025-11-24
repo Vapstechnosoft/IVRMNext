@@ -42,7 +42,7 @@ export default function ToggleFineSlabForm({ rowData, onClose }: ToggleMFineSlab
         try {
             const toggledata = rowData.fmfS_Id;
             console.log('Toggle data ID:', toggledata);
-            const response = await toggleFineSlab(30, Number(rowData.fmfS_Id));
+            const response = await toggleFineSlab(Number(rowData.fmfS_Id));
 
             if (response.success) {
                 toast.success(response.message);

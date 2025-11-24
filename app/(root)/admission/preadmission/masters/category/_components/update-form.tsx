@@ -74,6 +74,19 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
 
     const handleLogoUpload = async (file: File) => {
         try {
+            // Allowed file types
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error(' Only PNG, JPG, and JPEG formats are allowed');
+                return;
+            }
+
+            // Restrict file size to 2MB
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error('File size should not exceed 2MB');
+                return;
+            }
+
             setUploadedLogo({
                 document_Path: '',
                 documentName: file.name,
@@ -265,7 +278,7 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                                         <span className='text-gray-600 text-sm'>
                                             {row.amC_FilePath?.includes('blob.core') ? 'Click to change logo' : 'Click to upload logo'}
                                         </span>
-                                        <span className='text-gray-500 text-xs'>PNG, JPG (max 1MB)</span>
+                                        <span className='text-gray-500 text-xs'>PNG, JPG (max 2MB)</span>
                                     </>
                                 )}
                                 <input
@@ -277,11 +290,6 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                                     onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (file) {
-                                            if (file.size > 1 * 1024 * 1024) {
-                                                toast.error('File size must be less than 1MB');
-                                                e.target.value = '';
-                                                return;
-                                            }
                                             handleLogoUpload(file);
                                             e.target.value = '';
                                         }

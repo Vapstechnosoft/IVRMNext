@@ -59,7 +59,7 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
         try {
             const { fmfS_FineType, fmfS_Id, fmfS_FromDay, fmfS_ToDay, fmfS_ECSFlag, fmfS_ActiveFlag } = data;
             const payload = {
-                mi_id: 30,
+                // mi_id: 30,
                 fmfS_FineType: fmfS_FineType,
                 fmfS_Id: fmfS_Id,
                 fmfS_FromDay: fmfS_FromDay,
@@ -103,7 +103,7 @@ export default function UpdateFineSlabForm({ onSuccess, fineslab = '', selectedR
                                 control={control}
                                 defaultValue={row?.fmfS_FineType as 'Between' | 'GreaterThan' | 'LessThan'}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                                    <Select onValueChange={field.onChange} value={field.value ?? undefined} disabled>
                                         <SelectTrigger className='w-full text-center'>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>

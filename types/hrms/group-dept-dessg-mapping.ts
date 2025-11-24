@@ -58,7 +58,27 @@ export interface GroupDeptDessgMappingResponse {
     success?: boolean;
     message?: string;
     data?: GroupDeptDessgMappingDetail[] | {
-        gridviewdata: GroupDeptDessgMappingDetail[];
+        gridviewdata?: GroupDeptDessgMappingDetail[];
+        groupTypedropdown?: GroupTypeDropdown[];
+        departmentdropdown?: DepartmentDropdown[];
+        designationdropdown?: DesignationDropdown[];
+        HRGTDDS_Id?: number;
+        MI_Id?: number;
+        HRMGT_Id?: number;
+        HRMD_Id?: number;
+        HRMDES_Id?: number;
+        HRGTDDS_ActiveFlg?: boolean;
+        HRGTDDS_CreatedBy?: number;
+        HRGTDDS_UpdatedBy?: number;
+        HRGTDDS_CreatedDate?: string;
+        HRGTDDS_UpdatedDate?: string;
+        designationids?: any;
+        LogInUserId?: number;
+        HRMGT_EmployeeGroupType?: string | null;
+        HRMD_DepartmentName?: string | null;
+        HRMDES_DesignationName?: string | null;
+        returnval?: boolean;
+        msg?: string | null;
     };
     gridviewdata?: GroupDeptDessgMappingDetail[];
     HRGTDDS_Id?: number;
@@ -82,9 +102,9 @@ export interface GroupDeptDessgMappingResponse {
     HRMDES_DesignationName?: string | null;
     returnval?: boolean;
     msg?: string | null;
-    total?: number;
-    page?: number;
-    page_size?: number;
+    total?: number | null;
+    page?: number | null;
+    page_size?: number | null;
 }
 
 export interface GroupDeptDessgMappingInput {

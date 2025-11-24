@@ -5,6 +5,7 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const feethirdpartytrasactionColumns: ColumnDef<IFeeThirdPartyTransaction>[] = [
@@ -105,8 +106,12 @@ export const feethirdpartytrasactionColumns: ColumnDef<IFeeThirdPartyTransaction
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IFeeThirdPartyTransaction }) {
-    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IFeeThirdPartyTransaction>();
+function ActionButtonsCell({
+    rowData
+}: {
+    rowData: IFeeThirdPartyTransaction;
+}) {
+    const { openEditForm, openToggleForm, openDeleteForm, openDetailsView } = useFormContext<IFeeThirdPartyTransaction>();
 
     const handleEdit = useCallback(
         (data: IFeeThirdPartyTransaction) => {
@@ -123,14 +128,25 @@ function ActionButtonsCell({ rowData }: { rowData: IFeeThirdPartyTransaction }) 
     );
 
     const handleDelete = useCallback((data: IFeeThirdPartyTransaction) => openDeleteForm(data), [openDeleteForm]);
+
+    const handleView = useCallback(() => {
+        openDetailsView(rowData);
+    }, [openDetailsView, rowData]);
     return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: true }}
-            onEdit={handleEdit}
-            //onToggle={handleToggle}
-            onDelete={handleDelete}
-            //toggleConditionKey='fmH_ActiveFlag'
-        />
+        <div className='flex justify-center gap-2'>
+            {/* 👁️ Eye icon for viewing grade details */}
+            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Grade Details'>
+                <Eye className='h-4 w-4 text-blue-600' />
+            </button>
+
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: true, toggle: false, delete: true }}
+                onEdit={handleEdit}
+                //onToggle={handleToggle}
+                onDelete={handleDelete}
+                //toggleConditionKey='fmH_ActiveFlag'
+            />
+        </div>
     );
 }

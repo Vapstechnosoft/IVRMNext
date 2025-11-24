@@ -215,24 +215,10 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             return [];
         }
 
-        let deptData: any[] = [];
-        const data = departmentsData.data as any;
+        // Server function already extracts the departments array from response.data.departments
+        const deptData = Array.isArray(departmentsData.data) ? departmentsData.data : [];
 
-        // Handle different response structures
-        if (Array.isArray(data)) {
-            deptData = data;
-        } else if (data && typeof data === 'object') {
-            // Try common wrapper properties
-            deptData =
-                data.departmentList ||
-                data.departmentdropdown ||
-                data.DepartmentTempDto ||
-                data.departmentdropdownlist ||
-                data.$values ||
-                (Array.isArray(data) ? data : []);
-        }
-
-        if (!Array.isArray(deptData) || deptData.length === 0) {
+        if (deptData.length === 0) {
             return [];
         }
 
@@ -282,25 +268,10 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             return [];
         }
 
-        let desgData: any[] = [];
-        const data = designationsData.data as any;
+        // Server function already extracts the designations array from response.data.designations
+        const desgData = Array.isArray(designationsData.data) ? designationsData.data : [];
 
-        // Handle different response structures
-        if (Array.isArray(data)) {
-            desgData = data;
-        } else if (data && typeof data === 'object') {
-            // Try common wrapper properties
-            desgData =
-                data.designationlList ||
-                data.designationdropdown ||
-                data.DesignationTempDto ||
-                data.designationdropdownlist ||
-                data.designationarray ||
-                data.$values ||
-                (Array.isArray(data) ? data : []);
-        }
-
-        if (!Array.isArray(desgData) || desgData.length === 0) {
+        if (desgData.length === 0) {
             return [];
         }
 
@@ -350,24 +321,10 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             return [];
         }
 
-        let empData: any[] = [];
-        const data = employeesData.data as any;
+        // Server function already extracts the employees array from response.data.employees
+        const empData = Array.isArray(employeesData.data) ? employeesData.data : [];
 
-        // Handle different response structures
-        if (Array.isArray(data)) {
-            empData = data;
-        } else if (data && typeof data === 'object') {
-            // Try common wrapper properties
-            empData =
-                data.employeeList ||
-                data.employees ||
-                data.EmployeeTempDto ||
-                data.employeedropdownlist ||
-                data.$values ||
-                (Array.isArray(data) ? data : []);
-        }
-
-        if (!Array.isArray(empData) || empData.length === 0) {
+        if (empData.length === 0) {
             return [];
         }
 
@@ -445,7 +402,7 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         handleSubmit,
         reset,
         watch: _watch,
-        control,
+        control: _control,
         setValue
     } = useForm<ReportFilters>({
         mode: 'onChange',

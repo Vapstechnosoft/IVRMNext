@@ -185,9 +185,19 @@ export default function MappingForm({ selectedRow, onSuccess, className = '' }: 
     };
 
     // Memoize arrays to prevent unnecessary re-renders
-    const groupTypes = useMemo(() => response?.data?.groupTypedropdown || [], [response?.data?.groupTypedropdown]);
-    const departments = useMemo(() => response?.data?.departmentdropdown || [], [response?.data?.departmentdropdown]);
-    const designations = useMemo(() => response?.data?.designationdropdown || [], [response?.data?.designationdropdown]);
+    // Extract from new response structure: data.groupTypedropdown, data.departmentdropdown, data.designationdropdown
+    const groupTypes = useMemo(() => {
+        const data = response?.data as any;
+        return data?.groupTypedropdown || data?.data?.groupTypedropdown || [];
+    }, [response?.data]);
+    const departments = useMemo(() => {
+        const data = response?.data as any;
+        return data?.departmentdropdown || data?.data?.departmentdropdown || [];
+    }, [response?.data]);
+    const designations = useMemo(() => {
+        const data = response?.data as any;
+        return data?.designationdropdown || data?.data?.designationdropdown || [];
+    }, [response?.data]);
 
     // Convert designations to MultiSelect format
     // Use index to ensure uniqueness even if there are duplicate IDs

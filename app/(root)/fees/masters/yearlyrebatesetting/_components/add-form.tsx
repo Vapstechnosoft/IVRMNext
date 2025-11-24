@@ -6,7 +6,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown, useMasterFeeYearlyRebateSettingFacade } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyRebateSettingsSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterYearlyRebateSettingsFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
@@ -22,11 +22,14 @@ type FormFields = z.infer<typeof YearlyRebateSettingsSchema.addOrUpdate>;
 export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?: () => void } = {}) {
     const { data: academicYearOptions } = useAcademicYearDropdown();
 
+    const { refetchAll } = useMasterFeeYearlyRebateSettingFacade();
+
     const {
         control,
         handleSubmit,
         reset,
         watch,
+
         setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -90,6 +93,7 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                 toast.success(response.message || 'Rebate settings saved successfully!');
                 reset();
                 onSuccess?.();
+                refetchAll();
             } else {
                 toast.error(response?.message || 'Failed to save rebate settings');
             }

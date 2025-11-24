@@ -67,3 +67,10 @@ export async function deleteThirdPartyTrasaction(fyp_id: number) {
     console.info(url);
     return await api.delete('fees', url);
 }
+
+export async function receiptView(data: any) {
+    const url = '/ThirdPartyTransaction/print_receipt';
+
+    console.info('thirdPartyTrasaction', url);
+    return await api.post<any>('fees', url, data);
+}

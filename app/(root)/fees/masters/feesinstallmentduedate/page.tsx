@@ -5,25 +5,26 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useMasterFeeInstallmentDueDate } from '@/hooks/fees/useMasters';
-import type { IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
+
+import { useMasterFeeInstallmentDueDateList } from '@/hooks/fees/useMasters';
+import type { IMasterFeesInstallmentDuedateList } from '@/types/fees/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterInstallmentDueDateForm from './_components/add-form';
-import { masterInstallmentDueDateColumns } from './_components/columns';
-import ToggleMasterInstallmentDueDateForm from './_components/toggle-form';
-import UpdateMasterFeeInstallmentDueDateForm from './_components/update-form';
+import { masterInstallmentColumns } from './_components/columns';
+import DeleteInstallmentDueDateListForm from './_components/delete-form';
+import UpdtaeMasterInstallmentDueDateForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterFeeDueDate(props: {
+export default function MasterFeeInstallmentDueDate(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterFeeInstallmentDueDate(searchParams);
+    const { data: response, isLoading, error } = useMasterFeeInstallmentDueDateList(searchParams);
 
     return (
-        <FormProvider<IMasterFeesInstallmentDueDateList>>
+        <FormProvider<IMasterFeesInstallmentDuedateList>>
             <MasterFeeDueDateContent response={response as any} isLoading={isLoading} error={error} />
         </FormProvider>
     );
@@ -34,11 +35,11 @@ function MasterFeeDueDateContent({
     isLoading,
     error
 }: {
-    response: IMasterFeesInstallmentDueDateList[];
+    response: IMasterFeesInstallmentDuedateList[];
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<IMasterFeesInstallmentDueDateList>();
+    const { openAddForm } = useFormContext<IMasterFeesInstallmentDuedateList>();
     const tableProps = useDataTableProps(response);
 
     return (
@@ -62,9 +63,9 @@ function MasterFeeDueDateContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterFeesInstallmentDueDateList>
+                    <GenericDataTable<IMasterFeesInstallmentDuedateList>
                         {...tableProps}
-                        columns={masterInstallmentDueDateColumns}
+                        columns={masterInstallmentColumns}
                         isLoading={isLoading}
                         error={error}
                         loadingMessage='Loading master Fees Installment Due Date...'
@@ -86,14 +87,14 @@ function FormSections() {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
-        closeToggleForm,
+        closeDeleteForm,
         addFormRef,
         editFormRef
-    } = useFormContext<IMasterFeesInstallmentDueDateList>();
+    } = useFormContext<IMasterFeesInstallmentDuedateList>();
 
     return (
         <>
@@ -138,13 +139,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterFeeInstallmentDueDateForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdtaeMasterInstallmentDueDateForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
-            {isToggleFormOpen && selectedRow && <ToggleMasterInstallmentDueDateForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isDeleteFormOpen && selectedRow && <DeleteInstallmentDueDateListForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

@@ -15,6 +15,7 @@ import {
 import { updateStudentPreadmissionStatus } from '@/server/admission/preadmission/transactions/transfer_preadmission_status';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { use, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { AdmissionStatusUpdateDialog } from './_components/admission-status-update-form';
@@ -24,11 +25,26 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function TransferAdmissionStatusPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
+    const router = useRouter();
+    const pathname = usePathname();
 
     const tableRef = useRef<DataTableRef>(null);
 
     const handleResetSelection = () => {
         tableRef.current?.resetSelection();
+    };
+
+    const handleFilterChange = (filterType: 'class' | 'status', value: number) => {
+        if (filterType === 'class') {
+            setClassId(value);
+        } else {
+            setStatusId(value);
+        }
+
+        // Reset to page 1 when filter changes
+        const params = new URLSearchParams(searchParams as any);
+        params.set('page', '1');
+        router.replace(`${pathname}?${params.toString()}`);
     };
 
     const { data: activePreadmission, isLoading: activePreadmissionDeLoading } = useActivePreadmissionDetails();
@@ -106,7 +122,9 @@ export default function TransferAdmissionStatusPage(props: { searchParams: Searc
                         <Label htmlFor='class' className='mb-1 font-semibold'>
                             Class
                         </Label>
-                        <Select onValueChange={(value) => setClassId(Number(value))} value={classId?.toString() || undefined}>
+                        <Select
+                            onValueChange={(value) => handleFilterChange('class', Number(value))}
+                            value={classId?.toString() || undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
@@ -139,7 +157,7 @@ export default function TransferAdmissionStatusPage(props: { searchParams: Searc
                             Admission Status
                         </Label>
                         <Select
-                            onValueChange={(value) => setStatusId(Number(value))}
+                            onValueChange={(value) => handleFilterChange('status', Number(value))}
                             value={statusId !== 0 ? statusId?.toString() || undefined : undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Admission Status' />

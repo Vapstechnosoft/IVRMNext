@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useAcademicYearDropdown, useMasterFeeYearlyRebateSettingFacade } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { YearlyRebateSettingsSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterYearlyRebateSettingsFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
@@ -28,9 +28,13 @@ interface UpdateYearlyRebateSettingFormProps {
 }
 
 export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }: UpdateYearlyRebateSettingFormProps) {
+    const { refetchAll } = useMasterFeeYearlyRebateSettingFacade();
+
     const [isInitializing, setIsInitializing] = useState(false);
     const { data: academicYearOptions, isLoading: isAcademicYearLoading } = useAcademicYearDropdown();
     const queryClient = useQueryClient();
+
+    console.log('selectedRow in update form:', selectedRow);
 
     const {
         control,
@@ -42,31 +46,51 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
     } = useForm<FormFields>({
         mode: 'onChange',
         resolver: zodResolver(YearlyRebateSettingsSchema.addOrUpdate),
+
         defaultValues: {
-            asmaY_Id: '',
-            fyrebseT_RebateTypeFlg: '',
-            fyrebseT_Id: undefined,
-            fyrebseT_RebateAmtOrPercentValue: 0,
-            fyrebseT_RebateDate: ''
+            asmaY_Id: selectedRow?.asmaY_Id?.toString() || '',
+            fyrebseT_RebateTypeFlg:
+                selectedRow?.fyrebseT_RebateTypeFlg.toString() === 'A'
+                    ? '0'
+                    : selectedRow?.fyrebseT_RebateTypeFlg.toString() === 'P'
+                      ? '1'
+                      : '',
+            fyrebseT_Id:
+                selectedRow?.fyrebseT_RebateTypeFlg.toString() === 'A'
+                    ? '0'
+                    : selectedRow?.fyrebseT_RebateTypeFlg.toString() === 'P'
+                      ? '1'
+                      : '',
+            fyrebseT_RebateAmtOrPercentValue: selectedRow?.fyrebseT_RebateAmtOrPercentValue || 0,
+            fyrebseT_RebateDate: selectedRow?.fyrebseT_RebateDate
         }
     });
+    useEffect(() => {
+        if (!selectedRow) return;
+        setValue('asmaY_Id', selectedRow?.asmaY_Id?.toString() || '');
+        setValue(
+            'fyrebseT_RebateTypeFlg',
+            selectedRow?.fyrebseT_RebateTypeFlg.toString() === 'A' ? '0' : selectedRow?.fyrebseT_RebateTypeFlg.toString() === 'P' ? '1' : ''
+        );
+        setValue('fyrebseT_Id', selectedRow?.fyrebseT_Id?.toString() || undefined);
+        setValue('fyrebseT_RebateAmtOrPercentValue', selectedRow?.fyrebseT_RebateAmtOrPercentValue || 0);
+        setValue('fyrebseT_RebateDate', selectedRow?.fyrebseT_RebateDate);
+    }, [selectedRow]);
 
     const rebateId = watch('fyrebseT_Id');
 
     useEffect(() => {
         const academicYearId = selectedRow.asmaY_Id?.toString() ?? '';
 
-        let rebateTypeId: string | undefined;
         const rebateTypeFlg = selectedRow.fyrebseT_RebateTypeFlg;
 
-        if (rebateTypeFlg === 'A' || rebateTypeFlg === 'Amount') {
-            rebateTypeId = '0';
-        } else if (rebateTypeFlg === 'P' || rebateTypeFlg === 'Percentage') {
-            rebateTypeId = '1';
-        }
+        const rebateTypeId =
+            rebateTypeFlg === 'A' || rebateTypeFlg === 'Amount' ? '0' : rebateTypeFlg === 'P' || rebateTypeFlg === 'Percentage' ? '1' : '';
+        //setValue('fyrebseT_Id', rebateTypeId);
 
         const rawRebateValue = selectedRow.fyrebseT_RebateAmtOrPercentValue;
         const parsedRebateValue = typeof rawRebateValue === 'string' ? Number(rawRebateValue) : rawRebateValue;
+
         const rebateValue = Number.isFinite(parsedRebateValue) ? parsedRebateValue : 0;
 
         let rebateDate = '';
@@ -76,24 +100,21 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
                 if (!Number.isNaN(date.getTime())) {
                     rebateDate = format(date, 'yyyy-MM-dd');
                 }
-            } catch (_e) {
-                //ignore
-            }
+            } catch {}
         }
 
         const formValues = {
             asmaY_Id: academicYearId,
-            fyrebseT_RebateTypeFlg: rebateTypeFlg === 'A' || rebateTypeFlg === 'Amount' ? 'A' : 'P',
+            fyrebseT_RebateTypeFlg: rebateTypeFlg === 'A' ? 'A' : 'P',
             fyrebseT_Id: rebateTypeId,
             fyrebseT_RebateAmtOrPercentValue: rebateValue,
             fyrebseT_RebateDate: rebateDate
         };
 
         setIsInitializing(true);
-        reset(formValues, { keepValues: false });
-
-        Promise.resolve().then(() => setTimeout(() => setIsInitializing(false), 50));
-    }, [selectedRow, academicYearOptions?.data, reset]);
+        reset(formValues);
+        setTimeout(() => setIsInitializing(false), 50);
+    }, [selectedRow]);
 
     const onSubmit = async (data: FormFields) => {
         try {
@@ -146,6 +167,7 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
 
             if (response?.success) {
                 toast.success(response.message || 'Rebate settings updated successfully!');
+                refetchAll();
 
                 try {
                     queryClient.invalidateQueries({

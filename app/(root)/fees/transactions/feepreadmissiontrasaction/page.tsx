@@ -72,20 +72,28 @@ function PreadmissionTransactionContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections refetch={refetch} />
+                <FormSections />
             </div>
         </div>
     );
 }
 
-function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, closeAddForm, isDetailsViewOpen, closeDetailsView, selectedRow } =
-        useFormContext<IFeePreAdmissionTransactionDetails>();
+function FormSections() {
+    const {
+        isAddFormOpen,
+
+        isDetailsViewOpen,
+        selectedRow,
+        closeDetailsView,
+        closeAddForm,
+
+        addFormRef
+    } = useFormContext<IFeePreAdmissionTransactionDetails>();
 
     return (
         <>
             {isAddFormOpen && (
-                <div>
+                <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add New Fee Preadmission Transaction'
                         description='Fill in the details below to create a new fee preadmission transaction.'
@@ -102,12 +110,8 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddFeePreAdmissionTransactionForm
-                                onSuccess={() => {
-                                    closeAddForm();
-                                    refetch(); // Refetch grid after save
-                                }}
-                            />
+                            <AddFeePreAdmissionTransactionForm onSuccess={closeAddForm} />
+                            {/* <FeePaymentForm  /> */}
                         </div>
                     </CollapsibleSection>
                 </div>

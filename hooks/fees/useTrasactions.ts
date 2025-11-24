@@ -16,6 +16,7 @@ import {
     get_Receipt_number,
     geteditThirdpartytrasaction
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
+import { getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
 
 export const useFeeAmountEntry = (searchParams?: ApiSearchparams) => {
@@ -271,6 +272,40 @@ export const useeditThirdpartytrasaction = (mi_id: number, asmaY_Id: number, fyp
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA]
+            });
+        }
+    };
+};
+
+export const useSectiondropdowndatafee = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_SECTIONDROPDOWN_DETAILS, searchParams ?? {}],
+            queryFn: async () => getsectiondetails(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_SECTIONDROPDOWN_DETAILS]
+            });
+        }
+    };
+};
+
+export const useClassdropdowndatafee = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CLASSDROPDOWN_DETAILS, searchParams ?? {}],
+            queryFn: async () => getClassdetails(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CLASSDROPDOWN_DETAILS]
             });
         }
     };

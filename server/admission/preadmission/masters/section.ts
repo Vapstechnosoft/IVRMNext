@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IMasterSectionList, IMasterSectionSetOrderList } from '@/types/admission/preadmission/masters';
 
 export async function getMasterSection(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmC_SectionCode,asmC_SectionName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmC_SectionCode,asmC_SectionName,asmC_Order,asmC_MaxCapacity');
     const url = `/master_section?${urlParams}`;
     return await api.get<IMasterSectionList[]>('admission', url);
 }
