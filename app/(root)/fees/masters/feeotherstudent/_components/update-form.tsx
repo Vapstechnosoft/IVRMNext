@@ -56,7 +56,7 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
     const onsubmit = async () => {
         const buildpayload = () => {
             return {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmosT_Id: selectedRow.fmosT_Id,
                 fmosT_StudentName: studentName,
                 fmosT_StudentMobileNo: studentMobileNo,
@@ -67,13 +67,13 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
         try {
             const res = await saveFeeOtherStudent(payload);
             if (res?.success) {
-                toast.success(res.message || 'Saved successfully');
+                toast.success(res.message || 'Updated successfully');
                 refetchAll();
                 handleReset();
                 onSuccess?.();
                 onClose?.();
             } else {
-                toast.error(res?.message || 'Save failed');
+                toast.error(res?.message || 'Update failed');
             }
         } catch (err: any) {
             console.error('API Error:', err);
@@ -95,9 +95,7 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
                             required
                             id='studentName'
                             placeholder='Enter Student Name'
-                            {...register('studentName', {
-                                required: 'Student name is required'
-                            })}
+                            {...register('studentName', {})}
                             error={errors.studentName?.message}
                         />
 
@@ -106,6 +104,7 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
                             required
                             id='mobileno'
                             placeholder='Enter Student Mobile Number'
+                            type='tel'
                             {...register('mobileno', {
                                 required: 'Mobile number is required',
                                 pattern: {
@@ -113,6 +112,15 @@ export default function UpdtaeFeeOtherStudentFrom({ onSuccess, className = '', s
                                     message: 'Enter a valid 10-digit mobile number'
                                 }
                             })}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                const input = e.currentTarget;
+                                // Remove non-digit characters
+                                input.value = input.value.replace(/\D/g, '');
+                                // Limit to 10 digits
+                                if (input.value.length > 10) {
+                                    input.value = input.value.slice(0, 10);
+                                }
+                            }}
                             error={errors.mobileno?.message}
                         />
 

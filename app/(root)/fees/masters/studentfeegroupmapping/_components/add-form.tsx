@@ -81,9 +81,7 @@ export default function StudentFeeGroupMappingFilter() {
         resolver: zodResolver(masterStudentFeeGroupMappingSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            mI_Id: '30',
-            asmaY_Id: 231,
-            institutionName: 'vidya_vikas_vidya_samste'
+            asmaY_Id: 231
         }
     });
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
