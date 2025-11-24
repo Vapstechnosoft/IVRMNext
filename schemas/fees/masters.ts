@@ -714,8 +714,8 @@ export const masterStudentFeeGroupMappingSchema = {
 
 export const masterFeeOtherStudentSchema = {
     addOrUpdate: z.object({
-        mI_Id: z.string().min(1, { message: 'Institution is required' }),
-        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        // mI_Id: z.string().min(1, { message: 'Institution is required' }),
+        // institutionName: z.string().min(1, { message: 'Institution Name is required' }),
         studentName: z.string().min(1, { message: 'Student Name is required' }),
         mobileno: z.string().min(1, { message: 'Mobile Number is required' }),
         emailno: z.string().min(1, { message: 'Email Number is required' })
