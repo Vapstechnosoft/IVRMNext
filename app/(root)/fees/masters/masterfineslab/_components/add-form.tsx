@@ -49,7 +49,7 @@ export default function AddFineSlabForm({ onSuccess, fineslab = '' }: AddFineSla
             const { fmfS_FineType, fmfS_Id, fmfS_FromDay, fmfS_ToDay, fmfS_ECSFlag } = data;
 
             const payload = {
-                mi_id: 30,
+                //   mi_id: 30,
                 fmfS_FineType,
                 fmfS_Id,
                 fmfS_FromDay,

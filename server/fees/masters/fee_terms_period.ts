@@ -12,7 +12,7 @@ import type {
 } from '@/types/fees/masters/masters';
 
 export async function getMasterTermsPeriod(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'termname,headnamed,yearname,fdate1,tdate1,aplc1,ddate1');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmtToMonth,fmtP_Year,fromMonth,yearname,termname');
     const url = `FeeMasterTerms/GetMasterTermsPeriodList/21602?${urlParams}`;
 
     return await api.get<IMasterTermsPeriodList[]>('fees', url);

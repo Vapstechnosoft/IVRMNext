@@ -530,7 +530,17 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         <Label className='min-w-[150px] text-right'>
                             Card No <span className='text-red-500'>*</span>
                         </Label>
-                        <InputText {...register('chequeNo')} placeholder='Enter Card Number' error={errors.chequeNo?.message} />
+                        {/* <InputText {...register('chequeNo')} placeholder='Enter Card Number' error={errors.chequeNo?.message} /> */}
+                        <InputText
+                            {...register('chequeNo', {
+                                onChange: (e) => {
+                                    const onlyNumbers = e.target.value.replace(/[^0-9]/g, '');
+                                    e.target.value = onlyNumbers; // force update input
+                                }
+                            })}
+                            placeholder='Enter Card Number'
+                            error={errors.chequeNo?.message}
+                        />
                     </div>
                 </>
             )}

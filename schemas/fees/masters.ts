@@ -608,8 +608,8 @@ export const masterClassFeeMasterGroupwiseAutoReceipt = {
             startingNumber: z.string().min(1, { message: 'Starting Number is required' }),
             groups: z.array(z.string().min(1)).min(1, { message: 'At least one group must be selected' }),
             autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
-            address: z.string().optional(),
-            receiptTemplateFormat: z.string().optional()
+            address: z.string().min(1, { message: 'Address is required' }),
+            receiptTemplateFormat: z.string().min(1, { message: 'Receipt Template Format is required' })
         })
         .refine(
             (data) => {
