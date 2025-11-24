@@ -6,35 +6,43 @@ import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
-import { addOrUpdateExamStudentRemarks } from '@/server/exam/exam-module/marks-entry/exam-wise-student-remarks';
+import { addOrUpdateExamStudentRemarks, getStudentDetails } from '@/server/exam/exam-module/marks-entry/exam-wise-student-remarks';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
-import type { IExamWiseStudentRemarksStudent } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamWiseRemarksGrid, IExamWiseStudentRemarksStudent } from '@/types/exam/exam-module/exam-mapping';
 
+import { useExamWiseRemarksDataGrid } from '@/hooks/exam/exammodule/marks-entry';
+import {
+    getClassDropDownByAcademicYearlist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist
+} from '@/server/exam/exam-module/reports/cumulative-report';
 import { z } from 'zod';
 import { ExamWiseStudentRemarksColumns } from './exam-wise-student-remarks-columns';
-
 export const studentRemarksSchema = z.object({
-    mI_Id: z.number(),
-    asmcL_Id: z.number(),
-    emE_Id: z.number(),
-    asmaY_Id: z.number(),
-    asmS_Id: z.number(),
-    studentdata_Remarks: z.array(
-        z.object({
-            amsT_Id: z.number(),
-            emeR_Remarks: z
-                .string()
-                .min(1, 'Remarks required')
-                .max(250, 'Max 250 chars')
-                .transform((val) => val ?? '') // ensures null becomes empty string
-        })
-    )
+    mI_Id: z.coerce.number().optional(), // org id (optional)
+    asmcL_Id: z.coerce.number(),
+    emE_Id: z.coerce.number(),
+    asmaY_Id: z.coerce.number(),
+    asmS_Id: z.coerce.number(),
+
+    studentdata_Remarks: z
+        .array(
+            z.object({
+                amsT_Id: z.coerce.number(),
+                emeR_Remarks: z
+                    .string()
+                    .max(250, 'Max 250 chars')
+                    .nullable()
+                    .transform((val) => val ?? '')
+            })
+        )
+        .default([])
 });
 
 type FormFields = z.infer<typeof studentRemarksSchema>;
@@ -42,18 +50,19 @@ type FormFields = z.infer<typeof studentRemarksSchema>;
 interface Props {
     orgId?: number;
     onSuccess?: () => void;
+    rowData?: IExamWiseRemarksGrid;
 }
 
-export default function AddEditStudentRemarks({ orgId = 30, onSuccess }: Props) {
+export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }: Props) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(studentRemarksSchema),
         mode: 'onChange',
         defaultValues: {
             mI_Id: orgId,
-            asmcL_Id: 0,
-            emE_Id: 0,
-            asmaY_Id: 0,
-            asmS_Id: 0,
+            asmcL_Id: rowData?.asmcL_Id ?? 0,
+            emE_Id: rowData?.emE_Id ?? 0,
+            asmaY_Id: rowData?.asmaY_Id ?? 0,
+            asmS_Id: rowData?.asmS_Id ?? 0,
             studentdata_Remarks: []
         }
     });
@@ -65,8 +74,12 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess }: Props) 
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [students, setStudents] = useState<IExamWiseStudentRemarksStudent[]>([]);
+    const [selectedStudents, setSelectedStudents] = useState<IExamWiseStudentRemarksStudent[]>([]);
+    const [preSelectedStudentIds, setPreSelectedStudentIds] = useState<string[]>([]);
     const [tableProps, setTableProps] = useState<any>({});
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isStudentsGridOpen, setIsStudentsGridOpen] = useState(false);
 
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
@@ -74,6 +87,22 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess }: Props) 
     const emE_Id = useWatch({ control, name: 'emE_Id' });
 
     const { data: academicData, error: academicError } = useAcademicYearDropdown();
+    const { refetchAll } = useExamWiseRemarksDataGrid();
+    useEffect(() => {
+        if (!rowData) return;
+        handleSearch();
+        reset(
+            {
+                mI_Id: orgId,
+                asmcL_Id: rowData.asmcL_Id ?? 0,
+                emE_Id: rowData.emE_Id ?? 0,
+                asmaY_Id: rowData.asmaY_Id ?? 0,
+                asmS_Id: rowData.asmS_Id ?? 0,
+                studentdata_Remarks: []
+            },
+            { keepDirty: false }
+        );
+    }, [rowData, classes, sections, exams]);
 
     useEffect(() => {
         // Academic Years
@@ -137,14 +166,26 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess }: Props) 
     }, [asmaY_Id, asmcL_Id, asmS_Id, setValue]);
 
     async function handleSearch() {
-        if (!asmaY_Id || !asmcL_Id || !emE_Id) {
-            toast.error('Select all required fields before search');
+        if (!asmaY_Id || !asmcL_Id || !emE_Id || !asmS_Id) {
+            if (!rowData) {
+                toast.error('Select all required fields before search');
+            }
             return;
         }
         setIsLoading(true);
+        setIsStudentsGridOpen(true);
         try {
-            const { data } = await getStudentsByClassSectionExam(asmaY_Id, asmcL_Id, emE_Id);
-            const studentList = Array.isArray(data) ? data.map((s: any) => ({ ...s, emeR_Remarks: '' })) : [];
+            const { data } = await getStudentDetails(asmaY_Id, asmcL_Id, asmS_Id, emE_Id, 30);
+            const studentList = Array.isArray(data) ? data.map((s: any) => ({ ...s, emeR_Remarks: s.emeR_Remarks })) : [];
+            const preSelectedStudentIds = studentList.reduce<string[]>((acc, s, ind) => {
+                if (s.emeR_Remarks && s.emeR_Remarks.trim().length > 0) {
+                    acc.push(ind.toString());
+                }
+                return acc;
+            }, []);
+
+            console.log('preSelectedStudentIds', preSelectedStudentIds);
+            setPreSelectedStudentIds(preSelectedStudentIds);
             setStudents(studentList);
             setTableProps(
                 useDataTableProps({
@@ -166,22 +207,30 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess }: Props) 
     }
 
     async function onSubmit(data: FormFields) {
-        if (!students.length) {
+        if (!selectedStudents.length) {
             toast.error('No students found to save');
             return;
         }
+
+        setIsSaving(true);
         try {
+            const selectedIds = new Set(selectedStudents.map((s) => s.amsT_Id));
+
             const payload: FormFields = {
                 ...data,
-                studentdata_Remarks: students.map((s) => ({
-                    amsT_Id: s.amsT_Id,
-                    emeR_Remarks: s.emeR_Remarks ?? '' // convert null to empty string
-                }))
+                studentdata_Remarks: students
+                    .filter((s) => selectedIds.has(s.amsT_Id)) // take only selected students
+                    .map((s) => ({
+                        amsT_Id: s.amsT_Id,
+                        emeR_Remarks: s.emeR_Remarks?.trim() || '' // take updated remarks from students[]
+                    }))
             };
 
+            console.log(payload);
             const res = await addOrUpdateExamStudentRemarks(payload);
             if (res?.success) {
                 toast.success(res.message || 'Remarks saved successfully');
+                refetchAll();
                 reset();
                 setStudents([]);
                 setTableProps({});
@@ -191,25 +240,42 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess }: Props) 
             }
         } catch (err: any) {
             toast.error(err?.message || 'Something went wrong');
+        } finally {
+            setIsSaving(false);
+            setIsStudentsGridOpen(false);
         }
     }
-    // inside your component
-    const updateStudent = (index: number, updated: IExamWiseStudentRemarksStudent) => {
-        setStudents((prev) => {
-            const newStudents = [...prev];
-            newStudents[index] = updated;
 
-            // update tableProps data
-            setTableProps((prevProps: any) => ({
-                ...prevProps,
-                data: newStudents
-            }));
-
-            return newStudents;
+    const handleReset = () => {
+        reset({
+            asmaY_Id: 0,
+            asmcL_Id: 0,
+            asmS_Id: 0,
+            emE_Id: 0
         });
+        setStudents([]);
     };
 
-    // generate columns with callback
+    const updateStudent = (id: number, remarks: string) => {
+        setStudents((prev) => {
+            const updated = prev.map((s) => (s.amsT_Id === id ? { ...s, emeR_Remarks: remarks } : s));
+
+            // also update table props
+            setTableProps((tp: any) => ({
+                ...tp,
+                data: updated
+            }));
+
+            return updated;
+        });
+    };
+    useEffect(() => {
+        if (Object.keys(methods.formState.errors).length > 0) {
+            console.log('❌ Form Validation Errors:', methods.formState.errors);
+        }
+    }, [methods.formState.errors]);
+
+    // Pass to columns
     const columns = ExamWiseStudentRemarksColumns(updateStudent);
 
     return (
@@ -220,27 +286,28 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess }: Props) 
                         control={control}
                         name='asmaY_Id'
                         render={({ field, fieldState }) => (
-                            <div>
+                            <div className='flex flex-col gap-7 sm:flex-row sm:items-center'>
                                 <Label>
                                     Academic Year <span className='text-red-500'>*</span>
                                 </Label>
+                                <div className='flex-1'>
+                                    <Select
+                                        key={field.value} // <— forces remount when value changes
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                        onValueChange={(val) => field.onChange(Number(val))}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Academic Year' />
+                                        </SelectTrigger>
 
-                                <Select
-                                    key={field.value} // <— forces remount when value changes
-                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                    onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Academic Year' />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {academicYears.map((y) => (
-                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                {y.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                        <SelectContent>
+                                            {academicYears.map((y) => (
+                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                    {y.asmaY_Year}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                             </div>
@@ -329,25 +396,49 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess }: Props) 
                             </div>
                         )}
                     />
-                    <div className='flex items-end'>
+                    <div className='col-span-2 flex w-fit items-center justify-center gap-3'>
+                        <Button type='button' variant='outline' onClick={handleReset}>
+                            Reset
+                        </Button>
                         <Button type='button' onClick={handleSearch}>
                             Search Students
                         </Button>
                     </div>
                 </div>
 
-                {students.length > 0 && (
-                    <div className='mt-6'>
-                        <GenericDataTable {...tableProps} columns={columns} isLoading={isLoading} />
-                    </div>
-                )}
+                {isStudentsGridOpen && (
+                    <>
+                        <div className='mt-6'>
+                            <GenericDataTable
+                                {...tableProps}
+                                columns={columns}
+                                isLoading={isLoading}
+                                onRowSelectionChange={(selectedRows: IExamWiseStudentRemarksStudent[]) => {
+                                    console.log('selectedRows', selectedRows);
+                                    console.log('students', students);
+                                    const selectedRowIds = selectedRows.map((r) => String(r.amsT_Id));
+                                    const selected = students.filter((s, index) => {
+                                        const isSelected = selectedRowIds.includes(s.amsT_Id.toString());
+                                        return isSelected;
+                                    });
 
-                <div className='flex justify-end gap-2'>
-                    <Button type='submit'>Save</Button>
-                    <Button type='button' variant='outline' onClick={() => reset()}>
-                        Reset
-                    </Button>
-                </div>
+                                    setSelectedStudents(selected);
+                                    setPreSelectedStudentIds(preSelectedStudentIds);
+
+                                    setSelectedStudents(selected);
+                                }}
+                                defaultSelectedRowIds={preSelectedStudentIds}
+                            />
+                        </div>
+
+                        <div className='flex w-fit justify-end gap-2'>
+                            <Button type='button' variant='outline' onClick={() => handleReset}>
+                                Reset
+                            </Button>
+                            <Button type='submit'>{isSaving ? 'Saving...' : 'Save Student Remarks'}</Button>
+                        </div>
+                    </>
+                )}
             </form>
         </FormProvider>
     );

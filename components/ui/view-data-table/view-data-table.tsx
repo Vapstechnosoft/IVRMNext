@@ -36,6 +36,7 @@ interface DataTableProps<TData, TValue> {
     showSearch?: boolean;
     showSorting?: boolean;
     columnPinning?: ColumnPinningState | undefined;
+    defaultSelectedRowIds?: string[];
     onSearchQueryChange?: (value: ApiSearchparams) => void;
 
     // ✅ updated
@@ -62,7 +63,8 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         columnPinning,
         maxSelectableRows = 0,
         onRowSelectionChange,
-        onSearchQueryChange
+        onSearchQueryChange,
+        defaultSelectedRowIds
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -98,6 +100,32 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
     useEffect(() => {
         rowSelectionRef.current = rowSelection;
     }, [rowSelection]);
+
+    useEffect(() => {
+        if (!Array.isArray(defaultSelectedRowIds)) return;
+
+        setRowSelection((prev) => {
+            const updated = { ...prev };
+
+            // Update OR add
+            defaultSelectedRowIds.forEach((id) => {
+                updated[id] = true;
+            });
+
+            rowSelectionRef.current = updated;
+
+            if (onRowSelectionChange) {
+                const selectedRows = table
+                    .getFilteredRowModel()
+                    .rows.filter((r) => updated[r.id])
+                    .map((r) => r.original);
+
+                onRowSelectionChange(selectedRows);
+            }
+
+            return updated;
+        });
+    }, [defaultSelectedRowIds]);
 
     const paginationState = { pageIndex: currentPage - 1, pageSize };
     const pageCount = Math.ceil(totalItems / pageSize);
@@ -203,8 +231,8 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                     {/* ---------- FIXED TABLE STRUCTURE ---------- */}
                     <div className='overflow-hidden rounded-md border'>
                         <div className='overflow-x-auto'>
-                            <div className='relative max-h-[384px] overflow-y-auto'>
-                                <Table className='min-w-full table-auto border-separate border-spacing-0'>
+                            <div className='relative max-h-[584px] overflow-y-auto'>
+                                <Table className='min-w-full table-auto border-collapse'>
                                     {/* ---------- STICKY HEADER ---------- */}
                                     <TableHeader className='sticky top-0 z-30 bg-card'>
                                         {table.getHeaderGroups().map((headerGroup) => (

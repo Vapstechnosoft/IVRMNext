@@ -2,10 +2,10 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IExamWiseRemarksGrid } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const ExamWiseStudentRemarksColumns: ColumnDef<IExamWiseRemarksGrid>[] = [
@@ -98,15 +98,12 @@ export const ExamWiseStudentRemarksColumns: ColumnDef<IExamWiseRemarksGrid>[] = 
 function ActionButtonsCell({ rowData }: { rowData: IExamWiseRemarksGrid }) {
     const { openEditForm } = useFormContext<IExamWiseRemarksGrid>();
 
-    const handleEdit = useCallback(() => {
-        openEditForm(rowData);
-    }, [openEditForm, rowData]);
+    const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
 
     return (
-        <div className='flex justify-center'>
-            <button type='button' onClick={handleEdit} className='rounded-md p-2 transition hover:bg-muted' title='Edit Record'>
-                <Pencil className='h-4 w-4 text-blue-600' />
-            </button>
+        <div className='flex justify-center gap-2'>
+            {/*  Edit,  Toggle,  Delete buttons */}
+            <ActionButtons rowData={rowData} buttons={{ edit: true, delete: false, toggle: false }} onEdit={handleEdit} />
         </div>
     );
 }

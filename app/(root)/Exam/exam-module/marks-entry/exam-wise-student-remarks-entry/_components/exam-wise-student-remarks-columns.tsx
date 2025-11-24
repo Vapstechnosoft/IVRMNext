@@ -3,117 +3,104 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { Textarea } from '@/components/ui/textarea';
 import type { IExamWiseStudentRemarksStudent } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useEffect, useState } from 'react';
 
-// ------------------------------------------------------
-// Columns — Exam Wise Student Remarks
-// ------------------------------------------------------
-// Accepts a callback to update student data in parent
 export const ExamWiseStudentRemarksColumns = (
-    updateStudent: (index: number, updated: IExamWiseStudentRemarksStudent) => void
+    updateStudent: (id: number, remarks: string) => void
 ): ColumnDef<IExamWiseStudentRemarksStudent>[] => [
-    // ------------------------------------------------------
-    // SELECT CHECKBOX
-    // ------------------------------------------------------
+    // SELECT
     {
         id: 'select',
         header: ({ table }) => (
             <Checkbox
                 checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
                 onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
             />
         ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
+        cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} />,
         enableSorting: false,
         size: 24
     },
 
-    // ------------------------------------------------------
     // SL.NO
-    // ------------------------------------------------------
     {
         accessorKey: 'slNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-
-            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+            const page = table.getState().pagination.pageIndex;
+            const size = table.getState().pagination.pageSize;
+            return <span>{page * size + row.index + 1}</span>;
         },
         enableSorting: false
     },
 
-    // ------------------------------------------------------
-    // STUDENT NAME BLOCK
-    // ------------------------------------------------------
+    // STUDENT INFO
     {
         accessorKey: 'amsT_FirstName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
         cell: ({ row }) => {
-            const data = row.original;
-
+            const d = row.original;
             return (
                 <div className='flex flex-col text-sm leading-6'>
                     <div>
-                        <span className='font-semibold'>Name :</span> {data.amsT_FirstName}
+                        <b>Name :</b> {d.amsT_FirstName}
                     </div>
                     <div>
-                        <span className='font-semibold'>Adm.No. :</span> {data.amsT_AdmNo}
+                        <b>Adm.No. :</b> {d.amsT_AdmNo}
                     </div>
                     <div>
-                        <span className='font-semibold'>Reg.No. :</span> {data.amsT_RegistrationNo}
+                        <b>Reg.No. :</b> {d.amsT_RegistrationNo}
                     </div>
                     <div>
-                        <span className='font-semibold'>Roll.No. :</span> {data.amaY_RollNo}
+                        <b>Roll.No. :</b> {d.amaY_RollNo}
                     </div>
                 </div>
             );
         }
     },
 
-    // ------------------------------------------------------
-    // MARKS BLOCK
-    // ------------------------------------------------------
+    // MARKS
     {
         accessorKey: 'estmP_TotalObtMarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Marks' />,
         cell: ({ row }) => {
-            const data = row.original;
-
+            const d = row.original;
             return (
                 <div className='flex flex-col text-sm leading-6'>
                     <div>
-                        <span className='font-semibold'>Obtained Marks :</span> {data.estmP_TotalObtMarks ?? '-'}
+                        <b>Obtained Marks :</b> {d.estmP_TotalObtMarks ?? '-'}
                     </div>
                     <div>
-                        <span className='font-semibold'>Max Marks :</span> {data.estmP_TotalMaxMarks ?? '-'}
+                        <b>Max Marks :</b> {d.estmP_TotalMaxMarks ?? '-'}
                     </div>
                     <div>
-                        <span className='font-semibold'>Percentage :</span> {data.estmP_Percentage ?? '-'}
+                        <b>Percentage :</b> {d.estmP_Percentage ?? '-'}
                     </div>
                 </div>
             );
         }
     },
 
-    // ------------------------------------------------------
-    // REMARKS TEXT AREA
-    // ------------------------------------------------------
+    // REMARKS — FIXED VERSION
     {
         accessorKey: 'emeR_Remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remarks' />,
         cell: ({ row }) => {
-            const value = row.original.emeR_Remarks ?? '';
+            const { amsT_Id, emeR_Remarks } = row.original;
+
+            // Local field value → avoids re-renders
+            const [localValue, setLocalValue] = useState(emeR_Remarks ?? '');
+
+            // Update local when row data changes (pagination / reload)
+            useEffect(() => {
+                setLocalValue(emeR_Remarks ?? '');
+            }, [emeR_Remarks]);
 
             return (
                 <Textarea
-                    value={value}
-                    onChange={(e) => {
-                        const updated = { ...row.original, emeR_Remarks: e.target.value };
-                        updateStudent(row.index, updated); // call parent callback
-                    }}
+                    value={localValue}
+                    onChange={(e) => setLocalValue(e.target.value)}
+                    onBlur={() => updateStudent(amsT_Id, localValue)} // update only onBlur
                     className='h-20 resize-none border-blue-300 focus-visible:ring-blue-400'
                     placeholder='Enter remarks'
                 />
