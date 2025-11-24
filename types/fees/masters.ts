@@ -65,6 +65,11 @@ export interface IMasterFeesInstallmentDueDateList {
     yrid: number;
     fmI_Name: string;
     fmI_Id: number;
+    ftI_Name: string;
+    fdate: string;
+    tdate: string;
+    aplc: string;
+    ddate: string;
 }
 
 export interface IMasterConcessionList {
@@ -155,4 +160,16 @@ export interface IMasterConcessionDetailsList {
     fmccD_CreatedBy: number;
     fmccD_UpdatedBy: number;
     fmcC_ConcessionFlag: string;
+}
+
+export interface IMasterFeesInstallmentDuedateList {
+    ftidD_Id: number;
+    ftI_Name: string;
+    ftidD_FromDate: string;
+    ftidD_ToDate: string;
+    ftidD_ApplicableDate: string;
+    ftidD_DueDate: string;
+    ftI_Id: number;
+    asmaY_Id: number;
+    fmI_Id: number;
 }

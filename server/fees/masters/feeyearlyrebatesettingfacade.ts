@@ -33,3 +33,8 @@ export async function toggleMasterclassYearlyCategory(id: number) {
     const url = `/fee_class_category/deletedetailsY/${id}`;
     return await api.put('fees', url);
 }
+
+export async function toggleYearlyRebateSetting(id: number) {
+    const url = `FeeYearlyRebateSettingFacade/toggle_fee_rebatesetting/${id}`;
+    return await api.put('fees', url);
+}

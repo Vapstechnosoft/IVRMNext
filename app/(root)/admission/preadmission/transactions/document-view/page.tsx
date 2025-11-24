@@ -7,31 +7,35 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { useDocumentView, usePreadmissionClassDropdown } from '@/hooks/admission/preadmission/useTransactions';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import {
+    useActivePreadmissionDetails,
+    useDocumentView,
+    usePreadmissionClassDropdown
+} from '@/hooks/admission/preadmission/useTransactions';
 import type { IPreadmissionDocumentView } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
-import { parseAsString, useQueryState } from 'nuqs';
-import { use, useRef, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { use, useEffect, useRef, useState } from 'react';
 import { DocumentViewColoumn } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function DocumentView(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
+    const router = useRouter();
+    const pathname = usePathname();
+
     const tableRef = useRef<DataTableRef>(null);
 
-    const [searchQuery, setSearchQuery] = useQueryState(
-        tableSearchVariables.search,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
-
+    const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: classOptions, isLoading: classLoading, isError: classError } = usePreadmissionClassDropdown();
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
 
     // Filters
     const [classId, setClassId] = useState(0);
     const [academicYearId, setAcademicYearId] = useState(0);
+
+    // (moved) effects that depend on refetchStudents are placed after hook below
 
     // Table selection
     const [selectedStudents, setSelectedStudents] = useState<IPreadmissionDocumentView[]>([]);
@@ -43,10 +47,43 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
         refetch: refetchStudents
     } = useDocumentView(academicYearId ?? 0, classId, searchParams);
 
+    // Auto-select first academic year when options load so details populate
+    useEffect(() => {
+        if ((academicYearId ?? 0) === 0 && academicYearOptions?.data && academicYearOptions.data.length > 0) {
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+        }
+    }, [academicYearOptions]);
+
+    // When academic year changes, ensure students data is fetched immediately
+    useEffect(() => {
+        if (academicYearId && typeof refetchStudents === 'function') {
+            refetchStudents();
+        }
+    }, [academicYearId, refetchStudents]);
+
     const tableProps = useDataTableProps(response);
 
     const handleSelectStudent = (selectedRows: IPreadmissionDocumentView[]) => {
         setSelectedStudents(selectedRows);
+    };
+
+    useEffect(() => {
+        if (activePreadmission?.data) {
+            setAcademicYearId(activePreadmission.data.asmaY_Id ?? 0);
+        }
+    }, [activePreadmission]);
+
+    const handleFilterChange = (filterType: 'class' | 'academic_year', value: number) => {
+        if (filterType === 'class') {
+            setClassId(value);
+        } else {
+            setAcademicYearId(value);
+        }
+
+        // Reset to page 1 when filter changes
+        const params = new URLSearchParams(searchParams as any);
+        params.set('page', '1');
+        router.replace(`${pathname}?${params.toString()}`);
     };
 
     return (
@@ -59,9 +96,12 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
                         <Label htmlFor='academic-year' className='mb-1 font-semibold'>
                             Academic Year
                         </Label>
-                        <Select
+                        {/* <Select
                             value={academicYearId !== 0 ? String(academicYearId) : undefined}
-                            onValueChange={(value) => setAcademicYearId(Number(value))}>
+                            onValueChange={(value) => setAcademicYearId(Number(value))}> */}
+                        <Select
+                            onValueChange={(value) => handleFilterChange('academic_year', Number(value))}
+                            value={academicYearId !== 0 ? academicYearId?.toString() || undefined : undefined}>
                             <SelectTrigger id='academic-year'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
@@ -91,12 +131,10 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
                             Class
                         </Label>
                         <Select
-                            value={String(classId)}
                             onValueChange={(value) => {
-                                setClassId(Number(value));
-                                // Clear table search when a class is selected
-                                setSearchQuery('');
-                            }}>
+                                handleFilterChange('class', Number(value));
+                            }}
+                            value={classId?.toString() || undefined}>
                             <SelectTrigger id='class'>
                                 <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
@@ -146,7 +184,6 @@ export default function DocumentView(props: { searchParams: SearchParams }) {
                         isLoading={studentsLoading}
                         error={error}
                         showViewOptions={false}
-                        searchQuery={searchQuery}
                         loadingMessage='Loading preadmission applications...'
                         noDataTitle='No Data Found'
                         noDataDescription='No preadmission applications found.'

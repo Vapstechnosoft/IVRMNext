@@ -91,36 +91,66 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
     },
     {
         accessorKey: 'application_form',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Application Form' />,
+        header: ({ column }) => <DataTableColumnHeader className='text-nowrap' column={column} title='Application Form' />,
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
-            const { data: pdfData, isLoading } = useDocumentDownload(appId);
+            const [pdfBase64, setPdfBase64] = useState<string | null>(null);
             const [iframeLoading, setIframeLoading] = useState(false);
 
-            const pdfBase64: string | null | undefined =
-                typeof pdfData?.data === 'string'
-                    ? pdfData.data
-                    : Array.isArray(pdfData?.data)
-                      ? ((pdfData.data[0] as unknown as string) ?? null)
-                      : null;
+            const { mutate: downloadDocument, isPending: isLoading } = useDocumentDownload();
+
+            const handleViewClick = () => {
+                setShowPdfModal(true);
+                // Only fetch when user clicks
+                if (!pdfBase64) {
+                    downloadDocument(appId, {
+                        onSuccess: (data) => {
+                            const base64 =
+                                typeof data?.data === 'string'
+                                    ? data.data
+                                    : Array.isArray(data?.data)
+                                      ? ((data.data[0] as unknown as string) ?? null)
+                                      : null;
+                            setPdfBase64(base64);
+                        },
+                        onError: (error) => {
+                            console.error('Failed to load document:', error);
+                            setPdfBase64(null);
+                        }
+                    });
+                }
+            };
 
             useEffect(() => {
                 if (showPdfModal && pdfBase64) {
                     setIframeLoading(true);
                 }
-                if (!showPdfModal) setIframeLoading(false);
+                if (!showPdfModal) {
+                    setIframeLoading(false);
+                }
             }, [showPdfModal, pdfBase64]);
 
             return (
                 <>
-                    <Button variant='link' className='p-0 text-blue-600 hover:underline' onClick={() => setShowPdfModal(true)}>
+                    <Button variant='link' className='p-0 text-blue-600 hover:underline' onClick={handleViewClick}>
                         View Application
                     </Button>
 
                     {showPdfModal && (
-                        <Dialog open={showPdfModal} onOpenChange={setShowPdfModal}>
-                            <DialogContent className='flex h-[90vh] max-w-5xl flex-col p-0'>
+                        <Dialog
+                            open={showPdfModal}
+                            onOpenChange={(open) => {
+                                setShowPdfModal(open);
+                                if (!open) {
+                                    setPdfBase64(null);
+                                }
+                            }}>
+                            <DialogContent
+                                className='flex h-[90vh] max-w-5xl flex-col p-0'
+                                onInteractOutside={(e) => {
+                                    e.preventDefault();
+                                }}>
                                 <DialogHeader className='p-0'>
                                     <DialogTitle className='pt-3 text-center font-semibold text-lg'>
                                         Pre Admission Application Form
@@ -130,7 +160,7 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                     {/* Spinner while loading PDF */}
                                     {(isLoading || iframeLoading) && (
                                         <div className='absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm'>
-                                            <div className=' transition-all'>
+                                            <div className='transition-all'>
                                                 <div className='flex flex-col items-center'>
                                                     <Spinner size='lg' className='text-primary' />
                                                     <p className='mt-3 font-medium text-gray-700 text-sm'>Loading document...</p>
@@ -138,12 +168,10 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                             </div>
                                         </div>
                                     )}
-                                    {/* PDF Viewer replaces iframe, removes extra padding */}
+                                    {/* PDF Viewer */}
                                     <div className='relative h-full min-h-0 w-full'>
-                                        {/* toolbar: download / open */}
                                         {pdfBase64 ? <div className='absolute top-3 right-3 z-30 flex gap-3' /> : null}
 
-                                        {/* inline PDF viewer using iframe (falls back to message when no PDF) */}
                                         {typeof pdfBase64 === 'string' && pdfBase64 ? (
                                             <iframe
                                                 src={
@@ -158,7 +186,9 @@ export const DocumentViewColoumn: ColumnDef<IPreadmissionDocumentView>[] = [
                                             />
                                         ) : (
                                             <div className='flex h-full items-center justify-center'>
-                                                <div className='text-gray-500 text-sm'>No document available</div>
+                                                <div className='text-gray-500 text-sm'>
+                                                    {isLoading ? 'Loading...' : 'No document available'}
+                                                </div>
                                             </div>
                                         )}
                                     </div>

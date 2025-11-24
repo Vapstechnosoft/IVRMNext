@@ -175,7 +175,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                         <Label htmlFor='fmI_Name'>
                             Master Installment Name <span className='text-red-500'>*</span>
                         </Label>
-                        <Controller
+                        {/* <Controller
                             name='fmI_Name'
                             control={control}
                             render={({ field }) => (
@@ -187,7 +187,25 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                                     onChange={field.onChange}
                                 />
                             )}
+                        /> */}
+                        <Controller
+                            name='fmI_Name'
+                            control={control}
+                            render={({ field }) => (
+                                <InputText
+                                    id='fmI_Name'
+                                    placeholder='Enter master installment name'
+                                    {...field}
+                                    value={field.value ?? ''}
+                                    onChange={(e) => {
+                                        // Allow only letters and spaces
+                                        const sanitized = e.target.value.replace(/[^A-Za-z ]/g, '');
+                                        field.onChange(sanitized);
+                                    }}
+                                />
+                            )}
                         />
+
                         {errors.fmI_Name && <FormError>{errors.fmI_Name.message}</FormError>}
                     </div>
 

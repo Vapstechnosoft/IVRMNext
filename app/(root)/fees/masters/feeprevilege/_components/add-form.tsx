@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
     useAcademicYearDropdown,
     useFeeMasterGroupwiseAutoReceiptDropDown,
+    useFeePrevilegeList,
     useHeadsByGroupAndAcademicYear,
     useRolesDropdown,
     useUserNameDropdown
@@ -39,6 +40,8 @@ interface AddMasterClassFormProps {
 type FormFields = z.infer<typeof feePrivilegeSchema.addOrUpdate>;
 
 export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMasterClassFormProps) {
+    const { refetchAll } = useFeePrevilegeList();
+
     const {
         handleSubmit,
         setValue,
@@ -258,11 +261,13 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
 
             const res = await addOrUpdateFeePrivilege(payload);
             if (res) {
-                toast.success('Privilege saved successfully');
+                // toast.success('Privilege saved successfully');
+                toast.success(res.message);
             }
 
             handleReset();
             onSuccess?.();
+            refetchAll();
         } catch (_err: any) {
             toast.error('Something went wrong while saving.');
         }

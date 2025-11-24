@@ -64,24 +64,24 @@ export interface IMasterClassYearlyCategoryList {
 
 //installment fees
 
-export interface IMasterFeesInstallmentList {
-    fmI_Id: number;
-    mI_Id: number;
-    fmI_Name: string;
-    fmI_No_Of_Installments: number;
-    fmI_Installment_Type: string;
-    ftI_Name?: string;
-    fmI_ActiceFlag?: boolean | number;
-    installments?: Array<{
-        sno?: number;
-        ftI_Id?: number;
-        ftI_Name?: string;
-        fdate?: string;
-        tdate?: string;
-        aplc?: string;
-        ddate?: string;
-    }>;
-}
+// export interface IMasterFeesInstallmentList {
+//     fmI_Id: number;
+//     mI_Id: number;
+//     fmI_Name: string;
+//     fmI_No_Of_Installments: number;
+//     fmI_Installment_Type: string;
+//     ftI_Name?: string;
+//     fmI_ActiceFlag?: boolean | number;
+//     installments?: Array<{
+//         sno?: number;
+//         ftI_Id?: number;
+//         ftI_Name?: string;
+//         fdate?: string;
+//         tdate?: string;
+//         aplc?: string;
+//         ddate?: string;
+//     }>;
+// }
 //groups
 export interface IMasterGroupList {
     fmG_Id: number;
@@ -241,6 +241,7 @@ export interface IMasterYearlyRebateSettingsList {
     fyG_PartialRebate: string;
     fyG_PartialRebateAmtOrPercentageValue?: number | string;
     fyg_date: string;
+    fyrebseT_Id: number;
 }
 
 export interface IMasterGroupsGrouping {
@@ -374,6 +375,19 @@ export interface IMasterFeesInstallmentList {
         ddate?: string;
     }>;
 }
+
+export interface IMasterFeesInstallmentDuedateList {
+    ftidD_Id: number;
+    ftI_Name: string;
+    ftidD_FromDate: string;
+    ftidD_ToDate: string;
+    ftidD_ApplicableDate: string;
+    ftidD_DueDate: string;
+    ftI_Id: number;
+    asmaY_Id: number;
+    fmI_Id: number;
+}
+
 export interface IMasterClassYearlyList {
     fmG_GroupName: string;
     fmG_Id: any;
@@ -395,7 +409,12 @@ export interface IMasterFeeHeadDropdownList {
     fmH_FeeName: string;
 }
 
-export interface IMasterFeeInstallmentDropdownList {
+// export interface IMasterFeeInstallmentDropdownList {
+//     fmI_Id: number;
+//     fmI_Name: string;
+// }
+
+export interface IMasterFeeInstallmentDropDown {
     fmI_Id: number;
     fmI_Name: string;
 }
@@ -580,4 +599,175 @@ export interface IFeeOnlinehaedgroupMappingList {
         asmcL_Id: number;
         preAdmFlag: boolean;
     }>;
+}
+
+export interface IMasterTermsPeriodList {
+    yearname: string;
+    termname: string;
+    fromMonth: string;
+    fmtToMonth: string;
+    fmtP_Year: string;
+    feeFlag: string;
+    fmtP_Id: number;
+    user_Id: number;
+    asmaY_Id: number;
+    fmT_Id: number;
+}
+
+export interface IMasterStudentFeeGroupMappingList {
+    fmgM_Id: number;
+    amsT_Id: number;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    amsT_FirstName: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amaY_RollNo: string;
+    amsT_Mobile: number;
+    fmG_GroupName: string;
+    fmG_Id: number;
+    fmsG_Id: number;
+}
+export interface IMasterFeeClassDropDownList {
+    asmcL_Id: number;
+    mI_Id: number;
+    asmcL_ClassName: string;
+    asmcL_MinAgeYear: number;
+    asmcL_MinAgeMonth: number;
+    asmcL_MinAgeDays: number;
+    asmcL_MaxAgeYear: number;
+    asmcL_MaxAgeMonth: number;
+    asmcL_MaxAgeDays: number;
+    asmcL_Order: number;
+    asmcL_ClassCode: string;
+    asmcL_ActiveFlag: true;
+    asmcL_MaxCapacity: number;
+    asmcL_PreadmFlag: number;
+}
+
+export interface IMasterFeeSectionDropDownList {
+    asmS_Id: number;
+    mI_Id: number;
+    asmC_SectionName: string;
+    asmC_SectionCode: string;
+    asmC_Order: number;
+    asmC_ActiveFlag: number;
+    asmC_MaxCapacity: number;
+}
+
+export interface IMasterFeeGroupHeadMappinList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+export interface IMasterAdmClassCategoryMappingList {
+    amC_Id: number;
+    categoryName: string;
+}
+
+export interface IMasterFeeBusRoutingMappingList {
+    trmR_Id: number;
+    trmR_RouteName: string;
+}
+
+export interface IMasterFeeCasteCategoryMappingList {
+    imC_Id: number;
+    imC_CasteName: string;
+}
+
+export interface IMasterStudentClassMappingList {
+    studentId: number;
+    registrationNo: string;
+    admissionNo: string;
+    firstName: string;
+    middleName: string;
+    lastName: string;
+    mobileNo: number;
+    activeFlag: number;
+    academicYearId: number;
+    classId: number;
+    className: string;
+    sectionId: number;
+    sectionName: string;
+    rollNo: number;
+}
+export interface FeeStudentSummaryId {
+    feeGroups: StudentFeeGroupSummaryById[];
+}
+
+export interface StudentFeeGroupSummaryById {
+    fmG_Id: number;
+    groupName: string;
+    checked: boolean;
+    disabled: boolean;
+    heads: IMasterFeeSummaryHeadList[];
+}
+
+export interface IMasterFeeSummaryHeadList {
+    fmH_Id: number;
+    headName: string;
+    checked: boolean;
+    disabled: boolean;
+    installments: IMasterFeeSummaryInstallmentlist[];
+}
+
+export interface IMasterFeeSummaryInstallmentlist {
+    ftI_Id: number;
+    installmentName: string;
+    checked: boolean;
+    disabled: boolean;
+}
+
+export interface IMasterFeeGroupList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+export interface IMasterFeeHeadList {
+    fmG_Id: number;
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IMasterFeeInstallmentList {
+    fmG_Id: number;
+    fmH_Id: number;
+    ftI_Id: number;
+    ftI_Name: string;
+}
+
+export interface studentFeeGroupInstallment {
+    ftI_Name: string;
+    fmG_Id: number;
+    fmH_Id: number;
+    checked?: boolean;
+}
+
+export interface studentFeeGroupHead {
+    fmH_FeeName: string;
+    fmH_Id: number;
+    fmG_Id: number;
+    checked?: boolean;
+    installments?: studentFeeGroupInstallment[];
+}
+
+export interface studentFeeGroup {
+    fmG_GroupName: string;
+    fmG_Id: number;
+    checked?: boolean;
+    heads?: studentFeeGroupHead[];
+}
+export interface GroupStudentClassMapping {
+    groups: studentFeeGroup[];
+}
+
+export interface IFeeSplitYearList {
+    fmtP_Year: string;
+}
+
+export interface MasterFeeOtherStudentType {
+    fmosT_Id: number;
+    mI_Id: number;
+    fmosT_StudentName: string;
+    fmosT_StudentMobileNo: number;
+    fmosT_StudentEmailId: string;
+    fmosT_ActiveFlag: boolean;
 }

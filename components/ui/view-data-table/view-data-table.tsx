@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { getCommonPinningStyles, tableSearchVariables } from '@/lib/data-table.config';
+import { getCommonPinningStyles } from '@/lib/data-table.config';
 import type { ApiSearchparams } from '@/types';
 import { DoubleArrowLeftIcon, DoubleArrowRightIcon } from '@radix-ui/react-icons';
 import {
@@ -17,9 +17,7 @@ import {
     useReactTable
 } from '@tanstack/react-table';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
-import { useEffect, useRef, useState } from 'react';
-import { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { DataTableSkeleton } from './view-data-table-skeleton';
 import { DataTableToolbar } from './view-data-table-toolbar';
@@ -37,18 +35,19 @@ interface DataTableProps<TData, TValue> {
     showSorting?: boolean;
     columnPinning?: ColumnPinningState | undefined;
     onSearchQueryChange?: (value: ApiSearchparams) => void;
-
-    // ✅ updated
     maxSelectableRows?: number;
+    defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: TData[]) => void;
+    currentApiParams?: ApiSearchparams;
+
 }
 
 export interface DataTableRef {
     resetSelection: () => void;
 }
 
-export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(function DataTable<TData, TValue>(
-    {
+export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(function DataTable(props, ref) {
+    const {
         columns,
         data,
         totalItems,
@@ -61,40 +60,54 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         showSorting = false,
         columnPinning,
         maxSelectableRows = 0,
+        defaultSelectedRowIds,
         onRowSelectionChange,
-        onSearchQueryChange
-    }: DataTableProps<TData, TValue>,
-    ref: React.Ref<DataTableRef>
-) {
-    // Pagination state
-    const [currentPage, setCurrentPage] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [localSearchQuery, setLocalSearchQuery] = useState('');
-    const [pageSize, setPageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
-    );
+        onSearchQueryChange,
+        currentApiParams
+    } = props;
 
-    // Sorting and filtering
-    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [order] = useQueryState(
-        tableSearchVariables.sort_direction,
-        parseAsStringLiteral(['asc', 'desc'] as const)
-            .withOptions({ shallow: false })
-            .withDefault('asc')
-    );
-    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const { page = 1, page_size = 10, search_query = '', sort_column = '', sort_direction = 'desc' } = currentApiParams || {};
 
-    // Generate a unique key for this table instance based on current page/filters
-    const tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
+    // Initialize states
+    const [currentPage, setCurrentPage] = useState<number>(page);
+    const [pageSize, setPageSize] = useState<number>(page_size);
+    const [localSearchQuery, setLocalSearchQuery] = useState<string>(search_query);
+    const [sortBy, setSortBy] = useState<string>(sort_column);
+    const [order, setOrder] = useState<'asc' | 'desc'>(sort_direction as 'asc' | 'desc');
 
-    // Initialize from ref to preserve across re-renders
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // ---------------------------
+    // 🔄 Row Selection
+    // ---------------------------
     const rowSelectionRef = useRef<Record<string, boolean>>({});
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>(() => rowSelectionRef.current);
+    useEffect(() => {
+        if (!Array.isArray(defaultSelectedRowIds)) return;
 
-    // Update ref whenever selection changes
+        setRowSelection(prev => {
+            const updated = { ...prev };
+
+            // Update OR add
+            defaultSelectedRowIds.forEach((id) => {
+                updated[id] = true;
+            });
+
+            rowSelectionRef.current = updated;
+
+            if (onRowSelectionChange) {
+                const selectedRows = table
+                    .getFilteredRowModel()
+                    .rows
+                    .filter((r) => updated[r.id])
+                    .map((r) => r.original);
+
+                onRowSelectionChange(selectedRows);
+            }
+
+            return updated;
+        });
+    }, [defaultSelectedRowIds]);
     useEffect(() => {
         rowSelectionRef.current = rowSelection;
     }, [rowSelection]);
@@ -120,9 +133,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         },
         onPaginationChange: handlePaginationChange,
 
-        // ✅ UPDATE THIS HANDLER
         onRowSelectionChange: (newSelection) => {
             const selectionObj = typeof newSelection === 'function' ? newSelection(rowSelection) : newSelection;
+
             const selectedCount = Object.keys(selectionObj).length;
 
             if (maxSelectableRows && selectedCount > maxSelectableRows) {
@@ -130,7 +143,6 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                 return;
             }
 
-            // Update both state and ref
             setRowSelection(selectionObj);
             rowSelectionRef.current = selectionObj;
 
@@ -139,9 +151,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                 .rows.filter((r) => selectionObj[r.id])
                 .map((r) => r.original);
 
-            if (typeof onRowSelectionChange === 'function') {
-                onRowSelectionChange(selectedRows);
-            }
+            onRowSelectionChange?.(selectedRows);
         },
 
         getCoreRowModel: getCoreRowModel(),
@@ -150,27 +160,34 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         manualPagination: true,
         manualSorting: true,
         manualFiltering: true,
+
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
         }
     });
 
-    // Add this right after useReactTable:
+    // Expose resetSelection()
     useImperativeHandle(ref, () => ({
         resetSelection: () => {
             setRowSelection({});
-            // ✅ ADD THIS LINE
             rowSelectionRef.current = {};
-            if (typeof onRowSelectionChange === 'function') {
-                onRowSelectionChange([]);
-            }
+            onRowSelectionChange?.([]);
         }
     }));
+
+    const isFirstRender = useRef(true);
+
     useEffect(() => {
+        // Skip calling API on first mount
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
         const params: ApiSearchparams = {
             page: currentPage,
             page_size: pageSize,
-            search_query: localSearchQuery || '', // from toolbar
+            search_query: localSearchQuery,
             sort_column: sortBy || '',
             sort_direction: order || '',
             search_columns: ''
@@ -189,8 +206,10 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                 showViewOptions={showViewOptions}
                 showSearch={showSearch}
                 showSorting={showSorting}
+                currentSearchQuery={localSearchQuery}
                 onSearchQueryChange={(value) => {
                     setLocalSearchQuery(value);
+                    setSearchQuery(value);
                 }}
             />
 
@@ -199,13 +218,11 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                 <DataTableSkeleton columnCount={5} rowCount={5} showPagination showViewOptions={false} />
             ) : (
                 <>
-                    {/* Outer container – border only */}
                     {/* ---------- FIXED TABLE STRUCTURE ---------- */}
                     <div className='overflow-hidden rounded-md border'>
                         <div className='overflow-x-auto'>
                             <div className='relative max-h-[384px] overflow-y-auto'>
                                 <Table className='min-w-full table-auto border-separate border-spacing-0'>
-                                    {/* ---------- STICKY HEADER ---------- */}
                                     <TableHeader className='sticky top-0 z-30 bg-card'>
                                         {table.getHeaderGroups().map((headerGroup) => (
                                             <TableRow key={headerGroup.id}>
@@ -215,7 +232,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                                         colSpan={header.colSpan}
                                                         className='whitespace-nowrap border-b bg-card'
                                                         style={{
-                                                            ...getCommonPinningStyles({ column: header.column }),
+                                                            ...getCommonPinningStyles({
+                                                                column: header.column
+                                                            }),
                                                             top: 0,
                                                             zIndex: 20
                                                         }}>
@@ -228,7 +247,6 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                         ))}
                                     </TableHeader>
 
-                                    {/* ---------- SCROLLABLE BODY ---------- */}
                                     <TableBody>
                                         {table.getRowModel().rows?.length ? (
                                             table.getRowModel().rows.map((row) => (
@@ -238,7 +256,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                                             key={cell.id}
                                                             className='whitespace-nowrap'
                                                             style={{
-                                                                ...getCommonPinningStyles({ column: cell.column })
+                                                                ...getCommonPinningStyles({
+                                                                    column: cell.column
+                                                                })
                                                             }}>
                                                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                         </TableCell>
@@ -267,7 +287,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                         </div>
                     </div>
 
-                    {/* ---------- PAGINATION (unchanged) ---------- */}
+                    {/* ---------- PAGINATION ---------- */}
                     {showPagination && (
                         <div className='flex flex-col gap-2.5'>
                             <div className='flex w-full flex-col-reverse items-center justify-between gap-4 overflow-auto p-1 sm:flex-row sm:gap-8'>
@@ -280,9 +300,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                     <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
                                         {totalItems > 0
                                             ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                                  (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                                  totalItems
-                                              )} of ${totalItems} entries`
+                                                (paginationState.pageIndex + 1) * paginationState.pageSize,
+                                                totalItems
+                                            )} of ${totalItems} entries`
                                             : 'No entries found'}
                                     </div>
                                 )}
@@ -307,7 +327,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                     </Select>
                                 </div>
 
-                                {/* Pagination controls */}
+                                {/* Controls */}
                                 <div className='flex items-center space-x-2'>
                                     <Button
                                         aria-label='First page'

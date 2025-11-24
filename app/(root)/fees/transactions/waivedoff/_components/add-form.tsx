@@ -2,12 +2,15 @@
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { useMasterFeeTransactionWaiveOff } from '@/hooks/fees/useTrasactions';
+import {
+    useClassdropdowndatafee,
+    useMasterFeeTransactionWaiveOff,
+    useSectiondropdowndatafee,
+    useacademicyerdropdowndatafee
+} from '@/hooks/fees/useTrasactions';
 
 import { feeTransactionWaivedOffSchema } from '@/schemas/fees/trasactions';
 import { addOrUpdateTransactionWaivedOff } from '@/server/fees/trasactions/waived_off';
@@ -15,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, CheckSquare, Save, Square, Trash } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -60,13 +63,21 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     const {
         handleSubmit,
         reset,
-        formState: { isSubmitting }
+        control,
+        formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feeTransactionWaivedOffSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {}
     });
-    const { data: academicYears, isLoading: loadingAY } = useAcademicYearDropdown();
+    //const { data: academicYears, isLoading: loadingAY } = useAcademicYearDropdown();
+
+    const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
+
+    const { data: classdata, isLoading: classloading, error: classerror } = useClassdropdowndatafee();
+
+    const { data: sectiondata, isLoading: secloading, error: sectionerror } = useSectiondropdowndatafee();
+
     const [academicYear, setAcademicYear] = useState<string | null>(null);
     const [classWise, setclassWise] = useState<string | null>(null);
     const [studentWise, setstudentWise] = useState<string | null>(null);
@@ -87,35 +98,35 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         setPhotoFile(f);
     };
 
-    const availableSections = useMemo(() => {
-        if (!classWise) return [];
+    // const availableSections = useMemo(() => {
+    //     if (!classWise) return [];
 
-        if (classWise === 'LKG STATE' || classWise === 'UKG STATE') {
-            return [];
-        }
+    //     if (classWise === 'LKG STATE' || classWise === 'UKG STATE') {
+    //         return [];
+    //     }
 
-        if (classWise === 'LKG' || classWise === 'UKG') {
-            return ['A', 'B', 'C'];
-        }
+    //     if (classWise === 'LKG' || classWise === 'UKG') {
+    //         return ['A', 'B', 'C'];
+    //     }
 
-        if (['I STD', 'II STD', 'III STD', 'IV STD', 'V STD'].includes(classWise)) {
-            return ['A'];
-        }
+    //     if (['I STD', 'II STD', 'III STD', 'IV STD', 'V STD'].includes(classWise)) {
+    //         return ['A'];
+    //     }
 
-        if (['VI STD', 'VII STD', 'VIII STD', 'IX STD', 'X STD'].includes(classWise)) {
-            return ['A', 'B'];
-        }
+    //     if (['VI STD', 'VII STD', 'VIII STD', 'IX STD', 'X STD'].includes(classWise)) {
+    //         return ['A', 'B'];
+    //     }
 
-        if (classWise === 'Nursery') {
-            return ['A'];
-        }
+    //     if (classWise === 'Nursery') {
+    //         return ['A'];
+    //     }
 
-        if (['I CSE', 'II CSE', 'III CSE', 'IV CSE'].includes(classWise)) {
-            return ['B', 'C'];
-        }
+    //     if (['I CSE', 'II CSE', 'III CSE', 'IV CSE'].includes(classWise)) {
+    //         return ['B', 'C'];
+    //     }
 
-        return [];
-    }, [classWise]);
+    //     return [];
+    // }, [classWise]);
 
     const formattedStudentList = useMemo(() => {
         if (nameType === 'NameReg.No') {
@@ -130,24 +141,24 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         }));
     }, [nameType]);
 
-    const handleClassChange = (value: string) => {
-        setclassWise(value);
-        if (sectionWise) {
-            const newSections = getSectionsForClass(value);
-            if (!newSections.includes(sectionWise)) {
-                setsectionWise(null);
-            }
-        }
-    };
-    const getSectionsForClass = (className: string) => {
-        if (className === 'LKG STATE' || className === 'UKG STATE') return [];
-        if (className === 'LKG' || className === 'UKG') return ['A', 'B', 'C'];
-        if (['I STD', 'II STD', 'III STD', 'IV STD', 'V STD'].includes(className)) return ['A'];
-        if (['VI STD', 'VII STD', 'VIII STD', 'IX STD', 'X STD'].includes(className)) return ['A', 'B'];
-        if (className === 'Nursery') return ['A'];
-        if (['I CSE', 'II CSE', 'III CSE', 'IV CSE'].includes(className)) return ['B', 'C'];
-        return [];
-    };
+    // const handleClassChange = (value: string) => {
+    //     setclassWise(value);
+    //     if (sectionWise) {
+    //         const newSections = getSectionsForClass(value);
+    //         if (!newSections.includes(sectionWise)) {
+    //             setsectionWise(null);
+    //         }
+    //     }
+    // };
+    // const getSectionsForClass = (className: string) => {
+    //     if (className === 'LKG STATE' || className === 'UKG STATE') return [];
+    //     if (className === 'LKG' || className === 'UKG') return ['A', 'B', 'C'];
+    //     if (['I STD', 'II STD', 'III STD', 'IV STD', 'V STD'].includes(className)) return ['A'];
+    //     if (['VI STD', 'VII STD', 'VIII STD', 'IX STD', 'X STD'].includes(className)) return ['A', 'B'];
+    //     if (className === 'Nursery') return ['A'];
+    //     if (['I CSE', 'II CSE', 'III CSE', 'IV CSE'].includes(className)) return ['B', 'C'];
+    //     return [];
+    // };
 
     const nonRefundableOption = ['KG TUTION FEES', 'KG ILM & OTHER FEES', 'KG BOOKS FEES', 'KG ILM & OTHER FEES', 'KG BOOKS FEES'];
 
@@ -159,6 +170,10 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         if (!searchTerm) return groupOptions;
         return groupOptions.filter((o) => o.label.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [groupOptions, searchTerm]);
+
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
+    const [selectedClass, setselectedClass] = useState<number | null>(null);
+    const [selectedSection, setselectedSection] = useState<number | null>(null);
 
     const handleSelectAll = () => {
         const allVisible = filteredGroupOptions.map((o) => o.value);
@@ -177,6 +192,9 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         });
     };
 
+    console.log('selectedAcademicYear', selectedAcademicYear);
+    console.log('selectedClass', selectedClass);
+    console.log('selectedSection', selectedSection);
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const activeTypeValues = [fineWaiveOff ? 'FineWaiveOff' : null, completeFineWaiveOff ? 'CompleteFineWaiveOff' : null].filter(
@@ -235,7 +253,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 <div className='flex gap-6'>
                     <div className='flex-1 space-y-6'>
                         <div>
-                            <Label>Academic Year*</Label>
+                            {/* <Label>Academic Year*</Label>
                             <Select onValueChange={setAcademicYear} value={academicYear || ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Year' />
@@ -249,10 +267,56 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                           ))
                                         : null}
                                 </SelectContent>
-                            </Select>
+                            </Select> */}
+                            <Label className='min-w-[150px] text-right'>
+                                Academic Year:<span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <div className='flex w-full max-w-[400px] flex-col'>
+                                <Controller
+                                    name='academicYear'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            key={field.value || 'empty'}
+                                            onValueChange={(val) => {
+                                                const id = Number(val);
+                                                field.onChange(id);
+                                                setSelectedAcademicYear(id);
+                                            }}
+                                            value={
+                                                typeof field.value === 'number' || typeof field.value === 'string'
+                                                    ? String(field.value)
+                                                    : ''
+                                            }
+                                            disabled={academicYearLoading}>
+                                            <SelectTrigger className='min-w-[400px] text-center'>
+                                                <SelectValue placeholder='--Select Academic Year--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYears?.data?.map((item: any) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.academicYear && <FormError>{errors.academicYear.message}</FormError>}
+                            </div>
                         </div>
                         <div>
-                            <Label>Class*</Label>
+                            {/* <Label>Class*</Label>
                             <Select onValueChange={handleClassChange} value={classWise || ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Class' />
@@ -264,10 +328,120 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
-                            </Select>
+                            </Select> */}
+
+                            <Label className='min-w-[150px] text-right'>
+                                Class:<span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <div className='flex w-full max-w-[400px] flex-col'>
+                                <Controller
+                                    name='class'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            key={field.value || 'empty'}
+                                            onValueChange={(val) => {
+                                                const id = Number(val);
+                                                field.onChange(id);
+                                                setselectedClass(id);
+                                            }}
+                                            value={
+                                                typeof field.value === 'number' || typeof field.value === 'string'
+                                                    ? String(field.value)
+                                                    : ''
+                                            }
+                                            disabled={classloading}>
+                                            <SelectTrigger className='min-w-[400px] text-center'>
+                                                <SelectValue placeholder='--Select Class --' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {classloading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : classerror ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading
+                                                    </SelectItem>
+                                                ) : (
+                                                    classdata?.data?.map((item: any) => (
+                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                            {item.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.class && <FormError>{errors.class.message}</FormError>}
+                            </div>
                         </div>
 
-                        {availableSections.length > 0 && (
+                        <div>
+                            {/* <Label>Class*</Label>
+                            <Select onValueChange={handleClassChange} value={classWise || ''}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Class' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {classWises.map((y) => (
+                                        <SelectItem key={y} value={y}>
+                                            {y}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select> */}
+
+                            <Label className='min-w-[150px] text-right'>
+                                Section:<span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <div className='flex w-full max-w-[400px] flex-col'>
+                                <Controller
+                                    name='section'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            key={field.value || 'empty'}
+                                            onValueChange={(val) => {
+                                                const id = Number(val);
+                                                field.onChange(id);
+                                                setselectedSection(id);
+                                            }}
+                                            value={
+                                                typeof field.value === 'number' || typeof field.value === 'string'
+                                                    ? String(field.value)
+                                                    : ''
+                                            }
+                                            disabled={secloading}>
+                                            <SelectTrigger className='min-w-[400px] text-center'>
+                                                <SelectValue placeholder='--Select Section --' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {secloading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : sectionerror ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading
+                                                    </SelectItem>
+                                                ) : (
+                                                    sectiondata?.data?.map((item: any) => (
+                                                        <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                            {item.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.section && <FormError>{errors.section.message}</FormError>}
+                            </div>
+                        </div>
+
+                        {/* {availableSections.length > 0 && (
                             <div>
                                 <Label>Section*</Label>
                                 <Select onValueChange={setsectionWise} value={sectionWise || ''}>
@@ -283,7 +457,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                     </SelectContent>
                                 </Select>
                             </div>
-                        )}
+                        )} */}
 
                         <div className='flex flex-row items-center justify-start gap-4 rounded-lg border border-gray-300 bg-white px-3 py-2'>
                             <label className='inline-flex cursor-pointer items-center space-x-2'>

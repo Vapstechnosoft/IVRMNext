@@ -32,24 +32,13 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
     const academic_year = (rowData as any).academicYear || '2025-2026';
     const fee_head_name = (rowData as any).feeHead || 'Registration Fee';
 
-    // Fetch institute logo only
     useEffect(() => {
         const fetchInstituteDetails = async () => {
             try {
-                // Call API - pass '' instead of {} to fix TypeScript error
-                const rawResponse = await getPrintdetails('');
-
-                // Convert to JSON if it's a string (some APIs return JSON string)
-                // If it's already an object, this will safely return the object
+                const preadmissionorprospectus = 'Preadmission';
+                const rawResponse = await getPrintdetails(rowData.fyP_Id, rowData.asmaY_Id, preadmissionorprospectus, rowData.pasR_Id);
                 const response = typeof rawResponse === 'string' ? JSON.parse(rawResponse) : rawResponse;
-
-                // Your actual response structure:
-                // { success: true, data: { institute_logo: "https://..." } }
                 const logoUrl = response?.data?.institute_logo || response?.institute_logo || '';
-
-                console.log('Final Logo URL:', logoUrl); // You will see the correct URL here
-
-                // Set state with cache-buster to force Next.js Image to reload
                 setInstitute({
                     institute_logo: logoUrl ? `${logoUrl}?t=${Date.now()}` : ''
                 });

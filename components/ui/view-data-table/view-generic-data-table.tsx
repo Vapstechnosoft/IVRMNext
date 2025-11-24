@@ -28,6 +28,7 @@ interface GenericDataTableProps<T> {
 
     // Row selection
     maxSelectableRows?: number;
+    defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: T[]) => void;
     onSearchQueryChange?: (value: ApiSearchparams) => void;
 
@@ -48,6 +49,7 @@ interface GenericDataTableProps<T> {
     ErrorComponent?: React.ComponentType<{ error: Error; message: string }>;
     NoDataComponent?: React.ComponentType;
     searchQuery?: string;
+    currentApiParams?: ApiSearchparams;
 }
 
 export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<any>>(function GenericDataTable<T>(
@@ -65,6 +67,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         showPagination = false,
         columnPinning,
         maxSelectableRows = 0,
+        defaultSelectedRowIds,
         onRowSelectionChange,
         onSearchQueryChange,
         loadingMessage = 'Loading data...',
@@ -73,7 +76,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         LoadingIcon = RefreshCw,
         ErrorIcon = Database,
         LoadingComponent,
-        ErrorComponent
+        ErrorComponent,
+        currentApiParams
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -163,6 +167,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 showPagination={showPagination}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
+                defaultSelectedRowIds={defaultSelectedRowIds}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);
@@ -173,6 +178,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                         onSearchQueryChange(value);
                     }
                 }}
+                currentApiParams={currentApiParams}
             />
         </div>
     );

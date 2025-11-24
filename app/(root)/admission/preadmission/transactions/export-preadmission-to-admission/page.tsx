@@ -14,6 +14,7 @@ import {
 import { exportPreadmissionToAdmission } from '@/server/admission/preadmission/transactions/export_preadmission';
 import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
 import { CheckSquare } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { use, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { exportPreadmissionToAdmissionColumns } from './_components/columns';
@@ -23,11 +24,22 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function ExportPreadmissionToAdmissionPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
+    const router = useRouter();
+    const pathname = usePathname();
 
     const tableRef = useRef<DataTableRef>(null);
 
     const handleResetSelection = () => {
         tableRef.current?.resetSelection();
+    };
+
+    const handleFilterChange = (value: number) => {
+        setClassId(value);
+
+        // Reset to page 1 when filter changes
+        const params = new URLSearchParams(searchParams as any);
+        params.set('page', '1');
+        router.replace(`${pathname}?${params.toString()}`);
     };
 
     const { data: activePreadmission, isLoading: activePreadmissionDeLoading } = useActivePreadmissionDetails();
@@ -100,7 +112,7 @@ export default function ExportPreadmissionToAdmissionPage(props: { searchParams:
                         <Label htmlFor='class' className='mb-1 font-semibold'>
                             Class
                         </Label>
-                        <Select onValueChange={(value) => setClassId(Number(value))} value={classId?.toString() || undefined}>
+                        <Select onValueChange={(value) => handleFilterChange(Number(value))} value={classId?.toString() || undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Class' />
                             </SelectTrigger>

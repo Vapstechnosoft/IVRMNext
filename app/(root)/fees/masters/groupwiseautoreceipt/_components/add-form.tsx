@@ -400,30 +400,36 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
 
                         {/* Address – now multiline="true" */}
                         <div className='lg:col-span-2'>
-                            <Label htmlFor='address'>Address</Label>
+                            <Label htmlFor='address'>
+                                Address <span className='text-red-500'>*</span>
+                            </Label>
                             <InputTextarea
                                 id='address'
                                 placeholder='Enter address (optional)'
                                 {...register('address')}
                                 rows={4}
                                 className='h-24 transition-colors focus:ring-2 focus:ring-primary/20'
+                                error={hasSubmitted ? errors.address?.message : undefined}
                             />
                         </div>
 
                         {/* Receipt Template – now multiline="true" */}
                         <div className='pt-10 lg:col-span-2'>
-                            <Label htmlFor='receiptTemplateFormat'>Receipt Template Format</Label>
+                            <Label htmlFor='receiptTemplateFormat'>
+                                Receipt Template Format<span className='text-red-500'>*</span>
+                            </Label>
                             <InputTextarea
                                 id='receiptTemplateFormat'
                                 placeholder='Enter receipt template format (optional)'
                                 {...register('receiptTemplateFormat')}
                                 rows={6}
                                 className='h-32 transition-colors focus:ring-2 focus:ring-primary/20'
+                                error={hasSubmitted ? errors.receiptTemplateFormat?.message : undefined}
                             />
                         </div>
 
                         {/* Buttons */}
-                        <div className='mt-3 flex justify-start gap-3 border-t pt-5 lg:col-span-2'>
+                        <div className='mt-3 flex justify-start gap-3 pt-5 lg:col-span-2'>
                             <Button
                                 type='button'
                                 variant='outline'

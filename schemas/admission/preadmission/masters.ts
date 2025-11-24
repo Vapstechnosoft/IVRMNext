@@ -115,6 +115,36 @@ export const masterClassCategorySchema = {
     })
 };
 
+export const masterClassHeldSchema = {
+    add: z.object({
+        asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        classCategory: z.string().min(1, { message: 'Class is required' }),
+        section: z.string().min(1, { message: 'Section is required' }),
+        classHeldData: z
+            .array(
+                z.object({
+                    month: z.string().min(1, { message: 'Month is required' }),
+                    classHeld: z.number().int().min(0, { message: 'Class held must be 0 or greater' })
+                })
+            )
+            .nonempty({ message: 'Please select at least one month' })
+    }),
+    update: z.object({
+        id: z.number().int({ message: 'ID is required' }),
+        asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        classCategory: z.string().min(1, { message: 'Class is required' }),
+        section: z.string().min(1, { message: 'Section is required' }),
+        classHeldData: z
+            .array(
+                z.object({
+                    month: z.string().min(1, { message: 'Month is required' }),
+                    classHeld: z.number().int().min(0, { message: 'Class held must be 0 or greater' })
+                })
+            )
+            .nonempty({ message: 'Please select at least one month' })
+    })
+};
+
 export const masterCasteCategorySchema = {
     addOrUpdate: z.object({
         imcC_Id: z.number().int({ message: 'IMCC_ID is required' }).optional(),

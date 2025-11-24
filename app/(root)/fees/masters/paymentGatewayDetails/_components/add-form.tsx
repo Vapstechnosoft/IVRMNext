@@ -84,7 +84,7 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
 
                 submerchantIds: data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) ?? [],
 
-                fpgD_MerchantKey: data.fpgD_MerchantKey,
+                fpgD_AuthorisationKey: data.fpgD_MerchantKey,
 
                 impG_Id: data.impG_Id,
                 fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
@@ -146,6 +146,15 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
+                        {/* <InputText
+                            label='Merchant Id'
+                            required
+                            id='fpgD_MerchantId'
+                            {...register('fpgD_MerchantId')}
+                            error={errors.fpgD_MerchantId?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        /> */}
+
                         <InputText
                             label='Merchant Id'
                             required
@@ -153,6 +162,22 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             {...register('fpgD_MerchantId')}
                             error={errors.fpgD_MerchantId?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            onKeyDown={(e) => {
+                                // Block minus, plus, special chars used in number inputs
+                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+
+                                // Block other special characters
+                                if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e) => {
+                                const input = e.target as HTMLInputElement;
+                                // Keep only alphanumeric values
+                                input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                            }}
                         />
 
                         <div className='group flex flex-col gap-1.5'>
@@ -163,18 +188,65 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 {...register('fpgD_SaltKey')}
                                 error={errors.fpgD_SaltKey?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                onKeyDown={(e) => {
+                                    // Block minus, plus, special chars used in number inputs
+                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+
+                                    // Block other special characters
+                                    if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onInput={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                    // Keep only alphanumeric values
+                                    input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                                }}
                             />
                             {/* {errors.fpgD_SaltKey && <FormError>{errors.fpgD_SaltKey.message}</FormError>} */}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
-                            <InputText
+                            {/* <InputText
                                 label='Image'
                                 required
                                 id='fpgD_Image'
                                 {...register('fpgD_Image')}
                                 error={errors.fpgD_Image?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                onKeyDown={(e) => {
+                                  
+                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+
+                                  
+                                    if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onInput={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                   
+                                    input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                                }}
+                            /> */}
+
+                            <InputText
+                                label='Image'
+                                required
+                                id='fpgD_Image'
+                                {...register('fpgD_Image', {
+                                    required: 'Image URL is required',
+                                    validate: (value) =>
+                                        value.startsWith('http://') ||
+                                        value.startsWith('https://') ||
+                                        'URL must begin with http:// or https://'
+                                })}
+                                error={errors.fpgD_Image?.message}
                             />
+
                             {/* {errors.fpgD_Image && <FormError>{errors.fpgD_Image.message}</FormError>} */}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
@@ -182,10 +254,39 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                 label='URL'
                                 required
                                 id='fpgD_URL'
+                                {...register('fpgD_URL', {
+                                    required: 'URL is required',
+                                    validate: (value) =>
+                                        value.startsWith('http://') ||
+                                        value.startsWith('https://') ||
+                                        'URL must begin with http:// or https://'
+                                })}
+                                error={errors.fpgD_URL?.message}
+                            />
+                            {/* <InputText
+                                label='URL'
+                                required
+                                id='fpgD_URL'
                                 {...register('fpgD_URL')}
                                 error={errors.fpgD_URL?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            />
+                                onKeyDown={(e) => {
+                                   
+                                    if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                        e.preventDefault();
+                                    }
+
+                                   
+                                    if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                        e.preventDefault();
+                                    }
+                                }}
+                                onInput={(e) => {
+                                    const input = e.target as HTMLInputElement;
+                                   
+                                    input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                                }}
+                            /> */}
                             {/* {errors.fpgD_URL && <FormError>{errors.fpgD_URL.message}</FormError>} */}
                         </div>
                     </div>
@@ -201,6 +302,22 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             {...register('fpgD_AccNo')}
                             error={errors.fpgD_AccNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            onKeyDown={(e) => {
+                                // Block minus, plus, special chars used in number inputs
+                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+
+                                // Block other special characters
+                                if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e) => {
+                                const input = e.target as HTMLInputElement;
+                                // Keep only alphanumeric values
+                                input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                            }}
                         />
                         <InputText
                             label='Merchant Key'
@@ -209,6 +326,22 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                             {...register('fpgD_MerchantKey')}
                             error={errors.fpgD_MerchantKey?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            onKeyDown={(e) => {
+                                // Block minus, plus, special chars used in number inputs
+                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                    e.preventDefault();
+                                }
+
+                                // Block other special characters
+                                if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e) => {
+                                const input = e.target as HTMLInputElement;
+                                // Keep only alphanumeric values
+                                input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                            }}
                         />
 
                         <div className='group flex flex-col gap-1.5'>
@@ -310,9 +443,25 @@ export default function AddAddpaymentgatewaydetailsPropsForm({ onSuccess, gatewa
                                             className={`w-full rounded-md border px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary ${
                                                 errors.submerchantIds?.[index]?.id ? '' : ''
                                             }`}
+                                            onKeyDown={(e) => {
+                                                // Block minus, plus, special chars used in number inputs
+                                                if (['-', '+', 'e', 'E', ' '].includes(e.key)) {
+                                                    e.preventDefault();
+                                                }
+
+                                                // Block other special characters
+                                                if (!/^[a-zA-Z0-9]$/.test(e.key) && e.key.length === 1) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            onInput={(e) => {
+                                                const input = e.target as HTMLInputElement;
+                                                // Keep only alphanumeric values
+                                                input.value = input.value.replace(/[^A-Za-z0-9]/g, '');
+                                            }}
                                         />
 
-                                        {index === fields.length - 1 && fields.length < 5 && (
+                                        {index === fields.length - 1 && fields.length < 10 && (
                                             <button
                                                 type='button'
                                                 onClick={() => append({ id: '' })}
