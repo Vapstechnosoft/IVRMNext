@@ -378,6 +378,7 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                                 isSearchRequired
                                                 height='220px'
                                                 error={fieldState.error?.message}
+                                                isRequired={true}
                                             />
                                         )}
                                     />

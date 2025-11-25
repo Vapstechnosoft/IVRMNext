@@ -336,6 +336,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                                         height='200px'
                                         isSearchRequired={true}
                                         error={errors.subjects_list?.message}
+                                        isRequired={true}
                                     />
                                 )}
                             />

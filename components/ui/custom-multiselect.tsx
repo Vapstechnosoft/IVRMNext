@@ -19,6 +19,7 @@ interface CustomMultiSelectBoxProps {
     isSearchRequired?: boolean;
     error?: string;
     placeholder?: string;
+    isRequired?: boolean;
 }
 
 export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
@@ -28,7 +29,8 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
     label,
     height = '200px',
     isSearchRequired = false,
-    error
+    error,
+    isRequired = false
 }) => {
     const [search, setSearch] = useState('');
 
@@ -56,7 +58,11 @@ export const CustomMultiSelectBox: React.FC<CustomMultiSelectBoxProps> = ({
 
     return (
         <div className='flex flex-col gap-1'>
-            {label && <Label>{label}</Label>}
+            {label && (
+                <Label>
+                    {label} {isRequired && <span className='text-destructive'>*</span>}
+                </Label>
+            )}
 
             <div className='relative overflow-hidden rounded-md border' style={{ height }}>
                 {isSearchRequired && (
