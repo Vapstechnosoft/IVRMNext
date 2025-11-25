@@ -163,6 +163,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                 keepValues: false // ensures placeholders reappear
             }
         );
+        setSubjects([]);
     };
 
     return (
@@ -290,10 +291,10 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         height='200px'
                                         isSearchRequired={true}
                                         error={errors.subjects_list?.message}
+                                        isRequired={true}
                                     />
                                 )}
                             />
-                            {errors.subjects_list && <p className='text-red-600 text-sm'>{errors.subjects_list.message}</p>}
                         </div>
                     </div>
 
