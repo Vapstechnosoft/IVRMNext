@@ -25,6 +25,49 @@ export interface IFeeAcademicyearDropDownList {
     asmaY_Year: string;
     asmaY_Order: number;
 }
+export interface IFeeOpeningAcademicyearDropDownList {
+    miid: number;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmaY_Order: number;
+}
+export interface IFeeOpeningClassDropdownList {
+    mI_Id: number;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    // asmcL_MinAgeYear: number;
+    // asmcL_MinAgeMonth: number;
+    // asmcL_MinAgeDays: number;
+    // asmcL_MaxAgeYear: number;
+    // asmcL_MaxAgeMonth: number;
+    // asmcL_MaxAgeDays: number;
+    // asmcL_Order: number;
+    // asmcL_ClassCode: string;
+    // asmcL_ActiveFlag: boolean;
+    // asmcL_MaxCapacity: number;
+    // asmcL_PreadmFlag: number;
+}
+
+export interface IFeeOpeningSectionDropdownList {
+    asmS_Id: number;
+    asmC_SectionName: string;
+}
+export interface IFeeOpeningHeadDropDownList {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+export interface IFeeOpeningCategoryDropDownList {
+    fmcC_Id: number;
+    fmcC_ClassCategoryName: string;
+}
+export interface IFeeOpeningGroupDropdownList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+export interface IFeeOpeningInstallmentDropdownList {
+    ftI_Id: number;
+    ftI_Name: string;
+}
 
 export interface IMasterAmountEntryDetails {
     fmA_Id: number;
