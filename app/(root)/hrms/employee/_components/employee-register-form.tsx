@@ -598,7 +598,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         reset,
         watch,
         setValue,
-        trigger,
+        trigger: _trigger,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(formSchema),
@@ -1466,7 +1466,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         if ((response as any)?.success) {
                             toast.success('Employee and Address details saved successfully');
                             setActiveTab('qualification');
-                        } else {
                         }
                     },
                     onError: (error: any) => {
@@ -1480,6 +1479,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errorDataString.includes('required');
 
                         if (hasRequiredError) {
+                            // Handle required field errors if needed
                         }
 
                         console.error('🔍 [SAVE] ERROR:', error?.message);
@@ -1753,8 +1753,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             } else {
                 toast.info(`Saving ${activeTab} tab data... (Not yet implemented)`);
             }
-        } catch (error: any) {
-            console.error('🔍 [SAVE] Submit error:', error);
+        } catch (_error: any) {
+            console.error('🔍 [SAVE] Submit error:', _error);
             toast.error('An error occurred while submitting the form');
         }
     };

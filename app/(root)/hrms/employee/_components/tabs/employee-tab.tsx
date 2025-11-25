@@ -1,10 +1,10 @@
 ﻿'use client';
 
+import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
 import { Label } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Upload, X } from 'lucide-react';
 
@@ -125,20 +125,6 @@ import { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-interface EmployeeTabProps {
-    control: any;
-    register: any;
-    errors: any;
-    selectedPhoto: string | null;
-    onPhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    setSelectedPhoto: (photo: string | null) => void;
-    setPhotoFile: (file: File | null) => void;
-    options: any;
-    isSubmitting: boolean;
-    watch: any;
-    onClear?: () => void;
-}
-
 export function EmployeeTab({
     control,
     register,
@@ -176,9 +162,21 @@ export function EmployeeTab({
                         error={errors.firstName?.message}
                     />
 
-                    <HRMSInputText label='Middle Name' id='middleName' maxLength={100} {...register('middleName')} error={errors.middleName?.message} />
+                    <HRMSInputText
+                        label='Middle Name'
+                        id='middleName'
+                        maxLength={100}
+                        {...register('middleName')}
+                        error={errors.middleName?.message}
+                    />
 
-                    <HRMSInputText label='Last Name' id='lastName' maxLength={100} {...register('lastName')} error={errors.lastName?.message} />
+                    <HRMSInputText
+                        label='Last Name'
+                        id='lastName'
+                        maxLength={100}
+                        {...register('lastName')}
+                        error={errors.lastName?.message}
+                    />
 
                     <HRMSInputText
                         label='Employee Code'
@@ -191,9 +189,21 @@ export function EmployeeTab({
                         error={errors.employeeCode?.message}
                     />
 
-                    <HRMSInputText label="Father's Name" id='fatherName' maxLength={100} {...register('fatherName')} error={errors.fatherName?.message} />
+                    <HRMSInputText
+                        label="Father's Name"
+                        id='fatherName'
+                        maxLength={100}
+                        {...register('fatherName')}
+                        error={errors.fatherName?.message}
+                    />
 
-                    <HRMSInputText label="Mother's Name" id='motherName' maxLength={100} {...register('motherName')} error={errors.motherName?.message} />
+                    <HRMSInputText
+                        label="Mother's Name"
+                        id='motherName'
+                        maxLength={100}
+                        {...register('motherName')}
+                        error={errors.motherName?.message}
+                    />
 
                     <Controller
                         name='typeOfEmployment'
@@ -407,12 +417,7 @@ export function EmployeeTab({
                         name='dateOfJoining'
                         control={control}
                         render={({ field, fieldState }) => (
-                            <DateField
-                                field={field}
-                                fieldState={fieldState}
-                                label='Date Of Joining'
-                                placeholder='Pick date of joining'
-                            />
+                            <DateField field={field} fieldState={fieldState} label='Date Of Joining' placeholder='Pick date of joining' />
                         )}
                     />
 
@@ -518,20 +523,27 @@ export function EmployeeTab({
                                 </div>
                             </div>
 
-                            <HRMSInputText label='PF Acc No.' id='pfAccNo' maxLength={20} {...register('pfAccNo')} error={errors.pfAccNo?.message} />
+                            <HRMSInputText
+                                label='PF Acc No.'
+                                id='pfAccNo'
+                                maxLength={20}
+                                {...register('pfAccNo')}
+                                error={errors.pfAccNo?.message}
+                            />
 
-                            <HRMSInputText label='UAN Number' id='uanNumber' maxLength={20} {...register('uanNumber')} error={errors.uanNumber?.message} />
+                            <HRMSInputText
+                                label='UAN Number'
+                                id='uanNumber'
+                                maxLength={20}
+                                {...register('uanNumber')}
+                                error={errors.uanNumber?.message}
+                            />
 
                             <Controller
                                 name='pfDate'
                                 control={control}
                                 render={({ field, fieldState }) => (
-                                    <DateField
-                                        field={field}
-                                        fieldState={fieldState}
-                                        label='PF Date'
-                                        placeholder='Pick PF date'
-                                    />
+                                    <DateField field={field} fieldState={fieldState} label='PF Date' placeholder='Pick PF date' />
                                 )}
                             />
                         </div>
@@ -551,7 +563,13 @@ export function EmployeeTab({
                     {/* ESI Fields - Conditional on ESI Applicable */}
                     {watch?.('esiApplicable') ? (
                         <div className='space-y-4 border-green-500 border-l-4 pl-4'>
-                            <HRMSInputText label='ESI Acc No.' id='esiAccNo' maxLength={20} {...register('esiAccNo')} error={errors.esiAccNo?.message} />
+                            <HRMSInputText
+                                label='ESI Acc No.'
+                                id='esiAccNo'
+                                maxLength={20}
+                                {...register('esiAccNo')}
+                                error={errors.esiAccNo?.message}
+                            />
 
                             <HRMSInputText
                                 label='Gratuity Acc No.'
@@ -565,18 +583,19 @@ export function EmployeeTab({
                                 name='esiDate'
                                 control={control}
                                 render={({ field, fieldState }) => (
-                                    <DateField
-                                        field={field}
-                                        fieldState={fieldState}
-                                        label='ESI Date'
-                                        placeholder='Pick ESI date'
-                                    />
+                                    <DateField field={field} fieldState={fieldState} label='ESI Date' placeholder='Pick ESI date' />
                                 )}
                             />
                         </div>
                     ) : null}
 
-                    <HRMSInputText label='National SSN' id='nationalSSN' maxLength={20} {...register('nationalSSN')} error={errors.nationalSSN?.message} />
+                    <HRMSInputText
+                        label='National SSN'
+                        id='nationalSSN'
+                        maxLength={20}
+                        {...register('nationalSSN')}
+                        error={errors.nationalSSN?.message}
+                    />
                 </div>
 
                 {/* Right Column */}
@@ -728,12 +747,7 @@ export function EmployeeTab({
                         name='dateOfBirth'
                         control={control}
                         render={({ field, fieldState }) => (
-                            <DateField
-                                field={field}
-                                fieldState={fieldState}
-                                label='Date Of Birth'
-                                placeholder='Pick date of birth'
-                            />
+                            <DateField field={field} fieldState={fieldState} label='Date Of Birth' placeholder='Pick date of birth' />
                         )}
                     />
 
@@ -945,9 +959,21 @@ export function EmployeeTab({
                         />
                     </div>
 
-                    <HRMSInputText label='Aadhaar No.' id='aadharNo' maxLength={12} {...register('aadharNo')} error={errors.aadharNo?.message} />
+                    <HRMSInputText
+                        label='Aadhaar No.'
+                        id='aadharNo'
+                        maxLength={12}
+                        {...register('aadharNo')}
+                        error={errors.aadharNo?.message}
+                    />
 
-                    <HRMSInputText label='PAN Card No.' id='panCardNo' maxLength={10} {...register('panCardNo')} error={errors.panCardNo?.message} />
+                    <HRMSInputText
+                        label='PAN Card No.'
+                        id='panCardNo'
+                        maxLength={10}
+                        {...register('panCardNo')}
+                        error={errors.panCardNo?.message}
+                    />
 
                     <Controller
                         name='bloodGroup'
