@@ -2,20 +2,27 @@
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import { useMasterFeeOpeningBalance } from '@/hooks/fees/useTrasactions';
-// import { feeOpeningBalanceSchema } from "@/schemas/fees/openingbalance";
-
+import {
+    useMasterFeeOpeningBalance,
+    useopeningCategorydropdowndatafee,
+    useopeningClassdropdowndatafee,
+    useopeningGroupdropdowndatafee,
+    useopeningHeaddropdowndatafee,
+    useopeningInstallmentdropdowndatafee,
+    useopeningSectiondropdowndatafee,
+    useopeningacademicyerdropdowndatafee
+} from '@/hooks/fees/useTrasactions';
 import { feeOpeningBalanceSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateFeeOpeningBalance } from '@/server/fees/trasactions/fee_opening_balance';
+import { addOrUpdateFeeOpeningBalance, studentNameDropdown } from '@/server/fees/trasactions/fee_opening_balance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useEffect, useMemo, useState } from 'react';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -26,91 +33,60 @@ interface AddFeeConfigProps {
     className?: string;
 }
 
-const studentData = [
-    { name: 'ADVIK J', regNo: '6-24/25' },
-    { name: 'GANAVI S', regNo: '38/2025-26' },
-    { name: 'KIRAN KUMAR N', regNo: '7-24/25' }
-];
-
-const academicYears = ['2025-2026', '2024-2025', '2023-2024'];
-const categoryWises = [
-    'State Class I',
-    'State Class II',
-    'State Class III',
-    'State Class IV',
-    'State Class V',
-    'State Class VI',
-    'State Class VII',
-    'State Class VIII',
-    'State Class IX',
-    'State Class X',
-    'ICSE Class I',
-    'ICSE Class II',
-    'ICSE Class III',
-    'ICSE Class IV',
-    'ICSE Class V',
-    'ICSE Class VI',
-    'ICSE Class VII',
-    'ICSE Class VIII',
-    'ICSE Class IX'
-];
-const classWises = [
-    'LKG STATE',
-    'UKG STATE',
-    'LKG',
-    'UKG',
-    'I STD',
-    'II STD',
-    'III STD',
-    'IV STD',
-    'V STD',
-    'VI STD',
-    'VII STD',
-    'VIII STD',
-    'IX STD',
-    'X STD',
-    'Nursery',
-    'I CSE',
-    'II CSE',
-    'III CSE',
-    'IV CSE'
-];
-
-const selectheads = ['TUTION FEES', 'IML & OTHER FEES', 'BOOKS FEES', 'TRANSPORT FEE', 'Other Allowances'];
-
-const feeGroupsByHead: Record<string, string[]> = {
-    'TUTION FEES': ['HS TUTION FEES', 'IC TUTION FEES', 'KG TUTION FEES', 'NUR TUTION FEES', 'PS TUTION FEES'],
-    'IML & OTHER FEES': [
-        'HS ILM & OTHER FEES',
-        'IC ILM & OTHER FEES',
-        'KG ILM & OTHER FEES',
-        'NUR ILM & OTHER FEES',
-        'PS ILM & OTHER FEES'
-    ],
-    'BOOKS FEES': ['HS BOOKS FEES', 'IC BOOKS FEES', 'KG BOOKS FEES', 'NUR BOOKS FEES', 'PS BOOKS FEES'],
-    'TRANSPORT FEE': ['TRANSPORT FEE', 'TRANSPORT OTHER FEE', 'TRANSPORT UKG AND LKG FEE']
-};
-
-interface ClassOption {
-    value: string;
-    label: string;
-}
-
 export default function AddFeeOpeningBalanceForm({ onSuccess, className = '' }: AddFeeConfigProps) {
     const { refetchAll } = useMasterFeeOpeningBalance();
 
     const {
+        control,
         handleSubmit,
         reset,
-        formState: { isSubmitting }
+        resetField, // Added this
+        formState: { isSubmitting, errors }
     } = useForm<FormFields>({
         resolver: zodResolver(feeOpeningBalanceSchema.addOrUpdate),
         mode: 'onChange',
-        defaultValues: {}
+        defaultValues: {
+            studentType: 'other',
+            academicYearId: undefined,
+            classId: undefined,
+            sectionId: undefined,
+            studentName: '',
+            groupId: undefined,
+            headId: undefined,
+            installmentId: undefined,
+            towards: '',
+            date: format(new Date(), 'yyyy-MM-dd'),
+            paymentMode: 'B',
+            bankId: undefined,
+            chequeDate: format(new Date(), 'yyyy-MM-dd'),
+            chequeNo: ''
+        }
     });
+    const [date, setDate] = useState(new Date());
+
+    const academicYearId = useWatch({ control, name: 'academicYearId' });
+    const classId = useWatch({ control, name: 'classId' });
+    const headId = useWatch({ control, name: 'headId' });
+    const groupId = useWatch({ control, name: 'groupId' });
+    const { data: academicYear, isLoading: academicYearLoading } = useopeningacademicyerdropdowndatafee();
+    const { data: classdata, isLoading: classloading } = useopeningClassdropdowndatafee();
+
+    const { data: sectiondata, isLoading: sectionloading } = useopeningSectiondropdowndatafee(
+        academicYearId ? Number(academicYearId) : 0,
+        classId ? Number(classId) : 0
+    );
+
+    const { data: headdata, isLoading: headloading } = useopeningHeaddropdowndatafee();
+    const { data: categorydata, isLoading: categoryloading } = useopeningCategorydropdowndatafee();
+    const { data: groupdata, isLoading: grouploading } = useopeningGroupdropdowndatafee(headId ? Number(headId) : 0);
+    const { data: installmentdata, isLoading: installmentloading } = useopeningInstallmentdropdowndatafee(
+        academicYearId ? Number(academicYearId) : 0,
+        groupId ? Number(groupId) : 0,
+        headId ? Number(headId) : 0
+    );
 
     const [selectionType, setSelectionType] = useState<string>('T');
-    const [academicYear, setAcademicYear] = useState<string | null>(null);
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState<string | null>(null);
     const [categoryWise, setcategoryWise] = useState<string | null>(null);
     const [classWise, setclassWise] = useState<string | null>(null);
     const [studentWise, setstudentWise] = useState<string | null>(null);
@@ -122,60 +98,14 @@ export default function AddFeeOpeningBalanceForm({ onSuccess, className = '' }: 
     const [activeType, setactiveType] = useState<string>('Active');
     const [nameType, setnameType] = useState<string>('NameReg.No');
     const [pdaorfeeType, setpdaorfeeType] = useState<string>('Fees');
-    const [classOptions, _setClassOptions] = useState<ClassOption[]>([
-        { value: '1', label: 'JUNE' },
-        { value: '2', label: 'JULY' },
-        { value: '3', label: 'AUG' },
-        { value: '4', label: 'SEP' },
-        { value: '5', label: 'OCT' },
-        { value: '6', label: 'NOV' },
-        { value: '7', label: 'DEC' },
-        { value: '8', label: 'JAN' },
-        { value: '9', label: 'FEB' },
-        { value: '10', label: 'MAR' }
-    ]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
-    const filteredClassOptions = classOptions.filter((option) => option.label.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const availableSections = useMemo(() => {
-        if (!classWise) return [];
-
-        if (classWise === 'LKG STATE' || classWise === 'UKG STATE') {
-            return [];
-        }
-
-        if (classWise === 'LKG' || classWise === 'UKG') {
-            return ['A', 'B', 'C'];
-        }
-
-        if (['I STD', 'II STD', 'III STD', 'IV STD', 'V STD'].includes(classWise)) {
-            return ['A'];
-        }
-
-        if (['VI STD', 'VII STD', 'VIII STD', 'IX STD', 'X STD'].includes(classWise)) {
-            return ['A', 'B'];
-        }
-
-        if (classWise === 'Nursery') {
-            return ['A'];
-        }
-
-        if (['I CSE', 'II CSE', 'III CSE', 'IV CSE'].includes(classWise)) {
-            return ['B', 'C'];
-        }
-
-        return [];
-    }, [classWise]);
-
-    const availableFeeGroups = useMemo(() => {
-        if (!selecthead || selecthead === 'Other Allowances') return [];
-        return feeGroupsByHead[selecthead] || [];
-    }, [selecthead]);
+    const [studentDropdownList, setStudentDropdownList] = useState<any[]>([]);
+    const [studentDropdownLoading, setStudentDropdownLoading] = useState(false);
 
     const showFeeGroup = useMemo(() => {
-        return selecthead && selecthead !== 'Other Allowances';
-    }, [selecthead]);
+        return headdata && selecthead !== 'Other Allowances';
+    }, [headdata]);
 
     const showFeeInstallment = useMemo(() => {
         return (
@@ -185,18 +115,45 @@ export default function AddFeeOpeningBalanceForm({ onSuccess, className = '' }: 
         );
     }, [selecthead, feeGroup]);
 
-    const formattedStudentList = useMemo(() => {
-        if (nameType === 'NameReg.No') {
-            return studentData.map((student) => ({
-                value: `${student.name}-${student.regNo}`,
-                label: `${student.name} - ${student.regNo}`
-            }));
+    // Reset section when academic year or class changes
+    useEffect(() => {
+        resetField('sectionId');
+    }, [academicYearId, classId, resetField]);
+
+    useEffect(() => {
+        if (selectionType === 'G' && academicYearId && classId && sectiondata?.data) {
+            const fetchStudentDropdown = async () => {
+                setStudentDropdownLoading(true);
+                try {
+                    const payload = {
+                        asmay_Id: Number(academicYearId),
+                        fillClasFlg: String(classId),
+                        fillSecCls: String(sectiondata.data?.[0]?.asmS_Id) || 0,
+                        filterInitialData: nameType === 'NameReg.No' ? 'NameRegNo' : 'RegNo',
+                        studentType: activeType
+                    };
+
+                    const response = await studentNameDropdown(payload);
+                    if (response?.data && Array.isArray(response.data)) {
+                        const formattedStudents = response.data.map((student: any) => {
+                            const fullName =
+                                `${student.amsT_FirstName || ''} ${student.amsT_MiddleName || ''} ${student.amsT_LastName || ''}`.trim();
+                            return {
+                                value: String(student.amst_Id),
+                                label: fullName
+                            };
+                        });
+                        setStudentDropdownList(formattedStudents);
+                    }
+                } catch (error) {
+                    console.error('Error fetching student dropdown:', error);
+                } finally {
+                    setStudentDropdownLoading(false);
+                }
+            };
+            fetchStudentDropdown();
         }
-        return studentData.map((student) => ({
-            value: `${student.regNo}-${student.name}`,
-            label: `${student.regNo} - ${student.name}`
-        }));
-    }, [nameType]);
+    }, [selectionType, academicYearId, classId, sectiondata?.data, nameType, activeType]);
 
     const handleSelectionTypeChange = (value: string) => {
         setSelectionType(value);
@@ -210,51 +167,37 @@ export default function AddFeeOpeningBalanceForm({ onSuccess, className = '' }: 
         }
     };
 
-    const handleClassChange = (value: string) => {
-        setclassWise(value);
-        if (sectionWise) {
-            const newSections = getSectionsForClass(value);
-            if (!newSections.includes(sectionWise)) {
-                setsectionWise(null);
-            }
-        }
-    };
-
-    const handleFeeHeadChange = (value: string) => {
-        setselectHead(value);
-        setFeeGroup(null);
-    };
-
-    const handleFeeGroupChange = (value: string) => {
-        setFeeGroup(value);
-        setSelectedClasses([]);
-    };
-
-    const getSectionsForClass = (className: string) => {
-        if (className === 'LKG STATE' || className === 'UKG STATE') return [];
-        if (className === 'LKG' || className === 'UKG') return ['A', 'B', 'C'];
-        if (['I STD', 'II STD', 'III STD', 'IV STD', 'V STD'].includes(className)) return ['A'];
-        if (['VI STD', 'VII STD', 'VIII STD', 'IX STD', 'X STD'].includes(className)) return ['A', 'B'];
-        if (className === 'Nursery') return ['A'];
-        if (['I CSE', 'II CSE', 'III CSE', 'IV CSE'].includes(className)) return ['B', 'C'];
-        return [];
-    };
-
-    const handleInstallmentChange = (value: string) => {
-        setSelectedClasses((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
-    };
-
     const onSubmit: SubmitHandler<FormFields | any> = async (_data: FormFields) => {
         try {
             const payload = {
-                mi_id: 30,
+                mi_Id: 30,
+                asmay_Id: Number(_data.academicYearId),
+                fmg_Id: groupId ? Number(groupId) : 0,
+                fmh_Id: Number(_data.headId),
+                user_Id: 0,
+                fillBusRouteStudents: 'string',
+                filterrefund: refundableType === 'Refundable' ? 'Y' : 'N',
+                fmoB_Entry_Date: selectedDate ? format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'") : new Date().toISOString(),
+
+                saveTmpData: [
+                    {
+                        amst_Id: 0,
+                        fmoB_Student_Due: 0,
+                        fmoB_Institution_Due: 0,
+                        checkedvalue: true
+                    }
+                ],
+                tempHeadList: _data.installmentId ? [{ ftI_Id: Number(_data.installmentId) }] : [{ ftI_Id: 83 }],
+
+                returnText: 'string',
+                returnval: true,
                 selectionType: selectionType,
-                academicYear: academicYear,
+                academicYear: selectedAcademicYear,
                 category: selectionType === 'C' ? categoryWise : null,
-                class: selectionType !== 'C' ? classWise : null,
-                section: selectionType !== 'C' ? sectionWise : null,
+                classdata: selectionType !== 'C' ? classdata : null,
+                sectiondata: selectionType !== 'C' ? sectiondata : null,
                 student: selectionType === 'G' ? studentWise : null,
-                feeHead: selecthead,
+                headdata: selecthead,
                 feeGroup: showFeeGroup ? feeGroup : null,
                 feeInstallments: showFeeInstallment ? selectedClasses : [],
                 date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
@@ -281,7 +224,7 @@ export default function AddFeeOpeningBalanceForm({ onSuccess, className = '' }: 
     const handleReset = () => {
         reset();
         setSelectionType('T');
-        setAcademicYear(null);
+        setSelectedAcademicYear(null);
         setcategoryWise(null);
         setclassWise(null);
         setsectionWise(null);
@@ -340,77 +283,133 @@ export default function AddFeeOpeningBalanceForm({ onSuccess, className = '' }: 
 
                 <div className='flex gap-6'>
                     <div className='flex-1 space-y-6'>
-                        <div>
-                            <Label>Academic Year*</Label>
-                            <Select onValueChange={setAcademicYear} value={academicYear || ''}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Year' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {academicYears.map((y) => (
-                                        <SelectItem key={y} value={y}>
-                                            {y}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                        <Label className='min-w-[150px] text-right'>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
+                        <Controller
+                            name='academicYearId'
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                    <SelectTrigger className='min-w-[400px]'>
+                                        <SelectValue placeholder='Select Academic Year' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {academicYearLoading ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
+                                        ) : (
+                                            academicYear?.data?.map((item) => (
+                                                <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                    {item.asmaY_Year}
+                                                </SelectItem>
+                                            ))
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.academicYearId && <FormError>{errors.academicYearId.message}</FormError>}
 
                         {selectionType === 'C' && (
                             <div>
                                 <Label>Category*</Label>
-                                <Select onValueChange={setcategoryWise} value={categoryWise || ''}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Category' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categoryWises.map((y) => (
-                                            <SelectItem key={y} value={y}>
-                                                {y}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-
-                        {selectionType !== 'C' && (
-                            <>
-                                <div>
-                                    <Label>Class*</Label>
-                                    <Select onValueChange={handleClassChange} value={classWise || ''}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Class' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {classWises.map((y) => (
-                                                <SelectItem key={y} value={y}>
-                                                    {y}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {availableSections.length > 0 && (
-                                    <div>
-                                        <Label>Section*</Label>
-                                        <Select onValueChange={setsectionWise} value={sectionWise || ''}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Section' />
+                                <Controller
+                                    name='categoryId'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                            <SelectTrigger className='min-w-[400px]'>
+                                                <SelectValue placeholder='Select class ' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {availableSections.map((y) => (
-                                                    <SelectItem key={y} value={y}>
-                                                        {y}
+                                                {categoryloading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    categorydata?.data?.map((item) => (
+                                                        <SelectItem key={item.fmcC_Id} value={String(item.fmcC_Id)}>
+                                                            {item.fmcC_ClassCategoryName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
-                                    </div>
-                                )}
-                            </>
+                                    )}
+                                />
+                            </div>
                         )}
+                        <>
+                            <div>
+                                <Label className='min-w-[150px] text-right'>
+                                    Class* <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='classId'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                            <SelectTrigger className='min-w-[400px]'>
+                                                <SelectValue placeholder='Select class ' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {classloading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : (
+                                                    classdata?.data?.map((item) => (
+                                                        <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
+                                                            {item.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.classId && <FormError>{errors.classId.message}</FormError>}
+                            </div>
+
+                            <div>
+                                <Label>Section*</Label>
+                                <Controller
+                                    name='sectionId'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            onValueChange={(value) => field.onChange(Number(value))}
+                                            value={field.value?.toString()}
+                                            disabled={!classId} // Optional: disable until class is selected
+                                        >
+                                            <SelectTrigger className='min-w-[400px]'>
+                                                <SelectValue placeholder={!classId ? 'Select Class first' : 'Select Section'} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {sectionloading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading sections...
+                                                    </SelectItem>
+                                                ) : !sectiondata?.data || sectiondata.data.length === 0 ? (
+                                                    <SelectItem value='no-section' disabled>
+                                                        No sections available
+                                                    </SelectItem>
+                                                ) : (
+                                                    sectiondata.data.map((item) => (
+                                                        <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
+                                                            {item.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.sectionId && <FormError>{errors.sectionId.message}</FormError>}
+                            </div>
+                        </>
 
                         <div className='space-y-2'>
                             <Label>Type*</Label>
@@ -441,76 +440,110 @@ export default function AddFeeOpeningBalanceForm({ onSuccess, className = '' }: 
                             </div>
                         </div>
 
-                        {refundableType === 'NonRefundable' && (
-                            <>
-                                <div>
-                                    <Label>Fee Head*</Label>
-                                    <Select onValueChange={handleFeeHeadChange} value={selecthead || ''}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Fee Head' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {selectheads.map((y) => (
-                                                <SelectItem key={y} value={y}>
-                                                    {y}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                {showFeeGroup && (
-                                    <div>
-                                        <Label>Fee Group*</Label>
-                                        <Select onValueChange={handleFeeGroupChange} value={feeGroup || ''}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Fee Group' />
+                        <>
+                            <div>
+                                <Label>Fee Head*</Label>
+                                <Controller
+                                    name='headId'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                            <SelectTrigger className='min-w-[400px]'>
+                                                <SelectValue placeholder='Select class ' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {availableFeeGroups.map((y) => (
-                                                    <SelectItem key={y} value={y}>
-                                                        {y}
+                                                {headloading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    headdata?.data?.map((item) => (
+                                                        <SelectItem key={item.fmH_Id} value={String(item.fmH_Id)}>
+                                                            {item.fmH_FeeName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
-                                    </div>
-                                )}
-                            </>
-                        )}
+                                    )}
+                                />
+                                {errors.headId && <FormError>{errors.headId.message}</FormError>}
+                            </div>
+
+                            {showFeeGroup && (
+                                <div>
+                                    <Label>Fee Group*</Label>
+                                    <Controller
+                                        name='groupId'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                value={field.value?.toString()}
+                                                disabled={!headId} // Optional: disable until class is selected
+                                            >
+                                                <SelectTrigger className='min-w-[400px]'>
+                                                    <SelectValue placeholder={!headId ? 'Select head first' : 'Select Group'} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {grouploading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading Groups...
+                                                        </SelectItem>
+                                                    ) : !groupdata?.data || groupdata.data.length === null ? (
+                                                        <SelectItem value='no-Groups' disabled>
+                                                            No Groups available
+                                                        </SelectItem>
+                                                    ) : (
+                                                        groupdata.data.map((item) => (
+                                                            <SelectItem key={item.fmG_Id} value={String(item.fmG_Id)}>
+                                                                {item.fmG_GroupName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                </div>
+                            )}
+                        </>
 
                         {showFeeInstallment && (
                             <div>
                                 <Label htmlFor='classes'>Fee Installment*</Label>
-                                <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
-                                    <input
-                                        type='text'
-                                        placeholder='Search Installments'
-                                        className='mb-2 w-full rounded border px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                    <div className='flex max-h-40 flex-col gap-1 overflow-y-auto'>
-                                        {filteredClassOptions.length > 0 ? (
-                                            filteredClassOptions.map((option) => (
-                                                <label
-                                                    key={option.value}
-                                                    className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
-                                                    <input
-                                                        type='checkbox'
-                                                        value={option.value}
-                                                        checked={selectedClasses.includes(option.value)}
-                                                        onChange={() => handleInstallmentChange(option.value)}
-                                                        className='mr-2 h-4 w-4 accent-blue-600'
-                                                    />
-                                                    <span className='truncate text-sm'>{option.label}</span>
-                                                </label>
-                                            ))
-                                        ) : (
-                                            <span className='text-gray-400 text-sm'>No installments found</span>
-                                        )}
-                                    </div>
-                                </div>
+                                <Controller
+                                    name='installmentId'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            onValueChange={(value) => field.onChange(Number(value))}
+                                            value={field.value?.toString()}
+                                            disabled={!groupId} // Optional: disable until class is selected
+                                        >
+                                            <SelectTrigger className='min-w-[400px]'>
+                                                <SelectValue placeholder={!groupId ? 'Select group first' : 'Select Installment'} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {installmentloading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading installments...
+                                                    </SelectItem>
+                                                ) : !installmentdata?.data || installmentdata.data.length === 0 ? (
+                                                    <SelectItem value='no-installments' disabled>
+                                                        No installments available
+                                                    </SelectItem>
+                                                ) : (
+                                                    installmentdata.data.map((item) => (
+                                                        <SelectItem key={item.ftI_Id} value={String(item.ftI_Id)}>
+                                                            {item.ftI_Name}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
                             </div>
                         )}
                     </div>
@@ -546,16 +579,26 @@ export default function AddFeeOpeningBalanceForm({ onSuccess, className = '' }: 
 
                                 <div>
                                     <Label>Student Name*</Label>
-                                    <Select onValueChange={setstudentWise} value={studentWise || ''}>
+                                    <Select onValueChange={setstudentWise} value={studentWise || ''} disabled={studentDropdownLoading}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Student' />
+                                            <SelectValue placeholder={studentDropdownLoading ? 'Loading students...' : 'Select Student'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {formattedStudentList.map((student) => (
-                                                <SelectItem key={student.value} value={student.value}>
-                                                    {student.label}
+                                            {studentDropdownLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
                                                 </SelectItem>
-                                            ))}
+                                            ) : !studentDropdownList || studentDropdownList.length === 0 ? (
+                                                <SelectItem value='no-students' disabled>
+                                                    No students available
+                                                </SelectItem>
+                                            ) : (
+                                                studentDropdownList.map((student) => (
+                                                    <SelectItem key={student.value} value={student.value}>
+                                                        {student.label}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>

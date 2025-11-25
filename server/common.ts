@@ -755,6 +755,44 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Exam Marks Process Condition Details'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 400,
+                                    name: 'Marks Entry',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 62,
+                                            name: 'Exam Wise Student Remarks Entry',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/exam-wise-student-remarks-entry',
+                                            title: 'Exam Wise Student Remarks Entry',
+                                            description: 'Manage Exam Wise Student Remarks Entry Details'
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: 10,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 63,
+                                            name: 'Cumulative Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/cumulative-report',
+                                            title: 'Cumulative Report',
+                                            description: 'Manage Cumulative Report Details'
+                                        },
+                                        {
+                                            id: 62,
+                                            name: 'Progress Card Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/vvehpc_exam-report-card',
+                                            title: 'VVEHPC_ExamReportCard',
+                                            description: 'Manage VVEHPC_ExamReportCard Details'
+                                        }
+                                    ]
                                 }
                             ]
                         }

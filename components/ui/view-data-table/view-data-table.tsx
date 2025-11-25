@@ -36,8 +36,10 @@ interface DataTableProps<TData, TValue> {
     columnPinning?: ColumnPinningState | undefined;
     onSearchQueryChange?: (value: ApiSearchparams) => void;
     maxSelectableRows?: number;
+    defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     currentApiParams?: ApiSearchparams;
+
 }
 
 export interface DataTableRef {
@@ -58,6 +60,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         showSorting = false,
         columnPinning,
         maxSelectableRows = 0,
+        defaultSelectedRowIds,
         onRowSelectionChange,
         onSearchQueryChange,
         currentApiParams
@@ -79,7 +82,32 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
     // ---------------------------
     const rowSelectionRef = useRef<Record<string, boolean>>({});
     const [rowSelection, setRowSelection] = useState<Record<string, boolean>>(() => rowSelectionRef.current);
+    useEffect(() => {
+        if (!Array.isArray(defaultSelectedRowIds)) return;
 
+        setRowSelection(prev => {
+            const updated = { ...prev };
+
+            // Update OR add
+            defaultSelectedRowIds.forEach((id) => {
+                updated[id] = true;
+            });
+
+            rowSelectionRef.current = updated;
+
+            if (onRowSelectionChange) {
+                const selectedRows = table
+                    .getFilteredRowModel()
+                    .rows
+                    .filter((r) => updated[r.id])
+                    .map((r) => r.original);
+
+                onRowSelectionChange(selectedRows);
+            }
+
+            return updated;
+        });
+    }, [defaultSelectedRowIds]);
     useEffect(() => {
         rowSelectionRef.current = rowSelection;
     }, [rowSelection]);
@@ -272,9 +300,9 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                     <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
                                         {totalItems > 0
                                             ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                                  (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                                  totalItems
-                                              )} of ${totalItems} entries`
+                                                (paginationState.pageIndex + 1) * paginationState.pageSize,
+                                                totalItems
+                                            )} of ${totalItems} entries`
                                             : 'No entries found'}
                                     </div>
                                 )}

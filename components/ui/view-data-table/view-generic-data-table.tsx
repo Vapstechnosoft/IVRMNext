@@ -28,6 +28,7 @@ interface GenericDataTableProps<T> {
 
     // Row selection
     maxSelectableRows?: number;
+    defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: T[]) => void;
     onSearchQueryChange?: (value: ApiSearchparams) => void;
 
@@ -66,6 +67,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         showPagination = false,
         columnPinning,
         maxSelectableRows = 0,
+        defaultSelectedRowIds,
         onRowSelectionChange,
         onSearchQueryChange,
         loadingMessage = 'Loading data...',
@@ -165,6 +167,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 showPagination={showPagination}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
+                defaultSelectedRowIds={defaultSelectedRowIds}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);
