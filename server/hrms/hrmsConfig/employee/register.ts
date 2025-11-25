@@ -184,7 +184,7 @@ export async function getEmployeeRegisterOnload(payload: EmployeeRegisterOnloadR
 
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             // Already wrapped
             return response;
         }
@@ -596,7 +596,7 @@ export async function saveQualification(qualifications: SaveQualificationRequest
 
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             return response;
         }
 
@@ -942,7 +942,7 @@ export async function saveExperienceDetails(experiences: SaveExperienceDetailsRe
 
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             // Already wrapped
             return response;
         }
@@ -995,7 +995,7 @@ export async function saveDocumentDetails(documents: SaveDocumentDetailsRequest[
         }
 
         // Wrap it to match the expected ApiResponse structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             return response;
         }
 
@@ -1070,7 +1070,7 @@ export async function saveMedicalDetails(payload: SaveMedicalDetailsRequest) {
         }
 
         // Wrap it to match the expected ApiResponse structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             return response;
         }
 
@@ -1138,7 +1138,7 @@ export async function saveOtherDetails(payload: SaveOtherDetailsRequest) {
 
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             // Already wrapped
             return response;
         }
@@ -1183,7 +1183,7 @@ export async function getEmployeeSalaryDetails(payload: GetEmployeeSalaryDetails
     const response = await api.post<GetEmployeeSalaryDetailsResponse>('hrms', url, payload);
 
     // Check if response is already wrapped
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+    if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
         return response;
     }
 
@@ -1205,7 +1205,7 @@ export async function getEmployeeSalaryDetailsByHead(payload: GetEmployeeSalaryD
     const response = await api.post<GetEmployeeSalaryDetailsByHeadResponse>('hrms', url, payload);
 
     // Check if response is already wrapped
-    if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+    if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
         return response;
     }
 
@@ -1234,7 +1234,7 @@ export async function saveIncrementDetails(payload: SaveIncrementDetailsRequest)
         }
 
         // Check if response is already wrapped
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             return response;
         }
 
@@ -1347,7 +1347,7 @@ export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) 
         }
 
         // Check if response is already wrapped
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             return response;
         }
 
@@ -1505,7 +1505,7 @@ export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
         }
 
         // Check if response is already wrapped
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             return response;
         }
 
@@ -1626,7 +1626,7 @@ export async function saveDeductionDetails(deductions: SaveDeductionDetailsReque
         }
 
         // Check if response is already wrapped
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             return response;
         }
 
@@ -1758,7 +1758,7 @@ export async function getStatesByCountryId(countryId: number) {
 
         // The backend returns raw data with AllState array
         // Wrap it to match the expected ApiResponse structure
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
             // Already wrapped - check if data has AllState or if response itself has AllState
             const responseData = (response as any).data;
             const allState = responseData?.AllState || (response as any)?.AllState || [];

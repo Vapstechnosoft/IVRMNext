@@ -3,8 +3,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
 import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import React from 'react';
-import { Controller } from 'react-hook-form';
+import React, { useEffect, useRef } from 'react';
+import { Controller, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 import { useStatesByCountryId } from '@/hooks/hrms/useEmployeeRegister';
 
@@ -145,18 +145,16 @@ export function AddressTab({
     states = [],
     onClear
 }: AddressTabProps) {
-    const sameAsCommunicationAddress = watch('sameAsCommunicationAddress');
-
-    // Watch communication address fields
-    const contactAddress = watch('contactAddress');
-    const contactArea = watch('contactArea');
-    const contactCountry = watch('contactCountry');
-    const contactState = watch('contactState');
-    const contactCity = watch('contactCity');
-    const contactPincode = watch('contactPincode');
-
-    // Watch permanent address country for state filtering
-    const permanentCountry = watch('permanentCountry');
+    // Use useWatch instead of watch() to prevent unnecessary re-renders
+    const sameAsCommunicationAddress = useWatch({ control, name: 'sameAsCommunicationAddress' });
+    const contactAddress = useWatch({ control, name: 'contactAddress' });
+    const contactArea = useWatch({ control, name: 'contactArea' });
+    const contactCountry = useWatch({ control, name: 'contactCountry' });
+    const contactState = useWatch({ control, name: 'contactState' });
+    const contactCity = useWatch({ control, name: 'contactCity' });
+    const contactPincode = useWatch({ control, name: 'contactPincode' });
+    const permanentCountry = useWatch({ control, name: 'permanentCountry' });
+    const permanentState = useWatch({ control, name: 'permanentState' });
 
     // Convert country string to number for API call
     const contactCountryId = contactCountry ? Number(contactCountry) : null;
@@ -173,62 +171,94 @@ export function AddressTab({
     const availablePermanentStates = permanentCountryId ? permanentStates : states;
 
     // Copy communication address to permanent address when checkbox is checked
-    React.useEffect(() => {
+    // Use refs to track previous values and prevent unnecessary setValue calls
+    const prevSameAsAddress = useRef(sameAsCommunicationAddress);
+    const prevContactValues = useRef({ contactAddress, contactArea, contactCountry, contactState, contactCity, contactPincode });
+    
+    useEffect(() => {
+        // Only copy if checkbox is checked AND values have actually changed
         if (sameAsCommunicationAddress) {
-            // Copy communication address to permanent address
-            setValue('permanentAddress', contactAddress || '');
-            setValue('permanentArea', contactArea || '');
-            setValue('permanentCountry', contactCountry || '');
-            setValue('permanentState', contactState || '');
-            setValue('permanentCity', contactCity || '');
-            setValue('permanentPincode', contactPincode || '');
-        }
-    }, [sameAsCommunicationAddress]); // Only depend on checkbox state, not communication address fields
-
-    // Clear state when country changes
-    React.useEffect(() => {
-        if (contactCountry) {
-            // State will be loaded by the hook, but we should clear the selected state if it doesn't belong to the new country
-            const currentStateId = contactState ? Number(contactState) : null;
-            if (currentStateId && contactStates.length > 0) {
-                const stateExists = contactStates.some((state: any) => 
-                    (state.IVRMMS_Id || state.value || state.id) === currentStateId
-                );
-                if (!stateExists) {
-                    setValue('contactState', '');
-                }
+            const valuesChanged = 
+                prevContactValues.current.contactAddress !== contactAddress ||
+                prevContactValues.current.contactArea !== contactArea ||
+                prevContactValues.current.contactCountry !== contactCountry ||
+                prevContactValues.current.contactState !== contactState ||
+                prevContactValues.current.contactCity !== contactCity ||
+                prevContactValues.current.contactPincode !== contactPincode;
+            
+            // Only set values if checkbox was just checked OR contact values changed
+            if (prevSameAsAddress.current !== sameAsCommunicationAddress || valuesChanged) {
+                setValue('permanentAddress', contactAddress || '', { shouldValidate: false, shouldDirty: false });
+                setValue('permanentArea', contactArea || '', { shouldValidate: false, shouldDirty: false });
+                setValue('permanentCountry', contactCountry || '', { shouldValidate: false, shouldDirty: false });
+                setValue('permanentState', contactState || '', { shouldValidate: false, shouldDirty: false });
+                setValue('permanentCity', contactCity || '', { shouldValidate: false, shouldDirty: false });
+                setValue('permanentPincode', contactPincode || '', { shouldValidate: false, shouldDirty: false });
+                
+                prevContactValues.current = { contactAddress, contactArea, contactCountry, contactState, contactCity, contactPincode };
             }
-        } else {
-            setValue('contactState', '');
+        }
+        prevSameAsAddress.current = sameAsCommunicationAddress;
+    }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCountry, contactState, contactCity, contactPincode, setValue]);
+
+    // Clear state when country changes - use ref to track previous country
+    const prevContactCountry = useRef(contactCountry);
+    useEffect(() => {
+        // Only run if country actually changed
+        if (prevContactCountry.current !== contactCountry) {
+            if (contactCountry) {
+                // State will be loaded by the hook, but we should clear the selected state if it doesn't belong to the new country
+                const currentStateId = contactState ? Number(contactState) : null;
+                if (currentStateId && contactStates.length > 0) {
+                    const stateExists = contactStates.some((state: any) => 
+                        (state.IVRMMS_Id || state.value || state.id) === currentStateId
+                    );
+                    if (!stateExists) {
+                        setValue('contactState', '', { shouldValidate: false, shouldDirty: false });
+                    }
+                }
+            } else {
+                setValue('contactState', '', { shouldValidate: false, shouldDirty: false });
+            }
+            prevContactCountry.current = contactCountry;
         }
     }, [contactCountry, contactStates, contactState, setValue]);
 
-    React.useEffect(() => {
-        if (permanentCountry) {
-            const currentStateId = watch('permanentState') ? Number(watch('permanentState')) : null;
-            if (currentStateId && permanentStates.length > 0) {
-                const stateExists = permanentStates.some((state: any) => 
-                    (state.IVRMMS_Id || state.value || state.id) === currentStateId
-                );
-                if (!stateExists) {
-                    setValue('permanentState', '');
+    // Clear permanent state when country changes - use ref to track previous country
+    const prevPermanentCountry = useRef(permanentCountry);
+    useEffect(() => {
+        // Only run if country actually changed
+        if (prevPermanentCountry.current !== permanentCountry) {
+            if (permanentCountry) {
+                const currentStateId = permanentState ? Number(permanentState) : null;
+                if (currentStateId && permanentStates.length > 0) {
+                    const stateExists = permanentStates.some((state: any) => 
+                        (state.IVRMMS_Id || state.value || state.id) === currentStateId
+                    );
+                    if (!stateExists) {
+                        setValue('permanentState', '', { shouldValidate: false, shouldDirty: false });
+                    }
                 }
+            } else {
+                setValue('permanentState', '', { shouldValidate: false, shouldDirty: false });
             }
-        } else {
-            setValue('permanentState', '');
+            prevPermanentCountry.current = permanentCountry;
         }
-    }, [permanentCountry, permanentStates, watch, setValue]);
+    }, [permanentCountry, permanentStates, permanentState, setValue]);
+
     return (
         <div className='space-y-6'>
             {/* Contact Address */}
             <div className='space-y-4'>
-                <div className='rounded-md bg-primary px-4 py-2 text-primary-foreground'>
-                    <h3 className='font-semibold'>Contact Address:</h3>
-                </div>
-                <div className='grid grid-cols-1 gap-4'>
-                    <HRMSInputText label='Address' id='contactAddress' maxLength={100} {...register('contactAddress')} error={errors.contactAddress?.message} />
-                    <HRMSInputText label='Area' id='contactArea' {...register('contactArea')} error={errors.contactArea?.message} />
-                    <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
+                <div className='rounded-md border'>
+                    <div className='border-b bg-muted px-4 py-2'>
+                        <h3 className='font-semibold'>Contact Address:</h3>
+                    </div>
+                    <div className='p-4'>
+                        <div className='grid grid-cols-1 gap-4'>
+                            <HRMSInputText label='Address' id='contactAddress' maxLength={100} {...register('contactAddress')} error={errors.contactAddress?.message} />
+                            <HRMSInputText label='Area' id='contactArea' {...register('contactArea')} error={errors.contactArea?.message} />
+                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
                         <div className='flex-1 space-y-2'>
                             <Controller
                                 name='contactCountry'
@@ -331,42 +361,46 @@ export function AddressTab({
                                 error={errors.contactPincode?.message}
                             />
                         </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Permanent Address */}
             <div className='space-y-4'>
-                <div className='rounded-md bg-primary px-4 py-2 text-primary-foreground'>
-                    <h3 className='font-semibold'>Permanent Address:</h3>
-                </div>
-                <div className='mb-4 flex items-center space-x-2'>
-                    <Checkbox
-                        id='sameAsCommunicationAddress'
-                        checked={sameAsCommunicationAddress || false}
-                        onCheckedChange={(checked) => {
-                            setValue('sameAsCommunicationAddress', !!checked);
-                        }}
-                    />
-                    <Label htmlFor='sameAsCommunicationAddress'>Same As Communication Address</Label>
-                </div>
-                <div className='grid grid-cols-1 gap-4'>
-                    <HRMSInputText
-                        label='Address'
-                        id='permanentAddress'
-                        maxLength={100}
-                        {...register('permanentAddress')}
-                        error={errors.permanentAddress?.message}
-                        disabled={sameAsCommunicationAddress}
-                    />
-                    <HRMSInputText
-                        label='Area'
-                        id='permanentArea'
-                        {...register('permanentArea')}
-                        error={errors.permanentArea?.message}
-                        disabled={sameAsCommunicationAddress}
-                    />
-                    <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
+                <div className='rounded-md border'>
+                    <div className='border-b bg-muted px-4 py-2'>
+                        <h3 className='font-semibold'>Permanent Address:</h3>
+                    </div>
+                    <div className='p-4'>
+                        <div className='mb-4 flex items-center space-x-2'>
+                            <Checkbox
+                                id='sameAsCommunicationAddress'
+                                checked={sameAsCommunicationAddress || false}
+                                onCheckedChange={(checked) => {
+                                    setValue('sameAsCommunicationAddress', !!checked);
+                                }}
+                            />
+                            <Label htmlFor='sameAsCommunicationAddress'>Same As Communication Address</Label>
+                        </div>
+                        <div className='grid grid-cols-1 gap-4'>
+                            <HRMSInputText
+                                label='Address'
+                                id='permanentAddress'
+                                maxLength={100}
+                                {...register('permanentAddress')}
+                                error={errors.permanentAddress?.message}
+                                disabled={sameAsCommunicationAddress}
+                            />
+                            <HRMSInputText
+                                label='Area'
+                                id='permanentArea'
+                                {...register('permanentArea')}
+                                error={errors.permanentArea?.message}
+                                disabled={sameAsCommunicationAddress}
+                            />
+                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
                         <div className='flex-1 space-y-2'>
                             <Controller
                                 name='permanentCountry'
@@ -455,26 +489,28 @@ export function AddressTab({
                                 )}
                             />
                         </div>
-                    </div>
-                    <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                        <div className='flex-1 space-y-2'>
-                            <HRMSInputText
-                                label='City'
-                                id='permanentCity'
-                                {...register('permanentCity')}
-                                error={errors.permanentCity?.message}
-                                disabled={sameAsCommunicationAddress}
-                            />
-                        </div>
-                        <div className='flex-1 space-y-2'>
-                            <HRMSInputText
-                                label='Pincode'
-                                id='permanentPincode'
-                                maxLength={10}
-                                {...register('permanentPincode')}
-                                error={errors.permanentPincode?.message}
-                                disabled={sameAsCommunicationAddress}
-                            />
+                            </div>
+                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
+                                <div className='flex-1 space-y-2'>
+                                    <HRMSInputText
+                                        label='City'
+                                        id='permanentCity'
+                                        {...register('permanentCity')}
+                                        error={errors.permanentCity?.message}
+                                        disabled={sameAsCommunicationAddress}
+                                    />
+                                </div>
+                                <div className='flex-1 space-y-2'>
+                                    <HRMSInputText
+                                        label='Pincode'
+                                        id='permanentPincode'
+                                        maxLength={10}
+                                        {...register('permanentPincode')}
+                                        error={errors.permanentPincode?.message}
+                                        disabled={sameAsCommunicationAddress}
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

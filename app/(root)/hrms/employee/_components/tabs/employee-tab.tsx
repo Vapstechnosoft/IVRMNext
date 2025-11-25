@@ -121,11 +121,11 @@ const ensureNonEmptyValue = (value: any, fallback: any = null): string | null =>
 
     return trimmed;
 };
-import { useState } from 'react';
-import { Controller } from 'react-hook-form';
+import { useMemo, useState, useEffect, useRef } from 'react';
+import { Controller, useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function EmployeeTab({
+function EmployeeTabComponent({
     control,
     register,
     errors,
@@ -136,8 +136,57 @@ export function EmployeeTab({
     options,
     isSubmitting,
     watch,
-    onClear
+    onClear,
+    setValue,
+    getValues
 }: any) {
+    // DEBUG: Track renders to identify infinite loops
+    const renderCount = useRef(0);
+    const prevMobileFields = useRef<any[]>([]);
+    const prevEmailFields = useRef<any[]>([]);
+    const prevBankFields = useRef<any[]>([]);
+    
+    renderCount.current += 1;
+    
+    useEffect(() => {
+        if (renderCount.current > 20) {
+            console.error('🔴 [EmployeeTab] EXCESSIVE RENDERS DETECTED!', {
+                renderCount: renderCount.current,
+                mobileFieldsLength: mobileFields.length,
+                emailFieldsLength: emailFields.length,
+                bankFieldsLength: bankFields.length,
+                stack: new Error().stack?.split('\n').slice(0, 10).join('\n')
+            });
+        }
+        
+        // Track field changes
+        if (mobileFields.length !== prevMobileFields.current.length) {
+            console.log('🟡 [EmployeeTab] mobileFields changed:', {
+                prev: prevMobileFields.current.length,
+                current: mobileFields.length,
+                fields: mobileFields.map(f => ({ id: f.id, type: getValues(`mobileDetails.${mobileFields.indexOf(f)}.type`) }))
+            });
+            prevMobileFields.current = mobileFields;
+        }
+        
+        if (emailFields.length !== prevEmailFields.current.length) {
+            console.log('🟡 [EmployeeTab] emailFields changed:', {
+                prev: prevEmailFields.current.length,
+                current: emailFields.length,
+                fields: emailFields.map(f => ({ id: f.id, type: getValues(`emailDetails.${emailFields.indexOf(f)}.type`) }))
+            });
+            prevEmailFields.current = emailFields;
+        }
+        
+        if (bankFields.length !== prevBankFields.current.length) {
+            console.log('🟡 [EmployeeTab] bankFields changed:', {
+                prev: prevBankFields.current.length,
+                current: bankFields.length
+            });
+            prevBankFields.current = bankFields;
+        }
+    });
+
     // State for controlling date picker popovers
     const [_dateOfJoiningOpen, _setDateOfJoiningOpen] = useState(false);
     const [_dateOfConfirmationOpen, _setDateOfConfirmationOpen] = useState(false);
@@ -145,6 +194,131 @@ export function EmployeeTab({
     const [_esiDateOpen, _setEsiDateOpen] = useState(false);
     const [_dateOfBirthOpen, _setDateOfBirthOpen] = useState(false);
     const [_dateOfRetirementOpen, _setDateOfRetirementOpen] = useState(false);
+
+    // Use useFieldArray for stable array management
+    const {
+        fields: mobileFields,
+        append: appendMobile,
+        remove: removeMobile
+    } = useFieldArray({
+        control,
+        name: 'mobileDetails'
+    });
+
+    const {
+        fields: emailFields,
+        append: appendEmail,
+        remove: removeEmail
+    } = useFieldArray({
+        control,
+        name: 'emailDetails'
+    });
+
+    const {
+        fields: bankFields,
+        append: appendBank,
+        remove: removeBank
+    } = useFieldArray({
+        control,
+        name: 'bankDetails'
+    });
+
+    // REMOVED: All useEffect hooks that call setValue - they were causing infinite loops
+    // The formDefaultValues in the parent component handles initialization
+    // Select components will handle empty values gracefully
+
+    // Removed debug options tracking to reduce console noise
+
+    // Memoize options to prevent unnecessary re-renders - deep comparison
+    const memoizedOptions = useMemo(() => {
+        if (!options) return null;
+        return {
+            empTypes: options.empTypes || [],
+            groupTypes: options.groupTypes || [],
+            departments: options.departments || [],
+            designations: options.designations || [],
+            grades: options.grades || [],
+            genders: options.genders || [],
+            maritalStatuses: options.maritalStatuses || [],
+            religions: options.religions || [],
+            casteCategories: options.casteCategories || [],
+            castes: options.castes || [],
+            banks: options.banks || [],
+            countries: options.countries || [],
+            states: options.states || [],
+            courses: options.courses || [],
+            specialisations: options.specialisations || [],
+            teachingNonTeaching: options.teachingNonTeaching || [],
+            bloodGroups: options.bloodGroups || [],
+            salaryTypes: options.salaryTypes || [],
+            modeOfPayment: options.modeOfPayment || [],
+            addressTypes: options.addressTypes || [],
+            phoneTypes: options.phoneTypes || [],
+            cgpaPercentageTypes: options.cgpaPercentageTypes || [],
+            leavingReasons: options.leavingReasons || [],
+            institutions: options.institutions || [],
+            earningList: options.earningList || [],
+            detectionList: options.detectionList || [],
+            arrearList: options.arrearList || [],
+            grossList: options.grossList || [],
+            documentList: options.documentList || [],
+            employeedetailList: options.employeedetailList || []
+        };
+    }, [
+        options?.empTypes?.length,
+        options?.groupTypes?.length,
+        options?.departments?.length,
+        options?.designations?.length,
+        options?.grades?.length,
+        options?.genders?.length,
+        options?.maritalStatuses?.length,
+        options?.religions?.length,
+        options?.casteCategories?.length,
+        options?.castes?.length,
+        options?.banks?.length,
+        options?.countries?.length,
+        options?.states?.length,
+        options?.courses?.length,
+        options?.specialisations?.length,
+        options?.teachingNonTeaching?.length,
+        options?.bloodGroups?.length,
+        options?.salaryTypes?.length,
+        options?.modeOfPayment?.length,
+        options?.addressTypes?.length,
+        options?.phoneTypes?.length,
+        options?.cgpaPercentageTypes?.length,
+        options?.leavingReasons?.length,
+        options?.institutions?.length,
+        options?.earningList?.length,
+        options?.detectionList?.length,
+        options?.arrearList?.length,
+        options?.grossList?.length,
+        options?.documentList?.length,
+        options?.employeedetailList?.length
+    ]);
+
+    // Memoize bank options specifically to prevent Select recreation
+    const memoizedBankOptions = useMemo(() => {
+        if (!memoizedOptions?.banks) return [];
+        return (memoizedOptions.banks || [])
+            .filter((b: any) => {
+                const bankId = (b.HRMBD_Id ?? b.BankId ?? b.value ?? b)?.toString();
+                return bankId && bankId.trim() !== '';
+            })
+            .map((b: any) => {
+                const bankId = (b.HRMBD_Id ?? b.BankId ?? b.value ?? b)?.toString();
+                if (!bankId || bankId.trim() === '' || bankId === '') return null;
+                const finalBankId = String(bankId).trim();
+                if (finalBankId === '') return null;
+                const bankName = b.HRMBD_BankName || b.BankName || b.label || String(b);
+                return {
+                    id: finalBankId,
+                    name: bankName,
+                    value: finalBankId
+                };
+            })
+            .filter(Boolean);
+    }, [memoizedOptions?.banks?.length]);
     return (
         <div className='space-y-6'>
             {/* Main Form Fields in Two Columns */}
@@ -841,122 +1015,102 @@ export function EmployeeTab({
                     {/* Multiple Mobile Numbers */}
                     <div className='space-y-2'>
                         <Label>Mobile No.</Label>
-                        <Controller
-                            name='mobileDetails'
-                            control={control}
-                            defaultValue={[]}
-                            render={({ field }) => (
-                                <div className='space-y-2'>
-                                    {field.value?.map((_mobile: any, index: number) => (
-                                        <div key={index} className='flex items-center gap-2'>
-                                            <Controller
-                                                name={`mobileDetails.${index}.type`}
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <Select onValueChange={field.onChange} value={field.value}>
-                                                        <SelectTrigger className='w-28'>
-                                                            <SelectValue placeholder='Select' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value='Default'>Default</SelectItem>
-                                                            <SelectItem value='Alternate'>Alternate</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            <HRMSInputText
-                                                placeholder='Enter mobile number'
-                                                maxLength={15}
-                                                {...register(`mobileDetails.${index}.mobileNo`)}
-                                                className='min-w-[200px] flex-1'
-                                            />
-                                            <Button
-                                                type='button'
-                                                variant='ghost'
-                                                size='sm'
-                                                className='h-9 w-9 p-0'
-                                                onClick={() => {
-                                                    const newValues = field.value?.filter((_: any, i: number) => i !== index) || [];
-                                                    field.onChange(newValues);
-                                                }}>
-                                                <X className='h-4 w-4' />
-                                            </Button>
-                                        </div>
-                                    ))}
+                        <div className='space-y-2'>
+                            {mobileFields.map((field, index) => (
+                                <div key={field.id} className='flex items-center gap-2'>
+                                    <Controller
+                                        name={`mobileDetails.${index}.type`}
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select 
+                                                onValueChange={field.onChange} 
+                                                value={field.value || undefined}>
+                                                <SelectTrigger className='w-28'>
+                                                    <SelectValue placeholder='Select' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value='Default'>Default</SelectItem>
+                                                    <SelectItem value='Alternate'>Alternate</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    <HRMSInputText
+                                        placeholder='Enter mobile number'
+                                        maxLength={15}
+                                        {...register(`mobileDetails.${index}.mobileNo`)}
+                                        className='min-w-[200px] flex-1'
+                                    />
                                     <Button
                                         type='button'
-                                        variant='outline'
+                                        variant='ghost'
                                         size='sm'
-                                        className='w-full'
-                                        onClick={() => {
-                                            field.onChange([...(field.value || []), { mobileNo: '', type: 'default' }]);
-                                        }}>
-                                        <Plus className='mr-1 h-4 w-4' /> Add Mobile
+                                        className='h-9 w-9 p-0'
+                                        onClick={() => removeMobile(index)}>
+                                        <X className='h-4 w-4' />
                                     </Button>
                                 </div>
-                            )}
-                        />
+                            ))}
+                            <Button
+                                type='button'
+                                variant='outline'
+                                size='sm'
+                                className='w-full'
+                                onClick={() => appendMobile({ mobileNo: '', type: 'Default' })}>
+                                <Plus className='mr-1 h-4 w-4' /> Add Mobile
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Multiple Email IDs */}
                     <div className='space-y-2'>
                         <Label>Email -Id</Label>
-                        <Controller
-                            name='emailDetails'
-                            control={control}
-                            defaultValue={[]}
-                            render={({ field }) => (
-                                <div className='space-y-2'>
-                                    {field.value?.map((_email: any, index: number) => (
-                                        <div key={index} className='flex items-center gap-2'>
-                                            <Controller
-                                                name={`emailDetails.${index}.type`}
-                                                control={control}
-                                                render={({ field }) => (
-                                                    <Select onValueChange={field.onChange} value={field.value}>
-                                                        <SelectTrigger className='w-28'>
-                                                            <SelectValue placeholder='Select' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value='Default'>Default</SelectItem>
-                                                            <SelectItem value='Alternate'>Alternate</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                )}
-                                            />
-                                            <HRMSInputText
-                                                type='email'
-                                                placeholder='Enter email address'
-                                                maxLength={100}
-                                                {...register(`emailDetails.${index}.emailId`)}
-                                                className='min-w-[200px] flex-1'
-                                            />
-                                            <Button
-                                                type='button'
-                                                variant='ghost'
-                                                size='sm'
-                                                className='h-9 w-9 p-0'
-                                                onClick={() => {
-                                                    const newValues = field.value?.filter((_: any, i: number) => i !== index) || [];
-                                                    field.onChange(newValues);
-                                                }}>
-                                                <X className='h-4 w-4' />
-                                            </Button>
-                                        </div>
-                                    ))}
+                        <div className='space-y-2'>
+                            {emailFields.map((field, index) => (
+                                <div key={field.id} className='flex items-center gap-2'>
+                                    <Controller
+                                        name={`emailDetails.${index}.type`}
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select 
+                                                onValueChange={field.onChange} 
+                                                value={field.value || undefined}>
+                                                <SelectTrigger className='w-28'>
+                                                    <SelectValue placeholder='Select' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value='Default'>Default</SelectItem>
+                                                    <SelectItem value='Alternate'>Alternate</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    <HRMSInputText
+                                        type='email'
+                                        placeholder='Enter email address'
+                                        maxLength={100}
+                                        {...register(`emailDetails.${index}.emailId`)}
+                                        className='min-w-[200px] flex-1'
+                                    />
                                     <Button
                                         type='button'
-                                        variant='outline'
+                                        variant='ghost'
                                         size='sm'
-                                        className='w-full'
-                                        onClick={() => {
-                                            field.onChange([...(field.value || []), { emailId: '', type: 'default' }]);
-                                        }}>
-                                        <Plus className='mr-1 h-4 w-4' /> Add Email
+                                        className='h-9 w-9 p-0'
+                                        onClick={() => removeEmail(index)}>
+                                        <X className='h-4 w-4' />
                                     </Button>
                                 </div>
-                            )}
-                        />
+                            ))}
+                            <Button
+                                type='button'
+                                variant='outline'
+                                size='sm'
+                                className='w-full'
+                                onClick={() => appendEmail({ emailId: '', type: 'Default' })}>
+                                <Plus className='mr-1 h-4 w-4' /> Add Email
+                            </Button>
+                        </div>
                     </div>
 
                     <HRMSInputText
@@ -1085,155 +1239,93 @@ export function EmployeeTab({
                                 <h3 className='font-semibold'>Employee Bank Details:</h3>
                             </div>
 
-                            <Controller
-                                name='bankDetails'
-                                control={control}
-                                defaultValue={[]}
-                                render={({ field }) => (
-                                    <div className='rounded-lg border bg-card'>
-                                        <div className='bg-blue-600 px-4 py-2 text-white'>
-                                            <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
-                                                <div>Serial No.</div>
-                                                <div>Employer Bank Name</div>
-                                                <div>Bank Account No.</div>
-                                                <div>Account Type</div>
-                                                <div>Action</div>
+                            <div className='rounded-lg border bg-card'>
+                                <div className='bg-blue-600 px-4 py-2 text-white'>
+                                    <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
+                                        <div>Serial No.</div>
+                                        <div>Employer Bank Name</div>
+                                        <div>Bank Account No.</div>
+                                        <div>Account Type</div>
+                                        <div>Action</div>
+                                    </div>
+                                </div>
+                                <div className='space-y-2 p-4'>
+                                    {bankFields.map((field, index) => (
+                                        <div key={field.id} className='grid grid-cols-5 items-center gap-2'>
+                                            <div>{index + 1}</div>
+                                            <div>
+                                                <Controller
+                                                    name={`bankDetails.${index}.employerBankName`}
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            onValueChange={field.onChange}
+                                                            value={field.value || ''}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder='--Select--' />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {memoizedBankOptions.map((bank: any) => (
+                                                                    <SafeSelectItem key={bank.id} value={bank.value}>
+                                                                        {bank.name}
+                                                                    </SafeSelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div>
+                                                <HRMSInputText
+                                                    placeholder='Bank Account No.'
+                                                    maxLength={20}
+                                                    {...register(`bankDetails.${index}.bankAccountNo`)}
+                                                    className='w-full'
+                                                />
+                                            </div>
+                                            <div>
+                                                <Controller
+                                                    name={`bankDetails.${index}.accountType`}
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select 
+                                                            onValueChange={field.onChange} 
+                                                            value={field.value || undefined}>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder='Select' />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value='Default'>Default</SelectItem>
+                                                                <SelectItem value='Alternate'>Alternate</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
+                                                    onClick={() => removeBank(index)}>
+                                                    <Trash2 className='h-4 w-4' />
+                                                </Button>
                                             </div>
                                         </div>
-                                        <div className='space-y-2 p-4'>
-                                            {field.value?.map((_bank: any, index: number) => (
-                                                <div key={index} className='grid grid-cols-5 items-center gap-2'>
-                                                    <div>{index + 1}</div>
-                                                    <div>
-                                                        <Controller
-                                                            name={`bankDetails.${index}.employerBankName`}
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    onValueChange={(value) => {
-                                                                        field.onChange(value);
-                                                                    }}
-                                                                    value={field.value || ''}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.banks || [])
-                                                                            .filter((b: any) => {
-                                                                                const bankId = (
-                                                                                    b.HRMBD_Id ??
-                                                                                    b.BankId ??
-                                                                                    b.value ??
-                                                                                    b
-                                                                                )?.toString();
-                                                                                return bankId && bankId.trim() !== '';
-                                                                            })
-                                                                            .map((b: any) => {
-                                                                                const bankId = (
-                                                                                    b.HRMBD_Id ??
-                                                                                    b.BankId ??
-                                                                                    b.value ??
-                                                                                    b
-                                                                                )?.toString();
-                                                                                // Ensure value is never empty string
-                                                                                if (!bankId || bankId.trim() === '' || bankId === '')
-                                                                                    return null;
-                                                                                const finalBankId = String(bankId).trim();
-                                                                                if (finalBankId === '') return null;
-                                                                                const bankName =
-                                                                                    b.HRMBD_BankName || b.BankName || b.label || String(b);
-                                                                                return (
-                                                                                    <SafeSelectItem key={bankId} value={finalBankId}>
-                                                                                        {bankName}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <HRMSInputText
-                                                            placeholder='Bank Account No.'
-                                                            maxLength={20}
-                                                            {...register(`bankDetails.${index}.bankAccountNo`)}
-                                                            className='w-full'
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <Controller
-                                                            name={`bankDetails.${index}.accountType`}
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.addressTypes || [])
-                                                                            .filter((item: any) => {
-                                                                                const val = item.value ?? item.name ?? item.label ?? item;
-                                                                                return (
-                                                                                    val != null && val !== '' && String(val).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((item: any, index: number) => {
-                                                                                const val = ensureNonEmptyValue(
-                                                                                    item.value ?? item.name ?? item.label ?? item,
-                                                                                    index
-                                                                                );
-                                                                                if (!val) return null;
-                                                                                const label =
-                                                                                    item.label ?? item.name ?? item.value ?? String(item);
-                                                                                return (
-                                                                                    <SafeSelectItem key={val} value={val}>
-                                                                                        {label}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <Button
-                                                            type='button'
-                                                            variant='outline'
-                                                            size='sm'
-                                                            onClick={() => {
-                                                                const newValues =
-                                                                    field.value?.filter((_: any, i: number) => i !== index) || [];
-                                                                field.onChange(newValues);
-                                                            }}>
-                                                            <Trash2 className='h-4 w-4' />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                            <Button
-                                                type='button'
-                                                variant='outline'
-                                                size='sm'
-                                                onClick={() => {
-                                                    field.onChange([
-                                                        ...(field.value || []),
-                                                        {
-                                                            employerBankName: '',
-                                                            bankAccountNo: '',
-                                                            accountType: 'default'
-                                                        }
-                                                    ]);
-                                                }}>
-                                                <Plus className='mr-1 h-4 w-4' /> Add Bank Account
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            />
+                                    ))}
+                                    <Button
+                                        type='button'
+                                        variant='outline'
+                                        size='sm'
+                                        onClick={() => appendBank({
+                                            employerBankName: '',
+                                            bankAccountNo: '',
+                                            accountType: 'Default'
+                                        })}>
+                                        <Plus className='mr-1 h-4 w-4' /> Add Bank Account
+                                    </Button>
+                                </div>
+                            </div>
                         </div>
                     ) : null}
                 </div>
@@ -1244,4 +1336,5 @@ export function EmployeeTab({
     );
 }
 
-// Address Tab Component
+// Export component - removed memo to prevent issues with form state updates
+export const EmployeeTab = EmployeeTabComponent;
