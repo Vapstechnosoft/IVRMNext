@@ -472,14 +472,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Online Payment Head Group',
                                             description: 'Manage Online Payment Head Group Mapping Details'
                                         },
-                                        // {
-                                        //     id: 900,
-                                        //     name: 'Master Student Fee Group Mapping',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/studentfeegroupmapping',
-                                        //     title: 'Student Fee Group Mapping',
-                                        //     description: 'Manage Student Fee Group Mapping Details'
-                                        // },
+                                        {
+                                            id: 900,
+                                            name: 'Master Student Fee Group Mapping',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/studentfeegroupmapping',
+                                            title: 'Student Fee Group Mapping',
+                                            description: 'Manage Student Fee Group Mapping Details'
+                                        },
                                         {
                                             id: 501,
                                             name: 'Master Fee Other Student',

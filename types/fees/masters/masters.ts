@@ -627,6 +627,8 @@ export interface IMasterStudentFeeGroupMappingList {
     fmG_GroupName: string;
     fmG_Id: number;
     fmsG_Id: number;
+    asmaY_Id: number;
+    mI_Id: number;
 }
 export interface IMasterFeeClassDropDownList {
     asmcL_Id: number;
