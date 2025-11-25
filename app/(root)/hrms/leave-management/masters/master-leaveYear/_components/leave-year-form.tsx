@@ -63,7 +63,7 @@ export function LeaveYearForm({ editingLeaveYear, onSubmit, onCancel }: LeaveYea
                     </label>
                     <InputText
                         id='leave-year-input'
-                        {...register('leaveYear', LEAVE_YEAR_VALIDATION.leaveYear)}
+                        {...register('leaveYear', LEAVE_YEAR_VALIDATION.HRMLY_LeaveYear)}
                         placeholder='Enter leave year'
                         className={errors.leaveYear ? 'border-red-500' : ''}
                     />
@@ -78,9 +78,9 @@ export function LeaveYearForm({ editingLeaveYear, onSubmit, onCancel }: LeaveYea
                         id='from-date-input'
                         type='date'
                         {...register('fromDate', {
-                            ...LEAVE_YEAR_VALIDATION.fromDate,
+                            ...LEAVE_YEAR_VALIDATION.HRMLY_FromDate,
                             validate: (value) => {
-                                if (!value) return LEAVE_YEAR_VALIDATION.fromDate.required;
+                                if (!value) return LEAVE_YEAR_VALIDATION.HRMLY_FromDate.required;
                                 const fromDateValue = new Date(value);
                                 const toDateValue = toDate ? new Date(toDate) : null;
                                 if (toDateValue && fromDateValue >= toDateValue) {
@@ -102,9 +102,9 @@ export function LeaveYearForm({ editingLeaveYear, onSubmit, onCancel }: LeaveYea
                         id='to-date-input'
                         type='date'
                         {...register('toDate', {
-                            ...LEAVE_YEAR_VALIDATION.toDate,
+                            ...LEAVE_YEAR_VALIDATION.HRMLY_ToDate,
                             validate: (value) => {
-                                if (!value) return LEAVE_YEAR_VALIDATION.toDate.required;
+                                if (!value) return LEAVE_YEAR_VALIDATION.HRMLY_ToDate.required;
                                 const toDateValue = new Date(value);
                                 const fromDateValue = fromDate ? new Date(fromDate) : null;
                                 if (fromDateValue && toDateValue <= fromDateValue) {

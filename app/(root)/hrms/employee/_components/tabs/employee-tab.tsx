@@ -2,14 +2,125 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Plus, Trash2, Upload, X } from 'lucide-react';
+
+// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
+const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
+    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
+    if (value == null || value === undefined || value === '') {
+        console.error('🔴 [SafeSelectItem - employee-tab] EMPTY VALUE DETECTED:', {
+            value,
+            valueType: typeof value,
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // Convert to string
+    const strValue = String(value);
+
+    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
+    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - employee-tab] EMPTY STRING DETECTED:', {
+            originalValue: value,
+            strValue,
+            strValueLength: strValue.length,
+            trimmed: strValue.trim(),
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    const trimmedValue = strValue.trim();
+
+    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
+    if (trimmedValue === '' || trimmedValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - employee-tab] EMPTY TRIMMED VALUE DETECTED:', {
+            originalValue: value,
+            strValue,
+            trimmedValue,
+            trimmedLength: trimmedValue.length,
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
+    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - employee-tab] FINAL CHECK FAILED - trimmedValue is empty:', {
+            originalValue: value,
+            strValue,
+            trimmedValue,
+            trimmedLength: trimmedValue?.length,
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // Only render if we have a valid non-empty string
+    return (
+        <SelectItem {...props} value={trimmedValue}>
+            {children}
+        </SelectItem>
+    );
+};
+
+// Helper function to ensure SelectItem value is never empty string
+const ensureNonEmptyValue = (value: any, fallback: any = null): string | null => {
+    // Handle null/undefined
+    if (value == null || value === undefined) {
+        if (fallback != null && fallback !== undefined) {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Handle empty string explicitly
+    if (value === '') {
+        if (fallback != null && fallback !== undefined && fallback !== '') {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Convert to string
+    const str = String(value);
+
+    // Check if empty or whitespace
+    if (str === '' || str.trim() === '') {
+        if (fallback != null && fallback !== undefined && fallback !== '') {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Final check - ensure it's not empty
+    const trimmed = str.trim();
+    if (trimmed === '' || trimmed.length === 0) {
+        return null;
+    }
+
+    return trimmed;
+};
 import { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
@@ -42,45 +153,47 @@ export function EmployeeTab({
     onClear
 }: any) {
     // State for controlling date picker popovers
-    const [dateOfJoiningOpen, setDateOfJoiningOpen] = useState(false);
-    const [dateOfConfirmationOpen, setDateOfConfirmationOpen] = useState(false);
-    const [pfDateOpen, setPfDateOpen] = useState(false);
-    const [esiDateOpen, setEsiDateOpen] = useState(false);
-    const [dateOfBirthOpen, setDateOfBirthOpen] = useState(false);
-    const [dateOfRetirementOpen, setDateOfRetirementOpen] = useState(false);
+    const [_dateOfJoiningOpen, _setDateOfJoiningOpen] = useState(false);
+    const [_dateOfConfirmationOpen, _setDateOfConfirmationOpen] = useState(false);
+    const [_pfDateOpen, _setPfDateOpen] = useState(false);
+    const [_esiDateOpen, _setEsiDateOpen] = useState(false);
+    const [_dateOfBirthOpen, _setDateOfBirthOpen] = useState(false);
+    const [_dateOfRetirementOpen, _setDateOfRetirementOpen] = useState(false);
     return (
         <div className='space-y-6'>
             {/* Main Form Fields in Two Columns */}
             <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
                 {/* Left Column */}
                 <div className='space-y-4'>
-                    <InputText
+                    <HRMSInputText
                         label='First Name'
                         required
                         id='firstName'
+                        maxLength={100}
                         {...register('firstName', {
                             required: 'First Name is required'
                         })}
                         error={errors.firstName?.message}
                     />
 
-                    <InputText label='Middle Name' id='middleName' {...register('middleName')} error={errors.middleName?.message} />
+                    <HRMSInputText label='Middle Name' id='middleName' maxLength={100} {...register('middleName')} error={errors.middleName?.message} />
 
-                    <InputText label='Last Name' id='lastName' {...register('lastName')} error={errors.lastName?.message} />
+                    <HRMSInputText label='Last Name' id='lastName' maxLength={100} {...register('lastName')} error={errors.lastName?.message} />
 
-                    <InputText
+                    <HRMSInputText
                         label='Employee Code'
                         required
                         id='employeeCode'
+                        maxLength={20}
                         {...register('employeeCode', {
                             required: 'Employee code is required'
                         })}
                         error={errors.employeeCode?.message}
                     />
 
-                    <InputText label="Father's Name" id='fatherName' {...register('fatherName')} error={errors.fatherName?.message} />
+                    <HRMSInputText label="Father's Name" id='fatherName' maxLength={100} {...register('fatherName')} error={errors.fatherName?.message} />
 
-                    <InputText label="Mother's Name" id='motherName' {...register('motherName')} error={errors.motherName?.message} />
+                    <HRMSInputText label="Mother's Name" id='motherName' maxLength={100} {...register('motherName')} error={errors.motherName?.message} />
 
                     <Controller
                         name='typeOfEmployment'
@@ -95,11 +208,39 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.empTypes || []).map((it: any) => (
-                                            <SelectItem key={it.HRMET_Id || it.value} value={(it.HRMET_Id ?? it.value ?? it)?.toString()}>
-                                                {it.HRMET_EmployeeType || it.label || String(it)}
-                                            </SelectItem>
-                                        ))}
+                                        {(options?.empTypes || [])
+                                            .filter((it: any) => {
+                                                // Aggressively filter out items with empty string IDs
+                                                const id1 = it.HRMET_Id;
+                                                const id2 = it.value;
+                                                const id3 = it;
+                                                // Check each ID - must be non-null, non-undefined, non-empty-string, and non-whitespace
+                                                const valid1 = id1 != null && id1 !== undefined && id1 !== '' && String(id1).trim() !== '';
+                                                const valid2 = id2 != null && id2 !== undefined && id2 !== '' && String(id2).trim() !== '';
+                                                const valid3 = id3 != null && id3 !== undefined && id3 !== '' && String(id3).trim() !== '';
+                                                return valid1 || valid2 || valid3;
+                                            })
+                                            .map((it: any) => {
+                                                // Try each ID in order, use first valid one
+                                                let val: string | null = null;
+                                                if (it.HRMET_Id != null && it.HRMET_Id !== '' && String(it.HRMET_Id).trim() !== '') {
+                                                    val = ensureNonEmptyValue(it.HRMET_Id);
+                                                } else if (it.value != null && it.value !== '' && String(it.value).trim() !== '') {
+                                                    val = ensureNonEmptyValue(it.value);
+                                                } else if (it != null && it !== '' && String(it).trim() !== '') {
+                                                    val = ensureNonEmptyValue(it);
+                                                }
+
+                                                // Final check - if still null or empty, skip this item
+                                                if (!val || val === '' || val.trim() === '' || val.length === 0) return null;
+
+                                                return (
+                                                    <SafeSelectItem key={val} value={val}>
+                                                        {it.HRMET_EmployeeType || it.label || String(it)}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -119,11 +260,24 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.groupTypes || []).map((gt: any) => (
-                                            <SelectItem key={gt.HRMGT_Id || gt.value} value={(gt.HRMGT_Id ?? gt.value ?? gt)?.toString()}>
-                                                {gt.HRMGT_EmployeeGroupType || gt.label || String(gt)}
-                                            </SelectItem>
-                                        ))}
+                                        {(options?.groupTypes || [])
+                                            .filter((gt: any) => {
+                                                const val = gt.HRMGT_Id ?? gt.value ?? gt;
+                                                return val != null && val !== '' && String(val).trim() !== '';
+                                            })
+                                            .map((gt: any) => {
+                                                const val = (gt.HRMGT_Id ?? gt.value ?? gt)?.toString();
+                                                // Ensure value is never empty string
+                                                if (!val || val.trim() === '' || val === '') return null;
+                                                const finalVal = String(val).trim();
+                                                if (finalVal === '') return null;
+                                                return (
+                                                    <SafeSelectItem key={gt.HRMGT_Id || gt.value || String(gt)} value={finalVal}>
+                                                        {gt.HRMGT_EmployeeGroupType || gt.label || String(gt)}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -143,11 +297,24 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.departments || []).map((d: any) => (
-                                            <SelectItem key={d.HRMD_Id || d.value} value={(d.HRMD_Id ?? d.value ?? d)?.toString()}>
-                                                {d.HRMD_DepartmentName || d.label || String(d)}
-                                            </SelectItem>
-                                        ))}
+                                        {(options?.departments || [])
+                                            .filter((d: any) => {
+                                                const val = d.HRMD_Id ?? d.value ?? d;
+                                                return val != null && val !== '' && String(val).trim() !== '';
+                                            })
+                                            .map((d: any) => {
+                                                const val = (d.HRMD_Id ?? d.value ?? d)?.toString();
+                                                // Ensure value is never empty string
+                                                if (!val || val.trim() === '' || val === '') return null;
+                                                const finalVal = String(val).trim();
+                                                if (finalVal === '') return null;
+                                                return (
+                                                    <SafeSelectItem key={d.HRMD_Id || d.value || String(d)} value={finalVal}>
+                                                        {d.HRMD_DepartmentName || d.label || String(d)}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -167,18 +334,31 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.designations || []).map((dg: any) => (
-                                            <SelectItem key={dg.HRMDES_Id || dg.value} value={(dg.HRMDES_Id ?? dg.value ?? dg)?.toString()}>
-                                                {dg.HRMDES_DesignationName || dg.label || String(dg)}
-                                            </SelectItem>
-                                        ))}
+                                        {(options?.designations || [])
+                                            .filter((dg: any) => {
+                                                const val = dg.HRMDES_Id ?? dg.value ?? dg;
+                                                return val != null && val !== '' && String(val).trim() !== '';
+                                            })
+                                            .map((dg: any) => {
+                                                const val = (dg.HRMDES_Id ?? dg.value ?? dg)?.toString();
+                                                // Ensure value is never empty string
+                                                if (!val || val.trim() === '' || val === '') return null;
+                                                const finalVal = String(val).trim();
+                                                if (finalVal === '') return null;
+                                                return (
+                                                    <SafeSelectItem key={dg.HRMDES_Id || dg.value || String(dg)} value={finalVal}>
+                                                        {dg.HRMDES_DesignationName || dg.label || String(dg)}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
                         )}
                     />
 
-                    <InputText
+                    <HRMSInputText
                         label='Subject Taught'
                         id='subjectTaught'
                         placeholder='Enter subject taught'
@@ -199,13 +379,24 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.grades || []).map((gr: any) => (
-                                            <SelectItem
-                                                key={gr.HRMG_Id || gr.Id || gr.value || gr}
-                                                value={(gr.HRMG_Id ?? gr.Id ?? gr.value ?? gr)?.toString()}>
-                                                {gr.HRMG_GradeName || gr.Name || gr.label || gr.Grade || String(gr)}
-                                            </SelectItem>
-                                        ))}
+                                        {(options?.grades || [])
+                                            .filter((gr: any) => {
+                                                const val = gr.HRMG_Id ?? gr.Id ?? gr.value ?? gr;
+                                                return val != null && val !== '' && String(val).trim() !== '';
+                                            })
+                                            .map((gr: any) => {
+                                                const val = (gr.HRMG_Id ?? gr.Id ?? gr.value ?? gr)?.toString();
+                                                // Ensure value is never empty string
+                                                if (!val || val.trim() === '' || val === '') return null;
+                                                const finalVal = String(val).trim();
+                                                if (finalVal === '') return null;
+                                                return (
+                                                    <SafeSelectItem key={gr.HRMG_Id || gr.Id || gr.value || String(gr)} value={finalVal}>
+                                                        {gr.HRMG_GradeName || gr.Name || gr.label || gr.Grade || String(gr)}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -215,64 +406,26 @@ export function EmployeeTab({
                     <Controller
                         name='dateOfJoining'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>
-                                    Date Of Joining <span className='text-red-500'>*</span>
-                                </Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={'outline'}
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date Of Joining'
+                                placeholder='Pick date of joining'
+                            />
                         )}
                     />
 
                     <Controller
                         name='dateOfConfirmation'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>Date Of Confirmation</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={'outline'}
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date Of Confirmation'
+                                placeholder='Pick date of confirmation'
+                            />
                         )}
                     />
 
@@ -311,7 +464,7 @@ export function EmployeeTab({
 
                     {/* Recognition Year - Conditional on PHD Research Guide */}
                     {watch?.('phdResearchGuide') ? (
-                        <InputText
+                        <HRMSInputText
                             label='Recognition Year'
                             id='recognitionYear'
                             {...register('recognitionYear')}
@@ -365,38 +518,20 @@ export function EmployeeTab({
                                 </div>
                             </div>
 
-                            <InputText label='PF Acc No.' id='pfAccNo' {...register('pfAccNo')} error={errors.pfAccNo?.message} />
+                            <HRMSInputText label='PF Acc No.' id='pfAccNo' maxLength={20} {...register('pfAccNo')} error={errors.pfAccNo?.message} />
 
-                            <InputText label='UAN Number' id='uanNumber' {...register('uanNumber')} error={errors.uanNumber?.message} />
+                            <HRMSInputText label='UAN Number' id='uanNumber' maxLength={20} {...register('uanNumber')} error={errors.uanNumber?.message} />
 
                             <Controller
                                 name='pfDate'
                                 control={control}
-                                render={({ field }) => (
-                                    <div className='space-y-2'>
-                                        <Label>PF Date</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant={'outline'}
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <DatePickerWithYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='PF Date'
+                                        placeholder='Pick PF date'
+                                    />
                                 )}
                             />
                         </div>
@@ -416,11 +551,12 @@ export function EmployeeTab({
                     {/* ESI Fields - Conditional on ESI Applicable */}
                     {watch?.('esiApplicable') ? (
                         <div className='space-y-4 border-green-500 border-l-4 pl-4'>
-                            <InputText label='ESI Acc No.' id='esiAccNo' {...register('esiAccNo')} error={errors.esiAccNo?.message} />
+                            <HRMSInputText label='ESI Acc No.' id='esiAccNo' maxLength={20} {...register('esiAccNo')} error={errors.esiAccNo?.message} />
 
-                            <InputText
+                            <HRMSInputText
                                 label='Gratuity Acc No.'
                                 id='gratuityAccNo'
+                                maxLength={20}
                                 {...register('gratuityAccNo')}
                                 error={errors.gratuityAccNo?.message}
                             />
@@ -428,37 +564,19 @@ export function EmployeeTab({
                             <Controller
                                 name='esiDate'
                                 control={control}
-                                render={({ field }) => (
-                                    <div className='space-y-2'>
-                                        <Label>ESI Date</Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant={'outline'}
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !field.value && 'text-muted-foreground'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <DatePickerWithYear
-                                                    mode='single'
-                                                    selected={field.value ? new Date(field.value) : undefined}
-                                                    onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
+                                render={({ field, fieldState }) => (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='ESI Date'
+                                        placeholder='Pick ESI date'
+                                    />
                                 )}
                             />
                         </div>
                     ) : null}
 
-                    <InputText label='National SSN' id='nationalSSN' {...register('nationalSSN')} error={errors.nationalSSN?.message} />
+                    <HRMSInputText label='National SSN' id='nationalSSN' maxLength={20} {...register('nationalSSN')} error={errors.nationalSSN?.message} />
                 </div>
 
                 {/* Right Column */}
@@ -476,25 +594,37 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.religions || []).map((rel: any, index: number) => {
-                                            // Handle different possible property names
-                                            const id = rel.IVRMMR_Id || rel.IMR_Id || rel.Id || rel.id || rel.value || index;
-                                            const name =
-                                                rel.IVRMMR_Name ||
-                                                rel.IMR_ReligionName ||
-                                                rel.ReligionName ||
-                                                rel.Name ||
-                                                rel.name ||
-                                                rel.label ||
-                                                rel.text ||
-                                                String(rel);
+                                        {(options?.religions || [])
+                                            .filter((rel: any, index: number) => {
+                                                const id = rel.IVRMMR_Id || rel.IMR_Id || rel.Id || rel.id || rel.value || index;
+                                                const val = id?.toString();
+                                                return val && val.trim() !== '';
+                                            })
+                                            .map((rel: any, index: number) => {
+                                                // Handle different possible property names
+                                                const id = rel.IVRMMR_Id ?? rel.IMR_Id ?? rel.Id ?? rel.id ?? rel.value ?? index;
+                                                const idStr = ensureNonEmptyValue(id, index);
+                                                // Ensure value is never empty string
+                                                if (!idStr || idStr.trim() === '' || idStr === '') return null;
+                                                const finalVal = String(idStr).trim();
+                                                if (finalVal === '') return null;
+                                                const name =
+                                                    rel.IVRMMR_Name ||
+                                                    rel.IMR_ReligionName ||
+                                                    rel.ReligionName ||
+                                                    rel.Name ||
+                                                    rel.name ||
+                                                    rel.label ||
+                                                    rel.text ||
+                                                    String(rel);
 
-                                            return (
-                                                <SelectItem key={id} value={id?.toString()}>
-                                                    {name}
-                                                </SelectItem>
-                                            );
-                                        })}
+                                                return (
+                                                    <SafeSelectItem key={id} value={finalVal}>
+                                                        {name}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -514,25 +644,37 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.casteCategories || []).map((cc: any, index: number) => {
-                                            // Handle different possible property names
-                                            const id = cc.IMCC_Id || cc.Id || cc.id || cc.value || index;
-                                            const name =
-                                                cc.IMCC_CategoryName ||
-                                                cc.IMCC_CasteCategoryName ||
-                                                cc.CasteCategoryName ||
-                                                cc.Name ||
-                                                cc.name ||
-                                                cc.label ||
-                                                cc.text ||
-                                                String(cc);
+                                        {(options?.casteCategories || [])
+                                            .filter((cc: any, index: number) => {
+                                                const id = cc.IMCC_Id || cc.Id || cc.id || cc.value || index;
+                                                const val = id?.toString();
+                                                return val && val.trim() !== '';
+                                            })
+                                            .map((cc: any, index: number) => {
+                                                // Handle different possible property names
+                                                const id = cc.IMCC_Id ?? cc.Id ?? cc.id ?? cc.value ?? index;
+                                                const idStr = ensureNonEmptyValue(id, index);
+                                                // Ensure value is never empty string
+                                                if (!idStr || idStr.trim() === '' || idStr === '') return null;
+                                                const finalVal = String(idStr).trim();
+                                                if (finalVal === '') return null;
+                                                const name =
+                                                    cc.IMCC_CategoryName ||
+                                                    cc.IMCC_CasteCategoryName ||
+                                                    cc.CasteCategoryName ||
+                                                    cc.Name ||
+                                                    cc.name ||
+                                                    cc.label ||
+                                                    cc.text ||
+                                                    String(cc);
 
-                                            return (
-                                                <SelectItem key={id} value={id?.toString()}>
-                                                    {name}
-                                                </SelectItem>
-                                            );
-                                        })}
+                                                return (
+                                                    <SafeSelectItem key={id} value={finalVal}>
+                                                        {name}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -552,18 +694,30 @@ export function EmployeeTab({
                                         <SelectValue placeholder='Select Caste' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.castes || []).map((c: any, index: number) => {
-                                            // Handle different possible property names
-                                            const id = c.IMC_Id || c.Id || c.id || c.value || index;
-                                            const name =
-                                                c.IMC_CasteName || c.CasteName || c.Name || c.name || c.label || c.text || String(c);
+                                        {(options?.castes || [])
+                                            .filter((c: any, index: number) => {
+                                                const id = c.IMC_Id || c.Id || c.id || c.value || index;
+                                                const val = id?.toString();
+                                                return val && val.trim() !== '';
+                                            })
+                                            .map((c: any, index: number) => {
+                                                // Handle different possible property names
+                                                const id = c.IMC_Id ?? c.Id ?? c.id ?? c.value ?? index;
+                                                const idStr = ensureNonEmptyValue(id, index);
+                                                // Ensure value is never empty string
+                                                if (!idStr || idStr.trim() === '' || idStr === '') return null;
+                                                const finalVal = String(idStr).trim();
+                                                if (finalVal === '') return null;
+                                                const name =
+                                                    c.IMC_CasteName || c.CasteName || c.Name || c.name || c.label || c.text || String(c);
 
-                                            return (
-                                                <SelectItem key={id} value={id?.toString()}>
-                                                    {name}
-                                                </SelectItem>
-                                            );
-                                        })}
+                                                return (
+                                                    <SafeSelectItem key={id} value={finalVal}>
+                                                        {name}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -573,64 +727,26 @@ export function EmployeeTab({
                     <Controller
                         name='dateOfBirth'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>
-                                    Date Of Birth <span className='text-red-500'>*</span>
-                                </Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={'outline'}
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date Of Birth'
+                                placeholder='Pick date of birth'
+                            />
                         )}
                     />
 
                     <Controller
                         name='dateOfRetirement'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
-                                <Label>Date of Retirement</Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant={'outline'}
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onDayClick={(day) => field.onChange(format(day, 'yyyy-MM-dd'))}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date of Retirement'
+                                placeholder='Pick date of retirement'
+                            />
                         )}
                     />
 
@@ -647,11 +763,24 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.genders || []).map((g: any) => (
-                                            <SelectItem key={g.IVRMMG_Id || g.value} value={(g.IVRMMG_Id ?? g.value ?? g)?.toString()}>
-                                                {g.IVRMMG_GenderName || g.IVRMMG_Gender || g.label || String(g)}
-                                            </SelectItem>
-                                        ))}
+                                        {(options?.genders || [])
+                                            .filter((g: any) => {
+                                                const val = g.IVRMMG_Id ?? g.value ?? g;
+                                                return val != null && val !== '' && String(val).trim() !== '';
+                                            })
+                                            .map((g: any) => {
+                                                const val = (g.IVRMMG_Id ?? g.value ?? g)?.toString();
+                                                // Ensure value is never empty string
+                                                if (!val || val.trim() === '' || val === '') return null;
+                                                const finalVal = String(val).trim();
+                                                if (finalVal === '') return null;
+                                                return (
+                                                    <SafeSelectItem key={g.IVRMMG_Id || g.value || String(g)} value={finalVal}>
+                                                        {g.IVRMMG_GenderName || g.IVRMMG_Gender || g.label || String(g)}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -671,13 +800,24 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(options?.maritalStatuses || []).map((ms: any) => (
-                                            <SelectItem
-                                                key={ms.IVRMMMS_Id || ms.value}
-                                                value={(ms.IVRMMMS_Id ?? ms.value ?? ms)?.toString()}>
-                                                {ms.IVRMMMS_MaritalStatus || ms.IVRMMMS_Name || ms.label || String(ms)}
-                                            </SelectItem>
-                                        ))}
+                                        {(options?.maritalStatuses || [])
+                                            .filter((ms: any) => {
+                                                const val = ms.IVRMMMS_Id ?? ms.value ?? ms;
+                                                return val != null && val !== '' && String(val).trim() !== '';
+                                            })
+                                            .map((ms: any) => {
+                                                const val = (ms.IVRMMMS_Id ?? ms.value ?? ms)?.toString();
+                                                // Ensure value is never empty string
+                                                if (!val || val.trim() === '' || val === '') return null;
+                                                const finalVal = String(val).trim();
+                                                if (finalVal === '') return null;
+                                                return (
+                                                    <SafeSelectItem key={ms.IVRMMMS_Id || ms.value || String(ms)} value={finalVal}>
+                                                        {ms.IVRMMMS_MaritalStatus || ms.IVRMMMS_Name || ms.label || String(ms)}
+                                                    </SafeSelectItem>
+                                                );
+                                            })
+                                            .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -704,15 +844,15 @@ export function EmployeeTab({
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value='default'>Default</SelectItem>
-                                                            <SelectItem value='home'>Home</SelectItem>
-                                                            <SelectItem value='office'>Office</SelectItem>
+                                                            <SelectItem value='Default'>Default</SelectItem>
+                                                            <SelectItem value='Alternate'>Alternate</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 )}
                                             />
-                                            <InputText
+                                            <HRMSInputText
                                                 placeholder='Enter mobile number'
+                                                maxLength={15}
                                                 {...register(`mobileDetails.${index}.mobileNo`)}
                                                 className='min-w-[200px] flex-1'
                                             />
@@ -764,16 +904,16 @@ export function EmployeeTab({
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value='default'>Default</SelectItem>
-                                                            <SelectItem value='home'>Home</SelectItem>
-                                                            <SelectItem value='office'>Office</SelectItem>
+                                                            <SelectItem value='Default'>Default</SelectItem>
+                                                            <SelectItem value='Alternate'>Alternate</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 )}
                                             />
-                                            <InputText
+                                            <HRMSInputText
                                                 type='email'
                                                 placeholder='Enter email address'
+                                                maxLength={100}
                                                 {...register(`emailDetails.${index}.emailId`)}
                                                 className='min-w-[200px] flex-1'
                                             />
@@ -805,9 +945,9 @@ export function EmployeeTab({
                         />
                     </div>
 
-                    <InputText label='Aadhaar No.' id='aadharNo' {...register('aadharNo')} error={errors.aadharNo?.message} />
+                    <HRMSInputText label='Aadhaar No.' id='aadharNo' maxLength={12} {...register('aadharNo')} error={errors.aadharNo?.message} />
 
-                    <InputText label='PAN Card No.' id='panCardNo' {...register('panCardNo')} error={errors.panCardNo?.message} />
+                    <HRMSInputText label='PAN Card No.' id='panCardNo' maxLength={10} {...register('panCardNo')} error={errors.panCardNo?.message} />
 
                     <Controller
                         name='bloodGroup'
@@ -820,11 +960,14 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {(['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] as const).map((bg) => (
-                                            <SelectItem key={bg} value={bg}>
-                                                {bg}
-                                            </SelectItem>
-                                        ))}
+                                        <SelectItem value='A+'>A+</SelectItem>
+                                        <SelectItem value='A-'>A-</SelectItem>
+                                        <SelectItem value='B+'>B+</SelectItem>
+                                        <SelectItem value='B-'>B-</SelectItem>
+                                        <SelectItem value='AB+'>AB+</SelectItem>
+                                        <SelectItem value='AB-'>AB-</SelectItem>
+                                        <SelectItem value='O+'>O+</SelectItem>
+                                        <SelectItem value='O-'>O-</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -842,11 +985,8 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {['Monthly', 'Hourly'].map((st) => (
-                                            <SelectItem key={st} value={st}>
-                                                {st}
-                                            </SelectItem>
-                                        ))}
+                                        <SelectItem value='monthly'>monthly</SelectItem>
+                                        <SelectItem value='hourly'>hourly</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -866,11 +1006,8 @@ export function EmployeeTab({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {['Bank', 'Cash'].map((m) => (
-                                            <SelectItem key={m} value={m}>
-                                                {m}
-                                            </SelectItem>
-                                        ))}
+                                        <SelectItem value='Bank'>Bank</SelectItem>
+                                        <SelectItem value='Cash'>Cash</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -955,29 +1092,46 @@ export function EmployeeTab({
                                                                         <SelectValue placeholder='--Select--' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.banks || []).map((b: any) => {
-                                                                            const bankId = (
-                                                                                b.HRMBD_Id ??
-                                                                                b.BankId ??
-                                                                                b.value ??
-                                                                                b
-                                                                            )?.toString();
-                                                                            const bankName =
-                                                                                b.HRMBD_BankName || b.BankName || b.label || String(b);
-                                                                            return (
-                                                                                <SelectItem key={bankId} value={bankId}>
-                                                                                    {bankName}
-                                                                                </SelectItem>
-                                                                            );
-                                                                        })}
+                                                                        {(options?.banks || [])
+                                                                            .filter((b: any) => {
+                                                                                const bankId = (
+                                                                                    b.HRMBD_Id ??
+                                                                                    b.BankId ??
+                                                                                    b.value ??
+                                                                                    b
+                                                                                )?.toString();
+                                                                                return bankId && bankId.trim() !== '';
+                                                                            })
+                                                                            .map((b: any) => {
+                                                                                const bankId = (
+                                                                                    b.HRMBD_Id ??
+                                                                                    b.BankId ??
+                                                                                    b.value ??
+                                                                                    b
+                                                                                )?.toString();
+                                                                                // Ensure value is never empty string
+                                                                                if (!bankId || bankId.trim() === '' || bankId === '')
+                                                                                    return null;
+                                                                                const finalBankId = String(bankId).trim();
+                                                                                if (finalBankId === '') return null;
+                                                                                const bankName =
+                                                                                    b.HRMBD_BankName || b.BankName || b.label || String(b);
+                                                                                return (
+                                                                                    <SafeSelectItem key={bankId} value={finalBankId}>
+                                                                                        {bankName}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
                                                         />
                                                     </div>
                                                     <div>
-                                                        <InputText
+                                                        <HRMSInputText
                                                             placeholder='Bank Account No.'
+                                                            maxLength={20}
                                                             {...register(`bankDetails.${index}.bankAccountNo`)}
                                                             className='w-full'
                                                         />
@@ -992,8 +1146,28 @@ export function EmployeeTab({
                                                                         <SelectValue placeholder='Select' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        <SelectItem value='default'>Default</SelectItem>
-                                                                        <SelectItem value='alternate'>Alternate</SelectItem>
+                                                                        {(options?.addressTypes || [])
+                                                                            .filter((item: any) => {
+                                                                                const val = item.value ?? item.name ?? item.label ?? item;
+                                                                                return (
+                                                                                    val != null && val !== '' && String(val).trim() !== ''
+                                                                                );
+                                                                            })
+                                                                            .map((item: any, index: number) => {
+                                                                                const val = ensureNonEmptyValue(
+                                                                                    item.value ?? item.name ?? item.label ?? item,
+                                                                                    index
+                                                                                );
+                                                                                if (!val) return null;
+                                                                                const label =
+                                                                                    item.label ?? item.name ?? item.value ?? String(item);
+                                                                                return (
+                                                                                    <SafeSelectItem key={val} value={val}>
+                                                                                        {label}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}

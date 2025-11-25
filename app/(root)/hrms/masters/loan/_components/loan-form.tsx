@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import { LOAN_TYPE_VALIDATION } from '@/lib/validation/hrms-master-validation';
@@ -29,6 +29,7 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
         setValue,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<MasterLoanInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRML_LoanType: '',
@@ -56,17 +57,25 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
             const res = await saveMutation.mutateAsync(data);
 
             if (res?.success) {
-                toast.success(isEditMode ? 'Loan type updated successfully' : 'Loan type added successfully');
+                // Use the actual message from the API response
+                const successMsg = res?.message || (isEditMode ? 'Loan type updated successfully' : 'Loan type added successfully');
+                toast.success(successMsg);
                 if (!isEditMode) {
                     reset();
                 }
                 refetchAll();
                 if (onSuccess) onSuccess();
             } else {
-                toast.error(res?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type'));
+                // Show the actual error message from the API response
+                const errorMsg = res?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+                toast.error(errorMsg);
             }
-        } catch (_error: any) {
-            toast.error(isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+        } catch (error: any) {
+            // Handle actual errors (network errors, etc.)
+            const errorMsg =
+                error?.response?.data?.message || error?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+            console.error('🔴 [BROWSER] Loan form error:', error);
+            toast.error(errorMsg);
         }
     };
 
@@ -85,19 +94,20 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
                         <Label htmlFor='HRML_LoanType'>
                             Loan Type <span className='text-destructive'>*</span>
                         </Label>
-                        <InputText
+                        <HRMSInputText
                             id='HRML_LoanType'
                             placeholder='Enter loan type'
-                            {...register('HRML_LoanType', LOAN_TYPE_VALIDATION.loanType)}
+                            maxLength={LOAN_TYPE_VALIDATION.HRML_LoanType.maxLength?.value}
+                            error={errors.HRML_LoanType?.message}
+                            {...register('HRML_LoanType', LOAN_TYPE_VALIDATION.HRML_LoanType)}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        {errors.HRML_LoanType && <FormError>{errors.HRML_LoanType.message}</FormError>}
                     </div>
 
                     <Controller
                         name='HRML_Max'
                         control={control}
-                        rules={LOAN_TYPE_VALIDATION.maxLoanAmount}
+                        rules={LOAN_TYPE_VALIDATION.HRML_Max}
                         render={({ field }) => {
                             // Callback ref to attach input listener when element is mounted
                             const containerRefCallback = (containerElement: HTMLDivElement | null) => {

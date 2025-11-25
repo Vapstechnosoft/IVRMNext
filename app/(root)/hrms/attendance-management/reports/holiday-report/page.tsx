@@ -4,12 +4,9 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
 import { useEffect, useMemo, useState } from 'react';
-import { type HolidayReportRow, holidayReportColumns } from './_components/columns';
-import {
-    type HolidayReportFilters,
-    HolidayReportFilters as HolidayReportFiltersComponent
-} from './_components/filters';
 import type { MasterHoliday } from '../../masters/master-holiday/_components/columns';
+import { type HolidayReportRow, holidayReportColumns } from './_components/columns';
+import { type HolidayReportFilters, HolidayReportFilters as HolidayReportFiltersComponent } from './_components/filters';
 
 export default function HolidayReportPage() {
     const holidayDB = createLocalCrud<MasterHoliday>('master:holiday');

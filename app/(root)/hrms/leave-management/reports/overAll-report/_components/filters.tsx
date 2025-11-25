@@ -208,7 +208,9 @@ export function OverallReportFilters({ filters, onFilterChange, onReport, onCanc
 
                     {/* Action Buttons */}
                     <div className='mt-2 flex gap-2 md:col-span-3'>
-                        <Button onClick={onReport} variant='default'>Report</Button>
+                        <Button onClick={onReport} variant='default'>
+                            Report
+                        </Button>
                         <Button variant='outline' onClick={onCancel}>
                             <X className='mr-2 h-4 w-4' />
                             Cancel

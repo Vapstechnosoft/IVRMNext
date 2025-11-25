@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterSpecialization } from '@/hooks/hrms/useMasters';
 import { SPECIALIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
@@ -25,6 +25,7 @@ export default function SpecializationForm({ selectedRow, onSuccess }: Specializ
         reset,
         formState: { errors }
     } = useForm<MasterSpecializationInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRMSPL_SpecialisationName: '',
@@ -53,7 +54,10 @@ export default function SpecializationForm({ selectedRow, onSuccess }: Specializ
                 toast.error(res?.message || (isEditMode ? 'Failed to update specialization' : 'Failed to add specialization'));
             }
         } catch (error: any) {
-            const errorMessage = error?.response?.data?.message || error?.message || (isEditMode ? 'Failed to update specialization' : 'Failed to add specialization');
+            const errorMessage =
+                error?.response?.data?.message ||
+                error?.message ||
+                (isEditMode ? 'Failed to update specialization' : 'Failed to add specialization');
             toast.error(errorMessage);
         }
     };
@@ -64,12 +68,13 @@ export default function SpecializationForm({ selectedRow, onSuccess }: Specializ
                 <Label htmlFor='HRMSPL_SpecialisationName'>
                     Specialization Name <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='HRMSPL_SpecialisationName'
                     placeholder='Enter specialization name'
-                    {...register('HRMSPL_SpecialisationName', SPECIALIZATION_VALIDATION.specializationName)}
+                    maxLength={SPECIALIZATION_VALIDATION.HRMSPL_SpecialisationName.maxLength?.value || 10}
+                    error={errors.HRMSPL_SpecialisationName?.message}
+                    {...register('HRMSPL_SpecialisationName', SPECIALIZATION_VALIDATION.HRMSPL_SpecialisationName)}
                 />
-                {errors.HRMSPL_SpecialisationName && <FormError>{errors.HRMSPL_SpecialisationName.message}</FormError>}
             </div>
             <div className='col-span-full'>
                 <Button type='submit' className='mt-2' disabled={saveMutation.isPending}>

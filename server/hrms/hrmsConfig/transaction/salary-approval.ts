@@ -13,18 +13,20 @@ import type {
 
 /**
  * Get salary approval process onload data
- * POST /api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=30
+ * GET /api/HRMS_Trans_SalaryApprovalProcess/onloadgetdetails/{mid}
  */
 export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
     console.log('🔵 [SALARY APPROVAL - BACKEND] getSalaryApprovalOnload - START');
     console.log('📥 [SALARY APPROVAL - BACKEND] Request payload:', JSON.stringify(payload, null, 2));
     
-    const url = '/api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=30';
+    const mid = payload.MI_Id || 30;
+    const url = `/api/HRMS_Trans_SalaryApprovalProcess/onloadgetdetails/${mid}`;
     console.log('🌐 [SALARY APPROVAL - BACKEND] API URL:', url);
     console.log('🌐 [SALARY APPROVAL - BACKEND] API Base: hrms');
+    console.log('🌐 [SALARY APPROVAL - BACKEND] Method: GET');
     
     try {
-        const response = await api.post<SalaryApprovalOnloadResponse>('hrms', url, {});
+        const response = await api.get<SalaryApprovalOnloadResponse>('hrms', url);
         console.log('✅ [SALARY APPROVAL - BACKEND] API Response received');
         console.log('📤 [SALARY APPROVAL - BACKEND] Response structure:', {
             hasSuccess: 'success' in response,
@@ -37,6 +39,17 @@ export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadReque
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             console.log('✅ [SALARY APPROVAL - BACKEND] Response already wrapped, returning as-is');
+            console.log('📊 [SALARY APPROVAL - BACKEND] Response data summary:', {
+                hasGroupTypes: !!(response.data?.groupTypedropdownlist?.length),
+                groupTypesCount: response.data?.groupTypedropdownlist?.length || 0,
+                hasDepartments: !!(response.data?.departmentdropdownlist?.length),
+                departmentsCount: response.data?.departmentdropdownlist?.length || 0,
+                hasDesignations: !!(response.data?.designationdropdownlist?.length),
+                designationsCount: response.data?.designationdropdownlist?.length || 0,
+                hasMonths: !!(response.data?.monthdropdown),
+                hasLeaveYears: !!(response.data?.leaveyeardropdown?.length),
+                leaveYearsCount: response.data?.leaveyeardropdown?.length || 0
+            });
             console.log('🔵 [SALARY APPROVAL - BACKEND] getSalaryApprovalOnload - END (Success)');
             return response;
         }
@@ -61,39 +74,50 @@ export async function getSalaryApprovalOnload(payload: SalaryApprovalOnloadReque
         });
         console.log('🔵 [SALARY APPROVAL - BACKEND] getSalaryApprovalOnload - END (Success)');
         return wrappedResponse;
-    } catch (error) {
+    } catch (error: any) {
         console.error('❌ [SALARY APPROVAL - BACKEND] getSalaryApprovalOnload - ERROR');
         console.error('💥 [SALARY APPROVAL - BACKEND] Error details:', error);
         console.error('💥 [SALARY APPROVAL - BACKEND] Error message:', error instanceof Error ? error.message : String(error));
         console.error('💥 [SALARY APPROVAL - BACKEND] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-        throw error;
+        
+        // Return error response instead of throwing to prevent UI crashes
+        // This allows the frontend to handle the error gracefully
+        return {
+            success: false,
+            message: error?.message || error?.response?.data?.message || 'Failed to load salary approval data. Please check if the API endpoint is available.',
+            data: null
+        } as ApiResponse<SalaryApprovalOnloadResponse>;
     }
 }
 
 /**
  * Search employees by selection for salary approval
- * POST /api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelectionNew
+ * POST /api/HRMS_Trans_SalaryApprovalProcess/getEmployeedetailsBySelection
  */
 export async function searchSalaryApprovalEmployees(payload: SalaryApprovalSearchRequest) {
     console.log('🔵 [SALARY APPROVAL - BACKEND] searchSalaryApprovalEmployees - START');
     console.log('📥 [SALARY APPROVAL - BACKEND] Request payload:', JSON.stringify(payload, null, 2));
     
-    const url = '/api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelectionNew';
+    const url = '/api/HRMS_Trans_SalaryApprovalProcess/getEmployeedetailsBySelection';
     console.log('🌐 [SALARY APPROVAL - BACKEND] API URL:', url);
     console.log('🌐 [SALARY APPROVAL - BACKEND] API Base: hrms');
+    console.log('🌐 [SALARY APPROVAL - BACKEND] Method: POST');
     
     // Prepare request body - ensure arrays are [0] when empty, as API expects
-    // Trim month value to remove any trailing/leading spaces
-    const trimmedMonth = payload.HRES_Month ? payload.HRES_Month.trim() : 'string';
+    // Use empty strings for Year and Month when not provided
+    const trimmedMonth = payload.HRES_Month ? payload.HRES_Month.trim() : '';
+    const trimmedYear = payload.HRES_Year ? payload.HRES_Year.trim() : '';
+    
     console.log('🔍 [SALARY APPROVAL - BACKEND] Month value processing:');
     console.log('  - Original:', JSON.stringify(payload.HRES_Month));
     console.log('  - Trimmed:', JSON.stringify(trimmedMonth));
-    console.log('  - Length before:', payload.HRES_Month?.length || 0);
-    console.log('  - Length after:', trimmedMonth.length);
+    console.log('🔍 [SALARY APPROVAL - BACKEND] Year value processing:');
+    console.log('  - Original:', JSON.stringify(payload.HRES_Year));
+    console.log('  - Trimmed:', JSON.stringify(trimmedYear));
     
     const requestBody = {
-        MI_Id: payload.MI_Id || 0,
-        HRES_Year: payload.HRES_Year || 'string',
+        MI_Id: payload.MI_Id || 30,
+        HRES_Year: trimmedYear,
         HRES_Month: trimmedMonth,
         hrmdeS_IdList: payload.hrmdeS_IdList && payload.hrmdeS_IdList.length > 0 ? payload.hrmdeS_IdList : [0],
         hrmD_IdList: payload.hrmD_IdList && payload.hrmD_IdList.length > 0 ? payload.hrmD_IdList : [0],
@@ -231,6 +255,6 @@ export async function approveSalaries(payload: SalaryApprovalRequest) {
  * Test API connection for salary approval process
  */
 export async function testSalaryApprovalProcessAPI(miId: number = 30) {
-    const url = `/api/CumulativeSalaryReportFacade/onloadgetdetailsNew?mid=${miId}`;
-    return await api.post<SalaryApprovalResponse>('hrms', url, {});
+    const url = `/api/HRMS_Trans_SalaryApprovalProcess/onloadgetdetails/${miId}`;
+    return await api.get<SalaryApprovalOnloadResponse>('hrms', url);
 }

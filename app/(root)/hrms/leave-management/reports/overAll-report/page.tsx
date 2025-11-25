@@ -3,8 +3,8 @@
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useState } from 'react';
-import { overallReportColumns, type OverallReportRow } from './_components/columns';
-import { OverallReportFilters, type OverallReportFilters as FiltersType } from './_components/filters';
+import { type OverallReportRow, overallReportColumns } from './_components/columns';
+import { type OverallReportFilters as FiltersType, OverallReportFilters } from './_components/filters';
 
 export default function LeaveOverallReportPage() {
     const [rows, setRows] = useState<OverallReportRow[]>([]);

@@ -1,14 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useFilterEmployeeOfferAndExperienceData, useGetEmployeeDetailsBySelection } from '@/hooks/hrms/useReports';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
-import { format } from 'date-fns';
-import { Download, FileText, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { type ServiceHistoryRecord, serviceReportColumns } from './_components/columns';
+import { ExperienceCertificateTemplate } from './_components/experience-certificate-template';
 import { EmployeeServiceFilters, type ServiceReportFilters } from './_components/filters';
 
 // Data interfaces
@@ -68,20 +65,34 @@ interface EmployeeServiceRecord extends BaseEntity {
 }
 
 export default function EmployeeServiceReportPage() {
-    // Database instances
+    const roleId = HRMS_MI_ID;
+
+    // API hooks
+    const filterMutation = useFilterEmployeeOfferAndExperienceData();
+    const searchMutation = useGetEmployeeDetailsBySelection();
+
+    // Database instances (for dropdowns - group types, departments, designations)
     const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
     const departmentDB = createLocalCrud<Department>('master:department');
     const designationDB = createLocalCrud<Designation>('master:designation');
-    const employeeDB = createLocalCrud<Employee>('employee:register');
-    const serviceReportDB = createLocalCrud<EmployeeServiceRecord>('report:employee-service');
 
     // State
     const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
     const [designations, setDesignations] = useState<Designation[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
-    const [serviceRecords, setServiceRecords] = useState<EmployeeServiceRecord[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+    const [selectedEmployeeData, setSelectedEmployeeData] = useState<{
+        employeeName: string;
+        employeeCode?: string;
+        designation: string;
+        department?: string;
+        dateOfJoining: string;
+        employmentType?: 'Permanent' | 'Probationary';
+        gender?: 'Male' | 'Female' | 'Other';
+    } | null>(null);
+    const [signatoryName, setSignatoryName] = useState<string>('Mrs. Phebe Sheela Rani');
+    const [signatoryDesignation, setSignatoryDesignation] = useState<string>('MANAGER');
     const [_isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
 
@@ -126,24 +137,9 @@ export default function EmployeeServiceReportPage() {
             }
             setDesignations(desigList.filter((d) => d.isActive));
 
-            // Load employees
-            let empList = employeeDB.list();
-            if (empList.length === 0) {
-                const mockData = generateMockEmployees();
-                mockData.forEach((emp) => employeeDB.create(emp));
-                empList = employeeDB.list(); // Reload data after creating mock records
-            }
-            setEmployees(empList);
-            setFilteredEmployees(empList);
-
-            // Load service records
-            let recordList = serviceReportDB.list();
-            if (recordList.length === 0) {
-                const mockData = generateMockServiceRecords();
-                mockData.forEach((record) => serviceReportDB.create(record));
-                recordList = serviceReportDB.list(); // Reload data after creating mock records
-            }
-            setServiceRecords(recordList);
+            // Employees will be loaded via API when filters are selected
+            setEmployees([]);
+            setFilteredEmployees([]);
         } catch (_error) {
             toast.error('Failed to load data');
         } finally {
@@ -231,7 +227,7 @@ export default function EmployeeServiceReportPage() {
         ];
     };
 
-    const generateMockEmployees = (): Omit<Employee, 'id' | 'createdAt'>[] => {
+    const _generateMockEmployees = (): Omit<Employee, 'id' | 'createdAt'>[] => {
         return [
             {
                 employeeCode: 'EMP001',
@@ -292,7 +288,7 @@ export default function EmployeeServiceReportPage() {
         ];
     };
 
-    const generateMockServiceRecords = (): Omit<EmployeeServiceRecord, 'id' | 'createdAt'>[] => {
+    const _generateMockServiceRecords = (): Omit<EmployeeServiceRecord, 'id' | 'createdAt'>[] => {
         return employees.map((emp, index) => {
             const joiningDate = new Date(emp.dateOfJoining);
             const currentDate = new Date();
@@ -319,33 +315,57 @@ export default function EmployeeServiceReportPage() {
         });
     };
 
-    // Filter employees based on selected criteria
+    // Filter employees using API when filters change
     useEffect(() => {
-        let filtered = employees;
-
-        if (filters.type) {
-            const selectedGroupType = groupTypes.find((g) => g.groupType === filters.type);
-            if (selectedGroupType) {
-                filtered = filtered.filter((emp) => emp.groupTypeId === selectedGroupType.id);
-            }
+        // Only call API if we have at least one filter selected
+        if (!filters.type && !filters.department && !filters.designation) {
+            setFilteredEmployees([]);
+            setEmployees([]);
+            return;
         }
 
-        if (filters.department) {
-            const selectedDepartment = departments.find((d) => d.departmentName === filters.department);
-            if (selectedDepartment) {
-                filtered = filtered.filter((emp) => emp.departmentId === selectedDepartment.id);
-            }
-        }
+        // Find IDs for selected filters
+        const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
+        const selectedDept = departments.find((d) => d.departmentName === filters.department);
+        const selectedDesig = designations.find((d) => d.designationName === filters.designation);
 
-        if (filters.designation) {
-            const selectedDesignation = designations.find((d) => d.designationName === filters.designation);
-            if (selectedDesignation) {
-                filtered = filtered.filter((emp) => emp.designationId === selectedDesignation.id);
-            }
-        }
+        const filterRequest = {
+            MI_Id: roleId,
+            HRMGT_Id: selectedType?.id || 0,
+            HRMD_Id: selectedDept?.id || 0,
+            HRMDES_Id: selectedDesig?.id || 0,
+            LogInUserId: 0
+        };
 
-        setFilteredEmployees(filtered);
-    }, [filters.type, filters.department, filters.designation, employees, groupTypes, departments, designations]);
+        filterMutation.mutate(filterRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    const employeeList = response.data.employeedropdown || [];
+                    const mappedEmployees: Employee[] = employeeList.map((emp: any) => ({
+                        id: emp.HRME_Id || 0,
+                        createdAt: new Date(),
+                        employeeCode: emp.HRME_EmployeeCode || '',
+                        employeeName:
+                            `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
+                        groupTypeId: emp.HRMGT_Id || 0,
+                        departmentId: emp.HRMD_Id || 0,
+                        designationId: emp.HRMDES_Id || 0,
+                        departmentName: emp.HRMD_DepartmentName || '',
+                        designationName: emp.HRMDES_DesignationName || '',
+                        dateOfJoining: emp.HRME_DOJ || '',
+                        dateOfLeaving: emp.HRME_DOL || undefined,
+                        currentSalary: 0
+                    }));
+                    setEmployees(mappedEmployees);
+                    setFilteredEmployees(mappedEmployees);
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error filtering employees:', error);
+                toast.error(error.message || 'Failed to filter employees');
+            }
+        });
+    }, [filters.type, filters.department, filters.designation, groupTypes, departments, designations, roleId]);
 
     const handleFilterChange = (key: keyof ServiceReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -366,12 +386,90 @@ export default function EmployeeServiceReportPage() {
     };
 
     const handleSearch = () => {
+        // Always show report template when search is clicked, even without data or on errors
+        setShowReport(true);
+
         if (!filters.type || !filters.department || !filters.designation || !filters.selectedEmployee) {
             toast.error('Please fill all required fields');
             return;
         }
-        setShowReport(true);
-        toast.success('Employee service report generated');
+
+        // Find IDs for selected filters
+        const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
+        const selectedDept = departments.find((d) => d.departmentName === filters.department);
+        const selectedDesig = designations.find((d) => d.designationName === filters.designation);
+
+        const searchRequest = {
+            MI_Id: roleId,
+            HRMGT_Id: selectedType?.id || 0,
+            HRMD_Id: selectedDept?.id || 0,
+            HRMDES_Id: selectedDesig?.id || 0,
+            LogInUserId: 0
+        };
+
+        searchMutation.mutate(searchRequest, {
+            onSuccess: (response) => {
+                if (response.success && response.data) {
+                    // Extract institution details for signatory if available
+                    const institutionDetails = (response.data as any).institutionDetails;
+                    if (institutionDetails) {
+                        // Try to get signatory name from institution details
+                        // This might be in different fields depending on API structure
+                        const managerName =
+                            institutionDetails.ManagerName ||
+                            institutionDetails.SignatoryName ||
+                            institutionDetails.MI_ManagerName ||
+                            'Mrs. Phebe Sheela Rani';
+                        const managerDesignation =
+                            institutionDetails.ManagerDesignation || institutionDetails.SignatoryDesignation || 'MANAGER';
+                        setSignatoryName(managerName);
+                        setSignatoryDesignation(managerDesignation);
+                    }
+
+                    const employeeList = response.data.employeedropdown || [];
+                    const selectedEmployee = employeeList.find((emp: any) => emp.HRME_Id?.toString() === filters.selectedEmployee);
+
+                    if (selectedEmployee) {
+                        // Determine employment type from employee type
+                        const employmentType =
+                            selectedEmployee.HRMET_EmployeeType === 'Permanent'
+                                ? 'Permanent'
+                                : selectedEmployee.HRMET_EmployeeType === 'Probationary'
+                                  ? 'Probationary'
+                                  : undefined;
+
+                        // Determine gender (if available in API response)
+                        const genderName = (selectedEmployee as any).IVRMMG_GenderName || (selectedEmployee as any).HRME_Gender;
+                        const gender =
+                            genderName === 'M' || genderName === 'Male'
+                                ? 'Male'
+                                : genderName === 'F' || genderName === 'Female'
+                                  ? 'Female'
+                                  : undefined;
+
+                        setSelectedEmployeeData({
+                            employeeName:
+                                `${selectedEmployee.HRME_EmployeeFirstName || ''} ${selectedEmployee.HRME_EmployeeMiddleName || ''} ${selectedEmployee.HRME_EmployeeLastName || ''}`.trim(),
+                            employeeCode: selectedEmployee.HRME_EmployeeCode || '',
+                            designation: selectedEmployee.HRMDES_DesignationName || '',
+                            department: selectedEmployee.HRMD_DepartmentName || '',
+                            dateOfJoining: selectedEmployee.HRME_DOJ || '',
+                            employmentType,
+                            gender
+                        });
+                        toast.success('Experience certificate generated successfully');
+                    } else {
+                        toast.error('Selected employee not found');
+                    }
+                } else {
+                    toast.error(response.message || 'Failed to generate experience certificate');
+                }
+            },
+            onError: (error: Error) => {
+                console.error('Error getting employee details:', error);
+                toast.error(error.message || 'Failed to generate experience certificate');
+            }
+        });
     };
 
     const handleCancel = () => {
@@ -380,15 +478,12 @@ export default function EmployeeServiceReportPage() {
             department: '',
             designation: '',
             selectedEmployee: '',
-            currentDate: new Date('2025-09-17'),
+            currentDate: new Date(),
             reportType: 'Experience Certificate'
         });
         setShowReport(false);
+        setSelectedEmployeeData(null);
         toast.info('Filters cleared');
-    };
-
-    const handleExport = () => {
-        toast.success('Employee service report exported');
     };
 
     const handlePrint = () => {
@@ -396,31 +491,15 @@ export default function EmployeeServiceReportPage() {
         toast.success('Print dialog opened');
     };
 
-    // Get selected employee details
+    // Get selected employee details for filter display
     const selectedEmployeeDetails = useMemo(() => {
         if (!filters.selectedEmployee) return null;
 
         const employee = employees.find((emp) => emp.id.toString() === filters.selectedEmployee);
         if (!employee) return null;
 
-        const serviceRecord = serviceRecords.find((record) => record.employeeId.toString() === filters.selectedEmployee);
-        return { employee, serviceRecord };
-    }, [filters.selectedEmployee, employees, serviceRecords]);
-
-    // Mock service history data
-    const serviceHistoryData: ServiceHistoryRecord[] = selectedEmployeeDetails
-        ? [
-              {
-                  period: `${selectedEmployeeDetails.employee.dateOfJoining} - ${
-                      selectedEmployeeDetails.employee.dateOfLeaving || 'Present'
-                  }`,
-                  designation: selectedEmployeeDetails.employee.designationName,
-                  department: selectedEmployeeDetails.employee.departmentName,
-                  salary: selectedEmployeeDetails.employee.currentSalary,
-                  performance: 'Excellent'
-              }
-          ]
-        : [];
+        return { employee };
+    }, [filters.selectedEmployee, employees]);
 
     return (
         <div className='space-y-6'>
@@ -438,132 +517,16 @@ export default function EmployeeServiceReportPage() {
             />
 
             {/* Report Results */}
-            {showReport && selectedEmployeeDetails && (
-                <div className='space-y-4'>
-                    {/* Report Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>
-                                {filters.reportType} - {selectedEmployeeDetails.employee.employeeName}
-                            </h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Generated on: {format(filters.currentDate, 'dd-MM-yyyy')} | Employee Code:{' '}
-                                {selectedEmployeeDetails.employee.employeeCode}
-                            </p>
-                        </div>
-                        <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                Export
-                            </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Employee Summary */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Employee Code</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>{selectedEmployeeDetails.employee.employeeCode}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Date of Joining</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>
-                                    {new Date(selectedEmployeeDetails.employee.dateOfJoining).toLocaleDateString()}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Service Length</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>
-                                    {selectedEmployeeDetails.serviceRecord?.serviceLength || 'N/A'}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Current Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>
-                                    ₹{selectedEmployeeDetails.employee.currentSalary.toLocaleString()}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Service History Table */}
-                    <div className='rounded-lg border bg-card p-4'>
-                        <div className='mb-4 flex items-center gap-2 font-semibold text-foreground text-lg'>
-                            <FileText className='h-5 w-5' />
-                            Service History
-                        </div>
-
-                        <DataTable
-                            isLoading={false}
-                            columns={serviceReportColumns}
-                            data={serviceHistoryData}
-                            totalItems={serviceHistoryData.length}
-                            showViewOptions={false}
-                        />
-                    </div>
-
-                    {/* Experience Certificate Preview */}
-                    <div className='rounded-lg border bg-card p-6'>
-                        <div className='space-y-4 text-center'>
-                            <h2 className='font-bold text-foreground text-xl'>EXPERIENCE CERTIFICATE</h2>
-
-                            <div className='mx-auto max-w-2xl space-y-3 text-left'>
-                                <p className='text-sm'>
-                                    This is to certify that <strong>{selectedEmployeeDetails.employee.employeeName}</strong>
-                                    (Employee Code: <strong>{selectedEmployeeDetails.employee.employeeCode}</strong>) has been working with
-                                    our organization from{' '}
-                                    <strong>{new Date(selectedEmployeeDetails.employee.dateOfJoining).toLocaleDateString()}</strong>
-                                    {selectedEmployeeDetails.employee.dateOfLeaving
-                                        ? ` to ${new Date(selectedEmployeeDetails.employee.dateOfLeaving).toLocaleDateString()}`
-                                        : ' till date'}
-                                    .
-                                </p>
-
-                                <p className='text-sm'>
-                                    During the tenure, the employee worked as{' '}
-                                    <strong>{selectedEmployeeDetails.employee.designationName}</strong> in the{' '}
-                                    <strong>{selectedEmployeeDetails.employee.departmentName}</strong> department.
-                                </p>
-
-                                <p className='text-sm'>
-                                    The employee has shown excellent performance and dedication throughout the service period. We wish them
-                                    all the best for their future endeavors.
-                                </p>
-
-                                <div className='pt-4'>
-                                    <p className='text-sm'>
-                                        Date: <strong>{format(filters.currentDate, 'dd-MM-yyyy')}</strong>
-                                    </p>
-                                </div>
-
-                                <div className='pt-8 text-right'>
-                                    <div className='text-sm'>
-                                        <div>Authorized Signatory</div>
-                                        <div className='font-semibold'>HR Department</div>
-                                        <div>VAPS SCHOOL</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            {showReport && (
+                <ExperienceCertificateTemplate
+                    employeeData={selectedEmployeeData}
+                    currentDate={filters.currentDate}
+                    signatoryName={signatoryName}
+                    signatoryDesignation={signatoryDesignation}
+                    isLoading={searchMutation.isPending}
+                    onPrint={handlePrint}
+                    onCancel={handleCancel}
+                />
             )}
         </div>
     );

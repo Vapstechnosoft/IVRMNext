@@ -89,7 +89,7 @@ function ReligionCategoryMappingPageContent({
     // Where data.data.mapping is the mapping array, data.data.religion_list is religion list, data.data.caste_list is caste list
     const responseData = response?.data;
     const dataObj = responseData?.data;
-    
+
     // Extract mapping array from new structure (data.mapping) or fallback to old structure
     const rows = Array.isArray(dataObj?.mapping)
         ? dataObj.mapping

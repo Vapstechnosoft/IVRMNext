@@ -1,22 +1,15 @@
 ﻿'use client';
-import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { useState } from 'react';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
 export function OtherDetailsTab({ control, register, errors, isSubmitting, watch, onClear }: any) {
     const stopPension = watch('stopPension');
     const employeeLeft = watch('employeeLeft');
-    const [stopPensionDateOpen, setStopPensionDateOpen] = useState(false);
-    const [lastWorkingDayOpen, setLastWorkingDayOpen] = useState(false);
 
     return (
         <div className='space-y-4'>
@@ -25,10 +18,11 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
             </div>
 
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                <InputText
+                <HRMSInputText
                     label='Biometric Code'
                     id='biometricCode'
                     placeholder='48'
+                    maxLength={50}
                     {...register('biometricCode')}
                     error={errors.biometricCode?.message}
                 />
@@ -63,50 +57,28 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                     </div>
                 </div>
 
-                <InputText label='RF card ID' id='rfCardId' {...register('rfCardId')} error={errors.rfCardId?.message} />
+                <HRMSInputText label='RF card ID' id='rfCardId' maxLength={50} {...register('rfCardId')} error={errors.rfCardId?.message} />
 
                 {stopPension && (
-                    <div className='space-y-2'>
-                        <Label>Date of Stop Pension</Label>
-                        <Controller
-                            name='dateOfStopPension'
-                            control={control}
-                            render={({ field }) => (
-                                <Popover open={stopPensionDateOpen} onOpenChange={setStopPensionDateOpen}>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant='outline'
-                                            className={cn(
-                                                'h-9 w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0' align='start'>
-                                        <DatePickerWithYear
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onSelect={(day) => {
-                                                if (day) {
-                                                    field.onChange(format(day, 'yyyy-MM-dd'));
-                                                    setStopPensionDateOpen(false);
-                                                }
-                                            }}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            )}
-                        />
-                    </div>
+                    <Controller
+                        name='dateOfStopPension'
+                        control={control}
+                        render={({ field, fieldState }) => (
+                            <DateField
+                                field={field}
+                                fieldState={fieldState}
+                                label='Date of Stop Pension'
+                                placeholder='Pick date of stop pension'
+                            />
+                        )}
+                    />
                 )}
 
-                <InputText
+                <HRMSInputText
                     label='MS Teams UserName'
                     id='msTeamsUserName'
                     placeholder='STCSAdmin'
+                    maxLength={100}
                     {...register('msTeamsUserName')}
                     error={errors.msTeamsUserName?.message}
                 />
@@ -124,10 +96,11 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                     )}
                 />
 
-                <InputText
+                <HRMSInputText
                     label='MS Teams Password'
                     id='msTeamsPassword'
                     type='password'
+                    maxLength={255}
                     {...register('msTeamsPassword')}
                     error={errors.msTeamsPassword?.message}
                 />
@@ -136,52 +109,36 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
             {employeeLeft && (
                 <div className='rounded-lg border bg-muted/50 p-4'>
                     <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                        <div className='space-y-2'>
-                            <Label>
-                                Last Working day <span className='text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='lastWorkingDay'
-                                control={control}
-                                render={({ field }) => (
-                                    <Popover open={lastWorkingDayOpen} onOpenChange={setLastWorkingDayOpen}>
-                                        <PopoverTrigger asChild>
-                                            <Button
-                                                variant='outline'
-                                                className={cn(
-                                                    'h-9 w-full justify-start text-left font-normal',
-                                                    !field.value && 'text-muted-foreground'
-                                                )}>
-                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                {field.value ? format(new Date(field.value), 'PPP') : 'Select date'}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className='w-auto p-0' align='start'>
-                                            <DatePickerWithYear
-                                                mode='single'
-                                                selected={field.value ? new Date(field.value) : undefined}
-                                                onSelect={(day) => {
-                                                    if (day) {
-                                                        field.onChange(format(day, 'yyyy-MM-dd'));
-                                                        setLastWorkingDayOpen(false);
-                                                    }
-                                                }}
-                                                initialFocus
-                                            />
-                                        </PopoverContent>
-                                    </Popover>
-                                )}
-                            />
-                        </div>
+                        <Controller
+                            name='lastWorkingDay'
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <DateField
+                                    field={field}
+                                    fieldState={fieldState}
+                                    label='Last Working day'
+                                    placeholder='Pick last working day'
+                                />
+                            )}
+                        />
 
                         <div className='space-y-2 lg:col-span-2'>
                             <Label>Reason for Leaving</Label>
                             <textarea
                                 id='reasonForLeaving'
+                                maxLength={50}
                                 {...register('reasonForLeaving')}
-                                className='min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
+                                className={cn(
+                                    'min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+                                    errors.reasonForLeaving
+                                        ? 'border-destructive focus-visible:ring-destructive'
+                                        : 'border-input focus-visible:ring-ring'
+                                )}
                                 placeholder='Enter reason for leaving...'
                             />
+                            {errors.reasonForLeaving && (
+                                <div className='font-medium text-[0.8rem] text-destructive'>{errors.reasonForLeaving.message}</div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -191,4 +148,3 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
         </div>
     );
 }
-

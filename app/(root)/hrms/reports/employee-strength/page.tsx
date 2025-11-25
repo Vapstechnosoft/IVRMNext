@@ -1,16 +1,12 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useEmployeeStrengthReportOnload, useSearchEmployeeStrengthReport } from '@/hooks/hrms/useReports';
 import { format } from 'date-fns';
-import { BarChart3, Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { type EmployeeStrengthRecord as EmployeeStrengthRecordColumn, employeeStrengthColumns } from './_components/columns';
 import { EmployeeStrengthFilters, type StrengthReportFilters } from './_components/filters';
+import { EmployeeStrengthReportTemplate } from './_components/report-template';
 
 // Employee strength data structure
 interface EmployeeStrengthRecord {
@@ -38,6 +34,8 @@ export default function EmployeeStrengthReportPage() {
     const [strengthRecords, setStrengthRecords] = useState<EmployeeStrengthRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<EmployeeStrengthRecord[]>([]);
     const [showReport, setShowReport] = useState(false);
+    const [schoolName, setSchoolName] = useState<string>('');
+    const [schoolAddress, setSchoolAddress] = useState<string>('');
 
     // Memoize dropdown data from API
     const groupTypes = useMemo(() => {
@@ -74,7 +72,10 @@ export default function EmployeeStrengthReportPage() {
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load employee strength report data. Please check if the API endpoint is available.';
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load employee strength report data. Please check if the API endpoint is available.';
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
@@ -215,6 +216,9 @@ export default function EmployeeStrengthReportPage() {
     };
 
     const handleSearch = () => {
+        // Always show report template when search is clicked, even without data or on errors
+        setShowReport(true);
+
         // Only validate dates if "All Employee" is not selected
         if (!filters.employeeCategories.allEmployee) {
             if (!filters.fromDate || !filters.toDate) {
@@ -226,15 +230,18 @@ export default function EmployeeStrengthReportPage() {
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
-            designationselected: filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
-                ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
-                : [],
-            departmentselected: filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
-                ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
-                : [],
-            groupTypeselected: filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
-                ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
-                : [],
+            designationselected:
+                filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
+                    ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
+                    : [],
+            departmentselected:
+                filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
+                    ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
+                    : [],
+            groupTypeselected:
+                filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
+                    ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
+                    : [],
             AllEmployee: filters.employeeCategories.allEmployee,
             Departmentwise: filters.employeeCategories.departmentWise,
             LeftEmployee: filters.employeeCategories.leftEmployee,
@@ -245,6 +252,18 @@ export default function EmployeeStrengthReportPage() {
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
+                    // Extract institution details from API response
+                    const institutionDetails = (response.data as any).institutionDetails || onloadData?.data?.institutionDetails;
+                    if (institutionDetails) {
+                        setSchoolName(institutionDetails.MI_Name || '');
+                        const addressParts = [];
+                        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
+                        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
+                        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
+                        if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
+                        setSchoolAddress(addressParts.join(', ') || '');
+                    }
+
                     // Map API response to EmployeeStrengthRecord format
                     const employeeDetails = response.data.employeeDetails || [];
                     const mappedRecords: EmployeeStrengthRecord[] = employeeDetails.map((emp: any, index: number) => ({
@@ -258,13 +277,13 @@ export default function EmployeeStrengthReportPage() {
                         newJoinees: emp.newJoinees || 0,
                         maleEmployees: emp.maleEmployees || 0,
                         femaleEmployees: emp.femaleEmployees || 0,
-                        dateRange: filters.fromDate && filters.toDate
-                            ? `${format(filters.fromDate, 'dd-MM-yyyy')} to ${format(filters.toDate, 'dd-MM-yyyy')}`
-                            : ''
+                        dateRange:
+                            filters.fromDate && filters.toDate
+                                ? `${format(filters.fromDate, 'dd-MM-yyyy')} to ${format(filters.toDate, 'dd-MM-yyyy')}`
+                                : ''
                     }));
 
                     setStrengthRecords(mappedRecords);
-                    setShowReport(true);
                     toast.success('Employee strength report generated successfully');
                 } else {
                     toast.error(response.message || 'Failed to generate employee strength report');
@@ -293,6 +312,8 @@ export default function EmployeeStrengthReportPage() {
         setShowReport(false);
         setStrengthRecords([]);
         setFilteredRecords([]);
+        setSchoolName('');
+        setSchoolAddress('');
         toast.info('Filters cleared');
     };
 
@@ -305,27 +326,21 @@ export default function EmployeeStrengthReportPage() {
         toast.success('Print dialog opened');
     };
 
-    // Calculate summary statistics
-    const summaryStats = useMemo(() => {
-        return filteredRecords.reduce(
-            (acc, record) => ({
-                totalEmployees: acc.totalEmployees + record.totalEmployees,
-                activeEmployees: acc.activeEmployees + record.activeEmployees,
-                leftEmployees: acc.leftEmployees + record.leftEmployees,
-                newJoinees: acc.newJoinees + record.newJoinees,
-                maleEmployees: acc.maleEmployees + record.maleEmployees,
-                femaleEmployees: acc.femaleEmployees + record.femaleEmployees
-            }),
-            {
-                totalEmployees: 0,
-                activeEmployees: 0,
-                leftEmployees: 0,
-                newJoinees: 0,
-                maleEmployees: 0,
-                femaleEmployees: 0
+    // Extract institution details from onload data if available
+    useEffect(() => {
+        if (onloadData?.data) {
+            const institutionDetails = (onloadData.data as any).institutionDetails;
+            if (institutionDetails) {
+                setSchoolName(institutionDetails.MI_Name || '');
+                const addressParts = [];
+                if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
+                if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
+                if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
+                if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
+                setSchoolAddress(addressParts.join(', ') || '');
             }
-        );
-    }, [filteredRecords]);
+        }
+    }, [onloadData]);
 
     return (
         <div className='space-y-6'>
@@ -346,156 +361,15 @@ export default function EmployeeStrengthReportPage() {
 
             {/* Report Results */}
             {showReport && (
-                <div className='space-y-4'>
-                    {/* Report Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>Employee Strength Report</h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Date Range: {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : ''} to{' '}
-                                {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : ''} | Records: {filteredRecords.length}
-                            </p>
-                        </div>
-                        <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                Export
-                            </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Summary Statistics Cards */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Employees</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>{summaryStats.totalEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Active</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>{summaryStats.activeEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Left</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-red-600'>{summaryStats.leftEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>New Joinees</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-blue-600 text-lg'>{summaryStats.newJoinees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Male</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>{summaryStats.maleEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Female</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>{summaryStats.femaleEmployees}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Data Table */}
-                    <DataTable
-                        isLoading={isLoadingOnload}
-                        columns={employeeStrengthColumns}
-                        data={filteredRecords as unknown as EmployeeStrengthRecordColumn[]}
-                        totalItems={filteredRecords.length}
-                        showViewOptions={true}
-                        columnPinning={{ left: ['id'] }}
-                    />
-
-                    {/* Visual Chart */}
-                    <div className='rounded-lg border bg-card p-4'>
-                        <div className='mb-4 flex items-center gap-2 font-semibold text-foreground text-lg'>
-                            <BarChart3 className='h-5 w-5' />
-                            Employee Strength Distribution
-                        </div>
-
-                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                            {/* Department-wise Chart */}
-                            <div>
-                                <h4 className='mb-3 font-medium text-foreground text-sm'>Department-wise Distribution</h4>
-                                <div className='space-y-2'>
-                                    {Array.from(new Set(filteredRecords.map((r) => r.departmentName))).map((dept, index) => {
-                                        const deptTotal = filteredRecords
-                                            .filter((r) => r.departmentName === dept)
-                                            .reduce((sum, r) => sum + r.totalEmployees, 0);
-                                        const maxTotal = Math.max(
-                                            ...Array.from(new Set(filteredRecords.map((r) => r.departmentName))).map((d) =>
-                                                filteredRecords
-                                                    .filter((r) => r.departmentName === d)
-                                                    .reduce((sum, r) => sum + r.totalEmployees, 0)
-                                            )
-                                        );
-                                        const width = (deptTotal / maxTotal) * 100;
-                                        const colors = ['#0ea5e9', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6'];
-
-                                        return (
-                                            <div key={dept} className='space-y-1'>
-                                                <div className='flex justify-between text-sm'>
-                                                    <span>{dept}</span>
-                                                    <span className='font-medium'>{deptTotal}</span>
-                                                </div>
-                                                <div className='h-2 w-full rounded-full bg-gray-200'>
-                                                    <div
-                                                        className='h-2 rounded-full transition-all duration-300'
-                                                        style={{
-                                                            width: `${width}%`,
-                                                            backgroundColor: colors[index % colors.length]
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Status Distribution */}
-                            <div>
-                                <h4 className='mb-3 font-medium text-foreground text-sm'>Status Distribution</h4>
-                                <div className='space-y-4'>
-                                    <div className='flex items-center justify-between rounded-lg border p-3'>
-                                        <span className='text-sm'>Active Employees</span>
-                                        <span className='font-semibold text-green-600 text-lg'>{summaryStats.activeEmployees}</span>
-                                    </div>
-                                    <div className='flex items-center justify-between rounded-lg border p-3'>
-                                        <span className='text-sm'>Left Employees</span>
-                                        <span className='font-semibold text-lg text-red-600'>{summaryStats.leftEmployees}</span>
-                                    </div>
-                                    <div className='flex items-center justify-between rounded-lg border p-3'>
-                                        <span className='text-sm'>New Joinees</span>
-                                        <span className='font-semibold text-blue-600 text-lg'>{summaryStats.newJoinees}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <EmployeeStrengthReportTemplate
+                    schoolName={schoolName}
+                    schoolAddress={schoolAddress}
+                    reportData={filteredRecords}
+                    isLoading={searchMutation.isPending}
+                    onPrint={handlePrint}
+                    onExport={handleExport}
+                    onCancel={handleCancel}
+                />
             )}
         </div>
     );

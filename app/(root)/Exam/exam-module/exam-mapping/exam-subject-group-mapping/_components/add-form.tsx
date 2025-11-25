@@ -349,6 +349,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                                 isSearchRequired
                                                 height='220px'
                                                 error={fieldState.error?.message}
+                                                isRequired={true}
                                             />
                                         )}
                                     />

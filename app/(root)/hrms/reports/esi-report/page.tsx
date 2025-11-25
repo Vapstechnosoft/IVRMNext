@@ -88,7 +88,10 @@ export default function ESIReportPage() {
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load ESI report data. Please check if the API endpoint is available.';
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load ESI report data. Please check if the API endpoint is available.';
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
@@ -192,15 +195,18 @@ export default function ESIReportPage() {
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
-            groupTypeselected: filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
-                ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
-                : [],
-            departmentselected: filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
-                ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
-                : [],
-            designationselected: filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
-                ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
-                : [],
+            groupTypeselected:
+                filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
+                    ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
+                    : [],
+            departmentselected:
+                filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
+                    ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
+                    : [],
+            designationselected:
+                filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
+                    ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
+                    : [],
             HRES_Year: filters.year || '',
             HRES_Month: monthId || ''
         };
@@ -229,7 +235,7 @@ export default function ESIReportPage() {
                         year: filters.year,
                         workingDays: emp.HRES_WorkingDays || emp.workingDays || 0,
                         presentDays: emp.presentDays || 0,
-                        esiStatus: emp.HRME_ESIAccNo ? 'Active' : 'Inactive' as 'Active' | 'Inactive' | 'Exempted'
+                        esiStatus: emp.HRME_ESIAccNo ? 'Active' : ('Inactive' as 'Active' | 'Inactive' | 'Exempted')
                     }));
 
                     setESIRecords(mappedRecords);

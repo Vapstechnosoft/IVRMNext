@@ -36,7 +36,16 @@ function MasterLoanPageContent({
 }) {
     const { openAddForm } = useFormContext<MasterLoanDetail>();
     // Memoize array to prevent unnecessary re-renders
-    const rows: MasterLoanDetail[] = useMemo(() => response?.gmasterloanList ?? [], [response?.gmasterloanList]);
+    // API returns data as an array directly, not nested in gmasterloanList
+    const rows: MasterLoanDetail[] = useMemo(() => {
+        if (Array.isArray(response?.data)) {
+            return response.data;
+        }
+        // Fallback for backward compatibility
+        return response?.gmasterloanList ?? [];
+    }, [response?.data, response?.gmasterloanList]);
+
+    const totalItems = response?.total ?? rows.length;
 
     return (
         <div className='min-h-screen'>
@@ -58,7 +67,7 @@ function MasterLoanPageContent({
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<MasterLoanDetail>
                         data={rows}
-                        totalItems={rows.length}
+                        totalItems={totalItems}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}

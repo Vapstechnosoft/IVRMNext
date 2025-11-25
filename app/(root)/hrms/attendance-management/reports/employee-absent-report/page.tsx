@@ -1,21 +1,19 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
 import { useMemo, useState } from 'react';
+import type { InOutRow } from '../employee-inout-report/_components/columns';
 import { type EmployeeAbsentReportRow, employeeAbsentReportColumns } from './_components/columns';
 import {
     type EmployeeAbsentReportFilters,
     EmployeeAbsentReportFilters as EmployeeAbsentReportFiltersComponent
 } from './_components/filters';
-import type { InOutRow } from '../employee-inout-report/_components/columns';
 
 export default function EmployeeAbsentReportPage() {
     const db = createLocalCrud<InOutRow>('attendance:inout');
     const [showReport, setShowReport] = useState(false);
-    const [selectedRows, setSelectedRows] = useState<EmployeeAbsentReportRow[]>([]);
+    const [_selectedRows, setSelectedRows] = useState<EmployeeAbsentReportRow[]>([]);
 
     const [filters, setFilters] = useState<EmployeeAbsentReportFilters>({
         type: [],
@@ -56,9 +54,7 @@ export default function EmployeeAbsentReportPage() {
             // Filter by employee if Individual is selected
             const okEmp =
                 filters.allOrIndividual === 'All' ||
-                (filters.allOrIndividual === 'Individual' && filters.employee
-                    ? record.employeeName === filters.employee
-                    : false);
+                (filters.allOrIndividual === 'Individual' && filters.employee ? record.employeeName === filters.employee : false);
 
             if (okType && okDept && okDesg && okDateFrom && okDateTo && okEmp) {
                 const key = `${record.employeeCode}-${record.employeeName}`;
@@ -103,12 +99,9 @@ export default function EmployeeAbsentReportPage() {
         setSelectedRows([]);
     };
 
-    const handleExport = () => {
-        /* TODO: implement export functionality */
-        console.log('Exporting selected rows:', selectedRows);
-    };
+    const handleExport = () => {};
 
-    const handleRowSelectionChange = (rows: EmployeeAbsentReportRow[]) => {
+    const _handleRowSelectionChange = (rows: EmployeeAbsentReportRow[]) => {
         setSelectedRows(rows);
     };
 

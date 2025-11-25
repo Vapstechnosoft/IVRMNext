@@ -81,28 +81,54 @@ function ActionButtonsCell({ rowData }: { rowData: EarningsDeductionDetail }) {
 
     const handleToggle = useCallback(
         async (data: EarningsDeductionDetail, newState: boolean) => {
+            const _timestamp = new Date().toISOString();
+            const _targetState = newState ? 'ACTIVE' : 'INACTIVE';
+            const _currentState = data.HRMED_ActiveFlag ? 'ACTIVE' : 'INACTIVE';
+
             try {
-                const result = await toggleMutation.mutateAsync({
+                const requestPayload = {
                     HRMED_Id: data.HRMED_Id,
                     HRMED_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
-                });
+                };
+
+                const requestStartTime = Date.now();
+                const result = await toggleMutation.mutateAsync(requestPayload);
+                const _requestDuration = Date.now() - requestStartTime;
 
                 if (result?.success) {
                     const successMsg = result?.message || `Earnings/Deduction ${newState ? 'activated' : 'deactivated'} successfully`;
+
+                    if (result?.data) {
+                    }
+
                     toast.success(successMsg);
                 } else {
                     const errorMsg = result?.message || `Failed to ${newState ? 'activate' : 'deactivate'} earnings/deduction`;
+
                     toast.error(errorMsg);
                 }
             } catch (error: any) {
-                console.error('🔴 [TOGGLE] Error:', error);
-                console.error('🔴 [TOGGLE] Error message:', error?.message);
+                console.error('🔴 [BROWSER] Error Type:', error?.constructor?.name || 'Unknown');
+                console.error('🔴 [BROWSER] Error Message:', error?.message);
+                console.error('🔴 [BROWSER] Error Stack:', error?.stack);
+                console.error('🔴 [BROWSER] Error Object:', error);
+
+                if (error?.response) {
+                    console.error('🔴 [BROWSER] Error Response Status:', error.response?.status);
+                    console.error('🔴 [BROWSER] Error Response Data:', JSON.stringify(error.response?.data, null, 2));
+                    console.error('🔴 [BROWSER] Error Response Headers:', error.response?.headers);
+                }
+
+                if (error?.request) {
+                    console.error('🔴 [BROWSER] Error Request:', error.request);
+                }
 
                 const errorMsg =
                     error?.response?.data?.message ||
                     error?.message ||
                     `Failed to ${newState ? 'activate' : 'deactivate'} earnings/deduction`;
+
                 toast.error(errorMsg);
             }
         },

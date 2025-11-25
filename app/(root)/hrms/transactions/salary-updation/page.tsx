@@ -7,19 +7,42 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useSalaryUpdationList } from '@/hooks/hrms/useTransactions';
-import type { SalaryUpdationItem } from '@/types/hrms/salary-updation';
+import {
+    useFilterSalaryUpdationEmployees,
+    useGetSalaryUpdationDepartments,
+    useGetSalaryUpdationDesignations,
+    useGetSalaryUpdationEmployeeDetailsBySelection,
+    useSalaryUpdationList
+} from '@/hooks/hrms/useTransactions';
+import type {
+    DeductionResultItem,
+    DepartmentDropdown,
+    DesignationDropdown,
+    EarningResultItem,
+    EmployeeDropdown,
+    SalaryUpdationItem
+} from '@/types/hrms/salary-updation';
 import { Plus, RefreshCw, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { salaryUpdationColumns } from './_components/columns';
 import FormSections from './_components/form-sections';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function SalaryUpdationPage(_props: { searchParams: SearchParams }) {
-    const { listQuery } = useSalaryUpdationList({ roleId: HRMS_MI_ID });
+    const { listQuery } = useSalaryUpdationList({
+        page: 1,
+        page_size: 10,
+        search_query: '',
+        search_column: '',
+        sort_column: '',
+        sort_direction: '',
+        is_export: false,
+        MIID: HRMS_MI_ID,
+        LoginUserId: 0,
+        UserRole: ''
+    });
 
     return (
         <FormProvider<SalaryUpdationItem>>
@@ -46,16 +69,42 @@ function SalaryUpdationPageContent({
 }) {
     const { openAddForm } = useFormContext<SalaryUpdationItem>();
     const [hasSearched, setHasSearched] = useState(false);
-    const [filteredEmployees, setFilteredEmployees] = useState<SalaryUpdationItem[]>([]);
+    const [filteredEmployees, setFilteredEmployees] = useState<EmployeeDropdown[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+    const [cascadingDepartments, setCascadingDepartments] = useState<DepartmentDropdown[]>([]);
+    const [cascadingDesignations, setCascadingDesignations] = useState<DesignationDropdown[]>([]);
+    const { mutate: filterEmployees, isPending: isFiltering } = useFilterSalaryUpdationEmployees();
+    const { mutate: getEmployeeDetails, isPending: isGettingDetails } = useGetSalaryUpdationEmployeeDetailsBySelection();
+    const { mutate: getDepartments, isPending: isGettingDepartments } = useGetSalaryUpdationDepartments();
+    const { mutate: getDesignations, isPending: isGettingDesignations } = useGetSalaryUpdationDesignations();
 
     // Safely extract data with proper defaults to prevent hydration mismatches
     // Use useMemo to prevent unnecessary re-renders and infinite loops
-    const groupTypes = useMemo(() => response?.groupTypedropdownlist || [], [response?.groupTypedropdownlist]);
-    const departments = useMemo(() => response?.departmentdropdownlist || [], [response?.departmentdropdownlist]);
-    const designations = useMemo(() => response?.designationdropdownlist || [], [response?.designationdropdownlist]);
-    const employees = useMemo(() => response?.employeedropdown || [], [response?.employeedropdown]);
-    const earningHeads = useMemo(() => response?.earningdeductiondetails || [], [response?.earningdeductiondetails]);
+    // Support both new format (groupTypedropdown) and legacy format (groupTypedropdownlist)
+    const groupTypes = useMemo(
+        () => response?.groupTypedropdown || response?.groupTypedropdownlist || [],
+        [response?.groupTypedropdown, response?.groupTypedropdownlist]
+    );
+    // Use cascading departments if available, otherwise fall back to onload data
+    const departments = useMemo(
+        () =>
+            cascadingDepartments.length > 0 ? cascadingDepartments : response?.departmentdropdown || response?.departmentdropdownlist || [],
+        [cascadingDepartments, response?.departmentdropdown, response?.departmentdropdownlist]
+    );
+    // Use cascading designations if available, otherwise fall back to onload data
+    const designations = useMemo(
+        () =>
+            cascadingDesignations.length > 0
+                ? cascadingDesignations
+                : response?.designationdropdown || response?.designationdropdownlist || [],
+        [cascadingDesignations, response?.designationdropdown, response?.designationdropdownlist]
+    );
+    const _employees = useMemo(() => response?.employeedropdown || [], [response?.employeedropdown]);
+    // Support multiple possible field names for earning/deduction heads
+    const earningHeads = useMemo(
+        () => response?.headdropdown || response?.earningdropdown || response?.detectiondropdown || response?.earningdeductiondetails || [],
+        [response?.headdropdown, response?.earningdropdown, response?.detectiondropdown, response?.earningdeductiondetails]
+    );
     const monthOptions = useMemo(() => response?.monthdropdown || [], [response?.monthdropdown]);
     const leaveYearOptions = useMemo(() => response?.leaveyeardropdown || [], [response?.leaveyeardropdown]);
 
@@ -104,48 +153,147 @@ function SalaryUpdationPageContent({
 
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
-    const watchedDesignation = watch('designation');
+    const _watchedDesignation = watch('designation');
+    const _watchedHeads = watch('heads');
 
-    // Memoize filterEmployees to prevent infinite loops
-    const filterEmployees = useCallback(() => {
-        let filtered = employees;
-
-        if (watchedGroupType && watchedGroupType !== 'All') {
+    // Cascading dropdown: Fetch departments when group type changes
+    useEffect(() => {
+        if (watchedGroupType && watchedGroupType !== 'All' && isClient) {
             const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === watchedGroupType);
             if (groupType) {
-                filtered = filtered.filter((emp: any) => emp.hrmgT_Id === groupType.HRMGT_Id);
+                getDepartments(
+                    {
+                        MI_Id: HRMS_MI_ID,
+                        hrmgT_IdList: [groupType.HRMGT_Id]
+                    },
+                    {
+                        onSuccess: (data) => {
+                            setCascadingDepartments(data.departmentdropdown || []);
+                            // Reset department and designation when group type changes
+                            reset({
+                                ...watch(),
+                                department: 'All',
+                                designation: 'All'
+                            });
+                            setCascadingDesignations([]);
+                        },
+                        onError: () => {
+                            setCascadingDepartments([]);
+                        }
+                    }
+                );
+            } else {
+                setCascadingDepartments([]);
+                setCascadingDesignations([]);
             }
+        } else if (watchedGroupType === 'All' && isClient) {
+            // Reset to onload data when "All" is selected
+            setCascadingDepartments([]);
+            setCascadingDesignations([]);
+            reset({
+                ...watch(),
+                department: 'All',
+                designation: 'All'
+            });
         }
+    }, [watchedGroupType, isClient, groupTypes, getDepartments, reset, watch]);
 
-        if (watchedDepartment && watchedDepartment !== 'All') {
-            const department = departments.find((d: any) => d.HRMD_DepartmentName === watchedDepartment);
-            if (department) {
-                filtered = filtered.filter((emp: any) => emp.hrmD_Id === department.HRMD_Id);
-            }
-        }
-
-        if (watchedDesignation && watchedDesignation !== 'All') {
-            const designation = designations.find((d: any) => d.HRMDES_DesignationName === watchedDesignation);
-            if (designation) {
-                filtered = filtered.filter((emp: any) => emp.hrmdeS_Id === designation.HRMDES_Id);
-            }
-        }
-
-        setFilteredEmployees(filtered);
-    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, groupTypes, departments, designations]);
-
-    // Only filter when search is triggered or filter criteria change
+    // Cascading dropdown: Fetch designations when department changes
     useEffect(() => {
-        if (hasSearched) {
-            filterEmployees();
-        }
-    }, [hasSearched, watchedGroupType, watchedDepartment, watchedDesignation, filterEmployees]);
+        if (watchedDepartment && watchedDepartment !== 'All' && watchedGroupType && watchedGroupType !== 'All' && isClient) {
+            const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === watchedGroupType);
+            const department = departments.find((d: any) => d.HRMD_DepartmentName === watchedDepartment);
 
-    const onSubmit = async (_data: any) => {
+            if (groupType && department) {
+                getDesignations(
+                    {
+                        MI_Id: HRMS_MI_ID,
+                        hrmgT_IdList: [groupType.HRMGT_Id],
+                        hrmD_IdList: [department.HRMD_Id]
+                    },
+                    {
+                        onSuccess: (data) => {
+                            setCascadingDesignations(data.designationdropdown || []);
+                            // Reset designation when department changes
+                            reset({
+                                ...watch(),
+                                designation: 'All'
+                            });
+                        },
+                        onError: () => {
+                            setCascadingDesignations([]);
+                        }
+                    }
+                );
+            } else {
+                setCascadingDesignations([]);
+            }
+        } else if (watchedDepartment === 'All' && isClient) {
+            // Reset to onload data when "All" is selected
+            setCascadingDesignations([]);
+            reset({
+                ...watch(),
+                designation: 'All'
+            });
+        }
+    }, [watchedDepartment, watchedGroupType, isClient, groupTypes, departments, getDesignations, reset, watch]);
+
+    const onSubmit = async (formData: any) => {
         try {
-            filterEmployees();
-            setHasSearched(true);
-            toast.success('Search completed successfully');
+            // Map form values to API request format
+            const groupTypeIds: number[] = [];
+            if (formData.groupType && formData.groupType !== 'All') {
+                const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === formData.groupType);
+                if (groupType) {
+                    groupTypeIds.push(groupType.HRMGT_Id);
+                }
+            }
+
+            const departmentIds: number[] = [];
+            if (formData.department && formData.department !== 'All') {
+                const department = departments.find((d: any) => d.HRMD_DepartmentName === formData.department);
+                if (department) {
+                    departmentIds.push(department.HRMD_Id);
+                }
+            }
+
+            const designationIds: number[] = [];
+            if (formData.designation && formData.designation !== 'All') {
+                const designation = designations.find((d: any) => d.HRMDES_DesignationName === formData.designation);
+                if (designation) {
+                    designationIds.push(designation.HRMDES_Id);
+                }
+            }
+
+            const headIds: number[] = [];
+            if (formData.heads && formData.heads !== 'All') {
+                const head = earningHeads.find((h: any) => h.hrmeD_Name === formData.heads || h.HRMED_Name === formData.heads);
+                if (head) {
+                    headIds.push(head.hrmeD_Id || head.HRMED_Id);
+                }
+            }
+
+            // Call API to filter employees
+            filterEmployees(
+                {
+                    MI_Id: HRMS_MI_ID,
+                    LogInUserId: 0,
+                    designationselected: designationIds,
+                    departmentselected: departmentIds,
+                    groupTypeselected: groupTypeIds,
+                    headselected: headIds
+                },
+                {
+                    onSuccess: (data) => {
+                        setFilteredEmployees(data.employeedropdown || []);
+                        setHasSearched(true);
+                        toast.success('Search completed successfully');
+                    },
+                    onError: (error: any) => {
+                        toast.error(error.message || 'Search failed');
+                    }
+                }
+            );
         } catch (error: any) {
             toast.error(error.message || 'Search failed');
         }
@@ -156,7 +304,66 @@ function SalaryUpdationPageContent({
             toast.error('Please select at least one employee');
             return;
         }
-        toast.info('Update functionality to be implemented');
+
+        // Get current form values
+        const formValues = watch();
+
+        // Build earning and deduction arrays based on form selections
+        // This is a basic implementation - can be extended when full UI for earnings/deductions is added
+        const earningresult: EarningResultItem[] = [];
+        const deductionresult: DeductionResultItem[] = [];
+
+        // If a head is selected and it's an earning type, add it to earningresult
+        if (formValues.heads && formValues.heads !== 'All') {
+            const selectedHead = earningHeads.find((h: any) => h.hrmeD_Name === formValues.heads || h.HRMED_Name === formValues.heads);
+            if (selectedHead) {
+                const headId = selectedHead.hrmeD_Id || selectedHead.HRMED_Id;
+                const isEarning =
+                    formValues.earningDeduction === 'Earning' ||
+                    (formValues.earningDeduction === 'All Earning & Deduction' && selectedHead.HRMED_EarnDedFlag === 'Earning');
+
+                const item = {
+                    HREED_Id: 0,
+                    MI_Id: HRMS_MI_ID,
+                    HRME_Id: 0, // Will be set per employee
+                    HRMED_Id: headId,
+                    HREED_Amount: formValues.amountType === 'Amount' ? 0 : 0, // TODO: Get from form
+                    HREED_Percentage: formValues.amountType === 'Percentage' ? '0' : '0', // TODO: Get from form
+                    HREED_ActiveFlag: true,
+                    HREED_MaxApplicableFlg: true,
+                    HREED_ApplicableMaxValue: 0
+                };
+
+                if (isEarning) {
+                    earningresult.push(item as EarningResultItem);
+                } else {
+                    deductionresult.push(item as DeductionResultItem);
+                }
+            }
+        }
+
+        // Call API to get employee details
+        getEmployeeDetails(
+            {
+                earningresult: earningresult.length > 0 ? earningresult : undefined,
+                deductionresult: deductionresult.length > 0 ? deductionresult : undefined,
+                LogInUserId: 0
+            },
+            {
+                onSuccess: (data) => {
+                    // Update filtered employees with the response
+                    if (data.employeedropdown && data.employeedropdown.length > 0) {
+                        setFilteredEmployees(data.employeedropdown);
+                        toast.success('Employee details updated successfully');
+                    } else {
+                        toast.info('No employee details found for the selected criteria');
+                    }
+                },
+                onError: (error: any) => {
+                    toast.error(error.message || 'Failed to get employee details');
+                }
+            }
+        );
     };
 
     return (
@@ -166,11 +373,7 @@ function SalaryUpdationPageContent({
                 <FormSections onloadData={response} onSuccess={refetch} />
 
                 {/* Search Form */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='outline'
-                    size='lg'
-                    className='shadow-lg'>
+                <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-6'>
                             <div className='space-y-3'>
@@ -202,9 +405,11 @@ function SalaryUpdationPageContent({
                                     name='department'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={isGettingDepartments}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Department' />
+                                                <SelectValue
+                                                    placeholder={isGettingDepartments ? 'Loading departments...' : 'Select Department'}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='All'>All Departments</SelectItem>
@@ -225,9 +430,14 @@ function SalaryUpdationPageContent({
                                     name='designation'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select
+                                            onValueChange={field.onChange}
+                                            value={field.value}
+                                            disabled={isGettingDesignations || (watchedDepartment === 'All' && watchedGroupType !== 'All')}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Designation' />
+                                                <SelectValue
+                                                    placeholder={isGettingDesignations ? 'Loading designations...' : 'Select Designation'}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='All'>All Designations</SelectItem>
@@ -311,9 +521,9 @@ function SalaryUpdationPageContent({
                         </div>
 
                         <div className='flex gap-2 pt-4'>
-                            <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105'>
-                                <RefreshCw className='mr-2 h-4 w-4' />
-                                SEARCH
+                            <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105' disabled={isFiltering}>
+                                <RefreshCw className={`mr-2 h-4 w-4 ${isFiltering ? 'animate-spin' : ''}`} />
+                                {isFiltering ? 'SEARCHING...' : 'SEARCH'}
                             </Button>
                             <Button
                                 type='button'
@@ -349,24 +559,46 @@ function SalaryUpdationPageContent({
                                 </Button>
                             </div>
 
-                            <GenericDataTable<SalaryUpdationItem>
+                            <GenericDataTable<EmployeeDropdown>
                                 data={filteredEmployees}
                                 totalItems={filteredEmployees.length}
-                                columns={salaryUpdationColumns}
-                                isLoading={isLoading}
+                                columns={[
+                                    {
+                                        accessorKey: 'HRME_EmployeeCode',
+                                        header: 'Employee Code',
+                                        cell: ({ row }) => <div className='font-medium'>{row.original.HRME_EmployeeCode}</div>
+                                    },
+                                    {
+                                        accessorKey: 'employeeName',
+                                        header: 'Employee Name',
+                                        cell: ({ row }) => {
+                                            const fullName = [
+                                                row.original.HRME_EmployeeFirstName,
+                                                row.original.HRME_EmployeeMiddleName,
+                                                row.original.HRME_EmployeeLastName
+                                            ]
+                                                .filter(Boolean)
+                                                .join(' ');
+                                            return <div className='font-medium'>{fullName}</div>;
+                                        }
+                                    }
+                                ]}
+                                isLoading={isFiltering || isLoading}
                                 error={error}
                                 showViewOptions={true}
-                                columnPinning={{ right: ['actions'] }}
-                                loadingMessage='Loading salary records...'
-                                noDataTitle='No Records Found'
-                                noDataDescription='No salary records match your search criteria'
-                                errorTitle='Error Loading Records'
+                                loadingMessage='Filtering employees...'
+                                noDataTitle='No Employees Found'
+                                noDataDescription='No employees match your search criteria'
+                                errorTitle='Error Loading Employees'
                             />
 
                             <div className='flex justify-end gap-2'>
-                                <Button onClick={handleUpdate} className='w-fit transition-all duration-200 hover:scale-105'>
-                                    <RefreshCw className='mr-2 h-4 w-4' />
-                                    UPDATE
+                                <Button
+                                    onClick={handleUpdate}
+                                    className='w-fit transition-all duration-200 hover:scale-105'
+                                    disabled={isGettingDetails || selectedEmployees.length === 0}>
+                                    <RefreshCw className={`mr-2 h-4 w-4 ${isGettingDetails ? 'animate-spin' : ''}`} />
+                                    {isGettingDetails ? 'UPDATING...' : 'UPDATE'}
                                 </Button>
                                 <Button
                                     variant='outline'

@@ -94,25 +94,25 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                         <div className='flex flex-col gap-3'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='All' id='all' />
-                                                <label htmlFor='all' className='text-sm font-normal cursor-pointer'>
+                                                <label htmlFor='all' className='cursor-pointer font-normal text-sm'>
                                                     All
                                                 </label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='UpComing' id='upcoming' />
-                                                <label htmlFor='upcoming' className='text-sm font-normal cursor-pointer'>
+                                                <label htmlFor='upcoming' className='cursor-pointer font-normal text-sm'>
                                                     UpComing
                                                 </label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='InProgress' id='inprogress' />
-                                                <label htmlFor='inprogress' className='text-sm font-normal cursor-pointer'>
+                                                <label htmlFor='inprogress' className='cursor-pointer font-normal text-sm'>
                                                     InProgress
                                                 </label>
                                             </div>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='Completed' id='completed' />
-                                                <label htmlFor='completed' className='text-sm font-normal cursor-pointer'>
+                                                <label htmlFor='completed' className='cursor-pointer font-normal text-sm'>
                                                     Completed
                                                 </label>
                                             </div>
@@ -131,12 +131,7 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                 To Date:<span className='text-red-500'>*</span>
                             </label>
                             <div className='relative'>
-                                <InputText
-                                    type='date'
-                                    placeholder='Enter date'
-                                    {...register('toDate')}
-                                    error={errors.toDate?.message}
-                                />
+                                <InputText type='date' placeholder='Enter date' {...register('toDate')} error={errors.toDate?.message} />
                             </div>
                         </div>
 
@@ -191,7 +186,11 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
             </div>
             {/* Action Buttons */}
             <div className='flex flex-row items-center justify-center gap-2 border-t pt-4'>
-                <Button type='submit' isLoading={isSubmitting} className='bg-orange-500 text-white hover:bg-orange-600' disabled={isSubmitting}>
+                <Button
+                    type='submit'
+                    isLoading={isSubmitting}
+                    className='bg-orange-500 text-white hover:bg-orange-600'
+                    disabled={isSubmitting}>
                     <BarChart3 className='mr-2 h-4 w-4' />
                     REPORT
                 </Button>
@@ -207,4 +206,3 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
         </form>
     );
 }
-

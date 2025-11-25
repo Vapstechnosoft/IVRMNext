@@ -61,7 +61,7 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
         }
     });
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             // TODO: Replace with actual API call
             toast.success('Job posting added successfully');
@@ -165,11 +165,7 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             <label className='block font-medium text-sm'>
                                 Job Description:<span className='text-red-500'>*</span>
                             </label>
-                            <InputTextarea
-                                placeholder='Enter job description'
-                                rows={4}
-                                {...register('jobDescription')}
-                            />
+                            <InputTextarea placeholder='Enter job description' rows={4} {...register('jobDescription')} />
                             {errors.jobDescription && <FormError>{errors.jobDescription.message}</FormError>}
                         </div>
 
@@ -198,11 +194,7 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
 
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>Remark:</label>
-                            <InputTextarea
-                                placeholder='Enter remarks'
-                                rows={3}
-                                {...register('remark')}
-                            />
+                            <InputTextarea placeholder='Enter remarks' rows={3} {...register('remark')} />
                         </div>
                     </div>
 
@@ -216,25 +208,22 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 name='location'
                                 control={control}
                                 render={({ field }) => (
-                                    <RadioGroup
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                        className='flex flex-row gap-6'>
+                                    <RadioGroup value={field.value} onValueChange={field.onChange} className='flex flex-row gap-6'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='HO' id='ho' />
-                                            <label htmlFor='ho' className='text-sm font-normal cursor-pointer'>
+                                            <label htmlFor='ho' className='cursor-pointer font-normal text-sm'>
                                                 HO
                                             </label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Client' id='client' />
-                                            <label htmlFor='client' className='text-sm font-normal cursor-pointer'>
+                                            <label htmlFor='client' className='cursor-pointer font-normal text-sm'>
                                                 Client
                                             </label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Location' id='location' />
-                                            <label htmlFor='location' className='text-sm font-normal cursor-pointer'>
+                                            <label htmlFor='location' className='cursor-pointer font-normal text-sm'>
                                                 Location
                                             </label>
                                         </div>
@@ -295,22 +284,14 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             <label className='block font-medium text-sm'>
                                 MRF No.:<span className='text-red-500'>*</span>
                             </label>
-                            <InputText
-                                placeholder='Enter MRF number'
-                                {...register('mrfNo')}
-                                error={errors.mrfNo?.message}
-                            />
+                            <InputText placeholder='Enter MRF number' {...register('mrfNo')} error={errors.mrfNo?.message} />
                         </div>
 
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Skill:<span className='text-red-500'>*</span>
                             </label>
-                            <InputText
-                                placeholder='Enter required skills'
-                                {...register('skill')}
-                                error={errors.skill?.message}
-                            />
+                            <InputText placeholder='Enter required skills' {...register('skill')} error={errors.skill?.message} />
                         </div>
 
                         <div className='space-y-2'>
@@ -324,7 +305,9 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                     {...register('experienceFrom')}
                                     error={errors.experienceFrom?.message}
                                 />
-                                <span className='text-sm'>to :<span className='text-red-500'>*</span></span>
+                                <span className='text-sm'>
+                                    to :<span className='text-red-500'>*</span>
+                                </span>
                                 <InputText
                                     type='number'
                                     placeholder='To'
@@ -338,23 +321,14 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             <label className='block font-medium text-sm'>
                                 Age:<span className='text-red-500'>*</span>
                             </label>
-                            <InputText
-                                type='number'
-                                placeholder='Enter age requirement'
-                                {...register('age')}
-                                error={errors.age?.message}
-                            />
+                            <InputText type='number' placeholder='Enter age requirement' {...register('age')} error={errors.age?.message} />
                         </div>
 
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Reason:<span className='text-red-500'>*</span>
                             </label>
-                            <InputText
-                                placeholder='Enter reason'
-                                {...register('reason')}
-                                error={errors.reason?.message}
-                            />
+                            <InputText placeholder='Enter reason' {...register('reason')} error={errors.reason?.message} />
                         </div>
 
                         <div className='space-y-2'>
@@ -371,26 +345,33 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                 <div className='flex items-center gap-6 border-t pt-4'>
                     <div className='flex items-center space-x-2'>
                         <Checkbox id='writtenTest' {...register('writtenTest')} />
-                        <label htmlFor='writtenTest' className='text-sm font-medium cursor-pointer'>
+                        <label htmlFor='writtenTest' className='cursor-pointer font-medium text-sm'>
                             Written Test
                         </label>
                     </div>
                     <div className='flex items-center space-x-2'>
                         <Checkbox id='technicalInterview' {...register('technicalInterview')} />
-                        <label htmlFor='technicalInterview' className='text-sm font-medium cursor-pointer'>
+                        <label htmlFor='technicalInterview' className='cursor-pointer font-medium text-sm'>
                             Technical Interview
                         </label>
                     </div>
                     <div className='flex items-center space-x-2'>
                         <Checkbox id='onlineTest' {...register('onlineTest')} />
-                        <label htmlFor='onlineTest' className='text-sm font-medium cursor-pointer'>
+                        <label htmlFor='onlineTest' className='cursor-pointer font-medium text-sm'>
                             Online Test
                         </label>
                     </div>
                 </div>
             </div>
             <div className='flex flex-row items-center justify-center gap-2 border-t pt-4'>
-                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        onCancel?.();
+                    }}
+                    disabled={isSubmitting}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
@@ -413,4 +394,3 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
         </form>
     );
 }
-

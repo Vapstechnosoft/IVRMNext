@@ -5,11 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ArrowRight, Briefcase, FileImage, GraduationCap, MessageSquare, Plus, Save, Trash2, Upload, User, Users, X } from 'lucide-react';
+import {
+    ArrowLeft,
+    ArrowRight,
+    Briefcase,
+    FileImage,
+    GraduationCap,
+    MessageSquare,
+    Plus,
+    Save,
+    Trash2,
+    Upload,
+    User,
+    Users,
+    X
+} from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -108,7 +121,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // TODO: Replace with actual API call
-            const candidateData = {
+            const _candidateData = {
                 ...data,
                 qualifications,
                 experiences,
@@ -268,13 +281,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                             {...register('lastName')}
                             error={errors.lastName?.message}
                         />
-                        <InputText
-                            label='Skill'
-                            required
-                            placeholder='Enter skills'
-                            {...register('skill')}
-                            error={errors.skill?.message}
-                        />
+                        <InputText label='Skill' required placeholder='Enter skills' {...register('skill')} error={errors.skill?.message} />
                         <InputText
                             label='Mobile No'
                             required
@@ -340,31 +347,19 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                             <label className='block font-medium text-sm'>
                                 Application Date <span className='text-red-500'>*</span>
                             </label>
-                            <InputText
-                                type='date'
-                                {...register('applicationDate')}
-                                error={errors.applicationDate?.message}
-                            />
+                            <InputText type='date' {...register('applicationDate')} error={errors.applicationDate?.message} />
                         </div>
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Interview Date <span className='text-red-500'>*</span>
                             </label>
-                            <InputText
-                                type='date'
-                                {...register('interviewDate')}
-                                error={errors.interviewDate?.message}
-                            />
+                            <InputText type='date' {...register('interviewDate')} error={errors.interviewDate?.message} />
                         </div>
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Date of Birth <span className='text-red-500'>*</span>
                             </label>
-                            <InputText
-                                type='date'
-                                {...register('dateOfBirth')}
-                                error={errors.dateOfBirth?.message}
-                            />
+                            <InputText type='date' {...register('dateOfBirth')} error={errors.dateOfBirth?.message} />
                         </div>
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
@@ -664,11 +659,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                                     {...register('localAddressLine1')}
                                     error={errors.localAddressLine1?.message}
                                 />
-                                <InputText
-                                    label='Address Line 2'
-                                    placeholder='Enter address line 2'
-                                    {...register('localAddressLine2')}
-                                />
+                                <InputText label='Address Line 2' placeholder='Enter address line 2' {...register('localAddressLine2')} />
                                 <InputText
                                     label='Place'
                                     required
@@ -747,9 +738,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         <CardContent>
                             <div className='space-y-4'>
                                 {qualifications.map((qual, index) => (
-                                    <div
-                                        key={index}
-                                        className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
+                                    <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
                                         <div className='font-medium'>Serial No. {qual.id}</div>
                                         <InputText
                                             placeholder='Course*'
@@ -796,11 +785,8 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                 {/* Experience Tab */}
                 <TabsContent value='experience' className='space-y-4'>
                     <div className='flex items-center gap-2'>
-                        <Checkbox
-                            checked={hasExperience}
-                            onCheckedChange={(checked) => setHasExperience(!!checked)}
-                        />
-                        <label className='text-sm font-medium'>Candidate Having Experience?</label>
+                        <Checkbox checked={hasExperience} onCheckedChange={(checked) => setHasExperience(!!checked)} />
+                        <label className='font-medium text-sm'>Candidate Having Experience?</label>
                     </div>
                     {hasExperience && (
                         <Card>
@@ -813,9 +799,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                             <CardContent>
                                 <div className='space-y-4'>
                                     {experiences.map((exp, index) => (
-                                        <div
-                                            key={index}
-                                            className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-6'>
+                                        <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-6'>
                                             <div className='font-medium'>Serial No. {exp.id}</div>
                                             <InputText
                                                 placeholder='Company Name'
@@ -883,9 +867,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         <CardContent>
                             <div className='space-y-4'>
                                 {familyMembers.map((member, index) => (
-                                    <div
-                                        key={index}
-                                        className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-6'>
+                                    <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-6'>
                                         <div className='font-medium'>Serial No. {member.id}</div>
                                         <InputText
                                             placeholder='Family Member Name*'
@@ -950,9 +932,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         <CardContent>
                             <div className='space-y-4'>
                                 {languages.map((lang, index) => (
-                                    <div
-                                        key={index}
-                                        className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
+                                    <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
                                         <div className='font-medium'>Serial No. {lang.id}</div>
                                         <InputText
                                             placeholder='To Read'
@@ -1009,9 +989,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         <CardContent>
                             <div className='space-y-4'>
                                 {documents.map((doc, index) => (
-                                    <div
-                                        key={index}
-                                        className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
+                                    <div key={index} className='grid grid-cols-1 gap-4 rounded-lg border p-4 md:grid-cols-5'>
                                         <div className='font-medium'>Sl.No. {doc.id}</div>
                                         <Button type='button' variant='outline' className='bg-yellow-400 text-black'>
                                             Choose File
@@ -1045,12 +1023,10 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                             <div className='mt-6 rounded-lg bg-gray-50 p-4'>
                                 <div className='space-y-2 text-sm'>
                                     <p>
-                                        I consent to the collection and use of my personal data in accordance with the
-                                        company's privacy policy.
+                                        I consent to the collection and use of my personal data in accordance with the company's privacy
+                                        policy.
                                     </p>
-                                    <p>
-                                        I acknowledge that I have received and understood the company's code of conduct.
-                                    </p>
+                                    <p>I acknowledge that I have received and understood the company's code of conduct.</p>
                                     <p>I agree to comply with all company policies and procedures.</p>
                                 </div>
                             </div>
@@ -1072,18 +1048,18 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                     </Button>
                 )}
                 {currentTab !== 'documents' ? (
-                    <Button 
-                        type='button' 
-                        onClick={handleNext} 
+                    <Button
+                        type='button'
+                        onClick={handleNext}
                         disabled={isSubmitting}
                         className='bg-orange-500 text-white hover:bg-orange-600'>
                         Save & Proceed
                         <ArrowRight className='ml-2 h-4 w-4' />
                     </Button>
                 ) : (
-                    <Button 
-                        type='submit' 
-                        disabled={isSubmitting} 
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting}
                         isLoading={isSubmitting}
                         className='bg-orange-500 text-white hover:bg-orange-600'>
                         <Save className='mr-2 h-4 w-4' />
@@ -1098,4 +1074,3 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
         </form>
     );
 }
-

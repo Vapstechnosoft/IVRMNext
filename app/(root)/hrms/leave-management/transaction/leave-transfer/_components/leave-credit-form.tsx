@@ -81,7 +81,7 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                 <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div>
-                            <label htmlFor='type-multiselect' className='font-medium text-sm mb-2 block'>
+                            <label htmlFor='type-multiselect' className='mb-2 block font-medium text-sm'>
                                 Type
                             </label>
                             <Controller
@@ -100,7 +100,7 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                         </div>
 
                         <div>
-                            <label htmlFor='department-multiselect' className='font-medium text-sm mb-2 block'>
+                            <label htmlFor='department-multiselect' className='mb-2 block font-medium text-sm'>
                                 Department
                             </label>
                             <Controller
@@ -119,7 +119,7 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
                         </div>
 
                         <div>
-                            <label htmlFor='designation-multiselect' className='font-medium text-sm mb-2 block'>
+                            <label htmlFor='designation-multiselect' className='mb-2 block font-medium text-sm'>
                                 Designation
                             </label>
                             <Controller
@@ -247,4 +247,3 @@ export function LeaveCreditForm({ editingCredit, activeTab, onTabChange, onSubmi
         </Tabs>
     );
 }
-

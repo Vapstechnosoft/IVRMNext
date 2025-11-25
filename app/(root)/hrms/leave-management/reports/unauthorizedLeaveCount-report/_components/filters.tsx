@@ -122,9 +122,7 @@ export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onRepor
                                 <label htmlFor='company-select' className='font-medium text-sm'>
                                     Company Name
                                 </label>
-                                <Select
-                                    value={filters.selectedCompany}
-                                    onValueChange={(value) => onFilterChange('selectedCompany', value)}>
+                                <Select value={filters.selectedCompany} onValueChange={(value) => onFilterChange('selectedCompany', value)}>
                                     <SelectTrigger id='company-select'>
                                         <SelectValue placeholder='Select Company' />
                                     </SelectTrigger>
@@ -278,7 +276,9 @@ export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onRepor
 
                     {/* Action Buttons */}
                     <div className='flex gap-2 md:col-span-3'>
-                        <Button onClick={onReport} variant='default'>Report</Button>
+                        <Button onClick={onReport} variant='default'>
+                            Report
+                        </Button>
                         <Button variant='outline' onClick={onCancel}>
                             <X className='mr-2 h-4 w-4' />
                             Cancel

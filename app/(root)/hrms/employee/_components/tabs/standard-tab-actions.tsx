@@ -14,11 +14,7 @@ export function StandardTabActions({ isSubmitting, onClear }: StandardTabActions
             <Button type='submit' className='bg-primary px-8 text-primary-foreground hover:opacity-90' disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : 'Save & Proceed'}
             </Button>
-            <Button 
-                type='button' 
-                className='bg-secondary px-8 text-secondary-foreground hover:opacity-90'
-                onClick={onClear}
-            >
+            <Button type='button' className='bg-secondary px-8 text-secondary-foreground hover:opacity-90' onClick={onClear}>
                 Clear
             </Button>
             <Button type='button' className='bg-accent px-8 text-accent-foreground hover:opacity-90'>

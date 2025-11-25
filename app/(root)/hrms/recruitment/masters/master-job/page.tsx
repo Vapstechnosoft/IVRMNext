@@ -6,8 +6,6 @@
 // 4. Update handlers to use the new structure
 
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -147,7 +145,6 @@ export default function MasterJobPage() {
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    
                     <Button
                         type='button'
                         onClick={handleAddClick}
@@ -238,8 +235,6 @@ export default function MasterJobPage() {
                                                 )}
                                                 {errors.jobLocation && <FormError>{errors.jobLocation.message}</FormError>}
                                             </div>
-
-                                           
                                         </div>
 
                                         {/* Root Error */}

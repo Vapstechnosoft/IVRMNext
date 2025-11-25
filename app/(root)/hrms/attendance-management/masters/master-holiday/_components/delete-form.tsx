@@ -41,7 +41,7 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
         if (Number.isNaN(idToDelete) || idToDelete === 0) {
             return;
         }
-        
+
         deleteMasterHoliday(idToDelete, {
             onSuccess: () => {
                 refetchAll();

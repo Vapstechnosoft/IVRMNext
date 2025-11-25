@@ -2,6 +2,10 @@
 
 import { createLocalCrud } from '@/lib/localdb';
 import { api, type ApiResponse } from '@/lib/apiService';
+import { getEmployeeOnload } from '@/server/hrms/hrmsConfig/employee';
+import { getMasterHoliday } from './master-holiday';
+import { getShiftSettingMaster } from './shift-setting-master';
+import type { ApiSearchparams } from '@/types';
 import type {
     EmployeeShiftMappingSaveRequest,
     EmployeeShiftMappingSaveResponse
@@ -46,12 +50,624 @@ export interface EmployeeShiftMapping {
 
 const store = createLocalCrud<EmployeeShiftMapping>('master:employeeShiftMapping');
 
-export async function getEmployeeShiftMapping() {
-    return {
-        success: true,
-        data: store.list(),
-        message: 'Employee shift mappings retrieved successfully'
+/**
+ * Get shift names from API
+ * POST /api/EmployeeShiftMappingFacade/Shiftname
+ */
+export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
+    const url = '/api/EmployeeShiftMappingFacade/Shiftname';
+    const requestBody = {
+        MI_Id: 30,
+        FOMS_Id: fomsId
     };
+    
+    try {
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        console.log('📥 [SERVER] Shift names API response:', {
+            success: response?.success,
+            hasData: !!response?.data,
+            dataType: typeof response?.data
+        });
+        
+        // When FOMS_Id > 0, the API returns shift timing details for that specific shift
+        // When FOMS_Id = 0, the API returns a list of all shift names
+        if (fomsId > 0) {
+            // Return shift timing details as-is for the selected shift
+            // The response structure may contain timing fields like:
+            // FOMST_IHalfLoginTime, FOMST_IHalfLogoutTime, FOMST_IIHalfLoginTime, 
+            // FOMST_IIHalfLogoutTime, FOMST_FDWHrMin, FOMST_HDWHrMin, etc.
+            const responseData = response?.data || {};
+            
+            // If data is an array, get the first item (should be the selected shift details)
+            if (Array.isArray(responseData) && responseData.length > 0) {
+                return {
+                    success: response?.success ?? true,
+                    data: responseData, // Return the array of shift details
+                    message: response?.message || 'Shift details retrieved successfully'
+                };
+            }
+            // If data is an object, return it directly or extract from nested properties
+            else if (typeof responseData === 'object' && responseData !== null) {
+                const shiftDetails = responseData.report_list?.[0] || 
+                                    responseData.data || 
+                                    responseData.shiftDetails || 
+                                    responseData;
+                return {
+                    success: response?.success ?? true,
+                    data: Array.isArray(shiftDetails) ? shiftDetails : [shiftDetails],
+                    message: response?.message || 'Shift details retrieved successfully'
+                };
+            }
+            
+            // Fallback: return empty array if structure is unexpected
+            return {
+                success: response?.success ?? true,
+                data: [],
+                message: response?.message || 'Shift details retrieved successfully'
+            };
+        }
+        
+        // When FOMS_Id = 0, return list of shift names for dropdown
+        let shiftNames: Array<{ label: string; value: string; id: number }> = [];
+        
+        if (response?.data) {
+            // If data is an array
+            if (Array.isArray(response.data)) {
+                shiftNames = response.data.map((item: any) => ({
+                    label: item.fomS_ShiftName || item.ShiftName || item.shiftName || item.label || item.name || '',
+                    value: item.fomS_ShiftName || item.ShiftName || item.shiftName || item.value || item.name || '',
+                    id: item.fomS_Id || item.FOMS_Id || item.id || 0
+                })).filter((item: { label: string; value: string }) => item.label && item.value);
+            } 
+            // If data is an object with a list/array property
+            else if (typeof response.data === 'object' && response.data !== null) {
+                const dataList = response.data.report_list || response.data.shifts || response.data.list || response.data.data || [];
+                if (Array.isArray(dataList)) {
+                    shiftNames = dataList.map((item: any) => ({
+                        label: item.fomS_ShiftName || item.ShiftName || item.shiftName || item.label || item.name || '',
+                        value: item.fomS_ShiftName || item.ShiftName || item.shiftName || item.value || item.name || '',
+                        id: item.fomS_Id || item.FOMS_Id || item.id || 0
+                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                }
+            }
+        }
+        
+        return {
+            success: response?.success ?? true,
+            data: shiftNames,
+            message: response?.message || 'Shift names retrieved successfully'
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Failed to fetch shift names:', error);
+        console.error('❌ [SERVER] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            responseData: error?.response?.data,
+            fullError: error
+        });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to fetch shift names';
+        
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
+        return {
+            success: false,
+            data: [],
+            message: errorMessage
+        };
+    }
+}
+
+/**
+ * Get dropdown data for employee shift mapping form
+ * Fetches employee types, departments, designations, day types, and shifts from API
+ * POST /api/EmployeeShiftMappingFacade/getdetails
+ */
+export async function getEmployeeShiftMappingDropdowns() {
+    const url = '/api/EmployeeShiftMappingFacade/getdetails';
+    const requestBody = {
+        MI_Id: 30
+    };
+    
+    try {
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        console.log('📥 [SERVER] Get details API response:', {
+            success: response?.success,
+            hasData: !!response?.data,
+            dataType: typeof response?.data
+        });
+        
+        // Extract data from response
+        const responseData = response?.data || {};
+        
+        // Helper function to remove duplicates based on ID
+        const removeDuplicatesById = <T extends { id?: number; value?: string }>(items: T[], getId: (item: T) => string | number): T[] => {
+            const seen = new Set<string | number>();
+            return items.filter((item) => {
+                const id = getId(item);
+                if (seen.has(id)) {
+                    return false;
+                }
+                seen.add(id);
+                return true;
+            });
+        };
+        
+        // Map stf_types to employeeTypes (types) - remove duplicates by HRMGT_Id
+        const employeeTypesRaw = (responseData.stf_types || []).map((item: any) => ({
+            label: item.HRMGT_EmployeeGroupType || item.label || item.name || '',
+            value: String(item.HRMGT_Id || item.value || item.id || ''),
+            id: item.HRMGT_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        const employeeTypes = removeDuplicatesById(employeeTypesRaw, (item) => (item.id || item.value || '') as string | number);
+        
+        // Map Department_types to departments - remove duplicates by HRMD_Id
+        const departmentsRaw = (responseData.Department_types || []).map((item: any) => ({
+            label: item.HRMD_DepartmentName || item.label || item.name || '',
+            value: String(item.HRMD_Id || item.value || item.id || ''),
+            id: item.HRMD_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        const departments = removeDuplicatesById(departmentsRaw, (item) => (item.id || item.value || '') as string | number);
+        
+        // Map Designation_types to designations - remove duplicates by HRMDES_Id
+        const designationsRaw = (responseData.Designation_types || []).map((item: any) => ({
+            label: item.HRMDES_DesignationName || item.label || item.name || '',
+            value: String(item.HRMDES_Id || item.value || item.id || ''),
+            id: item.HRMDES_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        const designations = removeDuplicatesById(designationsRaw, (item) => (item.id || item.value || '') as string | number);
+        
+        // Map holiday_types to dayTypes - remove duplicates by FOHWDT_Id
+        const dayTypesRaw = (responseData.holiday_types || []).map((item: any) => ({
+            label: item.FOHTWD_HolidayWDType || item.label || item.name || '',
+            value: String(item.FOHWDT_Id || item.value || item.id || ''),
+            id: item.FOHWDT_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        const dayTypes = removeDuplicatesById(dayTypesRaw, (item) => (item.id || item.value || '') as string | number);
+        
+        // Map sfname to shifts
+        const shifts = (responseData.sfname || []).map((item: any) => ({
+            label: item.FOMS_ShiftName || item.label || item.name || '',
+            value: item.FOMS_ShiftName || item.value || item.name || '',
+            id: item.FOMS_Id || item.id || 0
+        })).filter((item: { label: string; value: string }) => item.label && item.value);
+        
+        // Map employeelist to employees (for employee dropdown)
+        // Note: employeelist items contain HRME_EmployeeFirstName and may have employee IDs
+        const employees = (responseData.employeelist || []).map((item: any) => {
+            const employeeName = item.HRME_EmployeeFirstName || item.label || item.name || '';
+            // Use employee code if available, otherwise use employee name as value
+            const employeeValue = item.HRME_EmployeeCode || item.HRME_EmployeeCode || String(item.HRME_Id || item.FOEST_Id || '');
+            return {
+                label: employeeName,
+                value: employeeValue || employeeName, // Fallback to name if no code/ID available
+                id: item.HRME_Id || item.FOEST_Id || 0
+            };
+        }).filter((item: { label: string; value: string }) => item.label && item.value);
+        
+        // Remove duplicates based on value (in case same employee appears multiple times)
+        const uniqueEmployees = employees.filter((emp: { label: string; value: string; id: number }, index: number, self: Array<{ label: string; value: string; id: number }>) => 
+            index === self.findIndex((e: { label: string; value: string; id: number }) => e.value === emp.value)
+        );
+        
+        return {
+            success: response?.success ?? true,
+            data: {
+                employeeTypes,
+                departments,
+                designations,
+                dayTypes,
+                shifts,
+                employees: uniqueEmployees
+            },
+            message: response?.message || 'Dropdown data retrieved successfully'
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Failed to fetch employee shift mapping dropdowns:', error);
+        console.error('❌ [SERVER] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            responseData: error?.response?.data,
+            fullError: error
+        });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to fetch dropdown data';
+        
+        // Try to extract error message from API response
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            // Check if response is a string
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                // Try different possible error message fields
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
+        return {
+            success: false,
+            data: {
+                employeeTypes: [],
+                departments: [],
+                designations: [],
+                dayTypes: [],
+                shifts: [],
+                employees: []
+            },
+            message: errorMessage
+        };
+    }
+}
+
+/**
+ * Helper function to convert searchParams from URL (strings) to proper types
+ */
+function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
+    if (!searchParams) return {};
+    
+    // Helper to get first value if array, or the value itself
+    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
+        if (value === undefined) return defaultValue;
+        if (typeof value === 'number') return value;
+        if (Array.isArray(value)) return value[0] || defaultValue;
+        return value;
+    };
+    
+    return {
+        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
+        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
+        search_query: (getValue(searchParams.search_query, '') as string) || '',
+        search_column: (getValue(searchParams.search_column, '') as string) || '',
+        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
+        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
+    };
+}
+
+/**
+ * Get employee shift mapping edit data from API
+ * POST /api/EmployeeShiftMappingFacade/editdetails
+ */
+export async function getEmployeeShiftMappingEditData(foestId: number) {
+    const url = '/api/EmployeeShiftMappingFacade/editdetails';
+    const requestBody = {
+        FOEST_Id: foestId
+    };
+    
+    try {
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        console.log('📥 [SERVER] Edit data API response:', {
+            success: response?.success,
+            hasData: !!response?.data,
+            dataType: typeof response?.data
+        });
+        
+        // Extract the data structure - similar to getdata response
+        const responseData = response?.data || {};
+        const editData = responseData?.report_list?.[0] || responseData?.data || responseData || {};
+        
+        // Map API response to our interface (similar to getEmployeeShiftMapping mapping)
+        const cleanTime = (timeStr: string | null | undefined): string => {
+            if (!timeStr) return '';
+            return String(timeStr).trim();
+        };
+        
+        const formatDate = (dateStr: string | null | undefined): string => {
+            if (!dateStr) return '';
+            try {
+                const date = new Date(dateStr);
+                return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+            } catch {
+                return String(dateStr);
+            }
+        };
+        
+        const mappedData: EmployeeShiftMapping = {
+            id: editData.FOEST_Id || editData.id || foestId,
+            employee: editData.EmployeeName || editData.employee || '',
+            shiftName: editData.ShiftName || editData.shiftName || '',
+            dayType: editData.DayType || editData.dayType || '',
+            holidayType: editData.DayType || editData.dayType || '',
+            applicableDate: formatDate(editData.Date || editData.date || editData.FOEST_Date),
+            totalWork: cleanTime(editData.FDWHrMin || editData.FOEST_FDWHrMin),
+            totalWorkingHours: cleanTime(editData.FDWHrMin || editData.FOEST_FDWHrMin),
+            halfDayWork: cleanTime(editData.HDWHrMin || editData.FOEST_HDWHrMin),
+            halfDayWorkingHours: cleanTime(editData.HDWHrMin || editData.FOEST_HDWHrMin),
+            morningLogin: cleanTime(editData.IHalfLogin || editData.FOEST_IHalfLoginTime),
+            shiftStartTime: cleanTime(editData.IHalfLogin || editData.FOEST_IHalfLoginTime),
+            morningLogout: cleanTime(editData.IHalfLogout || editData.FOEST_IHalfLogoutTime),
+            lunchStartTime: cleanTime(editData.IHalfLogout || editData.FOEST_IHalfLogoutTime),
+            afternoonLogin: cleanTime(editData.IIHalfLogin || editData.FOEST_IIHalfLoginTime),
+            lunchEndTime: cleanTime(editData.IIHalfLogin || editData.FOEST_IIHalfLoginTime),
+            afternoonLogout: cleanTime(editData.IIHalfLogout || editData.FOEST_IIHalfLogoutTime),
+            shiftEndTime: cleanTime(editData.IIHalfLogout || editData.FOEST_IIHalfLogoutTime),
+            delayShift: cleanTime(editData.DelayPerShift || editData.FOEST_DelayPerShiftHrMin),
+            delayPerShift: cleanTime(editData.DelayPerShift || editData.FOEST_DelayPerShiftHrMin),
+            earlyShift: cleanTime(editData.EarlyPerShift || editData.FOEST_EarlyPerShiftHrMin),
+            earlyPerShift: cleanTime(editData.EarlyPerShift || editData.FOEST_EarlyPerShiftHrMin),
+            lunchHour: cleanTime(editData.LunchDuration || editData.FOEST_LunchHoursDuration),
+            lunchHours: cleanTime(editData.LunchDuration || editData.FOEST_LunchHoursDuration),
+            // Default values for fields not in API response
+            employees: editData.EmployeeName ? [editData.EmployeeName] : (editData.EmployeeIds || []),
+            type: editData.TypeIds || [],
+            department: editData.DepartmentIds || [],
+            designation: editData.DesignationIds || [],
+            isActive: true,
+            createdAt: editData.Date || editData.FOEST_Date ? new Date(editData.Date || editData.FOEST_Date) : new Date()
+        };
+        
+        return {
+            success: response?.success ?? true,
+            message: response?.message || 'Employee shift mapping edit data retrieved successfully',
+            data: mappedData
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Failed to fetch employee shift mapping edit data:', error);
+        console.error('❌ [SERVER] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            responseData: error?.response?.data,
+            fullError: error
+        });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to fetch employee shift mapping edit data';
+        
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
+        return {
+            success: false,
+            message: errorMessage,
+            data: null
+        };
+    }
+}
+
+/**
+ * Get employee shift mapping data from API
+ * POST /api/EmployeeShiftMappingFacade/getdata
+ */
+export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
+    // Normalize searchParams (convert strings to proper types)
+    const normalizedParams = normalizeSearchParams(searchParams);
+    
+    const requestBody = {
+        page: normalizedParams.page || 1,
+        page_size: normalizedParams.page_size || 10,
+        search_query: normalizedParams.search_query || '',
+        search_column: normalizedParams.search_column || '',
+        sort_column: normalizedParams.sort_column || '',
+        sort_direction: normalizedParams.sort_direction || '',
+        is_export: false,
+        MIID: 30,
+        LoginUserId: 0,
+        UserRole: ''
+    };
+
+    const url = '/api/EmployeeShiftMappingFacade/getdata';
+    
+    try {
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        // API response structure:
+        // {
+        //   "success": true,
+        //   "message": "OK",
+        //   "data": {
+        //     "report_list": [
+        //       {
+        //         "FOEST_Id": 221,
+        //         "EmployeeName": "LAKSHMI DEVI  T",
+        //         "ShiftName": "Employee Shift",
+        //         "DayType": "WEEK DAY",
+        //         "Date": "2024-06-25T00:00:00",
+        //         "FDWHrMin": "7:30 ",
+        //         "HDWHrMin": "4:00  ",
+        //         "IHalfLogin": "9:30  ",
+        //         "IHalfLogout": "13:00  ",
+        //         "IIHalfLogin": "13:30  ",
+        //         "IIHalfLogout": "17:00 ",
+        //         "DelayPerShift": "0:00  ",
+        //         "EarlyPerShift": "0:00  ",
+        //         "LunchDuration": "0:30  "
+        //       }
+        //     ]
+        //   },
+        //   "total": 205,
+        //   "page": 1,
+        //   "page_size": 1
+        // }
+        
+        // Extract the data structure
+        const responseData = response?.data || {};
+        const reportList = responseData?.report_list || [];
+        
+        // Map API response to our interface
+        const mappedData: EmployeeShiftMapping[] = reportList.map((item: any) => {
+            // Helper to trim and clean time strings
+            const cleanTime = (timeStr: string | null | undefined): string => {
+                if (!timeStr) return '';
+                return String(timeStr).trim();
+            };
+            
+            // Helper to format date
+            const formatDate = (dateStr: string | null | undefined): string => {
+                if (!dateStr) return '';
+                try {
+                    const date = new Date(dateStr);
+                    return date.toISOString().split('T')[0]; // YYYY-MM-DD format
+                } catch {
+                    return String(dateStr);
+                }
+            };
+            
+            return {
+                id: item.FOEST_Id || item.id || 0,
+                employee: item.EmployeeName || item.employee || '',
+                shiftName: item.ShiftName || item.shiftName || '',
+                dayType: item.DayType || item.dayType || '',
+                holidayType: item.DayType || item.dayType || '',
+                applicableDate: formatDate(item.Date || item.date),
+                totalWork: cleanTime(item.FDWHrMin || item.FDWHrMin),
+                totalWorkingHours: cleanTime(item.FDWHrMin || item.FDWHrMin),
+                halfDayWork: cleanTime(item.HDWHrMin || item.HDWHrMin),
+                halfDayWorkingHours: cleanTime(item.HDWHrMin || item.HDWHrMin),
+                morningLogin: cleanTime(item.IHalfLogin || item.IHalfLogin),
+                shiftStartTime: cleanTime(item.IHalfLogin || item.IHalfLogin),
+                morningLogout: cleanTime(item.IHalfLogout || item.IHalfLogout),
+                lunchStartTime: cleanTime(item.IHalfLogout || item.IHalfLogout),
+                afternoonLogin: cleanTime(item.IIHalfLogin || item.IIHalfLogin),
+                lunchEndTime: cleanTime(item.IIHalfLogin || item.IIHalfLogin),
+                afternoonLogout: cleanTime(item.IIHalfLogout || item.IIHalfLogout),
+                shiftEndTime: cleanTime(item.IIHalfLogout || item.IIHalfLogout),
+                delayShift: cleanTime(item.DelayPerShift || item.DelayPerShift),
+                delayPerShift: cleanTime(item.DelayPerShift || item.DelayPerShift),
+                earlyShift: cleanTime(item.EarlyPerShift || item.EarlyPerShift),
+                earlyPerShift: cleanTime(item.EarlyPerShift || item.EarlyPerShift),
+                lunchHour: cleanTime(item.LunchDuration || item.LunchDuration),
+                lunchHours: cleanTime(item.LunchDuration || item.LunchDuration),
+                // Default values for fields not in API response
+                employees: item.EmployeeName ? [item.EmployeeName] : [],
+                type: [],
+                department: [],
+                designation: [],
+                isActive: true,
+                createdAt: item.Date ? new Date(item.Date) : new Date()
+            };
+        });
+        
+        // Extract pagination info from response
+        const responseTotal = typeof response?.total === 'number' ? response.total : mappedData.length;
+        const responsePage = typeof response?.page === 'number' ? response.page : (normalizedParams.page || 1);
+        const responsePageSize = typeof response?.page_size === 'number' 
+            ? response.page_size 
+            : (normalizedParams.page_size || 10);
+        
+        return {
+            success: response?.success ?? true,
+            message: response?.message || 'Employee shift mappings retrieved successfully',
+            data: mappedData,
+            total: responseTotal,
+            page: responsePage,
+            page_size: responsePageSize
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Failed to fetch employee shift mapping data:', error);
+        console.error('❌ [SERVER] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            responseData: error?.response?.data,
+            fullError: error
+        });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to fetch employee shift mapping data';
+        
+        // Try to extract error message from API response
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            // Check if response is a string
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                // Try different possible error message fields
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
+        // Return error response in expected format
+        return {
+            success: false,
+            message: errorMessage,
+            data: [],
+            total: 0,
+            page: normalizedParams.page || 1,
+            page_size: normalizedParams.page_size || 10
+        };
+    }
 }
 
 export async function addOrUpdateEmployeeShiftMapping(data: {
@@ -171,40 +787,40 @@ async function saveEmployeeShiftMappingViaAPI(data: {
     // Convert applicableDate to ISO format
     const applicableDateISO = data.applicableDate ? new Date(data.applicableDate).toISOString() : new Date().toISOString();
     
-    // Build request body
+    // Build request body - using exact API field names (uppercase)
     const requestBody: EmployeeShiftMappingSaveRequest = {
-        foesT_Id: data.id || 0, // 0 for new, or existing ID for update
-        mI_Id: 30,
-        fomS_Id: data.fomS_Id, // Shift Master ID
-        foesT_Date: applicableDateISO,
-        foesT_FDWHrMin: data.totalWorkingHours || '', // Full Day Working Hours Minutes
-        foesT_HDWHrMin: data.halfDayWorkingHours || '', // Half Day Working Hours Minutes
-        foesT_IHalfLoginTime: data.shiftStartTime || '', // First Half Login Time
-        foesT_IHalfLogoutTime: data.lunchStartTime || '', // First Half Logout Time
-        foesT_IIHalfLoginTime: data.lunchEndTime || '', // Second Half Login Time
-        foesT_IIHalfLogoutTime: data.shiftEndTime || '', // Second Half Logout Time
-        foesT_DelayPerShiftHrMin: data.delayPerShift || '', // Delay Per Shift Hours Minutes
-        foesT_EarlyPerShiftHrMin: data.earlyPerShift || '', // Early Per Shift Hours Minutes
-        foesT_LunchHoursDuration: data.lunchHours || '', // Lunch Hours Duration
-        foesT_BlockAttendance: '', // Block Attendance (optional)
-        foesT_FixTimings: '', // Fix Timings (optional)
-        employeeIds: data.employeeIds, // Array of employee IDs
-        dayTypeIds: data.dayTypeIds, // Array of day type IDs
-        userId: 0
+        FOEST_Id: data.id || 0, // 0 for new, or existing ID for update
+        MI_Id: 30,
+        FOMS_Id: data.fomS_Id, // Shift Master ID
+        FOEST_Date: applicableDateISO,
+        FOEST_FDWHrMin: data.totalWorkingHours || '', // Full Day Working Hours Minutes
+        FOEST_HDWHrMin: data.halfDayWorkingHours || '', // Half Day Working Hours Minutes
+        FOEST_IHalfLoginTime: data.shiftStartTime || '', // First Half Login Time
+        FOEST_IHalfLogoutTime: data.lunchStartTime || '', // First Half Logout Time
+        FOEST_IIHalfLoginTime: data.lunchEndTime || '', // Second Half Login Time
+        FOEST_IIHalfLogoutTime: data.shiftEndTime || '', // Second Half Logout Time
+        FOEST_DelayPerShiftHrMin: data.delayPerShift || '', // Delay Per Shift Hours Minutes
+        FOEST_EarlyPerShiftHrMin: data.earlyPerShift || '', // Early Per Shift Hours Minutes
+        FOEST_LunchHoursDuration: data.lunchHours || '', // Lunch Hours Duration
+        FOEST_BlockAttendance: '', // Block Attendance (optional)
+        FOEST_FixTimings: '', // Fix Timings (optional)
+        EmployeeIds: data.employeeIds, // Array of employee IDs
+        DayTypeIds: data.dayTypeIds, // Array of day type IDs
+        UserId: 0
     };
     
     console.log('🔄 [SERVER] Saving employee shift mapping via API');
     console.log('📤 [SERVER] Request URL:', url);
     console.log('📤 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
     console.log('📤 [SERVER] Request Body Summary:', {
-        foesT_Id: requestBody.foesT_Id,
-        mI_Id: requestBody.mI_Id,
-        fomS_Id: requestBody.fomS_Id,
-        foesT_Date: requestBody.foesT_Date,
-        employeeIdsCount: requestBody.employeeIds.length,
-        employeeIds: requestBody.employeeIds,
-        dayTypeIdsCount: requestBody.dayTypeIds.length,
-        dayTypeIds: requestBody.dayTypeIds
+        FOEST_Id: requestBody.FOEST_Id,
+        MI_Id: requestBody.MI_Id,
+        FOMS_Id: requestBody.FOMS_Id,
+        FOEST_Date: requestBody.FOEST_Date,
+        EmployeeIdsCount: requestBody.EmployeeIds.length,
+        EmployeeIds: requestBody.EmployeeIds,
+        DayTypeIdsCount: requestBody.DayTypeIds.length,
+        DayTypeIds: requestBody.DayTypeIds
     });
     
     try {
@@ -239,35 +855,215 @@ async function saveEmployeeShiftMappingViaAPI(data: {
     } catch (error: any) {
         console.error('❌ [SERVER] Error saving employee shift mapping via API:', error);
         console.error('❌ [SERVER] Error details:', {
-            message: error.message,
-            status: error.status,
-            response: error.response
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            responseData: error?.response?.data,
+            fullError: error
         });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to save employee shift mapping';
+        
+        // Try to extract error message from API response
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            // Check if response is a string
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                // Try different possible error message fields
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
         return {
             success: false,
-            message: error.message || 'Failed to save employee shift mapping',
+            message: errorMessage,
             data: null
         };
     }
 }
 
-export async function deleteEmployeeShiftMapping(id: number) {
+/**
+ * Get employees based on filters
+ * POST /api/EmployeeShiftMappingFacade/get_employee
+ */
+export async function getEmployeeShiftMappingEmployees(params: {
+    groupTypeIds?: number[];
+    departmentIds?: number[];
+    designationIds?: number[];
+}) {
+    const url = '/api/EmployeeShiftMappingFacade/get_employee';
+    const requestBody = {
+        MI_Id: 30,
+        GroupTypeIds: params.groupTypeIds || [0],
+        DepartmentIds: params.departmentIds || [0],
+        DesignationIds: params.designationIds || [0]
+    };
+    
     try {
-        const removed = store.remove(id);
-        if (removed) {
-            return {
-                success: true,
-                message: 'Employee shift mapping deleted successfully'
-            };
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        console.log('📥 [SERVER] Get employees API response:', {
+            success: response?.success,
+            hasData: !!response?.data,
+            dataType: typeof response?.data
+        });
+        
+        // Extract employees from response
+        let employees: any[] = [];
+        
+        if (response?.data) {
+            // If data is an array
+            if (Array.isArray(response.data)) {
+                employees = response.data;
+            } 
+            // If data is an object with a list/array property
+            else if (typeof response.data === 'object' && response.data !== null) {
+                employees = response.data.report_list || response.data.employees || response.data.list || response.data.data || [];
+            }
         }
+        
         return {
-            success: false,
-            message: 'Employee shift mapping not found'
+            success: response?.success ?? true,
+            data: employees,
+            message: response?.message || 'Employees retrieved successfully'
         };
     } catch (error: any) {
+        console.error('❌ [SERVER] Failed to fetch employees:', error);
+        console.error('❌ [SERVER] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            responseData: error?.response?.data,
+            fullError: error
+        });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to fetch employees';
+        
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
         return {
             success: false,
-            message: error.message || 'Failed to delete employee shift mapping'
+            data: [],
+            message: errorMessage
+        };
+    }
+}
+
+export async function deleteEmployeeShiftMapping(id: number) {
+    const url = '/api/EmployeeShiftMappingFacade/deletedetails';
+    const requestBody = {
+        FOEST_Id: id
+    };
+    
+    try {
+        const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
+        
+        console.log('📥 [SERVER] Delete API response:', {
+            success: response?.success,
+            message: response?.message
+        });
+        
+        // Check if deletion was successful
+        if (response?.success) {
+            return {
+                success: true,
+                message: response?.message || 'Employee shift mapping deleted successfully'
+            };
+        }
+        
+        // If API returned success: false, extract error message
+        let errorMessage = 'Failed to delete employee shift mapping';
+        if (response?.message) {
+            errorMessage = response.message;
+        } else if (response?.data && typeof response.data === 'string') {
+            errorMessage = response.data;
+        }
+        
+        return {
+            success: false,
+            message: errorMessage
+        };
+    } catch (error: any) {
+        console.error('❌ [SERVER] Failed to delete employee shift mapping:', error);
+        console.error('❌ [SERVER] Error details:', {
+            message: error?.message,
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            responseData: error?.response?.data,
+            fullError: error
+        });
+        
+        // Extract proper error message from API response
+        let errorMessage = 'Failed to delete employee shift mapping';
+        
+        if (error?.response?.data) {
+            const apiError = error.response.data;
+            
+            if (typeof apiError === 'string') {
+                errorMessage = apiError;
+            } else if (typeof apiError === 'object' && apiError !== null) {
+                if (apiError.message) {
+                    errorMessage = apiError.message;
+                } else if (apiError.error) {
+                    errorMessage = apiError.error;
+                } else if (apiError.msg) {
+                    errorMessage = apiError.msg;
+                } else if (apiError.errorMessage) {
+                    errorMessage = apiError.errorMessage;
+                } else if (apiError.errors && Array.isArray(apiError.errors)) {
+                    errorMessage = apiError.errors.map((e: any) => e.message || e).join(', ');
+                } else if (error.response.status) {
+                    errorMessage = `Request failed with status ${error.response.status}`;
+                }
+            }
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+        
+        return {
+            success: false,
+            message: errorMessage
         };
     }
 }

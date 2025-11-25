@@ -58,7 +58,7 @@ export default function PFForm6APage() {
 
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm6AReportOnload(roleId);
-    const filterMutation = useFilterPFForm6AEmployeeData();
+    const _filterMutation = useFilterPFForm6AEmployeeData();
     const searchMutation = useSearchPFForm6AReport();
 
     // State

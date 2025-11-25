@@ -2,8 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -11,12 +9,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEmployeeDetailsReportOnload, useFilterEmployeeDetailsReport, useSearchEmployeeDetailsReport } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
-import type { ColumnDef } from '@tanstack/react-table';
+import type { EmployeeDetailsReportFilterRequest } from '@/types/hrms/reports/employee-details-report';
 import { format } from 'date-fns';
-import { CalendarIcon, Download, Printer, Search, X } from 'lucide-react';
+import { CalendarIcon, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { EmployeeDetailsReportTemplate } from './_components/report-template';
 
 // Employee data structure for reports
 interface Employee {
@@ -30,12 +29,17 @@ interface Employee {
     emergencyContactNumber: string;
     dateOfJoining: string;
     dateOfLeaving?: string;
+    dateOfConfirmation?: string;
+    employeeType?: string;
+    groupType?: string;
     departmentName: string;
     designationName: string;
     address: string;
     qualification: string;
     experience: string;
     status: 'Working' | 'Left';
+    reasonForLeaving?: string;
+    remarks?: string;
 }
 
 // Report filters and settings
@@ -112,7 +116,10 @@ export default function EmployeeDetailsReportPage() {
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load employee details report data. Please check if the API endpoint is available.';
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load employee details report data. Please check if the API endpoint is available.';
             toast.error(errorMessage);
         }
     }, [onloadError, onloadData, isLoadingOnload]);
@@ -126,10 +133,16 @@ export default function EmployeeDetailsReportPage() {
         'Email Id',
         'Date Of Birth',
         'Emergency Contact Number',
-        'Date Of Joining',
-        'Date Of Leaving',
+        'Date Of confirmation',
+        'Employee Type',
+        'Group Type',
         'Department',
         'Designation',
+        'Status',
+        'Date Of Joining',
+        'Date Of Leaving',
+        'Reason For Leaving',
+        'Remarks',
         'Address',
         'Qualification',
         'Experience'
@@ -146,19 +159,25 @@ export default function EmployeeDetailsReportPage() {
 
         // Check if onload has employeedropdown (though it's usually null in onload)
         const onloadEmployees = onloadData?.data?.employeedropdown;
-        const onloadEmployeesArray = onloadEmployees && Array.isArray(onloadEmployees) ? onloadEmployees : [];
+        const _onloadEmployeesArray = onloadEmployees && Array.isArray(onloadEmployees) ? onloadEmployees : [];
 
-        // When Type is selected and we have all required filters
-        if (filters.employeeType === 'Type' && filters.selectedEmployeeType && filters.fromDate && filters.toDate) {
-            const filterRequest = {
+        // When Type is selected and we have all required filters (Format 1 only)
+        if (
+            filters.format === 'Format 1' &&
+            filters.employeeType === 'Type' &&
+            filters.selectedEmployeeType &&
+            filters.fromDate &&
+            filters.toDate
+        ) {
+            const filterRequest: EmployeeDetailsReportFilterRequest = {
                 MI_Id: 30,
-                FormatType: filters.format,
-                DOBJL: filters.dateFilter,
-                FromDate: filters.fromDate.toISOString(),
-                ToDate: filters.toDate.toISOString(),
-                AllOrIndividual: filters.reportType,
-                TypeOrEmployee: filters.employeeType,
-                HRMET_Id: Number.parseInt(filters.selectedEmployeeType),
+                FormatType: 'Format1',
+                DOBJL: filters.dateFilter === 'Date of Birth' ? 'DOB' : filters.dateFilter === 'Date of Joining' ? 'DOJ' : 'DOL',
+                FromDate: filters.fromDate.toISOString().split('T')[0],
+                ToDate: filters.toDate.toISOString().split('T')[0],
+                AllOrIndividual: 'All',
+                TypeOrEmployee: 'Type',
+                HRMET_Id: Number(filters.selectedEmployeeType) || 0,
                 HRME_Id: 0,
                 Left: filters.employeeStatus.includes('Left'),
                 Working: filters.employeeStatus.includes('Working')
@@ -181,7 +200,8 @@ export default function EmployeeDetailsReportPage() {
                         }
                     } else {
                         // API returned unsuccessful response
-                        const errorMsg = response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                        const errorMsg =
+                            response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
                         toast.error(errorMsg);
                         setEmployeeDropdownOptions([]);
                     }
@@ -192,18 +212,18 @@ export default function EmployeeDetailsReportPage() {
                     setEmployeeDropdownOptions([]);
                 }
             });
-        } else if (filters.employeeType === 'Employee' && filters.fromDate && filters.toDate) {
-            // When Employee Type is "Employee", call filter API to get all filtered employees
-            const filterRequest = {
+        } else if (filters.format === 'Format 1' && filters.employeeType === 'Employee' && filters.fromDate && filters.toDate) {
+            // When Employee Type is "Employee" (Format 1), call filter API to get all filtered employees
+            const filterRequest: EmployeeDetailsReportFilterRequest = {
                 MI_Id: 30,
-                FormatType: filters.format,
-                DOBJL: filters.dateFilter,
-                FromDate: filters.fromDate.toISOString(),
-                ToDate: filters.toDate.toISOString(),
-                AllOrIndividual: filters.reportType,
-                TypeOrEmployee: filters.employeeType,
+                FormatType: 'Format1',
+                DOBJL: filters.dateFilter === 'Date of Birth' ? 'DOB' : filters.dateFilter === 'Date of Joining' ? 'DOJ' : 'DOL',
+                FromDate: filters.fromDate.toISOString().split('T')[0],
+                ToDate: filters.toDate.toISOString().split('T')[0],
+                AllOrIndividual: 'Individual',
+                TypeOrEmployee: 'Employee',
                 HRMET_Id: 0,
-                HRME_Id: 0,
+                HRME_Id: Number(filters.selectedEmployee) || 0,
                 Left: filters.employeeStatus.includes('Left'),
                 Working: filters.employeeStatus.includes('Working')
             };
@@ -225,7 +245,8 @@ export default function EmployeeDetailsReportPage() {
                         }
                     } else {
                         // API returned unsuccessful response
-                        const errorMsg = response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                        const errorMsg =
+                            response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
                         toast.error(errorMsg);
                         setEmployeeDropdownOptions([]);
                     }
@@ -258,7 +279,6 @@ export default function EmployeeDetailsReportPage() {
             selectedHeaders: watchedHeaders
         }));
     }, [watchedHeaders]);
-
 
     // Filter employees based on selected criteria
     useEffect(() => {
@@ -297,7 +317,6 @@ export default function EmployeeDetailsReportPage() {
         setFilteredEmployees(filtered);
     }, [filters, employees]);
 
-
     // Handle employee status change and trigger API automatically
     const handleEmployeeStatusChange = async (status: string, checked: boolean) => {
         const newStatuses = checked ? [...filters.employeeStatus, status] : filters.employeeStatus.filter((s) => s !== status);
@@ -319,19 +338,36 @@ export default function EmployeeDetailsReportPage() {
 
     // Separate function to trigger the filter API
     const triggerFilterAPI = (statuses: string[] = filters.employeeStatus) => {
-        const filterRequest = {
-            MI_Id: 30,
-            FormatType: filters.format,
-            DOBJL: filters.dateFilter,
-            FromDate: filters.fromDate?.toISOString() || new Date().toISOString(),
-            ToDate: filters.toDate?.toISOString() || new Date().toISOString(),
-            AllOrIndividual: filters.reportType,
-            TypeOrEmployee: filters.employeeType,
-            HRMET_Id: filters.selectedEmployeeType ? Number.parseInt(filters.selectedEmployeeType) : 0,
-            HRME_Id: filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0,
-            Left: statuses.includes('Left'),
-            Working: statuses.includes('Working')
-        };
+        // Prepare request body based on format type
+        let filterRequest: any;
+
+        if (filters.format === 'Format 1') {
+            // Format 1: Simple format
+            filterRequest = {
+                MI_Id: 30,
+                FormatType: 'Format1',
+                DOBJL: filters.dateFilter === 'Date of Birth' ? 'DOB' : filters.dateFilter === 'Date of Joining' ? 'DOJ' : 'DOL',
+                FromDate: filters.fromDate ? filters.fromDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                ToDate: filters.toDate ? filters.toDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                Left: statuses.includes('Left'),
+                Working: statuses.includes('Working')
+            };
+        } else {
+            // Format 2: Extended format
+            filterRequest = {
+                MI_Id: 30,
+                FormatType: 'Format2',
+                DOBJL: filters.dateFilter === 'Date of Birth' ? 'DOB' : filters.dateFilter === 'Date of Joining' ? 'DOJ' : 'DOL',
+                FromDate: filters.fromDate?.toISOString() || new Date().toISOString(),
+                ToDate: filters.toDate?.toISOString() || new Date().toISOString(),
+                AllOrIndividual: filters.reportType || 'string',
+                TypeOrEmployee: filters.employeeType || 'string',
+                HRMET_Id: filters.selectedEmployeeType ? Number.parseInt(filters.selectedEmployeeType) : 0,
+                HRME_Id: filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0,
+                Left: statuses.includes('Left'),
+                Working: statuses.includes('Working')
+            };
+        }
 
         filterMutation.mutate(filterRequest, {
             onSuccess: (response) => {
@@ -350,12 +386,17 @@ export default function EmployeeDetailsReportPage() {
                             emergencyContactNumber: emp.HRME_SpouseMobileNo?.toString() || '',
                             dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
                             dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : '',
-                            departmentName: '',
-                            designationName: '',
+                            dateOfConfirmation: emp.HRME_DOC ? emp.HRME_DOC.split('T')[0] : '',
+                            employeeType: emp.HRMET_EmployeeType || '',
+                            groupType: emp.HRMGT_EmployeeGroupType || '',
+                            departmentName: emp.HRMD_DepartmentName || '',
+                            designationName: emp.HRMDES_DesignationName || '',
                             address: `${emp.HRME_PerStreet || ''} ${emp.HRME_PerArea || ''} ${emp.HRME_PerCity || ''}`.trim(),
                             qualification: '',
                             experience: '',
-                            status: emp.HRME_LeftFlag ? 'Left' : 'Working'
+                            status: emp.HRME_LeftFlag ? 'Left' : 'Working',
+                            reasonForLeaving: emp.HRME_LeavingReason || '',
+                            remarks: emp.HRME_Remarks || ''
                         }));
 
                         setEmployees(filteredEmployees);
@@ -363,47 +404,80 @@ export default function EmployeeDetailsReportPage() {
                         toast.success('Employee status filter applied successfully');
                     } else {
                         setEmployees([]);
-                        setShowReport(false);
+                        setShowReport(true); // Keep template visible even when no data
                         toast.info('No employees found for the selected criteria');
                     }
                 } else {
-                    // API returned unsuccessful response
-                    const errorMsg = response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
+                    // API returned unsuccessful response - but still show the report template
+                    const errorMsg =
+                        response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
                     toast.error(errorMsg);
                     setEmployees([]);
-                    setShowReport(false);
+                    setShowReport(true); // Keep template visible even on API error
                 }
             },
             onError: (error: any) => {
                 const errorMsg = error?.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
                 toast.error(errorMsg);
                 setEmployees([]);
-                setShowReport(false);
+                setShowReport(true); // Keep template visible even on API error
             }
         });
     };
 
     const handleSearch = () => {
+        // Always show report template when search is clicked, even without headers
+        setShowReport(true);
+
         if (filters.selectedHeaders.length === 0) {
-            toast.error('Please select at least one header field to generate the report');
+            toast.warning('Please select at least one header field to generate the report. Showing empty report template.');
             return;
         }
 
-        // Prepare the search request payload
-        const searchRequest = {
-            LogInUserId: 2,
-            MI_Id: 30,
-            FormatType: filters.format,
-            DOBJL: filters.dateFilter,
-            AllOrIndividual: filters.reportType,
-            TypeOrEmployee: filters.employeeType,
-            HRMET_Id: filters.selectedEmployeeType ? Number.parseInt(filters.selectedEmployeeType) : 0,
-            HRME_Id: filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0,
-            FromDate: filters.fromDate?.toISOString() || new Date().toISOString(),
-            ToDate: filters.toDate?.toISOString() || new Date().toISOString(),
-            Working: filters.employeeStatus.includes('Working'),
-            Left: filters.employeeStatus.includes('Left')
+        // Map date filter to DOBJL format
+        const dobjlMap: Record<string, string> = {
+            'Date of Birth': 'DOB',
+            'Date of Joining': 'DOJ',
+            'Date of Leaving': 'DOL'
         };
+        const dobjl = dobjlMap[filters.dateFilter] || 'DOB';
+
+        // Prepare the search request payload based on format type
+        let searchRequest: any;
+
+        if (filters.format === 'Format 1') {
+            // Format 1: Use YYYY-MM-DD date format
+            searchRequest = {
+                LogInUserId: 2,
+                MI_Id: 30,
+                FormatType: 'Format1',
+                DOBJL: dobjl,
+                AllOrIndividual: filters.reportType || 'All',
+                TypeOrEmployee: filters.employeeType || 'Type',
+                HRMET_Id: filters.selectedEmployeeType ? Number.parseInt(filters.selectedEmployeeType) : 0,
+                HRME_Id: filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0,
+                FromDate: filters.fromDate ? filters.fromDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                ToDate: filters.toDate ? filters.toDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                Working: filters.employeeStatus.includes('Working'),
+                Left: filters.employeeStatus.includes('Left')
+            };
+        } else {
+            // Format 2: Use ISO string date format
+            searchRequest = {
+                LogInUserId: 2,
+                MI_Id: 30,
+                FormatType: 'Format2',
+                DOBJL: dobjl,
+                AllOrIndividual: filters.reportType || 'All',
+                TypeOrEmployee: filters.employeeType || 'Type',
+                HRMET_Id: filters.selectedEmployeeType ? Number.parseInt(filters.selectedEmployeeType) : 0,
+                HRME_Id: filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0,
+                FromDate: filters.fromDate?.toISOString() || new Date().toISOString(),
+                ToDate: filters.toDate?.toISOString() || new Date().toISOString(),
+                Working: filters.employeeStatus.includes('Working'),
+                Left: filters.employeeStatus.includes('Left')
+            };
+        }
 
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
@@ -439,38 +513,45 @@ export default function EmployeeDetailsReportPage() {
                             emergencyContactNumber: emp.HRME_SpouseMobileNo?.toString() || '',
                             dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
                             dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : '',
-                            departmentName: '',
-                            designationName: '',
+                            dateOfConfirmation: emp.HRME_DOC ? emp.HRME_DOC.split('T')[0] : '',
+                            employeeType: emp.HRMET_EmployeeType || '',
+                            groupType: emp.HRMGT_EmployeeGroupType || '',
+                            departmentName: emp.HRMD_DepartmentName || '',
+                            designationName: emp.HRMDES_DesignationName || '',
                             address: `${emp.HRME_PerStreet || ''} ${emp.HRME_PerArea || ''} ${emp.HRME_PerCity || ''}`.trim(),
                             qualification: '',
                             experience: '',
-                            status: emp.HRME_LeftFlag ? 'Left' : 'Working'
+                            status: emp.HRME_LeftFlag ? 'Left' : 'Working',
+                            reasonForLeaving: emp.HRME_LeavingReason || '',
+                            remarks: emp.HRME_Remarks || ''
                         }));
 
                         setEmployees(mappedEmployees);
                         setShowReport(true);
                         toast.success(`Found ${mappedEmployees.length} employee records`);
                     } else {
-                        // No employee data found
+                        // No employee data found - but still show the report template
                         setEmployees([]);
-                        setShowReport(false);
+                        setShowReport(true);
 
                         const errorMsg = response.data?.retrunMsg || 'No employee data found for the selected criteria';
-                        toast.error(errorMsg);
+                        toast.info(errorMsg);
                     }
                 } else {
-                    // API returned unsuccessful response
-                    const errorMsg = response.message || 'Failed to search employee details. Please check if the search API endpoint is available.';
+                    // API returned unsuccessful response - but still show the report template
+                    const errorMsg =
+                        response.message || 'Failed to search employee details. Please check if the search API endpoint is available.';
                     toast.error(errorMsg);
                     setEmployees([]);
-                    setShowReport(false);
+                    setShowReport(true); // Keep template visible even on API error
                 }
             },
             onError: (error: any) => {
-                const errorMsg = error?.message || 'Failed to search employee details. Please check if the search API endpoint is available.';
+                const errorMsg =
+                    error?.message || 'Failed to search employee details. Please check if the search API endpoint is available.';
                 toast.error(errorMsg);
                 setEmployees([]);
-                setShowReport(false);
+                setShowReport(true); // Keep template visible even on API error
             }
         });
     };
@@ -509,131 +590,35 @@ export default function EmployeeDetailsReportPage() {
         toast.success('Employee details exported successfully');
     };
 
-    const handlePrint = () => {
+    const _handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
 
-    // Generate dynamic columns based on selected headers
-    const dynamicColumns: ColumnDef<Employee>[] = useMemo(() => {
-        const columns: ColumnDef<Employee>[] = [];
-
-        if (filters.selectedHeaders.includes('Employee Code')) {
-            columns.push({
-                accessorKey: 'employeeCode',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-                cell: ({ row }) => <div className='font-medium'>{row.getValue('employeeCode')}</div>
-            });
+    // Get institution details from API response if available
+    const institutionDetails = useMemo(() => {
+        // Try to get institution details from the API response
+        const searchResponse = searchMutation.data;
+        if (searchResponse?.data && typeof searchResponse.data === 'object' && 'institutionDetails' in searchResponse.data) {
+            return (searchResponse.data as any).institutionDetails;
         }
-
-        if (filters.selectedHeaders.includes('Employee Name')) {
-            columns.push({
-                accessorKey: 'employeeName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                cell: ({ row }) => <div>{row.getValue('employeeName')}</div>
-            });
+        // Try to get from onload data
+        if (onloadData?.data && typeof onloadData.data === 'object' && 'institutionDetails' in onloadData.data) {
+            return (onloadData.data as any).institutionDetails;
         }
+        return null;
+    }, [searchMutation.data, onloadData]);
 
-        if (filters.selectedHeaders.includes('Father Name')) {
-            columns.push({
-                accessorKey: 'fatherName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Father Name' />,
-                cell: ({ row }) => <div>{row.getValue('fatherName')}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Mobile No.')) {
-            columns.push({
-                accessorKey: 'mobileNo',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No.' />,
-                cell: ({ row }) => <div>{row.getValue('mobileNo')}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Email Id')) {
-            columns.push({
-                accessorKey: 'emailId',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Email Id' />,
-                cell: ({ row }) => <div>{row.getValue('emailId')}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Date Of Birth')) {
-            columns.push({
-                accessorKey: 'dateOfBirth',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Date Of Birth' />,
-                cell: ({ row }) => <div>{new Date(row.getValue('dateOfBirth')).toLocaleDateString()}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Emergency Contact Number')) {
-            columns.push({
-                accessorKey: 'emergencyContactNumber',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Emergency Contact' />,
-                cell: ({ row }) => <div>{row.getValue('emergencyContactNumber')}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Date Of Joining')) {
-            columns.push({
-                accessorKey: 'dateOfJoining',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Date Of Joining' />,
-                cell: ({ row }) => <div>{new Date(row.getValue('dateOfJoining')).toLocaleDateString()}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Date Of Leaving')) {
-            columns.push({
-                accessorKey: 'dateOfLeaving',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Date Of Leaving' />,
-                cell: ({ row }) => (
-                    <div>{row.getValue('dateOfLeaving') ? new Date(row.getValue('dateOfLeaving')).toLocaleDateString() : '-'}</div>
-                )
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Department')) {
-            columns.push({
-                accessorKey: 'departmentName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-                cell: ({ row }) => <div>{row.getValue('departmentName')}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Designation')) {
-            columns.push({
-                accessorKey: 'designationName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-                cell: ({ row }) => <div>{row.getValue('designationName')}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Address')) {
-            columns.push({
-                accessorKey: 'address',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Address' />,
-                cell: ({ row }) => <div>{row.getValue('address')}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Qualification')) {
-            columns.push({
-                accessorKey: 'qualification',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Qualification' />,
-                cell: ({ row }) => <div>{row.getValue('qualification')}</div>
-            });
-        }
-
-        if (filters.selectedHeaders.includes('Experience')) {
-            columns.push({
-                accessorKey: 'experience',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Experience' />,
-                cell: ({ row }) => <div>{row.getValue('experience')}</div>
-            });
-        }
-
-        return columns;
-    }, [filters.selectedHeaders]);
+    // Build school name and address
+    const schoolName = institutionDetails?.MI_Name || '';
+    const schoolAddress = useMemo(() => {
+        if (!institutionDetails) return '';
+        const addressParts = [];
+        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
+        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
+        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
+        return addressParts.join(', ');
+    }, [institutionDetails]);
 
     // Show error message if onload fails
     if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -643,8 +628,10 @@ export default function EmployeeDetailsReportPage() {
                     <div className='flex flex-col items-center justify-center space-y-4 rounded-lg bg-destructive/10 py-12'>
                         <div className='text-center'>
                             <h3 className='font-semibold text-destructive text-lg'>Error Loading Filter Options</h3>
-                            <p className='text-muted-foreground text-sm mt-2'>
-                                {onloadError?.message || onloadData?.message || 'Failed to load filter options. Please check if the API endpoint is available.'}
+                            <p className='mt-2 text-muted-foreground text-sm'>
+                                {onloadError?.message ||
+                                    onloadData?.message ||
+                                    'Failed to load filter options. Please check if the API endpoint is available.'}
                             </p>
                         </div>
                     </div>
@@ -658,11 +645,11 @@ export default function EmployeeDetailsReportPage() {
             <div className='container space-y-4 p-1'>
                 {/* Report Configuration Section */}
                 <CollapsibleSection
-                        defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='space-y-6'>
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='space-y-6'>
                         {/* Format Selection */}
                         <div className='space-y-3'>
                             <Label>Format</Label>
@@ -1077,74 +1064,101 @@ export default function EmployeeDetailsReportPage() {
 
                         {/* Format 2 Specific Sections */}
                         {filters.format === 'Format 2' && (
-                            <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                                {/* Group Type Selection */}
-                                <div className='space-y-3'>
-                                    <Label className='font-semibold'>
-                                        Group Type: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <MultiSelect
-                                        options={groupTypes.map((g) => ({
-                                            label: g.HRMGT_EmployeeGroupType,
-                                            value: String(g.HRMGT_Id)
-                                        }))}
-                                        onValueChange={(values) =>
-                                            setFilters((prev) => ({
-                                                ...prev,
-                                                selectedGroupTypes: values
-                                            }))
-                                        }
-                                        defaultValue={filters.selectedGroupTypes}
-                                        placeholder='Select Group Types'
-                                        className='w-full'
-                                        maxHeight={240}
-                                    />
+                            <div className='space-y-6'>
+                                <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                                    {/* Group Type Selection */}
+                                    <div className='space-y-3'>
+                                        <Label className='font-semibold'>
+                                            Group Type: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <MultiSelect
+                                            options={groupTypes.map((g) => ({
+                                                label: g.HRMGT_EmployeeGroupType,
+                                                value: String(g.HRMGT_Id)
+                                            }))}
+                                            onValueChange={(values) =>
+                                                setFilters((prev) => ({
+                                                    ...prev,
+                                                    selectedGroupTypes: values
+                                                }))
+                                            }
+                                            defaultValue={filters.selectedGroupTypes}
+                                            placeholder='Select Group Types'
+                                            className='w-full'
+                                            maxHeight={240}
+                                        />
+                                    </div>
+
+                                    {/* Department Selection */}
+                                    <div className='space-y-3'>
+                                        <Label className='font-semibold'>
+                                            Department: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <MultiSelect
+                                            options={departments.map((d) => ({
+                                                label: d.HRMD_DepartmentName,
+                                                value: String(d.HRMD_Id)
+                                            }))}
+                                            onValueChange={(values) =>
+                                                setFilters((prev) => ({
+                                                    ...prev,
+                                                    selectedDepartments: values
+                                                }))
+                                            }
+                                            defaultValue={filters.selectedDepartments}
+                                            placeholder='Select Departments'
+                                            className='w-full'
+                                            maxHeight={240}
+                                        />
+                                    </div>
+
+                                    {/* Designation Selection */}
+                                    <div className='space-y-3'>
+                                        <Label className='font-semibold'>
+                                            Designation: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <MultiSelect
+                                            options={designations.map((d) => ({
+                                                label: d.HRMDES_DesignationName,
+                                                value: String(d.HRMDES_Id)
+                                            }))}
+                                            onValueChange={(values) =>
+                                                setFilters((prev) => ({
+                                                    ...prev,
+                                                    selectedDesignations: values
+                                                }))
+                                            }
+                                            defaultValue={filters.selectedDesignations}
+                                            placeholder='Select Designations'
+                                            className='w-full'
+                                            maxHeight={240}
+                                        />
+                                    </div>
                                 </div>
 
-                                {/* Department Selection */}
+                                {/* Employee Status */}
                                 <div className='space-y-3'>
-                                    <Label className='font-semibold'>
-                                        Department: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <MultiSelect
-                                        options={departments.map((d) => ({
-                                            label: d.HRMD_DepartmentName,
-                                            value: String(d.HRMD_Id)
-                                        }))}
-                                        onValueChange={(values) =>
-                                            setFilters((prev) => ({
-                                                ...prev,
-                                                selectedDepartments: values
-                                            }))
-                                        }
-                                        defaultValue={filters.selectedDepartments}
-                                        placeholder='Select Departments'
-                                        className='w-full'
-                                        maxHeight={240}
-                                    />
-                                </div>
-
-                                {/* Designation Selection */}
-                                <div className='space-y-3'>
-                                    <Label className='font-semibold'>
-                                        Designation: <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <MultiSelect
-                                        options={designations.map((d) => ({
-                                            label: d.HRMDES_DesignationName,
-                                            value: String(d.HRMDES_Id)
-                                        }))}
-                                        onValueChange={(values) =>
-                                            setFilters((prev) => ({
-                                                ...prev,
-                                                selectedDesignations: values
-                                            }))
-                                        }
-                                        defaultValue={filters.selectedDesignations}
-                                        placeholder='Select Designations'
-                                        className='w-full'
-                                        maxHeight={240}
-                                    />
+                                    <Label>Employee Status</Label>
+                                    <div className='flex items-center gap-6'>
+                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                                            <input
+                                                type='checkbox'
+                                                checked={filters.employeeStatus.includes('Working')}
+                                                onChange={(e) => handleEmployeeStatusChange('Working', e.target.checked)}
+                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
+                                            />
+                                            Working
+                                        </label>
+                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
+                                            <input
+                                                type='checkbox'
+                                                checked={filters.employeeStatus.includes('Left')}
+                                                onChange={(e) => handleEmployeeStatusChange('Left', e.target.checked)}
+                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
+                                            />
+                                            Left
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -1161,7 +1175,7 @@ export default function EmployeeDetailsReportPage() {
                             </Button>
                         </div>
                     </div>
-                    </CollapsibleSection>
+                </CollapsibleSection>
 
                 {/* Report Results */}
                 {showReport && (
@@ -1174,26 +1188,15 @@ export default function EmployeeDetailsReportPage() {
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <div className='mb-4 flex justify-end gap-2'>
-                            <Button variant='outline' onClick={handleExport} className='w-fit transition-all duration-200 hover:scale-105'>
-                                <Download className='mr-2 h-4 w-4' />
-                                Export
-                            </Button>
-                            <Button variant='outline' onClick={handlePrint} className='w-fit transition-all duration-200 hover:scale-105'>
-                                <Printer className='mr-2 h-4 w-4' />
-                                Print
-                            </Button>
-                        </div>
-
-                        <div className='overflow-hidden rounded-lg bg-card'>
-                            <DataTable
-                                isLoading={searchMutation.isPending || filterMutation.isPending}
-                                columns={dynamicColumns}
-                                data={filteredEmployees}
-                                totalItems={filteredEmployees.length}
-                                showViewOptions={true}
-                            />
-                        </div>
+                        <EmployeeDetailsReportTemplate
+                            schoolName={schoolName}
+                            schoolAddress={schoolAddress}
+                            reportData={filteredEmployees}
+                            selectedHeaders={filters.selectedHeaders || []}
+                            isLoading={searchMutation.isPending || filterMutation.isPending}
+                            onExport={handleExport}
+                            onCancel={handleCancel}
+                        />
                     </CollapsibleSection>
                 )}
             </div>

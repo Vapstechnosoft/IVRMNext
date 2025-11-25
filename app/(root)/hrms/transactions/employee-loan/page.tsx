@@ -16,8 +16,22 @@ import { ActionsCell } from './_components/actions-cell';
 import FormSections from './_components/form-sections';
 
 export default function EmployeeLoanPage() {
-    const roleId = 2;
-    const { data: loanData, isLoading, refetch } = useEmployeeLoanList({ roleId });
+    const {
+        data: loanData,
+        isLoading,
+        refetch
+    } = useEmployeeLoanList({
+        page: 1,
+        page_size: 10,
+        search_query: '',
+        search_column: '',
+        sort_column: '',
+        sort_direction: '',
+        is_export: false,
+        MIID: 30,
+        LoginUserId: 0,
+        UserRole: ''
+    });
 
     return (
         <FormProvider<EmployeeLoanItem>>
@@ -47,8 +61,7 @@ function EmployeeLoanPageContent({
         toggleMutation.mutate(
             {
                 HREL_Id: id,
-                HREL_ActiveFlag: !currentStatus,
-                roleId: 2
+                MI_Id: 30
             },
             {
                 onSuccess: () => {
@@ -82,9 +95,6 @@ function EmployeeLoanPageContent({
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Forms Section */}
-                <FormSections onloadData={loanData} onSuccess={refetch} />
-
                 <div className='flex justify-end'>
                     <Button
                         type='button'
@@ -110,6 +120,9 @@ function EmployeeLoanPageContent({
                         getLoanTypeName={getLoanTypeName}
                     />
                 </CollapsibleSection>
+
+                {/* Forms Section - Moved after table */}
+                <FormSections onloadData={loanData} onSuccess={refetch} />
             </div>
         </div>
     );

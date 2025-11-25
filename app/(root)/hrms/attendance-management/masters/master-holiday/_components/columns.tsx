@@ -6,7 +6,6 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import type { ReportListItem } from '@/types/hrms/attendance-management/master-holiday';
 
 export interface MasterHoliday {
     id: number;

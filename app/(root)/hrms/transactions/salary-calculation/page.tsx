@@ -1,10 +1,7 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -12,24 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useGenerateSalary, useSalaryCalculationOnload, useSearchSalaryCalculation } from '@/hooks/hrms/useTransactions';
 import type {
     DesignationDropdown,
-    EmployeeDropdown,
     SalaryCalculationGenerateRequest,
     SalaryCalculationSearchRequest
 } from '@/types/hrms/salary-calculation';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Calculator, RefreshCw, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
-interface Employee extends EmployeeDropdown {
-    calculationStatus: 'Not Calculated' | 'Calculated' | 'Recalculated';
-    calculatedDate?: string;
-    basicSalary?: number;
-    allowances?: number;
-    deductions?: number;
-    netSalary?: number;
-}
+import { type Employee, getSalaryCalculationColumns } from './_components/columns';
 
 interface SearchForm {
     groupType: string[];
@@ -73,9 +60,18 @@ export default function SalaryCalculationPage() {
     // Memoize arrays to prevent unnecessary re-renders
     const monthOptions = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
     const leaveYearOptions = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
-    const departmentOptions = useMemo(() => onloadData?.departmentdropdown || [], [onloadData?.departmentdropdown]);
-    const designationOptions = useMemo(() => onloadData?.designationdropdown || [], [onloadData?.designationdropdown]);
-    const groupTypeOptions = useMemo(() => onloadData?.groupTypedropdown || [], [onloadData?.groupTypedropdown]);
+    const departmentOptions = useMemo(
+        () => onloadData?.departmentdropdown || onloadData?.departmentdropdownlist || [],
+        [onloadData?.departmentdropdown, onloadData?.departmentdropdownlist]
+    );
+    const designationOptions = useMemo(
+        () => onloadData?.designationdropdown || onloadData?.designationdropdownlist || [],
+        [onloadData?.designationdropdown, onloadData?.designationdropdownlist]
+    );
+    const groupTypeOptions = useMemo(
+        () => onloadData?.groupTypedropdownlist || onloadData?.groupTypedropdown || [],
+        [onloadData?.groupTypedropdownlist, onloadData?.groupTypedropdown]
+    );
 
     // Memoize filterEmployees to prevent infinite loops
     const filterEmployees = useCallback(() => {
@@ -120,7 +116,7 @@ export default function SalaryCalculationPage() {
             onSuccess: (responseData) => {
                 const employeeList = responseData.employeedropdown || [];
 
-                const employeesWithStatus: Employee[] = employeeList.map((emp) => {
+                const employeesWithStatus: Employee[] = employeeList.map((emp: any) => {
                     const designation = designationOptions.find((d: DesignationDropdown) => d.HRMDES_Id === emp.HRMDES_Id);
                     const basicSalary = designation?.HRMDES_BasicAmount || 0;
 
@@ -131,7 +127,7 @@ export default function SalaryCalculationPage() {
                         allowances: 0,
                         deductions: 0,
                         netSalary: basicSalary
-                    };
+                    } as Employee;
                 });
 
                 setEmployees(employeesWithStatus);
@@ -223,12 +219,7 @@ export default function SalaryCalculationPage() {
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Search Form */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='outline'
-                    size='lg'
-                    className='shadow-lg'
-                    headerClassName=''>
+                <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg' headerClassName=''>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-5'>
                             {/* Group Type */}
@@ -426,106 +417,30 @@ function SalaryCalculationTable({
     fromDate,
     toDate
 }: SalaryCalculationTableProps) {
-    const columns: ColumnDef<Employee>[] = [
-        {
-            id: 'select',
-            header: () => (
-                <Checkbox
-                    checked={employees.length > 0 && selectedEmployees.length === employees.length}
-                    onCheckedChange={(value) => onSelectAll(!!value)}
-                    aria-label='Select all'
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox
-                    checked={selectedEmployees.includes(row.original.HRME_Id)}
-                    onCheckedChange={(value) => onEmployeeSelect(row.original.HRME_Id, !!value)}
-                    aria-label='Select row'
-                />
-            ),
-            enableSorting: false,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'slNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No' />,
-            cell: ({ row, table }) => {
-                const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                return <div>{index + 1}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'HRME_EmployeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div>{row.getValue('HRME_EmployeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'HRME_EmployeeFirstName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => {
-                const employee = row.original;
-                const fullName =
-                    `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
-                return <div>{fullName}</div>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'basicSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Salary' />,
-            cell: ({ row }) => <div>₹{Number(row.getValue('basicSalary') || 0).toFixed(2)}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'allowances',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Allowances' />,
-            cell: ({ row }) => <div>₹{Number(row.getValue('allowances') || 0).toFixed(2)}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'deductions',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Deductions' />,
-            cell: ({ row }) => <div>₹{Number(row.getValue('deductions') || 0).toFixed(2)}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'netSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
-            cell: ({ row }) => <div>₹{Number(row.getValue('netSalary') || 0).toFixed(2)}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'calculationStatus',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-            cell: ({ row }) => {
-                const status = row.getValue('calculationStatus') as string;
-                const getStatusVariant = (status: string) => {
-                    switch (status) {
-                        case 'Not Calculated':
-                            return 'secondary';
-                        case 'Calculated':
-                            return 'success';
-                        case 'Recalculated':
-                            return 'default';
-                        default:
-                            return 'secondary';
-                    }
-                };
-                return <Badge variant={getStatusVariant(status) as any}>{status}</Badge>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
+    // Prepare table response format for useDataTableProps
+    const tableResponse = useMemo(() => {
+        return {
+            success: true,
+            data: employees,
+            total: employees.length,
+            page: 1,
+            page_size: employees.length
+        };
+    }, [employees]);
+
+    const tableProps = useDataTableProps(tableResponse);
+
+    // Get columns with selection handlers
+    const columns = useMemo(
+        () =>
+            getSalaryCalculationColumns({
+                employees,
+                selectedEmployees,
+                onEmployeeSelect,
+                onSelectAll
+            }),
+        [employees, selectedEmployees, onEmployeeSelect, onSelectAll]
+    );
 
     return (
         <div className='space-y-4'>
@@ -544,16 +459,18 @@ function SalaryCalculationTable({
                 </div>
             )}
 
-            <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable
-                    isLoading={isLoading}
-                    columns={columns}
-                    data={employees}
-                    totalItems={employees.length}
-                    showViewOptions={true}
-                    columnPinning={{ left: ['select'] }}
-                />
-            </div>
+            <GenericDataTable<Employee>
+                {...tableProps}
+                columns={columns}
+                isLoading={isLoading}
+                error={null}
+                showViewOptions={true}
+                columnPinning={{ left: ['select'] }}
+                loadingMessage='Loading employees...'
+                noDataTitle='No Employees Found'
+                noDataDescription='No employee records match your search criteria'
+                errorTitle='Error Loading Employees'
+            />
 
             {/* Action Buttons */}
             <div className='flex justify-end gap-2'>

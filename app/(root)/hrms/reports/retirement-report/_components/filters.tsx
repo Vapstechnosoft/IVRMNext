@@ -412,9 +412,7 @@ export function RetirementReportFilters({
                                         value: gt.hrmgT_Id.toString()
                                     }))}
                                 defaultValue={filters.selectedGroupTypes || []}
-                                onValueChange={(values) =>
-                                    onFilterChange('selectedGroupTypes', values)
-                                }
+                                onValueChange={(values) => onFilterChange('selectedGroupTypes', values)}
                                 placeholder='Select Group Types'
                                 className='w-full'
                                 maxHeight={240}
@@ -440,9 +438,7 @@ export function RetirementReportFilters({
                                         value: dept.hrmD_Id.toString()
                                     }))}
                                 defaultValue={filters.selectedDepartments || []}
-                                onValueChange={(values) =>
-                                    onFilterChange('selectedDepartments', values)
-                                }
+                                onValueChange={(values) => onFilterChange('selectedDepartments', values)}
                                 placeholder='Select Departments'
                                 className='w-full'
                                 maxHeight={240}
@@ -468,9 +464,7 @@ export function RetirementReportFilters({
                                         value: desg.hrmdeS_Id.toString()
                                     }))}
                                 defaultValue={filters.selectedDesignations || []}
-                                onValueChange={(values) =>
-                                    onFilterChange('selectedDesignations', values)
-                                }
+                                onValueChange={(values) => onFilterChange('selectedDesignations', values)}
                                 placeholder='Select Designations'
                                 className='w-full'
                                 maxHeight={240}

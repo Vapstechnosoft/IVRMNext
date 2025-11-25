@@ -36,21 +36,14 @@ export function ActionsCell({ row }: ActionsCellProps) {
     const { mutate: deleteIncrement, isPending: isDeleting } = useDeleteSalaryIncrement();
 
     const handleDelete = () => {
-        deleteIncrement(
-            {
-                HREIC_Id: row.original.HREIC_Id,
-                MI_Id: 30,
-                roleId: 2
+        deleteIncrement(row.original.HREIC_Id, {
+            onSuccess: () => {
+                toast.success('Salary increment deactivated successfully!');
             },
-            {
-                onSuccess: () => {
-                    toast.success('Salary increment deleted successfully!');
-                },
-                onError: (error) => {
-                    toast.error(error.message || 'Failed to delete salary increment.');
-                }
+            onError: (error) => {
+                toast.error(error.message || 'Failed to deactivate salary increment.');
             }
-        );
+        });
     };
 
     return (

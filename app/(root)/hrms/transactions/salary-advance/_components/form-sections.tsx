@@ -22,6 +22,8 @@ export default function FormSections({ onloadData, onSuccess }: FormSectionsProp
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
+                        title='Add Salary Advance'
+                        description='Fill in the details below to add a new salary advance'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -51,6 +53,8 @@ export default function FormSections({ onloadData, onSuccess }: FormSectionsProp
             {isEditFormOpen && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
+                        title='Edit Salary Advance'
+                        description='Update the details below to edit the salary advance'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

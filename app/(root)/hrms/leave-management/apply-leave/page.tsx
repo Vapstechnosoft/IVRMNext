@@ -8,7 +8,7 @@ import { useApplyLeave, useLeaveHistory } from '@/hooks/hrms/leave-management/us
 import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { ApplyLeaveForm } from './_components/apply-leave-form';
-import { leaveHistoryColumns, type ApplyLeave, type LeaveHistoryRow } from './_components/columns';
+import { type ApplyLeave, type LeaveHistoryRow, leaveHistoryColumns } from './_components/columns';
 
 type DefaultEmployee = {
     name: string;
@@ -162,11 +162,7 @@ function FormSections({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <ApplyLeaveForm 
-                                defaultEmployee={defaultEmployee} 
-                                onSubmit={onSubmit} 
-                                onCancel={closeAddForm} 
-                            />
+                            <ApplyLeaveForm defaultEmployee={defaultEmployee} onSubmit={onSubmit} onCancel={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

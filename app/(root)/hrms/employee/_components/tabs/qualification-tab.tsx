@@ -3,9 +3,10 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
@@ -13,6 +14,120 @@ import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
+
+// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
+const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
+    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
+    if (value == null || value === undefined || value === '') {
+        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY VALUE DETECTED:', {
+            value,
+            valueType: typeof value,
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // Convert to string
+    const strValue = String(value);
+
+    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
+    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY STRING DETECTED:', {
+            originalValue: value,
+            strValue,
+            strValueLength: strValue.length,
+            trimmed: strValue.trim(),
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    const trimmedValue = strValue.trim();
+
+    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
+    if (trimmedValue === '' || trimmedValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY TRIMMED VALUE DETECTED:', {
+            originalValue: value,
+            strValue,
+            trimmedValue,
+            trimmedLength: trimmedValue.length,
+            props: Object.keys(props),
+            children: typeof children === 'string' ? children : 'ReactNode',
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
+    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
+        console.error('🔴 [SafeSelectItem - qualification-tab] FINAL CHECK FAILED - trimmedValue is empty:', {
+            originalValue: value,
+            strValue,
+            trimmedValue,
+            trimmedLength: trimmedValue?.length,
+            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
+        });
+        return null;
+    }
+
+    // Only render if we have a valid non-empty string
+    return (
+        <SelectItem {...props} value={trimmedValue}>
+            {children}
+        </SelectItem>
+    );
+};
+
+// Helper function to ensure SelectItem value is never empty string
+const ensureNonEmptyValue = (value: any, fallback: any = null): string | null => {
+    // Handle null/undefined
+    if (value == null || value === undefined) {
+        if (fallback != null && fallback !== undefined) {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Handle empty string explicitly
+    if (value === '') {
+        if (fallback != null && fallback !== undefined && fallback !== '') {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Convert to string
+    const str = String(value);
+
+    // Check if empty or whitespace
+    if (str === '' || str.trim() === '') {
+        if (fallback != null && fallback !== undefined && fallback !== '') {
+            const fallbackStr = String(fallback);
+            if (fallbackStr.trim() !== '' && fallbackStr !== '') {
+                return fallbackStr;
+            }
+        }
+        return null;
+    }
+
+    // Final check - ensure it's not empty
+    const trimmed = str.trim();
+    if (trimmed === '' || trimmed.length === 0) {
+        return null;
+    }
+
+    return trimmed;
+};
 
 interface QualificationTabProps {
     control: any;
@@ -25,7 +140,16 @@ interface QualificationTabProps {
     onClear?: () => void;
 }
 
-export function QualificationTab({ control, register, errors, isSubmitting, options, countries = [], states = [], onClear }: QualificationTabProps) {
+export function QualificationTab({
+    control,
+    register,
+    errors,
+    isSubmitting,
+    options,
+    countries = [],
+    states = [],
+    onClear
+}: QualificationTabProps) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'qualificationDetails'
@@ -98,9 +222,10 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                             <div className='space-y-4'>
                                 {/* Row 1: Qualification, Course */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='Qualification *'
                                         id={`qualificationDetails.${index}.qualification`}
+                                        maxLength={50}
                                         {...register(`qualificationDetails.${index}.qualification`)}
                                     />
 
@@ -118,45 +243,48 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                             <SelectValue placeholder='Select Course' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {courses.map((course: any, courseIndex: number) => {
-                                                                const courseId = (
-                                                                    course.HRMC_Id ||
-                                                                    course.id ||
-                                                                    course.value ||
-                                                                    course.HRMC_CourseId ||
-                                                                    courseIndex
-                                                                )?.toString();
-                                                                const courseName =
-                                                                    course.HRMC_QualificationDesc ||
-                                                                    course.HRMC_QulaificationName ||
-                                                                    course.HRMC_CourseName ||
-                                                                    course.CourseName ||
-                                                                    course.courseName ||
-                                                                    course.name ||
-                                                                    course.label ||
-                                                                    course.HRMC_Name ||
-                                                                    course.text ||
-                                                                    `Course ${courseId}`;
+                                                            {courses
+                                                                .filter((course: any, courseIndex: number) => {
+                                                                    const courseId = (
+                                                                        course.HRMC_Id ||
+                                                                        course.id ||
+                                                                        course.value ||
+                                                                        course.HRMC_CourseId ||
+                                                                        courseIndex
+                                                                    )?.toString();
+                                                                    return courseId && courseId.trim() !== '';
+                                                                })
+                                                                .map((course: any, courseIndex: number) => {
+                                                                    const courseIdRaw =
+                                                                        course.HRMC_Id ??
+                                                                        course.id ??
+                                                                        course.value ??
+                                                                        course.HRMC_CourseId ??
+                                                                        courseIndex;
+                                                                    const courseId = ensureNonEmptyValue(courseIdRaw, courseIndex);
+                                                                    // Ensure value is never empty string
+                                                                    if (!courseId) return null;
+                                                                    const courseName =
+                                                                        course.HRMC_QualificationDesc ||
+                                                                        course.HRMC_QulaificationName ||
+                                                                        course.HRMC_CourseName ||
+                                                                        course.CourseName ||
+                                                                        course.courseName ||
+                                                                        course.name ||
+                                                                        course.label ||
+                                                                        course.HRMC_Name ||
+                                                                        course.text ||
+                                                                        `Course ${courseId}`;
 
-                                                                return (
-                                                                    <SelectItem key={courseId} value={courseId}>
-                                                                        {courseName}
-                                                                    </SelectItem>
-                                                                );
-                                                            })}
-                                                            {courses.length === 0 && (
-                                                                <>
-                                                                    <SelectItem value='B.A'>B.A</SelectItem>
-                                                                    <SelectItem value='B.Sc'>B.Sc</SelectItem>
-                                                                    <SelectItem value='B.Com'>B.Com</SelectItem>
-                                                                    <SelectItem value='M.A'>M.A</SelectItem>
-                                                                    <SelectItem value='M.Sc'>M.Sc</SelectItem>
-                                                                    <SelectItem value='M.Com'>M.Com</SelectItem>
-                                                                    <SelectItem value='B.Ed'>B.Ed</SelectItem>
-                                                                    <SelectItem value='M.Ed'>M.Ed</SelectItem>
-                                                                    <SelectItem value='PhD'>PhD</SelectItem>
-                                                                </>
-                                                            )}
+                                                                    // Final safety check - ensure value is never empty
+                                                                    if (!courseId || courseId.trim() === '') return null;
+                                                                    return (
+                                                                        <SafeSelectItem key={courseId} value={courseId}>
+                                                                            {courseName}
+                                                                        </SafeSelectItem>
+                                                                    );
+                                                                })
+                                                                .filter(Boolean)}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -167,24 +295,27 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
 
                                 {/* Row 2: College, University */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='College *'
                                         id={`qualificationDetails.${index}.college`}
+                                        maxLength={100}
                                         {...register(`qualificationDetails.${index}.college`)}
                                     />
 
-                                    <InputText
+                                    <HRMSInputText
                                         label='University *'
                                         id={`qualificationDetails.${index}.university`}
+                                        maxLength={100}
                                         {...register(`qualificationDetails.${index}.university`)}
                                     />
                                 </div>
 
                                 {/* Row 3: Year Of Passing, Country, State - all in same row */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='Year Of Passing *'
                                         id={`qualificationDetails.${index}.yearOfPassing`}
+                                        maxLength={4}
                                         {...register(`qualificationDetails.${index}.yearOfPassing`)}
                                     />
 
@@ -199,26 +330,42 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                         <SelectValue placeholder='Select Country' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {countries.map((country: any, countryIndex: number) => {
-                                                            const countryId = (
-                                                                country.IVRMMC_Id ||
-                                                                country.IVRMMCO_Id ||
-                                                                country.id ||
-                                                                country.value ||
-                                                                countryIndex
-                                                            )?.toString();
-                                                            const countryName =
-                                                                country.IVRMMC_CountryName ||
-                                                                country.IVRMMCO_CountryName ||
-                                                                country.name ||
-                                                                country.label ||
-                                                                `Country ${countryId}`;
-                                                            return (
-                                                                <SelectItem key={countryId} value={countryId}>
-                                                                    {countryName}
-                                                                </SelectItem>
-                                                            );
-                                                        })}
+                                                        {countries
+                                                            .filter((country: any, countryIndex: number) => {
+                                                                const countryId = (
+                                                                    country.IVRMMC_Id ||
+                                                                    country.IVRMMCO_Id ||
+                                                                    country.id ||
+                                                                    country.value ||
+                                                                    countryIndex
+                                                                )?.toString();
+                                                                return countryId && countryId.trim() !== '';
+                                                            })
+                                                            .map((country: any, countryIndex: number) => {
+                                                                const countryIdRaw =
+                                                                    country.IVRMMC_Id ??
+                                                                    country.IVRMMCO_Id ??
+                                                                    country.id ??
+                                                                    country.value ??
+                                                                    countryIndex;
+                                                                const countryId = ensureNonEmptyValue(countryIdRaw, countryIndex);
+                                                                // Ensure value is never empty string
+                                                                if (!countryId) return null;
+                                                                const countryName =
+                                                                    country.IVRMMC_CountryName ||
+                                                                    country.IVRMMCO_CountryName ||
+                                                                    country.name ||
+                                                                    country.label ||
+                                                                    `Country ${countryId}`;
+                                                                // Final safety check - ensure value is never empty
+                                                                if (!countryId || countryId.trim() === '') return null;
+                                                                return (
+                                                                    <SafeSelectItem key={countryId} value={countryId}>
+                                                                        {countryName}
+                                                                    </SafeSelectItem>
+                                                                );
+                                                            })
+                                                            .filter(Boolean)}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -236,25 +383,36 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                         <SelectValue placeholder='Select State' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {states.map((state: any, stateIndex: number) => {
-                                                            const stateId = (
-                                                                state.IVRMMS_Id ||
-                                                                state.id ||
-                                                                state.value ||
-                                                                stateIndex
-                                                            )?.toString();
-                                                            const stateName =
-                                                                state.IVRMMS_Name ||
-                                                                state.Name ||
-                                                                state.name ||
-                                                                state.label ||
-                                                                `State ${stateId}`;
-                                                            return (
-                                                                <SelectItem key={stateId} value={stateId}>
-                                                                    {stateName}
-                                                                </SelectItem>
-                                                            );
-                                                        })}
+                                                        {states
+                                                            .filter((state: any, stateIndex: number) => {
+                                                                const stateId = (
+                                                                    state.IVRMMS_Id ||
+                                                                    state.id ||
+                                                                    state.value ||
+                                                                    stateIndex
+                                                                )?.toString();
+                                                                return stateId && stateId.trim() !== '';
+                                                            })
+                                                            .map((state: any, stateIndex: number) => {
+                                                                const stateIdRaw = state.IVRMMS_Id ?? state.id ?? state.value ?? stateIndex;
+                                                                const stateId = ensureNonEmptyValue(stateIdRaw, stateIndex);
+                                                                // Ensure value is never empty string
+                                                                if (!stateId) return null;
+                                                                const stateName =
+                                                                    state.IVRMMS_Name ||
+                                                                    state.Name ||
+                                                                    state.name ||
+                                                                    state.label ||
+                                                                    `State ${stateId}`;
+                                                                // Final safety check - ensure value is never empty
+                                                                if (!stateId || stateId.trim() === '') return null;
+                                                                return (
+                                                                    <SafeSelectItem key={stateId} value={stateId}>
+                                                                        {stateName}
+                                                                    </SafeSelectItem>
+                                                                );
+                                                            })
+                                                            .filter(Boolean)}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -264,15 +422,17 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
 
                                 {/* Row 4: Registration No., Result */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='Registration No.'
                                         id={`qualificationDetails.${index}.registrationNo`}
+                                        maxLength={50}
                                         {...register(`qualificationDetails.${index}.registrationNo`)}
                                     />
 
-                                    <InputText
+                                    <HRMSInputText
                                         label='Result *'
                                         id={`qualificationDetails.${index}.result`}
+                                        maxLength={20}
                                         {...register(`qualificationDetails.${index}.result`)}
                                     />
                                 </div>
@@ -290,8 +450,25 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value='CGPA'>CGPA</SelectItem>
-                                                        <SelectItem value='Percentage'>Percentage</SelectItem>
+                                                        {(options?.cgpaPercentageTypes || [])
+                                                            .filter((item: any) => {
+                                                                const val = item.value ?? item.name ?? item.label ?? item;
+                                                                return val != null && val !== '' && String(val).trim() !== '';
+                                                            })
+                                                            .map((item: any, index: number) => {
+                                                                const val = ensureNonEmptyValue(
+                                                                    item.value ?? item.name ?? item.label ?? item,
+                                                                    index
+                                                                );
+                                                                if (!val) return null;
+                                                                const label = item.label ?? item.name ?? item.value ?? String(item);
+                                                                return (
+                                                                    <SafeSelectItem key={val} value={val}>
+                                                                        {label}
+                                                                    </SafeSelectItem>
+                                                                );
+                                                            })
+                                                            .filter(Boolean)}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -299,7 +476,7 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                     />
 
                                     {/* CGPA or Percentage input - dynamically shown based on selection */}
-                                    <InputText
+                                    <HRMSInputText
                                         label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
                                         id={`qualificationDetails.${index}.cgpa`}
                                         {...register(`qualificationDetails.${index}.cgpa`)}
@@ -322,34 +499,50 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                                             <SelectValue placeholder='Select' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {specialisations.map((spec: any, specIndex: number) => {
-                                                                // Use HRMSPL_Id for ID and HRMSPL_SpecialisationName for name
-                                                                const specId = (
-                                                                    spec.HRMSPL_Id ||
-                                                                    spec.id ||
-                                                                    spec.value ||
-                                                                    spec.SpecialisationId ||
-                                                                    specIndex
-                                                                )?.toString();
+                                                            {specialisations
+                                                                .filter((spec: any, specIndex: number) => {
+                                                                    const specId = (
+                                                                        spec.HRMSPL_Id ||
+                                                                        spec.id ||
+                                                                        spec.value ||
+                                                                        spec.SpecialisationId ||
+                                                                        specIndex
+                                                                    )?.toString();
+                                                                    return specId && specId.trim() !== '';
+                                                                })
+                                                                .map((spec: any, specIndex: number) => {
+                                                                    // Use HRMSPL_Id for ID and HRMSPL_SpecialisationName for name
+                                                                    const specIdRaw =
+                                                                        spec.HRMSPL_Id ??
+                                                                        spec.id ??
+                                                                        spec.value ??
+                                                                        spec.SpecialisationId ??
+                                                                        specIndex;
+                                                                    const specId = ensureNonEmptyValue(specIdRaw, specIndex);
+                                                                    // Ensure value is never empty string
+                                                                    if (!specId) return null;
 
-                                                                const specName =
-                                                                    spec.HRMSPL_SpecialisationName ||
-                                                                    spec.SpecialisationName ||
-                                                                    spec.name ||
-                                                                    spec.label ||
-                                                                    spec.specialisation ||
-                                                                    spec.HRMS_SpecialisationName ||
-                                                                    spec.areaOfSpecialisation ||
-                                                                    spec.AreaOfSpecialisation ||
-                                                                    (typeof spec === 'string' ? spec : '') ||
-                                                                    `Specialisation ${specId}`;
+                                                                    const specName =
+                                                                        spec.HRMSPL_SpecialisationName ||
+                                                                        spec.SpecialisationName ||
+                                                                        spec.name ||
+                                                                        spec.label ||
+                                                                        spec.specialisation ||
+                                                                        spec.HRMS_SpecialisationName ||
+                                                                        spec.areaOfSpecialisation ||
+                                                                        spec.AreaOfSpecialisation ||
+                                                                        (typeof spec === 'string' ? spec : '') ||
+                                                                        `Specialisation ${specId}`;
 
-                                                                return (
-                                                                    <SelectItem key={specId} value={specId}>
-                                                                        {specName}
-                                                                    </SelectItem>
-                                                                );
-                                                            })}
+                                                                    // Final safety check - ensure value is never empty
+                                                                    if (!specId || specId.trim() === '') return null;
+                                                                    return (
+                                                                        <SafeSelectItem key={specId} value={specId}>
+                                                                            {specName}
+                                                                        </SafeSelectItem>
+                                                                    );
+                                                                })
+                                                                .filter(Boolean)}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
@@ -382,15 +575,17 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
 
                                 {/* Row 8: Thesis Title and Medical Council - side by side, always visible */}
                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                    <InputText
+                                    <HRMSInputText
                                         label='Thesis Title'
                                         id={`qualificationDetails.${index}.thesisTitle`}
+                                        maxLength={255}
                                         {...register(`qualificationDetails.${index}.thesisTitle`)}
                                     />
 
-                                    <InputText
+                                    <HRMSInputText
                                         label='Medical Council'
                                         id={`qualificationDetails.${index}.medicalCouncil`}
+                                        maxLength={50}
                                         {...register(`qualificationDetails.${index}.medicalCouncil`)}
                                     />
                                 </div>
@@ -434,50 +629,24 @@ export function QualificationTab({ control, register, errors, isSubmitting, opti
                                         }}
                                     />
 
-                                    <InputText
+                                    <HRMSInputText
                                         label='Guide Name'
                                         id={`qualificationDetails.${index}.guideName`}
+                                        maxLength={100}
                                         {...register(`qualificationDetails.${index}.guideName`)}
                                     />
 
                                     <Controller
                                         name={`qualificationDetails.${index}.qualifiedDate`}
                                         control={control}
-                                        render={({ field }) => {
-                                            const [open, setOpen] = useState(false);
-                                            return (
-                                                <div className='flex flex-col gap-1.5'>
-                                                    <Label>Qualified Date</Label>
-                                                    <Popover open={open} onOpenChange={setOpen}>
-                                                        <PopoverTrigger asChild>
-                                                            <Button
-                                                                variant='outline'
-                                                                className='h-9 w-full justify-start text-left font-normal'
-                                                                type='button'>
-                                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                {field.value ? (
-                                                                    format(new Date(field.value), 'PPP')
-                                                                ) : (
-                                                                    <span>Select date</span>
-                                                                )}
-                                                            </Button>
-                                                        </PopoverTrigger>
-                                                        <PopoverContent className='w-auto p-0'>
-                                                            <DatePickerWithYear
-                                                                mode='single'
-                                                                selected={field.value ? new Date(field.value) : undefined}
-                                                                onSelect={(date) => {
-                                                                    if (date) {
-                                                                        field.onChange(date.toISOString().split('T')[0]);
-                                                                        setOpen(false);
-                                                                    }
-                                                                }}
-                                                            />
-                                                        </PopoverContent>
-                                                    </Popover>
-                                                </div>
-                                            );
-                                        }}
+                                        render={({ field, fieldState }) => (
+                                            <DateField
+                                                field={field}
+                                                fieldState={fieldState}
+                                                label='Qualified Date'
+                                                placeholder='Pick qualified date'
+                                            />
+                                        )}
                                     />
                                 </div>
                             </div>

@@ -62,8 +62,10 @@ export interface LeaveYearDropdown {
 }
 
 export interface MonthDropdown {
-    monthId: number;
-    monthName: string;
+    IVRM_Month_Id: number;
+    IVRM_Month_Name: string;
+    Is_Active: boolean;
+    IVRM_Month_Max_Days: number;
 }
 
 // Onload Response
@@ -72,7 +74,7 @@ export interface SalaryApprovalOnloadResponse {
     groupTypedropdownlist: GroupTypeDropdown[];
     departmentdropdownlist: DepartmentDropdown[];
     designationdropdownlist: DesignationDropdown[];
-    monthdropdown: any;
+    monthdropdown: MonthDropdown[];
     leaveyeardropdown: LeaveYearDropdown[];
 }
 

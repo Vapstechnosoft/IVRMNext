@@ -7,7 +7,7 @@ import { createLocalCrud } from '@/lib/localdb';
 import { Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { getLeaveYearColumns, type LeaveYear } from './_components/columns';
+import { type LeaveYear, getLeaveYearColumns } from './_components/columns';
 import { LeaveYearForm } from './_components/leave-year-form';
 
 const leaveYearDB = createLocalCrud<LeaveYear>('leaveYear');
@@ -123,11 +123,7 @@ export default function MasterLeaveYearPage() {
                             variant='default'
                             size='lg'
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <LeaveYearForm
-                                editingLeaveYear={editingLeaveYear}
-                                onSubmit={handleFormSubmit}
-                                onCancel={handleFormClose}
-                            />
+                            <LeaveYearForm editingLeaveYear={editingLeaveYear} onSubmit={handleFormSubmit} onCancel={handleFormClose} />
                         </CollapsibleSection>
                     </div>
                 )}

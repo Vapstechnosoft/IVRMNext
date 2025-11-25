@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 export interface ESIReportFilters {
     groupType: string;
@@ -39,7 +38,6 @@ export function ESIReportFilters({
     onCancel,
     isLoading = false
 }: ESIReportFiltersProps) {
-
     const handleFilterChange = (key: keyof ESIReportFilters, value: string) => {
         const newFilters = { ...filters, [key]: value };
 

@@ -15,7 +15,8 @@ import {
     saveDeductionDetails,
     saveArrearDetails,
     activateDeactivateEmployee,
-    getEmployeeSalaryDetails
+    getEmployeeSalaryDetails,
+    getStatesByCountryId
 } from '@/server/hrms/hrmsConfig/employee/register';
 import type {
     SavePersonalDetailsRequest,
@@ -97,6 +98,15 @@ export function useSaveEmployeePersonalDetails() {
 
     return useMutation({
         mutationFn: (data: SavePersonalDetailsRequest) => {
+            console.log('🟣 [HOOK] useSaveEmployeePersonalDetails mutationFn called');
+            console.log('🟣 [HOOK] Payload HRME_Id:', data.HRME_Id);
+            console.log('🟣 [HOOK] Payload MI_Id:', data.MI_Id);
+            console.log('🟣 [HOOK] Payload Employee Name:', `${data.HRME_EmployeeFirstName} ${data.HRME_EmployeeLastName}`);
+            console.log('🟣 [HOOK] Payload Employee Code:', data.HRME_EmployeeCode);
+            console.log('🟣 [HOOK] Payload Keys:', Object.keys(data));
+            console.log('🟣 [HOOK] Full Payload:', JSON.stringify(data, null, 2));
+            console.log('🟣 [HOOK] Calling savePersonalDetails server function...');
+            
             console.log('🔍 [OTHER DETAILS SAVE] Browser - Starting save:', {
                 employeeId: data.HRME_Id || 'N/A',
                 otherDetailsFields: {
@@ -116,6 +126,13 @@ export function useSaveEmployeePersonalDetails() {
             return savePersonalDetails(data);
         },
         onSuccess: (response) => {
+            console.log('🟣 [HOOK] useSaveEmployeePersonalDetails onSuccess called');
+            console.log('🟣 [HOOK] Response Type:', typeof response);
+            console.log('🟣 [HOOK] Response:', JSON.stringify(response, null, 2));
+            console.log('🟣 [HOOK] Response.success:', (response as any)?.success);
+            console.log('🟣 [HOOK] Response.message:', (response as any)?.message);
+            console.log('🟣 [HOOK] Response.data:', (response as any)?.data);
+            
             console.log('🔍 [OTHER DETAILS SAVE] Browser - Success:', {
                 success: (response as any)?.success || typeof response === 'object',
                 message: (response as any)?.message || 'No message',
@@ -125,15 +142,20 @@ export function useSaveEmployeePersonalDetails() {
             const responseData = (response as any)?.data;
             const responseMessage = (response as any)?.message;
             
+            console.log('🟣 [HOOK] Extracted responseData:', responseData);
+            console.log('🟣 [HOOK] Extracted responseMessage:', responseMessage);
+            
             // Check for duplicate
             if (responseData === 'Duplicate' || responseMessage === 'Duplicate') {
+                console.log('🟣 [HOOK] Duplicate detected, not invalidating queries');
                 return;
             }
             
             // Invalidate queries for Add/Update/Success
             if (responseData === 'Add' || responseMessage === 'Add' || 
                 responseData === 'Update' || responseMessage === 'Update' || 
-                response.success) {
+                (response as any)?.success) {
+                console.log('🟣 [HOOK] Success detected, invalidating queries');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_ONLOAD]
                 });
@@ -143,6 +165,24 @@ export function useSaveEmployeePersonalDetails() {
             }
         },
         onError: (error: Error) => {
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🔴 [HOOK] useSaveEmployeePersonalDetails onError called');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🔴 [HOOK] Error Type:', typeof error);
+            console.log('🔴 [HOOK] Error Message:', error.message);
+            console.log('🔴 [HOOK] Error Stack:', error.stack);
+            console.log('🔴 [HOOK] Full Error:', error);
+            console.log('🔴 [HOOK] Error as JSON:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+            
+            // Check if error message contains "Required"
+            const hasRequiredError = error.message?.includes('Required') || 
+                                    error.message?.includes('required');
+            
+            if (hasRequiredError) {
+                console.log('⚠️ [HOOK] "Required" error detected in error message!');
+                console.log('⚠️ [HOOK] Error Message:', error.message);
+            }
+            
             console.error('🔍 [OTHER DETAILS SAVE] Browser - Error:', {
                 message: error.message,
                 stack: error.stack,
@@ -516,6 +556,28 @@ export function useEmployeeSalaryDetails(employeeId: number | null, employeeCode
             });
         },
         enabled: !!employeeId && !!employeeCode && employeeId > 0,
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+}
+
+/**
+ * Hook to fetch states by country ID
+ */
+export function useStatesByCountryId(countryId: number | null | undefined) {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'states', countryId],
+        queryFn: () => {
+            if (!countryId || countryId === 0) {
+                return Promise.resolve([]);
+            }
+            return getStatesByCountryId(countryId).then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message || 'Failed to load states');
+                }
+                return Array.isArray(res.data?.AllState) ? res.data.AllState : [];
+            });
+        },
+        enabled: !!countryId && countryId > 0,
         staleTime: 1000 * 60 * 5 // 5 minutes
     });
 }

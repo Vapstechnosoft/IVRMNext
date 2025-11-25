@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Check, Edit, Trash2, X } from 'lucide-react';
 
@@ -29,11 +29,7 @@ interface MasterLeaveColumnsProps {
     onToggleStatus: (row: MasterLeave) => void;
 }
 
-export const getMasterLeaveColumns = ({
-    onEdit,
-    onDelete,
-    onToggleStatus
-}: MasterLeaveColumnsProps): ColumnDef<MasterLeave>[] => [
+export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: MasterLeaveColumnsProps): ColumnDef<MasterLeave>[] => [
     {
         accessorKey: 'leaveName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Leave Name' />,
@@ -85,10 +81,7 @@ export const getMasterLeaveColumns = ({
                     <Button variant='outline' size='sm' onClick={() => onDelete(entity.id)}>
                         <Trash2 className='h-4 w-4' />
                     </Button>
-                    <Button
-                        variant={entity.isActive ? 'destructive' : 'default'}
-                        size='sm'
-                        onClick={() => onToggleStatus(entity)}>
+                    <Button variant={entity.isActive ? 'destructive' : 'default'} size='sm' onClick={() => onToggleStatus(entity)}>
                         {entity.isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </div>

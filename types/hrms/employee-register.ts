@@ -187,6 +187,8 @@ export interface SavePersonalDetailsResponse {
     HRME_Id: number;
     retrunMsg?: string;
     roleId?: number;
+    countrydropdownlist?: DropdownItemGeneric[] | null;
+    AllState?: DropdownItemGeneric[] | null;
 }
 
 // Employee Save/Update Request - Updated to match API expectations

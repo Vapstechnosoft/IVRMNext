@@ -74,9 +74,7 @@ export function BankCashReportFilters({
                                         value: group.id.toString()
                                     }))}
                                 defaultValue={filters.selectedTypes}
-                                onValueChange={(values) =>
-                                    handleInternalFilterChange('selectedTypes', values)
-                                }
+                                onValueChange={(values) => handleInternalFilterChange('selectedTypes', values)}
                                 placeholder='Select Group Types'
                                 className='w-full'
                                 maxHeight={240}
@@ -102,9 +100,7 @@ export function BankCashReportFilters({
                                         value: dept.id.toString()
                                     }))}
                                 defaultValue={filters.selectedDepartments}
-                                onValueChange={(values) =>
-                                    handleInternalFilterChange('selectedDepartments', values)
-                                }
+                                onValueChange={(values) => handleInternalFilterChange('selectedDepartments', values)}
                                 placeholder='Select Departments'
                                 className='w-full'
                                 maxHeight={240}
@@ -130,9 +126,7 @@ export function BankCashReportFilters({
                                         value: desig.id.toString()
                                     }))}
                                 defaultValue={filters.selectedDesignations}
-                                onValueChange={(values) =>
-                                    handleInternalFilterChange('selectedDesignations', values)
-                                }
+                                onValueChange={(values) => handleInternalFilterChange('selectedDesignations', values)}
                                 placeholder='Select Designations'
                                 className='w-full'
                                 maxHeight={240}

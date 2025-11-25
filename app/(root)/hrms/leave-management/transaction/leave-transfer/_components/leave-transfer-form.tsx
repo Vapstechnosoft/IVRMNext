@@ -2,13 +2,13 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import { useLeaveTransferBasicData } from '@/hooks/hrms/leave-management/useTransactions';
 import { Save, X } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { useMemo } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 
 export interface LeaveTransferFormData {
     type: string[];
@@ -169,7 +169,7 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                        <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                             {isLoadingBasicData ? 'Loading options...' : 'No options available'}
                                         </div>
                                     )}
@@ -201,7 +201,7 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                        <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                             {isLoadingBasicData ? 'Loading options...' : 'No options available'}
                                         </div>
                                     )}
@@ -227,4 +227,3 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
         </form>
     );
 }
-

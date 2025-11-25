@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGrade } from '@/hooks/hrms/useMasters';
 import { gradeSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -107,20 +107,22 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                 <input type='hidden' {...register('MI_Id')} />
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <InputText
+                        <HRMSInputText
                             label='Grade Name'
                             required
                             id='HRMG_GradeName'
                             placeholder='Enter grade name'
+                            maxLength={50}
                             {...register('HRMG_GradeName')}
                             error={errors.HRMG_GradeName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <InputText
+                        <HRMSInputText
                             label='Grade Display Name'
                             required
                             id='HRMG_GradeDisplayName'
                             placeholder='Enter grade display name'
+                            maxLength={50}
                             {...register('HRMG_GradeDisplayName')}
                             error={errors.HRMG_GradeDisplayName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

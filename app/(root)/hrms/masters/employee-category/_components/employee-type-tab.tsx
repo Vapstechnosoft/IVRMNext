@@ -8,15 +8,15 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
 import type { ApiSearchparams } from '@/types';
 import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { Plus, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useMemo } from 'react';
 import { columns } from '../../employee-type/_components/columns';
 import EmployeeTypeForm from '../../employee-type/_components/employee-type-form';
 
 export default function EmployeeTypeTab() {
     const roleId = HRMS_MI_ID;
-    
+
     // Read pagination and search params from URL
     const [page] = useQueryState('page', parseAsInteger.withDefault(1));
     const [page_size] = useQueryState('page_size', parseAsInteger.withDefault(10));
@@ -24,7 +24,7 @@ export default function EmployeeTypeTab() {
     const [search_column] = useQueryState('search_column', parseAsString.withDefault(''));
     const [sort_column] = useQueryState('sort_column', parseAsString.withDefault(''));
     const [sort_direction] = useQueryState('sort_direction', parseAsString.withDefault(''));
-    
+
     const searchParams: ApiSearchparams = {
         page,
         page_size,
@@ -33,7 +33,7 @@ export default function EmployeeTypeTab() {
         sort_column: sort_column || undefined,
         sort_direction: sort_direction || undefined
     };
-    
+
     const { listQuery, refetchAll } = useMasterEmployeeType(roleId, searchParams);
 
     return (

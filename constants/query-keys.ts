@@ -230,6 +230,7 @@ export const HRMS_QUERY_KEYS = {
     MASS_UPDATION_ONLOAD: 'hrms_mass_updation_onload',
     SALARY_ADVANCE_ONLOAD: 'hrms_salary_advance_onload',
     SALARY_ADVANCE_LIST: 'hrms_salary_advance_list',
+    SALARY_ADVANCE_BY_ID: 'hrms_salary_advance_by_id',
     EMPLOYEE_LOAN_ONLOAD: 'hrms_employee_loan_onload',
     EMPLOYEE_LOAN_LIST: 'hrms_employee_loan_list',
     // Reports
@@ -271,6 +272,8 @@ export const HRMS_QUERY_KEYS = {
     LOAN_REPORT_SEARCH: 'hrms_loan_report_search',
     ADVANCE_REPORT_ONLOAD: 'hrms_advance_report_onload',
     ADVANCE_REPORT_SEARCH: 'hrms_advance_report_search',
+    EMPLOYEE_OFFER_AND_EXPERIENCE_REPORT_FILTER: 'hrms_employee_offer_and_experience_report_filter',
+    EMPLOYEE_OFFER_AND_EXPERIENCE_REPORT_SEARCH: 'hrms_employee_offer_and_experience_report_search',
     // Attendance Management Masters
     MASTER_SHIFT: 'attendance_master_shift',
     MASTER_HOLIDAY: 'attendance_master_holiday',

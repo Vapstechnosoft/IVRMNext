@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import { departmentSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -94,11 +94,12 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <InputText
+                        <HRMSInputText
                             label='Department Name'
                             required
                             id='HRMD_DepartmentName'
                             placeholder='Enter department name'
+                            maxLength={50}
                             {...register('HRMD_DepartmentName')}
                             error={errors.HRMD_DepartmentName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'

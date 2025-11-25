@@ -132,28 +132,29 @@ export async function addOrUpdateShiftSettingMaster(data: {
 }) {
     const isEdit = data.id && data.id > 0;
     
+    // Use exact API field names as per user's specification
     const requestBody = {
-        fomS_Id: data.id || 0,
-        mI_Id: 30,
-        fomS_ShiftName: data.shiftName || '',
-        fomS_ActiveFlg: data.isActive ?? true,
-        fomsT_Id: 0, // Shift timing ID (0 for new, or existing ID for update - not available in form data)
-        fohwdT_Id: 0, // Holiday/weekend type ID (not in form data)
-        fomsT_FDWHrMin: data.totalWorkingHours || '', // Full Day Working Hours
-        fomsT_HDWHrMin: data.halfDayWorkingHours || '', // Half Day Working Hours
-        fomsT_IHalfLoginTime: data.shiftStartTime || '', // First Half Login Time
-        fomsT_IHalfLogoutTime: data.lunchStartTime || '', // First Half Logout Time
-        fomsT_IIHalfLoginTime: data.lunchEndTime || '', // Second Half Login Time
-        fomsT_IIHalfLogoutTime: data.shiftEndTime || '', // Second Half Logout Time
-        fomsT_DelayPerShiftHrMin: data.delayPerShift || '',
-        fomsT_EarlyPerShiftHrMin: data.earlyPerShift || '',
-        fomsT_LunchHoursDuration: data.lunchHours || '',
-        fomsT_BlockAttendance: '',
-        fomsT_FixTimings: '',
+        FOMS_Id: data.id || 0,
+        MI_Id: 30,
+        FOMS_ShiftName: data.shiftName || '',
+        FOMS_ActiveFlg: data.isActive ?? true,
+        FOMST_Id: 0, // Shift timing ID (0 for new, or existing ID for update - not available in form data)
+        FOHWDT_Id: 0, // Holiday/weekend type ID (not in form data)
+        FOMST_FDWHrMin: data.totalWorkingHours || '', // Full Day Working Hours
+        FOMST_HDWHrMin: data.halfDayWorkingHours || '', // Half Day Working Hours
+        FOMST_IHalfLoginTime: data.shiftStartTime || '', // First Half Login Time
+        FOMST_IHalfLogoutTime: data.lunchStartTime || '', // First Half Logout Time
+        FOMST_IIHalfLoginTime: data.lunchEndTime || '', // Second Half Login Time
+        FOMST_IIHalfLogoutTime: data.shiftEndTime || '', // Second Half Logout Time
+        FOMST_DelayPerShiftHrMin: data.delayPerShift || '',
+        FOMST_EarlyPerShiftHrMin: data.earlyPerShift || '',
+        FOMST_LunchHoursDuration: data.lunchHours || '',
+        FOMST_BlockAttendance: '',
+        FOMST_FixTimings: '',
         returnvalue: '',
         filldata: [],
         filltype: [],
-        fohtwD_HolidayWDType: ''
+        FOHTWD_HolidayWDType: ''
     };
 
     const url = '/api/ShiftSettingMasterFacade/savedetail';
@@ -165,16 +166,18 @@ export async function addOrUpdateShiftSettingMaster(data: {
         const responseData = response as any;
         
         // Check for success indicators
-        const returnval = responseData?.returnval;
+        const returnval = responseData?.returnval || responseData?.returnvalue;
         const returnvalBool = returnval === true || returnval === 'true' || returnval === 1 || returnval === '1';
         const hasSuccessField = 'success' in responseData && responseData.success === true;
-        const savedId = responseData?.fomS_Id || responseData?.fomsT_Id || 0;
+        // Check both uppercase and lowercase field names for saved ID
+        const savedId = responseData?.FOMS_Id || responseData?.FOMST_Id || responseData?.fomS_Id || responseData?.fomsT_Id || 0;
         
         // Multiple ways to determine success
         const isSuccess = returnvalBool || hasSuccessField || responseData?.success === true || savedId > 0;
         
         // Extract error message from response if available
-        const apiErrorMessage = responseData?.msg || 
+        const apiErrorMessage = responseData?.message || 
+                               responseData?.msg || 
                                responseData?.errorMessage || 
                                responseData?.error ||
                                (responseData?.errors && Array.isArray(responseData.errors) 

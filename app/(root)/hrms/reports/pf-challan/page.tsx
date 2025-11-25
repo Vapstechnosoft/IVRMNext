@@ -1,15 +1,11 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { usePFChallanReportOnload, useFilterPFChallanEmployeeData, useSearchPFChallanReport } from '@/hooks/hrms/useReports';
-import { Calculator, Download, FileText, Printer } from 'lucide-react';
+import { usePFChallanReportOnload, useSearchPFChallanReport } from '@/hooks/hrms/useReports';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { type PFChallanRecord as PFChallanRecordColumn, pfChallanColumns } from './_components/columns';
 import { PFChallanFilters, type PFChallanFilters as PFChallanFiltersType } from './_components/filters';
+import { PFChallanTemplate } from './_components/pf-challan-template';
 
 // PF challan data structure
 interface PFChallanRecord {
@@ -29,30 +25,19 @@ interface PFChallanRecord {
     year: string;
 }
 
-// PF challan summary
-interface PFChallanSummary {
-    totalEmployees: number;
-    totalBasicSalary: number;
-    totalEmployeePF: number;
-    totalEmployerPF: number;
-    totalVPF: number;
-    totalPension: number;
-    totalAdminCharges: number;
-    grandTotal: number;
-}
-
 export default function PFChallanPage() {
     const roleId = HRMS_MI_ID;
 
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFChallanReportOnload(roleId);
-    const filterMutation = useFilterPFChallanEmployeeData();
     const searchMutation = useSearchPFChallanReport();
 
     // State
     const [pfRecords, setPFRecords] = useState<PFChallanRecord[]>([]);
-    const [filteredRecords, setFilteredRecords] = useState<PFChallanRecord[]>([]);
     const [showChallan, setShowChallan] = useState(false);
+    const [establishmentName, setEstablishmentName] = useState<string>('');
+    const [establishmentAddress, setEstablishmentAddress] = useState<string>('');
+    const [pincode, setPincode] = useState<string>('');
 
     const [filters, setFilters] = useState<PFChallanFiltersType>({
         month: '',
@@ -72,41 +57,41 @@ export default function PFChallanPage() {
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
 
-    // Get institution details from API
-    const institutionDetails = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return null;
-        return (data as any).institutionDetails || null;
-    }, [onloadData?.data]);
+    // Extract institution details from onload data
+    useEffect(() => {
+        if (onloadData?.data) {
+            const institutionDetails = (onloadData.data as any).institutionDetails;
+            if (institutionDetails) {
+                setEstablishmentName(institutionDetails.MI_Name || '');
+                const addressParts = [];
+                if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
+                if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
+                if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
+                setEstablishmentAddress(addressParts.join(', ') || '');
+                setPincode(institutionDetails.MI_Pincode || '');
+            }
+        }
+    }, [onloadData]);
 
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load PF challan report data. Please check if the API endpoint is available.';
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load PF challan report data. Please check if the API endpoint is available.';
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
-    // Filter PF records based on selected month/year
-    useEffect(() => {
-        let filtered = pfRecords;
-
-        if (filters.month) {
-            filtered = filtered.filter((record) => record.month === filters.month);
-        }
-
-        if (filters.year) {
-            filtered = filtered.filter((record) => record.year === filters.year);
-        }
-
-        setFilteredRecords(filtered);
-    }, [filters, pfRecords]);
 
     const handleFilterChange = (newFilters: PFChallanFiltersType) => {
         setFilters(newFilters);
     };
 
     const handleGenerate = () => {
+        // Always show challan template when generate is clicked, even without data or on errors
+        setShowChallan(true);
+
         if (!filters.month || !filters.year) {
             toast.error('Please select month and year');
             return;
@@ -127,9 +112,21 @@ export default function PFChallanPage() {
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
+                    // Extract institution details from API response if available
+                    const institutionDetails = (response.data as any).institutionDetails || onloadData?.data?.institutionDetails;
+                    if (institutionDetails) {
+                        setEstablishmentName(institutionDetails.MI_Name || '');
+                        const addressParts = [];
+                        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
+                        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
+                        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
+                        setEstablishmentAddress(addressParts.join(', ') || '');
+                        setPincode(institutionDetails.MI_Pincode || '');
+                    }
+
                     // Extract PF challan data from response
                     const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
-                    
+
                     if (Array.isArray(pfData) && pfData.length > 0) {
                         // Map API response to PFChallanRecord format
                         const mappedRecords: PFChallanRecord[] = pfData.map((item: any, index: number) => {
@@ -145,8 +142,15 @@ export default function PFChallanPage() {
                             return {
                                 id: `pf-${item.HRME_Id || item.HRES_Id || index}`,
                                 employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
-                                employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.EmployeeName || '',
-                                pfNumber: item.HRME_PFAccNo || item.HRME_PFuAN || item.pfNumber || `PF${(item.HRME_EmployeeCode || '').slice(-3)}${filters.month.slice(0, 3).toUpperCase()}`,
+                                employeeName:
+                                    `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                    item.EmployeeName ||
+                                    '',
+                                pfNumber:
+                                    item.HRME_PFAccNo ||
+                                    item.HRME_PFuAN ||
+                                    item.pfNumber ||
+                                    `PF${(item.HRME_EmployeeCode || '').slice(-3)}${filters.month.slice(0, 3).toUpperCase()}`,
                                 basicSalary: Math.round(basicSalary),
                                 pfEligibleSalary: Math.round(pfEligibleSalary),
                                 employeePF: Math.round(employeePF),
@@ -161,12 +165,10 @@ export default function PFChallanPage() {
                         });
 
                         setPFRecords(mappedRecords);
-                        setShowChallan(true);
                         toast.success('PF Challan generated successfully');
                     } else {
                         // No data returned, but still show the challan structure
                         setPFRecords([]);
-                        setShowChallan(true);
                         toast.warning('PF Challan generated but no data found for selected period');
                     }
                 } else {
@@ -186,13 +188,8 @@ export default function PFChallanPage() {
             year: ''
         });
         setPFRecords([]);
-        setFilteredRecords([]);
         setShowChallan(false);
         toast.info('Filters cleared');
-    };
-
-    const handleExport = () => {
-        toast.success('PF Challan exported successfully');
     };
 
     const handlePrint = () => {
@@ -200,31 +197,47 @@ export default function PFChallanPage() {
         toast.success('Print dialog opened');
     };
 
-    // Calculate PF summary
-    const pfSummary: PFChallanSummary = useMemo(() => {
-        return filteredRecords.reduce(
-            (acc, record) => ({
-                totalEmployees: acc.totalEmployees + 1,
-                totalBasicSalary: acc.totalBasicSalary + record.basicSalary,
-                totalEmployeePF: acc.totalEmployeePF + record.employeePF,
-                totalEmployerPF: acc.totalEmployerPF + record.employerPF,
-                totalVPF: acc.totalVPF + record.vpfContribution,
-                totalPension: acc.totalPension + record.pensionContribution,
-                totalAdminCharges: acc.totalAdminCharges + record.administrationCharges,
-                grandTotal: acc.grandTotal + record.totalPF
-            }),
+    // Calculate PF summary for challan template
+    // A/C NO.1 = Employee Share + Employer Share (EPF contributions)
+    // A/C NO.21 = Pension contribution (from employer share)
+    // A/C NO.22 = Administration charges
+    // A/C NO.2 and A/C NO.10 are typically 0 for standard contributions
+    const challanSummary = useMemo(() => {
+        return pfRecords.reduce(
+            (acc, record) => {
+                const employeeShare = record.employeePF;
+                const employerShare = record.employerPF;
+                const pensionContribution = record.pensionContribution;
+                const adminCharges = record.administrationCharges;
+
+                // A/C NO.1: Employee Share + Employer Share (excluding pension which goes to A/C 21)
+                const account1EmployeeShare = employeeShare;
+                const account1EmployerShare = employerShare - pensionContribution; // Employer share minus pension
+                const account1Total = account1EmployeeShare + account1EmployerShare;
+
+                return {
+                    totalEmployeeShare: acc.totalEmployeeShare + account1EmployeeShare,
+                    totalEmployerShare: acc.totalEmployerShare + account1EmployerShare,
+                    totalAccount1: acc.totalAccount1 + account1Total,
+                    account2: acc.account2 + 0, // Account 2 for other purposes
+                    account10: acc.account10 + 0, // Account 10 for other purposes
+                    account21: acc.account21 + pensionContribution, // Pension account
+                    account22: acc.account22 + adminCharges, // Admin charges
+                    grandTotal: acc.grandTotal + account1Total + pensionContribution + adminCharges
+                };
+            },
             {
-                totalEmployees: 0,
-                totalBasicSalary: 0,
-                totalEmployeePF: 0,
-                totalEmployerPF: 0,
-                totalVPF: 0,
-                totalPension: 0,
-                totalAdminCharges: 0,
+                totalEmployeeShare: 0,
+                totalEmployerShare: 0,
+                totalAccount1: 0,
+                account2: 0,
+                account10: 0,
+                account21: 0,
+                account22: 0,
                 grandTotal: 0
             }
         );
-    }, [filteredRecords]);
+    }, [pfRecords]);
 
     return (
         <div className='space-y-6'>
@@ -241,249 +254,17 @@ export default function PFChallanPage() {
 
             {/* Challan Results */}
             {showChallan && (
-                <div className='space-y-4'>
-                    {/* Challan Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>
-                                PF Challan - {filters.month} {filters.year}
-                            </h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Total Employees: {filteredRecords.length} | Total PF Amount: ₹{pfSummary.grandTotal.toLocaleString()}
-                            </p>
-                        </div>
-                        <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                Export
-                            </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* PF Summary Cards */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Employees</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>{pfSummary.totalEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Employee PF (12%)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-blue-600 text-lg'>₹{pfSummary.totalEmployeePF.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Employer PF (12%)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-orange-600'>₹{pfSummary.totalEmployerPF.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total PF Amount</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>₹{pfSummary.grandTotal.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* PF Breakdown */}
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className='flex items-center gap-2 text-sm'>
-                                    <Calculator className='h-4 w-4' />
-                                    PF Contribution Breakdown
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className='space-y-3'>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Employee PF (12%):</span>
-                                    <span className='font-semibold text-blue-600'>₹{pfSummary.totalEmployeePF.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Employer PF (12%):</span>
-                                    <span className='font-semibold text-orange-600'>₹{pfSummary.totalEmployerPF.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>VPF Contribution:</span>
-                                    <span className='font-semibold'>₹{pfSummary.totalVPF.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Pension (8.33%):</span>
-                                    <span className='font-semibold'>₹{pfSummary.totalPension.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Admin Charges (0.5%):</span>
-                                    <span className='font-semibold'>₹{pfSummary.totalAdminCharges.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between border-t pt-2 font-semibold'>
-                                    <span>Total PF Amount:</span>
-                                    <span className='text-green-600'>₹{pfSummary.grandTotal.toLocaleString()}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className='flex items-center gap-2 text-sm'>
-                                    <FileText className='h-4 w-4' />
-                                    Challan Information
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className='space-y-3'>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Challan Period:</span>
-                                    <span className='font-semibold'>
-                                        {filters.month} {filters.year}
-                                    </span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Due Date:</span>
-                                    <span className='font-semibold'>15th of next month</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Organization:</span>
-                                    <span className='font-semibold'>VAPS SCHOOL</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>PF Code:</span>
-                                    <span className='font-semibold'>WB/KOL/12345</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Establishment ID:</span>
-                                    <span className='font-semibold'>WBKOL12345000</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Data Table */}
-                    <DataTable
-                        isLoading={isLoadingOnload}
-                        columns={pfChallanColumns}
-                        data={filteredRecords as unknown as PFChallanRecordColumn[]}
-                        totalItems={filteredRecords.length}
-                        showViewOptions={true}
-                        columnPinning={{ left: ['id'] }}
-                    />
-
-                    {/* Official PF Challan Format */}
-                    <div className='rounded-lg border bg-card p-8'>
-                        <div className='space-y-6 text-center'>
-                            <div className='space-y-2'>
-                                <h1 className='font-bold text-foreground text-xl'>EMPLOYEES' PROVIDENT FUND ORGANISATION</h1>
-                                <h2 className='font-semibold text-foreground text-lg'>MONTHLY CONTRIBUTION CHALLAN</h2>
-                            </div>
-
-                            <div className='mx-auto max-w-4xl space-y-4 text-left'>
-                                <div className='grid grid-cols-2 gap-8 text-sm'>
-                                    <div className='space-y-2'>
-                                        <div>
-                                            <strong>Establishment Name:</strong>{' '}
-                                            {institutionDetails?.MI_Name || 'N/A'}
-                                        </div>
-                                        <div>
-                                            <strong>Establishment Code:</strong> {institutionDetails?.MI_Code || 'N/A'}
-                                        </div>
-                                        <div>
-                                            <strong>Establishment ID:</strong> {institutionDetails?.MI_Id || 'N/A'}
-                                        </div>
-                                    </div>
-                                    <div className='space-y-2'>
-                                        <div>
-                                            <strong>Challan Period:</strong> {filters.month} {filters.year}
-                                        </div>
-                                        <div>
-                                            <strong>Due Date:</strong> 15th of next month
-                                        </div>
-                                        <div>
-                                            <strong>Total Employees:</strong> {pfSummary.totalEmployees}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className='space-y-3 rounded-lg border p-4'>
-                                    <h3 className='text-center font-semibold'>CONTRIBUTION DETAILS</h3>
-                                    <div className='grid grid-cols-2 gap-8 text-sm'>
-                                        <div className='space-y-2'>
-                                            <div className='flex justify-between'>
-                                                <span>Total Basic Salary:</span>
-                                                <span>₹{pfSummary.totalBasicSalary.toLocaleString()}</span>
-                                            </div>
-                                            <div className='flex justify-between'>
-                                                <span>Employee Share (12%):</span>
-                                                <span>₹{pfSummary.totalEmployeePF.toLocaleString()}</span>
-                                            </div>
-                                            <div className='flex justify-between'>
-                                                <span>Employer Share (12%):</span>
-                                                <span>₹{pfSummary.totalEmployerPF.toLocaleString()}</span>
-                                            </div>
-                                        </div>
-                                        <div className='space-y-2'>
-                                            <div className='flex justify-between'>
-                                                <span>VPF Contribution:</span>
-                                                <span>₹{pfSummary.totalVPF.toLocaleString()}</span>
-                                            </div>
-                                            <div className='flex justify-between'>
-                                                <span>Pension Contribution:</span>
-                                                <span>₹{pfSummary.totalPension.toLocaleString()}</span>
-                                            </div>
-                                            <div className='flex justify-between'>
-                                                <span>Admin Charges:</span>
-                                                <span>₹{pfSummary.totalAdminCharges.toLocaleString()}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className='border-t pt-3'>
-                                        <div className='flex justify-between font-bold text-lg'>
-                                            <span>TOTAL AMOUNT PAYABLE:</span>
-                                            <span className='text-green-600'>₹{pfSummary.grandTotal.toLocaleString()}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className='text-center text-muted-foreground text-sm'>
-                                    This challan should be submitted to the nearest PF office along with the payment by the due date.
-                                </div>
-
-                                {institutionDetails?.MI_Address1 && (
-                                    <div className='text-center text-muted-foreground text-sm'>
-                                        <div>{institutionDetails.MI_Address1}</div>
-                                        {institutionDetails.MI_Address2 && <div>{institutionDetails.MI_Address2}</div>}
-                                        {institutionDetails.MI_Address3 && <div>{institutionDetails.MI_Address3}</div>}
-                                    </div>
-                                )}
-
-                                <div className='flex justify-between pt-8'>
-                                    <div className='text-sm'>
-                                        <div className='font-semibold'>Prepared By</div>
-                                        <div className='mt-2'>HR Department</div>
-                                        <div className='mt-6 w-32 border-gray-300 border-t' />
-                                        <div className='mt-1 text-xs'>Signature & Date</div>
-                                    </div>
-                                    <div className='text-right text-sm'>
-                                        <div className='font-semibold'>Authorized Signatory</div>
-                                        <div className='mt-2'>Principal/Director</div>
-                                        <div className='mt-6 ml-auto w-32 border-gray-300 border-t' />
-                                        <div className='mt-1 text-xs'>Signature & Seal</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <PFChallanTemplate
+                    establishmentName={establishmentName}
+                    establishmentAddress={establishmentAddress}
+                    pincode={pincode}
+                    month={filters.month}
+                    year={filters.year}
+                    summary={challanSummary}
+                    isLoading={searchMutation.isPending}
+                    onPrint={handlePrint}
+                    onCancel={handleCancel}
+                />
             )}
         </div>
     );

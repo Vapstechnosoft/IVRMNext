@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import type { ApiSearchparams } from '@/types';
 import { Award, Building2, Layers, Trophy, Users } from 'lucide-react';
 import { useState } from 'react';
 

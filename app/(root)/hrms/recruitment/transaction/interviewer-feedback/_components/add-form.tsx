@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -40,7 +39,7 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
         mode: 'onChange'
     });
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             // TODO: Replace with actual API call
             toast.success('Interviewer feedback added successfully');
@@ -149,11 +148,7 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
                         <label className='block font-medium text-sm'>
                             Feedback <span className='text-red-500'>*</span>
                         </label>
-                        <Textarea
-                            placeholder='Enter feedback'
-                            rows={4}
-                            {...register('feedback')}
-                        />
+                        <Textarea placeholder='Enter feedback' rows={4} {...register('feedback')} />
                         {errors.feedback && <FormError>{errors.feedback.message}</FormError>}
                     </div>
 
@@ -183,7 +178,14 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
                 </div>
             </div>
             <div className='flex flex-row items-center justify-center gap-2 border-t pt-4'>
-                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        onCancel?.();
+                    }}
+                    disabled={isSubmitting}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
@@ -206,4 +208,3 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
         </form>
     );
 }
-

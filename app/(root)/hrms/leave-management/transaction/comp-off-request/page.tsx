@@ -2,13 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/extension/field';
-import { useCompOffRequest, useSubmitCompOffRequest, useCancelCompOffRequest } from '@/hooks/hrms/leave-management/useTransactions';
+import { useCancelCompOffRequest, useCompOffRequest, useSubmitCompOffRequest } from '@/hooks/hrms/leave-management/useTransactions';
 import { Check, Search, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { compOffRequestColumns, employeeLeaveDetailColumns, type CompOffRequestItem, type EmployeeLeaveDetail } from './_components/columns';
+import {
+    type CompOffRequestItem,
+    type EmployeeLeaveDetail,
+    compOffRequestColumns,
+    employeeLeaveDetailColumns
+} from './_components/columns';
 
 export default function CompOffRequestPage() {
     const { data: response, isLoading, error, refetchAll } = useCompOffRequest();
@@ -42,7 +47,6 @@ export default function CompOffRequestPage() {
         }
         setSelectedRows(newSelected);
     };
-
 
     const handleRequest = () => {
         if (selectedRows.size === 0) {
@@ -87,9 +91,7 @@ export default function CompOffRequestPage() {
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-end'>
-                    {/* Header buttons can be added here if needed */}
-                </div>
+                <div className='flex justify-end'>{/* Header buttons can be added here if needed */}</div>
 
                 {/* Employee Details Section */}
                 <CollapsibleSection
@@ -100,33 +102,23 @@ export default function CompOffRequestPage() {
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5'>
                         <div className='space-y-2'>
                             <Label>Employee Name</Label>
-                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
-                                {employeeDetails?.employeeName || '-'}
-                            </div>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>{employeeDetails?.employeeName || '-'}</div>
                         </div>
                         <div className='space-y-2'>
                             <Label>DOJ</Label>
-                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
-                                {employeeDetails?.doj || '-'}
-                            </div>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>{employeeDetails?.doj || '-'}</div>
                         </div>
                         <div className='space-y-2'>
                             <Label>Designation</Label>
-                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
-                                {employeeDetails?.designation || '-'}
-                            </div>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>{employeeDetails?.designation || '-'}</div>
                         </div>
                         <div className='space-y-2'>
                             <Label>Email</Label>
-                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
-                                {employeeDetails?.email || '-'}
-                            </div>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>{employeeDetails?.email || '-'}</div>
                         </div>
                         <div className='space-y-2'>
                             <Label>Phone</Label>
-                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>
-                                {employeeDetails?.phone || '-'}
-                            </div>
+                            <div className='rounded-md border bg-muted/50 p-2 font-medium'>{employeeDetails?.phone || '-'}</div>
                         </div>
                     </div>
                 </CollapsibleSection>
@@ -179,7 +171,7 @@ export default function CompOffRequestPage() {
                     <div className='space-y-4'>
                         <div className='flex justify-end'>
                             <div className='relative w-full max-w-sm'>
-                                <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                                <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground' />
                                 <Input
                                     placeholder='search here...'
                                     value={leaveSearchQuery}
@@ -205,4 +197,3 @@ export default function CompOffRequestPage() {
         </div>
     );
 }
-

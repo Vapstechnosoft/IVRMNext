@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, X } from 'lucide-react';
 
@@ -23,10 +23,7 @@ interface LeaveAuthorizationColumnsProps {
     onDelete: (id: number) => void;
 }
 
-export const getLeaveAuthorizationColumns = ({
-    onEdit,
-    onDelete
-}: LeaveAuthorizationColumnsProps): ColumnDef<LeaveAuthorization>[] => [
+export const getLeaveAuthorizationColumns = ({ onEdit, onDelete }: LeaveAuthorizationColumnsProps): ColumnDef<LeaveAuthorization>[] => [
     {
         accessorKey: 'id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No' />,

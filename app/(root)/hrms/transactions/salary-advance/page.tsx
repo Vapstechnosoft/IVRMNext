@@ -220,9 +220,6 @@ function SalaryAdvancePageContent({
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Forms Section */}
-                <FormSections onloadData={advanceData} onSuccess={refetch} />
-
                 <div className='flex justify-end'>
                     <Button
                         type='button'
@@ -266,6 +263,9 @@ function SalaryAdvancePageContent({
                         />
                     </div>
                 </CollapsibleSection>
+
+                {/* Forms Section - Moved after table */}
+                <FormSections onloadData={advanceData} onSuccess={refetch} />
             </div>
         </div>
     );

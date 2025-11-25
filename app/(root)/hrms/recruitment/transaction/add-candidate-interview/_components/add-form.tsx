@@ -48,7 +48,7 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
         }
     });
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             // TODO: Replace with actual API call
             // const response = await addCandidateInterview(data);
@@ -100,7 +100,7 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
                                 Interview Date:<span className='text-red-500'>*</span>
                             </label>
                             <div className='relative'>
-                                <CalendarIcon className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400' />
+                                <CalendarIcon className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-gray-400' />
                                 <InputText
                                     type='date'
                                     className='pl-10'
@@ -206,18 +206,21 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
                             <label className='block font-medium text-sm'>
                                 Interview Venue:<span className='text-red-500'>*</span>
                             </label>
-                            <Textarea
-                                placeholder='Enter interview venue'
-                                rows={4}
-                                {...register('interviewVenue')}
-                            />
+                            <Textarea placeholder='Enter interview venue' rows={4} {...register('interviewVenue')} />
                             {errors.interviewVenue && <FormError>{errors.interviewVenue.message}</FormError>}
                         </div>
                     </div>
                 </div>
             </div>
             <div className='flex flex-row items-center justify-center gap-2 border-t pt-4'>
-                <Button type='button' variant='outline' onClick={() => { reset(); onCancel?.(); }} disabled={isSubmitting}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        onCancel?.();
+                    }}
+                    disabled={isSubmitting}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>
@@ -240,4 +243,3 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
         </form>
     );
 }
-
