@@ -789,8 +789,8 @@ export async function getUserAccessibleModules() {
                                             name: 'Progress Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vvehpc_exam-report-card',
-                                            title: 'VVEHPC_ExamReportCard',
-                                            description: 'Manage VVEHPC_ExamReportCard Details'
+                                            title: 'Progress Card Report',
+                                            description: 'Manage Progress Card Report Details'
                                         }
                                     ]
                                 }
