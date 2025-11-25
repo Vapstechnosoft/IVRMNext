@@ -17,14 +17,14 @@ import { addOrUpdateTransactionWaivedOff } from '@/server/fees/trasactions/waive
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, CheckSquare, Save, Square, Trash } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof feeTransactionWaivedOffSchema.addOrUpdate>;
 
-interface AddFeeConfigProps {
+interface AddFeeTransactionWaiveOffFormProps {
     onSuccess?: () => void;
     className?: string;
 }
@@ -35,34 +35,13 @@ const studentData = [
     { name: 'KIRAN KUMAR N', regNo: '7-24/25' }
 ];
 
-const classWises = [
-    'LKG STATE',
-    'UKG STATE',
-    'LKG',
-    'UKG',
-    'I STD',
-    'II STD',
-    'III STD',
-    'IV STD',
-    'V STD',
-    'VI STD',
-    'VII STD',
-    'VIII STD',
-    'IX STD',
-    'X STD',
-    'Nursery',
-    'I CSE',
-    'II CSE',
-    'III CSE',
-    'IV CSE'
-];
-
-export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '' }: AddFeeConfigProps) {
+export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '' }: AddFeeTransactionWaiveOffFormProps) {
     const { refetchAll } = useMasterFeeTransactionWaiveOff();
 
     const {
         handleSubmit,
         reset,
+        setValue,
         control,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
@@ -70,18 +49,24 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         mode: 'onChange',
         defaultValues: {}
     });
-    //const { data: academicYears, isLoading: loadingAY } = useAcademicYearDropdown();
 
     const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
+    useEffect(() => {
+        if (academicYears) {
+            if (academicYears?.data && Array.isArray(academicYears.data)) {
+                const firstId = academicYears.data[0].asmaY_Id;
+                setValue('academicYear', firstId);
+            }
+        }
+    }, [academicYears, reset]);
 
     const { data: classdata, isLoading: classloading, error: classerror } = useClassdropdowndatafee();
-
     const { data: sectiondata, isLoading: secloading, error: sectionerror } = useSectiondropdowndatafee();
 
-    const [academicYear, setAcademicYear] = useState<string | null>(null);
-    const [classWise, setclassWise] = useState<string | null>(null);
+    const [academicYear, setAcademicYear] = useState<number | null>(null);
+    const [classWise, setclassWise] = useState<number | null>(null);
+    const [sectionWise, setsectionWise] = useState<number | null>(null);
     const [studentWise, setstudentWise] = useState<string | null>(null);
-    const [sectionWise, setsectionWise] = useState<string | null>(null);
     const [remarks, setRemarks] = useState<string>('');
     const [grouplist, setgrouplist] = useState<string[]>([]);
     const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
@@ -93,40 +78,11 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     const [nameType, setnameType] = useState<string>('NameReg.No');
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [photoFile, setPhotoFile] = useState<File | null>(null);
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0] || null;
         setPhotoFile(f);
     };
-
-    // const availableSections = useMemo(() => {
-    //     if (!classWise) return [];
-
-    //     if (classWise === 'LKG STATE' || classWise === 'UKG STATE') {
-    //         return [];
-    //     }
-
-    //     if (classWise === 'LKG' || classWise === 'UKG') {
-    //         return ['A', 'B', 'C'];
-    //     }
-
-    //     if (['I STD', 'II STD', 'III STD', 'IV STD', 'V STD'].includes(classWise)) {
-    //         return ['A'];
-    //     }
-
-    //     if (['VI STD', 'VII STD', 'VIII STD', 'IX STD', 'X STD'].includes(classWise)) {
-    //         return ['A', 'B'];
-    //     }
-
-    //     if (classWise === 'Nursery') {
-    //         return ['A'];
-    //     }
-
-    //     if (['I CSE', 'II CSE', 'III CSE', 'IV CSE'].includes(classWise)) {
-    //         return ['B', 'C'];
-    //     }
-
-    //     return [];
-    // }, [classWise]);
 
     const formattedStudentList = useMemo(() => {
         if (nameType === 'NameReg.No') {
@@ -141,25 +97,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         }));
     }, [nameType]);
 
-    // const handleClassChange = (value: string) => {
-    //     setclassWise(value);
-    //     if (sectionWise) {
-    //         const newSections = getSectionsForClass(value);
-    //         if (!newSections.includes(sectionWise)) {
-    //             setsectionWise(null);
-    //         }
-    //     }
-    // };
-    // const getSectionsForClass = (className: string) => {
-    //     if (className === 'LKG STATE' || className === 'UKG STATE') return [];
-    //     if (className === 'LKG' || className === 'UKG') return ['A', 'B', 'C'];
-    //     if (['I STD', 'II STD', 'III STD', 'IV STD', 'V STD'].includes(className)) return ['A'];
-    //     if (['VI STD', 'VII STD', 'VIII STD', 'IX STD', 'X STD'].includes(className)) return ['A', 'B'];
-    //     if (className === 'Nursery') return ['A'];
-    //     if (['I CSE', 'II CSE', 'III CSE', 'IV CSE'].includes(className)) return ['B', 'C'];
-    //     return [];
-    // };
-
     const nonRefundableOption = ['KG TUTION FEES', 'KG ILM & OTHER FEES', 'KG BOOKS FEES', 'KG ILM & OTHER FEES', 'KG BOOKS FEES'];
 
     const groupOptions = useMemo(() => {
@@ -170,10 +107,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         if (!searchTerm) return groupOptions;
         return groupOptions.filter((o) => o.label.toLowerCase().includes(searchTerm.toLowerCase()));
     }, [groupOptions, searchTerm]);
-
-    const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
-    const [selectedClass, setselectedClass] = useState<number | null>(null);
-    const [selectedSection, setselectedSection] = useState<number | null>(null);
 
     const handleSelectAll = () => {
         const allVisible = filteredGroupOptions.map((o) => o.value);
@@ -192,9 +125,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         });
     };
 
-    console.log('selectedAcademicYear', selectedAcademicYear);
-    console.log('selectedClass', selectedClass);
-    console.log('selectedSection', selectedSection);
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const activeTypeValues = [fineWaiveOff ? 'FineWaiveOff' : null, completeFineWaiveOff ? 'CompleteFineWaiveOff' : null].filter(
@@ -215,8 +145,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 grouplist: selectedGroups.length > 0 ? selectedGroups : grouplist
             };
             const jsondata = JSON.stringify(payload);
-
-            console.log('Payload Data', jsondata);
             const response = await addOrUpdateTransactionWaivedOff(payload as any);
             if (response.success) {
                 toast.success(response.message);
@@ -253,21 +181,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 <div className='flex gap-6'>
                     <div className='flex-1 space-y-6'>
                         <div>
-                            {/* <Label>Academic Year*</Label>
-                            <Select onValueChange={setAcademicYear} value={academicYear || ''}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Year' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.isArray(academicYears)
-                                        ? academicYears.map((y) => (
-                                              <SelectItem key={String(y)} value={String(y)}>
-                                                  {String(y)}
-                                              </SelectItem>
-                                          ))
-                                        : null}
-                                </SelectContent>
-                            </Select> */}
                             <Label className='min-w-[150px] text-right'>
                                 Academic Year:<span className='ml-1 text-red-500'>*</span>
                             </Label>
@@ -281,7 +194,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                             onValueChange={(val) => {
                                                 const id = Number(val);
                                                 field.onChange(id);
-                                                setSelectedAcademicYear(id);
+                                                setAcademicYear(id);
                                             }}
                                             value={
                                                 typeof field.value === 'number' || typeof field.value === 'string'
@@ -316,20 +229,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                             </div>
                         </div>
                         <div>
-                            {/* <Label>Class*</Label>
-                            <Select onValueChange={handleClassChange} value={classWise || ''}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Class' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {classWises.map((y) => (
-                                        <SelectItem key={y} value={y}>
-                                            {y}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select> */}
-
                             <Label className='min-w-[150px] text-right'>
                                 Class:<span className='ml-1 text-red-500'>*</span>
                             </Label>
@@ -343,7 +242,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                             onValueChange={(val) => {
                                                 const id = Number(val);
                                                 field.onChange(id);
-                                                setselectedClass(id);
+                                                setclassWise(id);
                                             }}
                                             value={
                                                 typeof field.value === 'number' || typeof field.value === 'string'
@@ -379,20 +278,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                         </div>
 
                         <div>
-                            {/* <Label>Class*</Label>
-                            <Select onValueChange={handleClassChange} value={classWise || ''}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Class' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {classWises.map((y) => (
-                                        <SelectItem key={y} value={y}>
-                                            {y}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select> */}
-
                             <Label className='min-w-[150px] text-right'>
                                 Section:<span className='ml-1 text-red-500'>*</span>
                             </Label>
@@ -406,7 +291,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                             onValueChange={(val) => {
                                                 const id = Number(val);
                                                 field.onChange(id);
-                                                setselectedSection(id);
+                                                setsectionWise(id);
                                             }}
                                             value={
                                                 typeof field.value === 'number' || typeof field.value === 'string'
@@ -440,25 +325,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                 {errors.section && <FormError>{errors.section.message}</FormError>}
                             </div>
                         </div>
-
-                        {/* {availableSections.length > 0 && (
-                            <div>
-                                <Label>Section*</Label>
-                                <Select onValueChange={setsectionWise} value={sectionWise || ''}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Section' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {availableSections.map((y) => (
-                                            <SelectItem key={y} value={y}>
-                                                {y}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )} */}
-
                         <div className='flex flex-row items-center justify-start gap-4 rounded-lg border border-gray-300 bg-white px-3 py-2'>
                             <label className='inline-flex cursor-pointer items-center space-x-2'>
                                 <input
@@ -486,7 +352,9 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                         </div>
 
                         <div>
-                            <Label>Student Name*</Label>
+                            <Label>
+                                Student Name:<span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={setstudentWise} value={studentWise || ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Student' />
@@ -503,7 +371,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
 
                         <div>
                             <label htmlFor='remarks' className='inline-flex cursor-pointer items-center space-x-2'>
-                                Remarks
+                                Remarks: <span className='ml-1 text-red-500'>*</span>
                             </label>
                             <textarea
                                 id='remarks'
@@ -518,7 +386,9 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
 
                     <div className='flex-1 space-y-6'>
                         <div>
-                            <Label>Date*</Label>
+                            <Label>
+                                Date:<span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button variant='outline' className='w-full justify-start text-left font-normal'>
@@ -532,7 +402,9 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                             </Popover>
                         </div>
                         <div className='space-y-2'>
-                            <Label>Type*</Label>
+                            <Label>
+                                Type:<span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <div className='flex flex-row items-center justify-around rounded-lg border border-gray-300 bg-white px-3 py-2'>
                                 <label className='inline-flex cursor-pointer items-center space-x-2'>
                                     <input
@@ -561,7 +433,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                         </div>
                         <div>
                             <label htmlFor='grouplist' className='inline-flex cursor-pointer items-center space-x-2'>
-                                Group List
+                                Group List:<span className='ml-1 text-red-500'>*</span>
                             </label>
                             {refundableType === 'NonRefundable' ? (
                                 <div className='flex flex-col gap-2 border border-1 p-2'>

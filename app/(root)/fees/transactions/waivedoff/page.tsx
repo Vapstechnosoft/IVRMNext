@@ -1,29 +1,42 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-
-import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
+import { useStudentFeeGroupMapping } from '@/hooks/fees/useMasters';
 import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
+import type { IMasterStudentFeeGroupMappingList } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeTransactionWaiveOffForm from './_components/add-form';
+import { FeeTransactionWaivedOff } from './_components/columns';
 import ToggleMasterFeesConfigForm from './_components/toggle-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function fineSlabPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeeconfiguration(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useStudentFeeGroupMapping(searchParams);
 
     return (
         <FormProvider<IFeeConfig>>
-            <MasterFeeOpeningBalancePageContent />
+            <MasterFeeOpeningBalancePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
-function MasterFeeOpeningBalancePageContent() {
+function MasterFeeOpeningBalancePageContent({
+    response,
+    isLoading,
+    error
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+    refetchAll: any;
+}) {
     const { openAddForm } = useFormContext<IFeeConfig>();
+
+    const tableProps = useDataTableProps(response);
 
     return (
         <div className='min-h-screen'>
@@ -35,9 +48,27 @@ function MasterFeeOpeningBalancePageContent() {
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Fee Waived Off
+                        Add Fee Waived Off
                     </Button>
                 </div>
+                {/* Table */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<IMasterStudentFeeGroupMappingList>
+                        {...tableProps}
+                        columns={FeeTransactionWaivedOff}
+                        isLoading={isLoading}
+                        error={error}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage='Loading Fee Transaction Waived Off...'
+                        noDataTitle='No Fee Transaction Waived Off Found'
+                        noDataDescription='Get started by creating your first Fee Transaction Waived Off'
+                        errorTitle='Error While Loading Fee Transaction Waived Off'
+                    />
+                </CollapsibleSection>
                 <FormSections />
             </div>
         </div>

@@ -143,7 +143,7 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
 
-                            <AddMasterStudentFeeGroupMapping />
+                            <AddMasterStudentFeeGroupMapping onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -183,7 +183,7 @@ function MasterViewDetail() {
             setLoading(true);
             try {
                 const groups = await getStudentFeeSummaryById(
-                    231,
+                    selectedRow.academicYearId,
                     // 16035
                     selectedRow.studentId
                 );
@@ -218,8 +218,8 @@ function MasterViewDetail() {
             });
 
             return {
-                // mI_Id: 30,
-                //  asmaY_Id: 231,
+                mI_Id: 30,
+                asmaY_Id: selectedRow.academicYearId,
                 amsT_Id: selectedRow.studentId,
                 // userId: 21602,
                 mappings
