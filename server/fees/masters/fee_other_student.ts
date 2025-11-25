@@ -6,18 +6,13 @@ import type { MasterFeeOtherStudentType } from '@/types/fees/masters/masters';
 
 export async function getFeeOtherStudent(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/FeeMasterOtherStudent/get_master_other_student_list/30?${urlParams}`;
+    const url = `/FeeMasterOtherStudent/master-other-students-list?${urlParams}`;
     return await api.get<MasterFeeOtherStudentType[]>('fees', url);
 }
 
 export async function saveFeeOtherStudent(payload: any) {
-    const url = '/FeeMasterOtherStudent/AddOrUpdate';
+    const url = 'FeeMasterOtherStudent/add-or-update';
     return await api.post<any[]>('fees', url, payload);
-}
-
-export async function editFeeOtherStudent(id: number) {
-    const url = `/FeeMasterOtherStudent/GetMasterOtherStudentsById?id=${id}`;
-    return await api.put<any[]>('fees', url);
 }
 
 export async function deleteFeeOtherStudent(id: number) {

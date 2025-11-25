@@ -20,7 +20,7 @@ interface AddFeeOtherStudentFromProps {
 
 type FormFields = z.infer<typeof masterFeeOtherStudentSchema.addOrUpdate>;
 
-export default function AddFeeOtherStudentFrom({ onSuccess, className = '', onClose }: AddFeeOtherStudentFromProps) {
+export default function AddFeeOtherStudentFrom({ onSuccess, className = '' }: AddFeeOtherStudentFromProps) {
     const { refetchAll } = useFeeOtherStudent();
     const {
         handleSubmit,
@@ -31,10 +31,7 @@ export default function AddFeeOtherStudentFrom({ onSuccess, className = '', onCl
     } = useForm<FormFields>({
         resolver: zodResolver(masterFeeOtherStudentSchema.addOrUpdate),
         mode: 'onChange',
-        defaultValues: {
-            mI_Id: '30',
-            institutionName: 'vidya_vikas_vidya_samste'
-        }
+        defaultValues: {}
     });
 
     const studentName = watch('studentName');
@@ -43,7 +40,7 @@ export default function AddFeeOtherStudentFrom({ onSuccess, className = '', onCl
     const onsubmit = async () => {
         const buildpayload = () => {
             return {
-                mI_Id: 30,
+                // mI_Id: 30,
                 fmosT_StudentName: studentName,
                 fmosT_StudentMobileNo: studentMobileNo,
                 fmosT_StudentEmailId: studentEmailNo
@@ -54,10 +51,10 @@ export default function AddFeeOtherStudentFrom({ onSuccess, className = '', onCl
             const res = await saveFeeOtherStudent(payload);
             if (res?.success) {
                 toast.success(res.message || 'Saved successfully');
-                refetchAll();
-                handleReset();
+
+                //  handleReset();
                 onSuccess?.();
-                onClose?.();
+                refetchAll();
             } else {
                 toast.error(res?.message || 'Save failed');
             }

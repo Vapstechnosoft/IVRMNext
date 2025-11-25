@@ -608,8 +608,8 @@ export const masterClassFeeMasterGroupwiseAutoReceipt = {
             startingNumber: z.string().min(1, { message: 'Starting Number is required' }),
             groups: z.array(z.string().min(1)).min(1, { message: 'At least one group must be selected' }),
             autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
-            address: z.string().optional(),
-            receiptTemplateFormat: z.string().optional()
+            address: z.string().min(1, { message: 'Address is required' }),
+            receiptTemplateFormat: z.string().min(1, { message: 'Receipt Template Format is required' })
         })
         .refine(
             (data) => {
@@ -714,8 +714,8 @@ export const masterStudentFeeGroupMappingSchema = {
 
 export const masterFeeOtherStudentSchema = {
     addOrUpdate: z.object({
-        mI_Id: z.string().min(1, { message: 'Institution is required' }),
-        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        // mI_Id: z.string().min(1, { message: 'Institution is required' }),
+        // institutionName: z.string().min(1, { message: 'Institution Name is required' }),
         studentName: z.string().min(1, { message: 'Student Name is required' }),
         mobileno: z.string().min(1, { message: 'Mobile Number is required' }),
         emailno: z.string().min(1, { message: 'Email Number is required' })

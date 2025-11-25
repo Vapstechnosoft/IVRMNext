@@ -35,6 +35,8 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         fmI_ActiveFlag?: any;
     }>({});
 
+    console.log('row data', row);
+
     const sanitizeId = (id: any) => {
         if (id === null || id === undefined) return undefined;
         if (typeof id === 'string') {
@@ -85,6 +87,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         handleSubmit,
         reset,
         setValue,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterInstallmentSchema.addOrUpdate),
@@ -175,6 +178,8 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
             }
         }
     }, [watchNoOfInstallments, fields.length, append, remove]);
+
+    const installmentType = watch('fmI_Installment_Type');
 
     const onSubmit = async (data: FormFields) => {
         try {
@@ -273,7 +278,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     <Label htmlFor='fmI_Name'>
                         Master Installment Name <span className='text-red-500'>*</span>
                     </Label>
-                    <Controller
+                    {/* <Controller
                         name='fmI_Name'
                         control={control}
                         render={({ field }) => (
@@ -286,7 +291,25 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                                 disabled
                             />
                         )}
+                    /> */}
+                    <Controller
+                        name='fmI_Name'
+                        control={control}
+                        render={({ field }) => (
+                            <InputText
+                                id='fmI_Name'
+                                placeholder='Enter master installment name'
+                                {...field}
+                                value={field.value ?? ''}
+                                onChange={(e) => {
+                                    const sanitized = e.target.value.replace(/[^A-Za-z ]/g, '');
+                                    field.onChange(sanitized);
+                                }}
+                                disabled
+                            />
+                        )}
                     />
+
                     {errors.fmI_Name && <FormError>{errors.fmI_Name.message}</FormError>}
                 </div>
 
@@ -299,7 +322,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                         control={control}
                         render={({ field }) => (
                             <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                                <SelectTrigger className='w-full' disabled>
+                                <SelectTrigger className='w-full'>
                                     <SelectValue placeholder='Select Installment Type' />
                                 </SelectTrigger>
                                 <SelectContent className='max-h-56 overflow-y-auto'>
@@ -317,26 +340,28 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     {errors.fmI_Installment_Type && <FormError>{errors.fmI_Installment_Type.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-1.5'>
-                    <Label htmlFor='fmI_No_Of_Installments'>No. of Installments</Label>
-                    <Controller
-                        name='fmI_No_Of_Installments'
-                        control={control}
-                        render={({ field }) => (
-                            <input
-                                id='fmI_No_Of_Installments'
-                                type='number'
-                                min='1'
-                                {...field}
-                                value={field.value ?? ''}
-                                onChange={(e) => field.onChange(Number(e.target.value))}
-                                placeholder='Enter number of installments'
-                                className='w-full rounded-md border border-gray-300 px-2 py-2 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary'
-                            />
-                        )}
-                    />
-                    {errors.fmI_No_Of_Installments && <FormError>{errors.fmI_No_Of_Installments.message}</FormError>}
-                </div>
+                {installmentType?.toLowerCase() === 'general' && (
+                    <div className='flex flex-col gap-1.5'>
+                        <Label htmlFor='fmI_No_Of_Installments'>No. of Installments</Label>
+                        <Controller
+                            name='fmI_No_Of_Installments'
+                            control={control}
+                            render={({ field }) => (
+                                <input
+                                    id='fmI_No_Of_Installments'
+                                    type='number'
+                                    min='1'
+                                    {...field}
+                                    value={field.value ?? ''}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                    placeholder='Enter number of installments'
+                                    className='w-full rounded-md border border-gray-300 px-2 py-2 text-sm outline-none transition focus:border-primary focus:ring-1 focus:ring-primary'
+                                />
+                            )}
+                        />
+                        {errors.fmI_No_Of_Installments && <FormError>{errors.fmI_No_Of_Installments.message}</FormError>}
+                    </div>
+                )}
 
                 {fields.length > 0 && (
                     <div className='overflow-x-auto rounded-lg border border-gray-200 shadow-sm'>

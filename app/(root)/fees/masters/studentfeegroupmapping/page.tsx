@@ -10,13 +10,14 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useStudentFeeGroupMapping } from '@/hooks/fees/useMasters';
-import { getStudentFeeSummaryById } from '@/server/fees/masters/student_fee_group_mapping';
+import { getStudentFeeSummaryById, updtaeStudentFeeGroupMapping } from '@/server/fees/masters/student_fee_group_mapping';
 import type {
     IMasterStudentClassMappingList,
     IMasterStudentFeeGroupMappingList,
     StudentFeeGroupSummaryById
 } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
+import { toast } from 'sonner';
 import AddMasterStudentFeeGroupMapping from './_components/add-form';
 import { masterStudentFeeGroupMapping } from './_components/columns';
 import DeleteStudentFeeGroupMappingForm from './_components/delete-form';
@@ -170,6 +171,7 @@ function MasterViewDetail() {
     const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({});
     const [collapsedHeads, setCollapsedHeads] = useState<Record<string, boolean>>({});
     const [feeGroups, setFeeGroups] = useState<StudentFeeGroupSummaryById[]>([]);
+    const [isSubmitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         if (!isOrderDetailsOpen || !selectedRow) {
@@ -196,6 +198,49 @@ function MasterViewDetail() {
 
         fetchData();
     }, [isOrderDetailsOpen, selectedRow]);
+
+    const submit = async () => {
+        setSubmitting(true);
+        const buildPayload = () => {
+            const mappings: any[] = [];
+
+            feeGroups.forEach((group) => {
+                group.heads.forEach((head) => {
+                    head.installments.forEach((inst) => {
+                        mappings.push({
+                            fmG_Id: group.fmG_Id,
+                            fmH_Id: head.fmH_Id,
+                            ftI_Id: inst.ftI_Id,
+                            isSelected: inst.checked === true
+                        });
+                    });
+                });
+            });
+
+            return {
+                // mI_Id: 30,
+                //  asmaY_Id: 231,
+                amsT_Id: selectedRow.studentId,
+                // userId: 21602,
+                mappings
+            };
+        };
+
+        const payload = buildPayload();
+        try {
+            const response = await updtaeStudentFeeGroupMapping(payload);
+            if (response?.success) {
+                toast.success(response.message || 'Updated successfully');
+                // handleReset();
+            } else {
+                toast.error(response?.message || 'Update failed');
+            }
+        } catch (err: any) {
+            console.error('API Error:', err);
+            toast.error(err?.message || 'Something went wrong');
+        }
+        setSubmitting(false);
+    };
 
     const toggleGroup = (id: number) => setCollapsedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
@@ -389,9 +434,10 @@ function MasterViewDetail() {
                     <Button
                         onClick={() => {
                             // console.log("Final selected fee structure:", { feeGroups });
-                            closeOrderDetails();
-                        }}>
-                        Save
+                            submit();
+                        }}
+                        disabled={isSubmitting}>
+                        {isSubmitting ? 'Updating' : 'Update'}
                     </Button>
                 </DialogFooter>
             </DialogContent>

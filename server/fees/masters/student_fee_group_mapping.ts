@@ -23,8 +23,8 @@ export async function getStudentFeeGroupMapping(searchParams?: ApiSearchparams) 
     return await api.get<IMasterStudentFeeGroupMappingList[]>('fees', url);
 }
 
-export async function deleteStudentFeeGroupMapping(AMST_Id: number, FMG_Id: number, FMSG_Id: number) {
-    const url = `/StudentFeeGroupMappingFacade/deleteStudentFeeGroupMapping?MI_Id=30&AMST_Id=${AMST_Id}&ASMAY_Id=15877&FMG_Id=${FMG_Id}&FMSG_Id=${FMSG_Id}`;
+export async function deleteStudentFeeGroupMapping(AMST_Id: number, FMG_Id: number, FMSG_Id: number, asmay_Id: number, mi_Id: number) {
+    const url = `/StudentFeeGroupMappingFacade/deleteStudentFeeGroupMapping?MI_Id=${mi_Id}&AMST_Id=${AMST_Id}&ASMAY_Id=${asmay_Id}&FMG_Id=${FMG_Id}&FMSG_Id=${FMSG_Id}`;
     return await api.delete('fees', url);
 }
 
@@ -98,4 +98,9 @@ export async function getStudentFeeSummaryById(academicId: number, studentId: nu
 export async function getStudentFeeSave(palyload: any) {
     const url = '/StudentFeeGroupMappingFacade/saveStudentFeeMappings';
     return await api.post<any>('fees', url, palyload);
+}
+
+export async function updtaeStudentFeeGroupMapping(payload: any) {
+    const url = '/StudentFeeGroupMappingFacade/updateStudentFeeMappings';
+    return await api.post<any>('fees', url, payload);
 }

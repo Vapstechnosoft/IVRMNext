@@ -108,8 +108,17 @@ function MasterFeeOtherStudent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, isEditFormOpen, closeEditForm, addFormRef } =
-        useFormContext<MasterFeeOtherStudentType>();
+    const {
+        isAddFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeDeleteForm,
+        isEditFormOpen,
+        closeEditForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<MasterFeeOtherStudentType>();
     return (
         <>
             {/* Add Form */}
@@ -132,7 +141,7 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
 
-                            <AddFeeOtherStudentFrom />
+                            <AddFeeOtherStudentFrom onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -148,13 +157,15 @@ function FormSections() {
             )}
 
             {isEditFormOpen && selectedRow && (
-                <UpdtaeFeeOtherStudentFrom
-                    selectedRow={selectedRow}
-                    onClose={closeEditForm}
-                    onSuccess={() => {
-                        closeEditForm();
-                    }}
-                />
+                <div ref={editFormRef}>
+                    <UpdtaeFeeOtherStudentFrom
+                        selectedRow={selectedRow}
+                        onClose={closeEditForm}
+                        onSuccess={() => {
+                            closeEditForm();
+                        }}
+                    />
+                </div>
             )}
         </>
     );
