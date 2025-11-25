@@ -7,11 +7,23 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
 export const YearlyColoumnsColumns: ColumnDef<IMaasterFeesYearlyGrouping>[] = [
+    // {
+    //     id: 'fyG_Id',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='S.No' className='pl-6 text-start' />,
+    //     cell: ({ row }) => <div className='pl-6 text-start'>{row.index + 1}</div>,
+    //     enableSorting: false,
+    //     enableHiding: false
+    // },
     {
-        id: 'serialNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='S.No' className='pl-6 text-start' />,
-        cell: ({ row }) => <div className='pl-6 text-start'>{row.index + 1}</div>,
-        enableSorting: false,
+        accessorKey: 'fyG_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
+        },
+        enableSorting: true,
         enableHiding: false
     },
     {
