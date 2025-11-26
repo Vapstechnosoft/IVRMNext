@@ -1079,14 +1079,15 @@ export const useMasterStudentFeeGrouMappingAcademic = () => {
     };
 };
 
-export const useStudentFeeGroupAdmiClassCategoryDropDown = () => {
+export const useStudentFeeGroupAdmiClassCategoryDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_ADM_CLASS_CATEGORY],
             queryFn: async () => getAdmClassCategorydropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1095,15 +1096,15 @@ export const useStudentFeeGroupAdmiClassCategoryDropDown = () => {
         }
     };
 };
-
-export const useStudentFeeGroupFeeClassCategoryDropDown = () => {
+export const useStudentFeeGroupFeeClassCategoryDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_FEECLASS_CATEGORY_DROPDOWN],
             queryFn: async () => getFeeClassCategorydropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1113,14 +1114,15 @@ export const useStudentFeeGroupFeeClassCategoryDropDown = () => {
     };
 };
 
-export const useStudentFeeBusRoutingDropDown = () => {
+export const useStudentFeeBusRoutingDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_BUS_ROUTING_DROPDOWN],
             queryFn: async () => getFeeBusRoutingdropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1130,14 +1132,15 @@ export const useStudentFeeBusRoutingDropDown = () => {
     };
 };
 
-export const useStudentFeeCasteRoutingDropDown = () => {
+export const useStudentFeeCasteRoutingDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_CASTE_CATEGORY_DROPDOWN],
             queryFn: async () => getFeeCasteCategorydropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1147,13 +1150,20 @@ export const useStudentFeeCasteRoutingDropDown = () => {
     };
 };
 
-export const useStudentClassMapping = (academicyear: number, searchParams?: ApiSearchparams) => {
+export const useStudentClassMapping = (
+    academicyear: number,
+    classId: number,
+    sectionId: number,
+    admCategoryId: number,
+    radioFilter: string,
+    searchParams?: ApiSearchparams
+) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_CLASS_MAPPING, searchParams ?? {}],
-            queryFn: async () => getStudentClassMapping(academicyear, searchParams),
+            queryFn: async () => getStudentClassMapping(academicyear, classId, sectionId, admCategoryId, radioFilter, searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -1164,14 +1174,15 @@ export const useStudentClassMapping = (academicyear: number, searchParams?: ApiS
     };
 };
 
-export const useStudentClassDropDown = () => {
+export const useStudentClassDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_CLASS_DROP_DOWN],
             queryFn: async () => getclassdropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1180,15 +1191,15 @@ export const useStudentClassDropDown = () => {
         }
     };
 };
-
-export const useStudentSectionDropDown = () => {
+export const useStudentSectionDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_SECTION_DROP_DOWN],
             queryFn: async () => getSectionropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

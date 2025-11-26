@@ -704,11 +704,12 @@ export const masterStudentFeeGroupMappingSchema = {
         mI_Id: z.string().min(1, { message: 'Institution is required' }),
         institutionName: z.string().min(1, { message: 'Institution Name is required' }),
         asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        feeClassCategory: z.string().optional(),
         classCategory: z.string().optional(),
         busRouting: z.string().optional(),
         casteCategory: z.string().optional(),
-        class: z.string().optional(),
-        section: z.string().optional(),
+        class: z.number().optional(),
+        section: z.number().optional(),
         area: z.string().optional()
     }),
     delete: z.object({

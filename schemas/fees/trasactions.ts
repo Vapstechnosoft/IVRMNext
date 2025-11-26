@@ -142,7 +142,7 @@ export const feeTransactionWaivedOffSchema = {
 
             // class: z.string().nullable().optional(),
             // section: z.string().nullable().optional(),
-            student: z.string().nullable().optional(),
+            student: z.number().min(1, 'student is required'),
 
             feeHead: z.string().nullable().optional(),
             feeGroup: z.string().nullable().optional(),

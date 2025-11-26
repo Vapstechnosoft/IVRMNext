@@ -6,7 +6,8 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterFeehead } from '@/hooks/fees/useMasters';
 import { getfeehead } from '@/server/fees/masters/feehead';
-import type { IFeeHeadsList, IFeeHeadsListSetOrder } from '@/types/fees/masters';
+
+import type { IFeeHeadsList, IFeeHeadsListSetOrder } from '@/types/fees/masters/masters';
 import { Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';

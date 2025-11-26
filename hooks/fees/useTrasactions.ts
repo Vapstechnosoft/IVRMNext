@@ -25,7 +25,7 @@ import {
     get_Receipt_number,
     geteditThirdpartytrasaction
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
-import { getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
+import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
 
 export const useFeeAmountEntry = (searchParams?: ApiSearchparams) => {
@@ -433,6 +433,23 @@ export const useClassdropdowndatafee = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_CLASSDROPDOWN_DETAILS]
+            });
+        }
+    };
+};
+
+export const useFeeTransactionWaivedOffGrid = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_TRANSACTION_WAIVED_OFF_grid, searchParams ?? {}],
+            queryFn: async () => feeTransactionWaivedOff(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_TRANSACTION_WAIVED_OFF_grid]
             });
         }
     };

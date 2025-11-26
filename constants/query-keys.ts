@@ -152,7 +152,8 @@ export const FEES_QUERY_KEYS = {
     FEE_OTHER_STUDENT: 'fee_other_student',
     FEE_CLASSDROPDOWN_DETAILS: 'fee_classdropdown_details',
     FEE_SECTIONDROPDOWN_DETAILS: 'fee_sectiondropdown_details',
-    FEE_INSATALLMENT_DROP_DOWN: 'fee_installment_drop_down'
+    FEE_INSATALLMENT_DROP_DOWN: 'fee_installment_drop_down',
+    FEE_TRANSACTION_WAIVED_OFF_grid: 'fee_transaction_waived_off_grid'
 };
 
 export const EXAM_QUERY_KEYS = {
