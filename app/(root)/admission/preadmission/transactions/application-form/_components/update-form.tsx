@@ -389,6 +389,24 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 toast.error('Please select class');
                 return;
             }
+
+            // Validate required phone field
+            const fieldName = 'pasR_MobileNo';
+            const info = phoneExpectedInfo[fieldName];
+            const rawVal = String(watch(fieldName) ?? '');
+
+            if (!rawVal || rawVal === '') {
+                toast.error('Mobile number is required');
+                return;
+            }
+
+            if (info?.expected) {
+                const digits = rawVal.replace(/\D/g, '');
+                if (digits.length !== info.expected) {
+                    toast.error(`Mobile number must be exactly ${info.expected} digits`);
+                    return;
+                }
+            }
         } else if (currentStep === 2) {
             fieldsToValidate = [
                 'pasR_ConStreet',
@@ -396,7 +414,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 'pasR_ConCountry',
                 'pasR_ConState',
                 'pasR_ConCity',
-                // include pincode fields so their validation runs when moving to next step
                 'pasR_ConPincode',
                 'pasR_PerStreet',
                 'pasR_PerArea',
@@ -404,7 +421,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 'pasR_PerState',
                 'pasR_PerCity'
             ];
-            // Only validate Permanent pincode when it's not marked same as residential
             if (!sameAsResidential) {
                 fieldsToValidate.push('pasR_PerPincode');
             }
@@ -420,6 +436,27 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 toast.error('Please upload mother photo');
                 return;
             }
+
+            // Validate optional phone fields if they have values
+            const phoneFieldsToCheck = [
+                { name: 'pasR_FatherMobleNo', label: 'Father mobile number' },
+                { name: 'pasR_MotherMobleNo', label: 'Mother mobile number' },
+                { name: 'pasR_AltContactNo', label: 'Alternate contact number' }
+            ];
+
+            for (const phoneField of phoneFieldsToCheck) {
+                const rawVal = String(watch(phoneField.name as any) ?? '');
+                const info = phoneExpectedInfo[phoneField.name];
+
+                if (rawVal && rawVal !== '' && info?.expected) {
+                    const digits = rawVal.replace(/\D/g, '');
+
+                    if (digits.length !== info.expected) {
+                        toast.error(`${phoneField.label} must be ${info.expected} digits`);
+                        return;
+                    }
+                }
+            }
         } else if (currentStep === 4) {
             const selectedReligionId = watch('religion_Id');
             const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
@@ -428,11 +465,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             const mandatoryDocs =
                 preadmissionDocuments?.data?.filter((doc) => {
                     if (doc.amsmD_FLAG) return true;
-
                     if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
                         return true;
                     }
-
                     return false;
                 }) || [];
 
@@ -447,27 +482,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
         const isValid = await trigger(fieldsToValidate as any);
 
-        // Additional client-side checks for pincode length because schema is static
-        // Validate phone length for step 1 required phone fields before progressing
         if (isValid) {
-            if (currentStep === 1) {
-                const fieldName = 'pasR_MobileNo';
-                const info = phoneExpectedInfo[fieldName];
-                if (info?.expected) {
-                    const rawVal = String(watch(fieldName) ?? '');
-                    const digits = rawVal.replace(/\D/g, '');
-                    const dial = String(info.dial ?? '');
-                    const numberPart = dial && digits.startsWith(dial) ? digits.slice(dial.length) : digits;
-                    if (numberPart !== '' && numberPart.length !== info.expected) {
-                        setError(fieldName as any, {
-                            type: 'manual',
-                            message: `Mobile number must be exactly ${info.expected} digits for ${info.name ?? 'selected country'}`
-                        });
-                        return;
-                    }
-                }
-            }
-
             if (currentStep === 2) {
                 const conPincodeVal = String(watch('pasR_ConPincode') ?? '');
                 if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
@@ -524,7 +539,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             setPhoneValues((prev) => ({ ...prev, [fieldName]: '' }));
             setValue(fieldName as any, '');
             setPhoneExpectedInfo((prev) => ({ ...prev, [fieldName]: {} }));
-            // trigger validation for this field
             trigger(fieldName as any);
             return;
         }
@@ -536,7 +550,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
         const formattedPhone = `+${countryCode} ${numberPart}`;
         setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
-        // Store only digits as a number in form state
         setValue(fieldName as any, formattedPhone);
 
         const expected = getExpectedPhoneLength(countryData);
@@ -548,8 +561,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 dial: String(countryData?.dialCode ?? '')
             }
         }));
-        if (expected !== undefined) {
-            if (numberPart.length !== expected) {
+
+        if (expected !== undefined && numberPart.length > 0) {
+            if (numberPart.length < expected) {
+                setError(fieldName as any, {
+                    type: 'manual',
+                    message: `Mobile number must be at least ${expected} digits for ${countryData?.name ?? countryData?.country ?? 'selected country'}`
+                });
+            } else if (numberPart.length > expected) {
                 setError(fieldName as any, {
                     type: 'manual',
                     message: `Mobile number must be exactly ${expected} digits for ${countryData?.name ?? countryData?.country ?? 'selected country'}`
@@ -1532,6 +1551,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 Mobile No.
                                                                 <span className='ml-1 text-red-500'>*</span>
                                                             </Label>
+
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
@@ -1545,6 +1565,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 inputProps={{
                                                                     id: 'pasR_MobileNo',
                                                                     name: 'pasR_MobileNo',
+                                                                    maxLength: 25,
+
                                                                     required: false,
                                                                     style: {
                                                                         width: '87%',
@@ -1559,6 +1581,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 containerClass='w-full'
                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                 enableSearch
+                                                                disableCountryCode={false}
+                                                                enableLongNumbers={true}
+                                                                isValid={true}
+                                                                preserveOrder={['country', 'nationalNumber']}
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
@@ -2534,6 +2560,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputProps={{
                                                                             id: 'pasR_FatherMobleNo',
                                                                             name: 'pasR_FatherMobleNo',
+                                                                            maxLength: 25,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -2548,6 +2575,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         containerClass='w-full'
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
+                                                                        disableCountryCode={false}
+                                                                        enableLongNumbers={true}
+                                                                        isValid={true}
+                                                                        preserveOrder={['country', 'nationalNumber']}
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
@@ -2611,13 +2642,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasA_FatherCompany')}
                                                         error={errors.pasA_FatherCompany?.message}
                                                     />
-                                                    {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
-                                                        <span className='mt-1 text-muted-foreground text-xs'>
-                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
-                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ?? 'selected country'
-                                                            }`}
-                                                        </span>
-                                                    )}
                                                 </div>
                                             </div>
 
@@ -2884,6 +2908,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputProps={{
                                                                             id: 'pasR_MotherMobleNo',
                                                                             name: 'pasR_MotherMobleNo',
+                                                                            maxLength: 25,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -2898,11 +2923,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         containerClass='w-full'
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
+                                                                        disableCountryCode={false}
+                                                                        enableLongNumbers={true}
+                                                                        isValid={true}
+                                                                        preserveOrder={['country', 'nationalNumber']}
                                                                     />
-                                                                    {phoneExpectedInfo.pasR_AltContactNo?.expected && (
+                                                                    {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_AltContactNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
                                                                             }`}
                                                                         </span>
@@ -2987,6 +3016,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputProps={{
                                                                             id: 'pasR_AltContactNo',
                                                                             name: 'pasR_AltContactNo',
+                                                                            maxLength: 25,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -3001,7 +3031,19 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         containerClass='w-full'
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
+                                                                        disableCountryCode={false}
+                                                                        enableLongNumbers={true}
+                                                                        isValid={true}
+                                                                        preserveOrder={['country', 'nationalNumber']}
                                                                     />
+                                                                    {phoneExpectedInfo.pasR_AltContactNo?.expected && (
+                                                                        <span className='mt-1 text-muted-foreground text-xs'>
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_AltContactNo.name ??
+                                                                                'selected country'
+                                                                            }`}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         />
