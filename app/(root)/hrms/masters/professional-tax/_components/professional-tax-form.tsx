@@ -147,9 +147,26 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
                 />
                 {errors.HRMPT_PTax && <FormError>{errors.HRMPT_PTax.message}</FormError>}
             </div>
-            <div className='col-span-full'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
+                </Button>
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            HRMPT_SalaryFrom: 0,
+                            HRMPT_SalaryTo: 0,
+                            HRMPT_PTax: 0,
+                            HRMPT_ActiveFlag: true
+                        });
+                    }}>
+                    Clear
                 </Button>
             </div>
         </form>

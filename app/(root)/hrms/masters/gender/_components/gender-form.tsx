@@ -49,8 +49,14 @@ export default function GenderForm({ selectedRow, onSuccess }: GenderFormProps) 
         if (isEditMode && !data.IVRMMG_Id) {
         }
 
+        // Trim whitespace from text fields
+        const sanitizedData: MasterGenderInput = {
+            ...data,
+            IVRMMG_GenderName: data.IVRMMG_GenderName?.trim() || ''
+        };
+
         try {
-            const res = await saveMutation.mutateAsync(data);
+            const res = await saveMutation.mutateAsync(sanitizedData);
 
             if (res?.success) {
                 const successMsg = res?.message || (isEditMode ? 'Gender updated successfully' : 'Gender added successfully');
@@ -103,11 +109,26 @@ export default function GenderForm({ selectedRow, onSuccess }: GenderFormProps) 
                     {...register('IVRMMG_GenderName', GENDER_VALIDATION.HRMGEN_GenderName)}
                 />
             </div>
-            <div className='col-span-full flex gap-2'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
-                {isEditMode && !isDirty && <span className='mt-2 flex items-center text-muted-foreground text-sm'>No changes made</span>}
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            IVRMMG_GenderName: '',
+                            IVRMMG_ActiveFlag: true
+                        });
+                    }}>
+                    Clear
+                </Button>
+                {isEditMode && !isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
             </div>
         </form>
     );

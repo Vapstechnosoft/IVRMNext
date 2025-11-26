@@ -242,8 +242,10 @@ export function QualificationTab({
     countries = [],
     states = [],
     setValue,
-    onClear
-}: QualificationTabProps) {
+    onClear,
+    currentTab,
+    onPreviousTab
+}: QualificationTabProps & { currentTab?: string; onPreviousTab?: () => void }) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'qualificationDetails'
@@ -284,9 +286,12 @@ export function QualificationTab({
         <div className='space-y-4'>
             <div className='rounded-md border'>
                 <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
-                    <h3 className='font-semibold'>EMPLOYEE QUALIFICATION DETAILS</h3>
-                    <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
-                        <Plus className='mr-1 h-4 w-4' /> Add Qualification
+                    <h3 className='font-semibold text-base text-gray-900 uppercase'>EMPLOYEE QUALIFICATION DETAILS</h3>
+                    <Button 
+                        type='button' 
+                        className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80'
+                        onClick={addEmptyRow}>
+                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Qualification
                     </Button>
                 </div>
             </div>
@@ -310,8 +315,11 @@ export function QualificationTab({
                                     <Badge variant='secondary'>Serial NO. {index + 1}</Badge>
                                     <div className='font-semibold'>Qualification #{index + 1}</div>
                                 </div>
-                                <Button type='button' variant='ghost' size='sm' onClick={() => remove(index)}>
-                                    <Trash2 className='mr-1 h-4 w-4' /> Remove
+                                <Button 
+                                    type='button' 
+                                    className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
+                                    onClick={() => remove(index)}>
+                                    <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
                                 </Button>
                             </div>
 
@@ -680,12 +688,14 @@ export function QualificationTab({
                                         name={`qualificationDetails.${index}.qualifiedDate`}
                                         control={control}
                                         render={({ field, fieldState }) => (
-                                            <DateField
-                                                field={field}
-                                                fieldState={fieldState}
-                                                label='Qualified Date'
-                                                placeholder='Pick qualified date'
-                                            />
+                                            <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
+                                                <DateField
+                                                    field={field}
+                                                    fieldState={fieldState}
+                                                    label='Qualified Date'
+                                                    placeholder='Pick qualified date'
+                                                />
+                                            </div>
                                         )}
                                     />
                                 </div>
@@ -695,7 +705,7 @@ export function QualificationTab({
                 })}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }

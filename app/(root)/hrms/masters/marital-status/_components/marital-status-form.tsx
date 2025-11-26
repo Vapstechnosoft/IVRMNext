@@ -46,8 +46,14 @@ export default function MaritalStatusForm({ selectedRow, onSuccess }: MaritalSta
     }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterMaritalStatusInput) => {
+        // Trim whitespace from text fields
+        const sanitizedData: MasterMaritalStatusInput = {
+            ...data,
+            IVRMMMS_MaritalStatus: data.IVRMMMS_MaritalStatus?.trim() || ''
+        };
+
         try {
-            const res = await saveMutation.mutateAsync(data);
+            const res = await saveMutation.mutateAsync(sanitizedData);
 
             if (res?.success) {
                 const successMsg =
@@ -92,9 +98,24 @@ export default function MaritalStatusForm({ selectedRow, onSuccess }: MaritalSta
                     {...register('IVRMMMS_MaritalStatus', MARITAL_STATUS_VALIDATION.HRMMS_MaritalStatus)}
                 />
             </div>
-            <div className='col-span-full'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
+                </Button>
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            IVRMMMS_MaritalStatus: '',
+                            IVRMMMS_ActiveFlag: true
+                        });
+                    }}>
+                    Clear
                 </Button>
             </div>
         </form>

@@ -54,8 +54,14 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
     }, [selectedRow, reset]);
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        // Trim whitespace from text fields
+        const sanitizedData = {
+            ...data,
+            HRMET_EmployeeType: data.HRMET_EmployeeType?.trim() || ''
+        };
+
         try {
-            const response = await saveMutation.mutateAsync(data);
+            const response = await saveMutation.mutateAsync(sanitizedData);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Employee type updated successfully' : 'Employee type saved successfully'));
@@ -94,28 +100,24 @@ export default function EmployeeTypeForm({ selectedRow, onSuccess, className = '
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
+                <div className='flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-start sm:items-center'>
                     <Button
                         type='submit'
                         disabled={isSubmitting || (isEditMode && !isDirty)}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            {isEditMode ? 'Update Employee Type' : 'Save Employee Type'}
-                        </div>
+                        {isEditMode ? 'Update' : 'Save'}
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
+                        Clear
                     </Button>
                     {isEditMode && !isDirty && (
-                        <span className='order-3 flex items-center text-muted-foreground text-sm sm:order-3'>No changes made</span>
+                        <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>
                     )}
                 </div>
             </form>

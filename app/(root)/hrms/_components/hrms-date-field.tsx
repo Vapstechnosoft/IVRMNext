@@ -10,13 +10,14 @@ interface HRMSDateFieldProps {
     placeholder?: string;
     fromDate?: Date;
     toDate?: Date;
+    disabled?: boolean;
 }
 
 /**
  * HRMS-specific wrapper for DateField that prevents infinite loops
  * by stabilizing the field value reference
  */
-export const HRMSDateField: React.FC<HRMSDateFieldProps> = ({ field, fieldState, label, placeholder, fromDate, toDate }) => {
+export const HRMSDateField: React.FC<HRMSDateFieldProps> = ({ field, fieldState, label, placeholder, fromDate, toDate, disabled }) => {
     // Use ref to track the actual value string to prevent infinite loops
     const valueRef = useRef<string | undefined>(field.value);
     
@@ -42,7 +43,6 @@ export const HRMSDateField: React.FC<HRMSDateFieldProps> = ({ field, fieldState,
             label={label}
             placeholder={placeholder}
             fromDate={fromDate}
-            toDate={toDate}
         />
     );
 };

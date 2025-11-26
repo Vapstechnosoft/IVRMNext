@@ -60,8 +60,15 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
         if (isEditMode && !data.HRMC_Id) {
         }
 
+        // Trim whitespace from text fields
+        const sanitizedData: MasterCourseInput = {
+            ...data,
+            HRMC_QulaificationName: data.HRMC_QulaificationName?.trim() || '',
+            HRMC_QualificationDesc: data.HRMC_QualificationDesc?.trim() || ''
+        };
+
         try {
-            const res = await saveMutation.mutateAsync(data);
+            const res = await saveMutation.mutateAsync(sanitizedData);
 
             if (res?.success) {
                 const successMsg = res?.message || (isEditMode ? 'Course updated successfully' : 'Course added successfully');
@@ -156,11 +163,30 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                     <Label htmlFor='has-specialization-checkbox'>Has Specialization</Label>
                 </div>
             </div>
-            <div className='col-span-full flex gap-2'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
-                {isEditMode && !isDirty && <span className='mt-2 flex items-center text-muted-foreground text-sm'>No changes made</span>}
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            HRMC_QulaificationName: '',
+                            HRMC_QualificationDesc: '',
+                            HRMC_Order: 0,
+                            HRMC_ActiveFlag: true,
+                            HRMC_DefaultQualFag: false,
+                            HRMC_SpecialisationFlag: false
+                        });
+                    }}>
+                    Clear
+                </Button>
+                {isEditMode && !isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
             </div>
         </form>
     );

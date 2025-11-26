@@ -84,9 +84,15 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
             console.warn('⚠️ [BROWSER] Edit mode but no HRMED_Id provided');
         }
 
+        // Trim whitespace from text fields
+        const sanitizedData: MasterEarningsDeductionsInput = {
+            ...data,
+            HRMED_Name: data.HRMED_Name?.trim() || ''
+        };
+
         try {
             const requestStartTime = Date.now();
-            const res = await saveMutation.mutateAsync(data);
+            const res = await saveMutation.mutateAsync(sanitizedData);
             const _requestDuration = Date.now() - requestStartTime;
 
             if (res?.success) {
@@ -282,11 +288,33 @@ export default function EarningsDeductionsForm({ selectedRow, onSuccess, typeDro
                     Revise
                 </Label>
             </div>
-            <div className='col-span-full flex gap-2'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
-                {isEditMode && !isDirty && <span className='mt-2 flex items-center text-muted-foreground text-sm'>No changes made</span>}
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            HRMED_Name: '',
+                            HRMED_EDTypeFlag: '',
+                            HRMED_EarnDedFlag: 'Earning',
+                            HRMED_AmountPercentFlag: 'Amount',
+                            HRMED_AmountPercent: '0',
+                            HRMED_ActiveFlag: true,
+                            HRMED_RoundOffFlag: '',
+                            HRMED_Order: 0,
+                            HRMED_ReviseFlg: false
+                        });
+                    }}>
+                    Clear
+                </Button>
+                {isEditMode && !isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
             </div>
         </form>
     );

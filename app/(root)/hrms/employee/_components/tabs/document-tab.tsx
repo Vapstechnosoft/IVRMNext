@@ -8,7 +8,7 @@ import { Plus, Trash2, Upload } from 'lucide-react';
 import { useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function UploadDocumentTab({ control, register, errors, isSubmitting, watch, onClear }: any) {
+export function UploadDocumentTab({ control, register, errors, isSubmitting, watch, onClear, currentTab, onPreviousTab }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'documentList'
@@ -25,9 +25,12 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
         <div className='space-y-4'>
             <div className='rounded-md border'>
                 <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
-                    <h3 className='font-semibold'>DOCUMENT UPLOAD DETAILS [ONLY JPEG,DOCX,DOC,PDF FILES (0-2MB)]</h3>
-                    <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
-                        <Plus className='mr-1 h-4 w-4' /> Add Document
+                    <h3 className='font-semibold text-base text-gray-900 uppercase'>DOCUMENT UPLOAD DETAILS [ONLY JPEG,DOCX,DOC,PDF FILES (0-2MB)]</h3>
+                    <Button 
+                        type='button' 
+                        className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80'
+                        onClick={addEmptyRow}>
+                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Document
                     </Button>
                 </div>
             </div>
@@ -54,8 +57,11 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                                 <div className='font-semibold'>Document #{index + 1}</div>
                                 <div className='flex gap-2'>
                                     <Badge variant='secondary'>Row {index + 1}</Badge>
-                                    <Button type='button' variant='ghost' size='sm' onClick={() => remove(index)}>
-                                        <Trash2 className='mr-1 h-4 w-4' /> Remove
+                                    <Button 
+                                        type='button' 
+                                        className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
+                                        onClick={() => remove(index)}>
+                                        <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
                                     </Button>
                                 </div>
                             </div>
@@ -120,7 +126,7 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                 })}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }

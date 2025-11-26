@@ -5,19 +5,19 @@ import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { cn } from '@/lib/utils';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function MedicalRecordTab({ control, register, errors, isSubmitting, onClear }: any) {
+export function MedicalRecordTab({ control, register, errors, isSubmitting, onClear, currentTab, onPreviousTab }: any) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _ = { control, register, errors, isSubmitting };
     return (
         <div className='space-y-4'>
             <div className='rounded-md border'>
                 <div className='border-b bg-muted px-4 py-2'>
-                    <h3 className='font-semibold'>Medical Record</h3>
+                    <h3 className='font-semibold text-base text-gray-900 uppercase'>MEDICAL RECORD</h3>
                 </div>
             </div>
 
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                <div className='grid grid-cols-2 gap-2'>
+                <div className='grid grid-cols-2 gap-4'>
                     <HRMSInputText
                         label="Employee's Height"
                         id='employeeHeight'
@@ -42,7 +42,7 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                     error={errors.eyeSightIssue?.message}
                 />
 
-                <div className='grid grid-cols-2 gap-2'>
+                <div className='grid grid-cols-2 gap-4'>
                     <HRMSInputText
                         label="Employee's Weight"
                         id='employeeWeight'
@@ -86,7 +86,7 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                     <div className='font-medium text-[0.8rem] text-destructive'>{errors.identificationMark.message}</div>
                 )}
             </div>
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }

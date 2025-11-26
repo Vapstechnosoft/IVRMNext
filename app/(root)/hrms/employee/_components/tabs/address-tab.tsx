@@ -143,8 +143,10 @@ export function AddressTab({
     setValue,
     countries = [],
     states = [],
-    onClear
-}: AddressTabProps) {
+    onClear,
+    currentTab,
+    onPreviousTab
+}: AddressTabProps & { currentTab?: string; onPreviousTab?: () => void }) {
     // Use useWatch instead of watch() to prevent unnecessary re-renders
     const sameAsCommunicationAddress = useWatch({ control, name: 'sameAsCommunicationAddress' });
     const contactAddress = useWatch({ control, name: 'contactAddress' });
@@ -252,14 +254,13 @@ export function AddressTab({
             <div className='space-y-4'>
                 <div className='rounded-md border'>
                     <div className='border-b bg-muted px-4 py-2'>
-                        <h3 className='font-semibold'>Contact Address:</h3>
+                        <h3 className='font-semibold text-base text-gray-900 uppercase'>CONTACT ADDRESS:</h3>
                     </div>
                     <div className='p-4'>
-                        <div className='grid grid-cols-1 gap-4'>
+                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                             <HRMSInputText label='Address' id='contactAddress' maxLength={100} {...register('contactAddress')} error={errors.contactAddress?.message} />
                             <HRMSInputText label='Area' id='contactArea' {...register('contactArea')} error={errors.contactArea?.message} />
-                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                        <div className='flex-1 space-y-2'>
+                            <div className='space-y-2'>
                             <Controller
                                 name='contactCountry'
                                 control={control}
@@ -303,8 +304,8 @@ export function AddressTab({
                                     </>
                                 )}
                             />
-                        </div>
-                        <div className='flex-1 space-y-2'>
+                            </div>
+                            <div className='space-y-2'>
                             <Controller
                                 name='contactState'
                                 control={control}
@@ -346,13 +347,8 @@ export function AddressTab({
                                     </>
                                 )}
                             />
-                        </div>
-                    </div>
-                    <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                        <div className='flex-1 space-y-2'>
+                            </div>
                             <HRMSInputText label='City' id='contactCity' {...register('contactCity')} error={errors.contactCity?.message} />
-                        </div>
-                        <div className='flex-1 space-y-2'>
                             <HRMSInputText
                                 label='Pincode'
                                 id='contactPincode'
@@ -360,8 +356,6 @@ export function AddressTab({
                                 {...register('contactPincode')}
                                 error={errors.contactPincode?.message}
                             />
-                        </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -371,7 +365,7 @@ export function AddressTab({
             <div className='space-y-4'>
                 <div className='rounded-md border'>
                     <div className='border-b bg-muted px-4 py-2'>
-                        <h3 className='font-semibold'>Permanent Address:</h3>
+                        <h3 className='font-semibold text-base text-gray-900 uppercase'>PERMANENT ADDRESS:</h3>
                     </div>
                     <div className='p-4'>
                         <div className='mb-4 flex items-center space-x-2'>
@@ -384,7 +378,7 @@ export function AddressTab({
                             />
                             <Label htmlFor='sameAsCommunicationAddress'>Same As Communication Address</Label>
                         </div>
-                        <div className='grid grid-cols-1 gap-4'>
+                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                             <HRMSInputText
                                 label='Address'
                                 id='permanentAddress'
@@ -400,8 +394,7 @@ export function AddressTab({
                                 error={errors.permanentArea?.message}
                                 disabled={sameAsCommunicationAddress}
                             />
-                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                        <div className='flex-1 space-y-2'>
+                            <div className='space-y-2'>
                             <Controller
                                 name='permanentCountry'
                                 control={control}
@@ -445,8 +438,8 @@ export function AddressTab({
                                     </>
                                 )}
                             />
-                        </div>
-                        <div className='flex-1 space-y-2'>
+                            </div>
+                            <div className='space-y-2'>
                             <Controller
                                 name='permanentState'
                                 control={control}
@@ -488,34 +481,27 @@ export function AddressTab({
                                     </>
                                 )}
                             />
-                        </div>
                             </div>
-                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                                <div className='flex-1 space-y-2'>
-                                    <HRMSInputText
-                                        label='City'
-                                        id='permanentCity'
-                                        {...register('permanentCity')}
-                                        error={errors.permanentCity?.message}
-                                        disabled={sameAsCommunicationAddress}
-                                    />
-                                </div>
-                                <div className='flex-1 space-y-2'>
-                                    <HRMSInputText
-                                        label='Pincode'
-                                        id='permanentPincode'
-                                        maxLength={10}
-                                        {...register('permanentPincode')}
-                                        error={errors.permanentPincode?.message}
-                                        disabled={sameAsCommunicationAddress}
-                                    />
-                                </div>
-                            </div>
+                            <HRMSInputText
+                                label='City'
+                                id='permanentCity'
+                                {...register('permanentCity')}
+                                error={errors.permanentCity?.message}
+                                disabled={sameAsCommunicationAddress}
+                            />
+                            <HRMSInputText
+                                label='Pincode'
+                                id='permanentPincode'
+                                maxLength={10}
+                                {...register('permanentPincode')}
+                                error={errors.permanentPincode?.message}
+                                disabled={sameAsCommunicationAddress}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }
