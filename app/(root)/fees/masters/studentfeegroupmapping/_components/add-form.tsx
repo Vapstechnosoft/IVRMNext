@@ -88,7 +88,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         resolver: zodResolver(masterStudentFeeGroupMappingSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            // asmaY_Id:academicYear,
+            //  asmaY_Id:academicYear,
             asmaY_Id: 231,
             mI_Id: '30',
             institutionName: 'vidya_vikas_vidya_samste'
@@ -107,16 +107,60 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
     }, [academicYearData, reset]);
 
     const asmaY_Id = watch('asmaY_Id');
+    const classId = watch('class');
+    const sectionId = watch('section');
+    const admCategoryId =
+        filterType === 'FCC'
+            ? watch('feeClassCategory')
+            : filterType === 'AC'
+              ? watch('classCategory')
+              : filterType === 'BR'
+                ? watch('busRouting')
+                : filterType === 'CCAT'
+                  ? watch('casteCategory')
+                  : 0;
+
+    const toSafeNumber = (val: string | number | null | undefined) => {
+        const num = Number(val);
+        return Number.isNaN(num) ? 0 : num;
+    };
+
+    // const fetchStudentClassMapping = async () => {
+    //     try {
+    //         setMasterStudentClassMappingLoading(true);
+    //         setMasterStudentClassMappingError(null);
+
+    //         const res = await getStudentClassMapping(asmaY_Id,toSafeNumber(classId), toSafeNumber(sectionId),apisearchParams_);
+    //         const saferes = Array.isArray(res) ? res : [];
+    //         setMasterStudentClassMapping(saferes);
+    //         setTableProps(useDataTableProps(res || []));
+    //     } catch (error) {
+    //         console.error('Error fetching student class mapping', error);
+    //         setMasterStudentClassMappingError(error);
+    //     } finally {
+    //         setMasterStudentClassMappingLoading(false);
+    //     }
+    // };
 
     const fetchStudentClassMapping = async () => {
+        if (!asmaY_Id) return;
+
         try {
             setMasterStudentClassMappingLoading(true);
             setMasterStudentClassMappingError(null);
 
-            const res = await getStudentClassMapping(asmaY_Id, apisearchParams_);
+            const res = await getStudentClassMapping(
+                asmaY_Id,
+                toSafeNumber(classId),
+                toSafeNumber(sectionId),
+                toSafeNumber(admCategoryId),
+                filterType,
+                apisearchParams_
+            );
+
             const saferes = Array.isArray(res) ? res : [];
             setMasterStudentClassMapping(saferes);
-            setTableProps(useDataTableProps(res || []));
+            setTableProps(useDataTableProps(res ?? []));
         } catch (error) {
             console.error('Error fetching student class mapping', error);
             setMasterStudentClassMappingError(error);
@@ -127,13 +171,14 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
 
     useEffect(() => {
         fetchStudentClassMapping();
-    }, [academicYear, apisearchParams_]);
+    }, [asmaY_Id, classId, sectionId, admCategoryId, filterType, apisearchParams_]);
 
     useEffect(() => {
-        loadStudentFeeGroupList();
-    }, [academicYear]);
+        fetchStudentClassMapping();
+    }, [academicYear, classId, sectionId, admCategoryId, filterType, apisearchParams_]);
 
     const loadStudentFeeGroupList = async () => {
+        if (!asmaY_Id) return;
         try {
             setMasterFeeStudentGroupListLoading(true);
             setMasterFeeStudentGroupListError(null);
@@ -148,41 +193,45 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         }
     };
 
+    useEffect(() => {
+        loadStudentFeeGroupList();
+    }, [academicYear]);
+
     const {
         data: masterfeeClassCategory,
         isLoading: masterfeeClassCategoryLoading,
         error: masterfeeClassCategoryError
-    } = useStudentFeeGroupFeeClassCategoryDropDown();
+    } = useStudentFeeGroupFeeClassCategoryDropDown(filterType === 'FCC');
 
     const {
         data: masterAdmissionClassCategory,
         isLoading: masterAdmissionClassLoading,
         error: masterAdmissionClassError
-    } = useStudentFeeGroupAdmiClassCategoryDropDown();
+    } = useStudentFeeGroupAdmiClassCategoryDropDown(filterType === 'AC');
 
     const {
         data: masterFeeBusRouting,
         isLoading: masterFeeBusRoutingLoading,
         error: masterFeeBusRoutingError
-    } = useStudentFeeBusRoutingDropDown();
+    } = useStudentFeeBusRoutingDropDown(filterType === 'BR');
 
     const {
         data: masterFeeCasteCategory,
         isLoading: masterFeeCasteCategoryLoading,
         error: masterFeeCasteCategoryError
-    } = useStudentFeeCasteRoutingDropDown();
+    } = useStudentFeeCasteRoutingDropDown(filterType === 'CCAT');
 
     const {
         data: masterStudentFeeclassData,
         isLoading: masterStudentFeeclassDataLoading,
         error: masterStudentFeeclassDataError
-    } = useStudentClassDropDown();
+    } = useStudentClassDropDown(classWise);
 
     const {
         data: masterStudentFeeSectionData,
         isLoading: masterStudentFeeSectionDataLoading,
         error: masterStudentFeeSectionDataError
-    } = useStudentSectionDropDown();
+    } = useStudentSectionDropDown(classWise);
 
     const handleApiParmasChange = (apiparmas: ApiSearchparams) => {
         setApisearchParams_((prev) => {
@@ -191,22 +240,10 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         });
     };
 
-    //     const {
-    //         data: masterFeeStudentGroupList,
-    //         isLoading: masterFeeStudentGroupListLoading,
-    //         error: masterFeeStudentGroupListError
-    //     } = useStudentFeeGroupList(asmaY_Id);
-
-    //     useEffect(() => {
-    //         //console.log(masterFeeStudentGroupList);
-    //     }, [masterFeeStudentGroupList,asmaY_Id]);
-    useEffect(() => {
-        // console.log(masterStudentClassMapping);
-    }, [masterStudentClassMapping]);
-
     useEffect(() => {
         setClassWise(false);
         setAreaWise(false);
+        reset();
     }, [filterType]);
 
     const handleFilterChange = (value: string) => {
@@ -566,10 +603,10 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                     </div>
                     {filterType === 'FCC' && (
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='classCategory'>Fee Class Category</Label>
+                            <Label htmlFor='feeClassCategory'>Fee Class Category</Label>
 
                             <Controller
-                                name='classCategory'
+                                name='feeClassCategory'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
@@ -603,7 +640,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                                 )}
                             />
 
-                            {errors.classCategory && <FormError>{errors.classCategory.message}</FormError>}
+                            {errors.feeClassCategory && <FormError>{errors.feeClassCategory.message}</FormError>}
                         </div>
                     )}
                     {filterType === 'AC' && (
@@ -744,10 +781,11 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(v) => {
-                                            field.onChange(v);
+                                            const selectedClass = Number(v);
+                                            field.onChange(selectedClass);
                                             setStudentClass(v);
                                         }}
-                                        value={field.value}>
+                                        value={field.value?.toString() ?? ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
@@ -786,10 +824,11 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(v) => {
-                                            field.onChange(v);
+                                            const selectedsection = Number(v);
+                                            field.onChange(selectedsection);
                                             setSection(v);
                                         }}
-                                        value={field.value}>
+                                        value={field.value?.toString() ?? ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>

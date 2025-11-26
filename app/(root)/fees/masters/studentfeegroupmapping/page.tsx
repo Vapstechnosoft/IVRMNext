@@ -120,7 +120,7 @@ function MasterStudentFeeGroupMapping({
 function FormSections() {
     const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
         useFormContext<IMasterStudentFeeGroupMappingList>();
-    const { isOrderDetailsOpen } = useFormContext<IMasterStudentClassMappingList>();
+    const { isOrderDetailsOpen, closeOrderDetails } = useFormContext<IMasterStudentClassMappingList>();
     return (
         <>
             {/* Add Form */}
@@ -149,7 +149,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isOrderDetailsOpen && <MasterViewDetail />}
+            {isOrderDetailsOpen && <MasterViewDetail onSuccess={closeOrderDetails} />}
 
             {isDeleteFormOpen && selectedRow && (
                 <DeleteStudentFeeGroupMappingForm
@@ -163,8 +163,10 @@ function FormSections() {
         </>
     );
 }
-
-function MasterViewDetail() {
+interface MasterViewDetailProps {
+    onSuccess?: () => void;
+}
+function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
     const { isOrderDetailsOpen, closeOrderDetails, selectedRow } = useFormContext<any>();
 
     const [loading, setLoading] = useState(false);
@@ -232,6 +234,7 @@ function MasterViewDetail() {
             if (response?.success) {
                 toast.success(response.message || 'Updated successfully');
                 // handleReset();
+                onSuccess?.();
             } else {
                 toast.error(response?.message || 'Update failed');
             }
