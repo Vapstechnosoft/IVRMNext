@@ -198,8 +198,10 @@ export const masterClassYearlyCategorySchema = {
 
 export const masterGroupsGroupingSchema = {
     addOrUpdate: z.object({
-        fmgG_GroupName: z.string().min(1, { message: 'Group Name is required' }),
-        fmgG_GroupCode: z.string().min(1, { message: 'Group Code is required' }),
+        //fmgG_GroupName: z.string().min(1, { message: 'Group Name is required' }),
+        fmgG_GroupName: createStringSchema('Group Name', 1, 60),
+        fmgG_GroupCode: createStringSchema('Group Code', 1, 60),
+        //fmgG_GroupCode: z.string().min(1, { message: 'Group Code is required' }),
         selectedFeeGroupIds: z.array(z.number()).min(1, { message: 'Please select at least one fee group' })
     }),
     delete: z.object({
@@ -228,7 +230,9 @@ export const masterInstallmentSchema = {
 export const masterGroupSchema = {
     addOrUpdate: z.object({
         fmG_Id: z.number().int().optional(),
-        fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
+        //fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
+        //fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
+        fmG_GroupName: createStringSchema('Fee Group', 1, 200),
         fmG_Remarks: z.string().min(1, { message: 'Remarks is required' }).max(500),
         transportHostelType: z.preprocess((val) => {
             if (typeof val === 'string' && val.trim() === '') return undefined;

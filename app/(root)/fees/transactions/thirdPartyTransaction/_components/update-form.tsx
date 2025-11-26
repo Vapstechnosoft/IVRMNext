@@ -27,7 +27,7 @@ import {
 
 import { cn } from '@/lib/utils';
 import { thirdPartyTransactionSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateMasterfeehead } from '@/server/fees/masters/feehead';
+import { saveorUpdateThirdPartyTrasaction } from '@/server/fees/trasactions/thirdPartyTrasaction';
 import type { IFeeThirdPartyTransaction } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 
@@ -153,7 +153,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             const payloaddata = JSON.stringify(payload);
             console.log('Payload to be sent:', payloaddata);
 
-            const response = await addOrUpdateMasterfeehead(payload);
+            const response = await saveorUpdateThirdPartyTrasaction(payload);
 
             if (response.success) {
                 toast.success('Updated Successfully');
@@ -259,14 +259,18 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 </div>
             ) : (
                 <div className='flex items-center gap-4'>
-                    <Label className='min-w-[150px] text-right'>Student Name</Label>
+                    <Label className='min-w-[150px] text-right'>
+                        Student Name<span className='text-red-500'>*</span>
+                    </Label>
                     <InputText {...register('studentName')} className='min-w-[400px]' />
                 </div>
             )}
 
             {/* Group */}
             <div className='flex items-center gap-4'>
-                <Label className='min-w-[150px] text-right'>Group</Label>
+                <Label className='min-w-[150px] text-right'>
+                    Group<span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     name='groupId'
                     control={control}
@@ -289,7 +293,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
 
             {/* Head */}
             <div className='flex items-center gap-4'>
-                <Label className='min-w-[150px] text-right'>Head</Label>
+                <Label className='min-w-[150px] text-right'>
+                    Head<span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     name='headId'
                     control={control}
@@ -312,7 +318,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
 
             {/* Amount */}
             <div className='flex items-center gap-4'>
-                <Label className='min-w-[150px] text-right'>Amount</Label>
+                <Label className='min-w-[150px] text-right'>
+                    Amount<span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     name='amount'
                     control={control}
@@ -434,7 +442,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
             {(watchPaymentMode === 'B' || watchPaymentMode === 'R') && (
                 <>
                     <div className='flex items-center gap-4'>
-                        <Label className='min-w-[150px] text-right'>Bank Name</Label>
+                        <Label className='min-w-[150px] text-right'>
+                            Bank Name<span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='bankId'
                             control={control}
@@ -457,7 +467,9 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                     </div>
 
                     <div className='flex items-center gap-4'>
-                        <Label className='min-w-[150px] text-right'>Cheque Date</Label>
+                        <Label className='min-w-[150px] text-right'>
+                            Cheque Date<span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='chequeDate'
                             control={control}
