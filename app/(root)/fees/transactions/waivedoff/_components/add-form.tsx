@@ -13,7 +13,8 @@ import {
 } from '@/hooks/fees/useTrasactions';
 
 import { feeTransactionWaivedOffSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateTransactionWaivedOff } from '@/server/fees/trasactions/waived_off';
+import { addOrUpdateTransactionWaivedOff, getGroupList, getStudentdetails } from '@/server/fees/trasactions/waived_off';
+import type { feeTransactionWaivedOffStudentDetails } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, CheckSquare, Save, Square, Trash } from 'lucide-react';
@@ -43,12 +44,34 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         reset,
         setValue,
         control,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feeTransactionWaivedOffSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {}
     });
+    const [academicYear, setAcademicYear] = useState<number | null>(null);
+    const [classWise, setclassWise] = useState<number | null>(null);
+    const [sectionWise, setsectionWise] = useState<number | null>(null);
+    const [studentWise, setstudentWise] = useState<number | null>(null);
+    const [remarks, setRemarks] = useState<string>('');
+    const [grouplist, setgrouplist] = useState<string[]>([]);
+    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+    const [searchTerm, setSearchTerm] = useState<string>('');
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [refundableType, setRefundableType] = useState<string>('Refundable');
+    const [fineWaiveOff, setFineWaiveOff] = useState<boolean>(false);
+    const [completeFineWaiveOff, setCompleteFineWaiveOff] = useState<boolean>(false);
+    const [nameType, setnameType] = useState<string>('NameReg.No');
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [studentDetails, setStudentDetails] = useState<feeTransactionWaivedOffStudentDetails[]>([]);
+    const [studentDetailsLoading, setStudentDetailsLoading] = useState(false);
+    const [studentDetailsError, setStudentDetailsError] = useState<any>(null);
+    const [groupList, setGroupList] = useState<feeTransactionWaivedOffStudentDetails[]>([]);
+    const [groupListLoading, setGroupListLoading] = useState(false);
+    const [groupListError, setGroupListError] = useState<any>(null);
 
     const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
     useEffect(() => {
@@ -63,39 +86,57 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     const { data: classdata, isLoading: classloading, error: classerror } = useClassdropdowndatafee();
     const { data: sectiondata, isLoading: secloading, error: sectionerror } = useSectiondropdowndatafee();
 
-    const [academicYear, setAcademicYear] = useState<number | null>(null);
-    const [classWise, setclassWise] = useState<number | null>(null);
-    const [sectionWise, setsectionWise] = useState<number | null>(null);
-    const [studentWise, setstudentWise] = useState<string | null>(null);
-    const [remarks, setRemarks] = useState<string>('');
-    const [grouplist, setgrouplist] = useState<string[]>([]);
-    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
-    const [searchTerm, setSearchTerm] = useState<string>('');
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-    const [refundableType, setRefundableType] = useState<string>('Refundable');
-    const [fineWaiveOff, setFineWaiveOff] = useState<boolean>(false);
-    const [completeFineWaiveOff, setCompleteFineWaiveOff] = useState<boolean>(false);
-    const [nameType, setnameType] = useState<string>('NameReg.No');
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const asmay_Id = watch('academicYear');
+    const asmcl_Id = watch('class');
+    const asms_Id = watch('section');
+    const amst_Id = watch('student');
+    const fetchStudentDetails = async () => {
+        if (!asmay_Id) return;
+        if (!asms_Id) return;
+        if (!asms_Id) return;
+        try {
+            setStudentDetailsLoading(true);
+            setStudentDetailsError(null);
+
+            const res = await getStudentdetails(Number(asmay_Id), Number(asmcl_Id), Number(asms_Id));
+            setStudentDetails(res.data ?? []);
+        } catch (error) {
+            console.error('Error fetching student class mapping', error);
+            setStudentDetailsError(error);
+        } finally {
+            setStudentDetailsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStudentDetails();
+    }, [asmay_Id, asmcl_Id, asms_Id]);
+
+    const fetcthGroupList = async () => {
+        if (!asmay_Id) return;
+        if (!amst_Id) return;
+        try {
+            setGroupListLoading(true);
+            setGroupListError(null);
+
+            const res = await getGroupList(Number(asmay_Id), Number(amst_Id), refundableType);
+            setGroupList(res.data ?? []);
+        } catch (error) {
+            console.error('Error fetching student class mapping', error);
+            setGroupListError(error);
+        } finally {
+            setGroupListLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetcthGroupList();
+    }, [asmay_Id, amst_Id, refundableType]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0] || null;
         setPhotoFile(f);
     };
-
-    const formattedStudentList = useMemo(() => {
-        if (nameType === 'NameReg.No') {
-            return studentData.map((student) => ({
-                value: `${student.name}-${student.regNo}`,
-                label: `${student.name} - ${student.regNo}`
-            }));
-        }
-        return studentData.map((student) => ({
-            value: `${student.regNo}-${student.name}`,
-            label: `${student.regNo} - ${student.name}`
-        }));
-    }, [nameType]);
 
     const nonRefundableOption = ['KG TUTION FEES', 'KG ILM & OTHER FEES', 'KG BOOKS FEES', 'KG ILM & OTHER FEES', 'KG BOOKS FEES'];
 
@@ -125,7 +166,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         });
     };
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const activeTypeValues = [fineWaiveOff ? 'FineWaiveOff' : null, completeFineWaiveOff ? 'CompleteFineWaiveOff' : null].filter(
                 Boolean
@@ -144,7 +185,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 nameFormat: nameType,
                 grouplist: selectedGroups.length > 0 ? selectedGroups : grouplist
             };
-            const jsondata = JSON.stringify(payload);
             const response = await addOrUpdateTransactionWaivedOff(payload as any);
             if (response.success) {
                 toast.success(response.message);
@@ -352,21 +392,55 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                         </div>
 
                         <div>
-                            <Label>
+                            <Label htmlFor='student'>
                                 Student Name:<span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select onValueChange={setstudentWise} value={studentWise || ''}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Student' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {formattedStudentList.map((student) => (
-                                        <SelectItem key={student.value} value={student.value}>
-                                            {student.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className='flex w-full max-w-[400px] flex-col'>
+                                <Controller
+                                    name='student'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            key={field.value || 'empty'}
+                                            onValueChange={(val) => {
+                                                const id = Number(val);
+                                                field.onChange(id);
+                                                setstudentWise(id);
+                                            }}
+                                            value={
+                                                typeof field.value === 'number' || typeof field.value === 'string'
+                                                    ? String(field.value)
+                                                    : ''
+                                            }>
+                                            <SelectTrigger className='min-w-[400px] text-center'>
+                                                <SelectValue placeholder='--Select student --' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {studentDetailsLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : studentDetailsError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading
+                                                    </SelectItem>
+                                                ) : studentDetails.length === 0 ? (
+                                                    <SelectItem value='nodata' disabled>
+                                                        No Results
+                                                    </SelectItem>
+                                                ) : (
+                                                    studentDetails?.map((item: any) => (
+                                                        <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
+                                                            {item.studentName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.student && <FormError>{errors.student.message}</FormError>}
+                            </div>
                         </div>
 
                         <div>

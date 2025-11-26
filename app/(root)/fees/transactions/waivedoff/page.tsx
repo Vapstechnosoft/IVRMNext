@@ -3,9 +3,9 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useStudentFeeGroupMapping } from '@/hooks/fees/useMasters';
+import { useFeeTransactionWaivedOffGrid } from '@/hooks/fees/useTrasactions';
 import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
-import type { IMasterStudentFeeGroupMappingList } from '@/types/fees/masters/masters';
+import type { feeTransactionWaivedOffGrid } from '@/types/fees/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeTransactionWaiveOffForm from './_components/add-form';
@@ -16,7 +16,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function fineSlabPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error, refetchAll } = useStudentFeeGroupMapping(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useFeeTransactionWaivedOffGrid(searchParams);
 
     return (
         <FormProvider<IFeeConfig>>
@@ -57,7 +57,7 @@ function MasterFeeOpeningBalancePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterStudentFeeGroupMappingList>
+                    <GenericDataTable<feeTransactionWaivedOffGrid>
                         {...tableProps}
                         columns={FeeTransactionWaivedOff}
                         isLoading={isLoading}

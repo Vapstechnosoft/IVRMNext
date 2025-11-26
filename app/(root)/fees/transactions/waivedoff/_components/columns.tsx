@@ -4,11 +4,11 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterStudentFeeGroupMappingList } from '@/types/fees/masters/masters';
+import type { feeTransactionWaivedOffGrid } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export const FeeTransactionWaivedOff: ColumnDef<IMasterStudentFeeGroupMappingList>[] = [
+export const FeeTransactionWaivedOff: ColumnDef<feeTransactionWaivedOffGrid>[] = [
     {
         id: 'fmgM_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='pl-6' />,
@@ -24,31 +24,37 @@ export const FeeTransactionWaivedOff: ColumnDef<IMasterStudentFeeGroupMappingLis
     {
         accessorKey: 'amsT_FirstName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_FirstName')}</div>
+        cell: ({ row }) => {
+            const first = row.original.amsT_FirstName || '';
+            const middle = row.original.amsT_MiddleName || '';
+            const last = row.original.amsT_LastName || '';
+
+            return <div>{`${first} ${middle} ${last}`.trim()}</div>;
+        }
     },
 
     {
-        accessorKey: 'asmcL_ClassName',
+        accessorKey: 'fmH_FeeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Name' />,
-        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>
+        cell: ({ row }) => <div>{row.getValue('fmH_FeeName')}</div>
     },
 
     {
-        accessorKey: 'asmC_SectionName',
+        accessorKey: 'ftI_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment' />,
-        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>
+        cell: ({ row }) => <div>{row.getValue('ftI_Name')}</div>
     },
 
     {
-        accessorKey: 'amsT_Mobile',
+        accessorKey: 'fswO_WaivedOffAmount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_Mobile')}</div>
+        cell: ({ row }) => <div>{row.getValue('fswO_WaivedOffAmount')}</div>
     },
 
     {
-        accessorKey: 'fmG_GroupName',
+        accessorKey: 'fswO_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => <div>{row.getValue('fmG_GroupName')}</div>
+        cell: ({ row }) => <div>{formatDate(row.getValue('fswO_Date'))}</div>
     },
 
     {
@@ -59,14 +65,18 @@ export const FeeTransactionWaivedOff: ColumnDef<IMasterStudentFeeGroupMappingLis
     }
 ];
 
+function formatDate(dateString: string) {
+    if (!dateString || dateString === '0001-01-01T00:00:00') return '-';
+    return new Date(dateString).toLocaleDateString();
+}
 function ActionButtonsCell({
     rowData
 }: {
-    rowData: IMasterStudentFeeGroupMappingList;
+    rowData: feeTransactionWaivedOffGrid;
 }) {
-    const { openDeleteForm } = useFormContext<IMasterStudentFeeGroupMappingList>();
+    const { openDeleteForm } = useFormContext<feeTransactionWaivedOffGrid>();
 
-    const handleDelete = useCallback((data: IMasterStudentFeeGroupMappingList) => openDeleteForm?.(data), [openDeleteForm]);
+    const handleDelete = useCallback((data: feeTransactionWaivedOffGrid) => openDeleteForm?.(data), [openDeleteForm]);
 
     return (
         <ActionButtons
