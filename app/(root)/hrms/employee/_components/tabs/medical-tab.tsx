@@ -10,8 +10,10 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
     const _ = { control, register, errors, isSubmitting };
     return (
         <div className='space-y-4'>
-            <div className='rounded-md bg-primary px-4 py-2 text-primary-foreground'>
-                <h3 className='font-semibold'>Medical Record</h3>
+            <div className='rounded-md border'>
+                <div className='border-b bg-muted px-4 py-2'>
+                    <h3 className='font-semibold'>Medical Record</h3>
+                </div>
             </div>
 
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>

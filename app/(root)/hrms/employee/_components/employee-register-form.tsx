@@ -14,8 +14,8 @@ import {
 import type { EmployeeListItem } from '@/types/hrms/employee';
 import type { SavePersonalDetailsRequest } from '@/types/hrms/employee-register';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { AddressTab } from './tabs/address-tab';
@@ -54,7 +54,7 @@ const validatePincode = (pincode: string) => {
     return cleaned.length >= 5 && cleaned.length <= 10;
 };
 
-// Qualification details schema
+// Qualification details schema (using actual form field names)
 const qualificationDetailSchema = z
     .object({
         qualification: z.string().min(1, 'Qualification is required').max(50, 'Qualification must not exceed 50 characters'),
@@ -68,15 +68,15 @@ const qualificationDetailSchema = z
                 const year = Number.parseInt(val);
                 return !Number.isNaN(year) && year >= 1900 && year <= new Date().getFullYear();
             }, 'Year of Passing must be a valid year'),
-        country: z.string().min(1, 'Country is required'),
-        state: z.string().min(1, 'State is required'),
+        qualificationCountry: z.string().min(1, 'Country is required'),
+        qualificationState: z.string().min(1, 'State is required'),
         registrationNo: z.string().max(50, 'Registration No must not exceed 50 characters').optional(),
         result: z.string().min(1, 'Result is required').max(20, 'Result must not exceed 20 characters'),
         cgpaOrPercentage: z.string().min(1, 'CGPA or Percentage type is required'),
         cgpa: z.string().optional(),
         percentage: z.string().optional(),
-        areaOfSpecialization: z.string().optional(),
-        phd: z.boolean().optional(),
+        areaOfSpecialisation: z.string().optional(),
+        phdFlag: z.boolean().optional(),
         medicalCouncil: z.string().max(50, 'Medical Council must not exceed 50 characters').optional(),
         thesisTitle: z.string().max(255, 'Thesis Title must not exceed 255 characters').optional(),
         registrationYear: z
@@ -111,7 +111,7 @@ const qualificationDetailSchema = z
         }
     );
 
-// Experience details schema
+// Experience details schema (using actual form field names)
 const experienceDetailSchema = z
     .object({
         organisationName: z.string().min(1, 'Organisation Name is required').max(255, 'Organisation Name must not exceed 255 characters'),
@@ -121,39 +121,54 @@ const experienceDetailSchema = z
             .max(500, 'Organisation Address must not exceed 500 characters'),
         department: z.string().min(1, 'Department is required').max(100, 'Department must not exceed 100 characters'),
         designation: z.string().min(1, 'Designation is required').max(100, 'Designation must not exceed 100 characters'),
-        dateOfJoining: z.string().min(1, 'Date of Joining is required'),
-        dateOfLeaving: z.string().min(1, 'Date of Leaving is required'),
-        lastDrawnSalary: z
-            .string()
-            .min(1, 'Last Drawn Salary is required')
-            .refine((val) => {
-                const num = Number.parseFloat(val);
-                return !Number.isNaN(num) && num >= 0;
-            }, 'Last Drawn Salary must be a positive number'),
+        joinDate: z.string().min(1, 'Date of Joining is required'),
+        exitDate: z.string().min(1, 'Date of Leaving is required'),
+        noOfYears: z.string().optional(),
+        noOfMonths: z.string().optional(),
+        annualSalary: z.string().optional(),
         reasonForLeaving: z.string().min(1, 'Reason For Leaving is required').max(500, 'Reason For Leaving must not exceed 500 characters')
     })
     .refine(
         (data) => {
-            if (data.dateOfJoining && data.dateOfLeaving) {
-                return new Date(data.dateOfLeaving) >= new Date(data.dateOfJoining);
+            if (data.joinDate && data.exitDate) {
+                return new Date(data.exitDate) >= new Date(data.joinDate);
             }
             return true;
         },
         {
-            message: 'Date of Leaving must be on or after Date of Joining',
-            path: ['dateOfLeaving']
+            message: 'Exit Date must be on or after Join Date',
+            path: ['exitDate']
         }
     );
 
-// Document schema
+// Document schema (using actual form field names)
 const documentSchema = z.object({
-    nameOfDocument: z.string().min(1, 'Name of Document is required').max(255, 'Name of Document must not exceed 255 characters'),
+    documentName: z.string().min(1, 'Name of Document is required').max(255, 'Name of Document must not exceed 255 characters'),
     documentDescription: z.string().max(500, 'Document Description must not exceed 500 characters').optional(),
     document: z
-        .instanceof(File)
+        .any()
         .optional()
         .refine((file) => {
+            // Handle null/undefined (for edit mode when document is not changed)
             if (!file) return true;
+
+            // Handle FileList - extract first file
+            let actualFile: File | null = null;
+            if (file instanceof FileList) {
+                actualFile = file[0] || null;
+            } else if (file instanceof File) {
+                actualFile = file;
+            } else if (Array.isArray(file) && file.length > 0 && file[0] instanceof File) {
+                // Handle array of files (sometimes React Hook Form returns arrays)
+                actualFile = file[0];
+            } else {
+                // For edit mode, document might be a string (existing file name) or other type
+                // Allow it to pass validation if it's not a File/FileList
+                return true;
+            }
+
+            if (!actualFile) return true;
+            
             const maxSize = 2 * 1024 * 1024; // 2MB
             const allowedTypes = [
                 'image/jpeg',
@@ -161,7 +176,7 @@ const documentSchema = z.object({
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'application/pdf'
             ];
-            return file.size <= maxSize && allowedTypes.includes(file.type);
+            return actualFile.size <= maxSize && allowedTypes.includes(actualFile.type);
         }, 'File must be JPEG, DOC, DOCX, or PDF and not exceed 2MB')
 });
 
@@ -402,6 +417,14 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
     const [activeTab, setActiveTab] = useState('employee');
     const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(selectedRow?.HRME_Id || null);
 
+    // Refs to track if we've already initialized form values to prevent infinite loops
+    const hasInitializedDropdowns = useRef(false);
+    const hasInitializedAddress = useRef(false);
+    const hasInitializedBank = useRef(false);
+    const hasInitializedArrays = useRef(false);
+    const lastEmployeeId = useRef<number | null>(null);
+    const resetInProgress = useRef(false);
+
     // Fetch full employee details when in edit mode
     const { data: employeeDetails, isLoading: isLoadingEmployee } = useEmployeeRegisterById(selectedRow?.HRME_Id || null);
 
@@ -435,8 +458,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 qualificationDetails: [],
                 experienceDetails: [],
                 documentList: [],
-                mobileDetails: [],
-                emailDetails: [],
+                mobileDetails: [{ mobileNo: '', type: 'Default' }],
+                emailDetails: [{ emailId: '', type: 'Default' }],
                 bankDetails: []
             };
         }
@@ -496,11 +519,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             panCardNo: emp.HRME_PANCardNo || '',
 
             // Contact
-            mobileDetails: emp.HRME_MobileNo ? [{ mobileNo: emp.HRME_MobileNo.toString(), type: 'default' }] : [],
-            emailDetails: emp.HRME_EmailId ? [{ emailId: emp.HRME_EmailId, type: 'default' }] : [],
+            mobileDetails: emp.HRME_MobileNo ? [{ mobileNo: emp.HRME_MobileNo.toString(), type: 'Default' }] : [],
+            emailDetails: emp.HRME_EmailId ? [{ emailId: emp.HRME_EmailId, type: 'Default' }] : [],
             // Bank details - will be set properly after options load (see useEffect)
             bankDetails: emp.HRME_BankAccountNo
-                ? [{ bankAccountNo: emp.HRME_BankAccountNo, employerBankName: '', accountType: 'default' }]
+                ? [{ bankAccountNo: emp.HRME_BankAccountNo, employerBankName: '', accountType: 'Default' }]
                 : [],
 
             // Address
@@ -597,8 +620,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         handleSubmit,
         reset,
         watch,
+        getValues,
         setValue,
         trigger,
+        setError,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(formSchema),
@@ -607,9 +633,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         defaultValues: formDefaultValues
     });
 
-    // Watch for country changes to help debug state loading
-    const contactCountry = watch('contactCountry');
-    const permanentCountry = watch('permanentCountry');
+    // Removed debug logging to reduce console noise and improve performance
+
+    // Watch for country changes using useWatch (more optimized, doesn't cause re-renders)
+    const contactCountry = useWatch({ control, name: 'contactCountry' });
+    const permanentCountry = useWatch({ control, name: 'permanentCountry' });
 
     // Update savedEmployeeId when selectedRow changes
     useEffect(() => {
@@ -619,24 +647,68 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
     }, [selectedRow]);
 
     // Reset form when switching modes or when employee details load in edit mode
+    // CRITICAL: Only reset once per employee ID change to prevent infinite loops
     useEffect(() => {
         // Only reset if we're not loading and have the necessary data
-        if (!isLoadingEmployee && !isLoadingOnload) {
-            if (isEditMode && employeeDetails) {
-                // Edit mode: reset with employee data
-                // Removed debug logs
-                // Reset the entire form
-                reset(formDefaultValues, { keepDefaultValues: false });
-            } else if (!isEditMode) {
-                // Add mode: reset to empty defaults
-                reset(formDefaultValues, { keepDefaultValues: false });
-            }
+        // Also check if employee ID has changed to prevent unnecessary resets
+        const currentEmployeeId = employeeDetails?.HRME_Id || null;
+        const employeeIdChanged = lastEmployeeId.current !== currentEmployeeId;
+        const isFirstLoad = lastEmployeeId.current === null && currentEmployeeId !== null;
+        const shouldReset = employeeIdChanged || isFirstLoad;
+        
+        // Prevent multiple resets from happening simultaneously
+        if (resetInProgress.current) {
+            return;
         }
-    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues, reset]); // Reset when mode changes, employee ID changes, or form defaults update
+        
+        // Don't reset if formDefaultValues hasn't been computed yet
+        if (!formDefaultValues) {
+            return;
+        }
+        
+        if (!isLoadingEmployee && !isLoadingOnload && shouldReset) {
+            resetInProgress.current = true;
+            
+            // Reset initialization flags when resetting
+            hasInitializedDropdowns.current = false;
+            hasInitializedAddress.current = false;
+            hasInitializedBank.current = false;
+            hasInitializedArrays.current = false;
+            
+            // Update lastEmployeeId BEFORE reset to prevent re-triggering
+            lastEmployeeId.current = currentEmployeeId;
+            
+            // Use requestAnimationFrame to ensure reset happens after current render cycle
+            requestAnimationFrame(() => {
+                try {
+                    if (isEditMode && employeeDetails) {
+                        // Edit mode: reset with employee data
+                        reset(formDefaultValues, { keepDefaultValues: false });
+                    } else if (!isEditMode) {
+                        // Add mode: reset to empty defaults
+                        reset(formDefaultValues, { keepDefaultValues: false });
+                    }
+                } finally {
+                    // Always clear the flag, even if reset fails
+                    resetInProgress.current = false;
+                }
+            });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload]); // DO NOT include formDefaultValues - it causes infinite loops
 
     // Ensure dropdown values are set after options are loaded (handles timing issues)
     useEffect(() => {
-        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData) {
+        // Reset initialization flag when employee ID changes
+        if (lastEmployeeId.current !== employeeDetails?.HRME_Id) {
+            hasInitializedDropdowns.current = false;
+            hasInitializedAddress.current = false;
+            hasInitializedBank.current = false;
+            hasInitializedArrays.current = false;
+            lastEmployeeId.current = employeeDetails?.HRME_Id || null;
+        }
+
+        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData && !hasInitializedDropdowns.current) {
             // Check if basic options are available
             const hasBasicOptions =
                 (onloadData.employeeTypedropdownlist?.length ?? 0) > 0 &&
@@ -650,7 +722,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 (onloadData.castedropdownlist?.length ?? 0) > 0;
 
             if (hasBasicOptions && formDefaultValues) {
-                // Removed debug log
+                // Mark as initialized before setting values to prevent re-running
+                hasInitializedDropdowns.current = true;
                 // Use requestAnimationFrame to ensure DOM is ready
                 requestAnimationFrame(() => {
                     // Explicitly set dropdown values to ensure Select components recognize them
@@ -686,11 +759,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
             }
         }
-    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, onloadData, formDefaultValues, setValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, onloadData, setValue]);
 
     // Set address dropdown values after countries and states are loaded
     useEffect(() => {
-        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData) {
+        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData && !hasInitializedAddress.current) {
             const countriesCount = onloadData.countrydropdownlist?.length || 0;
             const _statesCount = Array.isArray(onloadData.AllState) ? onloadData.AllState.length : 0; // AllState might be null
             const hasCountries = countriesCount > 0;
@@ -700,6 +774,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             const _stateProperties = Object.keys(onloadData || {}).filter((k) => k.toLowerCase().includes('state'));
 
             if (hasCountries && formDefaultValues) {
+                hasInitializedAddress.current = true;
                 requestAnimationFrame(() => {
                     // Set countries first (they're available)
                     if (formDefaultValues.contactCountry) {
@@ -719,41 +794,51 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
             }
         }
-    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, onloadData, formDefaultValues, setValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, onloadData, setValue]);
 
     // Set states when they become available (might load after country is selected or separately)
     useEffect(() => {
-        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData) {
+        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData && hasInitializedAddress.current) {
             const statesCount = Array.isArray(onloadData.AllState) ? onloadData.AllState.length : 0; // AllState might be null
             if (statesCount > 0 && formDefaultValues) {
+                // Only set states if they haven't been set yet (check current form values using getValues to avoid re-renders)
+                const currentContactState = getValues('contactState');
+                const currentPermanentState = getValues('permanentState');
+                
                 requestAnimationFrame(() => {
-                    if (formDefaultValues.contactState) {
+                    if (formDefaultValues.contactState && !currentContactState) {
                         setValue('contactState', formDefaultValues.contactState, { shouldValidate: false, shouldDirty: false });
                     }
-                    if (formDefaultValues.permanentState) {
+                    if (formDefaultValues.permanentState && !currentPermanentState) {
                         setValue('permanentState', formDefaultValues.permanentState, { shouldValidate: false, shouldDirty: false });
                     }
                 });
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         isEditMode,
         employeeDetails?.HRME_Id,
         isLoadingEmployee,
         isLoadingOnload,
         onloadData?.AllState?.length,
-        formDefaultValues,
-        setValue
+        setValue,
+        getValues
     ]);
 
     // Monitor when countries are selected to check if states become available
+    // NOTE: This useEffect was causing infinite loops. Removed dependency on contactCountry/permanentCountry
+    // States are now set in the previous useEffect when AllState becomes available
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        // Removed debug logs
-    }, [contactCountry, permanentCountry, onloadData?.AllState]);
+        // States are handled in the previous useEffect when AllState length changes
+        // No action needed here to prevent infinite loops
+    }, [onloadData?.AllState?.length]);
 
     // Set bank details after banks are loaded
     useEffect(() => {
-        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData) {
+        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData && !hasInitializedBank.current) {
             const hasBankOptions = (onloadData.bankdropdownlist?.length ?? 0) > 0;
 
             // Debug: Check what bank-related properties exist in employee data
@@ -841,11 +926,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 // Update bank details with found bank ID
                 // Only set bank ID if we found one, otherwise leave it empty for manual selection
                 if (bankAccountNo) {
+                    hasInitializedBank.current = true;
                     const updatedBankDetails = [
                         {
                             bankAccountNo: bankAccountNo,
                             employerBankName: bankId || '', // Set bank ID here (empty string if not found - user will need to select manually)
-                            accountType: 'default'
+                            accountType: 'Default'
                         }
                     ];
 
@@ -856,11 +942,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 }
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         isEditMode,
         employeeDetails?.HRME_Id,
         employeeDetails?.HRME_BankAccountNo,
-        (employeeDetails as any)?.employeebankDetails,
         isLoadingEmployee,
         isLoadingOnload,
         onloadData,
@@ -869,19 +955,21 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
 
     // Set qualification details after form reset (for edit mode)
     useEffect(() => {
-        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues) {
+        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues && !hasInitializedArrays.current) {
             const qualificationDetails = formDefaultValues.qualificationDetails || [];
             if (qualificationDetails.length > 0) {
+                hasInitializedArrays.current = true;
                 requestAnimationFrame(() => {
                     setValue('qualificationDetails', qualificationDetails as any, { shouldValidate: false, shouldDirty: false });
                 });
             }
         }
-    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.qualificationDetails, setValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.qualificationDetails?.length, setValue]);
 
     // Set experience details after form reset (for edit mode)
     useEffect(() => {
-        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues) {
+        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues && !hasInitializedArrays.current) {
             const experienceDetails = formDefaultValues.experienceDetails || [];
             if (experienceDetails.length > 0) {
                 requestAnimationFrame(() => {
@@ -889,11 +977,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
             }
         }
-    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.experienceDetails, setValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.experienceDetails?.length, setValue]);
 
     // Set document details after form reset (for edit mode)
     useEffect(() => {
-        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues) {
+        if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues && !hasInitializedArrays.current) {
             const documentList = formDefaultValues.documentList || [];
             if (documentList.length > 0) {
                 requestAnimationFrame(() => {
@@ -901,7 +990,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
             }
         }
-    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.documentList, setValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.documentList?.length, setValue]);
 
     // Set medical fields after form reset (for edit mode)
     useEffect(() => {
@@ -915,20 +1005,10 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 setValue('eyeSightIssue', formDefaultValues.eyeSightIssue || '', { shouldValidate: false, shouldDirty: false });
                 setValue('anyHealthIssue', formDefaultValues.anyHealthIssue || '', { shouldValidate: false, shouldDirty: false });
                 setValue('identificationMark', formDefaultValues.identificationMark || '', { shouldValidate: false, shouldDirty: false });
-
-                // Verify they were set
-                const _currentValues = watch([
-                    'employeeHeight',
-                    'employeeHeightUnit',
-                    'employeeWeight',
-                    'employeeWeightUnit',
-                    'eyeSightIssue',
-                    'anyHealthIssue',
-                    'identificationMark'
-                ]);
             });
         }
-    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues, setValue, watch]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, setValue]);
 
     // Set other details fields after form reset (for edit mode)
     useEffect(() => {
@@ -945,23 +1025,10 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 setValue('employeeLeft', formDefaultValues.employeeLeft || false, { shouldValidate: false, shouldDirty: false });
                 setValue('lastWorkingDay', formDefaultValues.lastWorkingDay || '', { shouldValidate: false, shouldDirty: false });
                 setValue('reasonForLeaving', formDefaultValues.reasonForLeaving || '', { shouldValidate: false, shouldDirty: false });
-
-                // Verify they were set
-                const _currentValues = watch([
-                    'biometricCode',
-                    'rfCardId',
-                    'punchRelaxation',
-                    'stopPension',
-                    'dateOfStopPension',
-                    'msTeamsUserName',
-                    'msTeamsPassword',
-                    'employeeLeft',
-                    'lastWorkingDay',
-                    'reasonForLeaving'
-                ]);
             });
         }
-    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues, setValue, watch]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, setValue]);
 
     // Set photo when employee details load
     useEffect(() => {
@@ -1234,7 +1301,428 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         return payload;
     };
 
-    const onSubmit = async (data: FormFields) => {
+    // Tab-specific field lists for validation
+    const tabFieldMap: Record<string, (keyof FormFields)[]> = {
+        employee: [
+            'firstName',
+            'middleName',
+            'lastName',
+            'employeeCode',
+            'typeOfEmployment',
+            'employeeGroup',
+            'school',
+            'designation',
+            'grade',
+            'fatherName',
+            'motherName',
+            'dateOfBirth',
+            'dateOfJoining',
+            'dateOfConfirmation',
+            'dateOfRetirement',
+            'gender',
+            'maritalStatus',
+            'religion',
+            'casteCategory',
+            'caste',
+            'bloodGroup',
+            'salaryType',
+            'modeOfPayment',
+            'subjectTaught',
+            'epf',
+            'ppf',
+            'phdResearchGuide',
+            'recognitionYear',
+            'teachingNonTeaching',
+            'pfApplicable',
+            'ptMaxAmount',
+            'pfMaxAmount',
+            'pfFixedAmount',
+            'pfAccNo',
+            'uanNumber',
+            'pfDate',
+            'esiApplicable',
+            'esiAccNo',
+            'gratuityAccNo',
+            'esiDate',
+            'nationalSSN',
+            'aadharNo',
+            'panCardNo',
+            'mobileDetails',
+            'emailDetails',
+            'bankDetails'
+        ],
+        address: [
+            'contactAddress',
+            'contactArea',
+            'contactCountry',
+            'contactState',
+            'contactCity',
+            'contactPincode',
+            'permanentAddress',
+            'permanentArea',
+            'permanentCountry',
+            'permanentState',
+            'permanentCity',
+            'permanentPincode',
+            'sameAsCommunicationAddress'
+        ],
+        qualification: ['qualificationDetails'],
+        experience: ['experienceDetails'],
+        document: ['documentList'],
+        medical: ['employeeHeight', 'employeeHeightUnit', 'employeeWeight', 'employeeWeightUnit', 'eyeSightIssue', 'anyHealthIssue', 'identificationMark'],
+        other: ['biometricCode', 'rfCardId', 'punchRelaxation', 'stopPension', 'dateOfStopPension', 'msTeamsUserName', 'msTeamsPassword', 'employeeLeft', 'lastWorkingDay', 'reasonForLeaving']
+    };
+
+    // Custom tab-specific submit handler - now receives data from handleSubmit
+    const handleTabSubmit = async (data: FormFields) => {
+        console.log('🔍 [SUBMIT] handleTabSubmit called', { activeTab, isEditMode, savedEmployeeId });
+        
+        const currentTabFields = tabFieldMap[activeTab] || [];
+        
+        if (currentTabFields.length === 0) {
+            // If no fields defined for this tab, proceed without validation
+            console.log('🔍 [SUBMIT] No fields defined for tab, proceeding to processFormSubmission');
+            await processFormSubmission(data);
+            return;
+        }
+
+        // Clear previous errors for fields not in current tab
+        // Get all possible fields from the tabFieldMap
+        const allTabFields = Object.values(tabFieldMap).flat();
+        const uniqueFields = Array.from(new Set(allTabFields)) as (keyof FormFields)[];
+        uniqueFields.forEach((field) => {
+            if (!currentTabFields.includes(field)) {
+                clearErrors(field);
+            }
+        });
+
+        // For qualification tab, validate qualificationDetails array directly
+        if (activeTab === 'qualification') {
+            const quals = data.qualificationDetails || [];
+            if (quals.length === 0) {
+                setError('qualificationDetails', {
+                    type: 'manual',
+                    message: 'At least one qualification is required'
+                });
+                toast.error('At least one qualification is required');
+                return;
+            }
+
+            // Validate each qualification using the qualificationDetailSchema
+            let hasErrors = false;
+            quals.forEach((qual: any, index: number) => {
+                const result = qualificationDetailSchema.safeParse(qual);
+                if (!result.success) {
+                    hasErrors = true;
+                    result.error.errors.forEach((error) => {
+                        const fieldPath = `qualificationDetails.${index}.${error.path.join('.')}`;
+                        setError(fieldPath as any, {
+                            type: 'validation',
+                            message: error.message
+                        });
+                    });
+                }
+            });
+
+            if (hasErrors) {
+                const firstError = quals.find((qual: any, index: number) => {
+                    const result = qualificationDetailSchema.safeParse(qual);
+                    return !result.success;
+                });
+                if (firstError) {
+                    const result = qualificationDetailSchema.safeParse(firstError);
+                    if (result.error) {
+                        toast.error(result.error.errors[0]?.message || 'Please check qualification details');
+                    }
+                }
+                return;
+            }
+        }
+        // For experience tab, validate experienceDetails array directly
+        else if (activeTab === 'experience') {
+            const exps = data.experienceDetails || [];
+            if (exps.length === 0) {
+                setError('experienceDetails', {
+                    type: 'manual',
+                    message: 'At least one experience is required'
+                });
+                toast.error('At least one experience is required');
+                return;
+            }
+
+            let hasErrors = false;
+            exps.forEach((exp: any, index: number) => {
+                const result = experienceDetailSchema.safeParse(exp);
+                if (!result.success) {
+                    hasErrors = true;
+                    result.error.errors.forEach((error) => {
+                        const fieldPath = `experienceDetails.${index}.${error.path.join('.')}`;
+                        setError(fieldPath as any, {
+                            type: 'validation',
+                            message: error.message
+                        });
+                    });
+                }
+            });
+
+            if (hasErrors) {
+                const firstError = exps.find((exp: any, index: number) => {
+                    const result = experienceDetailSchema.safeParse(exp);
+                    return !result.success;
+                });
+                if (firstError) {
+                    const result = experienceDetailSchema.safeParse(firstError);
+                    if (result.error) {
+                        toast.error(result.error.errors[0]?.message || 'Please check experience details');
+                    }
+                }
+                return;
+            }
+        }
+        // For document tab, validate documentList array directly
+        else if (activeTab === 'document') {
+            const docs = data.documentList || [];
+            if (docs.length === 0) {
+                setError('documentList', {
+                    type: 'manual',
+                    message: 'At least one document is required'
+                });
+                toast.error('At least one document is required');
+                return;
+            }
+
+            let hasErrors = false;
+            docs.forEach((doc: any, index: number) => {
+                const result = documentSchema.safeParse(doc);
+                if (!result.success) {
+                    hasErrors = true;
+                    result.error.errors.forEach((error) => {
+                        const fieldPath = `documentList.${index}.${error.path.join('.')}`;
+                        setError(fieldPath as any, {
+                            type: 'validation',
+                            message: error.message
+                        });
+                    });
+                }
+            });
+
+            if (hasErrors) {
+                const firstError = docs.find((doc: any, index: number) => {
+                    const result = documentSchema.safeParse(doc);
+                    return !result.success;
+                });
+                if (firstError) {
+                    const result = documentSchema.safeParse(firstError);
+                    if (result.error) {
+                        toast.error(result.error.errors[0]?.message || 'Please check document details');
+                    }
+                }
+                return;
+            }
+        }
+        // For other tabs (including employee), use trigger to validate only current tab fields
+        else {
+            // Validate only the current tab's fields
+            console.log('🔍 [VALIDATION] Triggering validation for fields:', currentTabFields);
+            const isValid = await trigger(currentTabFields as any);
+            console.log('🔍 [VALIDATION] Validation result:', { isValid, activeTab, errors: Object.keys(errors) });
+            
+            if (!isValid) {
+                console.log('🔴 [VALIDATION] Validation failed for tab:', activeTab);
+                // Wait a bit for errors to be set in the form state
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Get current errors after trigger (errors is already destructured from formState)
+                // Re-read errors to get the latest state after trigger
+                const formValues = getValues();
+                const currentErrors: Record<string, any> = {};
+                
+                // Check each field and manually set errors if they're missing and required
+                if (activeTab === 'employee') {
+                    // Manually validate required employee fields and set errors
+                    if (!formValues.firstName || formValues.firstName.trim() === '') {
+                        setError('firstName', { type: 'required', message: 'Name of the Employee is required' });
+                        currentErrors['firstName'] = { message: 'Name of the Employee is required' };
+                    }
+                    if (!formValues.employeeCode || formValues.employeeCode.trim() === '') {
+                        setError('employeeCode', { type: 'required', message: 'Employee Code is required' });
+                        currentErrors['employeeCode'] = { message: 'Employee Code is required' };
+                    }
+                    if (!formValues.typeOfEmployment || formValues.typeOfEmployment === '0' || formValues.typeOfEmployment === '') {
+                        setError('typeOfEmployment', { type: 'required', message: 'Type of Employment is required' });
+                        currentErrors['typeOfEmployment'] = { message: 'Type of Employment is required' };
+                    }
+                    if (!formValues.employeeGroup || formValues.employeeGroup === '0' || formValues.employeeGroup === '') {
+                        setError('employeeGroup', { type: 'required', message: 'Employee Group is required' });
+                        currentErrors['employeeGroup'] = { message: 'Employee Group is required' };
+                    }
+                    if (!formValues.school || formValues.school === '0' || formValues.school === '') {
+                        setError('school', { type: 'required', message: 'Department is required' });
+                        currentErrors['school'] = { message: 'Department is required' };
+                    }
+                    if (!formValues.designation || formValues.designation === '0' || formValues.designation === '') {
+                        setError('designation', { type: 'required', message: 'Designation is required' });
+                        currentErrors['designation'] = { message: 'Designation is required' };
+                    }
+                    if (!formValues.grade || formValues.grade === '0' || formValues.grade === '') {
+                        setError('grade', { type: 'required', message: 'Grade is required' });
+                        currentErrors['grade'] = { message: 'Grade is required' };
+                    }
+                    if (!formValues.fatherName || formValues.fatherName.trim() === '') {
+                        setError('fatherName', { type: 'required', message: "Father's Name is required" });
+                        currentErrors['fatherName'] = { message: "Father's Name is required" };
+                    }
+                    if (!formValues.motherName || formValues.motherName.trim() === '') {
+                        setError('motherName', { type: 'required', message: "Mother's Name is required" });
+                        currentErrors['motherName'] = { message: "Mother's Name is required" };
+                    }
+                    if (!formValues.dateOfBirth || formValues.dateOfBirth.trim() === '') {
+                        setError('dateOfBirth', { type: 'required', message: 'Date of Birth is required' });
+                        currentErrors['dateOfBirth'] = { message: 'Date of Birth is required' };
+                    }
+                    if (!formValues.dateOfJoining || formValues.dateOfJoining.trim() === '') {
+                        setError('dateOfJoining', { type: 'required', message: 'Date of Joining is required' });
+                        currentErrors['dateOfJoining'] = { message: 'Date of Joining is required' };
+                    }
+                    if (!formValues.gender || formValues.gender === '0' || formValues.gender === '') {
+                        setError('gender', { type: 'required', message: 'Gender is required' });
+                        currentErrors['gender'] = { message: 'Gender is required' };
+                    }
+                }
+                
+                // Get errors from form state (after manual setError calls)
+                const formStateErrors = errors;
+                currentTabFields.forEach((field) => {
+                    const fieldError = formStateErrors[field as keyof typeof formStateErrors];
+                    if (fieldError && !currentErrors[field]) {
+                        currentErrors[field] = fieldError;
+                    }
+                });
+                
+                // Also check nested fields for employee tab (mobileDetails, emailDetails, bankDetails)
+                if (activeTab === 'employee') {
+                    const mobileErrors = formStateErrors.mobileDetails;
+                    const emailErrors = formStateErrors.emailDetails;
+                    const bankErrors = formStateErrors.bankDetails;
+                    
+                    if (mobileErrors) {
+                        currentErrors['mobileDetails'] = mobileErrors;
+                    }
+                    if (emailErrors) {
+                        currentErrors['emailDetails'] = emailErrors;
+                    }
+                    if (bankErrors) {
+                        currentErrors['bankDetails'] = bankErrors;
+                    }
+                }
+                
+                // For address tab, manually validate and set errors for required fields
+                if (activeTab === 'address') {
+                    if (!formValues.contactAddress || formValues.contactAddress.trim() === '') {
+                        setError('contactAddress', { type: 'required', message: 'Contact Address is required' });
+                        currentErrors['contactAddress'] = { message: 'Contact Address is required' };
+                    }
+                    if (!formValues.contactCountry || formValues.contactCountry === '0' || formValues.contactCountry === '') {
+                        setError('contactCountry', { type: 'required', message: 'Contact Country is required' });
+                        currentErrors['contactCountry'] = { message: 'Contact Country is required' };
+                    }
+                    if (!formValues.contactState || formValues.contactState === '0' || formValues.contactState === '') {
+                        setError('contactState', { type: 'required', message: 'Contact State is required' });
+                        currentErrors['contactState'] = { message: 'Contact State is required' };
+                    }
+                    if (!formValues.contactCity || formValues.contactCity.trim() === '') {
+                        setError('contactCity', { type: 'required', message: 'Contact City is required' });
+                        currentErrors['contactCity'] = { message: 'Contact City is required' };
+                    }
+                    if (!formValues.contactPincode || formValues.contactPincode.trim() === '') {
+                        setError('contactPincode', { type: 'required', message: 'Contact Pincode is required' });
+                        currentErrors['contactPincode'] = { message: 'Contact Pincode is required' };
+                    }
+                    
+                    // Validate permanent address if "Same As Communication Address" is not checked
+                    if (!formValues.sameAsCommunicationAddress) {
+                        if (!formValues.permanentAddress || formValues.permanentAddress.trim() === '') {
+                            setError('permanentAddress', { type: 'required', message: 'Permanent Address is required' });
+                            currentErrors['permanentAddress'] = { message: 'Permanent Address is required' };
+                        }
+                        if (!formValues.permanentCountry || formValues.permanentCountry === '0' || formValues.permanentCountry === '') {
+                            setError('permanentCountry', { type: 'required', message: 'Permanent Country is required' });
+                            currentErrors['permanentCountry'] = { message: 'Permanent Country is required' };
+                        }
+                        if (!formValues.permanentState || formValues.permanentState === '0' || formValues.permanentState === '') {
+                            setError('permanentState', { type: 'required', message: 'Permanent State is required' });
+                            currentErrors['permanentState'] = { message: 'Permanent State is required' };
+                        }
+                        if (!formValues.permanentCity || formValues.permanentCity.trim() === '') {
+                            setError('permanentCity', { type: 'required', message: 'Permanent City is required' });
+                            currentErrors['permanentCity'] = { message: 'Permanent City is required' };
+                        }
+                        if (!formValues.permanentPincode || formValues.permanentPincode.trim() === '') {
+                            setError('permanentPincode', { type: 'required', message: 'Permanent Pincode is required' });
+                            currentErrors['permanentPincode'] = { message: 'Permanent Pincode is required' };
+                        }
+                    }
+                }
+                
+                // Show the first error message
+                const errorFields = Object.keys(currentErrors);
+                if (errorFields.length > 0) {
+                    const firstError = currentErrors[errorFields[0]];
+                    let errorMessage = '';
+                    
+                    // Handle nested array errors
+                    if (firstError && typeof firstError === 'object' && 'root' in firstError) {
+                        errorMessage = firstError.root?.message || `Please check ${errorFields[0]}`;
+                    } else if (firstError && typeof firstError === 'object' && 'message' in firstError) {
+                        errorMessage = typeof firstError.message === 'string' 
+                            ? firstError.message 
+                            : `Please check ${errorFields[0]}`;
+                    } else if (Array.isArray(firstError) && firstError.length > 0) {
+                        const firstArrayError = firstError[0];
+                        if (firstArrayError && typeof firstArrayError === 'object' && 'message' in firstArrayError) {
+                            errorMessage = typeof firstArrayError.message === 'string'
+                                ? firstArrayError.message
+                                : `Please check ${errorFields[0]}`;
+                        }
+                    } else {
+                        errorMessage = `Please check ${errorFields.length} field(s) with errors in ${activeTab} tab`;
+                    }
+                    
+                    if (errorMessage) {
+                        toast.error(errorMessage);
+                    } else {
+                        toast.error(`Please fill all required fields in ${activeTab} tab`);
+                    }
+                    
+                    // Scroll to first error field
+                    const firstField = errorFields[0];
+                    if (firstField) {
+                        // Try different selectors for the field
+                        const fieldElement = document.querySelector(`[name="${firstField}"]`) as HTMLElement ||
+                                           document.querySelector(`#${firstField}`) as HTMLElement ||
+                                           document.querySelector(`[id*="${firstField}"]`) as HTMLElement;
+                        if (fieldElement) {
+                            setTimeout(() => {
+                                fieldElement.focus();
+                                fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            }, 100);
+                        }
+                    }
+                } else {
+                    // If no specific errors found, show generic message
+                    toast.error(`Please fill all required fields in ${activeTab} tab`);
+                }
+                return;
+            }
+        }
+
+        // If validation passes, proceed with submission
+        console.log('🔍 [SUBMIT] Validation passed, proceeding to processFormSubmission');
+        await processFormSubmission(data);
+    };
+
+    const processFormSubmission = async (data: FormFields) => {
+        console.log('🔍 [SUBMIT] processFormSubmission called', { activeTab, isEditMode, savedEmployeeId });
         try {
             // Employee Tab: Just validate employee fields and move to Address tab (no API call)
             if (activeTab === 'employee') {
@@ -1318,77 +1806,9 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             }
 
             // Address Tab: Save Employee + Address together (same endpoint)
+            // Note: Only validate address fields here - employee fields are validated in employee tab
             if (activeTab === 'address') {
-                // First validate employee fields (same as employee tab)
-                const employeeErrors: string[] = [];
-
-                if (!data.firstName || data.firstName.trim() === '') {
-                    employeeErrors.push('Name of the Employee is required');
-                }
-                if (!data.employeeCode || data.employeeCode.trim() === '') {
-                    employeeErrors.push('Employee Code is required');
-                }
-                if (!data.typeOfEmployment || data.typeOfEmployment === '0' || data.typeOfEmployment === '') {
-                    employeeErrors.push('Type of Employment is required');
-                }
-                if (!data.employeeGroup || data.employeeGroup === '0' || data.employeeGroup === '') {
-                    employeeErrors.push('Employee Group is required');
-                }
-                if (!data.school || data.school === '0' || data.school === '') {
-                    employeeErrors.push('Department is required');
-                }
-                if (!data.designation || data.designation === '0' || data.designation === '') {
-                    employeeErrors.push('Designation is required');
-                }
-                if (!data.grade || data.grade === '0' || data.grade === '') {
-                    employeeErrors.push('Grade is required');
-                }
-                if (!data.fatherName || data.fatherName.trim() === '') {
-                    employeeErrors.push("Father's Name is required");
-                }
-                if (!data.motherName || data.motherName.trim() === '') {
-                    employeeErrors.push("Mother's Name is required");
-                }
-                if (!data.dateOfBirth || data.dateOfBirth.trim() === '') {
-                    employeeErrors.push('Date of Birth is required');
-                }
-                if (!data.dateOfJoining || data.dateOfJoining.trim() === '') {
-                    employeeErrors.push('Date of Joining is required');
-                }
-                if (!data.gender || data.gender === '0' || data.gender === '') {
-                    employeeErrors.push('Gender is required');
-                }
-
-                // Validate mobile number if provided
-                const mobileNo = data.mobileDetails?.[0]?.mobileNo;
-                if (mobileNo && mobileNo.trim() !== '' && !validateMobileNumber(mobileNo)) {
-                    employeeErrors.push('Mobile Number must be 10 digits');
-                }
-
-                // Validate email if provided
-                const emailId = data.emailDetails?.[0]?.emailId;
-                if (emailId && emailId.trim() !== '' && !validateEmail(emailId)) {
-                    employeeErrors.push('Email must be a valid email address');
-                }
-
-                // Validate Aadhar if provided
-                if (data.aadharNo && data.aadharNo.trim() !== '' && !validateAadharNumber(data.aadharNo)) {
-                    employeeErrors.push('Aadhar Number must be 12 digits');
-                }
-
-                // Validate PAN if provided
-                if (data.panCardNo && data.panCardNo.trim() !== '' && !validatePANNumber(data.panCardNo)) {
-                    employeeErrors.push('PAN Number must be in format ABCDE1234F');
-                }
-
-                // Validate date of confirmation if provided
-                if (data.dateOfConfirmation && data.dateOfJoining) {
-                    if (new Date(data.dateOfConfirmation) < new Date(data.dateOfJoining)) {
-                        employeeErrors.push('Date of Confirmation must be after Date of Joining');
-                    }
-                }
-
-                // Then validate required address fields
+                // Validate only address fields (employee fields are validated in employee tab)
                 const addressErrors: string[] = [];
                 if (!data.contactAddress || data.contactAddress.trim() === '') {
                     addressErrors.push('Contact Address is required');
@@ -1429,15 +1849,15 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     }
                 }
 
-                // Combine all errors
-                const allErrors = [...employeeErrors, ...addressErrors];
-
-                if (allErrors.length > 0) {
-                    toast.error(allErrors[0] || 'Please fill all required fields');
+                // Show address errors if any
+                if (addressErrors.length > 0) {
+                    toast.error(addressErrors[0] || 'Please fill all required address fields');
                     return;
                 }
 
+                console.log('🔍 [SUBMIT] Address tab - preparing to save', { isEditMode, savedEmployeeId });
                 const payload = mapFormDataToApiFormat(data);
+                console.log('🔍 [SUBMIT] Address tab - payload prepared', { HRME_Id: payload.HRME_Id, employeeCode: payload.HRME_EmployeeCode });
 
                 savePersonalDetails(payload, {
                     onSuccess: async (response) => {
@@ -1448,6 +1868,49 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         if (responseData === 'Duplicate' || responseMessage === 'Duplicate') {
                             toast.error('Employee code already exists. Please use a different code.');
                             return;
+                        }
+
+                        // Extract HRME_Id from response - it can be in various places depending on response structure
+                        let employeeId: number | null = null;
+                        
+                        // Log the full response for debugging
+                        console.log('🔍 [SAVE] Full response structure:', {
+                            responseType: typeof response,
+                            responseKeys: typeof response === 'object' && response !== null ? Object.keys(response) : [],
+                            responseData,
+                            responseMessage,
+                            responseHRME_Id: (response as any)?.HRME_Id,
+                            responseDataHRME_Id: responseData?.HRME_Id
+                        });
+
+                        if (typeof response === 'object' && response !== null) {
+                            // Check direct property on response
+                            if ('HRME_Id' in response && typeof (response as any).HRME_Id === 'number' && (response as any).HRME_Id > 0) {
+                                employeeId = (response as any).HRME_Id;
+                            }
+                            // Check in data property (for wrapped ApiResponse)
+                            else if (responseData && typeof responseData === 'object' && 'HRME_Id' in responseData && typeof responseData.HRME_Id === 'number' && responseData.HRME_Id > 0) {
+                                employeeId = responseData.HRME_Id;
+                            }
+                            // Check nested in data.data (double-wrapped)
+                            else if (responseData && typeof responseData === 'object' && responseData.data && typeof responseData.data === 'object' && 'HRME_Id' in responseData.data) {
+                                employeeId = responseData.data.HRME_Id;
+                            }
+                        }
+
+                        // Store the employee ID for subsequent tabs
+                        if (employeeId && employeeId > 0) {
+                            console.log('✅ [SAVE] Extracted HRME_Id from response:', employeeId);
+                            setSavedEmployeeId(employeeId);
+                            // Note: HRME_Id is not a form field, it's stored in savedEmployeeId state
+                        } else if (!savedEmployeeId && (responseData === 'Add' || responseMessage === 'Add')) {
+                            // If we don't have an ID but got "Add" response, log a warning
+                            // The user should check the API response structure
+                            console.warn('⚠️ [SAVE] Employee created (Add response) but HRME_Id not found in response. Please check API response structure.');
+                            console.warn('⚠️ [SAVE] Full response:', JSON.stringify(response, null, 2));
+                        } else if (savedEmployeeId) {
+                            // If we already have a saved employee ID, keep using it
+                            console.log('ℹ️ [SAVE] Using existing savedEmployeeId:', savedEmployeeId);
                         }
 
                         if (responseData === 'Add' || responseMessage === 'Add') {
@@ -1466,7 +1929,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         if ((response as any)?.success) {
                             toast.success('Employee and Address details saved successfully');
                             setActiveTab('qualification');
-                        } else {
                         }
                     },
                     onError: (error: any) => {
@@ -1480,6 +1942,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errorDataString.includes('required');
 
                         if (hasRequiredError) {
+                            // Handle required field errors if needed
                         }
 
                         console.error('🔍 [SAVE] ERROR:', error?.message);
@@ -1491,11 +1954,13 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
 
             // Qualification Tab: Save qualification details
             if (activeTab === 'qualification') {
+                console.log('🔍 [SUBMIT] Qualification tab - checking savedEmployeeId', { savedEmployeeId, isEditMode });
                 if (!savedEmployeeId) {
                     toast.error('Please save Employee and Address details first');
                     setActiveTab('employee');
                     return;
                 }
+                console.log('🔍 [SUBMIT] Qualification tab - proceeding with save');
 
                 const qualificationDetails = data.qualificationDetails || [];
 
@@ -1531,7 +1996,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         throw new Error('Country is required');
                     }
                     // Check if states are available before requiring state
-                    const statesAvailable = options.states && options.states.length > 0;
+                    const statesAvailable = options?.states && options.states.length > 0;
                     if (!stateId && statesAvailable) {
                         toast.error('State is required. Please select a state from the dropdown.');
                         throw new Error('State is required');
@@ -1581,11 +2046,13 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
 
             // Experience Tab: Save experience details
             if (activeTab === 'experience') {
+                console.log('🔍 [SUBMIT] Experience tab - checking savedEmployeeId', { savedEmployeeId, isEditMode });
                 if (!savedEmployeeId) {
                     toast.error('Please save Employee and Address details first');
                     setActiveTab('employee');
                     return;
                 }
+                console.log('🔍 [SUBMIT] Experience tab - proceeding with save');
 
                 const experienceDetails = data.experienceDetails || [];
 
@@ -1628,11 +2095,13 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
 
             // Document Tab: Save document details
             if (activeTab === 'document') {
+                console.log('🔍 [SUBMIT] Document tab - checking savedEmployeeId', { savedEmployeeId, isEditMode });
                 if (!savedEmployeeId) {
                     toast.error('Please save Employee and Address details first');
                     setActiveTab('employee');
                     return;
                 }
+                console.log('🔍 [SUBMIT] Document tab - proceeding with save');
 
                 const documentList = data.documentList || [];
 
@@ -1753,42 +2222,69 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             } else {
                 toast.info(`Saving ${activeTab} tab data... (Not yet implemented)`);
             }
-        } catch (error: any) {
-            console.error('🔍 [SAVE] Submit error:', error);
+        } catch (_error: any) {
+            console.error('🔍 [SAVE] Submit error:', _error);
             toast.error('An error occurred while submitting the form');
         }
     };
 
     // Prepare options for EmployeeTab and AddressTab (memoized to prevent unnecessary re-renders)
+    // Use array lengths in dependencies to prevent recreation when arrays are the same
     const options = useMemo(() => {
+        if (!onloadData) return null;
         const opts = {
-            empTypes: onloadData?.employeeTypedropdownlist || [],
-            groupTypes: onloadData?.groupTypedropdownlist || [],
-            departments: onloadData?.departmentdropdownlist || [],
-            designations: onloadData?.designationdropdownlist || [],
-            grades: onloadData?.gradedropdownlist || [],
-            genders: onloadData?.genderdropdownlist || [],
-            maritalStatuses: onloadData?.maritalStatusdropdownlist || [],
-            religions: onloadData?.religiondropdownlist || [],
-            casteCategories: onloadData?.casteCategorydropdownlist || [],
-            castes: onloadData?.castedropdownlist || [],
-            banks: onloadData?.bankdropdownlist || [],
-            countries: onloadData?.countrydropdownlist || [],
-            states: Array.isArray(onloadData?.AllState) ? onloadData.AllState : [], // AllState might be null, so check if it's an array
-            courses: onloadData?.coursedropdownlist || [],
-            specialisations: onloadData?.SpecialisationList || [],
+            empTypes: onloadData.employeeTypedropdownlist || [],
+            groupTypes: onloadData.groupTypedropdownlist || [],
+            departments: onloadData.departmentdropdownlist || [],
+            designations: onloadData.designationdropdownlist || [],
+            grades: onloadData.gradedropdownlist || [],
+            genders: onloadData.genderdropdownlist || [],
+            maritalStatuses: onloadData.maritalStatusdropdownlist || [],
+            religions: onloadData.religiondropdownlist || [],
+            casteCategories: onloadData.casteCategorydropdownlist || [],
+            castes: onloadData.castedropdownlist || [],
+            banks: onloadData.bankdropdownlist || [],
+            countries: onloadData.countrydropdownlist || [],
+            states: Array.isArray(onloadData.AllState) ? onloadData.AllState : [], // AllState might be null, so check if it's an array
+            courses: onloadData.coursedropdownlist || [],
+            specialisations: onloadData.SpecialisationList || [],
             // New dropdown lists from API (fallback to empty arrays if not provided)
-            teachingNonTeaching: onloadData?.teachingNonTeachingList || onloadData?.teachingNonTeachingdropdownlist || [],
-            bloodGroups: onloadData?.bloodGroupList || onloadData?.bloodGroupdropdownlist || [],
-            salaryTypes: onloadData?.salaryTypeList || onloadData?.salaryTypedropdownlist || [],
-            modeOfPayment: onloadData?.modeOfPaymentList || onloadData?.modeOfPaymentdropdownlist || [],
-            addressTypes: onloadData?.addressTypeList || onloadData?.addressTypedropdownlist || [],
-            phoneTypes: onloadData?.phoneTypeList || onloadData?.phoneTypedropdownlist || [],
-            cgpaPercentageTypes: onloadData?.cgpaPercentageTypeList || onloadData?.cgpaPercentageTypedropdownlist || []
+            teachingNonTeaching: onloadData.teachingNonTeachingList || onloadData.teachingNonTeachingdropdownlist || [],
+            bloodGroups: onloadData.bloodGroupList || onloadData.bloodGroupdropdownlist || [],
+            salaryTypes: onloadData.salaryTypeList || onloadData.salaryTypedropdownlist || [],
+            modeOfPayment: onloadData.modeOfPaymentList || onloadData.modeOfPaymentdropdownlist || [],
+            addressTypes: onloadData.addressTypeList || onloadData.addressTypedropdownlist || [],
+            phoneTypes: onloadData.phoneTypeList || onloadData.phoneTypedropdownlist || [],
+            cgpaPercentageTypes: onloadData.cgpaPercentageTypeList || onloadData.cgpaPercentageTypedropdownlist || [],
+            // Additional dropdowns from JSON
+            leavingReasons: onloadData.LeavingReasonList || [],
+            institutions: onloadData.institutiondropdownlist || [],
+            earningList: onloadData.earningList || [],
+            detectionList: onloadData.detectionList || [],
+            arrearList: onloadData.arrearList || [],
+            grossList: onloadData.grossList || [],
+            documentList: onloadData.documentList || [],
+            employeedetailList: onloadData.employeedetailList || []
         };
 
         return opts;
-    }, [onloadData]);
+    }, [
+        onloadData?.employeeTypedropdownlist?.length,
+        onloadData?.groupTypedropdownlist?.length,
+        onloadData?.departmentdropdownlist?.length,
+        onloadData?.designationdropdownlist?.length,
+        onloadData?.gradedropdownlist?.length,
+        onloadData?.genderdropdownlist?.length,
+        onloadData?.maritalStatusdropdownlist?.length,
+        onloadData?.religiondropdownlist?.length,
+        onloadData?.casteCategorydropdownlist?.length,
+        onloadData?.castedropdownlist?.length,
+        onloadData?.bankdropdownlist?.length,
+        onloadData?.countrydropdownlist?.length,
+        onloadData?.AllState?.length,
+        onloadData?.coursedropdownlist?.length,
+        onloadData?.SpecialisationList?.length
+    ]);
 
     if (isLoadingOnload || isLoadingEmployee) {
         return (
@@ -1798,19 +2294,239 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         );
     }
 
+    // Custom submit handler that only validates current tab fields
+    const onFormSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('🔍 [SUBMIT] onFormSubmit called', { activeTab, isEditMode });
+        
+        // Get current tab fields
+        const currentTabFields = tabFieldMap[activeTab] || [];
+        
+        // Only validate current tab fields, not all fields
+        if (currentTabFields.length > 0) {
+            console.log('🔍 [SUBMIT] Validating only current tab fields:', currentTabFields);
+            
+            // Clear errors from other tabs first to prevent them from blocking submission
+            const allTabFields = Object.values(tabFieldMap).flat();
+            const otherTabFields = allTabFields.filter(field => !currentTabFields.includes(field));
+            otherTabFields.forEach((field) => {
+                clearErrors(field);
+            });
+            
+            // Validate only current tab fields
+            const isValid = await trigger(currentTabFields as any);
+            
+            if (!isValid) {
+                console.log('🔴 [SUBMIT] Current tab validation failed');
+                // Wait a bit for errors to be set in form state
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                // Get errors for current tab only
+                const currentErrors: Record<string, any> = {};
+                currentTabFields.forEach((field) => {
+                    const fieldError = errors[field as keyof typeof errors];
+                    if (fieldError) {
+                        currentErrors[field] = fieldError;
+                    }
+                });
+                
+                // Also check nested fields for employee tab
+                if (activeTab === 'employee') {
+                    if (errors.mobileDetails) currentErrors['mobileDetails'] = errors.mobileDetails;
+                    if (errors.emailDetails) currentErrors['emailDetails'] = errors.emailDetails;
+                    if (errors.bankDetails) currentErrors['bankDetails'] = errors.bankDetails;
+                }
+                
+                // Show first error for current tab
+                const errorFields = Object.keys(currentErrors);
+                if (errorFields.length > 0) {
+                    const firstError = currentErrors[errorFields[0]];
+                    let errorMessage = '';
+                    
+                    if (typeof firstError === 'object') {
+                        if (firstError.message) {
+                            errorMessage = firstError.message;
+                        } else if (Array.isArray(firstError) && firstError[0]) {
+                            const nestedError = firstError[0];
+                            if (typeof nestedError === 'object' && nestedError !== null) {
+                                // Check for nested field errors like employerBankName.message
+                                const nestedFieldError = Object.values(nestedError).find((err: any) => err && typeof err === 'object' && 'message' in err);
+                                if (nestedFieldError && typeof nestedFieldError === 'object' && nestedFieldError !== null && 'message' in nestedFieldError) {
+                                    errorMessage = (nestedFieldError as { message: string }).message;
+                                } else if ('message' in nestedError && typeof (nestedError as any).message === 'string') {
+                                    errorMessage = (nestedError as { message: string }).message;
+                                }
+                            }
+                        } else if (firstError.root?.message) {
+                            errorMessage = firstError.root.message;
+                        }
+                    }
+                    
+                    if (!errorMessage) {
+                        errorMessage = `Please fix the error in ${errorFields[0]}`;
+                    }
+                    
+                    toast.error(errorMessage);
+                    
+                    // Scroll to first error field
+                    setTimeout(() => {
+                        const fieldElement = document.querySelector(`[name="${errorFields[0]}"]`) as HTMLElement ||
+                                           document.querySelector(`#${errorFields[0]}`) as HTMLElement;
+                        if (fieldElement) {
+                            fieldElement.focus();
+                            fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 100);
+                    return;
+                }
+            }
+        }
+        
+        // Get form data and proceed with submission
+        const formData = getValues();
+        console.log('🔍 [SUBMIT] Validation passed, proceeding with handleTabSubmit');
+        try {
+            await handleTabSubmit(formData);
+        } catch (error: any) {
+            console.error('🔴 [SUBMIT] Error in handleTabSubmit:', error);
+            toast.error(error?.message || 'An error occurred while submitting the form');
+        }
+    };
+    
+    // Keep handleSubmit for backward compatibility but don't use it for form submission
+    const _onFormSubmit = handleSubmit(
+        async (data: FormFields) => {
+            // This should not be called anymore, but kept for safety
+            console.log('🔍 [SUBMIT] handleSubmit callback called (should not happen)');
+            await handleTabSubmit(data);
+        },
+        (errors) => {
+            console.error('🔴 [SUBMIT] Form validation errors:', errors);
+            console.error('🔴 [SUBMIT] Error details:', JSON.stringify(errors, null, 2));
+            console.error('🔴 [SUBMIT] Current tab:', activeTab);
+            
+            // Get current tab fields to show ONLY relevant errors for this tab
+            const currentTabFields = tabFieldMap[activeTab] || [];
+            console.error('🔴 [SUBMIT] Current tab fields:', currentTabFields);
+            
+            // Clear errors from other tabs - only keep errors for current tab
+            const allTabFields = Object.values(tabFieldMap).flat();
+            const otherTabFields = allTabFields.filter(field => !currentTabFields.includes(field));
+            
+            // Clear errors from other tabs
+            otherTabFields.forEach((field) => {
+                if (errors[field as keyof typeof errors]) {
+                    clearErrors(field);
+                }
+            });
+            
+            // Find the first error ONLY for the current tab
+            let firstError: any = null;
+            let firstErrorField = '';
+            
+            // Check current tab fields ONLY
+            for (const field of currentTabFields) {
+                const fieldError = errors[field as keyof typeof errors];
+                if (fieldError) {
+                    firstError = fieldError;
+                    firstErrorField = field as string;
+                    break;
+                }
+            }
+            
+            // Also check nested fields for current tab (e.g., mobileDetails for employee tab)
+            if (!firstError && activeTab === 'employee') {
+                // Check mobileDetails, emailDetails, bankDetails for employee tab
+                if (errors.mobileDetails) {
+                    firstError = errors.mobileDetails;
+                    firstErrorField = 'mobileDetails';
+                } else if (errors.emailDetails) {
+                    firstError = errors.emailDetails;
+                    firstErrorField = 'emailDetails';
+                } else if (errors.bankDetails) {
+                    firstError = errors.bankDetails;
+                    firstErrorField = 'bankDetails';
+                }
+            }
+            
+            // If no error found in current tab fields, don't show error from other tabs
+            if (!firstError) {
+                console.log('ℹ️ [SUBMIT] No errors found for current tab, ignoring errors from other tabs');
+                // Don't show error if it's from another tab
+                return;
+            }
+            
+            // Show specific error message
+            if (firstError) {
+                let errorMessage = '';
+                
+                // Handle different error structures
+                if (typeof firstError === 'object') {
+                    // Check for direct message
+                    if (firstError.message) {
+                        errorMessage = firstError.message;
+                    }
+                    // Check for nested array errors (e.g., mobileDetails[0].mobileNo)
+                    else if (Array.isArray(firstError)) {
+                        const arrayError = firstError.find((err: any) => err && typeof err === 'object' && err.message);
+                        if (arrayError) {
+                            errorMessage = arrayError.message;
+                        } else if (firstError[0]) {
+                            const firstItem = firstError[0];
+                            if (typeof firstItem === 'object') {
+                                // Check nested fields like mobileNo
+                                if (firstItem.mobileNo?.message) {
+                                    errorMessage = firstItem.mobileNo.message;
+                                } else if (firstItem.emailId?.message) {
+                                    errorMessage = firstItem.emailId.message;
+                                } else if (firstItem.message) {
+                                    errorMessage = firstItem.message;
+                                }
+                            }
+                        }
+                    }
+                    // Check for root error
+                    else if (firstError.root?.message) {
+                        errorMessage = firstError.root.message;
+                    }
+                    // Check for type-based error
+                    else if (firstError.type) {
+                        errorMessage = `Please check ${firstErrorField}`;
+                    }
+                }
+                
+                if (!errorMessage) {
+                    // Try to get a meaningful field name
+                    const fieldName = firstErrorField
+                        .replace(/([A-Z])/g, ' $1')
+                        .replace(/^./, (str) => str.toUpperCase())
+                        .trim();
+                    errorMessage = `Please fix the error in ${fieldName}`;
+                }
+                
+                toast.error(errorMessage);
+                
+                // Scroll to the first error field
+                setTimeout(() => {
+                    const fieldElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement ||
+                                       document.querySelector(`#${firstErrorField}`) as HTMLElement;
+                    if (fieldElement) {
+                        fieldElement.focus();
+                        fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }, 100);
+            } else {
+                toast.error(`Please fill all required fields in ${activeTab} tab`);
+            }
+        }
+    );
+
     return (
         <div className={className || ''}>
             <form
-                onSubmit={handleSubmit(onSubmit, (errors) => {
-                    console.error('🔍 [CLIENT] Form validation failed:', errors);
-                    const errorFields = Object.keys(errors);
-                    const firstError = errors[errorFields[0] as keyof typeof errors];
-                    const errorMessage =
-                        typeof firstError?.message === 'string'
-                            ? firstError.message
-                            : `Please check ${errorFields.length} field(s) with errors`;
-                    toast.error(errorMessage);
-                })}
+                onSubmit={onFormSubmit}
                 className='space-y-6'>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
                     <TabsList className='grid w-full grid-cols-4 lg:grid-cols-8'>
@@ -1839,6 +2555,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             isSubmitting={isSubmitting || isPending}
                             watch={watch}
                             onClear={handleClearCurrentTab}
+                            setValue={setValue}
+                            getValues={getValues}
                         />
                     </TabsContent>
 
@@ -1850,8 +2568,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             isSubmitting={isSubmitting || isPending}
                             watch={watch}
                             setValue={setValue}
-                            countries={options.countries}
-                            states={options.states}
+                            countries={options?.countries || []}
+                            states={options?.states || []}
                             onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
@@ -1863,8 +2581,9 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errors={errors}
                             isSubmitting={isSubmitting || isPending || isSavingQualification}
                             options={options}
-                            countries={options.countries}
-                            states={options.states}
+                            countries={options?.countries || []}
+                            states={options?.states || []}
+                            setValue={setValue}
                             onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
@@ -1875,6 +2594,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             register={register}
                             errors={errors}
                             isSubmitting={isSubmitting || isSavingExperience}
+                            setValue={setValue}
                             onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
@@ -1907,13 +2627,21 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errors={errors}
                             isSubmitting={isSubmitting || isPending}
                             watch={watch}
+                            options={options}
                             onClear={handleClearCurrentTab}
                         />
                     </TabsContent>
 
                     <TabsContent value='payroll' className='mt-4'>
                         {savedEmployeeId && watch('employeeCode') ? (
-                            <PayrollTab employeeId={savedEmployeeId} employeeCode={watch('employeeCode')} />
+                            <PayrollTab 
+                                employeeId={savedEmployeeId} 
+                                employeeCode={watch('employeeCode')}
+                                grossList={onloadData?.grossList || []}
+                                earningList={onloadData?.earningList || []}
+                                detectionList={onloadData?.detectionList || []}
+                                arrearList={onloadData?.arrearList || []}
+                            />
                         ) : (
                             <div className='rounded-md border p-6 text-center text-muted-foreground'>
                                 Payroll tab will be available after saving employee details.

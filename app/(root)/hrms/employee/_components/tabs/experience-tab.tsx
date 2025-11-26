@@ -7,14 +7,100 @@ import { Label } from '@/components/ui/extension/field';
 import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { cn } from '@/lib/utils';
 import { Plus, Trash2 } from 'lucide-react';
-import { Controller, useFieldArray } from 'react-hook-form';
+import { useEffect } from 'react';
+import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function ExperienceTab({ control, register, errors, isSubmitting, onClear }: any) {
+export function ExperienceTab({ control, register, errors, isSubmitting, setValue, onClear }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'experienceDetails'
     });
+
+    // Watch all experience details to recalculate when dates change
+    const experienceDetails = useWatch({
+        control,
+        name: 'experienceDetails'
+    }) || [];
+
+    // Helper function to calculate years and months between two dates
+    const calculateYearsAndMonths = (startDate: string | Date, endDate: string | Date) => {
+        if (!startDate || !endDate) {
+            return { years: 0, months: 0 };
+        }
+
+        // Parse dates - normalize to Date objects and extract date parts to avoid timezone issues
+        const start = startDate instanceof Date ? startDate : new Date(startDate);
+        const end = endDate instanceof Date ? endDate : new Date(endDate);
+
+        if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
+            return { years: 0, months: 0 };
+        }
+
+        // Extract date components to avoid timezone issues
+        const startYear = start.getFullYear();
+        const startMonth = start.getMonth();
+        const startDay = start.getDate();
+        
+        const endYear = end.getFullYear();
+        const endMonth = end.getMonth();
+        const endDay = end.getDate();
+
+        // Calculate years difference
+        let years = endYear - startYear;
+        
+        // Calculate months difference
+        let months = endMonth - startMonth;
+        
+        // If months is negative, we haven't completed a full year yet
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+        
+        // Adjust for days - if end day is before start day, we haven't completed the current month
+        if (endDay < startDay) {
+            months--;
+            // If months becomes negative, borrow from years
+            if (months < 0) {
+                years--;
+                months += 12;
+            }
+        }
+
+        // Ensure non-negative values and that months is between 0-11
+        return { 
+            years: Math.max(0, years), 
+            months: Math.max(0, Math.min(11, months))
+        };
+    };
+
+    // Recalculate years and months when dates change (for existing data or when dates are updated)
+    useEffect(() => {
+        if (!experienceDetails || experienceDetails.length === 0 || !setValue) return;
+
+        experienceDetails.forEach((exp: any, index: number) => {
+            const joinDate = exp?.joinDate;
+            const exitDate = exp?.exitDate;
+
+            if (joinDate && exitDate) {
+                const { years, months } = calculateYearsAndMonths(joinDate, exitDate);
+                // Only update if values are different to avoid infinite loops
+                const currentYears = exp?.noOfYears?.toString() || '0';
+                const currentMonths = exp?.noOfMonths?.toString() || '0';
+                
+                if (currentYears !== years.toString() || currentMonths !== months.toString()) {
+                    setValue(`experienceDetails.${index}.noOfYears`, years.toString(), { shouldValidate: false, shouldDirty: false });
+                    setValue(`experienceDetails.${index}.noOfMonths`, months.toString(), { shouldValidate: false, shouldDirty: false });
+                }
+            } else if (!joinDate || !exitDate) {
+                // Clear if dates are not both present
+                setValue(`experienceDetails.${index}.noOfYears`, '', { shouldValidate: false, shouldDirty: false });
+                setValue(`experienceDetails.${index}.noOfMonths`, '', { shouldValidate: false, shouldDirty: false });
+            }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [experienceDetails?.map((exp: any) => `${exp?.joinDate}-${exp?.exitDate}`).join(',')]);
 
     const addEmptyRow = () => {
         append({} as any);
@@ -22,11 +108,13 @@ export function ExperienceTab({ control, register, errors, isSubmitting, onClear
 
     return (
         <div className='space-y-4'>
-            <div className='flex items-center justify-between rounded-md bg-primary px-4 py-2 text-primary-foreground'>
-                <h3 className='font-semibold'>PREVIOUS EMPLOYMENT DETAILS</h3>
-                <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
-                    <Plus className='mr-1 h-4 w-4' /> Add Experience
-                </Button>
+            <div className='rounded-md border'>
+                <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
+                    <h3 className='font-semibold'>PREVIOUS EMPLOYMENT DETAILS</h3>
+                    <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
+                        <Plus className='mr-1 h-4 w-4' /> Add Experience
+                    </Button>
+                </div>
             </div>
 
             {fields.length === 0 && (
@@ -73,39 +161,79 @@ export function ExperienceTab({ control, register, errors, isSubmitting, onClear
                             <Controller
                                 name={`experienceDetails.${index}.joinDate`}
                                 control={control}
-                                render={({ field, fieldState }) => (
-                                    <DateField
-                                        field={field}
-                                        fieldState={fieldState}
-                                        label='Join Date'
-                                        placeholder='Pick join date'
-                                    />
-                                )}
+                                render={({ field, fieldState }) => {
+                                    // Use the already-watched experienceDetails array instead of calling useWatch inside render
+                                    const exitDate = experienceDetails[index]?.exitDate;
+                                    return (
+                                        <DateField
+                                            field={{
+                                                ...field,
+                                                onChange: (value: any) => {
+                                                    field.onChange(value);
+                                                    // Trigger recalculation when join date changes
+                                                    if (value && exitDate) {
+                                                        const { years, months } = calculateYearsAndMonths(value, exitDate);
+                                                        setValue(`experienceDetails.${index}.noOfYears`, years.toString(), { shouldValidate: false, shouldDirty: false });
+                                                        setValue(`experienceDetails.${index}.noOfMonths`, months.toString(), { shouldValidate: false, shouldDirty: false });
+                                                    } else {
+                                                        setValue(`experienceDetails.${index}.noOfYears`, '', { shouldValidate: false, shouldDirty: false });
+                                                        setValue(`experienceDetails.${index}.noOfMonths`, '', { shouldValidate: false, shouldDirty: false });
+                                                    }
+                                                }
+                                            }}
+                                            fieldState={fieldState}
+                                            label='Join Date'
+                                            placeholder='Pick join date'
+                                        />
+                                    );
+                                }}
                             />
 
                             <Controller
                                 name={`experienceDetails.${index}.exitDate`}
                                 control={control}
-                                render={({ field, fieldState }) => (
-                                    <DateField
-                                        field={field}
-                                        fieldState={fieldState}
-                                        label='Exit Date'
-                                        placeholder='Pick exit date'
-                                    />
-                                )}
+                                render={({ field, fieldState }) => {
+                                    // Use the already-watched experienceDetails array instead of calling useWatch inside render
+                                    const joinDate = experienceDetails[index]?.joinDate;
+                                    return (
+                                        <DateField
+                                            field={{
+                                                ...field,
+                                                onChange: (value: any) => {
+                                                    field.onChange(value);
+                                                    // Trigger recalculation when exit date changes
+                                                    if (value && joinDate) {
+                                                        const { years, months } = calculateYearsAndMonths(joinDate, value);
+                                                        setValue(`experienceDetails.${index}.noOfYears`, years.toString(), { shouldValidate: false, shouldDirty: false });
+                                                        setValue(`experienceDetails.${index}.noOfMonths`, months.toString(), { shouldValidate: false, shouldDirty: false });
+                                                    } else {
+                                                        setValue(`experienceDetails.${index}.noOfYears`, '', { shouldValidate: false, shouldDirty: false });
+                                                        setValue(`experienceDetails.${index}.noOfMonths`, '', { shouldValidate: false, shouldDirty: false });
+                                                    }
+                                                }
+                                            }}
+                                            fieldState={fieldState}
+                                            label='Exit Date'
+                                            placeholder='Pick exit date'
+                                        />
+                                    );
+                                }}
                             />
 
                             <HRMSInputText
                                 label='No. Of Years'
                                 id={`experienceDetails.${index}.noOfYears`}
                                 {...register(`experienceDetails.${index}.noOfYears`)}
+                                disabled
+                                className='[&>input]:bg-muted [&>input]:cursor-not-allowed [&>input]:opacity-70'
                             />
 
                             <HRMSInputText
                                 label='No. Of Months'
                                 id={`experienceDetails.${index}.noOfMonths`}
                                 {...register(`experienceDetails.${index}.noOfMonths`)}
+                                disabled
+                                className='[&>input]:bg-muted [&>input]:cursor-not-allowed [&>input]:opacity-70'
                             />
 
                             <HRMSInputText
