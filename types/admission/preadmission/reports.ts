@@ -20,3 +20,20 @@ export interface IParentsDashboardStudentResponse {
     admission_status: string;
     student_photo: string;
 }
+
+export interface IClassTeacherReportList {
+    ASMCL_ClassName: string;
+    ASMC_SectionName: string;
+    IVRMSTAUL_UserName: string;
+    PAMS_SubjectName: string;
+}
+
+export interface IStudentYearlyAttendenceReportList {
+    pasr_id: number;
+    MONTH_NAME: string;
+    total: number;
+    name: string;
+    AMST_AdmNo: string;
+    AMST_RegistrationNo: string;
+    AMAY_RollNo: string;
+}

@@ -251,6 +251,69 @@ export async function getUserAccessibleModules() {
                                             description: 'Pre-Registration Numbering'
                                         }
                                     ]
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Teacher Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/class-teacher-report',
+                                            title: 'Class Teacher Report',
+                                            description: 'Class Teacher Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Yearly Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/students-yearly-attendence-report',
+                                            title: 'Student Yearly Attendance Report',
+                                            description: 'Student Yearly Attendance Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student TC Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-tc-report',
+                                            title: 'Student TC Report',
+                                            description: 'Student TC Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'class-wise student details',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/class-wise-student-details',
+                                            title: 'class-wise student details',
+                                            description: 'class-wise student details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Total Strength Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/total-strength',
+                                            title: 'Total Strength Report',
+                                            description: 'Total Strength Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Admission Register Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/admission-register-report',
+                                            title: 'Admission Register Report',
+                                            description: 'Admission Register Report '
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Attendance Absentees Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/attendance-absent-sms',
+                                            title: 'Admission Register Report',
+                                            description: 'Admission Register Report '
+                                        }
+                                    ]
                                 }
                             ]
                         }
