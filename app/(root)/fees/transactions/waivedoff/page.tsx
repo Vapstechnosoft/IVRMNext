@@ -4,13 +4,13 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useFeeTransactionWaivedOffGrid } from '@/hooks/fees/useTrasactions';
-import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
 import type { feeTransactionWaivedOffGrid } from '@/types/fees/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeTransactionWaiveOffForm from './_components/add-form';
 import { FeeTransactionWaivedOff } from './_components/columns';
-import ToggleMasterFeesConfigForm from './_components/toggle-form';
+import DeleteFeeTransactionWaivedOffForm from './_components/delete-form';
+import UpdateFeeTransactionWaiveOffForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -19,7 +19,7 @@ export default function fineSlabPage(props: { searchParams: SearchParams }) {
     const { data: response, isLoading, error, refetchAll } = useFeeTransactionWaivedOffGrid(searchParams);
 
     return (
-        <FormProvider<IFeeConfig>>
+        <FormProvider<feeTransactionWaivedOffGrid>>
             <MasterFeeOpeningBalancePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
@@ -34,7 +34,7 @@ function MasterFeeOpeningBalancePageContent({
     error: any;
     refetchAll: any;
 }) {
-    const { openAddForm } = useFormContext<IFeeConfig>();
+    const { openAddForm } = useFormContext<feeTransactionWaivedOffGrid>();
 
     const tableProps = useDataTableProps(response);
 
@@ -42,7 +42,7 @@ function MasterFeeOpeningBalancePageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>{/* <Heading title='Waived Off' description='' /> */}</div>
+                    <div className='space-y-1'></div>
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -76,7 +76,17 @@ function MasterFeeOpeningBalancePageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } = useFormContext<IFeeConfig>();
+    const {
+        isDeleteFormOpen,
+        closeDeleteForm,
+        selectedRow,
+        isAddFormOpen,
+        closeAddForm,
+        isEditFormOpen,
+        closeEditForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<feeTransactionWaivedOffGrid>();
 
     return (
         <>
@@ -105,7 +115,45 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterFeesConfigForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {/* {isToggleFormOpen && selectedRow && <ToggleMasterFeesConfigForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteFeeTransactionWaivedOffForm
+                    rowData={selectedRow}
+                    onClose={closeDeleteForm}
+                    onSuccess={() => {
+                        closeDeleteForm();
+                    }}
+                />
+            )}
+
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Update Fee Transaction Waived Off'
+                        description='Updtae a Fee Transaction Waived Off record'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateFeeTransactionWaiveOffForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                }}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
         </>
     );
 }

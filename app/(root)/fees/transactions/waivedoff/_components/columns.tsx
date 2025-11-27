@@ -75,14 +75,17 @@ function ActionButtonsCell({
     rowData: feeTransactionWaivedOffGrid;
 }) {
     const { openDeleteForm } = useFormContext<feeTransactionWaivedOffGrid>();
+    const { openEditForm } = useFormContext<feeTransactionWaivedOffGrid>();
 
     const handleDelete = useCallback((data: feeTransactionWaivedOffGrid) => openDeleteForm?.(data), [openDeleteForm]);
+    const handleEdit = useCallback((data: feeTransactionWaivedOffGrid) => openEditForm?.(data), [openEditForm]);
 
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ delete: true, edit: true }}
             onDelete={handleDelete}
+            onEdit={handleEdit}
             toggleConditionKey='fycC_ActiveFlag'
         />
     );

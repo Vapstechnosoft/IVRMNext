@@ -7,6 +7,8 @@ import type {
     IFeeSectionList,
     IFeeTransactionWaivedOffList,
     feeTransactionWaivedOffGrid,
+    feeTransactionWaivedOffGroup,
+    feeTransactionWaivedOffHead,
     feeTransactionWaivedOffStudentDetails
 } from '@/types/fees/transactions/transactions';
 
@@ -49,5 +51,10 @@ export async function getStudentdetails(asmay_Id: number, asmcl_Id: number, asms
 
 export async function getGroupList(asmay_Id: number, amst_Id: number, filterradio: string) {
     const url = `/FeeWaivedOff/getgroup?asmay_id=${asmay_Id}&amst_id=${amst_Id}&filterradiobuttonvalue=${filterradio}`;
-    return await api.get<feeTransactionWaivedOffStudentDetails[]>('fees', url);
+    return await api.get<feeTransactionWaivedOffGroup[]>('fees', url);
+}
+
+export async function getHeadList(asmay_Id: number, amst_Id: number, filterradio: string, fineWaivedOff: number, groupIds: any) {
+    const url = `/FeeWaivedOff/gethead?asmay_id=${asmay_Id}&amst_id=${amst_Id}&filterradiobuttonvalue=${filterradio}&finewaiveoff=${fineWaivedOff}`;
+    return await api.post<feeTransactionWaivedOffHead[]>('fees', url, groupIds);
 }
