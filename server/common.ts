@@ -785,12 +785,20 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Cumulative Report Details'
                                         },
                                         {
-                                            id: 62,
+                                            id: 64,
                                             name: 'Progress Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vvehpc_exam-report-card',
                                             title: 'Progress Card Report',
                                             description: 'Manage Progress Card Report Details'
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'Elective Subject Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-electives-report',
+                                            title: 'Elective Subject Report',
+                                            description: 'Manage Elective Subject Report Details'
                                         }
                                     ]
                                 }

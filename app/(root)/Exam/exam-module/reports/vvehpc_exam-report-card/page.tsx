@@ -14,7 +14,7 @@ export default function ProgressCardReportPage() {
     const [subjects, setSubjects] = useState<ISubject[]>([]);
     const [headerInfo, setHeaderInfo] = useState<any>({});
     const [examName, setExamName] = useState<string>('');
-    const [examCode, setExamCode] = useState<string>('FA1');
+    const [examCode] = useState<string>('FA1');
     const [year, setYear] = useState<string>('');
     const [isReportVisible, setIsReportVisible] = useState(false);
 

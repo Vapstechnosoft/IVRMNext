@@ -75,3 +75,25 @@ export const vvehpc_examreportcardSchema = {
             }
         })
 };
+
+export const examelectivesreportSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
+
+        Type: z.enum(['All', 'Indi', 'subj', 'csw'], {
+            required_error: 'Report Type is required'
+        }),
+
+        emcA_Id: z.union([z.number(), z.literal('All')]).optional(),
+
+        emG_Id: z.number().optional(),
+        ismS_Id: z.number().optional(),
+        asmcL_Id: z.number().optional(),
+        asmS_Id: z.number().optional(),
+
+        mob_flg: z.boolean().optional(),
+        mail_flg: z.boolean().optional(),
+        Left_Flag: z.boolean().optional(),
+        Deactive_Flag: z.boolean().optional()
+    })
+};
