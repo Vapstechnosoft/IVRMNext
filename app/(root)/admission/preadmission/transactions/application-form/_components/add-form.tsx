@@ -1986,7 +1986,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <Select
                                                                     key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled={sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
@@ -2024,7 +2025,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                     key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
                                                                     value={field.value ? String(field.value) : undefined}
-                                                                    disabled={isPerStateDisabled}>
+                                                                    disabled={isPerStateDisabled || sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
                                                                     </SelectTrigger>
