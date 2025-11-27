@@ -48,6 +48,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
         handleSubmit,
         reset,
         control,
+        watch,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<SalaryAdvanceForm>({
         mode: 'onChange',
@@ -63,6 +65,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
         }
     });
 
+    const watchedEntryDate = watch('entryDate');
+
     useEffect(() => {
         if (selectedRow) {
             reset({
@@ -77,6 +81,52 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
             });
         }
     }, [selectedRow, reset]);
+
+    // Auto-select year and month based on entry date
+    useEffect(() => {
+        if (watchedEntryDate) {
+            try {
+                const entryDate = new Date(watchedEntryDate);
+                if (!isNaN(entryDate.getTime())) {
+                    const year = entryDate.getFullYear();
+                    const month = entryDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
+
+                    // Find matching year from leaveYears dropdown
+                    const matchingYear = leaveYears.find((y) => y.HRMLY_LeaveYear === year.toString() || y.HRMLY_LeaveYear === String(year));
+                    if (matchingYear) {
+                        setValue('advanceYear', matchingYear.HRMLY_Id.toString());
+                    }
+
+                    // Find matching month from months dropdown
+                    // Try to match by month number (1-12) or by month name
+                    const monthNames = [
+                        'January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
+                    const monthName = monthNames[month - 1];
+
+                    const matchingMonth = months.find((m) => {
+                        // Try matching by month name (case insensitive)
+                        const monthNameMatch = m.IVRM_Month_Name?.toLowerCase() === monthName.toLowerCase() ||
+                            m.IVRM_Month_Name?.toLowerCase().includes(monthName.toLowerCase().substring(0, 3));
+                        
+                        // Try matching by month number if IVRM_Month_Id matches the month number
+                        const monthIdMatch = m.IVRM_Month_Id === month;
+                        
+                        return monthNameMatch || monthIdMatch;
+                    });
+
+                    if (matchingMonth) {
+                        setValue('advanceMonth', matchingMonth.IVRM_Month_Id.toString());
+                    }
+                }
+            } catch (error) {
+                // Silently handle date parsing errors
+                console.error('Error parsing entry date:', error);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedEntryDate, leaveYears, months]);
 
     const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
         if (!selectedRow) {

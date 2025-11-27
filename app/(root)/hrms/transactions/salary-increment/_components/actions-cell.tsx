@@ -12,19 +12,10 @@ import {
     AlertDialogTrigger
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { useFormContext } from '@/components/ui/form/form-provider';
 import { useDeleteSalaryIncrement } from '@/hooks/hrms/useTransactions';
 import type { SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
 import type { Row } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ActionsCellProps {
@@ -32,62 +23,47 @@ interface ActionsCellProps {
 }
 
 export function ActionsCell({ row }: ActionsCellProps) {
-    const { openEditForm } = useFormContext<SalaryIncrementGridItem>();
     const { mutate: deleteIncrement, isPending: isDeleting } = useDeleteSalaryIncrement();
 
     const handleDelete = () => {
         deleteIncrement(row.original.HREIC_Id, {
             onSuccess: () => {
-                toast.success('Salary increment deactivated successfully!');
+                toast.success('Salary increment deleted successfully!');
             },
             onError: (error) => {
-                toast.error(error.message || 'Failed to deactivate salary increment.');
+                toast.error(error.message || 'Failed to delete salary increment.');
             }
         });
     };
 
     return (
-        <div className='flex justify-end'>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant='ghost' className='h-8 w-8 p-0'>
-                        <span className='sr-only'>Open menu</span>
-                        <MoreHorizontal className='h-4 w-4' />
+        <div className='flex justify-center'>
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant='ghost' size='sm' className='h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10'>
+                        <span className='sr-only'>Delete</span>
+                        <Trash2 className='h-4 w-4' />
                     </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align='end'>
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem
-                        onClick={() => {
-                            openEditForm(row.original);
-                        }}>
-                        Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently delete the salary increment record.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                    onClick={handleDelete}
-                                    disabled={isDeleting}
-                                    className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
-                                    {isDeleting ? 'Deleting...' : 'Delete'}
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete the salary increment for{' '}
+                            <strong>{row.original.EmployeeName || 'this employee'}</strong>? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleDelete}
+                            disabled={isDeleting}
+                            className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
+                            {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

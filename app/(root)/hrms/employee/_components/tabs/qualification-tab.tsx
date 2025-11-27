@@ -16,72 +16,8 @@ import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 import { useStatesByCountryId } from '@/hooks/hrms/useEmployeeRegister';
 
-// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
-const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
-    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
-    if (value == null || value === undefined || value === '') {
-        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY VALUE DETECTED:', {
-            value,
-            valueType: typeof value,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Convert to string
-    const strValue = String(value);
-
-    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
-    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY STRING DETECTED:', {
-            originalValue: value,
-            strValue,
-            strValueLength: strValue.length,
-            trimmed: strValue.trim(),
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    const trimmedValue = strValue.trim();
-
-    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
-    if (trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY TRIMMED VALUE DETECTED:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue.length,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
-    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - qualification-tab] FINAL CHECK FAILED - trimmedValue is empty:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue?.length,
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Only render if we have a valid non-empty string
-    return (
-        <SelectItem {...props} value={trimmedValue}>
-            {children}
-        </SelectItem>
-    );
-};
+// Note: We render SelectItem directly in the map (not via helper function)
+// This ensures collectItemValues can find them by type check (child.type === SelectItem)
 
 // Helper function to ensure SelectItem value is never empty string
 const ensureNonEmptyValue = (value: any, fallback: any = null): string | null => {
@@ -217,10 +153,11 @@ function QualificationStateDropdown({
                                             state.label ||
                                             `State ${stateId}`;
                                         if (!stateId || stateId.trim() === '') return null;
+                                        // Render SelectItem directly so collectItemValues can find it
                                         return (
-                                            <SafeSelectItem key={stateId} value={stateId}>
+                                            <SelectItem key={stateId} value={stateId} textValue={stateName}>
                                                 {stateName}
-                                            </SafeSelectItem>
+                                            </SelectItem>
                                         );
                                     })
                                     .filter(Boolean)
@@ -382,10 +319,11 @@ export function QualificationTab({
 
                                                                     // Final safety check - ensure value is never empty
                                                                     if (!courseId || courseId.trim() === '') return null;
+                                                                    // Render SelectItem directly so collectItemValues can find it
                                                                     return (
-                                                                        <SafeSelectItem key={courseId} value={courseId}>
+                                                                        <SelectItem key={courseId} value={courseId} textValue={courseName}>
                                                                             {courseName}
-                                                                        </SafeSelectItem>
+                                                                        </SelectItem>
                                                                     );
                                                                 })
                                                                 .filter(Boolean)}
@@ -463,10 +401,11 @@ export function QualificationTab({
                                                                     `Country ${countryId}`;
                                                                 // Final safety check - ensure value is never empty
                                                                 if (!countryId || countryId.trim() === '') return null;
+                                                                // Render SelectItem directly so collectItemValues can find it
                                                                 return (
-                                                                    <SafeSelectItem key={countryId} value={countryId}>
+                                                                    <SelectItem key={countryId} value={countryId} textValue={countryName}>
                                                                         {countryName}
-                                                                    </SafeSelectItem>
+                                                                    </SelectItem>
                                                                 );
                                                             })
                                                             .filter(Boolean)}
@@ -515,8 +454,8 @@ export function QualificationTab({
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SafeSelectItem value="CGPA">CGPA</SafeSelectItem>
-                                                        <SafeSelectItem value="Percentage">Percentage</SafeSelectItem>
+                                                        <SelectItem value="CGPA" textValue="CGPA">CGPA</SelectItem>
+                                                        <SelectItem value="Percentage" textValue="Percentage">Percentage</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -584,10 +523,11 @@ export function QualificationTab({
 
                                                                     // Final safety check - ensure value is never empty
                                                                     if (!specId || specId.trim() === '') return null;
+                                                                    // Render SelectItem directly so collectItemValues can find it
                                                                     return (
-                                                                        <SafeSelectItem key={specId} value={specId}>
+                                                                        <SelectItem key={specId} value={specId} textValue={specName}>
                                                                             {specName}
-                                                                        </SafeSelectItem>
+                                                                        </SelectItem>
                                                                     );
                                                                 })
                                                                 .filter(Boolean)}

@@ -62,32 +62,61 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
         // The backend returns data wrapped in ApiResponse format
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
-            const responseData = response.data as unknown as SalaryIncrementOnloadResponse;
-            console.log('✅ [SALARY INCREMENT - BACKEND] Response already wrapped, returning as-is');
+            const responseData = response.data as any;
+            
+            // Map monthlydata to leaveyeardropdown if monthlydata exists
+            if (responseData?.monthlydata && !responseData?.leaveyeardropdown) {
+                responseData.leaveyeardropdown = responseData.monthlydata.map((item: any) => ({
+                    HRMLY_Id: item.HRMLY_Id,
+                    HRMLY_LeaveYear: item.HRMLY_LeaveYear,
+                    HRMLY_FromDate: item.HRMLY_FromDate,
+                    HRMLY_ToDate: item.HRMLY_ToDate
+                }));
+            }
+            
+            const mappedData = responseData as SalaryIncrementOnloadResponse;
+            console.log('✅ [SALARY INCREMENT - BACKEND] Response already wrapped, mapping data');
             console.log('📊 [SALARY INCREMENT - BACKEND] Response data summary:', {
-                hasMonths: !!(responseData?.monthdropdown?.length),
-                monthsCount: responseData?.monthdropdown?.length || 0,
-                hasLeaveYears: !!(responseData?.leaveyeardropdown?.length),
-                leaveYearsCount: responseData?.leaveyeardropdown?.length || 0,
-                hasEmployees: !!(responseData?.employeelist?.length),
-                employeesCount: responseData?.employeelist?.length || 0,
-                hasEarningDeductionTypes: !!(responseData?.earningdeductiontype?.length),
-                earningDeductionTypesCount: responseData?.earningdeductiontype?.length || 0,
-                hasGridData: !!(responseData?.griddata?.length),
-                gridDataCount: responseData?.griddata?.length || 0,
+                hasMonths: !!(mappedData?.monthdropdown?.length),
+                monthsCount: mappedData?.monthdropdown?.length || 0,
+                hasMonthlyData: !!(responseData?.monthlydata?.length),
+                monthlyDataCount: responseData?.monthlydata?.length || 0,
+                hasLeaveYears: !!(mappedData?.leaveyeardropdown?.length),
+                leaveYearsCount: mappedData?.leaveyeardropdown?.length || 0,
+                hasEmployees: !!(mappedData?.employeelist?.length),
+                employeesCount: mappedData?.employeelist?.length || 0,
+                hasEarningDeductionTypes: !!(mappedData?.earningdeductiontype?.length),
+                earningDeductionTypesCount: mappedData?.earningdeductiontype?.length || 0,
+                hasGridData: !!(mappedData?.griddata?.length),
+                gridDataCount: mappedData?.griddata?.length || 0,
                 total: response.total,
                 page: response.page,
                 page_size: response.page_size
             });
             console.log('🔵 [SALARY INCREMENT - BACKEND] getSalaryIncrementOnload - END (Success)');
-            return response as ApiResponse<SalaryIncrementOnloadResponse> & { total?: number | null; page?: number | null; page_size?: number | null };
+            return {
+                ...response,
+                data: mappedData
+            } as ApiResponse<SalaryIncrementOnloadResponse> & { total?: number | null; page?: number | null; page_size?: number | null };
         }
         
         // Wrap raw response data (fallback for unexpected format)
+        const rawData = response as any;
+        
+        // Map monthlydata to leaveyeardropdown if monthlydata exists
+        if (rawData?.monthlydata && !rawData?.leaveyeardropdown) {
+            rawData.leaveyeardropdown = rawData.monthlydata.map((item: any) => ({
+                HRMLY_Id: item.HRMLY_Id,
+                HRMLY_LeaveYear: item.HRMLY_LeaveYear,
+                HRMLY_FromDate: item.HRMLY_FromDate,
+                HRMLY_ToDate: item.HRMLY_ToDate
+            }));
+        }
+        
         const wrappedResponse = {
             success: true,
             message: 'Data loaded successfully',
-            data: response as unknown as SalaryIncrementOnloadResponse,
+            data: rawData as SalaryIncrementOnloadResponse,
             total: undefined,
             page: undefined,
             page_size: undefined
@@ -97,6 +126,8 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
         console.log('📊 [SALARY INCREMENT - BACKEND] Response data summary:', {
             hasMonths: !!(wrappedResponse.data?.monthdropdown?.length),
             monthsCount: wrappedResponse.data?.monthdropdown?.length || 0,
+            hasMonthlyData: !!(rawData?.monthlydata?.length),
+            monthlyDataCount: rawData?.monthlydata?.length || 0,
             hasLeaveYears: !!(wrappedResponse.data?.leaveyeardropdown?.length),
             leaveYearsCount: wrappedResponse.data?.leaveyeardropdown?.length || 0,
             hasEmployees: !!(wrappedResponse.data?.employeelist?.length),

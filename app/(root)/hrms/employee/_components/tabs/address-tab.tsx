@@ -8,72 +8,8 @@ import { Controller, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 import { useStatesByCountryId } from '@/hooks/hrms/useEmployeeRegister';
 
-// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
-const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
-    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
-    if (value == null || value === undefined || value === '') {
-        console.error('🔴 [SafeSelectItem - address-tab] EMPTY VALUE DETECTED:', {
-            value,
-            valueType: typeof value,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Convert to string
-    const strValue = String(value);
-
-    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
-    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - address-tab] EMPTY STRING DETECTED:', {
-            originalValue: value,
-            strValue,
-            strValueLength: strValue.length,
-            trimmed: strValue.trim(),
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    const trimmedValue = strValue.trim();
-
-    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
-    if (trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - address-tab] EMPTY TRIMMED VALUE DETECTED:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue.length,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
-    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - address-tab] FINAL CHECK FAILED - trimmedValue is empty:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue?.length,
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Only render if we have a valid non-empty string
-    return (
-        <SelectItem {...props} value={trimmedValue}>
-            {children}
-        </SelectItem>
-    );
-};
+// Note: We render SelectItem directly in the map (not via helper function)
+// This ensures collectItemValues can find them by type check (child.type === SelectItem)
 
 // Helper function to ensure SelectItem value is never empty string
 const ensureNonEmptyValue = (value: any, fallback: any = null): string | null => {
@@ -292,10 +228,11 @@ export function AddressTab({
                                                             country.label ||
                                                             country.name ||
                                                             `Country ${countryIdRaw}`;
+                                                        // Render SelectItem directly so collectItemValues can find it
                                                         return (
-                                                            <SafeSelectItem key={countryIdRaw} value={finalCountryId}>
+                                                            <SelectItem key={countryIdRaw} value={finalCountryId} textValue={countryName}>
                                                                 {countryName}
-                                                            </SafeSelectItem>
+                                                            </SelectItem>
                                                         );
                                                     })
                                                     .filter(Boolean)}
@@ -334,10 +271,11 @@ export function AddressTab({
                                                             if (finalStateId === '') return null;
                                                             const stateName =
                                                                 state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
+                                                            // Render SelectItem directly so collectItemValues can find it
                                                             return (
-                                                                <SafeSelectItem key={stateId} value={finalStateId}>
+                                                                <SelectItem key={stateId} value={finalStateId} textValue={stateName}>
                                                                     {stateName}
-                                                                </SafeSelectItem>
+                                                                </SelectItem>
                                                             );
                                                         })
                                                         .filter(Boolean)
@@ -426,10 +364,11 @@ export function AddressTab({
                                                             country.label ||
                                                             country.name ||
                                                             `Country ${countryIdRaw}`;
+                                                        // Render SelectItem directly so collectItemValues can find it
                                                         return (
-                                                            <SafeSelectItem key={countryIdRaw} value={finalCountryId}>
+                                                            <SelectItem key={countryIdRaw} value={finalCountryId} textValue={countryName}>
                                                                 {countryName}
-                                                            </SafeSelectItem>
+                                                            </SelectItem>
                                                         );
                                                     })
                                                     .filter(Boolean)}
@@ -468,10 +407,11 @@ export function AddressTab({
                                                             if (finalStateId === '') return null;
                                                             const stateName =
                                                                 state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
+                                                            // Render SelectItem directly so collectItemValues can find it
                                                             return (
-                                                                <SafeSelectItem key={stateId} value={finalStateId}>
+                                                                <SelectItem key={stateId} value={finalStateId} textValue={stateName}>
                                                                     {stateName}
-                                                                </SafeSelectItem>
+                                                                </SelectItem>
                                                             );
                                                         })
                                                         .filter(Boolean)

@@ -378,8 +378,8 @@ export const BANK_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_LENGTH('Bank Name', 3)
         },
         maxLength: {
-            value: 100,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Bank Name', 100)
+            value: 50,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Bank Name', 50)
         },
         pattern: {
             value: VALIDATION_PATTERNS.BANK_NAME,
@@ -410,8 +410,8 @@ export const BANK_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_LENGTH('Branch Name', 3)
         },
         maxLength: {
-            value: 100,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Branch Name', 100)
+            value: 50,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Branch Name', 50)
         },
         pattern: {
             value: VALIDATION_PATTERNS.BRANCH_NAME,
@@ -1234,8 +1234,8 @@ export const PROFESSIONAL_TAX_VALIDATION = {
                 return VALIDATION_MESSAGES.POSITIVE_NUMBER('Amount From');
             }
             const amountTo = formValues.HRMPT_AmountTo ? (typeof formValues.HRMPT_AmountTo === 'string' ? Number.parseFloat(formValues.HRMPT_AmountTo) : formValues.HRMPT_AmountTo) : null;
-            if (amountTo !== null && numValue > amountTo) {
-                return 'Amount From must be less than or equal to Amount To';
+            if (amountTo !== null && numValue >= amountTo) {
+                return 'Amount From must be less than Amount To';
             }
             return true;
         }
@@ -1256,8 +1256,8 @@ export const PROFESSIONAL_TAX_VALIDATION = {
                 return VALIDATION_MESSAGES.POSITIVE_NUMBER('Amount To');
             }
             const amountFrom = formValues.HRMPT_AmountFrom ? (typeof formValues.HRMPT_AmountFrom === 'string' ? Number.parseFloat(formValues.HRMPT_AmountFrom) : formValues.HRMPT_AmountFrom) : null;
-            if (amountFrom !== null && numValue < amountFrom) {
-                return 'Amount To must be greater than or equal to Amount From';
+            if (amountFrom !== null && numValue <= amountFrom) {
+                return 'Amount To must be greater than Amount From';
             }
             return true;
         }

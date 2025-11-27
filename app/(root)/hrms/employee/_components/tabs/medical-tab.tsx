@@ -21,7 +21,8 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                     <HRMSInputText
                         label="Employee's Height"
                         id='employeeHeight'
-                        placeholder='Height'
+                        placeholder='Height (e.g., 175.50)'
+                        maxLength={6}
                         {...register('employeeHeight')}
                         error={errors.employeeHeight?.message}
                     />
@@ -29,6 +30,7 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                         label='Unit of measure (Height)'
                         id='employeeHeightUnit'
                         placeholder='Unit of measure'
+                        maxLength={10}
                         {...register('employeeHeightUnit')}
                         error={errors.employeeHeightUnit?.message}
                     />
@@ -46,7 +48,8 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                     <HRMSInputText
                         label="Employee's Weight"
                         id='employeeWeight'
-                        placeholder='Weight'
+                        placeholder='Weight (e.g., 75.50)'
+                        maxLength={6}
                         {...register('employeeWeight')}
                         error={errors.employeeWeight?.message}
                     />
@@ -54,6 +57,7 @@ export function MedicalRecordTab({ control, register, errors, isSubmitting, onCl
                         label='Unit of measure (Weight)'
                         id='employeeWeightUnit'
                         placeholder='Unit of measure'
+                        maxLength={10}
                         {...register('employeeWeightUnit')}
                         error={errors.employeeWeightUnit?.message}
                     />

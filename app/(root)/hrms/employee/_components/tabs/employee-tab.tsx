@@ -267,7 +267,7 @@ function EmployeeTabComponent({
         
         try {
             const retirementDate = new Date(dob);
-            retirementDate.setFullYear(retirementDate.getFullYear() + 100);
+            retirementDate.setFullYear(retirementDate.getFullYear() + 60);
             // Return ISO string format that DateField expects
             return retirementDate.toISOString();
         } catch (error) {
@@ -279,7 +279,7 @@ function EmployeeTabComponent({
     // Convert DOB to Date object for fromDate prop
     const dobDate = parseDOBToDate(dateOfBirth);
     
-    // Auto-calculate dateOfRetirement as DOB + 100 years
+    // Auto-calculate dateOfRetirement as DOB + 60 years
     useEffect(() => {
         // Skip if dateOfBirth is falsy or empty
         if (!dateOfBirth) {
@@ -456,7 +456,7 @@ function EmployeeTabComponent({
                     />
 
                     <HRMSInputText
-                        label="Father's Name"
+                        label="Father's Name *"
                         id='fatherName'
                         maxLength={100}
                         {...register('fatherName')}
@@ -464,7 +464,7 @@ function EmployeeTabComponent({
                     />
 
                     <HRMSInputText
-                        label="Mother's Name"
+                        label="Mother's Name *"
                         id='motherName'
                         maxLength={100}
                         {...register('motherName')}
@@ -1220,7 +1220,7 @@ function EmployeeTabComponent({
 
                     {/* Multiple Mobile Numbers */}
                     <div className='flex flex-col gap-1.5'>
-                        <Label>Mobile No.</Label>
+                        <Label>Mobile No. <span className='text-red-500'>*</span></Label>
                         <div className='space-y-2'>
                             {mobileFields.map((field, index) => (
                                 <div key={field.id} className='flex items-center gap-2'>

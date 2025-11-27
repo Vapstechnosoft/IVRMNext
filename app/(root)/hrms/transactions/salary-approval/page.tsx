@@ -350,25 +350,7 @@ export default function SalaryApprovalPage() {
                                                               {month.IVRM_Month_Name || month.label || month.value}
                                                           </SelectItem>
                                                       ))
-                                                    : // Fallback to static months if dropdown is not available
-                                                      [
-                                                          'January',
-                                                          'February',
-                                                          'March',
-                                                          'April',
-                                                          'May',
-                                                          'June',
-                                                          'July',
-                                                          'August',
-                                                          'September',
-                                                          'October',
-                                                          'November',
-                                                          'December'
-                                                      ].map((month) => (
-                                                          <SelectItem key={month} value={month}>
-                                                              {month}
-                                                          </SelectItem>
-                                                      ))}
+                                                    : null}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -387,11 +369,13 @@ export default function SalaryApprovalPage() {
                                                 <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {leaveYearOptions.map((year) => (
-                                                    <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
-                                                        {year.HRMLY_LeaveYear}
-                                                    </SelectItem>
-                                                ))}
+                                                {Array.isArray(leaveYearOptions) && leaveYearOptions.length > 0
+                                                    ? leaveYearOptions.map((year) => (
+                                                          <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
+                                                              {year.HRMLY_LeaveYear}
+                                                          </SelectItem>
+                                                      ))
+                                                    : null}
                                             </SelectContent>
                                         </Select>
                                     )}

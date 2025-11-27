@@ -158,7 +158,7 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
                             />
 
                             <HRMSInputText
-                                label='Designation'
+                                label='Designation *'
                                 id={`experienceDetails.${index}.designation`}
                                 maxLength={100}
                                 {...register(`experienceDetails.${index}.designation`)}
@@ -249,6 +249,7 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
                             <HRMSInputText
                                 label='Annual Salary'
                                 id={`experienceDetails.${index}.annualSalary`}
+                                maxLength={15}
                                 {...register(`experienceDetails.${index}.annualSalary`)}
                             />
 

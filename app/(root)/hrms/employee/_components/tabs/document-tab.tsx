@@ -68,19 +68,21 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
 
                             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
                                 <HRMSInputText
-                                    label='Document Name'
+                                    label='Document Name *'
                                     id={`documentList.${index}.documentName`}
                                     maxLength={255}
                                     {...register(`documentList.${index}.documentName`)}
                                     placeholder='Enter document name'
+                                    error={errors.documentList?.[index]?.documentName?.message}
                                 />
 
                                 <HRMSInputText
-                                    label='Description'
+                                    label='Description *'
                                     id={`documentList.${index}.documentDescription`}
-                                    maxLength={500}
+                                    maxLength={400}
                                     {...register(`documentList.${index}.documentDescription`)}
                                     placeholder='Enter description'
+                                    error={errors.documentList?.[index]?.documentDescription?.message}
                                 />
 
                                 <div className='space-y-2 md:col-span-2'>

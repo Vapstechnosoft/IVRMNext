@@ -194,31 +194,45 @@ export function useSaveEmployeePersonalDetails() {
                 });
             }
         },
-        onError: (error: Error) => {
+        onError: (error: any) => {
             console.log('═══════════════════════════════════════════════════════════════');
             console.log('🔴 [HOOK] useSaveEmployeePersonalDetails onError called');
             console.log('═══════════════════════════════════════════════════════════════');
             console.log('🔴 [HOOK] Error Type:', typeof error);
-            console.log('🔴 [HOOK] Error Message:', error.message);
-            console.log('🔴 [HOOK] Error Stack:', error.stack);
+            console.log('🔴 [HOOK] Error Message:', error?.message);
+            console.log('🔴 [HOOK] Error Stack:', error?.stack);
             console.log('🔴 [HOOK] Full Error:', error);
-            console.log('🔴 [HOOK] Error as JSON:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+            console.log('🔴 [HOOK] Error Response Data:', error?.response?.data);
             
-            // Check if error message contains "Required"
-            const hasRequiredError = error.message?.includes('Required') || 
-                                    error.message?.includes('required');
+            // Extract error message from API response
+            let errorMessage = 'An error occurred while saving personal details';
             
-            if (hasRequiredError) {
-                console.log('⚠️ [HOOK] "Required" error detected in error message!');
-                console.log('⚠️ [HOOK] Error Message:', error.message);
+            // Check if error has response data with message
+            if (error?.response?.data) {
+                const errorData = error.response.data;
+                if (typeof errorData === 'object' && errorData !== null) {
+                    // Check for message in error response
+                    if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } else if (typeof errorData === 'string') {
+                    errorMessage = errorData;
+                }
+            } else if (error?.message) {
+                errorMessage = error.message;
             }
             
             console.error('🔍 [OTHER DETAILS SAVE] Browser - Error:', {
-                message: error.message,
-                stack: error.stack,
-                error: error
+                message: errorMessage,
+                originalError: error
             });
-            toast.error(error.message || 'An error occurred while saving personal details');
+            // Component will handle error display with proper message extraction
+            // Update error message for better error handling in component
+            if (error && typeof error === 'object') {
+                error.message = errorMessage;
+            }
         }
     });
 }

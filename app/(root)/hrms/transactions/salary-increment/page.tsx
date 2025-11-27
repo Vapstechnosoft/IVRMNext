@@ -13,8 +13,15 @@ import FormSections from './_components/form-sections';
 
 export default function SalaryIncrementProcessPage() {
     const { data: onloadData, isLoading } = useSalaryIncrementOnload({
-        MI_Id: 30,
-        roleId: 0
+        page: 1,
+        page_size: 25,
+        search_query: undefined,
+        search_column: undefined,
+        sort_column: undefined,
+        sort_direction: undefined,
+        is_export: false,
+        MIID: 30, // Kept hardcoded as requested
+        roleId: 0 // Using roleId for hook compatibility
     });
 
     return (
