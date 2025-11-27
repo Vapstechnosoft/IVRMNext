@@ -122,7 +122,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Concession Category Details'
+                        title='Edit Concession Category Group Head Mapping Details'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

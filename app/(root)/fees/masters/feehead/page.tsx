@@ -5,10 +5,10 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterFeehead } from '@/hooks/fees/useMasters';
-import { getfeehead } from '@/server/fees/masters/feehead';
+import { getfeeheadSetorderdata, updateSetOrder } from '@/server/fees/masters/feehead';
 
 import type { IFeeHeadsList, IFeeHeadsListSetOrder } from '@/types/fees/masters/masters';
-import { Plus, X } from 'lucide-react';
+import { List, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddMasterFeeHeadForm from './_components/add-form';
@@ -20,11 +20,11 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterFeeheadPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useMasterFeehead(searchParams);
+    const { data: response, isLoading, error, refetchAll } = useMasterFeehead(searchParams);
 
     return (
         <FormProvider<IFeeHeadsList>>
-            <MasterFeeheadPageContent response={response} isLoading={isLoading} error={error} />
+            <MasterFeeheadPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
@@ -32,11 +32,13 @@ export default function MasterFeeheadPage(props: { searchParams: SearchParams })
 function MasterFeeheadPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetchAll
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetchAll: any;
 }) {
     const { openAddForm } = useFormContext<IFeeHeadsList>();
     const tableProps = useDataTableProps(response);
@@ -51,7 +53,7 @@ function MasterFeeheadPageContent({
     const handleSetOrder = async () => {
         try {
             setOrderModalOpen(true);
-            const response = await getfeehead();
+            const response = await getfeeheadSetorderdata();
 
             console.log('response in handleSetOrder', response);
 
@@ -82,26 +84,37 @@ function MasterFeeheadPageContent({
     const handleOrderSave = async (updatedData: (IFeeHeadsListSetOrder & { id: number })[]) => {
         try {
             setIsOrderSaving(true);
-            // const updatedOrderData = updatedData.map((item, index) => ({
-            //     ismS_Id: item.ismS_Id,
-            //     mI_Id: item.mI_Id,
-            //     ismS_OrderFlag: index + 1
-            // }));
+            const updatedOrderData = updatedData.map((item, index) => ({
+                //  ismS_Id: item.ismS_Id,
+                // mI_Id: item.mI_Id,
+                // ismS_OrderFlag: index + 1
 
-            // const payload = {
-            //     subject_list_Order: updatedOrderData // ✅ correct variable name
-            // };
+                fmH_FeeName: item.fmH_FeeName,
+                fmH_Flag: item.fmH_Flag,
+                fmH_RefundFlag: item.fmH_RefundFlag,
+                fmH_PDAFlag: item.fmH_PDAFlag,
+                fmH_SpecialFeeFlag: item.fmH_SpecialFeeFlag,
+                fmH_Id: item.id,
+                fmH_Order: index + 1
+            }));
 
-            // const response = await UpdatedOrderdSubjects(payload);
+            const payload = {
+                courseDTO: updatedOrderData
+            };
 
-            // if (response.success) {
-            //     toast.success(response.message);
-            //     refetchAll();
-            //     setIsOrderSaving(false);
-            //     setOrderModalOpen(false);
-            // } else {
-            //     toast.error(response.message);
-            // }
+            const jsondata = JSON.stringify(payload);
+            console.log('payload in handleOrderSave', jsondata);
+
+            const response = await updateSetOrder(payload);
+
+            if (response.success) {
+                toast.success(response.message);
+                refetchAll();
+                setIsOrderSaving(false);
+                setOrderModalOpen(false);
+            } else {
+                toast.error(response.message);
+            }
         } catch (error: any) {
             //toast.error(error.message);
         } finally {
@@ -117,7 +130,7 @@ function MasterFeeheadPageContent({
                 <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <div className='space-y-1'>{/* <Heading title='Fee Head' description='' /> */}</div>
 
-                    {/* <Button
+                    <Button
                         type='button'
                         variant='secondary'
                         onClick={handleSetOrder}
@@ -126,7 +139,7 @@ function MasterFeeheadPageContent({
                             <List className='mr-2 h-4 w-4' />
                             Set Order
                         </div>
-                    </Button> */}
+                    </Button>
 
                     <Button
                         type='button'

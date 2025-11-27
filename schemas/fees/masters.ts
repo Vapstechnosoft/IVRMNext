@@ -729,3 +729,13 @@ export const masterFeeOtherStudentSchema = {
         fopM_Id: deleteIdSchema('fopM_Id')
     })
 };
+
+export const specialFeeHeadSchema = {
+    addOrUpdate: z.object({
+        heads: z.array(z.string()).nonempty('Please select at least one Head'),
+        fmsfH_Name: z.string().min(1, { message: 'Special Fee Head Name is required' })
+    }),
+    delete: z.object({
+        FMSFH_Id: deleteIdSchema('FMSFH_Id')
+    })
+};

@@ -54,6 +54,7 @@ import {
     getOnlinePaymentHeadGroupInstallment,
     getSubMerchantDropDownList
 } from '@/server/fees/masters/online_payment_head_group';
+import { getFeeSpecialHeadDropdown, getfeespeecialheadList } from '@/server/fees/masters/specialfeehead';
 import {
     getAdmClassCategorydropdown,
     getFeeBusRoutingdropdown,
@@ -69,7 +70,13 @@ import {
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-export const useMasterFeehead = (searchParams?: ApiSearchparams) => {
+/*************  ✨ Windsurf Command ⭐  *************/
+/**
+ * Hook to fetch fee heads
+ * @param {ApiSearchparams} searchParams - search parameters
+ * @returns {object} - object containing the query and refetchAll functions
+ */
+/*******  69583189-9579-40d6-8a9a-0976bb5537d7  *******/ export const useMasterFeehead = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
@@ -1238,6 +1245,40 @@ export const useFeeOtherStudent = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_OTHER_STUDENT]
+            });
+        }
+    };
+};
+
+export const useSpecialFeeHead = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_SPECIAL_FEE_HEAD, searchParams ?? {}],
+            queryFn: async () => getfeespeecialheadList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_SPECIAL_FEE_HEAD]
+            });
+        }
+    };
+};
+
+export const feeSpecialHeadDROPDOWN = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_SPECIAL_FEE_HEAD_DROPDOWN],
+            queryFn: async () => getFeeSpecialHeadDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_SPECIAL_FEE_HEAD_DROPDOWN]
             });
         }
     };

@@ -458,3 +458,20 @@ export interface feeTransactionWaivedOffStudentDetails {
     studentName: string;
     amsT_Id: number;
 }
+
+export interface feeTransactionWaivedOffGroup {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface feeTransactionWaivedOffHead {
+    fmH_Id: number;
+    fmH_FeeName: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fmG_Id: number;
+    fmA_Id: number;
+    totalTobepaid: number;
+    tobepaid: number;
+    fsS_PaidAmount: number;
+}

@@ -173,3 +173,18 @@ export interface IMasterFeesInstallmentDuedateList {
     asmaY_Id: number;
     fmI_Id: number;
 }
+
+export interface IspecialFeeHeadList {
+    fmsfH_Id: number;
+    fmsfhfH_Id: number;
+    fmsfH_Name: string;
+    fmH_Name: string;
+    fmsfhfH_ActiceFlag: boolean;
+    fmH_Id: number;
+}
+
+export interface IspecialFeeHeadDropdownList {
+    fmH_Id: number;
+
+    fmH_FeeName: string;
+}

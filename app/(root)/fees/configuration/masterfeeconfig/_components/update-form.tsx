@@ -575,7 +575,7 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                                                 onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
                                                 id='FMC_USER_PREVILEDGE'
                                             />
-                                            <Label htmlFor='User Level Previledge'>User Level Previledge</Label>
+                                            <Label htmlFor='User Level Previledge'>User Level Privilege</Label>
                                         </div>
                                     )}
                                 />
