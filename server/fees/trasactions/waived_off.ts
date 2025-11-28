@@ -13,7 +13,10 @@ import type {
 } from '@/types/fees/transactions/transactions';
 
 export async function feeTransactionWaivedOff(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'amsT_FirstName,amsT_MiddleName,amsT_LastName,fmH_FeeName,ftI_Name,fswO_WaivedOffAmount,fswO_Date,mI_Id,asmaY_Id,amsT_Id,asmcL_Id,asmS_Id,fswO_WaivedOffRemarks,fmG_Id,fmH_Id'
+    );
     const url = `/FeeWaivedOff/GetFeeWaivedOffList?${urlParams}`;
     return await api.get<feeTransactionWaivedOffGrid[]>('fees', url);
 }
@@ -67,4 +70,9 @@ export async function saveFeeWivedOff(payload: any) {
 export async function uploadDocument(data: any) {
     const url = '/document_upload/upload_document';
     return await api.postMultipart<string>('preadmission', url, data);
+}
+
+export async function deleteWaivedoff(id: number) {
+    const url = `FeeWaivedOff/deletedetails/${id}`;
+    return await api.put('fees', url);
 }

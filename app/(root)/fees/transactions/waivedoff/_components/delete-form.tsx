@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Label } from '@/components/ui/extension/field';
 import { useFeeTransactionWaivedOffGrid } from '@/hooks/fees/useTrasactions';
-import { deleteStudentFeeGroupMapping } from '@/server/fees/masters/student_fee_group_mapping';
+import { deleteWaivedoff } from '@/server/fees/trasactions/waived_off';
 import type { feeTransactionWaivedOffGrid } from '@/types/fees/transactions/transactions';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -29,15 +29,15 @@ export default function DeleteFeeTransactionWaivedOffForm({ rowData, onClose, on
 
         setIsSubmitting(true);
         try {
-            const response = await deleteStudentFeeGroupMapping(0, 0, 0, rowData.asmaY_Id, rowData.mI_Id);
+            const response = await deleteWaivedoff(rowData.fswO_Id);
 
             if (response.success) {
-                toast.success(`${rowData.amsT_FirstName} deleted successfully`);
+                toast.success(response.message);
                 await refetchAll();
                 onSuccess?.();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to delete record');
+                toast.error(response.message);
             }
         } catch (error: any) {
             console.error('Delete error:', error);

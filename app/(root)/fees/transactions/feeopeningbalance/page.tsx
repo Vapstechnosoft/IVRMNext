@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 
 import { useFeeOpeningBalanceList, useFeeOpeningPDAList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { Plus, X } from 'lucide-react';
-import { useState } from 'react';
+import { use, useState } from 'react';
 import AddFeeOpeningBalanceForm from './_components/add-form';
 import ToggleMasterFeesConfigForm from './_components/toggle-form';
 
@@ -25,13 +25,14 @@ interface ApiResponse<T> {
     page?: number;
     page_size?: number;
 }
-
-export default function FeeOpeningBalancePage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function FeeOpeningBalancePage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<'Fee' | 'PDA'>('Fee');
 
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
-    const { data: feeResponse, isLoading: feeLoading, refetch: refetchFee } = useFeeOpeningBalanceList(selectedAsmayId || 0, {});
+    const { data: feeResponse, isLoading: feeLoading, refetch: refetchFee } = useFeeOpeningBalanceList(selectedAsmayId || 0, searchParams);
 
     const { data: pdaResponse, isLoading: pdaLoading, refetch: refetchPDA } = useFeeOpeningPDAList(selectedAsmayId || 0, {});
 

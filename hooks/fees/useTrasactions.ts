@@ -481,7 +481,7 @@ export const useFeeOpeningBalanceList = (asmaY_Id: number, searchParams?: ApiSea
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_OPENING_BALANCE_LIST, asmaY_Id, searchParams ?? {}],
-            queryFn: async () => getOpeningBalanceList(asmaY_Id),
+            queryFn: async () => getOpeningBalanceList(asmaY_Id, searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
