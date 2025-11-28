@@ -14,6 +14,7 @@ import {
     getSectionsDropDownByAcademicYearandClasslist,
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { set } from 'date-fns';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -64,7 +65,7 @@ export default function HallTicketGenerationForm({
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
     const selectedClass = useWatch({ control, name: 'asmcL_Id' });
     const selectedSections = useWatch({ control, name: 'sectionList' });
-    const prefixNoFlag = useWatch({ control, name: 'prefixNoFlag' });
+    //const prefixNoFlag = useWatch({ control, name: 'prefixNoFlag' });
 
     // Load Academic Years + Auto-select current (first)
     useEffect(() => {
@@ -89,11 +90,13 @@ export default function HallTicketGenerationForm({
         if (!selectedYear) return;
         (async () => {
             try {
+                setLoadingClasses(true);
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
                 setClasses(Array.isArray(data) ? data : []);
                 setValue('sectionList', []);
                 setValue('emE_Id', 0);
                 setExams([]);
+                setLoadingClasses(false);
             } catch {
                 toast.error('Failed to load classes');
             }
@@ -123,7 +126,7 @@ export default function HallTicketGenerationForm({
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSections.length) return;
         (async () => {
-
+            setLoadingExams(true);
             const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSections[0].asmS_Id);
             const safeData = Array.isArray(data) ? data : [];
             setExams(safeData);
@@ -131,6 +134,7 @@ export default function HallTicketGenerationForm({
                 toast.info('No exams are mapped for your selections');
             }
             setValue('emE_Id', 0);
+            setLoadingExams(false);
 
         })();
     }, [selectedYear, selectedClass, selectedSections, setValue]);
@@ -139,6 +143,7 @@ export default function HallTicketGenerationForm({
         try {
             // Call your actual save/generate API here
             // await generateHallTickets(data);
+            console.info(data);
             toast.success('Hall tickets generated successfully!');
             onSuccess?.();
             reset();
