@@ -1,47 +1,133 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 
-import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
-import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
+import { useFeeOpeningBalanceList, useFeeOpeningPDAList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { useState } from 'react';
 import AddFeeOpeningBalanceForm from './_components/add-form';
-import { feesConfigColumns } from './_components/columns';
 import ToggleMasterFeesConfigForm from './_components/toggle-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+import { type OpeningBalanceRow, openingBalanceColumns } from './_components/columns';
 
-export default function fineSlabPage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeeconfiguration(searchParams);
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import DeleteOpeningBalanceForm from './_components/delete-form';
+
+interface ApiResponse<T> {
+    success: boolean;
+    message: string;
+    data: T;
+    total?: number;
+    page?: number;
+    page_size?: number;
+}
+
+export default function FeeOpeningBalancePage() {
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    const [activeTab, setActiveTab] = useState<'Fee' | 'PDA'>('Fee');
+
+    const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
+    const { data: feeResponse, isLoading: feeLoading, refetch: refetchFee } = useFeeOpeningBalanceList(selectedAsmayId || 0, {});
+
+    const { data: pdaResponse, isLoading: pdaLoading, refetch: refetchPDA } = useFeeOpeningPDAList(selectedAsmayId || 0, {});
+
+    const feeData: OpeningBalanceRow[] = (feeResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
+
+    const pdaData: OpeningBalanceRow[] = (pdaResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
+
+    const isLoading = activeTab === 'Fee' ? feeLoading : pdaLoading;
+    const tableData: OpeningBalanceRow[] = activeTab === 'Fee' ? feeData : pdaData;
+
+    const refetchAll = () => {
+        if (activeTab === 'Fee') refetchFee();
+        else refetchPDA();
+    };
 
     return (
-        <FormProvider<IFeeConfig>>
-            <MasterFeeOpeningBalancePageContent response={response} isLoading={isLoading} error={error} />
+        <FormProvider<OpeningBalanceRow>>
+            <PageContent
+                selectedAsmayId={selectedAsmayId}
+                setSelectedAsmayId={setSelectedAsmayId}
+                academicYearData={academicYearData}
+                loadingYears={loadingYears}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                tableData={tableData}
+                isLoading={isLoading}
+                refetchAll={refetchAll}
+            />
         </FormProvider>
     );
 }
 
-function MasterFeeOpeningBalancePageContent({
-    response,
+function PageContent({
+    selectedAsmayId,
+    setSelectedAsmayId,
+    academicYearData,
+    loadingYears,
+    activeTab,
+    setActiveTab,
+    tableData,
     isLoading,
-    error
+    refetchAll
 }: {
-    response: any;
+    selectedAsmayId: number | null;
+    setSelectedAsmayId: (id: number | null) => void;
+    academicYearData: any;
+    loadingYears: boolean;
+    activeTab: 'Fee' | 'PDA';
+    setActiveTab: (tab: 'Fee' | 'PDA') => void;
+    tableData: OpeningBalanceRow[];
     isLoading: boolean;
-    error: any;
+    refetchAll: () => void;
 }) {
-    const { openAddForm } = useFormContext<IFeeConfig>();
-    const tableProps = useDataTableProps(response);
+    const { openAddForm } = useFormContext<OpeningBalanceRow>();
 
     return (
-        <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='space-y-1'>{/* <Heading title='Fees Opening Balance' description='' /> */}</div>
+        <div className='min-h-screen bg-gray-50'>
+            <div className='container mx-auto space-y-6 p-6'>
+                <div className='flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between'>
+                    <div className='flex items-center gap-6 rounded-lg border bg-white px-5 py-4 shadow-sm'>
+                        <Label className='whitespace-nowrap text-right'>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
+                        <Select
+                            value={selectedAsmayId?.toString() || ''}
+                            onValueChange={(v) => setSelectedAsmayId(v ? Number(v) : null)}
+                            disabled={loadingYears}>
+                            <SelectTrigger className='w-64'>
+                                <SelectValue placeholder='Select Academic Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {academicYearData?.data?.map((item: any) => (
+                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                        {item.asmaY_Year}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className='mr-auto flex gap-12 rounded-lg border bg-white px-7 py-4 shadow-sm'>
+                        {(['Fee', 'PDA'] as const).map((val) => (
+                            <label key={val} className='flex cursor-pointer gap-3'>
+                                <input
+                                    type='radio'
+                                    name='openingType'
+                                    value={val}
+                                    checked={activeTab === val}
+                                    onChange={() => setActiveTab(val)}
+                                    className='h-6 w-6 text-blue-600 accent-blue-600'
+                                />
+                                <span className='font-semibold text-lg'>{val}</span>
+                            </label>
+                        ))}
+                    </div>
+
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -51,32 +137,36 @@ function MasterFeeOpeningBalancePageContent({
                     </Button>
                 </div>
 
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IFeeConfig>
-                        {...tableProps}
-                        columns={feesConfigColumns}
-                        isLoading={isLoading}
-                        error={error}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Master fee Configurations...'
-                        noDataTitle='No Master Fee Configurations Found'
-                        noDataDescription=' You have not added any master fee configurations yet.'
-                        errorTitle='Failed to Load Master Fee Configurations'
-                    />
+                <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='rounded-xl border bg-white shadow-xl'>
+                    {!selectedAsmayId ? (
+                        <div className='py-24 text-center'>
+                            <p className='font-semibold text-2xl text-muted-foreground'>Please select an Academic Year</p>
+                            <p className='mt-3 text-lg text-muted-foreground'>
+                                to view {activeTab === 'Fee' ? 'Fee' : 'PDA'} opening balance records
+                            </p>
+                        </div>
+                    ) : (
+                        <GenericDataTable<OpeningBalanceRow>
+                            data={tableData}
+                            columns={openingBalanceColumns}
+                            isLoading={isLoading}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage={`Loading ${activeTab} Opening Balances...`}
+                            noDataTitle={`No ${activeTab} Opening Balance Records Found`}
+                            noDataDescription='No records exist for the selected academic year.'
+                        />
+                    )}
                 </CollapsibleSection>
 
-                <FormSections />
+                <FormSections refetch={refetchAll} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
-    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } = useFormContext<IFeeConfig>();
+function FormSections({ refetch }: { refetch: () => void }) {
+    const { isAddFormOpen, isToggleFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeToggleForm, closeDeleteForm, addFormRef } =
+        useFormContext<OpeningBalanceRow>();
 
     return (
         <>
@@ -84,11 +174,11 @@ function FormSections() {
                 <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add Fee Opening Balance'
-                        description='Add a new Fee Opening Balance'
+                        description='Enter opening balance for students'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        className='slide-in-from-top-4 animate-in shadow-2xl'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -98,14 +188,39 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddFeeOpeningBalanceForm onSuccess={closeAddForm} />
+
+                            <AddFeeOpeningBalanceForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
-            {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterFeesConfigForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleMasterFeesConfigForm
+                    rowData={selectedRow as any}
+                    onClose={() => {
+                        closeToggleForm();
+                        refetch();
+                    }}
+                />
+            )}
+
+            {/* DELETE FORM — Works perfectly, no UI change */}
+            {isDeleteFormOpen && selectedRow && (
+                <DeleteOpeningBalanceForm
+                    rowData={selectedRow}
+                    onClose={closeDeleteForm}
+                    onSuccess={() => {
+                        closeDeleteForm();
+                        refetch();
+                    }}
+                />
+            )}
         </>
     );
 }
