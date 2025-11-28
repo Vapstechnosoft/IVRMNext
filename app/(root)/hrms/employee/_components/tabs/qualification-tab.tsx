@@ -11,9 +11,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { CalendarIcon, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
+import { useStatesByCountryId } from '@/hooks/hrms/useEmployeeRegister';
 
 // Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
 const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
@@ -137,7 +138,99 @@ interface QualificationTabProps {
     options?: any;
     countries?: any[];
     states?: any[];
+    setValue?: any;
     onClear?: () => void;
+}
+
+// Component for state dropdown that fetches states based on country
+function QualificationStateDropdown({
+    control,
+    index,
+    countryId,
+    setValue,
+    fallbackStates = []
+}: {
+    control: any;
+    index: number;
+    countryId: string | null;
+    setValue?: any;
+    fallbackStates?: any[];
+}) {
+    // Convert country string to number for API call
+    const countryIdNum = countryId ? Number(countryId) : null;
+    
+    // Fetch states for the selected country
+    const { data: fetchedStates = [], isLoading } = useStatesByCountryId(countryIdNum);
+    
+    // Use fetched states if country is selected, otherwise fall back to passed states
+    const availableStates = countryIdNum ? (Array.isArray(fetchedStates) ? fetchedStates : []) : fallbackStates;
+    
+    // Track previous country ID to detect changes
+    const prevCountryIdRef = useRef<string | null>(countryId);
+    
+    // Clear state when country changes (only when country actually changes)
+    useEffect(() => {
+        if (!setValue) return;
+        
+        // Only proceed if country actually changed
+        if (prevCountryIdRef.current !== countryId) {
+            prevCountryIdRef.current = countryId;
+            // Clear state when country changes
+            setValue(`qualificationDetails.${index}.qualificationState`, '', { shouldValidate: false });
+        }
+        // Only depend on countryId to avoid infinite loops
+    }, [countryId, index, setValue]);
+    
+    return (
+        <Controller
+            name={`qualificationDetails.${index}.qualificationState`}
+            control={control}
+            render={({ field }) => (
+                <div className='flex flex-col gap-1.5'>
+                    <Label>State*</Label>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                        <SelectTrigger className='h-9'>
+                            <SelectValue placeholder='Select State' />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {isLoading ? (
+                                <SelectItem value="loading" disabled>Loading states...</SelectItem>
+                            ) : (
+                                availableStates
+                                    .filter((state: any, stateIndex: number) => {
+                                        const stateId = (
+                                            state.IVRMMS_Id ||
+                                            state.id ||
+                                            state.value ||
+                                            stateIndex
+                                        )?.toString();
+                                        return stateId && stateId.trim() !== '';
+                                    })
+                                    .map((state: any, stateIndex: number) => {
+                                        const stateIdRaw = state.IVRMMS_Id ?? state.id ?? state.value ?? stateIndex;
+                                        const stateId = ensureNonEmptyValue(stateIdRaw, stateIndex);
+                                        if (!stateId) return null;
+                                        const stateName =
+                                            state.IVRMMS_Name ||
+                                            state.Name ||
+                                            state.name ||
+                                            state.label ||
+                                            `State ${stateId}`;
+                                        if (!stateId || stateId.trim() === '') return null;
+                                        return (
+                                            <SafeSelectItem key={stateId} value={stateId}>
+                                                {stateName}
+                                            </SafeSelectItem>
+                                        );
+                                    })
+                                    .filter(Boolean)
+                            )}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
+        />
+    );
 }
 
 export function QualificationTab({
@@ -148,6 +241,7 @@ export function QualificationTab({
     options,
     countries = [],
     states = [],
+    setValue,
     onClear
 }: QualificationTabProps) {
     const { fields, append, remove } = useFieldArray({
@@ -188,11 +282,13 @@ export function QualificationTab({
 
     return (
         <div className='space-y-4'>
-            <div className='flex items-center justify-between rounded-md bg-primary px-4 py-2 text-primary-foreground'>
-                <h3 className='font-semibold'>EMPLOYEE QUALIFICATION DETAILS</h3>
-                <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
-                    <Plus className='mr-1 h-4 w-4' /> Add Qualification
-                </Button>
+            <div className='rounded-md border'>
+                <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
+                    <h3 className='font-semibold'>EMPLOYEE QUALIFICATION DETAILS</h3>
+                    <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
+                        <Plus className='mr-1 h-4 w-4' /> Add Qualification
+                    </Button>
+                </div>
             </div>
 
             {fields.length === 0 && (
@@ -372,51 +468,12 @@ export function QualificationTab({
                                         )}
                                     />
 
-                                    <Controller
-                                        name={`qualificationDetails.${index}.qualificationState`}
+                                    <QualificationStateDropdown
                                         control={control}
-                                        render={({ field }) => (
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label>State*</Label>
-                                                <Select onValueChange={field.onChange} value={field.value || ''}>
-                                                    <SelectTrigger className='h-9'>
-                                                        <SelectValue placeholder='Select State' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {states
-                                                            .filter((state: any, stateIndex: number) => {
-                                                                const stateId = (
-                                                                    state.IVRMMS_Id ||
-                                                                    state.id ||
-                                                                    state.value ||
-                                                                    stateIndex
-                                                                )?.toString();
-                                                                return stateId && stateId.trim() !== '';
-                                                            })
-                                                            .map((state: any, stateIndex: number) => {
-                                                                const stateIdRaw = state.IVRMMS_Id ?? state.id ?? state.value ?? stateIndex;
-                                                                const stateId = ensureNonEmptyValue(stateIdRaw, stateIndex);
-                                                                // Ensure value is never empty string
-                                                                if (!stateId) return null;
-                                                                const stateName =
-                                                                    state.IVRMMS_Name ||
-                                                                    state.Name ||
-                                                                    state.name ||
-                                                                    state.label ||
-                                                                    `State ${stateId}`;
-                                                                // Final safety check - ensure value is never empty
-                                                                if (!stateId || stateId.trim() === '') return null;
-                                                                return (
-                                                                    <SafeSelectItem key={stateId} value={stateId}>
-                                                                        {stateName}
-                                                                    </SafeSelectItem>
-                                                                );
-                                                            })
-                                                            .filter(Boolean)}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        )}
+                                        index={index}
+                                        countryId={qualificationDetails[index]?.qualificationCountry || null}
+                                        setValue={setValue}
+                                        fallbackStates={states}
                                     />
                                 </div>
 
@@ -450,25 +507,8 @@ export function QualificationTab({
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {(options?.cgpaPercentageTypes || [])
-                                                            .filter((item: any) => {
-                                                                const val = item.value ?? item.name ?? item.label ?? item;
-                                                                return val != null && val !== '' && String(val).trim() !== '';
-                                                            })
-                                                            .map((item: any, index: number) => {
-                                                                const val = ensureNonEmptyValue(
-                                                                    item.value ?? item.name ?? item.label ?? item,
-                                                                    index
-                                                                );
-                                                                if (!val) return null;
-                                                                const label = item.label ?? item.name ?? item.value ?? String(item);
-                                                                return (
-                                                                    <SafeSelectItem key={val} value={val}>
-                                                                        {label}
-                                                                    </SafeSelectItem>
-                                                                );
-                                                            })
-                                                            .filter(Boolean)}
+                                                        <SafeSelectItem value="CGPA">CGPA</SafeSelectItem>
+                                                        <SafeSelectItem value="Percentage">Percentage</SafeSelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>

@@ -1,14 +1,16 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MASTER_HEADS_DROPDOWN, MASTER_INSTALLMENT_DROPDOWN, TERM_DROPDOWN_DATA, useMasterTermsHead } from '@/hooks/fees/useMasters';
+import { cn } from '@/lib/utils';
 import { masterTermFeeHeadSchema } from '@/schemas/fees/masters';
 import { addOrUpdateFeeTermHead } from '@/server/fees/masters/fee-term-heads';
 import type { IMasterTermFeeHeadList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -27,6 +29,14 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
 
     const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
     const [SelectedInstallmentsItems, setSelectedInstallmentsItems] = useState<{ ftI_ID: string }[]>([]);
+    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+    const [isHeadPopoverOpen, setIsHeadPopoverOpen] = useState(false);
+    const [isInstallPopoverOpen, setIsInstallPopoverOpen] = useState(false);
+
+    const [headSearch, setHeadSearch] = useState('');
+    const [installSearch, setInstallSearch] = useState('');
+    const [search, setSearch] = useState('');
 
     const { data: terms, isLoading: termsLoading, error: termsError, refetchAll: refetchterms } = TERM_DROPDOWN_DATA();
 
@@ -51,6 +61,8 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
             fmT_Id: row.fmT_Id || 0
         }
     });
+
+    console.log('Selected row data :', row);
 
     function OnReset() {
         reset();
@@ -85,6 +97,17 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
             });
         }
     }, [row, masterHeads, masterInstallment, reset]);
+
+    const selectedheads =
+        masterHeads?.data && selectedHeadsItems.length > 0
+            ? masterHeads.data.find((fh) => fh.fmH_Id.toString() === selectedHeadsItems[0].fmH_Id)?.fmH_FeeName || 'Select Fee Heads'
+            : 'Select Fee Heads';
+
+    const selectedInstallemnts =
+        masterInstallment?.data && SelectedInstallmentsItems.length > 0
+            ? masterInstallment.data.find((fh) => fh.ftI_ID.toString() === SelectedInstallmentsItems[0].ftI_ID)?.ftI_NAME ||
+              'Select Fee Installemnts'
+            : 'Select Fee Installemnts';
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
@@ -188,7 +211,7 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
                             <Label aria-label='Heads' htmlFor='fmH_Id'>
                                 Fees Head <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Controller
+                            {/* <Controller
                                 name='heads'
                                 control={control}
                                 render={({ field }) => (
@@ -212,6 +235,82 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
                                         disabled={masterHeadsLoading}
                                     />
                                 )}
+                            /> */}
+
+                            <Controller
+                                name='heads'
+                                control={control}
+                                render={({ field }) => {
+                                    const selectedValue = field.value?.[0] || ''; // Only 1 selected (single-select)
+
+                                    return (
+                                        <Popover open={isHeadPopoverOpen} onOpenChange={setIsHeadPopoverOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    onClick={() => setIsHeadPopoverOpen(!isHeadPopoverOpen)}
+                                                    className={cn(
+                                                        'w-full justify-between',
+                                                        errors.heads ? 'border-red-500' : 'border-primary/30'
+                                                    )}>
+                                                    <span className='truncate'>
+                                                        {masterHeads?.data?.find((h) => h.fmH_Id.toString() === selectedValue)
+                                                            ?.fmH_FeeName || 'Select Fee Head'}
+                                                    </span>
+                                                    <ChevronsUpDown className='ml-2 h-4 w-4 opacity-50' />
+                                                </Button>
+                                            </PopoverTrigger>
+
+                                            <PopoverContent className='w-[260px] p-2 sm:w-[300px]'>
+                                                {/* Search */}
+                                                <div className='relative mb-2'>
+                                                    <Search className='absolute top-2.5 left-2 h-4 w-4 text-gray-400' />
+                                                    <InputText
+                                                        placeholder='Search heads...'
+                                                        value={search}
+                                                        onChange={(e) => setSearch(e.target.value)}
+                                                        className='h-8 pl-8 text-sm'
+                                                    />
+                                                </div>
+
+                                                {/* List */}
+                                                <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
+                                                    {masterHeads?.data
+                                                        ?.filter((h) => h.fmH_FeeName.toLowerCase().includes(search.toLowerCase()))
+                                                        .map((h) => {
+                                                            const isSelected = selectedValue === h.fmH_Id.toString();
+
+                                                            return (
+                                                                <div
+                                                                    key={h.fmH_Id}
+                                                                    onClick={() => {
+                                                                        field.onChange([h.fmH_Id.toString()]);
+
+                                                                        setSelectedHeadsItems([{ fmH_Id: h.fmH_Id.toString() }]);
+
+                                                                        //setIsHeadPopoverOpen(false);
+                                                                    }}
+                                                                    className={cn(
+                                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm',
+                                                                        isSelected
+                                                                            ? 'border-primary bg-primary/5'
+                                                                            : 'border-gray-200 hover:border-primary/40'
+                                                                    )}>
+                                                                    {isSelected ? (
+                                                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                                                    ) : (
+                                                                        <Square className='h-4 w-4 text-gray-400' />
+                                                                    )}
+                                                                    <span>{h.fmH_FeeName}</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    );
+                                }}
                             />
                         </div>
 
@@ -219,7 +318,7 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
                             <Label aria-label='Installments' htmlFor='ftI_Id'>
                                 Installment Name <span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Controller
+                            {/* <Controller
                                 name='installments'
                                 control={control}
                                 render={({ field }) => (
@@ -245,6 +344,80 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
                                         disabled={masterInstallmentLoading}
                                     />
                                 )}
+                            /> */}
+
+                            <Controller
+                                name='installments'
+                                control={control}
+                                render={({ field }) => {
+                                    const selectedValue = field.value?.[0] || '';
+
+                                    return (
+                                        <Popover open={isInstallPopoverOpen} onOpenChange={setIsInstallPopoverOpen}>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    onClick={() => setIsInstallPopoverOpen(!isInstallPopoverOpen)}
+                                                    className={cn(
+                                                        'w-full justify-between',
+                                                        errors.heads ? 'border-red-500' : 'border-primary/30'
+                                                    )}>
+                                                    <span className='truncate'>
+                                                        {masterInstallment?.data?.find((h) => h.ftI_ID.toString() === selectedValue)
+                                                            ?.ftI_NAME || 'Select Fee Installments'}
+                                                    </span>
+                                                    <ChevronsUpDown className='ml-2 h-4 w-4 opacity-50' />
+                                                </Button>
+                                            </PopoverTrigger>
+
+                                            <PopoverContent className='w-[260px] p-2 sm:w-[300px]'>
+                                                <div className='relative mb-2'>
+                                                    <Search className='absolute top-2.5 left-2 h-4 w-4 text-gray-400' />
+                                                    <InputText
+                                                        placeholder='Search Installments...'
+                                                        value={search}
+                                                        onChange={(e) => setSearch(e.target.value)}
+                                                        className='h-8 pl-8 text-sm'
+                                                    />
+                                                </div>
+
+                                                <div className='max-h-[260px] overflow-y-auto rounded-md border p-1'>
+                                                    {masterInstallment?.data
+                                                        ?.filter((h) => h.ftI_NAME.toLowerCase().includes(search.toLowerCase()))
+                                                        .map((h) => {
+                                                            const isSelected = selectedValue === h.ftI_ID.toString();
+
+                                                            return (
+                                                                <div
+                                                                    key={h.ftI_ID}
+                                                                    onClick={() => {
+                                                                        field.onChange([h.ftI_ID.toString()]);
+
+                                                                        setSelectedInstallmentsItems([{ ftI_ID: h.ftI_ID.toString() }]);
+
+                                                                        // setIsPopoverOpen(false);
+                                                                    }}
+                                                                    className={cn(
+                                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm',
+                                                                        isSelected
+                                                                            ? 'border-primary bg-primary/5'
+                                                                            : 'border-gray-200 hover:border-primary/40'
+                                                                    )}>
+                                                                    {isSelected ? (
+                                                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                                                    ) : (
+                                                                        <Square className='h-4 w-4 text-gray-400' />
+                                                                    )}
+                                                                    <span>{h.ftI_NAME}</span>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                </div>
+                                            </PopoverContent>
+                                        </Popover>
+                                    );
+                                }}
                             />
                         </div>
                     </div>

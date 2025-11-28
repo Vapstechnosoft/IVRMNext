@@ -62,9 +62,16 @@ export async function getFeeCasteCategorydropdown() {
     return await api.get<IMasterFeeCasteCategoryMappingList[]>('fees', url);
 }
 
-export async function getStudentClassMapping(academicYear: number, searchParams?: ApiSearchparams) {
+export async function getStudentClassMapping(
+    academicYear: number,
+    classId: number,
+    sectionId: number,
+    admCategoryId: number,
+    radioFilter: string,
+    searchParams?: ApiSearchparams
+) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/StudentFeeGroupMappingFacade/getStudentClassMapping?AcademicYearId=${academicYear}&${urlParams}`;
+    const url = `/StudentFeeGroupMappingFacade/getStudentClassMapping?AcademicYearId=${academicYear}&ClassId=${classId}&SectionId=${sectionId}&AdmissionCategoryId=${admCategoryId}&RadioFilter=${radioFilter}&${urlParams}`;
     return await api.get<IMasterStudentClassMappingList[]>('fees', url);
 }
 

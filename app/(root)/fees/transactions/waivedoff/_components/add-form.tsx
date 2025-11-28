@@ -3,8 +3,10 @@
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import {
     useClassdropdowndatafee,
     useMasterFeeTransactionWaiveOff,
@@ -13,14 +15,23 @@ import {
 } from '@/hooks/fees/useTrasactions';
 
 import { feeTransactionWaivedOffSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateTransactionWaivedOff } from '@/server/fees/trasactions/waived_off';
+import { addOrUpdateTransactionWaivedOff, getGroupList, getHeadList, getStudentdetails } from '@/server/fees/trasactions/waived_off';
+import type { ApiSearchparams } from '@/types';
+import type { IMasterStudentClassMappingList } from '@/types/fees/masters/masters';
+import type {
+    feeTransactionWaivedOffGroup,
+    feeTransactionWaivedOffHead,
+    feeTransactionWaivedOffStudentDetails
+} from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, CheckSquare, Save, Square, Trash } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { CalendarIcon, Save, Trash } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { FeeTransactionHeadList } from './head-list-columns';
 
 type FormFields = z.infer<typeof feeTransactionWaivedOffSchema.addOrUpdate>;
 
@@ -28,12 +39,6 @@ interface AddFeeTransactionWaiveOffFormProps {
     onSuccess?: () => void;
     className?: string;
 }
-
-const studentData = [
-    { name: 'ADVIK J', regNo: '6-24/25' },
-    { name: 'GANAVI S', regNo: '38/2025-26' },
-    { name: 'KIRAN KUMAR N', regNo: '7-24/25' }
-];
 
 export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '' }: AddFeeTransactionWaiveOffFormProps) {
     const { refetchAll } = useMasterFeeTransactionWaiveOff();
@@ -43,12 +48,42 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         reset,
         setValue,
         control,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feeTransactionWaivedOffSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {}
     });
+    const [academicYear, setAcademicYear] = useState<number | null>(null);
+    const [classWise, setclassWise] = useState<number | null>(null);
+    const [sectionWise, setsectionWise] = useState<number | null>(null);
+    const [studentWise, setstudentWise] = useState<number | null>(null);
+    const [remarks, setRemarks] = useState<string>('');
+    const [grouplist, setgrouplist] = useState<string[]>([]);
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [refundableType, setRefundableType] = useState<string>('Refundable');
+    const [fineWaiveOff, setFineWaiveOff] = useState<boolean>(false);
+    const [completeFineWaiveOff, setCompleteFineWaiveOff] = useState<boolean>(false);
+    const [nameType, setnameType] = useState<string>('NameReg.No');
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const [studentDetails, setStudentDetails] = useState<feeTransactionWaivedOffStudentDetails[]>([]);
+    const [studentDetailsLoading, setStudentDetailsLoading] = useState(false);
+    const [studentDetailsError, setStudentDetailsError] = useState<any>(null);
+    const [groupList, setGroupList] = useState<feeTransactionWaivedOffGroup[]>([]);
+    const [groupListLoading, setGroupListLoading] = useState(false);
+    const [groupListError, setGroupListError] = useState<any>(null);
+    //   const [groupSearch, setGroupSearch] = useState("");
+    const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [isViewing, setIsViewing] = useState(false);
+    const [selectedHead, setSelectedHead] = useState<IMasterStudentClassMappingList[]>([]);
+    const [apisearchParams_, setApisearchParams_] = useState<ApiSearchparams>({});
+    const [tableProps, setTableProps] = useState<any>(null);
+    const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
+    const [headListLoading, setHeadListLoading] = useState(false);
+    const [headListError, setHeadListError] = useState<any>(null);
 
     const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
     useEffect(() => {
@@ -61,71 +96,120 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     }, [academicYears, reset]);
 
     const { data: classdata, isLoading: classloading, error: classerror } = useClassdropdowndatafee();
+
     const { data: sectiondata, isLoading: secloading, error: sectionerror } = useSectiondropdowndatafee();
 
-    const [academicYear, setAcademicYear] = useState<number | null>(null);
-    const [classWise, setclassWise] = useState<number | null>(null);
-    const [sectionWise, setsectionWise] = useState<number | null>(null);
-    const [studentWise, setstudentWise] = useState<string | null>(null);
-    const [remarks, setRemarks] = useState<string>('');
-    const [grouplist, setgrouplist] = useState<string[]>([]);
-    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
-    const [searchTerm, setSearchTerm] = useState<string>('');
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-    const [refundableType, setRefundableType] = useState<string>('Refundable');
-    const [fineWaiveOff, setFineWaiveOff] = useState<boolean>(false);
-    const [completeFineWaiveOff, setCompleteFineWaiveOff] = useState<boolean>(false);
-    const [nameType, setnameType] = useState<string>('NameReg.No');
-    const fileInputRef = useRef<HTMLInputElement | null>(null);
-    const [photoFile, setPhotoFile] = useState<File | null>(null);
+    const asmay_Id = watch('academicYear');
+    const asmcl_Id = watch('class');
+    const asms_Id = watch('section');
+    const amst_Id = watch('student');
+
+    //Student List
+    const fetchStudentDetails = async () => {
+        if (!asmay_Id) return;
+        if (!asmcl_Id) return;
+        if (!asms_Id) return;
+        try {
+            setStudentDetailsLoading(true);
+            setStudentDetailsError(null);
+
+            const res = await getStudentdetails(Number(asmay_Id), Number(asmcl_Id), Number(asms_Id));
+            setStudentDetails(res.data ?? []);
+            setValue('student', 0);
+        } catch (error) {
+            console.error('Error fetching student class mapping', error);
+            setStudentDetailsError(error);
+        } finally {
+            setStudentDetailsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchStudentDetails();
+    }, [asmay_Id, asmcl_Id, asms_Id]);
+
+    //Group List
+    const fetcthGroupList = async () => {
+        if (!asmay_Id) return;
+        if (!amst_Id) return;
+        try {
+            setGroupListLoading(true);
+            setGroupListError(null);
+
+            const res = await getGroupList(Number(asmay_Id), Number(amst_Id), refundableType);
+            setGroupList(res.data ?? []);
+        } catch (error) {
+            console.error('Error fetching student class mapping', error);
+            setGroupListError(error);
+        } finally {
+            setGroupListLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        setGroupList([]);
+        setSelectedGroups([]);
+        fetcthGroupList();
+    }, [asmay_Id, amst_Id, refundableType]);
+
+    //Head List
+    const fetcthHeadList = async () => {
+        if (!asmay_Id) return;
+        if (!amst_Id) return;
+        if (!selectedGroups) return;
+        try {
+            setHeadListLoading(true);
+            setHeadListError(null);
+
+            const res = await getHeadList(Number(asmay_Id), Number(amst_Id), refundableType, fineWaiveOff === true ? 1 : 0, {
+                groupIds: selectedGroups
+            });
+            setHeadList(res.data ?? []);
+            setTableProps(useDataTableProps(res ?? []));
+        } catch (error) {
+            console.error('Error fetching student class mapping', error);
+            setHeadListError(error);
+        } finally {
+            setHeadListLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetcthHeadList();
+    }, [amst_Id, selectedGroups, fineWaiveOff]);
+
+    useEffect(() => {
+        setGroupList([]);
+        setSelectedGroups([]);
+    }, [asmay_Id, asmcl_Id, asms_Id]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0] || null;
         setPhotoFile(f);
+        setPhotoPreview(URL.createObjectURL(f!));
     };
 
-    const formattedStudentList = useMemo(() => {
-        if (nameType === 'NameReg.No') {
-            return studentData.map((student) => ({
-                value: `${student.name}-${student.regNo}`,
-                label: `${student.name} - ${student.regNo}`
-            }));
-        }
-        return studentData.map((student) => ({
-            value: `${student.regNo}-${student.name}`,
-            label: `${student.regNo} - ${student.name}`
-        }));
-    }, [nameType]);
-
-    const nonRefundableOption = ['KG TUTION FEES', 'KG ILM & OTHER FEES', 'KG BOOKS FEES', 'KG ILM & OTHER FEES', 'KG BOOKS FEES'];
-
-    const groupOptions = useMemo(() => {
-        return nonRefundableOption.map((g) => ({ value: g, label: g }));
-    }, []);
-
-    const filteredGroupOptions = useMemo(() => {
-        if (!searchTerm) return groupOptions;
-        return groupOptions.filter((o) => o.label.toLowerCase().includes(searchTerm.toLowerCase()));
-    }, [groupOptions, searchTerm]);
-
-    const handleSelectAll = () => {
-        const allVisible = filteredGroupOptions.map((o) => o.value);
-        const allSelected = allVisible.every((v) => selectedGroups.includes(v));
-        if (allSelected) {
-            setSelectedGroups((prev) => prev.filter((p) => !allVisible.includes(p)));
-        } else {
-            setSelectedGroups((prev) => Array.from(new Set([...prev, ...allVisible])));
-        }
+    const handleSelectHead = (selectedRows: IMasterStudentClassMappingList[]) => {
+        setSelectedHead(selectedRows);
     };
 
-    const handleGroupToggle = (value: string) => {
-        setSelectedGroups((prev) => {
-            if (prev.includes(value)) return prev.filter((p) => p !== value);
-            return [...prev, value];
+    const handleApiParmasChange = (apiparmas: ApiSearchparams) => {
+        setApisearchParams_((prev) => {
+            if (JSON.stringify(prev) === JSON.stringify(apiparmas)) return prev;
+            return apiparmas;
         });
     };
 
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+    const feeHeads = useMemo(() => {
+        return FeeTransactionHeadList.filter((col) => {
+            if (fineWaiveOff && 'accessorKey' in col && col.accessorKey === 'totalTobepaid') {
+                return false;
+            }
+            return true;
+        });
+    }, [fineWaiveOff]);
+
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
             const activeTypeValues = [fineWaiveOff ? 'FineWaiveOff' : null, completeFineWaiveOff ? 'CompleteFineWaiveOff' : null].filter(
                 Boolean
@@ -144,7 +228,6 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 nameFormat: nameType,
                 grouplist: selectedGroups.length > 0 ? selectedGroups : grouplist
             };
-            const jsondata = JSON.stringify(payload);
             const response = await addOrUpdateTransactionWaivedOff(payload as any);
             if (response.success) {
                 toast.success(response.message);
@@ -181,7 +264,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 <div className='flex gap-6'>
                     <div className='flex-1 space-y-6'>
                         <div>
-                            <Label className='min-w-[150px] text-right'>
+                            <Label className='min-w-[150px] text-right' htmlFor='academicYear'>
                                 Academic Year:<span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <div className='flex w-full max-w-[400px] flex-col'>
@@ -229,7 +312,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                             </div>
                         </div>
                         <div>
-                            <Label className='min-w-[150px] text-right'>
+                            <Label className='min-w-[150px] text-right' htmlFor='class'>
                                 Class:<span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <div className='flex w-full max-w-[400px] flex-col'>
@@ -249,7 +332,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     ? String(field.value)
                                                     : ''
                                             }
-                                            disabled={classloading}>
+                                            //   disabled={classloading}
+                                        >
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Class --' />
                                             </SelectTrigger>
@@ -278,7 +362,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                         </div>
 
                         <div>
-                            <Label className='min-w-[150px] text-right'>
+                            <Label className='min-w-[150px] text-right' htmlFor='section'>
                                 Section:<span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <div className='flex w-full max-w-[400px] flex-col'>
@@ -298,7 +382,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     ? String(field.value)
                                                     : ''
                                             }
-                                            disabled={secloading}>
+                                            //   disabled={secloading}
+                                        >
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Section --' />
                                             </SelectTrigger>
@@ -352,55 +437,117 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                         </div>
 
                         <div>
-                            <Label>
+                            <Label htmlFor='student'>
                                 Student Name:<span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Select onValueChange={setstudentWise} value={studentWise || ''}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Student' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {formattedStudentList.map((student) => (
-                                        <SelectItem key={student.value} value={student.value}>
-                                            {student.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className='flex w-full max-w-[400px] flex-col'>
+                                <Controller
+                                    name='student'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            //   key={field.value || "empty"}
+                                            //   onValueChange={(val) => {
+                                            //     const id = Number(val);
+                                            //     field.onChange(id);
+                                            //     setstudentWise(id);
+                                            //   }}
+                                            //   value={
+                                            //     typeof field.value === "number" ||
+                                            //     typeof field.value === "string"
+                                            //       ? String(field.value)
+                                            //       : ""
+                                            //   }
+
+                                            key={field.value}
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            <SelectTrigger className='min-w-[400px] text-center'>
+                                                <SelectValue placeholder='--Select student --' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {studentDetailsLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : studentDetailsError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading
+                                                    </SelectItem>
+                                                ) : studentDetails.length === 0 ? (
+                                                    <SelectItem value='nodata' disabled>
+                                                        No Results
+                                                    </SelectItem>
+                                                ) : (
+                                                    studentDetails?.map((item: any) => (
+                                                        <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
+                                                            {item.studentName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.student && <FormError>{errors.student.message}</FormError>}
+                            </div>
                         </div>
 
                         <div>
-                            <label htmlFor='remarks' className='inline-flex cursor-pointer items-center space-x-2'>
+                            <Label htmlFor='remarks' className='inline-flex cursor-pointer items-center space-x-2'>
                                 Remarks: <span className='ml-1 text-red-500'>*</span>
-                            </label>
-                            <textarea
-                                id='remarks'
-                                name='Remarks'
-                                rows={5}
-                                value={remarks}
-                                className='mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm'
-                                onChange={(e) => setRemarks(e.target.value)}
+                            </Label>
+
+                            <Controller
+                                name='remarks'
+                                control={control}
+                                render={({ field }) => (
+                                    <textarea
+                                        id='remarks'
+                                        rows={5}
+                                        {...field}
+                                        className='mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm'
+                                    />
+                                )}
                             />
+
+                            {errors.remarks && <FormError>{errors.remarks.message}</FormError>}
                         </div>
                     </div>
 
                     <div className='flex-1 space-y-6'>
                         <div>
-                            <Label>
+                            <Label htmlFor='date'>
                                 Date:<span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <Button variant='outline' className='w-full justify-start text-left font-normal'>
-                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                        {selectedDate ? format(selectedDate, 'PPP') : <span>Select Date</span>}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar mode='single' selected={selectedDate} onSelect={setSelectedDate} initialFocus />
-                                </PopoverContent>
-                            </Popover>
+
+                            <Controller
+                                name='date'
+                                control={control}
+                                render={({ field }) => (
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant='outline' className='w-full justify-start text-left font-normal'>
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                {field.value ? format(field.value, 'PPP') : 'Select Date'}
+                                            </Button>
+                                        </PopoverTrigger>
+
+                                        <PopoverContent className='w-auto p-0' align='start'>
+                                            <Calendar
+                                                mode='single'
+                                                selected={field.value}
+                                                onSelect={(date) => field.onChange(date)}
+                                                initialFocus
+                                            />
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
+                            />
+
+                            {errors.date && <FormError>{errors.date.message}</FormError>}
                         </div>
+
                         <div className='space-y-2'>
                             <Label>
                                 Type:<span className='ml-1 text-red-500'>*</span>
@@ -435,59 +582,53 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                             <label htmlFor='grouplist' className='inline-flex cursor-pointer items-center space-x-2'>
                                 Group List:<span className='ml-1 text-red-500'>*</span>
                             </label>
-                            {refundableType === 'NonRefundable' ? (
-                                <div className='flex flex-col gap-2 border border-1 p-2'>
-                                    <div className='flex items-center gap-2 px-2'>
-                                        <input
-                                            type='text'
-                                            placeholder='Search groups...'
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                            className='w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm'
-                                        />
-                                    </div>
-
-                                    <div
-                                        className='mt-2 flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-gray-50'
-                                        onClick={handleSelectAll}>
-                                        {filteredGroupOptions.length > 0 &&
-                                        filteredGroupOptions.every((o) => selectedGroups.includes(o.value)) ? (
-                                            <CheckSquare className='h-4 w-4 text-blue-600' />
+                            <div className='group flex flex-col gap-1.5 md:col-span-2'>
+                                <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
+                                    {/* <input
+                    type="text"
+                    placeholder="Search Group Name"
+                    className="mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={groupSearch}
+                    onChange={(e) => setGroupSearch(e.target.value)}
+                  /> */}
+                                    <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
+                                        {groupListLoading ? (
+                                            <span className='text-gray-400 text-sm'>Loading Groups...</span>
+                                        ) : groupList.length > 0 ? (
+                                            groupList.map((grp) => {
+                                                const optVal = Number(grp.fmG_Id);
+                                                return (
+                                                    <label
+                                                        key={grp.fmG_Id}
+                                                        className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
+                                                        <input
+                                                            type='checkbox'
+                                                            value={grp.fmG_Id}
+                                                            checked={selectedGroups.includes(optVal)}
+                                                            onChange={async (e) => {
+                                                                const checked = e.target.checked;
+                                                                const newSelected = checked
+                                                                    ? [...selectedGroups, optVal]
+                                                                    : selectedGroups.filter((p) => p !== optVal);
+                                                                setSelectedGroups(newSelected);
+                                                            }}
+                                                            className='mr-2 h-4 w-4 accent-blue-600'
+                                                        />
+                                                        <span className='truncate'>{grp.fmG_GroupName}</span>
+                                                    </label>
+                                                );
+                                            })
+                                        ) : groupListError ? (
+                                            <span className='text-gray-400 text-sm'>Error loading</span>
                                         ) : (
-                                            <Square className='h-4 w-4 text-gray-400' />
+                                            <span className='text-gray-400 text-sm'>No Results</span>
                                         )}
-                                        <span className='text-gray-900 text-sm'>Select All</span>
                                     </div>
-
-                                    <div className='max-h-28 overflow-auto'>
-                                        {filteredGroupOptions.map((opt) => {
-                                            const selected = selectedGroups.includes(opt.value);
-                                            return (
-                                                <div
-                                                    key={opt.value}
-                                                    onClick={() => handleGroupToggle(opt.value)}
-                                                    className={`flex cursor-pointer items-center gap-2 px-3 py-2 hover:bg-gray-50 ${
-                                                        selected ? 'bg-blue-50' : ''
-                                                    }`}>
-                                                    {selected ? (
-                                                        <CheckSquare className='h-4 w-4 text-blue-600' />
-                                                    ) : (
-                                                        <Square className='h-4 w-4 text-gray-400' />
-                                                    )}
-                                                    <span className='text-gray-900 text-sm'>{opt.label}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                    {selectedGroups.length > 0 && (
+                                        <div className='mt-2 text-blue-600 text-sm'>{selectedGroups.length} head(s) selected</div>
+                                    )}
                                 </div>
-                            ) : (
-                                <input
-                                    id='grouplist'
-                                    name='Group List'
-                                    defaultValue={grouplist.join(', ')}
-                                    className='mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm'
-                                />
-                            )}
+                            </div>
                         </div>
 
                         <div className='flex items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-3 py-2'>
@@ -530,24 +671,62 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                 </Button>
 
                                 {photoFile && (
-                                    <div className='flex gap-3'>
-                                        <div className='mt-2 text-gray-600 text-sm'>{photoFile.name}</div>
+                                    <div className='mt-2 flex items-center gap-3'>
+                                        <div className='text-gray-600 text-sm'>{photoFile.name}</div>
+
+                                        <Button type='button' variant='secondary' onClick={() => setIsViewing(true)} className='px-3'>
+                                            View
+                                        </Button>
+
                                         <Button
                                             type='button'
                                             variant='ghost'
                                             onClick={() => {
                                                 setPhotoFile(null);
+                                                setPhotoPreview(null);
                                                 if (fileInputRef.current) fileInputRef.current.value = '';
-                                            }}
-                                            className='w-1/3 '>
-                                            <span>
-                                                <Trash className='text-red-600' />
-                                            </span>
+                                            }}>
+                                            <Trash className='text-red-600' />
                                         </Button>
+                                    </div>
+                                )}
+                                {isViewing && photoPreview && (
+                                    <div
+                                        onClick={() => setIsViewing(false)}
+                                        className='fixed inset-0 z-50 flex items-center justify-center bg-black/80'>
+                                        <img src={photoPreview} alt='preview' className='max-h-[90%] max-w-[150%] rounded-lg shadow-lg' />
                                     </div>
                                 )}
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div className='grid grid-cols-1 gap-2 md:grid-cols-1 '>
+                    <div className='container mx-auto w-[1000px] space-y-4 p-1'>
+                        {' '}
+                        <CollapsibleSection
+                            defaultOpen={true}
+                            variant='default'
+                            size='lg'
+                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                            <GenericDataTable
+                                {...tableProps}
+                                columns={feeHeads}
+                                onRowSelectionChange={handleSelectHead}
+                                isLoading={headListLoading}
+                                error={headListError}
+                                columnPinning={{ right: ['actions'] }}
+                                loadingMessage='Loading Student Head List...'
+                                noDataTitle='No Student Head List Found'
+                                noDataDescription='Get started by creating your first Student Head List'
+                                errorTitle='Error Student Head List'
+                                onSearchQueryChange={handleApiParmasChange}
+                                showSearch={false}
+                                searchQuery=''
+                                showPagination={false}
+                                currentApiParams={apisearchParams_}
+                            />
+                        </CollapsibleSection>
                     </div>
                 </div>
 
@@ -567,7 +746,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
+                            <Save className=' h-4 w-4' />
                             Save
                         </div>
                     </Button>

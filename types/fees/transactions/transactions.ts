@@ -439,3 +439,39 @@ export interface IFeeClassList {
     createdDate: string;
     updatedDate: string;
 }
+
+export interface feeTransactionWaivedOffGrid {
+    fswO_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fswO_WaivedOffAmount: number;
+    fswO_Date: string;
+    mI_Id: number;
+    asmaY_Id: number;
+}
+
+export interface feeTransactionWaivedOffStudentDetails {
+    amsT_RegistrationNo: number;
+    studentName: string;
+    amsT_Id: number;
+}
+
+export interface feeTransactionWaivedOffGroup {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface feeTransactionWaivedOffHead {
+    fmH_Id: number;
+    fmH_FeeName: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fmG_Id: number;
+    fmA_Id: number;
+    totalTobepaid: number;
+    tobepaid: number;
+    fsS_PaidAmount: number;
+}

@@ -23,11 +23,13 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
 
     return (
         <div className='space-y-4'>
-            <div className='flex items-center justify-between rounded-md bg-primary px-4 py-2 text-primary-foreground'>
-                <h3 className='font-semibold'>DOCUMENT UPLOAD DETAILS [ONLY JPEG,DOCX,DOC,PDF FILES (0-2MB)]</h3>
-                <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
-                    <Plus className='mr-1 h-4 w-4' /> Add Document
-                </Button>
+            <div className='rounded-md border'>
+                <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
+                    <h3 className='font-semibold'>DOCUMENT UPLOAD DETAILS [ONLY JPEG,DOCX,DOC,PDF FILES (0-2MB)]</h3>
+                    <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
+                        <Plus className='mr-1 h-4 w-4' /> Add Document
+                    </Button>
+                </div>
             </div>
 
             {fields.length === 0 && (

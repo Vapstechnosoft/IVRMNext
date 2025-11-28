@@ -60,12 +60,16 @@ export default function UpdateMasterFeeheadForm({ onSuccess, feeheadname = '', s
                 fmH_Id: fmH_Id,
                 fmH_FeeName: fmH_FeeName,
                 fmH_Flag: fmH_Flag,
-                ASMCL_ActiveFlag: true,
+                //ASMCL_ActiveFlag: true,
                 fmH_Order: fmH_Order,
                 fmH_PDAFlag: fmH_PDAFlag,
                 fmH_SpecialFeeFlag: fmH_SpecialFeeFlag,
                 fmH_RefundFlag: fmH_RefundFlag
             };
+
+            const payloaddatajs = JSON.stringify(payload);
+            console.info('Update Master Fee Head Payload data', payloaddatajs);
+
             const response = await addOrUpdateMasterfeehead(payload);
 
             if (response.success) {

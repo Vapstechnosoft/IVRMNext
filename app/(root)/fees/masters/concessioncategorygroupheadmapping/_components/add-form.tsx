@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     CONCESSION_CATEGORYG_DROPDOWN_DATA,
@@ -10,10 +10,12 @@ import {
     CONCESSION_CATEGORYG_HEADS_DROPDOWN_DATA,
     useConcessionCategoryGroupHeadmappingdata
 } from '@/hooks/fees/useMasters';
+import { cn } from '@/lib/utils';
 import { masterConcessionCategorygroupHeadMappingSchema } from '@/schemas/fees/masters';
 import { addOrUpdateConcessionCategoryGroupHeadMapping } from '@/server/fees/masters/concession_category_head_group_mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save } from 'lucide-react';
+
+import { CheckSquare, Save, Square } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -28,6 +30,20 @@ interface ConcessionCatgoryGroupHeadMappingFormProps {
 
 export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, termname = '' }: ConcessionCatgoryGroupHeadMappingFormProps) {
     const { refetchAll } = useConcessionCategoryGroupHeadmappingdata();
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        watch,
+        setValue,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(masterConcessionCategorygroupHeadMappingSchema.addOrUpdate),
+        mode: 'onChange'
+    });
+
+    const [headSearch, setheadSearch] = useState('');
 
     const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -54,29 +70,76 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
         isLoading: headsLoading,
         error: headsError,
         refetchAll: refetchHeads
-    } = CONCESSION_CATEGORYG_HEADS_DROPDOWN_DATA(Number(selectedGroupId));
+    } = CONCESSION_CATEGORYG_HEADS_DROPDOWN_DATA(selectedGroupId ?? 0);
+
+    //const headsValue = watch('fmH_Ids') || [];
 
     // Trigger Heads API only after Group is selected
+    // useEffect(() => {
+    //     if (selectedGroupId) {
+    //         console.log('selectedGroupId', selectedGroupId);
+    //         setShouldFetchHeads(true);
+    //         refetchHeads();
+    //     } else {
+    //         setShouldFetchHeads(false);
+    //         setSelectedHeadsItems([]);
+    //     }
+    // }, [selectedGroupId]);
+
     useEffect(() => {
         if (selectedGroupId) {
-            console.log('selectedGroupId', selectedGroupId);
-            setShouldFetchHeads(true);
-            refetchHeads();
-        } else {
-            setShouldFetchHeads(false);
-            setSelectedHeadsItems([]);
+            setSelectedHeadsItems([]); // clear previous selections
+            refetchHeads(); // fetch heads for selected group
         }
     }, [selectedGroupId]);
 
-    const {
-        control,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterConcessionCategorygroupHeadMappingSchema.addOrUpdate),
-        mode: 'onChange'
-    });
+    // Convert Heads API to { label, id }
+    const headOptions =
+        heads?.data?.map((h) => ({
+            id: h.fmH_Id.toString(),
+            label: h.fmH_FeeName
+        })) ?? [];
+
+    // Define form value for fmH_Ids
+    const fmH_Ids = watch('fmH_Ids') || [];
+
+    const toggleHead = (id: string) => {
+        let updated = [];
+
+        if (fmH_Ids.includes(id)) {
+            updated = fmH_Ids.filter((v: string) => v !== id);
+        } else {
+            updated = [...fmH_Ids, id];
+        }
+
+        // MUST be tuple: at least 1 element
+        if (updated.length === 0) {
+            setValue('fmH_Ids', undefined as any);
+        } else {
+            setValue('fmH_Ids', updated as [string, ...string[]], {
+                shouldValidate: true
+            });
+        }
+
+        setSelectedHeadsItems(updated.map((x) => ({ fmH_Id: x })));
+    };
+
+    const selectAllHeads = () => {
+        const all = headOptions.map((h) => h.id);
+
+        if (fmH_Ids.length === all.length) {
+            // Option: clear selection → field becomes undefined
+            setValue('fmH_Ids', undefined as any);
+            setSelectedHeadsItems([]);
+        } else {
+            setValue('fmH_Ids', all as [string, ...string[]], {
+                shouldValidate: true
+            });
+            setSelectedHeadsItems(all.map((x) => ({ fmH_Id: x })));
+        }
+    };
+
+    const filteredHeads = heads?.data?.filter((h) => h.fmH_FeeName.toLowerCase().includes(headSearch.toLowerCase())) ?? [];
 
     function OnReset() {
         reset();
@@ -94,12 +157,17 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
 
             console.log('headIds', headIds);
             const payload = {
-                MI_Id: 30,
+                // MI_Id: 30,
+                // FMG_Id: selectedGroupId,
+                // fmH_Ids: headIds,
+                // FMCC_Id: selectedCategoryId,
+                // FMACCG_CreatedBy: 21602
+                FMCC_Id: fmcC_Id,
                 FMG_Id: selectedGroupId,
-                fmH_Ids: headIds,
-                FMCC_Id: selectedCategoryId,
-                FMACCG_CreatedBy: 21602
+                FMH_Ids: headIds
             };
+
+            console.log('payload', payload);
 
             const response = await addOrUpdateConcessionCategoryGroupHeadMapping(payload);
 
@@ -131,7 +199,7 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
                             <Label htmlFor='fmcC_Id' className='whitespace-nowrap font-medium'>
                                 Category <span className='ml-1 text-red-500'>*</span>:
                             </Label>
-                            <div className='w-64'>
+                            <div className='w-96'>
                                 <Controller
                                     name='fmcC_Id'
                                     control={control}
@@ -174,7 +242,7 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
                             <Label htmlFor='FMG_Id' className='whitespace-nowrap font-medium'>
                                 Group <span className='ml-1 text-red-500'>*</span>:
                             </Label>
-                            <div className='w-64'>
+                            <div className='w-96'>
                                 <Controller
                                     name='FMG_Id'
                                     control={control}
@@ -216,14 +284,11 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
 
                         {/* HEADS MULTISELECT */}
                         <div className='group flex items-center justify-center gap-1.5 space-x-3'>
-                            {/* <Label aria-label="Heads" htmlFor="fmH_Id">
-                Heads <span className="ml-1 text-red-500">*</span>
-              </Label> */}
                             <Label htmlFor='fmH_Ids' className='whitespace-nowrap font-medium'>
                                 Heads <span className='ml-1 text-red-500'>*</span>:
                             </Label>
-                            <div className='w-100'>
-                                <Controller
+                            <div className='w-96'>
+                                {/* <Controller
                                     name='fmH_Ids'
                                     control={control}
                                     render={({ field }) => (
@@ -249,7 +314,85 @@ export default function AddConcessionCatgoryGroupHeadMappingForm({ onSuccess, te
                                             disabled={headsLoading}
                                         />
                                     )}
-                                />
+                                /> */}
+                                <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                    <InputText
+                                        placeholder='Search Heads...'
+                                        value={headSearch}
+                                        onChange={(e) => setheadSearch(e.target.value)}
+                                        className='mb-3'
+                                    />
+
+                                    {/* Select All Users */}
+                                    {heads?.data && (
+                                        <div
+                                            onClick={selectAllHeads}
+                                            className={cn(
+                                                'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                                fmH_Ids.length === headOptions.length && headOptions.length
+                                                    ? 'border-primary bg-primary/5 text-primary'
+                                                    : 'border-gray-300 hover:border-primary/40'
+                                            )}>
+                                            {fmH_Ids.length === headOptions.length && headOptions.length ? (
+                                                <CheckSquare className='h-4 w-4 text-primary' />
+                                            ) : (
+                                                <Square className='h-4 w-4 text-gray-400' />
+                                            )}
+                                            <span>Select All</span>
+                                        </div>
+                                    )}
+
+                                    <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                                        {headsLoading ? (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>Loading heads...</div>
+                                        ) : heads?.data?.length === 0 ? (
+                                            <div className='py-4 text-center text-gray-500 text-sm'>No heads found</div>
+                                        ) : (
+                                            filteredHeads.map((u) => {
+                                                const id = u.fmH_Id.toString();
+                                                const selected = fmH_Ids.includes(id);
+
+                                                // return (
+                                                //     <div
+                                                //         key={u.fmH_Id}
+                                                //         onClick={() => toggleHead(id)}
+                                                //         className={cn(
+                                                //             'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                //             selected
+                                                //                 ? 'border-primary bg-primary/5 text-primary'
+                                                //                 : 'border-gray-300 hover:border-primary/40'
+                                                //         )}
+                                                //     >
+                                                //         {selected ? (
+                                                //             <CheckSquare className='h-4 w-4 text-primary' />
+                                                //         ) : (
+                                                //             <Square className='h-4 w-4 text-gray-400' />
+                                                //         )}
+                                                //         <span>{u.fmH_FeeName}</span>
+                                                //     </div>
+                                                // );
+                                                return (
+                                                    <div
+                                                        key={u.fmH_Id}
+                                                        onClick={() => toggleHead(id)}
+                                                        className={cn(
+                                                            'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                            selected
+                                                                ? 'border-primary bg-primary/5 text-primary'
+                                                                : 'border-gray-300 hover:border-primary/40'
+                                                        )}>
+                                                        {selected ? (
+                                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                                        ) : (
+                                                            <Square className='h-4 w-4 text-gray-400' />
+                                                        )}
+                                                        <span>{u.fmH_FeeName}</span>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+                                </div>
                                 {errors.fmH_Ids && <FormError>{errors.fmH_Ids.message}</FormError>}
                             </div>
                         </div>

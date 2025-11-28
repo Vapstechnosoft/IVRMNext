@@ -19,6 +19,10 @@ import { toast } from 'sonner';
 interface PayrollTabProps {
     employeeId: number | null;
     employeeCode: string;
+    grossList?: any[];
+    earningList?: any[];
+    detectionList?: any[];
+    arrearList?: any[];
 }
 
 type EditablePayrollItem = EmployeeSalaryDetailItem & {
@@ -27,7 +31,7 @@ type EditablePayrollItem = EmployeeSalaryDetailItem & {
     localMaxAmount?: number;
 };
 
-export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
+export function PayrollTab({ employeeId, employeeCode, grossList = [], earningList = [], detectionList = [], arrearList = [] }: PayrollTabProps) {
     const { data: salaryDetails, isLoading, refetch } = useEmployeeSalaryDetails(employeeId, employeeCode);
     const { data: employeeData } = useEmployeeRegisterById(employeeId);
     const saveEarningMutation = useSaveEmployeeEarning();
@@ -38,6 +42,25 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
     const [earnings, setEarnings] = useState<EditablePayrollItem[]>([]);
     const [deductions, setDeductions] = useState<EditablePayrollItem[]>([]);
     const [arrears, setArrears] = useState<EditablePayrollItem[]>([]);
+    const [grossItems, setGrossItems] = useState<EditablePayrollItem[]>([]);
+
+    // Helper function to get name from lists based on HRMED_Id
+    const getNameFromLists = (hrmdId: number, earnDedFlag: string): string => {
+        if (earnDedFlag === 'Earning') {
+            const found = earningList.find((item: any) => item.HRMED_Id === hrmdId);
+            return found?.HRMED_Name || '';
+        } else if (earnDedFlag === 'Deduction') {
+            const found = detectionList.find((item: any) => item.HRMED_Id === hrmdId);
+            return found?.HRMED_Name || '';
+        } else if (earnDedFlag === 'Arrear') {
+            const found = arrearList.find((item: any) => item.HRMED_Id === hrmdId);
+            return found?.HRMED_Name || '';
+        } else if (earnDedFlag === 'Gross') {
+            const found = grossList.find((item: any) => item.HRMED_Id === hrmdId);
+            return found?.HRMED_Name || '';
+        }
+        return '';
+    };
 
     // Initialize local state when data loads
     useEffect(() => {
@@ -47,8 +70,12 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
             const arrearsList: EditablePayrollItem[] = [];
 
             salaryDetails.forEach((item) => {
+                // Get name from lists if not present in salary details
+                const name = item.HRMED_Name || getNameFromLists(item.HRMED_Id, item.HRMED_EarnDedFlag);
+                
                 const editableItem: EditablePayrollItem = {
                     ...item,
+                    HRMED_Name: name, // Ensure name is set
                     localAmount: item.HREED_Amount || 0,
                     localPercentage: item.HREED_Percentage || '0',
                     localMaxAmount: item.HREED_ApplicableMaxValue || 0
@@ -67,7 +94,32 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
             setDeductions(deductionsList);
             setArrears(arrearsList);
         }
-    }, [salaryDetails]);
+    }, [salaryDetails, earningList, detectionList, arrearList]);
+
+    // Initialize gross items from grossList prop
+    useEffect(() => {
+        if (grossList && Array.isArray(grossList) && grossList.length > 0) {
+            const grossItemsList: EditablePayrollItem[] = grossList.map((item: any) => ({
+                HREED_Id: 0, // Gross items might not have HREED_Id
+                MI_Id: item.MI_Id || 0,
+                HRME_Id: employeeId || 0,
+                HRMED_Id: item.HRMED_Id || 0,
+                HREED_Amount: item.HREED_Amount || Number.parseFloat(item.HRMED_AmountPercent || '0') || 0,
+                HREED_Percentage: item.HREED_Percentage || item.HRMED_AmountPercent || '0',
+                HREED_ActiveFlag: item.HREED_ActiveFlag !== undefined ? item.HREED_ActiveFlag : (item.HRMED_ActiveFlag || false),
+                HRMED_Name: item.HRMED_Name || '',
+                HRMED_EarnDedFlag: 'Gross',
+                HRMED_AmountPercentFlag: item.HRMED_AmountPercentFlag || 'Amount',
+                HREED_ApplicableMaxValue: item.HREED_ApplicableMaxValue || 0,
+                HREED_MaxApplicableFlg: item.HREED_MaxApplicableFlg || false,
+                roleId: item.roleId || 0,
+                localAmount: item.HREED_Amount || Number.parseFloat(item.HRMED_AmountPercent || '0') || 0,
+                localPercentage: item.HREED_Percentage || item.HRMED_AmountPercent || '0',
+                localMaxAmount: item.HREED_ApplicableMaxValue || 0
+            }));
+            setGrossItems(grossItemsList);
+        }
+    }, [grossList, employeeId]);
 
     // Update handlers for earnings
     const updateEarning = (index: number, field: keyof EditablePayrollItem, value: any) => {
@@ -90,6 +142,13 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
         setArrears(updated);
     };
 
+    // Update handlers for gross items
+    const updateGross = (index: number, field: keyof EditablePayrollItem, value: any) => {
+        const updated = [...grossItems];
+        updated[index] = { ...updated[index], [field]: value };
+        setGrossItems(updated);
+    };
+
     // Calculate totals (only active items)
     const totalEarning = useMemo(() => {
         return earnings
@@ -106,6 +165,10 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
     const totalArrear = useMemo(() => {
         return arrears.filter((item) => item.HREED_ActiveFlag).reduce((sum, item) => sum + (item.localAmount || item.HREED_Amount || 0), 0);
     }, [arrears]);
+
+    const totalGross = useMemo(() => {
+        return grossItems.filter((item) => item.HREED_ActiveFlag).reduce((sum, item) => sum + (item.localAmount || item.HREED_Amount || 0), 0);
+    }, [grossItems]);
 
     const netSalary = totalEarning + totalArrear - totalDeduction;
 
@@ -124,8 +187,8 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                 Type: 'string',
                 TabName: 'string',
                 retrunMsg: '',
-                grossList: [],
-                arrearList: [],
+                grossList: grossList || [],
+                arrearList: arrearList || [],
                 employeedropdowndetails: [],
                 configurationDetails: {
                     retrunMsg: '',
@@ -141,8 +204,8 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                 ArrearDTO: [],
                 DeductionDTO: [],
                 EarningDTO: [],
-                detectionList: [],
-                earningList: [],
+                detectionList: detectionList || [],
+                earningList: earningList || [],
                 gradedropdownlist: [],
                 designationdropdownlist: [],
                 departmentdropdownlist: [],
@@ -302,10 +365,10 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Earnings</TableHead>
-                                <TableHead className='w-24 text-right'>Actual %</TableHead>
-                                <TableHead className='w-24 text-right'>% Applicable</TableHead>
-                                <TableHead className='w-32 text-right'>Amount</TableHead>
-                                <TableHead className='w-32 text-right'>Max Amount</TableHead>
+                                <TableHead className='w-24 text-right whitespace-nowrap'>Actual %</TableHead>
+                                <TableHead className='w-24 text-right whitespace-nowrap'>%&nbsp;Applicable</TableHead>
+                                <TableHead className='w-32 text-center whitespace-nowrap'>Amount</TableHead>
+                                <TableHead className='w-32 text-center whitespace-nowrap'>Max&nbsp;Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -389,10 +452,10 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Deductions</TableHead>
-                                <TableHead className='w-24 text-right'>Actual %</TableHead>
-                                <TableHead className='w-24 text-right'>% Applicable</TableHead>
-                                <TableHead className='w-32 text-right'>Amount</TableHead>
-                                <TableHead className='w-32 text-right'>Max Amount</TableHead>
+                                <TableHead className='w-24 text-right whitespace-nowrap'>Actual %</TableHead>
+                                <TableHead className='w-24 text-right whitespace-nowrap'>%&nbsp;Applicable</TableHead>
+                                <TableHead className='w-32 text-center whitespace-nowrap'>Amount</TableHead>
+                                <TableHead className='w-32 text-center whitespace-nowrap'>Max&nbsp;Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -465,6 +528,93 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                 </div>
             </div>
 
+            {/* Gross Details */}
+            <div className='rounded-md border'>
+                <div className='border-b bg-muted px-4 py-2'>
+                    <h3 className='font-semibold'>Gross Details</h3>
+                </div>
+                <div className='overflow-x-auto'>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className='w-16'>Serial NO.</TableHead>
+                                <TableHead>Gross Head</TableHead>
+                                <TableHead className='w-24 text-right whitespace-nowrap'>Actual %</TableHead>
+                                <TableHead className='w-24 text-right whitespace-nowrap'>%&nbsp;Applicable</TableHead>
+                                <TableHead className='w-32 text-center whitespace-nowrap'>Amount</TableHead>
+                                <TableHead className='w-32 text-center whitespace-nowrap'>Max&nbsp;Amount</TableHead>
+                                <TableHead>Details</TableHead>
+                                <TableHead className='w-16'>Action</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {grossItems.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={8} className='text-center text-muted-foreground'>
+                                        No gross details available
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                grossItems.map((item, index) => (
+                                    <TableRow key={item.HRMED_Id || index}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell>{item.HRMED_Name || ''}</TableCell>
+                                        <TableCell className='text-right'>
+                                            <Input
+                                                type='number'
+                                                className='h-8 w-20 text-right'
+                                                value={item.localPercentage || item.HREED_Percentage || '0'}
+                                                onChange={(e) => updateGross(index, 'localPercentage', e.target.value)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            <Input
+                                                type='number'
+                                                className='h-8 w-20 text-right'
+                                                value={item.localPercentage || item.HREED_Percentage || '0'}
+                                                onChange={(e) => updateGross(index, 'localPercentage', e.target.value)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            <Input
+                                                type='number'
+                                                className='h-8 w-24 text-right'
+                                                value={item.localAmount ?? item.HREED_Amount ?? 0}
+                                                onChange={(e) =>
+                                                    updateGross(index, 'localAmount', Number.parseFloat(e.target.value) || 0)
+                                                }
+                                            />
+                                        </TableCell>
+                                        <TableCell className='text-right'>
+                                            <Input
+                                                type='number'
+                                                className='h-8 w-24 text-right'
+                                                value={item.localMaxAmount ?? item.HREED_ApplicableMaxValue ?? 0}
+                                                onChange={(e) =>
+                                                    updateGross(index, 'localMaxAmount', Number.parseFloat(e.target.value) || 0)
+                                                }
+                                            />
+                                        </TableCell>
+                                        <TableCell>{item.HREED_MaxApplicableFlg ? 'Yes' : 'No'}</TableCell>
+                                        <TableCell>
+                                            <Checkbox
+                                                checked={item.HREED_ActiveFlag || false}
+                                                onCheckedChange={(checked) => updateGross(index, 'HREED_ActiveFlag', checked)}
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+                <div className='border-t bg-muted px-4 py-2'>
+                    <div className='flex justify-end'>
+                        <span className='font-semibold'>Total Gross: ₹{totalGross.toFixed(2)}</span>
+                    </div>
+                </div>
+            </div>
+
             {/* Arrear Details */}
             <div className='rounded-md border'>
                 <div className='border-b bg-muted px-4 py-2'>
@@ -476,9 +626,9 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Arrear Head</TableHead>
-                                <TableHead className='w-24 text-right'>Actual %</TableHead>
-                                <TableHead className='w-24 text-right'>% Applicable</TableHead>
-                                <TableHead className='w-32 text-right'>Amount</TableHead>
+                                <TableHead className='w-24 text-right whitespace-nowrap'>Actual %</TableHead>
+                                <TableHead className='w-24 text-right whitespace-nowrap'>%&nbsp;Applicable</TableHead>
+                                <TableHead className='w-32 text-center whitespace-nowrap'>Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -540,7 +690,7 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
             </div>
 
             {/* Net Salary */}
-            <div className='rounded-md border-2 border-primary bg-primary/5 p-4'>
+            <div className='rounded-md border-2 border-muted bg-muted/50 p-4'>
                 <div className='flex justify-center'>
                     <span className='font-bold text-xl'>Net Salary: ₹{netSalary.toFixed(2)}</span>
                 </div>
@@ -551,7 +701,7 @@ export function PayrollTab({ employeeId, employeeCode }: PayrollTabProps) {
                 <Button variant='outline' type='button'>
                     PREVIOUS
                 </Button>
-                <Button type='button' className='bg-primary text-primary-foreground' onClick={handleSave} disabled={isSaving}>
+                <Button type='button' variant='default' onClick={handleSave} disabled={isSaving}>
                     {isSaving ? 'SAVING...' : 'SUBMIT'}
                 </Button>
                 <Button variant='outline' type='button'>

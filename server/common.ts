@@ -335,14 +335,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Concession Category Details',
                                             description: 'Concession Category Details'
                                         },
-                                        //  {
-                                        //     id: 650,
-                                        //     name: 'Master Concession Category Group Head Mapping',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/concessioncategorygroupheadmapping',
-                                        //     title: 'Concession Category Group Head Mapping',
-                                        //     description: 'Concession Category Group Head Mapping'
-                                        // },
+                                        {
+                                            id: 650,
+                                            name: 'Master Concession Category Group Head Mapping',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/concessioncategorygroupheadmapping',
+                                            title: 'Concession Category Group Head Mapping',
+                                            description: 'Concession Category Group Head Mapping'
+                                        },
                                         {
                                             id: 27,
                                             name: 'Master Fee Terms',
@@ -472,14 +472,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Online Payment Head Group',
                                             description: 'Manage Online Payment Head Group Mapping Details'
                                         },
-                                        {
-                                            id: 900,
-                                            name: 'Master Student Fee Group Mapping',
-                                            icon: 'Settings',
-                                            url: '/fees/masters/studentfeegroupmapping',
-                                            title: 'Student Fee Group Mapping',
-                                            description: 'Manage Student Fee Group Mapping Details'
-                                        },
+                                        // {
+                                        //     id: 900,
+                                        //     name: 'Master Student Fee Group Mapping',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/masters/studentfeegroupmapping',
+                                        //     title: 'Student Fee Group Mapping',
+                                        //     description: 'Manage Student Fee Group Mapping Details'
+                                        // },
                                         {
                                             id: 501,
                                             name: 'Master Fee Other Student',
@@ -487,6 +487,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/masters/feeotherstudent',
                                             title: 'Fee Other Student',
                                             description: 'Manage Fee Other Student Details'
+                                        },
+                                        {
+                                            id: 502,
+                                            name: 'Master Special Fee Head',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/specialFeeHead',
+                                            title: 'Special Fee Head',
+                                            description: 'Manage Special Fee Head Details'
                                         }
                                     ]
                                 },

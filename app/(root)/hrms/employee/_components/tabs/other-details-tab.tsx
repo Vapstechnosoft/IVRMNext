@@ -3,18 +3,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
 import { Label } from '@/components/ui/extension/field';
 import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function OtherDetailsTab({ control, register, errors, isSubmitting, watch, onClear }: any) {
+export function OtherDetailsTab({ control, register, errors, isSubmitting, watch, options, onClear }: any) {
     const stopPension = watch('stopPension');
     const employeeLeft = watch('employeeLeft');
 
     return (
         <div className='space-y-4'>
-            <div className='rounded-md bg-primary px-4 py-2 text-primary-foreground'>
-                <h3 className='font-semibold'>Other Details</h3>
+            <div className='rounded-md border'>
+                <div className='border-b bg-muted px-4 py-2'>
+                    <h3 className='font-semibold'>Other Details</h3>
+                </div>
             </div>
 
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
@@ -122,24 +125,52 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                             )}
                         />
 
-                        <div className='space-y-2 lg:col-span-2'>
-                            <Label>Reason for Leaving</Label>
-                            <textarea
-                                id='reasonForLeaving'
-                                maxLength={50}
-                                {...register('reasonForLeaving')}
-                                className={cn(
-                                    'min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                                    errors.reasonForLeaving
-                                        ? 'border-destructive focus-visible:ring-destructive'
-                                        : 'border-input focus-visible:ring-ring'
-                                )}
-                                placeholder='Enter reason for leaving...'
-                            />
-                            {errors.reasonForLeaving && (
-                                <div className='font-medium text-[0.8rem] text-destructive'>{errors.reasonForLeaving.message}</div>
-                            )}
-                        </div>
+                        <Controller
+                            name='reasonForLeaving'
+                            control={control}
+                            render={({ field }) => {
+                                const leavingReasons = options?.leavingReasons || [];
+                                return (
+                                    <div className='space-y-2 lg:col-span-2'>
+                                        <Label>Reason for Leaving *</Label>
+                                        <Select onValueChange={field.onChange} value={field.value || ''}>
+                                            <SelectTrigger className={cn(
+                                                errors.reasonForLeaving
+                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                    : 'border-input focus-visible:ring-ring'
+                                            )}>
+                                                <SelectValue placeholder='Select reason for leaving' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {leavingReasons.length === 0 ? (
+                                                    <SelectItem value="no-reasons" disabled>No reasons available</SelectItem>
+                                                ) : (
+                                                    leavingReasons
+                                                        .filter((reason: any) => {
+                                                            const reasonId = reason.HRMLREA_Id || reason.id || reason.value;
+                                                            return reasonId != null && reasonId !== '' && String(reasonId).trim() !== '';
+                                                        })
+                                                        .map((reason: any) => {
+                                                            const reasonId = (reason.HRMLREA_Id || reason.id || reason.value)?.toString();
+                                                            const reasonName = reason.HRMLREA_LeavingReason || reason.name || reason.label || reason.text || `Reason ${reasonId}`;
+                                                            if (!reasonId || reasonId.trim() === '') return null;
+                                                            return (
+                                                                <SelectItem key={reasonId} value={reasonName}>
+                                                                    {reasonName}
+                                                                </SelectItem>
+                                                            );
+                                                        })
+                                                        .filter(Boolean)
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                        {errors.reasonForLeaving && (
+                                            <div className='font-medium text-[0.8rem] text-destructive'>{errors.reasonForLeaving.message}</div>
+                                        )}
+                                    </div>
+                                );
+                            }}
+                        />
                     </div>
                 </div>
             )}
