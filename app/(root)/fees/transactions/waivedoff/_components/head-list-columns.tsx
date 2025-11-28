@@ -3,13 +3,9 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
-import type { IMasterStudentClassMappingList } from '@/types/fees/masters/masters';
 import type { feeTransactionWaivedOffHead } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
-import { useCallback } from 'react';
 
 export const FeeTransactionHeadList: ColumnDef<feeTransactionWaivedOffHead>[] = [
     {
@@ -41,60 +37,69 @@ export const FeeTransactionHeadList: ColumnDef<feeTransactionWaivedOffHead>[] = 
     {
         accessorKey: 'fmH_FeeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Name' />,
-        cell: ({ row }) => <div>{row.getValue('fmH_FeeName')}</div>
+        cell: ({ row }) => <div>{row.getValue('fmH_FeeName')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
         accessorKey: 'ftI_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Installment' />,
-        cell: ({ row }) => <div>{row.getValue('ftI_Name')}</div>
+        cell: ({ row }) => <div>{row.getValue('ftI_Name')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
         accessorKey: 'tobepaid',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Balance' />,
-        cell: ({ row }) => <div>{row.getValue('tobepaid')}</div>
+        cell: ({ row }) => <div>{row.getValue('tobepaid')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
         accessorKey: 'totalTobepaid',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Paid Amount' />,
-        cell: ({ row }) => <div>{row.getValue('totalTobepaid')}</div>
+        cell: ({ row }) => <div>{row.getValue('totalTobepaid')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
-        accessorKey: 'text',
+        accessorKey: 'waivedOff',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Waived Off Amount' />,
         cell: ({ row }) => {
-            const value = row.getValue('tobepaid') as string | number;
-            const [inputValue, setInputValue] = useState(value);
+            const rawValue = row.getValue('waivedOff') as unknown;
+            const initialValue = rawValue !== null && rawValue !== undefined && rawValue !== '' ? String(rawValue) : '0';
+            const [value, setValue] = useState(initialValue);
 
             const handleBlur = () => {
-                row.original.tobepaid = typeof inputValue === 'string' ? Number(inputValue) : inputValue;
+                const num = Number(value);
+                const finalValue = Number.isNaN(num) ? 0 : num;
+                row.original.waivedOff = finalValue;
+                setValue(finalValue.toString());
             };
-
             return (
                 <input
-                    type='text'
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
+                    type='number'
+                    value={value}
+                    onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === '') {
+                            setValue('');
+                            return;
+                        }
+                        if (/^\d*\.?\d*$/.test(v)) {
+                            setValue(v);
+                        }
+                    }}
                     onBlur={handleBlur}
                     className='w-full rounded border px-2 py-1 text-sm'
                 />
             );
-        }
+        },
+        enableSorting: false,
+        enableHiding: false
     }
 ];
-
-// biome-ignore lint/correctness/noUnusedVariables: <explanation>
-function ActionButtonsCell({
-    rowData
-}: {
-    rowData: IMasterStudentClassMappingList;
-}) {
-    const { openOrderDetails } = useFormContext<IMasterStudentClassMappingList>();
-
-    const handleView = useCallback((data: IMasterStudentClassMappingList) => openOrderDetails?.(data), [openOrderDetails]);
-
-    return <ActionButtons rowData={rowData} buttons={{ delete: false, edit: true }} onEdit={handleView} />;
-}

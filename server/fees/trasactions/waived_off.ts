@@ -58,3 +58,13 @@ export async function getHeadList(asmay_Id: number, amst_Id: number, filterradio
     const url = `/FeeWaivedOff/gethead?asmay_id=${asmay_Id}&amst_id=${amst_Id}&filterradiobuttonvalue=${filterradio}&finewaiveoff=${fineWaivedOff}`;
     return await api.post<feeTransactionWaivedOffHead[]>('fees', url, groupIds);
 }
+
+export async function saveFeeWivedOff(payload: any) {
+    const url = '/FeeWaivedOff/savedata';
+    return await api.post<any[]>('fees', url, payload);
+}
+
+export async function uploadDocument(data: any) {
+    const url = '/document_upload/upload_document';
+    return await api.postMultipart<string>('preadmission', url, data);
+}

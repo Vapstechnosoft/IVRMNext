@@ -9,15 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import {
     useClassdropdowndatafee,
-    useMasterFeeTransactionWaiveOff,
+    useFeeTransactionWaivedOffGrid,
     useSectiondropdowndatafee,
     useacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
 
 import { feeTransactionWaivedOffSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateTransactionWaivedOff, getGroupList, getHeadList, getStudentdetails } from '@/server/fees/trasactions/waived_off';
+import { getGroupList, getHeadList, getStudentdetails, saveFeeWivedOff, uploadDocument } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterStudentClassMappingList } from '@/types/fees/masters/masters';
 import type {
     feeTransactionWaivedOffGroup,
     feeTransactionWaivedOffHead,
@@ -28,7 +27,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, Save, Trash } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useMemo } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { FeeTransactionHeadList } from './head-list-columns';
@@ -41,8 +40,6 @@ interface AddFeeTransactionWaiveOffFormProps {
 }
 
 export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '' }: AddFeeTransactionWaiveOffFormProps) {
-    const { refetchAll } = useMasterFeeTransactionWaiveOff();
-
     const {
         handleSubmit,
         reset,
@@ -53,8 +50,14 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     } = useForm<FormFields>({
         resolver: zodResolver(feeTransactionWaivedOffSchema.addOrUpdate),
         mode: 'onChange',
-        defaultValues: {}
+        defaultValues: {
+            academicYear: 0,
+            remarks: ''
+        }
     });
+
+    const { refetchAll } = useFeeTransactionWaivedOffGrid();
+
     const [academicYear, setAcademicYear] = useState<number | null>(null);
     const [classWise, setclassWise] = useState<number | null>(null);
     const [sectionWise, setsectionWise] = useState<number | null>(null);
@@ -74,11 +77,10 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     const [groupList, setGroupList] = useState<feeTransactionWaivedOffGroup[]>([]);
     const [groupListLoading, setGroupListLoading] = useState(false);
     const [groupListError, setGroupListError] = useState<any>(null);
-    //   const [groupSearch, setGroupSearch] = useState("");
     const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [isViewing, setIsViewing] = useState(false);
-    const [selectedHead, setSelectedHead] = useState<IMasterStudentClassMappingList[]>([]);
+    const [selectedHead, setSelectedHead] = useState<feeTransactionWaivedOffHead[]>([]);
     const [apisearchParams_, setApisearchParams_] = useState<ApiSearchparams>({});
     const [tableProps, setTableProps] = useState<any>(null);
     const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
@@ -90,7 +92,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         if (academicYears) {
             if (academicYears?.data && Array.isArray(academicYears.data)) {
                 const firstId = academicYears.data[0].asmaY_Id;
-                setValue('academicYear', firstId);
+                setValue('academicYear', firstId || 0);
             }
         }
     }, [academicYears, reset]);
@@ -183,13 +185,18 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         setSelectedGroups([]);
     }, [asmay_Id, asmcl_Id, asms_Id]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const f = e.target.files?.[0] || null;
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+
+        if (!f) return;
+
         setPhotoFile(f);
-        setPhotoPreview(URL.createObjectURL(f!));
+        setPhotoPreview(URL.createObjectURL(f));
+
+        await handleUploadPhoto(f);
     };
 
-    const handleSelectHead = (selectedRows: IMasterStudentClassMappingList[]) => {
+    const handleSelectHead = (selectedRows: feeTransactionWaivedOffHead[]) => {
         setSelectedHead(selectedRows);
     };
 
@@ -209,36 +216,73 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         });
     }, [fineWaiveOff]);
 
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
-        try {
-            const activeTypeValues = [fineWaiveOff ? 'FineWaiveOff' : null, completeFineWaiveOff ? 'CompleteFineWaiveOff' : null].filter(
-                Boolean
-            ) as string[];
+    const handleUploadPhoto = async (file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
 
-            const payload = {
-                mi_id: 30,
-                academicYear: academicYear,
-                class: classWise,
-                section: sectionWise,
-                student: studentWise,
-                date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '',
-                refundableType: refundableType,
-                activeType: activeTypeValues.join(','),
-                remarks: remarks,
-                nameFormat: nameType,
-                grouplist: selectedGroups.length > 0 ? selectedGroups : grouplist
-            };
-            const response = await addOrUpdateTransactionWaivedOff(payload as any);
-            if (response.success) {
-                toast.success(response.message);
-                reset();
-                refetchAll();
-                onSuccess?.();
+        try {
+            const res = await uploadDocument(formData);
+
+            if (res.success) {
+                toast.success('Photo uploaded!');
+                setValue('uploadedPhotoPath', res.data as string, {
+                    shouldValidate: true
+                });
             } else {
-                toast.error(response.message);
+                toast.error(res.message || 'Upload failed');
             }
-        } catch (error: any) {
-            toast.error(error.message);
+        } catch (err) {
+            console.error(err);
+            toast.error('Error uploading photo');
+        }
+    };
+
+    const photoPath = watch('uploadedPhotoPath');
+
+    const onSubmit = async (data: FormFields) => {
+        if (selectedHead.length < 1) {
+            toast.error('Please Select a Atleast one Head!!');
+            return;
+        }
+        try {
+            const formattedHeadList = selectedHead.map((row: feeTransactionWaivedOffHead) => ({
+                fmG_Id: row.fmG_Id,
+                fmH_Id: row.fmH_Id,
+                ftI_Id: row.ftI_Id,
+                fmA_Id: row.fmA_Id,
+                fswO_WaivedOffAmount: Number(row.waivedOff ?? 0)
+            }));
+            function formatDateToYMD(date: any) {
+                if (!date) return null;
+                const d = new Date(date);
+                return d.toISOString().split('T')[0];
+            }
+            const payload = {
+                fswO_Id: 0,
+                amsT_Id: amst_Id,
+                asmaY_Id: asmay_Id,
+                fswO_Date: formatDateToYMD(data.date),
+                finewaiveoff: fineWaiveOff === true ? 1 : 0,
+                fswO_WaivedOffRemarks: data.remarks || '',
+                completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
+                filepath: photoPath || '',
+                filename: photoFile || '',
+                headlist: formattedHeadList
+            };
+
+            const response = await saveFeeWivedOff(payload);
+
+            if (response?.success) {
+                toast.success(response.message || 'Saved successfully');
+                handleReset();
+                onSuccess?.();
+                refetchAll();
+            } else {
+                toast.error(response?.message || 'Save failed');
+            }
+        } catch (err: any) {
+            console.error('API Error:', err);
+            toast.error(err?.message || 'Something went wrong');
         }
     };
 
@@ -256,6 +300,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         setRemarks('');
         setgrouplist([]);
         setSelectedGroups([]);
+        // setHeadList([]);
+        setSelectedHead([]);
         setPhotoFile(null);
     };
     return (
@@ -284,7 +330,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                                     ? String(field.value)
                                                     : ''
                                             }
-                                            disabled={academicYearLoading}>
+                                            //   disabled={academicYearLoading}
+                                        >
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Academic Year--' />
                                             </SelectTrigger>
@@ -505,6 +552,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                     <textarea
                                         id='remarks'
                                         rows={5}
+                                        // onChange={(e)=>setRemarks(e.target.value)}
                                         {...field}
                                         className='mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:text-sm'
                                     />
@@ -621,11 +669,11 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                         ) : groupListError ? (
                                             <span className='text-gray-400 text-sm'>Error loading</span>
                                         ) : (
-                                            <span className='text-gray-400 text-sm'>No Results</span>
+                                            <span className='text-gray-400 text-sm'>No Results or Select a Student </span>
                                         )}
                                     </div>
                                     {selectedGroups.length > 0 && (
-                                        <div className='mt-2 text-blue-600 text-sm'>{selectedGroups.length} head(s) selected</div>
+                                        <div className='mt-2 text-blue-600 text-sm'>{selectedGroups.length} Group(s) selected</div>
                                     )}
                                 </div>
                             </div>
