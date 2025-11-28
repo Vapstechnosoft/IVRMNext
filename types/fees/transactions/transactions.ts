@@ -102,23 +102,23 @@ export interface IFeeTransactionWaivedOffList {
     groupList: string[];
 }
 
-export interface IFeeOpeningBalanceList {
-    mi_id: number;
-    selectionType: 'T' | 'G' | 'C';
-    academicYear: string;
-    category?: string | null;
-    class?: string | null;
-    section?: string | null;
-    student?: string | null;
-    feeHead?: string | null;
-    feeGroup?: string | null;
-    feeInstallments?: string[];
-    date?: string;
-    refundableType: 'Refundable' | 'NonRefundable';
-    activeType: 'Active' | 'Left';
-    pdaorfeeType: 'Fees';
-    nameFormat: 'NameReg.No' | 'Reg.NoName';
-}
+// export interface IFeeOpeningBalanceList {
+//     mi_id: number;
+//     selectionType: 'T' | 'G' | 'C';
+//     academicYear: string;
+//     category?: string | null;
+//     class?: string | null;
+//     section?: string | null;
+//     student?: string | null;
+//     feeHead?: string | null;
+//     feeGroup?: string | null;
+//     feeInstallments?: string[];
+//     date?: string;
+//     refundableType: 'Refundable' | 'NonRefundable';
+//     activeType: 'Active' | 'Left';
+//     pdaorfeeType: 'Fees';
+//     nameFormat: 'NameReg.No' | 'Reg.NoName';
+// }
 
 export interface IFeeThirdPartyTransaction {
     fyptP_Id: number;
@@ -474,4 +474,97 @@ export interface feeTransactionWaivedOffHead {
     totalTobepaid: number;
     tobepaid: number;
     fsS_PaidAmount: number;
+}
+
+export interface IFeeOpeningBalance {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    fmoB_Id: number;
+    asmay_id: number;
+    fmoB_EntryDate: string;
+    fmoB_Student_Due: number;
+    fmoB_Institution_Due: number;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    asmaY_Year?: string;
+}
+
+export interface IFeeOpeningPDA {
+    tempararyArrayListnew: string;
+    tempararyArrayhEADListnew: string;
+    savetmpdata: string;
+    mI_ID: 0;
+    admsudentslist: string;
+    acayear: string;
+    busroutelist: string;
+    classlist: string;
+    sectionlist: string;
+    grouplist: string;
+    headlist: string;
+    filterrefund: string;
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    asmay_id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    filterinitialdata: string;
+    reportdatelist: string;
+    fmG_Id: number;
+    fmH_Id: number;
+    ftI_Id: number;
+    fmH_FeeName: string;
+    checkedgrplst: false;
+    checkedheadlst: false;
+    fsscount: number;
+    savegrplst: string;
+    saveheadlst: string;
+    asmayidpss: number;
+    typeofrpt: string;
+    datepass: string;
+    fillbusroutestudents: string;
+    fillclasflg: number;
+    fillseccls: number;
+    studenttype: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    fmoB_Id: number;
+    fmoB_EntryDate: string;
+    fmoB_Student_Due: number;
+    fmoB_Institution_Due: number;
+    checkedvalue: boolean;
+    returnval: boolean;
+    returntxt: string;
+    class_Category_List: string;
+    fmcC_Id: number;
+    searchType: string;
+    searchtext: string;
+    searchnumber: number;
+    userid: number;
+    fillmastergroup: string;
+    fillmasterhead: string;
+    fillinstallment: string;
+}
+export interface IFeeOpeningRefundable {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}
+
+export interface IFeeOpeningBalanceList {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    fmoB_Id: number;
+    asmay_id: number;
+    fmoB_EntryDate: string;
+    fmoB_Student_Due: number;
+    fmoB_Institution_Due: number;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+
+    fmC_Id?: number;
 }

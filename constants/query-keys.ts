@@ -155,7 +155,10 @@ export const FEES_QUERY_KEYS = {
     FEE_INSATALLMENT_DROP_DOWN: 'fee_installment_drop_down',
     FEE_TRANSACTION_WAIVED_OFF_grid: 'fee_transaction_waived_off_grid',
     FEE_SPECIAL_FEE_HEAD: 'fee_special_fee_head',
-    FEE_SPECIAL_FEE_HEAD_DROPDOWN: 'fee_special_fee_head_dropdown'
+    FEE_SPECIAL_FEE_HEAD_DROPDOWN: 'fee_special_fee_head_dropdown',
+    FEE_OPENING_BALANCE_LIST: 'fee_opening_balance_list',
+    FEE_OPENING_PDA_LIST: 'fee_opening_pda_list',
+    FEE_OPENING_REFUNDABLE: 'fee_opening_refundable'
 };
 
 export const EXAM_QUERY_KEYS = {
