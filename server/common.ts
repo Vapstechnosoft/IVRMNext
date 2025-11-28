@@ -754,14 +754,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Exam Marks Process Condition',
                                             description: 'Manage Exam Marks Process Condition Details'
                                         },
-                                          {
+                                        {
                                             id: 62,
                                             name: 'Hall Ticket Generation',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/exam-mapping/exam-hall-ticket-generation',
                                             title: 'Hall Ticket Generation',
                                             description: 'Manage Hall Ticket Generation Details'
-                                        },
+                                        }
                                     ]
                                 },
                                 {
@@ -813,8 +813,16 @@ export async function getUserAccessibleModules() {
                                             name: 'Progress Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vvehpc_exam-report-card',
-                                            title: 'VVEHPC_ExamReportCard',
-                                            description: 'Manage VVEHPC_ExamReportCard Details'
+                                            title: 'Progress Card Report',
+                                            description: 'Manage Progress Card Report Details'
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'Elective Subject Report',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/reports/exam-electives-report',
+                                            title: 'Elective Subject Report',
+                                            description: 'Manage Elective Subject Report Details'
                                         }
                                     ]
                                 }
