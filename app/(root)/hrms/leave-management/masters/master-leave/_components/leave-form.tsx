@@ -83,11 +83,10 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     <label htmlFor='leave-type-select' className='font-medium text-sm'>
                         Leave Type *
                     </label>
-                    <Select 
-                        value={watch('leaveType')} 
+                    <Select
+                        value={watch('leaveType')}
                         onValueChange={(value) => setValue('leaveType', value)}
-                        disabled={isLoadingDropdowns}
-                    >
+                        disabled={isLoadingDropdowns}>
                         <SelectTrigger id='leave-type-select' className={errors.leaveType ? 'border-red-500' : ''}>
                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : 'Select Leave Type'} />
                         </SelectTrigger>
@@ -99,7 +98,7 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                                     </SelectItem>
                                 ))
                             ) : (
-                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                 </div>
                             )}

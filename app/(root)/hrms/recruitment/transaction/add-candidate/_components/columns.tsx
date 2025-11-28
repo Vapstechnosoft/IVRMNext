@@ -129,9 +129,7 @@ export const getCandidateColumns = ({ onEdit, onDelete }: CandidateColumnsProps)
         header: ({ column }) => <DataTableColumnHeader column={column} title='Candidate Name' />,
         cell: ({ row }) => {
             const candidate = row.original;
-            return (
-                <div className='font-medium'>{`${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim()}</div>
-            );
+            return <div className='font-medium'>{`${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim()}</div>;
         }
     },
     {

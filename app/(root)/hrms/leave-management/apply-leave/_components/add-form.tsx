@@ -70,17 +70,20 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
             reason: data.reason
         };
 
-        applyLeave({ data: leaveData }, {
-            onSuccess: () => {
-                reset();
-                const fileInput = document.getElementById('leave-document-file') as HTMLInputElement;
-                if (fileInput) {
-                    fileInput.value = '';
+        applyLeave(
+            { data: leaveData },
+            {
+                onSuccess: () => {
+                    reset();
+                    const fileInput = document.getElementById('leave-document-file') as HTMLInputElement;
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                    refetchAll();
+                    onSuccess?.();
                 }
-                refetchAll();
-                onSuccess?.();
             }
-        });
+        );
     };
 
     return (
@@ -131,7 +134,9 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
 
                 {/* File Upload */}
                 <div className='space-y-2'>
-                    <label htmlFor='leave-document-file' className='font-medium text-sm'>Document</label>
+                    <label htmlFor='leave-document-file' className='font-medium text-sm'>
+                        Document
+                    </label>
                     <div className='flex items-center gap-2'>
                         <input
                             id='leave-document-file'
@@ -140,13 +145,10 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                             className='hidden'
                             accept='.pdf,.doc,.docx,.jpg,.jpeg,.png'
                         />
-                        <Button
-                            type='button'
-                            variant='outline'
-                            onClick={() => document.getElementById('leave-document-file')?.click()}>
+                        <Button type='button' variant='outline' onClick={() => document.getElementById('leave-document-file')?.click()}>
                             Choose File
                         </Button>
-                        <span className='text-sm text-muted-foreground'>No file chosen</span>
+                        <span className='text-muted-foreground text-sm'>No file chosen</span>
                     </div>
                 </div>
 

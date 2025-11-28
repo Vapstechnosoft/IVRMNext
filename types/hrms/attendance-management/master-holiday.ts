@@ -63,15 +63,20 @@ export interface DayListItem {
     updatedDate: string | null;
 }
 
+// Report list item structure from API
+// Each item is an object with "master_holiday_report" key containing an array:
+// [FOHWDT_Id, FOMHWDD_Id, FOMHWDD_Name, FOMHWDD_FromDate, FOMHWDD_ToDate, FOMHWD_ActiveFlg, FOHTWD_HolidayWDType, HRMD_DepartmentName]
 export interface ReportListItem {
-    FOHWDT_Id: number;
-    FOMHWDD_Id: number;
-    FOMHWDD_Name: string;
-    FOMHWDD_FromDate: string;
-    FOMHWDD_ToDate: string;
-    FOMHWD_ActiveFlg: boolean;
-    FOHTWD_HolidayWDType: string;
-    HRMD_DepartmentName: string;
+    master_holiday_report: [
+        number,    // 0: FOHWDT_Id
+        number,    // 1: FOMHWDD_Id
+        string,    // 2: FOMHWDD_Name
+        string,    // 3: FOMHWDD_FromDate
+        string,    // 4: FOMHWDD_ToDate
+        boolean,   // 5: FOMHWD_ActiveFlg
+        string,    // 6: FOHTWD_HolidayWDType
+        string     // 7: HRMD_DepartmentName
+    ];
 }
 
 export interface MasterHolidayGetDataResponseData {
@@ -92,21 +97,22 @@ export interface MasterHolidayGetDataResponse {
 }
 
 // Save Request Types
+// API expects exact field names with specific capitalization
 export interface SelectedDayDate {
-    date: string;
-    dayname: string;
+    Date: string;  // Capital D
+    Dayname: string;  // Capital D
 }
 
 export interface MasterHolidaySaveRequest {
-    mI_Id: number;
-    hrmlY_Id: number;
-    fohwdT_Id: number;
-    hrmD_Id: number;
-    day_flag: boolean;
-    fO_Start_Date: string | null;
-    fomhwdD_ToDate: string | null;
-    fomhwD_HolidayWDName: string;
-    userid: number;
+    MI_Id: number;  // Capital M, Capital I
+    HRMLY_Id: number;  // All caps
+    FOHWDT_Id: number;  // All caps
+    HRMD_Id: number;  // All caps
+    Day_flag: boolean;  // Capital D
+    FO_Start_Date: string | null;  // Capital F, S, D
+    FOMHWDD_ToDate: string | null;  // All caps
+    FOMHWD_HolidayWDName: string;  // All caps
+    Userid: number;  // Capital U
     selectedDaysDate: SelectedDayDate[];
 }
 

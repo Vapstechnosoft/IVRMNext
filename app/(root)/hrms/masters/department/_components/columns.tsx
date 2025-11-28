@@ -62,21 +62,32 @@ function ActionButtonsCell({ rowData }: { rowData: DepartmentDetail }) {
     const handleToggle = useCallback(
         async (data: DepartmentDetail, newState: boolean) => {
             try {
-                const result = await toggleMutation.mutateAsync({
+                const response = await toggleMutation.mutateAsync({
                     HRMD_Id: data.HRMD_Id,
                     HRMD_ActiveFlag: newState
                 });
 
-                // Check if the record is mapped/in use
-                const retrunMsg = (result as any)?.retrunMsg || '';
+                // Check the response success status
+                if (response?.success) {
+                    // Check if the record is mapped/in use
+                    const retrunMsg = response?.data?.retrunMsg || response?.data?.data?.retrunMsg || '';
 
-                if (retrunMsg === 'Mapped') {
-                    toast.error('Cannot deactivate - Department is currently assigned/in use');
+                    if (retrunMsg === 'Mapped') {
+                        toast.error('Cannot deactivate - Department is currently assigned/in use');
+                    } else {
+                        // Show the actual message from the API response
+                        toast.success(response.message || `Department ${newState ? 'activated' : 'deactivated'} successfully`);
+                    }
                 } else {
-                    toast.success(`Department ${newState ? 'activated' : 'deactivated'} successfully`);
+                    // Show the error message from the API response
+                    const errorMessage = response?.message || `Failed to ${newState ? 'activate' : 'deactivate'} department`;
+                    toast.error(errorMessage);
                 }
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} department`);
+            } catch (error: any) {
+                // Handle actual errors (network errors, etc.)
+                const errorMessage =
+                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} department`;
+                toast.error(errorMessage);
             }
         },
         [toggleMutation]

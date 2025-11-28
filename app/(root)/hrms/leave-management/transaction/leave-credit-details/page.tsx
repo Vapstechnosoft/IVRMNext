@@ -126,14 +126,32 @@ function FormSections() {
             HRMLDCF_MaxLeaveAplFlg: false,
             HRMLDCF_MaxLeaveCF: 0,
             selectedcarryMonthList: [],
-            selectedMonthList: formData.months ? Object.keys(formData.months).filter(m => (formData.months?.[m] || 0) > 0).map(m => {
-                const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-                const monthIndex = MONTHS.indexOf(m);
-                return monthIndex >= 0 ? monthIndex + 1 : 0;
-            }).filter(m => m > 0) : [],
+            selectedMonthList: formData.months
+                ? Object.keys(formData.months)
+                      .filter((m) => (formData.months?.[m] || 0) > 0)
+                      .map((m) => {
+                          const MONTHS = [
+                              'January',
+                              'February',
+                              'March',
+                              'April',
+                              'May',
+                              'June',
+                              'July',
+                              'August',
+                              'September',
+                              'October',
+                              'November',
+                              'December'
+                          ];
+                          const monthIndex = MONTHS.indexOf(m);
+                          return monthIndex >= 0 ? monthIndex + 1 : 0;
+                      })
+                      .filter((m) => m > 0)
+                : [],
             ...formData
         };
-        
+
         saveCreditDetails(apiData, {
             onSuccess: () => {
                 toast.success(selectedRow ? 'Leave credit details updated successfully' : 'Leave credit details saved successfully');

@@ -109,12 +109,7 @@ export default function AddMasterShiftForm({ onSuccess, className = '' }: AddMas
                                 name='startTime'
                                 control={control}
                                 render={({ field }) => (
-                                    <TimePicker12Hour
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                        name='startTime'
-                                        required
-                                    />
+                                    <TimePicker12Hour value={field.value} onChange={field.onChange} name='startTime' required />
                                 )}
                             />
                             {errors.startTime && <FormError>{errors.startTime.message}</FormError>}

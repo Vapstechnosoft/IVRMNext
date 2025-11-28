@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { type BaseEntity } from '@/lib/localdb';
+import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
 

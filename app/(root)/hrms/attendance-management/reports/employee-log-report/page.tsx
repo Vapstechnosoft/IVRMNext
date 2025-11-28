@@ -4,13 +4,12 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeLogReportList, useEmployeeLogReportOnload } from '@/hooks/hrms/useReports';
 import type { ApiSearchparams } from '@/types';
-import { Download, Printer } from 'lucide-react';
-import React, { use, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { type LogRow, logReportColumns } from './_components/columns';
-import { LogReportFilters, type LogReportFiltersState as ReportFilters } from './_components/filters';
+import { use, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { logReportColumns } from './_components/columns';
+import { LogReportFilters, type LogReportFiltersState as ReportFilters } from './_components/filters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -66,52 +65,102 @@ export default function EmployeeLogReportPage(props: { searchParams: SearchParam
     const MI_Id = 30;
     const LoginUserId = 0;
     const UserRole = '';
-    const type = typeof rawSearchParams?.type === 'string' 
-        ? rawSearchParams.type.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.type)
-          ? rawSearchParams.type.flatMap(t => typeof t === 'string' ? t.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const department = typeof rawSearchParams?.department === 'string'
-        ? rawSearchParams.department.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.department)
-          ? rawSearchParams.department.flatMap(d => typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const designation = typeof rawSearchParams?.designation === 'string'
-        ? rawSearchParams.designation.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.designation)
-          ? rawSearchParams.designation.flatMap(d => typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const allOrIndividual = typeof rawSearchParams?.allOrIndividual === 'string' ? rawSearchParams.allOrIndividual as 'All' | 'Individual' : Array.isArray(rawSearchParams?.allOrIndividual) ? rawSearchParams.allOrIndividual[0] as 'All' | 'Individual' : 'All';
-    const employeeCode = typeof rawSearchParams?.employeeCode === 'string' ? rawSearchParams.employeeCode : Array.isArray(rawSearchParams?.employeeCode) ? rawSearchParams.employeeCode[0] : '';
-    const employeeName = typeof rawSearchParams?.employeeName === 'string' ? rawSearchParams.employeeName : Array.isArray(rawSearchParams?.employeeName) ? rawSearchParams.employeeName[0] : '';
-    const codeOrName = typeof rawSearchParams?.codeOrName === 'string' ? rawSearchParams.codeOrName as 'Code' | 'Name' : Array.isArray(rawSearchParams?.codeOrName) ? rawSearchParams.codeOrName[0] as 'Code' | 'Name' : 'Code';
-    const dateMode = typeof rawSearchParams?.dateMode === 'string' ? rawSearchParams.dateMode as 'Date' | 'Monthly' | 'From Date' : Array.isArray(rawSearchParams?.dateMode) ? rawSearchParams.dateMode[0] as 'Date' | 'Monthly' | 'From Date' : 'Date';
-    const date = typeof rawSearchParams?.date === 'string' ? rawSearchParams.date : Array.isArray(rawSearchParams?.date) ? rawSearchParams.date[0] : '';
-    const month = typeof rawSearchParams?.month === 'string' ? rawSearchParams.month : Array.isArray(rawSearchParams?.month) ? rawSearchParams.month[0] : '';
-    const fromDate = typeof rawSearchParams?.fromDate === 'string' ? rawSearchParams.fromDate : Array.isArray(rawSearchParams?.fromDate) ? rawSearchParams.fromDate[0] : '';
-    const toDate = typeof rawSearchParams?.toDate === 'string' ? rawSearchParams.toDate : Array.isArray(rawSearchParams?.toDate) ? rawSearchParams.toDate[0] : '';
-    const metric = typeof rawSearchParams?.metric === 'string' ? rawSearchParams.metric as 'Punch Time' | 'Late In' | 'Early Out' : Array.isArray(rawSearchParams?.metric) ? rawSearchParams.metric[0] as 'Punch Time' | 'Late In' | 'Early Out' : 'Punch Time';
+    const type =
+        typeof rawSearchParams?.type === 'string'
+            ? rawSearchParams.type.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.type)
+              ? rawSearchParams.type.flatMap((t) => (typeof t === 'string' ? t.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const department =
+        typeof rawSearchParams?.department === 'string'
+            ? rawSearchParams.department.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.department)
+              ? rawSearchParams.department.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const designation =
+        typeof rawSearchParams?.designation === 'string'
+            ? rawSearchParams.designation.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.designation)
+              ? rawSearchParams.designation.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const allOrIndividual =
+        typeof rawSearchParams?.allOrIndividual === 'string'
+            ? (rawSearchParams.allOrIndividual as 'All' | 'Individual')
+            : Array.isArray(rawSearchParams?.allOrIndividual)
+              ? (rawSearchParams.allOrIndividual[0] as 'All' | 'Individual')
+              : 'All';
+    const employeeCode =
+        typeof rawSearchParams?.employeeCode === 'string'
+            ? rawSearchParams.employeeCode
+            : Array.isArray(rawSearchParams?.employeeCode)
+              ? rawSearchParams.employeeCode[0]
+              : '';
+    const employeeName =
+        typeof rawSearchParams?.employeeName === 'string'
+            ? rawSearchParams.employeeName
+            : Array.isArray(rawSearchParams?.employeeName)
+              ? rawSearchParams.employeeName[0]
+              : '';
+    const codeOrName =
+        typeof rawSearchParams?.codeOrName === 'string'
+            ? (rawSearchParams.codeOrName as 'Code' | 'Name')
+            : Array.isArray(rawSearchParams?.codeOrName)
+              ? (rawSearchParams.codeOrName[0] as 'Code' | 'Name')
+              : 'Code';
+    const dateMode =
+        typeof rawSearchParams?.dateMode === 'string'
+            ? (rawSearchParams.dateMode as 'Date' | 'Monthly' | 'From Date')
+            : Array.isArray(rawSearchParams?.dateMode)
+              ? (rawSearchParams.dateMode[0] as 'Date' | 'Monthly' | 'From Date')
+              : 'Date';
+    const date =
+        typeof rawSearchParams?.date === 'string'
+            ? rawSearchParams.date
+            : Array.isArray(rawSearchParams?.date)
+              ? rawSearchParams.date[0]
+              : '';
+    const month =
+        typeof rawSearchParams?.month === 'string'
+            ? rawSearchParams.month
+            : Array.isArray(rawSearchParams?.month)
+              ? rawSearchParams.month[0]
+              : '';
+    const fromDate =
+        typeof rawSearchParams?.fromDate === 'string'
+            ? rawSearchParams.fromDate
+            : Array.isArray(rawSearchParams?.fromDate)
+              ? rawSearchParams.fromDate[0]
+              : '';
+    const toDate =
+        typeof rawSearchParams?.toDate === 'string'
+            ? rawSearchParams.toDate
+            : Array.isArray(rawSearchParams?.toDate)
+              ? rawSearchParams.toDate[0]
+              : '';
+    const metric =
+        typeof rawSearchParams?.metric === 'string'
+            ? (rawSearchParams.metric as 'Punch Time' | 'Late In' | 'Early Out')
+            : Array.isArray(rawSearchParams?.metric)
+              ? (rawSearchParams.metric[0] as 'Punch Time' | 'Late In' | 'Early Out')
+              : 'Punch Time';
 
     // Check if we have search criteria based on dateMode
-    const hasSearchCriteria = dateMode === 'Date' 
-        ? !!date
-        : dateMode === 'Monthly'
-          ? !!month
-          : !!(fromDate && toDate);
-    
+    const hasSearchCriteria = dateMode === 'Date' ? !!date : dateMode === 'Monthly' ? !!month : !!(fromDate && toDate);
+
     // React Query hook for dropdowns - always enabled to get filter options
     const { data: onloadData, isLoading: onloadLoading } = useEmployeeLogReportOnload(MI_Id, LoginUserId, UserRole);
-    
+
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypesData = useMemo(() => onloadData?.data?.types || [], [onloadData?.data?.types]);
-    const groupTypesOptions = useMemo(() => 
-        groupTypesData.map(gt => ({
-            label: gt.hrmgT_EmployeeGroupType,
-            value: String(gt.hrmgT_Id)
-        })),
+    const groupTypesOptions = useMemo(
+        () =>
+            groupTypesData.map((gt) => ({
+                label: gt.hrmgT_EmployeeGroupType,
+                value: String(gt.hrmgT_Id)
+            })),
         [groupTypesData]
     );
-    
+
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useEmployeeLogReportList(
         searchParams,
@@ -172,7 +221,21 @@ export default function EmployeeLogReportPage(props: { searchParams: SearchParam
         setValue('toDate', toDate, { shouldDirty: false, shouldValidate: false });
         setValue('metric', metric, { shouldDirty: false, shouldValidate: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [type.join(','), department.join(','), designation.join(','), allOrIndividual, employeeCode, employeeName, codeOrName, dateMode, date, month, fromDate, toDate, metric]);
+    }, [
+        type.join(','),
+        department.join(','),
+        designation.join(','),
+        allOrIndividual,
+        employeeCode,
+        employeeName,
+        codeOrName,
+        dateMode,
+        date,
+        month,
+        fromDate,
+        toDate,
+        metric
+    ]);
 
     const onSubmit = (data: ReportFilters) => {
         // Validate based on dateMode
@@ -191,7 +254,7 @@ export default function EmployeeLogReportPage(props: { searchParams: SearchParam
 
         // Build URL params
         const params = new URLSearchParams();
-        
+
         // Add filter params
         if (data.type && data.type.length > 0) {
             params.set('type', data.type.join(','));
@@ -231,10 +294,10 @@ export default function EmployeeLogReportPage(props: { searchParams: SearchParam
         if (data.metric) {
             params.set('metric', data.metric);
         }
-        
+
         // Reset pagination when filters change
         params.set('page', '1');
-        
+
         // Navigate with new params
         router.push(`/hrms/attendance-management/reports/employee-log-report?${params.toString()}`);
     };
@@ -250,7 +313,7 @@ export default function EmployeeLogReportPage(props: { searchParams: SearchParam
         if (!responseData || !Array.isArray(responseData?.rows)) {
             return [];
         }
-        
+
         // TODO: Map API response rows to LogRow format when search endpoint is available
         // For now, return empty array
         return [];
@@ -264,7 +327,7 @@ export default function EmployeeLogReportPage(props: { searchParams: SearchParam
         searchParams,
         onSearchParamsChange: (newParams: any) => {
             const params = new URLSearchParams();
-            
+
             // Preserve existing filter params
             if (type.length > 0) params.set('type', type.join(','));
             if (department.length > 0) params.set('department', department.join(','));
@@ -279,14 +342,14 @@ export default function EmployeeLogReportPage(props: { searchParams: SearchParam
             if (fromDate) params.set('fromDate', fromDate);
             if (toDate) params.set('toDate', toDate);
             if (metric) params.set('metric', metric);
-            
+
             // Add/update pagination and sort params
             Object.entries(newParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     params.set(key, String(value));
                 }
             });
-            
+
             router.push(`/hrms/attendance-management/reports/employee-log-report?${params.toString()}`);
         }
     });
@@ -295,26 +358,43 @@ export default function EmployeeLogReportPage(props: { searchParams: SearchParam
     const showReport = hasSearchCriteria && reportListQuery.data?.success && transformedData.length > 0;
 
     // Memoize filters object to prevent unnecessary re-renders
-    const filtersForComponent = useMemo(() => ({
-        type: type.map(String),
-        department: department.map(String),
-        designation: designation.map(String),
-        allOrIndividual: allOrIndividual,
-        codeOrName: codeOrName,
-        query: codeOrName === 'Code' ? employeeCode : employeeName,
-        dateMode: dateMode,
-        date: date,
-        month: month,
-        fromDate: fromDate,
-        toDate: toDate,
-        metric: metric
-    }), [type, department, designation, allOrIndividual, employeeCode, employeeName, codeOrName, dateMode, date, month, fromDate, toDate, metric]);
+    const filtersForComponent = useMemo(
+        () => ({
+            type: type.map(String),
+            department: department.map(String),
+            designation: designation.map(String),
+            allOrIndividual: allOrIndividual,
+            codeOrName: codeOrName,
+            query: codeOrName === 'Code' ? employeeCode : employeeName,
+            dateMode: dateMode,
+            date: date,
+            month: month,
+            fromDate: fromDate,
+            toDate: toDate,
+            metric: metric
+        }),
+        [
+            type,
+            department,
+            designation,
+            allOrIndividual,
+            employeeCode,
+            employeeName,
+            codeOrName,
+            dateMode,
+            date,
+            month,
+            fromDate,
+            toDate,
+            metric
+        ]
+    );
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {onloadLoading ? (
-                    <div className='text-center py-8'>Loading filter options...</div>
+                    <div className='py-8 text-center'>Loading filter options...</div>
                 ) : (
                     <LogReportFilters
                         filters={filtersForComponent}

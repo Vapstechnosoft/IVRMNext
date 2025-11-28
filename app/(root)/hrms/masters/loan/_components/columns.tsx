@@ -14,7 +14,12 @@ export const columns: ColumnDef<MasterLoanDetail>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },
@@ -48,25 +53,26 @@ function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
     const handleToggle = useCallback(
         async (data: MasterLoanDetail, newState: boolean) => {
             try {
-                const result = await toggleMutation.mutateAsync({
+                const response = await toggleMutation.mutateAsync({
                     HRMLN_Id: data.HRMLN_Id,
                     HRMLN_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
 
-                // Check if loan is mapped/in use
-                if (result && typeof result === 'object' && 'retrunMsg' in result) {
-                    const retrunMsg = (result as any).retrunMsg;
-
-                    if (retrunMsg === 'Mapped') {
-                        toast.error('Cannot deactivate - Loan type is currently assigned/in use');
-                        return;
-                    }
+                // Check the response success status
+                if (response?.success) {
+                    // Show the actual message from the API response
+                    toast.success(response.message || `Loan ${newState ? 'activated' : 'deactivated'} successfully`);
+                } else {
+                    // Show the error message from the API response
+                    const errorMessage = response?.message || `Failed to ${newState ? 'activate' : 'deactivate'} loan`;
+                    toast.error(errorMessage);
                 }
-
-                toast.success(`Loan ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error: any) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} loan`);
+            } catch (error: any) {
+                // Handle actual errors (network errors, etc.)
+                const errorMessage =
+                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} loan`;
+                toast.error(errorMessage);
             }
         },
         [toggleMutation]

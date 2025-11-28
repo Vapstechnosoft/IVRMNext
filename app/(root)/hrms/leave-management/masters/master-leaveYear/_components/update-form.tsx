@@ -90,7 +90,7 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
                             label='Leave Year'
                             required
                             id='leaveYear'
-                            {...register('leaveYear', LEAVE_YEAR_VALIDATION.leaveYear)}
+                            {...register('leaveYear', LEAVE_YEAR_VALIDATION.HRMLY_LeaveYear)}
                             error={errors.leaveYear?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -101,9 +101,9 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
                             id='fromDate'
                             type='date'
                             {...register('fromDate', {
-                                ...LEAVE_YEAR_VALIDATION.fromDate,
+                                ...LEAVE_YEAR_VALIDATION.HRMLY_FromDate,
                                 validate: (value) => {
-                                    if (!value) return LEAVE_YEAR_VALIDATION.fromDate.required;
+                                    if (!value) return LEAVE_YEAR_VALIDATION.HRMLY_FromDate.required;
                                     const fromDateValue = new Date(value);
                                     const toDateValue = toDate ? new Date(toDate) : null;
                                     if (toDateValue && fromDateValue >= toDateValue) {
@@ -122,9 +122,9 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
                             id='toDate'
                             type='date'
                             {...register('toDate', {
-                                ...LEAVE_YEAR_VALIDATION.toDate,
+                                ...LEAVE_YEAR_VALIDATION.HRMLY_ToDate,
                                 validate: (value) => {
-                                    if (!value) return LEAVE_YEAR_VALIDATION.toDate.required;
+                                    if (!value) return LEAVE_YEAR_VALIDATION.HRMLY_ToDate.required;
                                     const toDateValue = new Date(value);
                                     const fromDateValue = fromDate ? new Date(fromDate) : null;
                                     if (fromDateValue && toDateValue <= fromDateValue) {

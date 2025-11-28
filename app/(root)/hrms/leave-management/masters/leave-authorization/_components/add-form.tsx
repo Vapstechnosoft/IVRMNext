@@ -141,7 +141,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -173,7 +173,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -205,7 +205,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -237,7 +237,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -272,7 +272,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -316,7 +316,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}

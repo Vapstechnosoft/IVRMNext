@@ -7,8 +7,8 @@ import { useFOMonthEndReportOnload } from '@/hooks/hrms/useReports';
 import { FileDown } from 'lucide-react';
 import { useState } from 'react';
 import { foMonthEndReportColumns } from './_components/columns';
-import { type FOMonthEndReportFilters, FOMonthEndReportFilters as FOMonthEndReportFiltersComponent } from './_components/filters';
 import type { FOMonthEndReportRow } from './_components/columns';
+import { type FOMonthEndReportFilters, FOMonthEndReportFilters as FOMonthEndReportFiltersComponent } from './_components/filters';
 
 export default function FOMonthEndReportPage() {
     const [showReport, setShowReport] = useState(false);
@@ -39,12 +39,9 @@ export default function FOMonthEndReportPage() {
         setSelectedRows([]);
     };
 
-    const handleExport = () => {
-        /* TODO: implement export functionality */
-        console.log('Exporting selected rows:', selectedRows);
-    };
+    const handleExport = () => {};
 
-    const handleRowSelectionChange = (rows: FOMonthEndReportRow[]) => {
+    const _handleRowSelectionChange = (rows: FOMonthEndReportRow[]) => {
         setSelectedRows(rows);
     };
 

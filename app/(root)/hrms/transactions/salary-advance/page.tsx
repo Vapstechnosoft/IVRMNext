@@ -69,15 +69,21 @@ function SalaryAdvancePageContent({
         }
     };
 
-    const getEmployeeName = (employee: EmployeeDropdown) => {
-        return `${employee.HRME_EmployeeFirstName} ${
+    const getEmployeeName = (employee: EmployeeDropdown | null | undefined) => {
+        if (!employee) return 'N/A';
+        return `${employee.HRME_EmployeeFirstName || ''} ${
             employee.HRME_EmployeeMiddleName || ''
-        } ${employee.HRME_EmployeeLastName || ''}`.trim();
+        } ${employee.HRME_EmployeeLastName || ''}`.trim() || 'N/A';
     };
 
     const getEmployeeCode = (employeeId: number) => {
         const employee = employees.find((emp: EmployeeDropdown) => emp.HRME_Id === employeeId);
         return employee?.HRME_EmployeeCode || `EMP${employeeId}`;
+    };
+
+    const getEmployeeNameById = (employeeId: number) => {
+        const employee = employees.find((emp: EmployeeDropdown) => emp.HRME_Id === employeeId);
+        return getEmployeeName(employee || null);
     };
 
     const getLeaveYearName = (yearId: number) => {
@@ -97,6 +103,7 @@ function SalaryAdvancePageContent({
         onAdvanceSelect,
         getEmployeeCode,
         getEmployeeName,
+        getEmployeeNameById,
         getLeaveYearName,
         getMonthName
     }: {
@@ -105,7 +112,8 @@ function SalaryAdvancePageContent({
         onSelectAll: (selected: boolean) => void;
         onAdvanceSelect: (advanceId: number, selected: boolean) => void;
         getEmployeeCode: (employeeId: number) => string;
-        getEmployeeName: (employee: EmployeeDropdown) => string;
+        getEmployeeName: (employee: EmployeeDropdown | null | undefined) => string;
+        getEmployeeNameById: (employeeId: number) => string;
         getLeaveYearName: (yearId: number) => string;
         getMonthName: (monthId: number) => string;
     }) => {
@@ -147,11 +155,20 @@ function SalaryAdvancePageContent({
                 enableHiding: true
             },
             {
-                accessorKey: 'MasterEmployee',
+                accessorKey: 'HRME_Id',
+                id: 'employeeName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
                 cell: ({ row }) => {
-                    const employee = row.getValue('MasterEmployee') as EmployeeDropdown;
-                    return <div>{getEmployeeName(employee)}</div>;
+                    // Try to get employee name from MasterEmployee first, then fallback to lookup
+                    const masterEmployee = (row.original as any).MasterEmployee as EmployeeDropdown | undefined;
+                    const employeeId = row.original.HRME_Id;
+                    
+                    if (masterEmployee) {
+                        return <div>{getEmployeeName(masterEmployee)}</div>;
+                    }
+                    
+                    // Fallback to lookup from employeedropdown
+                    return <div>{getEmployeeNameById(employeeId)}</div>;
                 },
                 enableSorting: true,
                 enableHiding: true
@@ -220,9 +237,6 @@ function SalaryAdvancePageContent({
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                {/* Forms Section */}
-                <FormSections onloadData={advanceData} onSuccess={refetch} />
-
                 <div className='flex justify-end'>
                     <Button
                         type='button'
@@ -261,11 +275,15 @@ function SalaryAdvancePageContent({
                             onAdvanceSelect={handleAdvanceSelect}
                             getEmployeeCode={getEmployeeCode}
                             getEmployeeName={getEmployeeName}
+                            getEmployeeNameById={getEmployeeNameById}
                             getLeaveYearName={getLeaveYearName}
                             getMonthName={getMonthName}
                         />
                     </div>
                 </CollapsibleSection>
+
+                {/* Forms Section - Moved after table */}
+                <FormSections onloadData={advanceData} onSuccess={refetch} />
             </div>
         </div>
     );

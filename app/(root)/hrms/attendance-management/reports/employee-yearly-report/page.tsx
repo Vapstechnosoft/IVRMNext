@@ -4,13 +4,12 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeYearlyReportList, useEmployeeYearlyReportOnload } from '@/hooks/hrms/useReports';
 import type { ApiSearchparams } from '@/types';
-import { Download, Printer } from 'lucide-react';
-import React, { use, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
-import { type YearRow, employeeYearlyReportColumns } from './_components/columns';
-import { EmployeeYearlyReportFilters, type EmployeeYearlyReportFilters as ReportFilters } from './_components/filters';
+import { use, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { employeeYearlyReportColumns } from './_components/columns';
+import { EmployeeYearlyReportFilters, type EmployeeYearlyReportFilters as ReportFilters } from './_components/filters';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -66,47 +65,72 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
     const MI_Id = 30;
     const LoginUserId = 0;
     const UserRole = '';
-    const type = typeof rawSearchParams?.type === 'string' 
-        ? rawSearchParams.type.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.type)
-          ? rawSearchParams.type.flatMap(t => typeof t === 'string' ? t.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const department = typeof rawSearchParams?.department === 'string'
-        ? rawSearchParams.department.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.department)
-          ? rawSearchParams.department.flatMap(d => typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const designation = typeof rawSearchParams?.designation === 'string'
-        ? rawSearchParams.designation.split(',').map(Number).filter(Boolean)
-        : Array.isArray(rawSearchParams?.designation)
-          ? rawSearchParams.designation.flatMap(d => typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : [])
-          : [];
-    const allOrIndividual = typeof rawSearchParams?.allOrIndividual === 'string' ? rawSearchParams.allOrIndividual as 'All' | 'Individual' : Array.isArray(rawSearchParams?.allOrIndividual) ? rawSearchParams.allOrIndividual[0] as 'All' | 'Individual' : 'All';
-    const employee = typeof rawSearchParams?.employee === 'string' ? rawSearchParams.employee : Array.isArray(rawSearchParams?.employee) ? rawSearchParams.employee[0] : '';
-    const fromDate = typeof rawSearchParams?.fromDate === 'string' ? rawSearchParams.fromDate : Array.isArray(rawSearchParams?.fromDate) ? rawSearchParams.fromDate[0] : '';
-    const toDate = typeof rawSearchParams?.toDate === 'string' ? rawSearchParams.toDate : Array.isArray(rawSearchParams?.toDate) ? rawSearchParams.toDate[0] : '';
-    const mode = typeof rawSearchParams?.mode === 'string'
-        ? rawSearchParams.mode.split(',').filter(Boolean) as ('Date Of Joining' | 'Show Holiday Punch' | 'Total working Day')[]
-        : Array.isArray(rawSearchParams?.mode)
-          ? rawSearchParams.mode.filter(Boolean) as ('Date Of Joining' | 'Show Holiday Punch' | 'Total working Day')[]
-          : [];
+    const type =
+        typeof rawSearchParams?.type === 'string'
+            ? rawSearchParams.type.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.type)
+              ? rawSearchParams.type.flatMap((t) => (typeof t === 'string' ? t.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const department =
+        typeof rawSearchParams?.department === 'string'
+            ? rawSearchParams.department.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.department)
+              ? rawSearchParams.department.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const designation =
+        typeof rawSearchParams?.designation === 'string'
+            ? rawSearchParams.designation.split(',').map(Number).filter(Boolean)
+            : Array.isArray(rawSearchParams?.designation)
+              ? rawSearchParams.designation.flatMap((d) => (typeof d === 'string' ? d.split(',').map(Number).filter(Boolean) : []))
+              : [];
+    const allOrIndividual =
+        typeof rawSearchParams?.allOrIndividual === 'string'
+            ? (rawSearchParams.allOrIndividual as 'All' | 'Individual')
+            : Array.isArray(rawSearchParams?.allOrIndividual)
+              ? (rawSearchParams.allOrIndividual[0] as 'All' | 'Individual')
+              : 'All';
+    const employee =
+        typeof rawSearchParams?.employee === 'string'
+            ? rawSearchParams.employee
+            : Array.isArray(rawSearchParams?.employee)
+              ? rawSearchParams.employee[0]
+              : '';
+    const fromDate =
+        typeof rawSearchParams?.fromDate === 'string'
+            ? rawSearchParams.fromDate
+            : Array.isArray(rawSearchParams?.fromDate)
+              ? rawSearchParams.fromDate[0]
+              : '';
+    const toDate =
+        typeof rawSearchParams?.toDate === 'string'
+            ? rawSearchParams.toDate
+            : Array.isArray(rawSearchParams?.toDate)
+              ? rawSearchParams.toDate[0]
+              : '';
+    const mode =
+        typeof rawSearchParams?.mode === 'string'
+            ? (rawSearchParams.mode.split(',').filter(Boolean) as ('Date Of Joining' | 'Show Holiday Punch' | 'Total working Day')[])
+            : Array.isArray(rawSearchParams?.mode)
+              ? (rawSearchParams.mode.filter(Boolean) as ('Date Of Joining' | 'Show Holiday Punch' | 'Total working Day')[])
+              : [];
 
     // Check if we have search criteria (fromDate and toDate are required)
     const hasSearchCriteria = !!(fromDate && toDate);
-    
+
     // React Query hook for dropdowns - always enabled to get filter options
     const { data: onloadData, isLoading: onloadLoading } = useEmployeeYearlyReportOnload(MI_Id, LoginUserId, UserRole);
-    
+
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypesData = useMemo(() => onloadData?.data?.types || [], [onloadData?.data?.types]);
-    const groupTypesOptions = useMemo(() => 
-        groupTypesData.map(gt => ({
-            label: gt.hrmgT_EmployeeGroupType,
-            value: String(gt.hrmgT_Id)
-        })),
+    const groupTypesOptions = useMemo(
+        () =>
+            groupTypesData.map((gt) => ({
+                label: gt.hrmgT_EmployeeGroupType,
+                value: String(gt.hrmgT_Id)
+            })),
         [groupTypesData]
     );
-    
+
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useEmployeeYearlyReportList(
         searchParams,
@@ -164,7 +188,7 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
 
         // Build URL params
         const params = new URLSearchParams();
-        
+
         // Add filter params
         if (data.type && data.type.length > 0) {
             params.set('type', data.type.join(','));
@@ -186,10 +210,10 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
         if (data.mode && data.mode.length > 0) {
             params.set('mode', data.mode.join(','));
         }
-        
+
         // Reset pagination when filters change
         params.set('page', '1');
-        
+
         // Navigate with new params
         router.push(`/hrms/attendance-management/reports/employee-yearly-report?${params.toString()}`);
     };
@@ -205,7 +229,7 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
         if (!responseData || !Array.isArray(responseData?.rows)) {
             return [];
         }
-        
+
         // TODO: Map API response rows to YearRow format when search endpoint is available
         // For now, return empty array
         return [];
@@ -219,7 +243,7 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
         searchParams,
         onSearchParamsChange: (newParams: any) => {
             const params = new URLSearchParams();
-            
+
             // Preserve existing filter params
             if (type.length > 0) params.set('type', type.join(','));
             if (department.length > 0) params.set('department', department.join(','));
@@ -229,14 +253,14 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
             if (fromDate) params.set('fromDate', fromDate);
             if (toDate) params.set('toDate', toDate);
             if (mode.length > 0) params.set('mode', mode.join(','));
-            
+
             // Add/update pagination and sort params
             Object.entries(newParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     params.set(key, String(value));
                 }
             });
-            
+
             router.push(`/hrms/attendance-management/reports/employee-yearly-report?${params.toString()}`);
         }
     });
@@ -245,22 +269,25 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
     const showReport = hasSearchCriteria && reportListQuery.data?.success && transformedData.length > 0;
 
     // Memoize filters object to prevent unnecessary re-renders
-    const filtersForComponent = useMemo(() => ({
-        type: type.map(String),
-        department: department.map(String),
-        designation: designation.map(String),
-        allOrIndividual: allOrIndividual,
-        employee: employee,
-        fromDate: fromDate,
-        toDate: toDate,
-        mode: mode
-    }), [type, department, designation, allOrIndividual, employee, fromDate, toDate, mode]);
+    const filtersForComponent = useMemo(
+        () => ({
+            type: type.map(String),
+            department: department.map(String),
+            designation: designation.map(String),
+            allOrIndividual: allOrIndividual,
+            employee: employee,
+            fromDate: fromDate,
+            toDate: toDate,
+            mode: mode
+        }),
+        [type, department, designation, allOrIndividual, employee, fromDate, toDate, mode]
+    );
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {onloadLoading ? (
-                    <div className='text-center py-8'>Loading filter options...</div>
+                    <div className='py-8 text-center'>Loading filter options...</div>
                 ) : (
                     <EmployeeYearlyReportFilters
                         filters={filtersForComponent}

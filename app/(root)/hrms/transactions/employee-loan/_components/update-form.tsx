@@ -256,7 +256,6 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                             <div className='space-y-2'>
                                 <Label>Reference No.</Label>
                                 <InputText
-                                    label='Reference No.'
                                     id='referenceNo'
                                     placeholder='Enter reference number (max 20 characters, numbers only)'
                                     {...field}

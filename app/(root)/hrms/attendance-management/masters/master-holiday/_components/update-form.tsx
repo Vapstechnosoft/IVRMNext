@@ -8,9 +8,9 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterHoliday, useSaveMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
-import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
 import { cn } from '@/lib/utils';
 import { holidayMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
@@ -32,30 +32,40 @@ interface UpdateMasterHolidayFormProps {
     dropdownData?: MasterHolidayGetDataResponseData;
 }
 
-export default function UpdateMasterHolidayForm({ onSuccess, className = '', selectedRow: row, dropdownData }: UpdateMasterHolidayFormProps) {
+export default function UpdateMasterHolidayForm({
+    onSuccess,
+    className = '',
+    selectedRow: row,
+    dropdownData
+}: UpdateMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
     const { mutate: saveMasterHoliday, isPending } = useSaveMasterHoliday();
 
     // Extract dropdown data from API response
+    // API field names are uppercase: HRMLY_LeaveYear, HRMD_DepartmentName, FOHTWD_HolidayWDType, FOMD_DayCode, FOMD_DayName
     const calendarYears = useMemo(() => {
-        return dropdownData?.yeardropdown?.map((year) => year.hrmlY_LeaveYear) || [];
+        if (!dropdownData?.yeardropdown) return [];
+        return dropdownData.yeardropdown.map((year: any) => year.HRMLY_LeaveYear || year.hrmlY_LeaveYear || '').filter(Boolean);
     }, [dropdownData?.yeardropdown]);
 
     const departments = useMemo(() => {
-        return dropdownData?.departmentType?.map((dept) => dept.hrmD_DepartmentName) || [];
+        if (!dropdownData?.departmentType) return [];
+        return dropdownData.departmentType.map((dept: any) => dept.HRMD_DepartmentName || dept.hrmD_DepartmentName || '').filter(Boolean);
     }, [dropdownData?.departmentType]);
 
     const holidayTypes = useMemo(() => {
-        return dropdownData?.holidayType?.map((type) => type.fohtwD_HolidayWDType) || [];
+        if (!dropdownData?.holidayType) return [];
+        return dropdownData.holidayType.map((type: any) => type.FOHTWD_HolidayWDType || type.fohtwD_HolidayWDType || '').filter(Boolean);
     }, [dropdownData?.holidayType]);
 
     const weekDays = useMemo(() => {
-        return (
-            dropdownData?.dayslist?.map((day) => ({
-                value: day.fomD_DayCode,
-                label: day.fomD_DayName
-            })) || []
-        );
+        if (!dropdownData?.dayslist) return [];
+        return dropdownData.dayslist
+            .map((day: any) => ({
+                value: day.FOMD_DayCode || day.fomD_DayCode || '',
+                label: day.FOMD_DayName || day.fomD_DayName || ''
+            }))
+            .filter((day: { value: string; label: string }) => day.value && day.label);
     }, [dropdownData?.dayslist]);
 
     const {

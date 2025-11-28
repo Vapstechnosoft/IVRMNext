@@ -6,12 +6,12 @@
  */
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { activateDeactivateEmployeeLoan, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
-import { getSalaryAdvanceList, saveSalaryAdvance, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
+import { activateDeactivateEmployeeLoan, getEmployeeLoanById, getEmployeeLoanByEmployee, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
+import { getSalaryAdvanceById, getSalaryAdvanceDetailsByEmployee, getSalaryAdvanceList, saveSalaryAdvance, searchSalaryAdvanceFilter, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
 import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
 import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload, searchSalaryCalculationBySelection } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
 import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
-import { deleteSalaryUpdation, getSalaryUpdationList, saveSalaryUpdation } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
+import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
 import { getEmployeeDetailsBySelection, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import type {
     EmployeeLoanDeleteRequest,
@@ -52,6 +52,13 @@ import type {
 } from '@/types/hrms/salary-increment';
 import type {
     SalaryUpdationDeleteRequest,
+    SalaryUpdationDepartmentRequest,
+    SalaryUpdationDepartmentResponse,
+    SalaryUpdationDesignationRequest,
+    SalaryUpdationDesignationResponse,
+    SalaryUpdationEmployeeDetailsRequest,
+    SalaryUpdationEmployeeDetailsResponse,
+    SalaryUpdationFilterRequest,
     SalaryUpdationOnloadRequest,
     SalaryUpdationOnloadResponse,
     SalaryUpdationSaveRequest,
@@ -75,14 +82,14 @@ export function useEmployeeLoanList(payload: EmployeeLoanOnloadRequest) {
     return useQuery<EmployeeLoanOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, payload],
         queryFn: () =>
-            getEmployeeLoanList(payload.roleId ?? 30).then((res: any) => {
+            getEmployeeLoanList(payload).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
         staleTime: 1000 * 60 * 5,
-        enabled: !!payload.roleId
+        enabled: !!(payload.MIID || payload.roleId)
     });
 }
 
@@ -113,6 +120,36 @@ export function useSaveEmployeeLoan() {
         onError: (error) => {
             toast.error(error.message || 'Failed to save employee loan.');
         }
+    });
+}
+
+export function useGetEmployeeLoanById(id: number) {
+    return useQuery<EmployeeLoanOnloadResponse, Error>({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'by-id', id],
+        queryFn: () =>
+            getEmployeeLoanById(id).then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        staleTime: 1000 * 60 * 5,
+        enabled: !!id && id > 0
+    });
+}
+
+export function useGetEmployeeLoanByEmployee(employeeId: number, miId: number = 30) {
+    return useQuery<EmployeeLoanOnloadResponse, Error>({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'by-employee', employeeId, miId],
+        queryFn: () =>
+            getEmployeeLoanByEmployee(employeeId, miId).then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        staleTime: 1000 * 60 * 5,
+        enabled: !!employeeId && employeeId > 0
     });
 }
 
@@ -242,6 +279,51 @@ export function useToggleSalaryAdvanceStatus() {
     });
 }
 
+export function useGetSalaryAdvanceById(id: number) {
+    return useQuery<SalaryAdvanceOnloadResponse, Error>({
+        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_BY_ID, id],
+        queryFn: () =>
+            getSalaryAdvanceById(id).then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        staleTime: 1000 * 60 * 5,
+        enabled: !!id && id > 0
+    });
+}
+
+export function useGetSalaryAdvanceDetailsByEmployee(employeeId: number) {
+    return useQuery<SalaryAdvanceOnloadResponse, Error>({
+        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_BY_ID, 'employee', employeeId],
+        queryFn: () =>
+            getSalaryAdvanceDetailsByEmployee(employeeId).then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        staleTime: 1000 * 60 * 5,
+        enabled: !!employeeId && employeeId > 0
+    });
+}
+
+export function useSearchSalaryAdvanceFilter(miId: number, searchFilter: string) {
+    return useQuery<SalaryAdvanceOnloadResponse, Error>({
+        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'search', miId, searchFilter],
+        queryFn: () =>
+            searchSalaryAdvanceFilter(miId, searchFilter).then((res: any) => {
+                if (!res.success) {
+                    throw new Error(res.message);
+                }
+                return res.data!;
+            }),
+        staleTime: 1000 * 60 * 2,
+        enabled: !!miId && miId > 0
+    });
+}
+
 // ============================================================================
 // SALARY APPROVAL
 // ============================================================================
@@ -249,10 +331,11 @@ export function useToggleSalaryAdvanceStatus() {
 export function useSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
     return useQuery<SalaryApprovalOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_ONLOAD, payload],
-        queryFn: () => {
+        queryFn: async () => {
             console.log('🟢 [SALARY APPROVAL - FRONTEND] useSalaryApprovalOnload - START');
             console.log('📥 [SALARY APPROVAL - FRONTEND] Request payload:', JSON.stringify(payload, null, 2));
-            return getSalaryApprovalOnload(payload).then((res) => {
+            try {
+                const res = await getSalaryApprovalOnload(payload);
                 console.log('✅ [SALARY APPROVAL - FRONTEND] API Response received');
                 console.log('📤 [SALARY APPROVAL - FRONTEND] Response:', {
                     success: res.success,
@@ -261,7 +344,16 @@ export function useSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
                 });
                 if (!res.success) {
                     console.error('❌ [SALARY APPROVAL - FRONTEND] API returned error:', res.message);
-                    throw new Error(res.message);
+                    // Return empty data structure instead of throwing to prevent UI crash
+                    // The error will be available in the error state for the component to handle
+                    return {
+                        MI_Id: 0,
+                        groupTypedropdownlist: [],
+                        departmentdropdownlist: [],
+                        designationdropdownlist: [],
+                        monthdropdown: [],
+                        leaveyeardropdown: []
+                    } as SalaryApprovalOnloadResponse;
                 }
                 console.log('📊 [SALARY APPROVAL - FRONTEND] Response data summary:', {
                     hasGroupTypes: !!(res.data?.groupTypedropdownlist?.length),
@@ -276,14 +368,25 @@ export function useSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
                 });
                 console.log('🟢 [SALARY APPROVAL - FRONTEND] useSalaryApprovalOnload - END (Success)');
                 return res.data!;
-            }).catch((error) => {
+            } catch (error) {
                 console.error('❌ [SALARY APPROVAL - FRONTEND] useSalaryApprovalOnload - ERROR');
                 console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
-                throw error;
-            });
+                // Return empty data structure instead of throwing to prevent UI crash
+                // This allows the component to continue rendering with empty dropdowns
+                return {
+                    MI_Id: 0,
+                    groupTypedropdownlist: [],
+                    departmentdropdownlist: [],
+                    designationdropdownlist: [],
+                    monthdropdown: [],
+                    leaveyeardropdown: []
+                } as SalaryApprovalOnloadResponse;
+            }
         },
         staleTime: 1000 * 60 * 5,
-        enabled: !!payload.MI_Id
+        enabled: !!payload.MI_Id,
+        retry: false, // Don't retry on error to avoid repeated failed requests
+        refetchOnWindowFocus: false // Don't refetch on window focus to avoid repeated errors
     });
 }
 
@@ -467,15 +570,15 @@ export function useGenerateSalary() {
 export function useSalaryIncrementOnload(payload: SalaryIncrementOnloadRequest) {
     return useQuery<SalaryIncrementOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD, payload],
-        queryFn: () =>
-            getSalaryIncrementOnload(payload).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
+        queryFn: async () => {
+            const res = await getSalaryIncrementOnload(payload);
+            if (!res.success || !res.data) {
+                throw new Error(res.message || 'Failed to load salary increment data');
+            }
+            return res.data;
+        },
         staleTime: 1000 * 60 * 5,
-        enabled: !!payload.MI_Id && !!payload.roleId
+        enabled: !!(payload.MIID || payload.MI_Id) && (payload.LoginUserId !== undefined || payload.roleId !== undefined)
     });
 }
 
@@ -508,22 +611,22 @@ export function useSaveSalaryIncrement() {
 export function useDeleteSalaryIncrement() {
     const queryClient = useQueryClient();
 
-    return useMutation<SalaryIncrementDeleteResponse, Error, SalaryIncrementDeleteRequest>({
-        mutationFn: (data: SalaryIncrementDeleteRequest) =>
-            deleteSalaryIncrement(data).then((res) => {
+    return useMutation<SalaryIncrementDeleteResponse, Error, number>({
+        mutationFn: (id: number) =>
+            deleteSalaryIncrement(id).then((res) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
         onSuccess: () => {
-            toast.success('Salary increment deleted successfully!');
+            toast.success('Salary increment deactivated successfully!');
             queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD]
             });
         },
         onError: (error) => {
-            toast.error(error.message || 'Failed to delete salary increment.');
+            toast.error(error.message || 'Failed to deactivate salary increment.');
         }
     });
 }
@@ -535,17 +638,31 @@ export function useDeleteSalaryIncrement() {
 export function useSalaryUpdationList(payload: SalaryUpdationOnloadRequest) {
     const queryClient = useQueryClient();
 
+    // Support both new and legacy request formats
+    const requestPayload: SalaryUpdationOnloadRequest = {
+        page: payload.page ?? 1,
+        page_size: payload.page_size ?? 10,
+        search_query: payload.search_query ?? '',
+        search_column: payload.search_column ?? '',
+        sort_column: payload.sort_column ?? '',
+        sort_direction: payload.sort_direction ?? '',
+        is_export: payload.is_export ?? false,
+        MIID: payload.MIID ?? 30,
+        LoginUserId: payload.LoginUserId ?? payload.roleId ?? 0,
+        UserRole: payload.UserRole ?? ''
+    };
+
     const listQuery = useQuery<SalaryUpdationOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, payload],
+        queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, requestPayload],
         queryFn: () =>
-            getSalaryUpdationList(payload.roleId).then((res) => {
+            getSalaryUpdationOnload(requestPayload).then((res) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
         staleTime: 1000 * 60 * 5,
-        enabled: !!payload.roleId
+        enabled: !!(requestPayload.LoginUserId || requestPayload.roleId || requestPayload.MIID)
     });
 
     const saveMutation = useMutation<SalaryUpdationSaveResponse, Error, SalaryUpdationSaveRequest>({
@@ -640,6 +757,170 @@ export function useDeleteSalaryUpdation() {
         },
         onError: (error) => {
             toast.error(error.message || 'Failed to delete salary updation.');
+        }
+    });
+}
+
+/**
+ * Filter employees for salary updation
+ */
+export function useFilterSalaryUpdationEmployees() {
+    return useMutation<SalaryUpdationOnloadResponse, Error, SalaryUpdationFilterRequest>({
+        mutationFn: (data: SalaryUpdationFilterRequest) => {
+            console.log('🟢 [SALARY UPDATION - FRONTEND] useFilterSalaryUpdationEmployees - START');
+            console.log('📊 [SALARY UPDATION - FRONTEND] Filter criteria:', {
+                MI_Id: data.MI_Id,
+                LogInUserId: data.LogInUserId,
+                designationCount: data.designationselected?.length || 0,
+                departmentCount: data.departmentselected?.length || 0,
+                groupTypeCount: data.groupTypeselected?.length || 0,
+                headCount: data.headselected?.length || 0
+            });
+            return filterSalaryUpdationEmployees(data).then((res) => {
+                console.log('✅ [SALARY UPDATION - FRONTEND] Filter response received');
+                console.log('📤 [SALARY UPDATION - FRONTEND] Response:', {
+                    success: res.success,
+                    message: res.message,
+                    hasData: !!res.data
+                });
+                if (!res.success) {
+                    console.error('❌ [SALARY UPDATION - FRONTEND] Filter failed:', res.message);
+                    throw new Error(res.message);
+                }
+                const employeeCount = res.data?.employeedropdown?.length || 0;
+                console.log('📊 [SALARY UPDATION - FRONTEND] Employees found:', employeeCount);
+                if (employeeCount > 0) {
+                    console.log('📋 [SALARY UPDATION - FRONTEND] First employee sample:', res.data?.employeedropdown?.[0]);
+                }
+                console.log('🟢 [SALARY UPDATION - FRONTEND] useFilterSalaryUpdationEmployees - END (Success)');
+                return res.data!;
+            }).catch((error) => {
+                console.error('❌ [SALARY UPDATION - FRONTEND] useFilterSalaryUpdationEmployees - ERROR');
+                console.error('💥 [SALARY UPDATION - FRONTEND] Error:', error);
+                throw error;
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to filter employees.');
+        }
+    });
+}
+
+/**
+ * Get employee details by selection (earnings and deductions) for salary updation
+ */
+export function useGetSalaryUpdationEmployeeDetailsBySelection() {
+    return useMutation<SalaryUpdationEmployeeDetailsResponse, Error, SalaryUpdationEmployeeDetailsRequest>({
+        mutationFn: (data: SalaryUpdationEmployeeDetailsRequest) => {
+            console.log('🟢 [SALARY UPDATION - FRONTEND] useGetSalaryUpdationEmployeeDetailsBySelection - START');
+            console.log('📊 [SALARY UPDATION - FRONTEND] Request data:', {
+                earningCount: data.earningresult?.length || 0,
+                deductionCount: data.deductionresult?.length || 0,
+                LogInUserId: data.LogInUserId
+            });
+            return getSalaryUpdationEmployeeDetailsBySelection(data).then((res) => {
+                console.log('✅ [SALARY UPDATION - FRONTEND] Employee details response received');
+                console.log('📤 [SALARY UPDATION - FRONTEND] Response:', {
+                    success: res.success,
+                    message: res.message,
+                    hasData: !!res.data
+                });
+                if (!res.success) {
+                    console.error('❌ [SALARY UPDATION - FRONTEND] Get employee details failed:', res.message);
+                    throw new Error(res.message);
+                }
+                const employeeCount = res.data?.employeedropdown?.length || 0;
+                console.log('📊 [SALARY UPDATION - FRONTEND] Employees found:', employeeCount);
+                if (employeeCount > 0) {
+                    console.log('📋 [SALARY UPDATION - FRONTEND] First employee sample:', res.data?.employeedropdown?.[0]);
+                }
+                console.log('🟢 [SALARY UPDATION - FRONTEND] useGetSalaryUpdationEmployeeDetailsBySelection - END (Success)');
+                return res.data!;
+            }).catch((error) => {
+                console.error('❌ [SALARY UPDATION - FRONTEND] useGetSalaryUpdationEmployeeDetailsBySelection - ERROR');
+                console.error('💥 [SALARY UPDATION - FRONTEND] Error:', error);
+                throw error;
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to get employee details.');
+        }
+    });
+}
+
+/**
+ * Get departments by group type selection (cascading dropdown)
+ */
+export function useGetSalaryUpdationDepartments() {
+    return useMutation<SalaryUpdationDepartmentResponse, Error, SalaryUpdationDepartmentRequest>({
+        mutationFn: (data: SalaryUpdationDepartmentRequest) => {
+            console.log('🟢 [SALARY UPDATION - FRONTEND] useGetSalaryUpdationDepartments - START');
+            console.log('📊 [SALARY UPDATION - FRONTEND] Request data:', {
+                MI_Id: data.MI_Id,
+                groupTypeCount: data.hrmgT_IdList?.length || 0
+            });
+            return getSalaryUpdationDepartments(data).then((res) => {
+                console.log('✅ [SALARY UPDATION - FRONTEND] Departments response received');
+                console.log('📤 [SALARY UPDATION - FRONTEND] Response:', {
+                    success: res.success,
+                    message: res.message,
+                    hasData: !!res.data
+                });
+                if (!res.success) {
+                    console.error('❌ [SALARY UPDATION - FRONTEND] Get departments failed:', res.message);
+                    throw new Error(res.message);
+                }
+                const departmentCount = res.data?.departmentdropdown?.length || 0;
+                console.log('📊 [SALARY UPDATION - FRONTEND] Departments found:', departmentCount);
+                console.log('🟢 [SALARY UPDATION - FRONTEND] useGetSalaryUpdationDepartments - END (Success)');
+                return res.data!;
+            }).catch((error) => {
+                console.error('❌ [SALARY UPDATION - FRONTEND] useGetSalaryUpdationDepartments - ERROR');
+                console.error('💥 [SALARY UPDATION - FRONTEND] Error:', error);
+                throw error;
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to get departments.');
+        }
+    });
+}
+
+/**
+ * Get designations by group type and department selection (cascading dropdown)
+ */
+export function useGetSalaryUpdationDesignations() {
+    return useMutation<SalaryUpdationDesignationResponse, Error, SalaryUpdationDesignationRequest>({
+        mutationFn: (data: SalaryUpdationDesignationRequest) => {
+            console.log('🟢 [SALARY UPDATION - FRONTEND] useGetSalaryUpdationDesignations - START');
+            console.log('📊 [SALARY UPDATION - FRONTEND] Request data:', {
+                MI_Id: data.MI_Id,
+                groupTypeCount: data.hrmgT_IdList?.length || 0,
+                departmentCount: data.hrmD_IdList?.length || 0
+            });
+            return getSalaryUpdationDesignations(data).then((res) => {
+                console.log('✅ [SALARY UPDATION - FRONTEND] Designations response received');
+                console.log('📤 [SALARY UPDATION - FRONTEND] Response:', {
+                    success: res.success,
+                    message: res.message,
+                    hasData: !!res.data
+                });
+                if (!res.success) {
+                    console.error('❌ [SALARY UPDATION - FRONTEND] Get designations failed:', res.message);
+                    throw new Error(res.message);
+                }
+                const designationCount = res.data?.designationdropdown?.length || 0;
+                console.log('📊 [SALARY UPDATION - FRONTEND] Designations found:', designationCount);
+                console.log('🟢 [SALARY UPDATION - FRONTEND] useGetSalaryUpdationDesignations - END (Success)');
+                return res.data!;
+            }).catch((error) => {
+                console.error('❌ [SALARY UPDATION - FRONTEND] useGetSalaryUpdationDesignations - ERROR');
+                console.error('💥 [SALARY UPDATION - FRONTEND] Error:', error);
+                throw error;
+            });
+        },
+        onError: (error) => {
+            toast.error(error.message || 'Failed to get designations.');
         }
     });
 }

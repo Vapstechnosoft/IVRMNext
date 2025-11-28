@@ -2,14 +2,15 @@
 
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table/data-table';
-import { useEmployeeContributionReportOnload, useFilterEmployeeContributionReport, useSearchEmployeeContributionDetails } from '@/hooks/hrms/useReports';
+import {
+    useEmployeeContributionReportOnload,
+    useFilterEmployeeContributionReport,
+    useSearchEmployeeContributionDetails
+} from '@/hooks/hrms/useReports';
 import { Download, Printer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import {
-    type EmployeeContribution,
-    employeeContributionColumns
-} from './_components/columns';
+import { type EmployeeContribution, employeeContributionColumns } from './_components/columns';
 import { type ContributionReportFilters, EmployeeContributionFilters } from './_components/filters';
 
 export default function EmployeeContributionReportPage() {
@@ -89,7 +90,10 @@ export default function EmployeeContributionReportPage() {
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage = onloadError?.message || onloadData?.message || 'Failed to load employee contribution report data. Please check if the API endpoint is available.';
+            const errorMessage =
+                onloadError?.message ||
+                onloadData?.message ||
+                'Failed to load employee contribution report data. Please check if the API endpoint is available.';
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
@@ -224,13 +228,14 @@ export default function EmployeeContributionReportPage() {
                 if (response.success && response.data) {
                     // Extract contribution data from response
                     const contributionData = (response.data as any).employeeContributionDetails;
-                    
+
                     if (Array.isArray(contributionData) && contributionData.length > 0) {
                         // Map API response to EmployeeContribution format
                         const mappedContributions: EmployeeContribution[] = contributionData.map((item: any, index: number) => ({
                             id: item.HRME_Id || index + 1,
                             employeeCode: item.EmployeeCode || item.HRME_EmployeeCode || '',
-                            employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim(),
+                            employeeName:
+                                `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim(),
                             groupTypeId: item.HRMGT_Id || 0,
                             departmentId: item.HRMD_Id || 0,
                             designationId: item.HRMDES_Id || 0,
@@ -239,7 +244,10 @@ export default function EmployeeContributionReportPage() {
                             contributionType: filters.contributionType,
                             contributionHead: item.EarningHead || item.DeductionHead || '',
                             monthlyAmount: item.GrossSalary || item.selectedHeadAmount || 0,
-                            contributionDate: item.hreS_Month && item.hreS_Year ? `${item.hreS_Month}-${item.hreS_Year}` : new Date().toISOString().split('T')[0],
+                            contributionDate:
+                                item.hreS_Month && item.hreS_Year
+                                    ? `${item.hreS_Month}-${item.hreS_Year}`
+                                    : new Date().toISOString().split('T')[0],
                             pfContribution: item.pfContribution || 0,
                             esiContribution: item.esiContribution || 0,
                             professionalTax: item.professionalTax || 0,
@@ -259,14 +267,18 @@ export default function EmployeeContributionReportPage() {
                         toast.info('No contribution data found for the selected filters');
                     }
                 } else {
-                    const errorMsg = response.message || 'Failed to search employee contribution details. Please check if the search API endpoint is available.';
+                    const errorMsg =
+                        response.message ||
+                        'Failed to search employee contribution details. Please check if the search API endpoint is available.';
                     toast.error(errorMsg);
                     setShowReport(false);
                 }
             },
             onError: (error: any) => {
                 setIsFiltering(false);
-                const errorMsg = error?.message || 'Failed to search employee contribution details. Please check if the search API endpoint is available.';
+                const errorMsg =
+                    error?.message ||
+                    'Failed to search employee contribution details. Please check if the search API endpoint is available.';
                 toast.error(errorMsg);
                 setShowReport(false);
             }
@@ -328,9 +340,11 @@ export default function EmployeeContributionReportPage() {
         return (
             <div className='flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-8'>
                 <div className='text-center'>
-                    <h3 className='font-semibold text-red-800 text-lg'>Failed to Load Data</h3>
-                    <p className='text-red-600 mt-2'>
-                        {onloadError?.message || onloadData?.message || 'Failed to load employee contribution report data. Please check if the API endpoint is available.'}
+                    <h3 className='font-semibold text-lg text-red-800'>Failed to Load Data</h3>
+                    <p className='mt-2 text-red-600'>
+                        {onloadError?.message ||
+                            onloadData?.message ||
+                            'Failed to load employee contribution report data. Please check if the API endpoint is available.'}
                     </p>
                 </div>
             </div>

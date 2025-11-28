@@ -193,16 +193,134 @@ export async function activateDeactivateMasterMaritalStatus(data: {
     MI_Id?: number;
 }) {
     const url = '/api/MasterMaritalStatusFacade/deactivateRecordById';
+    const targetState = data.IVRMMMS_ActiveFlag ? 'activate' : 'deactivate';
+    
+    // Request body matches Swagger: IVRMMMS_Id, MI_Id, UserId
     const requestBody = {
-        CreatedDate: new Date().toISOString(),
-        UpdatedDate: new Date().toISOString(),
         IVRMMMS_Id: data.IVRMMMS_Id,
-        MI_Id: 30,
-        IVRMMMS_MaritalStatus: 'string',
-        IVRMMMS_ActiveFlag: data.IVRMMMS_ActiveFlag,
-        maritalstatusList: [],
-        retrunMsg: 'string',
-        roleId: 0
+        MI_Id: data.MI_Id || 30,
+        UserId: 0
     };
-    return await api.post<MasterMaritalStatusResponse>('hrms', url, requestBody);
+    
+    console.log('🟠 [API] activateDeactivateMasterMaritalStatus called');
+    console.log('🟠 [API] Target state:', targetState);
+    console.log('🟠 [API] IVRMMMS_Id:', data.IVRMMMS_Id);
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    
+    try {
+        const response = await api.post<MasterMaritalStatusResponse>('hrms', url, requestBody);
+        
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        console.log('🟢 [API] Response.success:', response?.success);
+        console.log('🟢 [API] Response.message:', response?.message);
+        console.log('🟢 [API] Response.data:', response?.data);
+        
+        // Handle the response format - extract data from response.data
+        const responseData = response as any;
+        const mainData = responseData?.data || responseData;
+        
+        // Extract retrunMsg and message from the correct location
+        const retrunMsg = mainData?.retrunMsg || 
+                         responseData?.retrunMsg || 
+                         response?.message || 
+                         '';
+        const responseMessage = response?.message || '';
+        
+        // Extract IVRMMMS_Id and IVRMMMS_ActiveFlag from response
+        const returnedId = mainData?.IVRMMMS_Id || responseData?.IVRMMMS_Id || 0;
+        const returnedActiveFlag = mainData?.IVRMMMS_ActiveFlag;
+        
+        // Check if maritalstatusList contains the record with the correct active flag
+        const maritalstatusList = mainData?.maritalstatusList || responseData?.maritalstatusList || [];
+        const recordInList = maritalstatusList.find((item: any) => item.IVRMMMS_Id === data.IVRMMMS_Id);
+        const flagMatchesInList = recordInList ? recordInList.IVRMMMS_ActiveFlag === data.IVRMMMS_ActiveFlag : false;
+        
+        console.log('🟢 [API] Parsed values:');
+        console.log('🟢 [API] - returnedId:', returnedId);
+        console.log('🟢 [API] - returnedActiveFlag:', returnedActiveFlag);
+        console.log('🟢 [API] - retrunMsg:', retrunMsg);
+        console.log('🟢 [API] - responseMessage:', responseMessage);
+        console.log('🟢 [API] - maritalstatusList count:', maritalstatusList.length);
+        console.log('🟢 [API] - recordInList:', recordInList ? 'found' : 'not found');
+        console.log('🟢 [API] - flagMatchesInList:', flagMatchesInList);
+        
+        // Check for success messages - "Deactivated" or "Activated" indicate success
+        const retrunMsgLower = retrunMsg ? String(retrunMsg).toLowerCase().trim() : '';
+        const responseMessageLower = responseMessage ? String(responseMessage).toLowerCase().trim() : '';
+        
+        const isSuccessMessage = retrunMsgLower === 'deactivated' || 
+                                retrunMsgLower === 'activated' ||
+                                responseMessageLower === 'deactivated' ||
+                                responseMessageLower === 'activated';
+        
+        // Check for error messages
+        const hasErrorInRetrunMsg = retrunMsgLower && (
+            retrunMsgLower.includes('error') ||
+            retrunMsgLower.includes('failed')
+        );
+        
+        const hasErrorInMessage = responseMessageLower && (
+            responseMessageLower.includes('error') ||
+            responseMessageLower.includes('failed')
+        );
+        
+        const isError = hasErrorInRetrunMsg || hasErrorInMessage;
+        
+        console.log('🟢 [API] Success detection:');
+        console.log('🟢 [API] - isSuccessMessage:', isSuccessMessage);
+        console.log('🟢 [API] - isError:', isError);
+        console.log('🟢 [API] - retrunMsgLower:', retrunMsgLower);
+        console.log('🟢 [API] - responseMessageLower:', responseMessageLower);
+        
+        // Success indicators:
+        // 1. Success message ("Deactivated" or "Activated")
+        // 2. No error message
+        // 3. returnedId matches the requested ID (or > 0)
+        // 4. Flag matches in the list (if record found in list)
+        const idMatches = returnedId === data.IVRMMMS_Id || returnedId > 0;
+        const flagMatches = returnedActiveFlag !== undefined ? returnedActiveFlag === data.IVRMMMS_ActiveFlag : flagMatchesInList;
+        
+        // CRITICAL: If there's an error message, it's ALWAYS a failure
+        // If there's a success message ("Deactivated"/"Activated"), it's a success
+        const finalIsSuccess = !isError && (isSuccessMessage || (idMatches && flagMatches));
+        
+        console.log('🟢 [API] Final validation:');
+        console.log('🟢 [API] - idMatches:', idMatches);
+        console.log('🟢 [API] - flagMatches:', flagMatches);
+        console.log('🟢 [API] - finalIsSuccess:', finalIsSuccess);
+        
+        // Determine the message to return
+        let message = '';
+        if (finalIsSuccess) {
+            // Use the actual message from the backend
+            message = retrunMsg || responseMessage || (data.IVRMMMS_ActiveFlag ? 'Marital Status activated successfully' : 'Marital Status deactivated successfully');
+        } else if (retrunMsg && retrunMsg.trim()) {
+            // Use the actual error message from the backend
+            message = retrunMsg.trim();
+        } else if (responseMessage && responseMessage.trim()) {
+            message = responseMessage.trim();
+        } else {
+            message = `Failed to ${targetState} marital status`;
+        }
+        
+        console.log('🟢 [API] Final message:', message);
+        
+        const formattedResponse = {
+            success: finalIsSuccess,
+            message: message,
+            data: responseData
+        };
+        
+        console.log('🟢 [API] Formatted response:', JSON.stringify(formattedResponse, null, 2));
+        
+        return formattedResponse as any;
+    } catch (error: any) {
+        console.log('🔴 [API] Error occurred in activateDeactivateMasterMaritalStatus');
+        console.error('🔴 [API] Error:', error);
+        console.error('🔴 [API] Error message:', error?.message);
+        console.error('🔴 [API] Error response:', error?.response);
+        console.error('🔴 [API] Error response data:', error?.response?.data);
+        throw error;
+    }
 }

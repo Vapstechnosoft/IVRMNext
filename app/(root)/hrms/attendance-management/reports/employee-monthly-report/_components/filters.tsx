@@ -5,18 +5,18 @@ import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { employeeMonthlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { cn } from '@/lib/utils';
+import { employeeMonthlyReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, X } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 import { useEffect } from 'react';
-import { Label } from '@/components/ui/label';
+import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 export type EmployeeMonthlyReportFilters = z.infer<typeof employeeMonthlyReportFilterSchema>;
@@ -75,7 +75,16 @@ export function EmployeeMonthlyReportFilters({
         setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
         setValue('reportOptions', filters.reportOptions || [], { shouldDirty: false, shouldValidate: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.employeeName, filters.fromDate, filters.toDate, filters.reportOptions?.join(',')]);
+    }, [
+        filters.allOrIndividual,
+        filters.type?.join(','),
+        filters.department?.join(','),
+        filters.designation?.join(','),
+        filters.employeeName,
+        filters.fromDate,
+        filters.toDate,
+        filters.reportOptions?.join(',')
+    ]);
 
     const handleFilterChange = (key: keyof EmployeeMonthlyReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -83,11 +92,11 @@ export function EmployeeMonthlyReportFilters({
         onFilterChange(newFilters);
     };
 
-    const handleReportOptionToggle = (option: 'Total Working Days' | 'Show Holiday Punch' | 'Format One' | 'Date Of Joining' | 'Total Absent Days') => {
+    const handleReportOptionToggle = (
+        option: 'Total Working Days' | 'Show Holiday Punch' | 'Format One' | 'Date Of Joining' | 'Total Absent Days'
+    ) => {
         const currentOptions = reportOptionsValue;
-        const newOptions = currentOptions.includes(option)
-            ? currentOptions.filter((o) => o !== option)
-            : [...currentOptions, option];
+        const newOptions = currentOptions.includes(option) ? currentOptions.filter((o) => o !== option) : [...currentOptions, option];
         handleFilterChange('reportOptions', newOptions);
     };
 
@@ -96,7 +105,10 @@ export function EmployeeMonthlyReportFilters({
         onSearch();
     };
 
-    const reportOptionsList: Array<{ label: string; value: 'Total Working Days' | 'Show Holiday Punch' | 'Format One' | 'Date Of Joining' | 'Total Absent Days' }> = [
+    const reportOptionsList: Array<{
+        label: string;
+        value: 'Total Working Days' | 'Show Holiday Punch' | 'Format One' | 'Date Of Joining' | 'Total Absent Days';
+    }> = [
         { label: 'Total Working Days', value: 'Total Working Days' },
         { label: 'Show Holiday Punch', value: 'Show Holiday Punch' },
         { label: 'Format One', value: 'Format One' },
@@ -118,11 +130,15 @@ export function EmployeeMonthlyReportFilters({
                             Type <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            options={groupTypes.length > 0 ? groupTypes : [
-                                { label: 'Teaching', value: 'Teaching' },
-                                { label: 'Non Teaching', value: 'Non Teaching' },
-                                { label: 'Administrative', value: 'Administrative' }
-                            ]}
+                            options={
+                                groupTypes.length > 0
+                                    ? groupTypes
+                                    : [
+                                          { label: 'Teaching', value: 'Teaching' },
+                                          { label: 'Non Teaching', value: 'Non Teaching' },
+                                          { label: 'Administrative', value: 'Administrative' }
+                                      ]
+                            }
                             onValueChange={(values) => handleFilterChange('type', values)}
                             defaultValue={filters.type || []}
                             placeholder='Select Types'
@@ -161,7 +177,7 @@ export function EmployeeMonthlyReportFilters({
                     </div>
 
                     <div className='md:col-span-3'>
-                        <label className='font-medium text-sm mb-2 block'>
+                        <label className='mb-2 block font-medium text-sm'>
                             Employee <span className='text-red-500'>*</span>
                         </label>
                         <RadioGroup
@@ -170,11 +186,15 @@ export function EmployeeMonthlyReportFilters({
                             className='flex flex-row gap-6'>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='All' id='all' />
-                                <Label htmlFor='all' className='cursor-pointer'>All</Label>
+                                <Label htmlFor='all' className='cursor-pointer'>
+                                    All
+                                </Label>
                             </div>
                             <div className='flex items-center space-x-2'>
                                 <RadioGroupItem value='Individual' id='individual' />
-                                <Label htmlFor='individual' className='cursor-pointer'>Individual</Label>
+                                <Label htmlFor='individual' className='cursor-pointer'>
+                                    Individual
+                                </Label>
                             </div>
                         </RadioGroup>
                         {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
@@ -284,7 +304,7 @@ export function EmployeeMonthlyReportFilters({
 
                     {/* Report Options Checkboxes */}
                     <div className='md:col-span-12'>
-                        <label className='font-medium text-sm mb-2 block'>Report Options</label>
+                        <label className='mb-2 block font-medium text-sm'>Report Options</label>
                         <div className='flex flex-wrap gap-4'>
                             {reportOptionsList.map((option) => (
                                 <div key={option.value} className='flex items-center space-x-2'>
@@ -293,7 +313,7 @@ export function EmployeeMonthlyReportFilters({
                                         checked={reportOptionsValue.includes(option.value)}
                                         onCheckedChange={() => handleReportOptionToggle(option.value)}
                                     />
-                                    <Label htmlFor={option.value} className='cursor-pointer text-sm font-normal'>
+                                    <Label htmlFor={option.value} className='cursor-pointer font-normal text-sm'>
                                         {option.label}
                                     </Label>
                                 </div>
@@ -314,4 +334,3 @@ export function EmployeeMonthlyReportFilters({
         </CollapsibleSection>
     );
 }
-

@@ -5,7 +5,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLeaveAuthorization, useLeaveAuthorizationDropdowns, useLeaveAuthorizationForEdit, useUpdateLeaveAuthorization } from '@/hooks/hrms/leave-management/useMasters';
+import {
+    useLeaveAuthorization,
+    useLeaveAuthorizationDropdowns,
+    useLeaveAuthorizationForEdit,
+    useUpdateLeaveAuthorization
+} from '@/hooks/hrms/leave-management/useMasters';
 import { LEAVE_AUTHORIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { Save, X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -28,7 +33,7 @@ export default function UpdateLeaveAuthorizationForm({
     const { refetchAll } = useLeaveAuthorization();
     const { mutate: updateLeaveAuthorization, isPending } = useUpdateLeaveAuthorization();
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useLeaveAuthorizationDropdowns();
-    
+
     // Fetch leave authorization data for editing from API
     const { data: editData, isLoading: isLoadingEditData, error: editError } = useLeaveAuthorizationForEdit(row?.id || null);
 
@@ -143,7 +148,7 @@ export default function UpdateLeaveAuthorizationForm({
         return (
             <div className={`${className} flex items-center justify-center p-8`}>
                 <div className='text-center'>
-                    <div className='mb-2 text-sm text-muted-foreground'>Loading leave authorization data...</div>
+                    <div className='mb-2 text-muted-foreground text-sm'>Loading leave authorization data...</div>
                 </div>
             </div>
         );
@@ -154,7 +159,7 @@ export default function UpdateLeaveAuthorizationForm({
         return (
             <div className={`${className} flex items-center justify-center p-8`}>
                 <div className='text-center'>
-                    <div className='mb-2 text-sm text-red-600'>{editError.message || 'Failed to load leave authorization data'}</div>
+                    <div className='mb-2 text-red-600 text-sm'>{editError.message || 'Failed to load leave authorization data'}</div>
                     {onCancel && (
                         <Button type='button' variant='outline' onClick={onCancel} className='mt-4'>
                             <X className='mr-2 h-4 w-4' />
@@ -204,7 +209,7 @@ export default function UpdateLeaveAuthorizationForm({
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -236,7 +241,7 @@ export default function UpdateLeaveAuthorizationForm({
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -268,7 +273,7 @@ export default function UpdateLeaveAuthorizationForm({
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -300,7 +305,7 @@ export default function UpdateLeaveAuthorizationForm({
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -335,7 +340,7 @@ export default function UpdateLeaveAuthorizationForm({
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}
@@ -379,7 +384,7 @@ export default function UpdateLeaveAuthorizationForm({
                                                     </SelectItem>
                                                 ))
                                             ) : (
-                                                <div className='px-2 py-1.5 text-sm text-muted-foreground'>
+                                                <div className='px-2 py-1.5 text-muted-foreground text-sm'>
                                                     {isLoadingDropdowns ? 'Loading options...' : 'No options available'}
                                                 </div>
                                             )}

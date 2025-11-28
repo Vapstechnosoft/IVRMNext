@@ -101,6 +101,51 @@ export async function getMasterLeaveYearList(roleId: number, searchParams?: ApiS
 }
 
 /**
+ * Helper function to convert date string to UTC ISO format
+ * Handles both "YYYY-MM-DD" format and existing ISO strings
+ * PostgreSQL requires UTC timestamps, so we ensure all dates are in UTC
+ */
+function formatDateToUTC(dateString: string | undefined): string {
+    if (!dateString) return new Date().toISOString();
+    
+    // If already in ISO format with timezone (Z or +HH:MM), parse and return as UTC ISO
+    if (dateString.includes('T') && (dateString.endsWith('Z') || dateString.includes('+'))) {
+        const date = new Date(dateString);
+        if (!isNaN(date.getTime())) {
+            return date.toISOString();
+        }
+    }
+    
+    // If it's just a date string (YYYY-MM-DD), convert to UTC midnight
+    // This ensures PostgreSQL receives a proper UTC timestamp
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        // Create date at midnight UTC by explicitly adding Z timezone
+        const date = new Date(dateString + 'T00:00:00.000Z');
+        if (!isNaN(date.getTime())) {
+            return date.toISOString();
+        }
+    }
+    
+    // If it's ISO format without timezone (YYYY-MM-DDTHH:mm:ss), treat as UTC
+    if (dateString.includes('T') && !dateString.includes('Z') && !dateString.includes('+')) {
+        const date = new Date(dateString + 'Z');
+        if (!isNaN(date.getTime())) {
+            return date.toISOString();
+        }
+    }
+    
+    // Try to parse as-is and convert to UTC
+    const date = new Date(dateString);
+    if (!isNaN(date.getTime())) {
+        return date.toISOString();
+    }
+    
+    // Fallback to current date if parsing fails
+    console.warn('⚠️ [API] Failed to parse date:', dateString, 'using current date');
+    return new Date().toISOString();
+}
+
+/**
  * Create or Update a master leave year record
  * POST /api/MasterLeaveYearFacade (for both create and update)
  */
@@ -110,86 +155,101 @@ export async function saveMasterLeaveYear(data: MasterLeaveYearInput) {
     
     console.log('🟠 [API] saveMasterLeaveYear called');
     console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
-    console.log('🟠 [API] Input order value:', data.HRMLY_LeaveYearOrder);
     console.log('🟠 [API] Is Edit Mode:', isEdit);
     console.log('🟠 [API] URL:', url);
     
     const currentDate = new Date().toISOString();
     
+    // Convert dates to UTC ISO format for PostgreSQL compatibility
+    // PostgreSQL requires UTC timestamps, so we ensure all dates are explicitly in UTC format
+    const fromDateUTC = formatDateToUTC(data.HRMLY_FromDate);
+    const toDateUTC = formatDateToUTC(data.HRMLY_ToDate);
+    
+    console.log('🟠 [API] Date conversion:');
+    console.log('🟠 [API] - Original FromDate:', data.HRMLY_FromDate);
+    console.log('🟠 [API] - Converted FromDate (UTC):', fromDateUTC);
+    console.log('🟠 [API] - Original ToDate:', data.HRMLY_ToDate);
+    console.log('🟠 [API] - Converted ToDate (UTC):', toDateUTC);
+    
+    // Build request body matching Swagger API structure exactly
+    // Request structure: HRMLY_Id, MI_Id, HRMLY_LeaveYear, HRMLY_FromDate, HRMLY_ToDate, HRMLY_ActiveFlag, CreatedDate, UpdatedDate
     const requestBody = {
-        CreatedDate: currentDate,
-        UpdatedDate: currentDate,
         HRMLY_Id: data.HRMLY_Id || 0,
         MI_Id: data.MI_Id || 30,
-        HRMLY_LeaveYear: data.HRMLY_LeaveYear,
-        HRMLY_FromDate: data.HRMLY_FromDate,
-        HRMLY_ToDate: data.HRMLY_ToDate,
-        HRMLY_ActiveFlag: data.HRMLY_ActiveFlag,
-        HRMLY_LeaveYearOrder: data.HRMLY_LeaveYearOrder ?? 1,  // Use ?? instead of || to allow 0
-        leaveYearList: [
-            {
-                CreatedDate: currentDate,
-                UpdatedDate: currentDate,
-                HRMLY_Id: data.HRMLY_Id || 0,
-                MI_Id: data.MI_Id || 30,
-                HRMLY_LeaveYear: data.HRMLY_LeaveYear,
-                HRMLY_FromDate: data.HRMLY_FromDate,
-                HRMLY_ToDate: data.HRMLY_ToDate,
-                HRMLY_ActiveFlag: data.HRMLY_ActiveFlag,
-                HRMLY_LeaveYearOrder: data.HRMLY_LeaveYearOrder ?? 1  // Use ?? instead of || to allow 0
-            }
-        ],
-        retrunMsg: 'string',
-        roleId: data.MI_Id || 30,
-        ASMAY_From_Date: null,
-        ASMAY_To_Date: null,
-        yeardetailList: [],
-        LeaveorderDTO: []
+        HRMLY_LeaveYear: data.HRMLY_LeaveYear || '',
+        HRMLY_FromDate: fromDateUTC,
+        HRMLY_ToDate: toDateUTC,
+        HRMLY_ActiveFlag: data.HRMLY_ActiveFlag ?? true,
+        CreatedDate: data.CreatedDate ? formatDateToUTC(data.CreatedDate) : currentDate,
+        UpdatedDate: currentDate
     };
     
-    console.log('🟠 [API] Request URL:', url);
     console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
-    console.log('🟠 [API] Order in request body:', requestBody.HRMLY_LeaveYearOrder);
-    console.log('🟠 [API] Order in leaveYearList[0]:', requestBody.leaveYearList[0].HRMLY_LeaveYearOrder);
     console.log('🟠 [API] Calling api.post...');
     
     try {
-        const response = await api.post<MasterLeaveYearResponse>('hrms', url, requestBody);
+        const response = await api.post<any>('hrms', url, requestBody);
         
         console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
-        console.log('🟢 [API] Response.success:', response?.success);
-        console.log('🟢 [API] Response.message:', response?.message);
-        console.log('🟢 [API] Response.data:', response?.data);
-        console.log('🟢 [API] Response.retrunMsg:', (response as any)?.retrunMsg);
-        console.log('🟢 [API] Response.HRMLY_Id:', (response as any)?.HRMLY_Id);
         
-        // Handle the response format
-        const responseData = response as any;
-        const retrunMsg = responseData?.retrunMsg || '';
-        const leaveYearId = responseData?.HRMLY_Id || (responseData?.data as any)?.HRMLY_Id || 0;
-        const hasLeaveYearList = !!(responseData?.leaveYearList || responseData?.data?.leaveYearList);
+        // Response structure from Swagger:
+        // {
+        //   "success": true,
+        //   "message": "record successfully Added",
+        //   "data": { ... },
+        //   "total": null,
+        //   "page": null,
+        //   "page_size": null
+        // }
         
-        console.log('🟢 [API] Parsed - leaveYearId:', leaveYearId, 'retrunMsg:', retrunMsg, 'hasLeaveYearList:', hasLeaveYearList);
+        // Extract response data
+        const responseData = response?.data || response;
+        const success = response?.success ?? false;
+        const message = response?.message || responseData?.retrunMsg || '';
         
-        // Check if "Update", "Saved", "Add", or "Order" message indicates success
-        const isUpdateSuccess = retrunMsg === 'Update' || retrunMsg === 'Saved' || retrunMsg === 'Add' || retrunMsg === 'Order';
+        // Check for error messages first (even if success is true, error message means failure)
+        const messageLower = message.toLowerCase();
+        const hasError = messageLower.includes('error') || 
+                        messageLower.includes('error occured') ||
+                        messageLower.includes('error occurred') ||
+                        messageLower.includes('failed') ||
+                        messageLower.includes('exception');
         
-        // Success if we have a leave year ID, leaveYearList, or success message
-        const isSuccess = leaveYearId > 0 || hasLeaveYearList || isUpdateSuccess;
+        // Check if the operation was successful
+        // Success indicators:
+        // 1. No error message
+        // 2. response.data.HRMLY_Id > 0 (new record ID)
+        // 3. response.message contains "successfully" or response.data.retrunMsg contains "successfully"
+        // 4. leaveYearList array is present and not null
+        const hasValidId = responseData?.HRMLY_Id && responseData.HRMLY_Id > 0;
+        const hasSuccessMessage = message && !hasError && (
+            messageLower.includes('successfully') ||
+            messageLower.includes('added') ||
+            messageLower.includes('updated')
+        );
+        const hasLeaveYearList = Array.isArray(responseData?.leaveYearList) && responseData.leaveYearList.length > 0;
         
-        console.log('🟢 [API] isSuccess:', isSuccess);
+        // Success only if no error AND (has valid ID OR has success message OR has leave year list)
+        const isSuccess = !hasError && success && (hasValidId || hasSuccessMessage || hasLeaveYearList);
         
-        const formattedResponse = {
+        console.log('🟢 [API] Response parsing:');
+        console.log('🟢 [API] - success:', success);
+        console.log('🟢 [API] - message:', message);
+        console.log('🟢 [API] - hasError:', hasError);
+        console.log('🟢 [API] - hasValidId:', hasValidId, '(HRMLY_Id:', responseData?.HRMLY_Id, ')');
+        console.log('🟢 [API] - hasSuccessMessage:', hasSuccessMessage);
+        console.log('🟢 [API] - hasLeaveYearList:', hasLeaveYearList);
+        console.log('🟢 [API] - Final isSuccess:', isSuccess);
+        
+        // Return response matching Swagger structure
+        return {
             success: isSuccess,
-            message: isSuccess 
-                ? (isEdit ? 'Leave Year updated successfully' : 'Leave Year added successfully')
-                : (retrunMsg || 'Failed to save leave year'),
-            data: responseData
+            message: message || (isSuccess ? (isEdit ? 'record successfully Updated' : 'record successfully Added') : 'Failed to save leave year'),
+            data: responseData,
+            total: response?.total ?? null,
+            page: response?.page ?? null,
+            page_size: response?.page_size ?? null
         };
-        
-        console.log('🟢 [API] Formatted response:', JSON.stringify(formattedResponse, null, 2));
-        
-        return formattedResponse as any;
     } catch (error: any) {
         console.log('🔴 [API] Error occurred in api.post');
         console.error('🔴 [API] Error:', error);
@@ -219,25 +279,152 @@ export async function activateDeactivateMasterLeaveYear(data: {
     MI_Id?: number;
 }) {
     const url = '/api/MasterLeaveYearFacade/deactivateRecordById';
+    const targetState = data.HRMLY_ActiveFlag ? 'activate' : 'deactivate';
+    
+    // Request body matches Swagger: just HRMLY_Id and MI_Id
     const requestBody = {
-        CreatedDate: new Date().toISOString(),
-        UpdatedDate: new Date().toISOString(),
         HRMLY_Id: data.HRMLY_Id,
-        MI_Id: 30,
-        HRMLY_LeaveYear: 'string',
-        HRMLY_FromDate: new Date().toISOString(),
-        HRMLY_ToDate: new Date().toISOString(),
-        HRMLY_ActiveFlag: data.HRMLY_ActiveFlag,
-        leaveYearList: [],
-        retrunMsg: 'string',
-        roleId: 0,
-        ASMAY_From_Date: null,
-        ASMAY_To_Date: null,
-        HRMLY_LeaveYearOrder: 1,
-        yeardetailList: [],
-        LeaveorderDTO: []
+        MI_Id: data.MI_Id || 30
     };
-    return await api.post<MasterLeaveYearResponse>('hrms', url, requestBody);
+    
+    console.log('🟠 [API] activateDeactivateMasterLeaveYear called');
+    console.log('🟠 [API] Target state:', targetState);
+    console.log('🟠 [API] HRMLY_Id:', data.HRMLY_Id);
+    console.log('🟠 [API] Request URL:', url);
+    console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
+    
+    try {
+        const response = await api.post<MasterLeaveYearResponse>('hrms', url, requestBody);
+        
+        console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
+        console.log('🟢 [API] Response.success:', response?.success);
+        console.log('🟢 [API] Response.message:', response?.message);
+        console.log('🟢 [API] Response.data:', response?.data);
+        
+        // Handle the response format - extract data from response.data
+        const responseData = response as any;
+        const mainData = responseData?.data || responseData;
+        
+        // Extract retrunMsg and message from the correct location
+        const retrunMsg = mainData?.retrunMsg || 
+                         responseData?.retrunMsg || 
+                         response?.message || 
+                         '';
+        const responseMessage = response?.message || '';
+        
+        // Extract HRMLY_Id and HRMLY_ActiveFlag from response
+        const returnedId = mainData?.HRMLY_Id || responseData?.HRMLY_Id || 0;
+        const returnedActiveFlag = mainData?.HRMLY_ActiveFlag;
+        
+        console.log('🟢 [API] Parsed values:');
+        console.log('🟢 [API] - returnedId:', returnedId);
+        console.log('🟢 [API] - returnedActiveFlag:', returnedActiveFlag);
+        console.log('🟢 [API] - retrunMsg:', retrunMsg);
+        console.log('🟢 [API] - responseMessage:', responseMessage);
+        console.log('🟢 [API] - retrunMsg type:', typeof retrunMsg);
+        console.log('🟢 [API] - retrunMsg length:', retrunMsg?.length);
+        
+        // Check for error messages - even if success: true, if retrunMsg is "Error occured", it's a failure
+        // Prioritize retrunMsg as it's more specific than response.message
+        const retrunMsgLower = retrunMsg ? String(retrunMsg).toLowerCase().trim() : '';
+        const responseMessageLower = responseMessage ? String(responseMessage).toLowerCase().trim() : '';
+        
+        const hasErrorInRetrunMsg = retrunMsgLower && (
+            retrunMsgLower.includes('error') ||
+            retrunMsgLower.includes('failed') ||
+            retrunMsgLower === 'error occured' ||
+            retrunMsgLower === 'error occurred'
+        );
+        
+        const hasErrorInMessage = responseMessageLower && (
+            responseMessageLower.includes('error') ||
+            responseMessageLower.includes('failed') ||
+            responseMessageLower === 'error occured' ||
+            responseMessageLower === 'error occurred'
+        );
+        
+        const isError = hasErrorInRetrunMsg || hasErrorInMessage;
+        
+        console.log('🟢 [API] Error detection:');
+        console.log('🟢 [API] - retrunMsgLower:', retrunMsgLower);
+        console.log('🟢 [API] - responseMessageLower:', responseMessageLower);
+        console.log('🟢 [API] - hasErrorInRetrunMsg:', hasErrorInRetrunMsg);
+        console.log('🟢 [API] - hasErrorInMessage:', hasErrorInMessage);
+        console.log('🟢 [API] - isError:', isError);
+        
+        // Success indicators:
+        // 1. No error message (MOST IMPORTANT - if there's an error message, it's a failure)
+        // 2. returnedId matches the requested ID (or > 0)
+        // 3. returnedActiveFlag matches the requested state (if provided)
+        const idMatches = returnedId === data.HRMLY_Id || returnedId > 0;
+        const flagMatches = returnedActiveFlag !== undefined ? returnedActiveFlag === data.HRMLY_ActiveFlag : true;
+        
+        // CRITICAL: If there's an error message, it's ALWAYS a failure, regardless of other checks
+        const isSuccess = !isError && idMatches && flagMatches;
+        
+        console.log('🟢 [API] Success detection:');
+        console.log('🟢 [API] - isError:', isError);
+        console.log('🟢 [API] - idMatches:', idMatches);
+        console.log('🟢 [API] - flagMatches:', flagMatches);
+        console.log('🟢 [API] - Final isSuccess:', isSuccess);
+        
+        // Additional validation: If retrunMsg is "Error occured", force failure
+        // This is a safety check to ensure we catch the error even if the includes() check fails
+        const explicitError = retrunMsg && (
+            retrunMsg === 'Error occured' || 
+            retrunMsg === 'Error occurred' ||
+            retrunMsg.trim() === 'Error occured' ||
+            retrunMsg.trim() === 'Error occurred'
+        );
+        
+        if (explicitError) {
+            console.log('⚠️ [API] WARNING: Explicit error message detected in retrunMsg, forcing failure');
+            console.log('⚠️ [API] - retrunMsg:', retrunMsg);
+        }
+        
+        // Final error check: combine both checks
+        const finalIsError = isError || explicitError;
+        const finalIsSuccess = !finalIsError && idMatches && flagMatches;
+        
+        console.log('🟢 [API] Final validation:');
+        console.log('🟢 [API] - explicitError:', explicitError);
+        console.log('🟢 [API] - finalIsError:', finalIsError);
+        console.log('🟢 [API] - finalIsSuccess:', finalIsSuccess);
+        
+        // Determine the message to return
+        let message = '';
+        if (finalIsSuccess) {
+            message = data.HRMLY_ActiveFlag 
+                ? 'Leave Year activated successfully' 
+                : 'Leave Year deactivated successfully';
+        } else if (retrunMsg && retrunMsg.trim()) {
+            // Use the actual error message from the backend
+            message = retrunMsg.trim();
+        } else if (responseMessage && responseMessage.trim()) {
+            message = responseMessage.trim();
+        } else {
+            message = `Failed to ${targetState} leave year`;
+        }
+        
+        console.log('🟢 [API] Final message:', message);
+        
+        const formattedResponse = {
+            success: finalIsSuccess,
+            message: message,
+            data: responseData
+        };
+        
+        console.log('🟢 [API] Formatted response:', JSON.stringify(formattedResponse, null, 2));
+        
+        return formattedResponse as any;
+    } catch (error: any) {
+        console.log('🔴 [API] Error occurred in activateDeactivateMasterLeaveYear');
+        console.error('🔴 [API] Error:', error);
+        console.error('🔴 [API] Error message:', error?.message);
+        console.error('🔴 [API] Error response:', error?.response);
+        console.error('🔴 [API] Error response data:', error?.response?.data);
+        throw error;
+    }
 }
 
 export async function saveMasterLeaveYearOrder(leaveYears: LeaveYearDetail[]) {

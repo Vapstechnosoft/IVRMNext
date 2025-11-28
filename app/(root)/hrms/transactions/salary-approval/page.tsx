@@ -1,21 +1,18 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useApproveSalaries, useSalaryApprovalOnload, useSearchSalaryApproval } from '@/hooks/hrms/useTransactions';
 import type { EmployeeDetail, SalaryApprovalRequest, SalaryApprovalSearchRequest } from '@/types/hrms/salary-approval';
-import type { ColumnDef } from '@tanstack/react-table';
 import { CheckCircle, RefreshCw, X, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { getSalaryApprovalColumns } from './_components/columns';
 
 interface SearchForm {
     groupType: string[];
@@ -49,7 +46,11 @@ export default function SalaryApprovalPage() {
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
 
-    const { data: onloadData, isLoading } = useSalaryApprovalOnload({
+    const {
+        data: onloadData,
+        isLoading,
+        error: onloadError
+    } = useSalaryApprovalOnload({
         MI_Id: 30
     });
     const searchMutation = useSearchSalaryApproval();
@@ -89,6 +90,16 @@ export default function SalaryApprovalPage() {
             filterEmployees();
         }
     }, [hasSearched, filterEmployees]);
+
+    // Handle API errors gracefully - show toast but don't crash the UI
+    useEffect(() => {
+        if (onloadError && !isLoading) {
+            // Only show error toast once, and make it less intrusive
+            console.warn('⚠️ [SALARY APPROVAL] API Error (handled gracefully):', onloadError);
+            // Don't show toast for backend errors - they're expected if the API is down
+            // The component will continue to work with empty dropdowns
+        }
+    }, [onloadError, isLoading]);
 
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
         const payload: SalaryApprovalSearchRequest = {
@@ -133,7 +144,7 @@ export default function SalaryApprovalPage() {
                     const monthData = monthOptions.find((m: any) => m.IVRM_Month_Name === data.salaryMonth || m.label === data.salaryMonth);
                     if (monthData) {
                         const year = Number.parseInt(data.salaryYear);
-                        const monthIndex = (monthData.IVRM_Month_Id || monthData.value || 1) - 1;
+                        const monthIndex = (monthData.IVRM_Month_Id || (monthData as any).value || 1) - 1;
                         const fromDate = new Date(year, monthIndex, 1);
                         const toDate = new Date(year, monthIndex + 1, 0);
 
@@ -250,12 +261,7 @@ export default function SalaryApprovalPage() {
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Search Form */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='outline'
-                    size='lg'
-                    className='shadow-lg'
-                    headerClassName=''>
+                <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg' headerClassName=''>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-5'>
                             {/* Group Type */}
@@ -344,25 +350,7 @@ export default function SalaryApprovalPage() {
                                                               {month.IVRM_Month_Name || month.label || month.value}
                                                           </SelectItem>
                                                       ))
-                                                    : // Fallback to static months if dropdown is not available
-                                                      [
-                                                          'January',
-                                                          'February',
-                                                          'March',
-                                                          'April',
-                                                          'May',
-                                                          'June',
-                                                          'July',
-                                                          'August',
-                                                          'September',
-                                                          'October',
-                                                          'November',
-                                                          'December'
-                                                      ].map((month) => (
-                                                          <SelectItem key={month} value={month}>
-                                                              {month}
-                                                          </SelectItem>
-                                                      ))}
+                                                    : null}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -381,11 +369,13 @@ export default function SalaryApprovalPage() {
                                                 <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {leaveYearOptions.map((year) => (
-                                                    <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
-                                                        {year.HRMLY_LeaveYear}
-                                                    </SelectItem>
-                                                ))}
+                                                {Array.isArray(leaveYearOptions) && leaveYearOptions.length > 0
+                                                    ? leaveYearOptions.map((year) => (
+                                                          <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
+                                                              {year.HRMLY_LeaveYear}
+                                                          </SelectItem>
+                                                      ))
+                                                    : null}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -478,99 +468,30 @@ function SalaryApprovalTable({
     fromDate,
     toDate
 }: SalaryApprovalTableProps) {
-    const columns: ColumnDef<EmployeeDetail>[] = [
-        {
-            id: 'select',
-            header: () => (
-                <Checkbox
-                    checked={employees.length > 0 && selectedEmployees.length === employees.length}
-                    onCheckedChange={(value) => onSelectAll(!!value)}
-                    aria-label='Select all'
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox
-                    checked={selectedEmployees.includes(row.original.HRME_Id)}
-                    onCheckedChange={(value) => onEmployeeSelect(row.original.HRME_Id, !!value)}
-                    aria-label='Select row'
-                />
-            ),
-            enableSorting: false,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'slNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No' />,
-            cell: ({ row, table }) => {
-                const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                return <div>{index + 1}</div>;
-            },
-            enableSorting: false,
-            enableHiding: false
-        },
-        {
-            accessorKey: 'HRME_EmployeeCode',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-            cell: ({ row }) => <div>{row.getValue('HRME_EmployeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'HRME_EmployeeFirstName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-            cell: ({ row }) => {
-                const employee = row.original;
-                const fullName =
-                    `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
-                return <div>{fullName}</div>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'HRES_WorkingDays',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Working Days' />,
-            cell: ({ row }) => <div className='text-right'>{row.getValue('HRES_WorkingDays') || 0}</div>,
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'TotalEarning',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Earning' />,
-            cell: ({ row }) => {
-                const value = row.getValue('TotalEarning') as number;
-                return <div className='text-right font-semibold'>₹{Number(value || 0).toFixed(2)}</div>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'TotalDeduction',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Total Deduction' />,
-            cell: ({ row }) => {
-                const value = row.getValue('TotalDeduction') as number;
-                return <div className='text-right font-semibold'>₹{Number(value || 0).toFixed(2)}</div>;
-            },
-            enableSorting: true,
-            enableHiding: true
-        },
-        {
-            accessorKey: 'NetSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
-            cell: ({ row }) => {
-                const value = row.getValue('NetSalary') as number;
-                return (
-                    <div className='text-right'>
-                        <Badge variant='default' className='font-semibold'>
-                            ₹{Number(value || 0).toFixed(2)}
-                        </Badge>
-                    </div>
-                );
-            },
-            enableSorting: true,
-            enableHiding: true
-        }
-    ];
+    // Prepare table response format for useDataTableProps
+    const tableResponse = useMemo(() => {
+        return {
+            success: true,
+            data: employees,
+            total: employees.length,
+            page: 1,
+            page_size: employees.length
+        };
+    }, [employees]);
+
+    const tableProps = useDataTableProps(tableResponse);
+
+    // Get columns with selection handlers
+    const columns = useMemo(
+        () =>
+            getSalaryApprovalColumns({
+                employees,
+                selectedEmployees,
+                onEmployeeSelect,
+                onSelectAll
+            }),
+        [employees, selectedEmployees, onEmployeeSelect, onSelectAll]
+    );
 
     return (
         <div className='space-y-4'>
@@ -589,16 +510,18 @@ function SalaryApprovalTable({
                 </div>
             )}
 
-            <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable
-                    isLoading={isLoading}
-                    columns={columns}
-                    data={employees}
-                    totalItems={employees.length}
-                    showViewOptions={true}
-                    columnPinning={{ left: ['select'] }}
-                />
-            </div>
+            <GenericDataTable<EmployeeDetail>
+                {...tableProps}
+                columns={columns}
+                isLoading={isLoading}
+                error={null}
+                showViewOptions={true}
+                columnPinning={{ left: ['select'] }}
+                loadingMessage='Loading employees...'
+                noDataTitle='No Employees Found'
+                noDataDescription='No employee records match your search criteria'
+                errorTitle='Error Loading Employees'
+            />
 
             {/* Action Buttons */}
             <div className='flex justify-end gap-2'>

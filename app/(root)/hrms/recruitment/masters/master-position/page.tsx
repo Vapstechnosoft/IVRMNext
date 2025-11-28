@@ -6,8 +6,6 @@
 // 4. Update handlers to use the new structure
 
 'use client';
-
-import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';

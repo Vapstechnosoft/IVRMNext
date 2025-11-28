@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import { groupTypeSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -113,20 +113,22 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <InputText
+                        <HRMSInputText
                             label='Employee Group Type'
                             required
                             id='HRMGT_EmployeeGroupType'
                             placeholder='Enter employee group type'
+                            maxLength={50}
                             {...register('HRMGT_EmployeeGroupType')}
                             error={errors.HRMGT_EmployeeGroupType?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <InputText
+                        <HRMSInputText
                             label='Code'
                             required
                             id='HRMGT_Code'
                             placeholder='Enter code'
+                            maxLength={20}
                             {...register('HRMGT_Code')}
                             error={errors.HRMGT_Code?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -208,28 +210,24 @@ export default function GroupTypeForm({ selectedRow, onSuccess, className = '' }
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
+                <div className='flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-start sm:items-center'>
                     <Button
                         type='submit'
                         disabled={isSubmitting || (isEditMode && !isDirty) || !isValid}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            {isEditMode ? 'Update Group Type' : 'Save Group Type'}
-                        </div>
+                        {isEditMode ? 'Update' : 'Save'}
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
+                        Clear
                     </Button>
                     {isEditMode && !isDirty && (
-                        <span className='order-3 flex items-center text-muted-foreground text-sm sm:order-3'>No changes made</span>
+                        <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>
                     )}
                 </div>
             </form>

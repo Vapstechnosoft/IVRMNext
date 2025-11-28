@@ -14,7 +14,12 @@ export const columns: ColumnDef<SpecializationItem>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },
@@ -55,7 +60,8 @@ function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
                     toast.error(res?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`);
                 }
             } catch (error: any) {
-                const errorMessage = error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`;
+                const errorMessage =
+                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`;
                 toast.error(errorMessage);
             }
         },

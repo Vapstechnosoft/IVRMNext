@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import { LOAN_TYPE_VALIDATION } from '@/lib/validation/hrms-master-validation';
@@ -29,6 +29,7 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
         setValue,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<MasterLoanInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRML_LoanType: '',
@@ -52,21 +53,35 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
     }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterLoanInput) => {
+        // Trim whitespace from text fields
+        const sanitizedData: MasterLoanInput = {
+            ...data,
+            HRML_LoanType: data.HRML_LoanType?.trim() || ''
+        };
+
         try {
-            const res = await saveMutation.mutateAsync(data);
+            const res = await saveMutation.mutateAsync(sanitizedData);
 
             if (res?.success) {
-                toast.success(isEditMode ? 'Loan type updated successfully' : 'Loan type added successfully');
+                // Use the actual message from the API response
+                const successMsg = res?.message || (isEditMode ? 'Loan type updated successfully' : 'Loan type added successfully');
+                toast.success(successMsg);
                 if (!isEditMode) {
                     reset();
                 }
                 refetchAll();
                 if (onSuccess) onSuccess();
             } else {
-                toast.error(res?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type'));
+                // Show the actual error message from the API response
+                const errorMsg = res?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+                toast.error(errorMsg);
             }
-        } catch (_error: any) {
-            toast.error(isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+        } catch (error: any) {
+            // Handle actual errors (network errors, etc.)
+            const errorMsg =
+                error?.response?.data?.message || error?.message || (isEditMode ? 'Failed to update loan type' : 'Failed to add loan type');
+            console.error('🔴 [BROWSER] Loan form error:', error);
+            toast.error(errorMsg);
         }
     };
 
@@ -85,19 +100,20 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
                         <Label htmlFor='HRML_LoanType'>
                             Loan Type <span className='text-destructive'>*</span>
                         </Label>
-                        <InputText
+                        <HRMSInputText
                             id='HRML_LoanType'
                             placeholder='Enter loan type'
-                            {...register('HRML_LoanType', LOAN_TYPE_VALIDATION.loanType)}
+                            maxLength={LOAN_TYPE_VALIDATION.HRML_LoanType.maxLength?.value}
+                            error={errors.HRML_LoanType?.message}
+                            {...register('HRML_LoanType', LOAN_TYPE_VALIDATION.HRML_LoanType)}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        {errors.HRML_LoanType && <FormError>{errors.HRML_LoanType.message}</FormError>}
                     </div>
 
                     <Controller
                         name='HRML_Max'
                         control={control}
-                        rules={LOAN_TYPE_VALIDATION.maxLoanAmount}
+                        rules={LOAN_TYPE_VALIDATION.HRML_Max}
                         render={({ field }) => {
                             // Callback ref to attach input listener when element is mounted
                             const containerRefCallback = (containerElement: HTMLDivElement | null) => {
@@ -170,25 +186,21 @@ export default function LoanForm({ selectedRow, onSuccess }: LoanFormProps) {
                 {errors.root && <FormError>{errors.root.message}</FormError>}
             </div>
 
-            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                <Button
-                    type='button'
-                    variant='outline'
-                    onClick={handleReset}
-                    disabled={isSubmitting}
-                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                    Reset
-                </Button>
+            <div className='flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-start sm:items-center'>
                 <Button
                     type='submit'
                     disabled={isSubmitting || (isEditMode && !isDirty)}
-                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
                     isLoading={isSubmitting}
                     loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                    <div className='flex items-center'>
-                        <Save className='mr-2 h-4 w-4' />
-                        {isEditMode ? 'Update Loan Type' : 'Save Loan Type'}
-                    </div>
+                    {isEditMode ? 'Update' : 'Save'}
+                </Button>
+                <Button
+                    type='button'
+                    onClick={handleReset}
+                    disabled={isSubmitting}
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
+                    Clear
                 </Button>
             </div>
         </form>

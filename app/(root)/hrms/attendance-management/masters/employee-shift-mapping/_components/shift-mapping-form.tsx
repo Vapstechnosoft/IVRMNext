@@ -6,20 +6,25 @@ import { FormError } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { useEmployeeShiftMappingDropdowns, useEmployeeShiftMappingShiftNames } from '@/hooks/hrms/attendance-management/useMasters';
+import { useFilterEmployeesBySelection } from '@/hooks/hrms/useReports';
 import { createLocalCrud } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import { employeeShiftMappingSchema } from '@/schemas/hrms/attendance-management-schemas';
+import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, Save } from 'lucide-react';
-import React, { useEffect, useId, useMemo } from 'react';
+import React, { useEffect, useId, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import type { MasterShift } from '../../master-shift/_components/columns';
 import { TimePicker12Hour } from '../../master-shift/_components/time-picker-12hour';
-import { dayTypeOptions, departmentOptions, designationOptions, employeeOptions, typeOptions } from './columns';
 
-export type EmployeeShiftMappingForm = z.infer<typeof employeeShiftMappingSchema.addOrUpdate>;
+export type EmployeeShiftMappingForm = z.infer<typeof employeeShiftMappingSchema.addOrUpdate> & {
+    id?: number;
+};
 
 interface ShiftMappingFormProps {
     editingMapping: EmployeeShiftMappingForm | null;
@@ -48,6 +53,64 @@ function calculateTimeDifference(startTime: string, endTime: string): string {
 }
 
 export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel }: ShiftMappingFormProps) {
+    // Fetch dropdown data from API
+    const { data: dropdownData, isLoading: isLoadingDropdowns } = useEmployeeShiftMappingDropdowns();
+
+    // Fetch employee options
+    const [employeeOptions, setEmployeeOptions] = useState<Array<{ label: string; value: string }>>([]);
+    const filterEmployeesMutation = useFilterEmployeesBySelection();
+
+    // Use employees from API dropdown data if available, otherwise fetch from separate API
+    useEffect(() => {
+        // First, try to use employees from the dropdown API response
+        if (dropdownData?.data?.employees && dropdownData.data.employees.length > 0) {
+            const apiEmployees = dropdownData.data.employees.map((emp: any) => ({
+                label: emp.label || '',
+                value: emp.value || ''
+            })).filter((opt: { label: string; value: string }) => opt.label && opt.value);
+            
+            if (apiEmployees.length > 0) {
+                setEmployeeOptions(apiEmployees);
+                return;
+            }
+        }
+        
+        // Fallback: Fetch all employees from separate API
+        const request = {
+            MI_Id: HRMS_MI_ID,
+            LogInUserId: 0,
+            hrmgT_IdList: [0], // Empty filter to get all employees
+            hrmD_IdList: [0],
+            hrmdeS_IdList: [0]
+        };
+
+        filterEmployeesMutation.mutate(request, {
+            onSuccess: (response) => {
+                if (response.success && response.data?.employeedropdown) {
+                    const employees = response.data.employeedropdown || [];
+                    const options = employees
+                        .map((emp: EmployeeDropdown) => {
+                            const fullName =
+                                `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim();
+                            const displayName = fullName || emp.HRME_EmployeeCode || '';
+                            // Use employee code as value for matching in add-form.tsx
+                            const value = emp.HRME_EmployeeCode || String(emp.HRME_Id) || '';
+                            return {
+                                label: displayName,
+                                value: value
+                            };
+                        })
+                        .filter((opt: { label: string; value: string }) => opt.label && opt.value);
+                    setEmployeeOptions(options);
+                }
+            },
+            onError: (error) => {
+                console.error('Error fetching employees:', error);
+            }
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dropdownData]);
+
     const shiftStore = createLocalCrud<MasterShift>('attendance:master-shift');
     const [availableShifts, setAvailableShifts] = React.useState<MasterShift[]>([]);
 
@@ -122,86 +185,32 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
               }
     });
 
-    // Load shifts on mount and auto-select first shift for testing
+    // Load shifts from API dropdown data
     useEffect(() => {
-        const loadShifts = () => {
+        if (dropdownData?.data?.shifts) {
+            // Convert API shift data to MasterShift format for compatibility
+            const apiShifts: MasterShift[] = dropdownData.data.shifts.map((shift: any) => ({
+                id: shift.id || 0,
+                shiftName: shift.value || shift.label || '',
+                startTime: '', // Will be populated from shift setting master if needed
+                endTime: '', // Will be populated from shift setting master if needed
+                remarks: '',
+                specificDay: false,
+                createdAt: new Date()
+            }));
+            setAvailableShifts(apiShifts);
+        } else {
+            // Fallback to local storage if API data not available
             try {
-                let shifts = shiftStore.list();
-
-                // Create sample shifts if database is empty
-                if (shifts.length === 0) {
-                    const sampleShifts: Omit<MasterShift, 'id' | 'createdAt'>[] = [
-                        {
-                            shiftName: 'Office Staffs',
-                            startTime: '08:00',
-                            endTime: '16:00',
-                            remarks: 'Standard office hours',
-                            specificDay: false
-                        },
-                        {
-                            shiftName: 'Teaching Staff',
-                            startTime: '08:00',
-                            endTime: '14:00',
-                            remarks: 'Teaching staff shift',
-                            specificDay: false
-                        },
-                        {
-                            shiftName: 'Morning Shift',
-                            startTime: '06:00',
-                            endTime: '14:00',
-                            remarks: 'Early morning shift',
-                            specificDay: false
-                        },
-                        {
-                            shiftName: 'Evening Shift',
-                            startTime: '14:00',
-                            endTime: '22:00',
-                            remarks: 'Evening shift',
-                            specificDay: false
-                        },
-                        {
-                            shiftName: 'Night Shift',
-                            startTime: '22:00',
-                            endTime: '06:00',
-                            remarks: 'Night shift',
-                            specificDay: false
-                        }
-                    ];
-
-                    sampleShifts.forEach((shift) => {
-                        shiftStore.create(shift);
-                    });
-
-                    shifts = shiftStore.list();
-                }
-
+                const shifts = shiftStore.list();
                 setAvailableShifts(shifts);
-
-                // Auto-select first shift for testing timing fields if no shift is selected and not editing
-                if (shifts.length > 0 && !editingMapping?.shiftName && !watch('shiftName')) {
-                    const firstShift = shifts[0];
-                    // Use setTimeout to ensure form is initialized
-                    setTimeout(() => {
-                        setValue('shiftName', firstShift.shiftName);
-                        setValue('shiftStartTime', firstShift.startTime);
-                        setValue('shiftEndTime', firstShift.endTime);
-                        const totalHours = calculateTimeDifference(firstShift.startTime, firstShift.endTime);
-                        setValue('totalWorkingHours', totalHours);
-                    }, 200);
-                }
             } catch (error) {
-                console.error('Error loading shifts:', error);
+                console.error('Error loading shifts from local storage:', error);
+                setAvailableShifts([]);
             }
-        };
-
-        // Load immediately
-        loadShifts();
-
-        // Also try after a short delay in case of timing issues
-        const timeoutId = setTimeout(loadShifts, 500);
-
-        return () => clearTimeout(timeoutId);
-    }, [setValue, editingMapping, watch]);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dropdownData]); // shiftStore is stable, no need to include it
 
     const selectedShiftName = watch('shiftName');
     const shiftStartTime = watch('shiftStartTime');
@@ -209,9 +218,96 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
     const lunchStartTime = watch('lunchStartTime');
     const lunchEndTime = watch('lunchEndTime');
 
-    // When shift is selected, populate timing fields
-    useEffect(() => {
+    // Get shift names and IDs from API dropdown data or available shifts
+    const shiftOptions = useMemo(() => {
+        if (dropdownData?.data?.shifts && dropdownData.data.shifts.length > 0) {
+            return dropdownData.data.shifts.map((shift: any) => ({
+                label: shift.label || shift.value || '',
+                value: shift.value || shift.label || '',
+                id: shift.id || 0
+            }));
+        }
+        return availableShifts.map((shift) => ({
+            label: shift.shiftName,
+            value: shift.shiftName,
+            id: shift.id || 0
+        })).filter((shift) => shift.label);
+    }, [dropdownData, availableShifts]);
+
+    // Get the selected shift's ID
+    const selectedShiftId = useMemo(() => {
         if (selectedShiftName) {
+            const selectedShift = shiftOptions.find((shift: { value: string; id?: number }) => shift.value === selectedShiftName);
+            return selectedShift?.id || 0;
+        }
+        return 0;
+    }, [selectedShiftName, shiftOptions]);
+
+    // Fetch shift details when a shift is selected
+    const { data: shiftDetailsData, isLoading: isLoadingShiftDetails } = useEmployeeShiftMappingShiftNames(
+        selectedShiftId > 0 ? selectedShiftId : 0
+    );
+
+    // When shift is selected, populate timing fields from API response
+    useEffect(() => {
+        if (selectedShiftId > 0 && shiftDetailsData?.data) {
+            // Get shift details from API response
+            // The response might be an array or a single object
+            const shiftDetailsArray = Array.isArray(shiftDetailsData.data) 
+                ? shiftDetailsData.data 
+                : [shiftDetailsData.data];
+            
+            if (shiftDetailsArray.length > 0) {
+                const shiftDetails = shiftDetailsArray[0];
+                
+                // Map API response fields to form fields
+                // The API response structure may vary, so we handle multiple possible formats
+                const shiftStartTime = shiftDetails.FOMST_IHalfLoginTime || 
+                                       shiftDetails.IHalfLoginTime || 
+                                       shiftDetails.shiftStartTime || 
+                                       shiftDetails.startTime || '';
+                const shiftEndTime = shiftDetails.FOMST_IIHalfLogoutTime || 
+                                    shiftDetails.IIHalfLogoutTime || 
+                                    shiftDetails.shiftEndTime || 
+                                    shiftDetails.endTime || '';
+                const lunchStartTime = shiftDetails.FOMST_IHalfLogoutTime || 
+                                       shiftDetails.IHalfLogoutTime || 
+                                       shiftDetails.lunchStartTime || '';
+                const lunchEndTime = shiftDetails.FOMST_IIHalfLoginTime || 
+                                    shiftDetails.IIHalfLoginTime || 
+                                    shiftDetails.lunchEndTime || '';
+                const totalWorkingHours = shiftDetails.FOMST_FDWHrMin || 
+                                         shiftDetails.FDWHrMin || 
+                                         shiftDetails.totalWorkingHours || '';
+                const halfDayWorkingHours = shiftDetails.FOMST_HDWHrMin || 
+                                           shiftDetails.HDWHrMin || 
+                                           shiftDetails.halfDayWorkingHours || '';
+                const delayPerShift = shiftDetails.FOMST_DelayPerShiftHrMin || 
+                                     shiftDetails.DelayPerShiftHrMin || 
+                                     shiftDetails.delayPerShift || '';
+                const earlyPerShift = shiftDetails.FOMST_EarlyPerShiftHrMin || 
+                                     shiftDetails.EarlyPerShiftHrMin || 
+                                     shiftDetails.earlyPerShift || '';
+                const lunchHours = shiftDetails.FOMST_LunchHoursDuration || 
+                                  shiftDetails.LunchHoursDuration || 
+                                  shiftDetails.lunchHours || '';
+
+                // Clean time strings (remove extra spaces)
+                const cleanTime = (time: string) => time ? String(time).trim() : '';
+
+                // Populate form fields with API data (only if values exist)
+                if (shiftStartTime) setValue('shiftStartTime', cleanTime(shiftStartTime));
+                if (shiftEndTime) setValue('shiftEndTime', cleanTime(shiftEndTime));
+                if (lunchStartTime) setValue('lunchStartTime', cleanTime(lunchStartTime));
+                if (lunchEndTime) setValue('lunchEndTime', cleanTime(lunchEndTime));
+                if (totalWorkingHours) setValue('totalWorkingHours', cleanTime(totalWorkingHours));
+                if (halfDayWorkingHours) setValue('halfDayWorkingHours', cleanTime(halfDayWorkingHours));
+                if (delayPerShift) setValue('delayPerShift', cleanTime(delayPerShift));
+                if (earlyPerShift) setValue('earlyPerShift', cleanTime(earlyPerShift));
+                if (lunchHours) setValue('lunchHours', cleanTime(lunchHours));
+            }
+        } else if (selectedShiftName && !isLoadingShiftDetails) {
+            // Fallback: Use local shift data if API data not available and not loading
             const selectedShift = availableShifts.find((shift) => shift.shiftName === selectedShiftName);
             if (selectedShift) {
                 setValue('shiftStartTime', selectedShift.startTime);
@@ -221,7 +317,8 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
                 setValue('totalWorkingHours', totalHours);
             }
         }
-    }, [selectedShiftName, availableShifts, setValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedShiftId, shiftDetailsData, selectedShiftName, availableShifts, isLoadingShiftDetails]); // setValue is stable from react-hook-form
 
     // Calculate total working hours when start/end times change
     useEffect(() => {
@@ -229,7 +326,8 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
             const totalHours = calculateTimeDifference(shiftStartTime, shiftEndTime);
             setValue('totalWorkingHours', totalHours);
         }
-    }, [shiftStartTime, shiftEndTime, setValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [shiftStartTime, shiftEndTime]); // setValue is stable from react-hook-form
 
     // Calculate lunch hours when lunch start/end times change
     useEffect(() => {
@@ -237,54 +335,66 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
             const lunchHours = calculateTimeDifference(lunchStartTime, lunchEndTime);
             setValue('lunchHours', lunchHours);
         }
-    }, [lunchStartTime, lunchEndTime, setValue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [lunchStartTime, lunchEndTime]); // setValue is stable from react-hook-form
+
+    // Track previous editingMapping ID to prevent unnecessary resets
+    const prevEditingMappingIdRef = React.useRef<number | null>(null);
 
     // Update form when editingMapping changes
     React.useEffect(() => {
-        if (editingMapping) {
-            reset({
-                type: editingMapping.type || [],
-                department: editingMapping.department || [],
-                designation: editingMapping.designation || [],
-                dayType: Array.isArray(editingMapping.dayType)
-                    ? editingMapping.dayType
-                    : editingMapping.dayType
-                      ? [editingMapping.dayType]
-                      : [],
-                shiftName: editingMapping.shiftName || '',
-                applicableDate: editingMapping.applicableDate || '',
-                employees: editingMapping.employees || [],
-                shiftStartTime: editingMapping.shiftStartTime || '',
-                lunchStartTime: editingMapping.lunchStartTime || '',
-                shiftEndTime: editingMapping.shiftEndTime || '',
-                lunchEndTime: editingMapping.lunchEndTime || '',
-                totalWorkingHours: editingMapping.totalWorkingHours || '',
-                delayPerShift: editingMapping.delayPerShift || '',
-                halfDayWorkingHours: editingMapping.halfDayWorkingHours || '',
-                earlyPerShift: editingMapping.earlyPerShift || '',
-                lunchHours: editingMapping.lunchHours || ''
-            });
-        } else {
-            reset({
-                type: [],
-                department: [],
-                designation: [],
-                dayType: [],
-                shiftName: '',
-                applicableDate: '',
-                employees: [],
-                shiftStartTime: '',
-                lunchStartTime: '',
-                shiftEndTime: '',
-                lunchEndTime: '',
-                totalWorkingHours: '',
-                delayPerShift: '',
-                halfDayWorkingHours: '',
-                earlyPerShift: '',
-                lunchHours: ''
-            });
+        const currentId = editingMapping?.id ?? null;
+
+        // Only reset if the ID actually changed
+        if (prevEditingMappingIdRef.current !== currentId) {
+            prevEditingMappingIdRef.current = currentId;
+
+            if (editingMapping) {
+                reset({
+                    type: editingMapping.type || [],
+                    department: editingMapping.department || [],
+                    designation: editingMapping.designation || [],
+                    dayType: Array.isArray(editingMapping.dayType)
+                        ? editingMapping.dayType
+                        : editingMapping.dayType
+                          ? [editingMapping.dayType]
+                          : [],
+                    shiftName: editingMapping.shiftName || '',
+                    applicableDate: editingMapping.applicableDate || '',
+                    employees: editingMapping.employees || [],
+                    shiftStartTime: editingMapping.shiftStartTime || '',
+                    lunchStartTime: editingMapping.lunchStartTime || '',
+                    shiftEndTime: editingMapping.shiftEndTime || '',
+                    lunchEndTime: editingMapping.lunchEndTime || '',
+                    totalWorkingHours: editingMapping.totalWorkingHours || '',
+                    delayPerShift: editingMapping.delayPerShift || '',
+                    halfDayWorkingHours: editingMapping.halfDayWorkingHours || '',
+                    earlyPerShift: editingMapping.earlyPerShift || '',
+                    lunchHours: editingMapping.lunchHours || ''
+                });
+            } else {
+                reset({
+                    type: [],
+                    department: [],
+                    designation: [],
+                    dayType: [],
+                    shiftName: '',
+                    applicableDate: '',
+                    employees: [],
+                    shiftStartTime: '',
+                    lunchStartTime: '',
+                    shiftEndTime: '',
+                    lunchEndTime: '',
+                    totalWorkingHours: '',
+                    delayPerShift: '',
+                    halfDayWorkingHours: '',
+                    earlyPerShift: '',
+                    lunchHours: ''
+                });
+            }
         }
-    }, [editingMapping, reset]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [editingMapping?.id]); // Only depend on the ID to avoid infinite loops when object reference changes
 
     const handleFormSubmit: SubmitHandler<EmployeeShiftMappingForm> = (data) => {
         onSubmit(data);
@@ -336,16 +446,55 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
         }
     };
 
-    // Prepare options for MultiSelect
-    const typeMultiSelectOptions = typeOptions.map((opt) => ({ label: opt, value: opt }));
-    const departmentMultiSelectOptions = departmentOptions.map((opt) => ({ label: opt, value: opt }));
-    const designationMultiSelectOptions = designationOptions.map((opt) => ({ label: opt, value: opt }));
-    const dayTypeMultiSelectOptions = dayTypeOptions.map((opt) => ({ label: opt, value: opt }));
+    // Helper function to remove duplicates by value
+    const removeDuplicateOptions = (options: Array<{ label: string; value: string }>) => {
+        const seen = new Set<string>();
+        return options.filter((option) => {
+            if (seen.has(option.value)) {
+                return false;
+            }
+            seen.add(option.value);
+            return true;
+        });
+    };
 
-    // Get shift names from available shifts
+    // Prepare options for MultiSelect from API data - remove duplicates to prevent React key errors
+    const typeMultiSelectOptions = React.useMemo(() => {
+        const options = (dropdownData?.data?.employeeTypes || []).map((item: any) => ({
+            label: item.label || item.name || '',
+            value: item.value || String(item.id || '')
+        }));
+        return removeDuplicateOptions(options);
+    }, [dropdownData]);
+
+    const departmentMultiSelectOptions = React.useMemo(() => {
+        const options = (dropdownData?.data?.departments || []).map((item: any) => ({
+            label: item.label || item.name || '',
+            value: item.value || String(item.id || '')
+        }));
+        return removeDuplicateOptions(options);
+    }, [dropdownData]);
+
+    const designationMultiSelectOptions = React.useMemo(() => {
+        const options = (dropdownData?.data?.designations || []).map((item: any) => ({
+            label: item.label || item.name || '',
+            value: item.value || String(item.id || '')
+        }));
+        return removeDuplicateOptions(options);
+    }, [dropdownData]);
+
+    const dayTypeMultiSelectOptions = React.useMemo(() => {
+        const options = (dropdownData?.data?.dayTypes || []).map((item: any) => ({
+            label: item.label || item.name || '',
+            value: item.value || String(item.id || '')
+        }));
+        return removeDuplicateOptions(options);
+    }, [dropdownData]);
+
+    // Extract shift names for the dropdown
     const shiftNames = useMemo(() => {
-        return availableShifts.map((shift) => shift.shiftName);
-    }, [availableShifts]);
+        return shiftOptions.map((shift: { value: string; id?: number }) => shift.value).filter(Boolean);
+    }, [shiftOptions]);
 
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
@@ -458,7 +607,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
                             <SelectValue placeholder={shiftNames.length === 0 ? 'No shifts available' : '--Select--'} />
                         </SelectTrigger>
                         <SelectContent>
-                            {shiftNames.map((shift) => (
+                            {shiftNames.map((shift: string) => (
                                 <SelectItem key={shift} value={shift}>
                                     {shift}
                                 </SelectItem>
@@ -533,8 +682,9 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
                                 field.onChange(values);
                             }}
                             defaultValue={field.value || []}
-                            placeholder='Select Employee'
+                            placeholder={filterEmployeesMutation.isPending ? 'Loading employees...' : 'Select Employee'}
                             variant='inverted'
+                            disabled={filterEmployeesMutation.isPending}
                         />
                     )}
                 />

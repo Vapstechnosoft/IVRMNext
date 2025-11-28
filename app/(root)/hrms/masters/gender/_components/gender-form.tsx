@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGender } from '@/hooks/hrms/useMasters';
 import { GENDER_VALIDATION } from '@/lib/validation/hrms-master-validation';
@@ -25,6 +25,7 @@ export default function GenderForm({ selectedRow, onSuccess }: GenderFormProps) 
         reset,
         formState: { errors, isDirty }
     } = useForm<MasterGenderInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             IVRMMG_GenderName: '',
@@ -48,8 +49,14 @@ export default function GenderForm({ selectedRow, onSuccess }: GenderFormProps) 
         if (isEditMode && !data.IVRMMG_Id) {
         }
 
+        // Trim whitespace from text fields
+        const sanitizedData: MasterGenderInput = {
+            ...data,
+            IVRMMG_GenderName: data.IVRMMG_GenderName?.trim() || ''
+        };
+
         try {
-            const res = await saveMutation.mutateAsync(data);
+            const res = await saveMutation.mutateAsync(sanitizedData);
 
             if (res?.success) {
                 const successMsg = res?.message || (isEditMode ? 'Gender updated successfully' : 'Gender added successfully');
@@ -94,18 +101,34 @@ export default function GenderForm({ selectedRow, onSuccess }: GenderFormProps) 
                 <Label htmlFor='IVRMMG_GenderName'>
                     Gender Name <span className='text-destructive'>*</span>
                 </Label>
-                <InputText
+                <HRMSInputText
                     id='IVRMMG_GenderName'
                     placeholder='Enter gender name'
-                    {...register('IVRMMG_GenderName', GENDER_VALIDATION.genderName)}
+                    maxLength={GENDER_VALIDATION.HRMGEN_GenderName.maxLength?.value}
+                    error={errors.IVRMMG_GenderName?.message}
+                    {...register('IVRMMG_GenderName', GENDER_VALIDATION.HRMGEN_GenderName)}
                 />
-                {errors.IVRMMG_GenderName && <FormError>{errors.IVRMMG_GenderName.message}</FormError>}
             </div>
-            <div className='col-span-full flex gap-2'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
-                {isEditMode && !isDirty && <span className='mt-2 flex items-center text-muted-foreground text-sm'>No changes made</span>}
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            IVRMMG_GenderName: '',
+                            IVRMMG_ActiveFlag: true
+                        });
+                    }}>
+                    Clear
+                </Button>
+                {isEditMode && !isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
             </div>
         </form>
     );

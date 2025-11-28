@@ -65,4 +65,3 @@ export default function DeleteMasterDriverShiftForm({ rowData, onClose }: Delete
         </AdaptiveDialog>
     );
 }
-

@@ -7,13 +7,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { employeeLateInEarlyOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { cn } from '@/lib/utils';
+import { employeeLateInEarlyOutReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 export type EmployeeLateInEarlyOutReportFilters = z.infer<typeof employeeLateInEarlyOutReportFilterSchema>;
@@ -46,18 +46,8 @@ export function EmployeeLateInEarlyOutReportFilters({
     onPrint
 }: EmployeeLateInEarlyOutReportFiltersProps) {
     // Debug logging for props
-    useEffect(() => {
-        console.log('🔵 ========== FILTERS COMPONENT PROPS DEBUG ==========');
-        console.log('🔵 [FILTERS] Received Props:', {
-            groupTypesCount: groupTypes.length,
-            groupTypes: groupTypes,
-            employeesCount: employees.length,
-            employees: employees.slice(0, 5), // First 5 for debugging
-            filters: filters
-        });
-        console.log('🔵 ========== END FILTERS COMPONENT PROPS DEBUG ==========');
-    }, [groupTypes, employees, filters]);
-    
+    useEffect(() => {}, [groupTypes, employees, filters]);
+
     const {
         handleSubmit,
         setValue,
@@ -85,7 +75,16 @@ export function EmployeeLateInEarlyOutReportFilters({
         setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
         setValue('mode', filters.mode || 'Late By', { shouldDirty: false, shouldValidate: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.query, filters.fromDate, filters.toDate, filters.mode]);
+    }, [
+        filters.allOrIndividual,
+        filters.type?.join(','),
+        filters.department?.join(','),
+        filters.designation?.join(','),
+        filters.query,
+        filters.fromDate,
+        filters.toDate,
+        filters.mode
+    ]);
 
     const handleFilterChange = (key: keyof EmployeeLateInEarlyOutReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -112,12 +111,6 @@ export function EmployeeLateInEarlyOutReportFilters({
                         </label>
                         {(() => {
                             const options = groupTypes.length > 0 ? groupTypes : types.map((t: string) => ({ label: t, value: t }));
-                            console.log('🔵 [FILTERS] Type MultiSelect Options:', {
-                                groupTypesLength: groupTypes.length,
-                                typesLength: types.length,
-                                finalOptionsLength: options.length,
-                                finalOptions: options.slice(0, 5) // First 5 for debugging
-                            });
                             return (
                                 <MultiSelect
                                     options={options}
@@ -184,16 +177,8 @@ export function EmployeeLateInEarlyOutReportFilters({
                                 Employee <span className='text-red-500'>*</span>
                             </label>
                             {(() => {
-                                console.log('🔵 [FILTERS] Employee Dropdown Render:', {
-                                    allOrIndividualValue,
-                                    employeesLength: employees.length,
-                                    employees: employees.slice(0, 5), // First 5 for debugging
-                                    queryValue
-                                });
                                 return (
-                                    <Select
-                                        value={queryValue || undefined}
-                                        onValueChange={(value) => handleFilterChange('query', value)}>
+                                    <Select value={queryValue || undefined} onValueChange={(value) => handleFilterChange('query', value)}>
                                         <SelectTrigger id='employee' className={errors.query ? 'border-red-500' : ''}>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>

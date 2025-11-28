@@ -15,7 +15,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function JobPostingListPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     // Mock data for now - replace with actual API call
     const response = { data: [], totalItems: 0, isLoading: false, error: null };
     const refetchAll = () => {};
@@ -81,9 +81,7 @@ function JobPostingListPageContent({
                     />
                 </CollapsibleSection>
                 {/* Forms - Below Table */}
-                <FormSections
-                    refetch={refetch}
-                />
+                <FormSections refetch={refetch} />
             </div>
         </div>
     );
@@ -131,4 +129,3 @@ function FormSections({
         </>
     );
 }
-

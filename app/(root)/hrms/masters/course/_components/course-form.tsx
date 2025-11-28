@@ -28,6 +28,7 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
         reset,
         formState: { errors, isDirty }
     } = useForm<MasterCourseInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRMC_QulaificationName: '',
@@ -59,8 +60,15 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
         if (isEditMode && !data.HRMC_Id) {
         }
 
+        // Trim whitespace from text fields
+        const sanitizedData: MasterCourseInput = {
+            ...data,
+            HRMC_QulaificationName: data.HRMC_QulaificationName?.trim() || '',
+            HRMC_QualificationDesc: data.HRMC_QualificationDesc?.trim() || ''
+        };
+
         try {
-            const res = await saveMutation.mutateAsync(data);
+            const res = await saveMutation.mutateAsync(sanitizedData);
 
             if (res?.success) {
                 const successMsg = res?.message || (isEditMode ? 'Course updated successfully' : 'Course added successfully');
@@ -108,7 +116,10 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                 <Input
                     id='HRMC_QulaificationName'
                     placeholder='Enter qualification name'
-                    {...register('HRMC_QulaificationName', COURSE_VALIDATION.courseName)}
+                    maxLength={COURSE_VALIDATION.HRMC_QualificationName.maxLength?.value}
+                    aria-invalid={errors.HRMC_QulaificationName ? true : undefined}
+                    data-error={errors.HRMC_QulaificationName ? 'true' : undefined}
+                    {...register('HRMC_QulaificationName', COURSE_VALIDATION.HRMC_QualificationName)}
                 />
                 {errors.HRMC_QulaificationName && <FormError>{errors.HRMC_QulaificationName.message}</FormError>}
             </div>
@@ -119,7 +130,10 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                 <Input
                     id='HRMC_QualificationDesc'
                     placeholder='Enter description'
-                    {...register('HRMC_QualificationDesc', COURSE_VALIDATION.courseDescription)}
+                    maxLength={COURSE_VALIDATION.HRMC_QualificationDescription.maxLength?.value}
+                    aria-invalid={errors.HRMC_QualificationDesc ? true : undefined}
+                    data-error={errors.HRMC_QualificationDesc ? 'true' : undefined}
+                    {...register('HRMC_QualificationDesc', COURSE_VALIDATION.HRMC_QualificationDescription)}
                 />
                 {errors.HRMC_QualificationDesc && <FormError>{errors.HRMC_QualificationDesc.message}</FormError>}
             </div>
@@ -149,11 +163,30 @@ export default function CourseForm({ selectedRow, onSuccess }: CourseFormProps) 
                     <Label htmlFor='has-specialization-checkbox'>Has Specialization</Label>
                 </div>
             </div>
-            <div className='col-span-full flex gap-2'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
-                {isEditMode && !isDirty && <span className='mt-2 flex items-center text-muted-foreground text-sm'>No changes made</span>}
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            HRMC_QulaificationName: '',
+                            HRMC_QualificationDesc: '',
+                            HRMC_Order: 0,
+                            HRMC_ActiveFlag: true,
+                            HRMC_DefaultQualFag: false,
+                            HRMC_SpecialisationFlag: false
+                        });
+                    }}>
+                    Clear
+                </Button>
+                {isEditMode && !isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
             </div>
         </form>
     );

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { InputText } from '@/components/ui/extension/input-text';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import { departmentSchema } from '@/schemas/hrms/employee-category-schemas';
@@ -66,11 +66,15 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
     }
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        // Trim whitespace from text fields
+        const sanitizedData = {
+            ...data,
+            HRMD_DepartmentName: data.HRMD_DepartmentName?.trim() || '',
+            HRMD_InternalTrainingMinimumHrs: data.HRMD_InternalTrainingMinimumHrs ?? 0
+        };
+
         try {
-            const response = await saveMutation.mutateAsync({
-                ...data,
-                HRMD_InternalTrainingMinimumHrs: data.HRMD_InternalTrainingMinimumHrs ?? 0
-            });
+            const response = await saveMutation.mutateAsync(sanitizedData);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Department updated successfully' : 'Department saved successfully'));
@@ -94,11 +98,12 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <InputText
+                        <HRMSInputText
                             label='Department Name'
                             required
                             id='HRMD_DepartmentName'
                             placeholder='Enter department name'
+                            maxLength={50}
                             {...register('HRMD_DepartmentName')}
                             error={errors.HRMD_DepartmentName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -258,28 +263,24 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
+                <div className='flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-start sm:items-center'>
                     <Button
                         type='submit'
                         disabled={isSubmitting || (isEditMode && !isDirty)}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            {isEditMode ? 'Update Department' : 'Save Department'}
-                        </div>
+                        {isEditMode ? 'Update' : 'Save'}
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
+                        Clear
                     </Button>
                     {isEditMode && !isDirty && (
-                        <span className='order-3 flex items-center text-muted-foreground text-sm sm:order-3'>No changes made</span>
+                        <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>
                     )}
                 </div>
             </form>

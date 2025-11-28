@@ -903,10 +903,10 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 9,
-                                            name: 'Group-Dept-Dessg Mapping',
+                                            name: 'Group-Dept-Desig Mapping',
                                             icon: 'Network',
                                             url: '/hrms/masters/group-dept-dessg-mapping',
-                                            title: 'Group-Dept-Dessg Mapping',
+                                            title: 'Group-Dept-Desig Mapping',
                                             description: 'Map Group, Department & Designation'
                                         },
                                         {

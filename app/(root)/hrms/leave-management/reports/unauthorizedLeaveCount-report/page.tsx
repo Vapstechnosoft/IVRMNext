@@ -3,11 +3,8 @@
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useMemo, useState } from 'react';
-import { getUnauthorizedLeaveCountColumns, type UnauthorizedLeaveCountRow } from './_components/columns';
-import {
-    UnauthorizedLeaveCountFilters,
-    type UnauthorizedLeaveCountFilters as FiltersType
-} from './_components/filters';
+import { type UnauthorizedLeaveCountRow, getUnauthorizedLeaveCountColumns } from './_components/columns';
+import { type UnauthorizedLeaveCountFilters as FiltersType, UnauthorizedLeaveCountFilters } from './_components/filters';
 
 export default function UnauthorizedLeaveCountReportPage() {
     const [rows, setRows] = useState<UnauthorizedLeaveCountRow[]>([]);

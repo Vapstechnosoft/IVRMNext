@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { use, useEffect, useState } from 'react';
+import { use, useEffect } from 'react';
 import AddCandidateInterviewForm from './_components/add-form';
 import { candidateInterviewColumns } from './_components/columns';
 
@@ -15,7 +15,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function AddCandidateInterviewPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = use(props.searchParams);
+    const _searchParams = use(props.searchParams);
     // Mock data for now - replace with actual API call
     const response = { data: [], totalItems: 0, isLoading: false, error: null };
     const refetchAll = () => {};
@@ -81,9 +81,7 @@ function AddCandidateInterviewPageContent({
                     />
                 </CollapsibleSection>
                 {/* Forms - Below Table */}
-                <FormSections
-                    refetch={refetch}
-                />
+                <FormSections refetch={refetch} />
             </div>
         </div>
     );
@@ -131,4 +129,3 @@ function FormSections({
         </>
     );
 }
-

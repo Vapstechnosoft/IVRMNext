@@ -25,6 +25,7 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
         reset,
         formState: { errors }
     } = useForm<MasterProfessionalTaxInput>({
+        mode: 'onChange',
         defaultValues: {
             MI_Id: roleId,
             HRMPT_SalaryFrom: 0,
@@ -90,8 +91,17 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
                 <Controller
                     name='HRMPT_SalaryFrom'
                     control={control}
-                    rules={PROFESSIONAL_TAX_VALIDATION.salaryFrom}
-                    render={({ field }) => <Input type='number' id='HRMPT_SalaryFrom' value={field.value} onChange={field.onChange} />}
+                    rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_AmountFrom}
+                    render={({ field }) => (
+                        <Input
+                            type='number'
+                            id='HRMPT_SalaryFrom'
+                            value={field.value}
+                            onChange={field.onChange}
+                            aria-invalid={errors.HRMPT_SalaryFrom ? true : undefined}
+                            data-error={errors.HRMPT_SalaryFrom ? 'true' : undefined}
+                        />
+                    )}
                 />
                 {errors.HRMPT_SalaryFrom && <FormError>{errors.HRMPT_SalaryFrom.message}</FormError>}
             </div>
@@ -102,8 +112,17 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
                 <Controller
                     name='HRMPT_SalaryTo'
                     control={control}
-                    rules={PROFESSIONAL_TAX_VALIDATION.salaryTo}
-                    render={({ field }) => <Input type='number' id='HRMPT_SalaryTo' value={field.value} onChange={field.onChange} />}
+                    rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_AmountTo}
+                    render={({ field }) => (
+                        <Input
+                            type='number'
+                            id='HRMPT_SalaryTo'
+                            value={field.value}
+                            onChange={field.onChange}
+                            aria-invalid={errors.HRMPT_SalaryTo ? true : undefined}
+                            data-error={errors.HRMPT_SalaryTo ? 'true' : undefined}
+                        />
+                    )}
                 />
                 {errors.HRMPT_SalaryTo && <FormError>{errors.HRMPT_SalaryTo.message}</FormError>}
             </div>
@@ -114,14 +133,40 @@ export default function ProfessionalTaxForm({ selectedRow, onSuccess }: Professi
                 <Controller
                     name='HRMPT_PTax'
                     control={control}
-                    rules={PROFESSIONAL_TAX_VALIDATION.professionalTaxAmount}
-                    render={({ field }) => <Input type='number' id='HRMPT_PTax' value={field.value} onChange={field.onChange} />}
+                    rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_ProfessionalTax}
+                    render={({ field }) => (
+                        <Input
+                            type='number'
+                            id='HRMPT_PTax'
+                            value={field.value}
+                            onChange={field.onChange}
+                            aria-invalid={errors.HRMPT_PTax ? true : undefined}
+                            data-error={errors.HRMPT_PTax ? 'true' : undefined}
+                        />
+                    )}
                 />
                 {errors.HRMPT_PTax && <FormError>{errors.HRMPT_PTax.message}</FormError>}
             </div>
-            <div className='col-span-full'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
+                </Button>
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            HRMPT_SalaryFrom: 0,
+                            HRMPT_SalaryTo: 0,
+                            HRMPT_PTax: 0,
+                            HRMPT_ActiveFlag: true
+                        });
+                    }}>
+                    Clear
                 </Button>
             </div>
         </form>

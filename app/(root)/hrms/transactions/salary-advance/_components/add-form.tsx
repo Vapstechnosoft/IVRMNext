@@ -14,7 +14,7 @@ import type { SalaryAdvanceOnloadResponse } from '@/types/hrms/salary-advance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -41,6 +41,8 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
         handleSubmit,
         reset,
         control,
+        watch,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<SalaryAdvanceForm>({
         resolver: zodResolver(salaryAdvanceFormSchema),
@@ -56,6 +58,54 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
             referenceNo: ''
         }
     });
+
+    const watchedEntryDate = watch('entryDate');
+
+    // Auto-select year and month based on entry date
+    useEffect(() => {
+        if (watchedEntryDate) {
+            try {
+                const entryDate = new Date(watchedEntryDate);
+                if (!isNaN(entryDate.getTime())) {
+                    const year = entryDate.getFullYear();
+                    const month = entryDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
+
+                    // Find matching year from leaveYears dropdown
+                    const matchingYear = leaveYears.find((y) => y.HRMLY_LeaveYear === year.toString() || y.HRMLY_LeaveYear === String(year));
+                    if (matchingYear) {
+                        setValue('advanceYear', matchingYear.HRMLY_Id.toString());
+                    }
+
+                    // Find matching month from months dropdown
+                    // Try to match by month number (1-12) or by month name
+                    const monthNames = [
+                        'January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'
+                    ];
+                    const monthName = monthNames[month - 1];
+
+                    const matchingMonth = months.find((m) => {
+                        // Try matching by month name (case insensitive)
+                        const monthNameMatch = m.IVRM_Month_Name?.toLowerCase() === monthName.toLowerCase() ||
+                            m.IVRM_Month_Name?.toLowerCase().includes(monthName.toLowerCase().substring(0, 3));
+                        
+                        // Try matching by month number if IVRM_Month_Id matches the month number
+                        const monthIdMatch = m.IVRM_Month_Id === month;
+                        
+                        return monthNameMatch || monthIdMatch;
+                    });
+
+                    if (matchingMonth) {
+                        setValue('advanceMonth', matchingMonth.IVRM_Month_Id.toString());
+                    }
+                }
+            } catch (error) {
+                // Silently handle date parsing errors
+                console.error('Error parsing entry date:', error);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedEntryDate, leaveYears, months]);
 
     const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
         // Convert referenceNo to number if it's a valid numeric string, otherwise use 0

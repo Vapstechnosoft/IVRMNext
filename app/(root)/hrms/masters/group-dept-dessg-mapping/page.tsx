@@ -112,7 +112,14 @@ function GroupDeptDessgMappingPageContent({
                                   ? response.data.gridviewdata
                                   : []
                         }
-                        totalItems={response?.data?.total ?? (Array.isArray(response?.data?.data?.gridviewdata) ? response.data.data.gridviewdata.length : Array.isArray(response?.data?.gridviewdata) ? response.data.gridviewdata.length : 0)}
+                        totalItems={
+                            response?.data?.total ??
+                            (Array.isArray(response?.data?.data?.gridviewdata)
+                                ? response.data.data.gridviewdata.length
+                                : Array.isArray(response?.data?.gridviewdata)
+                                  ? response.data.gridviewdata.length
+                                  : 0)
+                        }
                         columns={groupDeptDessgMappingColumns}
                         isLoading={isLoading}
                         error={error}

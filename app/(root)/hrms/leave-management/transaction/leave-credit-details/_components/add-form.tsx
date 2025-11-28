@@ -115,13 +115,18 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
             HRMLDCF_MaxLeaveAplFlg: false, // Default value
             HRMLDCF_MaxLeaveCF: 0, // Default value
             selectedcarryMonthList: [], // Default value
-            selectedMonthList: data.months ? Object.keys(data.months).filter(m => (data.months?.[m] || 0) > 0).map(m => {
-                const monthIndex = MONTHS.indexOf(m);
-                return monthIndex >= 0 ? monthIndex + 1 : 0;
-            }).filter(m => m > 0) : [],
+            selectedMonthList: data.months
+                ? Object.keys(data.months)
+                      .filter((m) => (data.months?.[m] || 0) > 0)
+                      .map((m) => {
+                          const monthIndex = MONTHS.indexOf(m);
+                          return monthIndex >= 0 ? monthIndex + 1 : 0;
+                      })
+                      .filter((m) => m > 0)
+                : [],
             ...data
         };
-        
+
         saveDetails(apiData, {
             onSuccess: () => {
                 reset();

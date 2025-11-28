@@ -1,10 +1,11 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,7 +16,7 @@ import { salaryIncrementSchema } from '@/schemas/hrms/salary-increment-schemas';
 import type { SalaryIncrementOnloadResponse } from '@/types/hrms/salary-increment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Save } from 'lucide-react';
+import { CalendarIcon, Save, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -47,10 +48,10 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
             MI_Id: HRMS_MI_ID,
             HRME_Id: 0,
             HRMED_Id: 0,
-            HRESI_IncrementType: undefined,
+            HRESI_IncrementType: 'Percentage',
             HRESI_IncrementAmount: 0,
             HRESI_IncrementPercentage: 0,
-            HRESI_EffectiveDate: new Date(),
+            HRESI_EffectiveDate: undefined as Date | undefined,
             HRESI_Remarks: '',
             HRESI_ActiveFlg: true,
             LogInUserId: 2
@@ -62,7 +63,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
             HREIC_Id: data.HRESI_Id || 0,
             MI_Id: data.MI_Id,
             HRME_Id: data.HRME_Id,
-            HREIC_IncrementDate: data.HRESI_EffectiveDate.toISOString(),
+            HREIC_IncrementDate: data.HRESI_EffectiveDate ? data.HRESI_EffectiveDate.toISOString() : new Date().toISOString(),
             HREIC_ArrearApplicableFlg: false,
             HREIC_ArrearGivenFlg: false,
             HREIC_ArrearMonths: 0,
@@ -98,30 +99,33 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        {/* Employee */}
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        {/* Employee - Multi-select with search */}
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRME_Id'>
+                            <Label>
                                 Employee <span className='text-destructive'>*</span>
                             </Label>
                             <Controller
                                 name='HRME_Id'
                                 control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
-                                        <SelectTrigger id='HRME_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select employee' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {employees.map((emp) => (
-                                                <SelectItem key={emp.HRME_Id} value={String(emp.HRME_Id)}>
-                                                    {emp.HRME_EmployeeCode} - {emp.HRME_EmployeeFirstName} {emp.HRME_EmployeeLastName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                render={({ field, fieldState }) => (
+                                    <MultiSelect
+                                        options={employees.map((emp) => ({
+                                            label: `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
+                                            value: String(emp.HRME_Id)
+                                        }))}
+                                        onValueChange={(vals) => {
+                                            if (vals.length > 0) {
+                                                field.onChange(Number(vals[0]));
+                                            } else {
+                                                field.onChange(0);
+                                            }
+                                        }}
+                                        defaultValue={field.value ? [String(field.value)] : []}
+                                        placeholder='Select employee'
+                                        className='w-full'
+                                        maxHeight={240}
+                                    />
                                 )}
                             />
                             {errors.HRME_Id && <FormError>{errors.HRME_Id.message}</FormError>}
@@ -130,7 +134,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                         {/* Head */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMED_Id'>
-                                Head <span className='text-destructive'>*</span>
+                                Head <span className='text-destructive'>:*</span>
                             </Label>
                             <Controller
                                 name='HRMED_Id'
@@ -140,14 +144,16 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                         onValueChange={(value) => field.onChange(Number(value))}
                                         value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger id='HRMED_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select head' />
+                                            <SelectValue placeholder='Select Head' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {earningDeductions.map((head) => (
-                                                <SelectItem key={head.HRMED_Id} value={String(head.HRMED_Id)}>
-                                                    {head.HRMED_Name} ({head.HRMED_EarnDedFlag})
-                                                </SelectItem>
-                                            ))}
+                                            {Array.isArray(earningDeductions) && earningDeductions.length > 0
+                                                ? earningDeductions.map((head) => (
+                                                      <SelectItem key={head.HRMED_Id} value={String(head.HRMED_Id)}>
+                                                          {head.HRMED_Name}
+                                                      </SelectItem>
+                                                  ))
+                                                : null}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -158,7 +164,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                         {/* Increment Date */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRESI_EffectiveDate'>
-                                Increment Date <span className='text-destructive'>*</span>
+                                Increment Date <span className='text-destructive'>:*</span>
                             </Label>
                             <Controller
                                 name='HRESI_EffectiveDate'
@@ -173,15 +179,26 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                                     !field.value && 'text-muted-foreground'
                                                 )}>
                                                 <CalendarIcon className='mr-2 h-4 w-4' />
-                                                {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                {field.value ? (
+                                                    format(field.value instanceof Date ? field.value : new Date(field.value), 'dd-MM-yyyy')
+                                                ) : (
+                                                    <span>Select date</span>
+                                                )}
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent className='w-auto p-0' align='start'>
-                                            <DatePickerWithYear
+                                            <CalendarYear
                                                 mode='single'
-                                                selected={field.value}
-                                                onDayClick={(day) => field.onChange(day)}
-                                                initialFocus
+                                                selected={
+                                                    field.value
+                                                        ? field.value instanceof Date
+                                                            ? field.value
+                                                            : new Date(field.value)
+                                                        : undefined
+                                                }
+                                                onSelect={(date) => {
+                                                    field.onChange(date || undefined);
+                                                }}
                                             />
                                         </PopoverContent>
                                     </Popover>
@@ -198,7 +215,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                 control={control}
                                 render={({ field }) => (
                                     <RadioGroup
-                                        value={field.value || ''}
+                                        value={field.value || 'Percentage'}
                                         onValueChange={(value) => field.onChange(value as 'Percentage' | 'Amount' | undefined)}
                                         className='flex items-center gap-6'>
                                         <div className='flex items-center gap-2'>
@@ -219,11 +236,28 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                             {errors.HRESI_IncrementType && <FormError>{errors.HRESI_IncrementType.message}</FormError>}
                         </div>
 
-                        {/* Amount - Show only if Increment Type is Amount or not selected */}
-                        {(watch('HRESI_IncrementType') === 'Amount' || !watch('HRESI_IncrementType')) && (
+                        {/* Percentage/Amount - Show based on selected type */}
+                        {watch('HRESI_IncrementType') === 'Percentage' && (
+                            <div className='group flex flex-col gap-1.5'>
+                                <Label htmlFor='HRESI_IncrementPercentage'>
+                                    Percentage <span className='text-destructive'>:*</span>
+                                </Label>
+                                <InputText
+                                    type='number'
+                                    step='0.01'
+                                    id='HRESI_IncrementPercentage'
+                                    placeholder='Enter percentage'
+                                    {...register('HRESI_IncrementPercentage', { valueAsNumber: true })}
+                                    error={errors.HRESI_IncrementPercentage?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            </div>
+                        )}
+
+                        {watch('HRESI_IncrementType') === 'Amount' && (
                             <div className='group flex flex-col gap-1.5'>
                                 <Label htmlFor='HRESI_IncrementAmount'>
-                                    Amount {watch('HRESI_IncrementType') === 'Amount' && <span className='text-destructive'>*</span>}
+                                    Amount <span className='text-destructive'>:*</span>
                                 </Label>
                                 <Controller
                                     name='HRESI_IncrementAmount'
@@ -237,25 +271,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     )}
-                                />
-                            </div>
-                        )}
-
-                        {/* Percentage - Show only if Increment Type is Percentage or not selected */}
-                        {(watch('HRESI_IncrementType') === 'Percentage' || !watch('HRESI_IncrementType')) && (
-                            <div className='group flex flex-col gap-1.5'>
-                                <Label htmlFor='HRESI_IncrementPercentage'>
-                                    Percentage{' '}
-                                    {watch('HRESI_IncrementType') === 'Percentage' && <span className='text-destructive'>*</span>}
-                                </Label>
-                                <InputText
-                                    type='number'
-                                    step='0.01'
-                                    id='HRESI_IncrementPercentage'
-                                    placeholder='Enter percentage (decimal 5,2)'
-                                    {...register('HRESI_IncrementPercentage', { valueAsNumber: true })}
-                                    error={errors.HRESI_IncrementPercentage?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             </div>
                         )}
@@ -318,25 +333,24 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                 </div>
 
                 {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting || isPending}
+                        className='w-fit transition-all duration-200 hover:scale-105'
+                        isLoading={isSubmitting || isPending}
+                        loadingText='Saving...'>
+                        <Save className='mr-2 h-4 w-4' />
+                        SAVE
+                    </Button>
                     <Button
                         type='button'
                         variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting || isPending}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting || isPending}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting || isPending}
-                        loadingText='Saving...'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Add Salary Increment
-                        </div>
+                        className='w-fit transition-all duration-200 hover:scale-105'>
+                        <X className='mr-2 h-4 w-4' />
+                        CANCEL
                     </Button>
                 </div>
             </form>

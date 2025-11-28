@@ -1,8 +1,8 @@
 'use client';
 
+import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { Save } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -131,7 +131,7 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                 <div className='grid grid-cols-1 gap-6 xl:grid-cols-3'>
                     <div className='space-y-4'>
                         <div>
-                            <label htmlFor='type-multiselect' className='font-medium text-sm mb-2 block'>
+                            <label htmlFor='type-multiselect' className='mb-2 block font-medium text-sm'>
                                 Type
                             </label>
                             <Controller
@@ -149,7 +149,7 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                             />
                         </div>
                         <div>
-                            <label htmlFor='department-multiselect' className='font-medium text-sm mb-2 block'>
+                            <label htmlFor='department-multiselect' className='mb-2 block font-medium text-sm'>
                                 Department
                             </label>
                             <Controller
@@ -167,7 +167,7 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                             />
                         </div>
                         <div>
-                            <label htmlFor='designation-multiselect' className='font-medium text-sm mb-2 block'>
+                            <label htmlFor='designation-multiselect' className='mb-2 block font-medium text-sm'>
                                 Designation
                             </label>
                             <Controller
@@ -243,7 +243,7 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                             )}
                         />
                         <div className='space-y-3 rounded-md border p-4'>
-                            <div className='font-medium text-sm mb-2'>Options</div>
+                            <div className='mb-2 font-medium text-sm'>Options</div>
                             <div className='space-y-2'>
                                 <div className='flex items-center space-x-2'>
                                     <Controller
@@ -257,7 +257,9 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                                             />
                                         )}
                                     />
-                                    <label htmlFor='leave-carry-forward' className='text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                    <label
+                                        htmlFor='leave-carry-forward'
+                                        className='font-normal text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                         Leave Carry Forward
                                     </label>
                                 </div>
@@ -273,7 +275,9 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                                             />
                                         )}
                                     />
-                                    <label htmlFor='leave-encashment' className='text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                    <label
+                                        htmlFor='leave-encashment'
+                                        className='font-normal text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                         Leave Encashment
                                     </label>
                                 </div>
@@ -289,7 +293,9 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                                             />
                                         )}
                                     />
-                                    <label htmlFor='leave-credit-monthwise' className='text-sm font-normal leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                    <label
+                                        htmlFor='leave-credit-monthwise'
+                                        className='font-normal text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                         Leave Credit MonthWise
                                     </label>
                                 </div>
@@ -300,11 +306,11 @@ export default function UpdateLeaveCreditDetailsForm({ onSuccess, className = ''
                     {/* Monthly Credits - Dynamically rendered when Leave Credit MonthWise is checked */}
                     {watch('leaveCreditMonthWise') && (
                         <div className='space-y-3'>
-                            <div className='font-medium text-sm mb-3'>Monthly Credits</div>
+                            <div className='mb-3 font-medium text-sm'>Monthly Credits</div>
                             <div className='grid grid-cols-3 gap-4 md:grid-cols-4'>
                                 {MONTHS.map((m) => (
                                     <div key={m} className='flex flex-col gap-1.5'>
-                                        <label htmlFor={`month-${m}`} className='text-xs font-medium text-muted-foreground'>
+                                        <label htmlFor={`month-${m}`} className='font-medium text-muted-foreground text-xs'>
                                             {m}
                                         </label>
                                         <Input

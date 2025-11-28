@@ -1,25 +1,52 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useSalaryUpdationList } from '@/hooks/hrms/useTransactions';
-import type { SalaryUpdationItem } from '@/types/hrms/salary-updation';
+import {
+    useFilterSalaryUpdationEmployees,
+    useGetSalaryUpdationDepartments,
+    useGetSalaryUpdationDesignations,
+    useGetSalaryUpdationEmployeeDetailsBySelection,
+    useSalaryUpdationList
+} from '@/hooks/hrms/useTransactions';
+import type {
+    DeductionResultItem,
+    DepartmentDropdown,
+    DesignationDropdown,
+    EarningResultItem,
+    EmployeeDropdown,
+    SalaryUpdationItem
+} from '@/types/hrms/salary-updation';
 import { Plus, RefreshCw, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { salaryUpdationColumns } from './_components/columns';
 import FormSections from './_components/form-sections';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function SalaryUpdationPage(_props: { searchParams: SearchParams }) {
-    const { listQuery } = useSalaryUpdationList({ roleId: HRMS_MI_ID });
+    const { listQuery } = useSalaryUpdationList({
+        page: 0,
+        page_size: 0,
+        search_query: '',
+        search_column: '',
+        sort_column: '',
+        sort_direction: '',
+        is_export: true,
+        MIID: HRMS_MI_ID,
+        LoginUserId: 0, // TODO: Get from auth context
+        UserRole: '' // TODO: Get from auth context
+    });
 
     return (
         <FormProvider<SalaryUpdationItem>>
@@ -46,16 +73,43 @@ function SalaryUpdationPageContent({
 }) {
     const { openAddForm } = useFormContext<SalaryUpdationItem>();
     const [hasSearched, setHasSearched] = useState(false);
-    const [filteredEmployees, setFilteredEmployees] = useState<SalaryUpdationItem[]>([]);
+    const [filteredEmployees, setFilteredEmployees] = useState<EmployeeDropdown[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+    const [cascadingDepartments, setCascadingDepartments] = useState<DepartmentDropdown[]>([]);
+    const [cascadingDesignations, setCascadingDesignations] = useState<DesignationDropdown[]>([]);
+    const { mutate: filterEmployees, isPending: isFiltering } = useFilterSalaryUpdationEmployees();
+    const { mutate: getEmployeeDetails, isPending: isGettingDetails } = useGetSalaryUpdationEmployeeDetailsBySelection();
+    const { mutate: getDepartments, isPending: isGettingDepartments } = useGetSalaryUpdationDepartments();
+    const { mutate: getDesignations, isPending: isGettingDesignations } = useGetSalaryUpdationDesignations();
 
     // Safely extract data with proper defaults to prevent hydration mismatches
     // Use useMemo to prevent unnecessary re-renders and infinite loops
-    const groupTypes = useMemo(() => response?.groupTypedropdownlist || [], [response?.groupTypedropdownlist]);
-    const departments = useMemo(() => response?.departmentdropdownlist || [], [response?.departmentdropdownlist]);
-    const designations = useMemo(() => response?.designationdropdownlist || [], [response?.designationdropdownlist]);
-    const employees = useMemo(() => response?.employeedropdown || [], [response?.employeedropdown]);
-    const earningHeads = useMemo(() => response?.earningdeductiondetails || [], [response?.earningdeductiondetails]);
+    // Support both new format (groupTypedropdown) and legacy format (groupTypedropdownlist)
+    const groupTypes = useMemo(
+        () => response?.groupTypedropdown || response?.groupTypedropdownlist || [],
+        [response?.groupTypedropdown, response?.groupTypedropdownlist]
+    );
+    // Use cascading departments if available, otherwise fall back to onload data
+    const departments = useMemo(
+        () =>
+            cascadingDepartments.length > 0 ? cascadingDepartments : response?.departmentdropdown || response?.departmentdropdownlist || [],
+        [cascadingDepartments, response?.departmentdropdown, response?.departmentdropdownlist]
+    );
+    // Use cascading designations if available, otherwise fall back to onload data
+    const designations = useMemo(
+        () =>
+            cascadingDesignations.length > 0
+                ? cascadingDesignations
+                : response?.designationdropdown || response?.designationdropdownlist || [],
+        [cascadingDesignations, response?.designationdropdown, response?.designationdropdownlist]
+    );
+    const _employees = useMemo(() => response?.employeedropdown || [], [response?.employeedropdown]);
+    
+    // Get all head dropdowns from response
+    const allHeads = useMemo(() => response?.headdropdown || [], [response?.headdropdown]);
+    const earningHeadsList = useMemo(() => response?.earningdropdown || [], [response?.earningdropdown]);
+    const deductionHeadsList = useMemo(() => response?.detectiondropdown || [], [response?.detectiondropdown]);
+    
     const monthOptions = useMemo(() => response?.monthdropdown || [], [response?.monthdropdown]);
     const leaveYearOptions = useMemo(() => response?.leaveyeardropdown || [], [response?.leaveyeardropdown]);
 
@@ -66,86 +120,242 @@ function SalaryUpdationPageContent({
         setIsClient(true);
     }, []);
 
-    const { control, handleSubmit, reset, watch } = useForm({
+    const { control, handleSubmit, reset, watch, register, getValues, setValue } = useForm({
         defaultValues: {
-            groupType: 'All',
-            department: 'All',
-            designation: 'All',
-            year: '',
-            month: '',
+            groupType: [] as string[],
+            department: [] as string[],
+            designation: [] as string[],
             earningDeduction: 'All Earning & Deduction',
             amountType: 'All',
-            heads: 'All'
+            amountValue: '',
+            heads: [] as (string | number)[],
+            selectedHead: '',
+            updateValue: '',
+            addRemove: 'Add'
         }
     });
 
-    // Set date values only on client side after hydration
-    useEffect(() => {
-        if (isClient) {
-            const now = new Date();
-            const year = now.getFullYear().toString();
-            const month = (now.getMonth() + 1).toString();
+    // Track if form has been initialized to prevent unnecessary resets
+    const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-            reset(
-                {
-                    groupType: 'All',
-                    department: 'All',
-                    designation: 'All',
-                    year,
-                    month,
-                    earningDeduction: 'All Earning & Deduction',
-                    amountType: 'All',
-                    heads: 'All'
-                },
-                { keepDefaultValues: false }
-            );
+    // Initialize form values on client side after hydration
+    useEffect(() => {
+        if (isClient && !isFormInitialized) {
+            setValue('earningDeduction', 'All Earning & Deduction');
+            setValue('amountType', 'All');
+            setIsFormInitialized(true);
         }
-    }, [isClient, reset]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isClient, isFormInitialized]);
 
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
-    const watchedDesignation = watch('designation');
+    const _watchedDesignation = watch('designation');
+    const _watchedHeads = watch('heads');
+    const watchedEarningDeduction = watch('earningDeduction');
+    const watchedAmountType = watch('amountType');
+    const watchedSelectedHead = watch('selectedHead');
+    const watchedUpdateValue = watch('updateValue');
+    const watchedAddRemove = watch('addRemove');
 
-    // Memoize filterEmployees to prevent infinite loops
-    const filterEmployees = useCallback(() => {
-        let filtered = employees;
+    // Dynamically filter heads based on earning/deduction and amount/percentage selection
+    const earningHeads = useMemo(() => {
+        let filteredHeads: any[] = [];
 
-        if (watchedGroupType && watchedGroupType !== 'All') {
-            const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === watchedGroupType);
-            if (groupType) {
-                filtered = filtered.filter((emp: any) => emp.hrmgT_Id === groupType.HRMGT_Id);
-            }
+        // Step 1: Filter by Earning/Deduction selection
+        if (watchedEarningDeduction === 'Earning') {
+            filteredHeads = [...earningHeadsList];
+        } else if (watchedEarningDeduction === 'Deduction') {
+            filteredHeads = [...deductionHeadsList];
+        } else {
+            // "All Earning & Deduction" - use headdropdown
+            filteredHeads = [...allHeads];
         }
 
-        if (watchedDepartment && watchedDepartment !== 'All') {
-            const department = departments.find((d: any) => d.HRMD_DepartmentName === watchedDepartment);
-            if (department) {
-                filtered = filtered.filter((emp: any) => emp.hrmD_Id === department.HRMD_Id);
-            }
+        // Step 2: Filter by Amount/Percentage selection
+        if (watchedAmountType === 'Amount') {
+            filteredHeads = filteredHeads.filter((h: any) => h.HRMED_AmountPercentFlag === 'Amount');
+        } else if (watchedAmountType === 'Percentage') {
+            filteredHeads = filteredHeads.filter((h: any) => h.HRMED_AmountPercentFlag === 'Percentage');
         }
+        // If "All" is selected, don't filter by AmountPercentFlag
 
-        if (watchedDesignation && watchedDesignation !== 'All') {
-            const designation = designations.find((d: any) => d.HRMDES_DesignationName === watchedDesignation);
-            if (designation) {
-                filtered = filtered.filter((emp: any) => emp.hrmdeS_Id === designation.HRMDES_Id);
-            }
-        }
+        return filteredHeads;
+    }, [watchedEarningDeduction, watchedAmountType, allHeads, earningHeadsList, deductionHeadsList]);
 
-        setFilteredEmployees(filtered);
-    }, [watchedGroupType, watchedDepartment, watchedDesignation, employees, groupTypes, departments, designations]);
-
-    // Only filter when search is triggered or filter criteria change
+    // Cascading dropdown: Fetch departments when group type changes
     useEffect(() => {
-        if (hasSearched) {
-            filterEmployees();
-        }
-    }, [hasSearched, watchedGroupType, watchedDepartment, watchedDesignation, filterEmployees]);
+        if (!isClient || !isFormInitialized) return;
 
-    const onSubmit = async (_data: any) => {
+        if (watchedGroupType && Array.isArray(watchedGroupType) && watchedGroupType.length > 0) {
+            const groupTypeIds = watchedGroupType
+                .map((gt: string) => {
+                    const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === gt);
+                    return groupType?.HRMGT_Id;
+                })
+                .filter((id): id is number => id !== undefined);
+
+            if (groupTypeIds.length > 0) {
+                getDepartments(
+                    {
+                        MI_Id: HRMS_MI_ID,
+                        hrmgT_IdList: groupTypeIds
+                    },
+                    {
+                        onSuccess: (data) => {
+                            setCascadingDepartments(data.departmentdropdown || []);
+                            // Reset department and designation when group type changes
+                            setValue('department', []);
+                            setValue('designation', []);
+                            setCascadingDesignations([]);
+                        },
+                        onError: () => {
+                            setCascadingDepartments([]);
+                        }
+                    }
+                );
+            } else {
+                setCascadingDepartments([]);
+                setCascadingDesignations([]);
+            }
+        } else if (!watchedGroupType || (Array.isArray(watchedGroupType) && watchedGroupType.length === 0)) {
+            // Reset to onload data when no group types selected
+            setCascadingDepartments([]);
+            setCascadingDesignations([]);
+            setValue('department', []);
+            setValue('designation', []);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedGroupType, isClient, isFormInitialized]);
+
+    // Cascading dropdown: Fetch designations when department changes
+    useEffect(() => {
+        if (!isClient || !isFormInitialized) return;
+
+        if (
+            watchedDepartment &&
+            Array.isArray(watchedDepartment) &&
+            watchedDepartment.length > 0 &&
+            watchedGroupType &&
+            Array.isArray(watchedGroupType) &&
+            watchedGroupType.length > 0
+        ) {
+            const groupTypeIds = watchedGroupType
+                .map((gt: string) => {
+                    const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === gt);
+                    return groupType?.HRMGT_Id;
+                })
+                .filter((id): id is number => id !== undefined);
+
+            const departmentIds = watchedDepartment
+                .map((dept: string) => {
+                    const department = departments.find((d: any) => d.HRMD_DepartmentName === dept);
+                    return department?.HRMD_Id;
+                })
+                .filter((id): id is number => id !== undefined);
+
+            if (groupTypeIds.length > 0 && departmentIds.length > 0) {
+                getDesignations(
+                    {
+                        MI_Id: HRMS_MI_ID,
+                        hrmgT_IdList: groupTypeIds,
+                        hrmD_IdList: departmentIds
+                    },
+                    {
+                        onSuccess: (data) => {
+                            setCascadingDesignations(data.designationdropdown || []);
+                            // Reset designation when department changes
+                            setValue('designation', []);
+                        },
+                        onError: () => {
+                            setCascadingDesignations([]);
+                        }
+                    }
+                );
+            } else {
+                setCascadingDesignations([]);
+            }
+        } else if (!watchedDepartment || (Array.isArray(watchedDepartment) && watchedDepartment.length === 0)) {
+            // Reset to onload data when no departments selected
+            setCascadingDesignations([]);
+            setValue('designation', []);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedDepartment, watchedGroupType, isClient, isFormInitialized]);
+
+    // Reset heads when earning/deduction or amount/percentage selection changes
+    useEffect(() => {
+        if (isClient && isFormInitialized) {
+            setValue('heads', []);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedEarningDeduction, watchedAmountType, isClient, isFormInitialized]);
+
+    const onSubmit = async (formData: any) => {
         try {
-            filterEmployees();
-            setHasSearched(true);
-            toast.success('Search completed successfully');
+            // Map form values to API request format
+            const groupTypeIds: number[] = [];
+            if (formData.groupType && Array.isArray(formData.groupType) && formData.groupType.length > 0) {
+                formData.groupType.forEach((gt: string) => {
+                    const groupType = groupTypes.find((g: any) => g.HRMGT_EmployeeGroupType === gt);
+                    if (groupType) {
+                        groupTypeIds.push(groupType.HRMGT_Id);
+                    }
+                });
+            }
+
+            const departmentIds: number[] = [];
+            if (formData.department && Array.isArray(formData.department) && formData.department.length > 0) {
+                formData.department.forEach((dept: string) => {
+                    const department = departments.find((d: any) => d.HRMD_DepartmentName === dept);
+                    if (department) {
+                        departmentIds.push(department.HRMD_Id);
+                    }
+                });
+            }
+
+            const designationIds: number[] = [];
+            if (formData.designation && Array.isArray(formData.designation) && formData.designation.length > 0) {
+                formData.designation.forEach((desg: string) => {
+                    const designation = designations.find((d: any) => d.HRMDES_DesignationName === desg);
+                    if (designation) {
+                        designationIds.push(designation.HRMDES_Id);
+                    }
+                });
+            }
+
+            const headIds: number[] = [];
+            if (formData.heads && Array.isArray(formData.heads) && formData.heads.length > 0) {
+                // formData.heads now contains HRMED_Id as strings, convert to numbers
+                formData.heads.forEach((headId: string | number) => {
+                    const id = typeof headId === 'string' ? Number.parseInt(headId, 10) : headId;
+                    if (!Number.isNaN(id) && id > 0) {
+                        headIds.push(id);
+                    }
+                });
+            }
+
+            // Call API to filter employees
+            filterEmployees(
+                {
+                    MI_Id: HRMS_MI_ID,
+                    LogInUserId: 0,
+                    designationselected: designationIds,
+                    departmentselected: departmentIds,
+                    groupTypeselected: groupTypeIds,
+                    headselected: headIds
+                },
+                {
+                    onSuccess: (data) => {
+                        setFilteredEmployees(data.employeedropdown || []);
+                        setHasSearched(true);
+                        toast.success('Search completed successfully');
+                    },
+                    onError: (error: any) => {
+                        toast.error(error.message || 'Search failed');
+                    }
+                }
+            );
         } catch (error: any) {
             toast.error(error.message || 'Search failed');
         }
@@ -156,7 +366,94 @@ function SalaryUpdationPageContent({
             toast.error('Please select at least one employee');
             return;
         }
-        toast.info('Update functionality to be implemented');
+
+        // Get current form values
+        const formValues = watch();
+
+        // Validate required fields
+        if (!formValues.selectedHead) {
+            toast.error('Please select a head');
+            return;
+        }
+
+        if (!formValues.updateValue) {
+            toast.error(`Please enter ${formValues.amountType === 'Amount' ? 'amount' : 'percentage'}`);
+            return;
+        }
+
+        // Get all available heads (not filtered) for finding the selected head
+        const allAvailableHeads = [
+            ...(response?.headdropdown || []),
+            ...(response?.earningdropdown || []),
+            ...(response?.detectiondropdown || [])
+        ];
+
+        const headId = Number.parseInt(formValues.selectedHead, 10);
+        if (Number.isNaN(headId) || headId <= 0) {
+            toast.error('Invalid head selected');
+            return;
+        }
+
+        const selectedHead = allAvailableHeads.find((h: any) => h.HRMED_Id === headId);
+        if (!selectedHead) {
+            toast.error('Selected head not found');
+            return;
+        }
+
+        const isEarning = formValues.earningDeduction === 'Earning';
+        const amountValue = Number.parseFloat(formValues.updateValue || '0') || 0;
+
+        // Build earning and deduction arrays based on form selections
+        const earningresult: EarningResultItem[] = [];
+        const deductionresult: DeductionResultItem[] = [];
+
+        // Create item for each selected employee
+        selectedEmployees.forEach((employeeId) => {
+            const item = {
+                HREED_Id: 0,
+                MI_Id: HRMS_MI_ID,
+                HRME_Id: employeeId,
+                HRMED_Id: headId,
+                HREED_Amount: formValues.amountType === 'Amount' ? amountValue : 0,
+                HREED_Percentage: formValues.amountType === 'Percentage' ? amountValue.toString() : '0',
+                HREED_ActiveFlag: true,
+                HREED_MaxApplicableFlg: true,
+                HREED_ApplicableMaxValue: 0
+            };
+
+            if (isEarning) {
+                earningresult.push(item as EarningResultItem);
+            } else {
+                deductionresult.push(item as DeductionResultItem);
+            }
+        });
+
+        // Call API to save employee details
+        getEmployeeDetails(
+            {
+                earningresult: earningresult.length > 0 ? earningresult : undefined,
+                deductionresult: deductionresult.length > 0 ? deductionresult : undefined,
+                LogInUserId: 0
+            },
+            {
+                onSuccess: (data) => {
+                    // Update filtered employees with the response
+                    if (data.employeedropdown && data.employeedropdown.length > 0) {
+                        setFilteredEmployees(data.employeedropdown);
+                        toast.success('Employee details saved successfully');
+                        // Reset form fields
+                        setValue('selectedHead', '');
+                        setValue('updateValue', '');
+                        setSelectedEmployees([]);
+                    } else {
+                        toast.info('No employee details found for the selected criteria');
+                    }
+                },
+                onError: (error: any) => {
+                    toast.error(error.message || 'Failed to save employee details');
+                }
+            }
+        );
     };
 
     return (
@@ -166,163 +463,296 @@ function SalaryUpdationPageContent({
                 <FormSections onloadData={response} onSuccess={refetch} />
 
                 {/* Search Form */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='outline'
-                    size='lg'
-                    className='shadow-lg'>
+                <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-6'>
+                        {/* Top Row: Group Type, Department, Designation */}
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            {/* Group Type */}
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Group Type</Label>
+                                <Label className='font-semibold'>
+                                    Group Type <span className='text-destructive'>*</span>
+                                </Label>
                                 <Controller
                                     name='groupType'
                                     control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Group Type' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='All'>All Group Types</SelectItem>
-                                                {groupTypes.map((groupType: any) => (
-                                                    <SelectItem key={groupType.HRMGT_Id} value={groupType.HRMGT_EmployeeGroupType}>
-                                                        {groupType.HRMGT_EmployeeGroupType}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
+                                    render={({ field }) => {
+                                        const currentValue = Array.isArray(field.value) ? field.value : [];
+                                        const allGroupTypeValues = groupTypes.map((gt: any) => gt.HRMGT_EmployeeGroupType);
+                                        const isAllSelected = allGroupTypeValues.length > 0 && allGroupTypeValues.every((val: string) => currentValue.includes(val));
+
+                                        return (
+                                            <MultiSelect
+                                                options={[
+                                                    { label: 'All', value: 'All' },
+                                                    ...groupTypes.map((gt: any) => ({
+                                                        label: gt.HRMGT_EmployeeGroupType,
+                                                        value: gt.HRMGT_EmployeeGroupType
+                                                    }))
+                                                ]}
+                                                onValueChange={(vals) => {
+                                                    if (vals.includes('All') && !isAllSelected) {
+                                                        // If "All" is selected, select all group types
+                                                        field.onChange(allGroupTypeValues);
+                                                    } else if (vals.includes('All') && isAllSelected) {
+                                                        // If "All" is clicked when all are selected, deselect all
+                                                        field.onChange([]);
+                                                    } else {
+                                                        // Remove "All" if individual items are selected
+                                                        const filteredVals = vals.filter((v) => v !== 'All');
+                                                        field.onChange(filteredVals);
+                                                    }
+                                                }}
+                                                defaultValue={currentValue}
+                                                placeholder='Select Group Types'
+                                                className='w-full'
+                                                maxHeight={240}
+                                            />
+                                        );
+                                    }}
                                 />
                             </div>
 
+                            {/* Department */}
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Department</Label>
+                                <Label className='font-semibold'>
+                                    Department <span className='text-destructive'>*</span>
+                                </Label>
                                 <Controller
                                     name='department'
                                     control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Department' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='All'>All Departments</SelectItem>
-                                                {departments.map((department: any) => (
-                                                    <SelectItem key={department.HRMD_Id} value={department.HRMD_DepartmentName}>
-                                                        {department.HRMD_DepartmentName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
+                                    render={({ field }) => {
+                                        const currentValue = Array.isArray(field.value) ? field.value : [];
+                                        const allDeptValues = departments.map((d: any) => d.HRMD_DepartmentName);
+                                        const isAllSelected = allDeptValues.length > 0 && allDeptValues.every((val: string) => currentValue.includes(val));
+
+                                        return (
+                                            <MultiSelect
+                                                options={[
+                                                    { label: 'All', value: 'All' },
+                                                    ...departments.map((dept: any) => ({
+                                                        label: dept.HRMD_DepartmentName,
+                                                        value: dept.HRMD_DepartmentName
+                                                    }))
+                                                ]}
+                                                onValueChange={(vals) => {
+                                                    if (vals.includes('All') && !isAllSelected) {
+                                                        field.onChange(allDeptValues);
+                                                    } else if (vals.includes('All') && isAllSelected) {
+                                                        field.onChange([]);
+                                                    } else {
+                                                        const filteredVals = vals.filter((v) => v !== 'All');
+                                                        field.onChange(filteredVals);
+                                                    }
+                                                }}
+                                                defaultValue={currentValue}
+                                                placeholder='Select Departments'
+                                                className='w-full'
+                                                maxHeight={240}
+                                                disabled={isGettingDepartments}
+                                            />
+                                        );
+                                    }}
                                 />
                             </div>
 
+                            {/* Designation */}
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Designation</Label>
+                                <Label className='font-semibold'>
+                                    Designation <span className='text-destructive'>*</span>
+                                </Label>
                                 <Controller
                                     name='designation'
                                     control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Designation' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='All'>All Designations</SelectItem>
-                                                {designations.map((designation: any) => (
-                                                    <SelectItem key={designation.HRMDES_Id} value={designation.HRMDES_DesignationName}>
-                                                        {designation.HRMDES_DesignationName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
+                                    render={({ field }) => {
+                                        const currentValue = Array.isArray(field.value) ? field.value : [];
+                                        const allDesgValues = designations.map((d: any) => d.HRMDES_DesignationName);
+                                        const isAllSelected = allDesgValues.length > 0 && allDesgValues.every((val: string) => currentValue.includes(val));
 
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Month</Label>
-                                <Controller
-                                    name='month'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Month' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {monthOptions.map((month: any) => (
-                                                    <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Id.toString()}>
-                                                        {month.IVRM_Month_Name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Year</Label>
-                                <Controller
-                                    name='year'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Year' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {leaveYearOptions.map((year: any) => (
-                                                    <SelectItem key={year.HRMLY_Id} value={year.HRMLY_Id.toString()}>
-                                                        {year.HRMLY_LeaveYear}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Head</Label>
-                                <Controller
-                                    name='heads'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Head' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value='All'>All Heads</SelectItem>
-                                                {earningHeads.map((head: any) => (
-                                                    <SelectItem key={head.hrmeD_Id} value={head.hrmeD_Name}>
-                                                        {head.hrmeD_Name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
+                                        return (
+                                            <MultiSelect
+                                                options={[
+                                                    { label: 'All', value: 'All' },
+                                                    ...designations.map((desg: any) => ({
+                                                        label: desg.HRMDES_DesignationName,
+                                                        value: desg.HRMDES_DesignationName
+                                                    }))
+                                                ]}
+                                                onValueChange={(vals) => {
+                                                    if (vals.includes('All') && !isAllSelected) {
+                                                        field.onChange(allDesgValues);
+                                                    } else if (vals.includes('All') && isAllSelected) {
+                                                        field.onChange([]);
+                                                    } else {
+                                                        const filteredVals = vals.filter((v) => v !== 'All');
+                                                        field.onChange(filteredVals);
+                                                    }
+                                                }}
+                                                defaultValue={currentValue}
+                                                placeholder='Select Designations'
+                                                className='w-full'
+                                                maxHeight={240}
+                                                disabled={isGettingDesignations}
+                                            />
+                                        );
+                                    }}
                                 />
                             </div>
                         </div>
 
-                        <div className='flex gap-2 pt-4'>
-                            <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105'>
-                                <RefreshCw className='mr-2 h-4 w-4' />
-                                SEARCH
+                        {/* Middle Section: Radio Buttons and Head Selection */}
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                            {/* Left Column: Earning/Deduction and Amount/Percentage */}
+                            <div className='space-y-6'>
+                                {/* Earning & Deduction Selection */}
+                                <div className='space-y-3'>
+                                    <Label className='font-semibold'>
+                                        Earning & Deduction <span className='text-destructive'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='earningDeduction'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <RadioGroup
+                                                value={field.value || 'All Earning & Deduction'}
+                                                onValueChange={(value) => {
+                                                    field.onChange(value);
+                                                }}
+                                                className='flex flex-col gap-3'>
+                                                <div className='flex items-center gap-2'>
+                                                    <RadioGroupItem value='All Earning & Deduction' id='ed-all' />
+                                                    <Label htmlFor='ed-all' className='cursor-pointer font-normal'>
+                                                        All Earning & Deduction
+                                                    </Label>
+                                                </div>
+                                                <div className='flex items-center gap-2'>
+                                                    <RadioGroupItem value='Earning' id='ed-earning' />
+                                                    <Label htmlFor='ed-earning' className='cursor-pointer font-normal'>
+                                                        Earning
+                                                    </Label>
+                                                </div>
+                                                <div className='flex items-center gap-2'>
+                                                    <RadioGroupItem value='Deduction' id='ed-deduction' />
+                                                    <Label htmlFor='ed-deduction' className='cursor-pointer font-normal'>
+                                                        Deduction
+                                                    </Label>
+                                                </div>
+                                            </RadioGroup>
+                                        )}
+                                    />
+                                </div>
+
+                                {/* Amount / Percentage Selection */}
+                                <div className='space-y-3'>
+                                    <Label className='font-semibold'>
+                                        Amount / Percentage <span className='text-destructive'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='amountType'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <RadioGroup
+                                                value={field.value || 'All'}
+                                                onValueChange={(value) => {
+                                                    field.onChange(value);
+                                                }}
+                                                className='flex flex-col gap-3'>
+                                                <div className='flex items-center gap-2'>
+                                                    <RadioGroupItem value='All' id='amt-all' />
+                                                    <Label htmlFor='amt-all' className='cursor-pointer font-normal'>
+                                                        All
+                                                    </Label>
+                                                </div>
+                                                <div className='flex items-center gap-2'>
+                                                    <RadioGroupItem value='Amount' id='amt-amount' />
+                                                    <Label htmlFor='amt-amount' className='cursor-pointer font-normal'>
+                                                        Amount
+                                                    </Label>
+                                                </div>
+                                                <div className='flex items-center gap-2'>
+                                                    <RadioGroupItem value='Percentage' id='amt-percentage' />
+                                                    <Label htmlFor='amt-percentage' className='cursor-pointer font-normal'>
+                                                        Percentage
+                                                    </Label>
+                                                </div>
+                                            </RadioGroup>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Right Column: Head Selection */}
+                            <div className='space-y-3'>
+                                <Label className='font-semibold'>
+                                    Head <span className='text-destructive'>*</span>
+                                </Label>
+                                <Controller
+                                    name='heads'
+                                    control={control}
+                                    render={({ field }) => {
+                                        const currentValue = Array.isArray(field.value) ? field.value.map((v) => String(v)) : [];
+                                        // Use HRMED_Id as value to ensure uniqueness, but display HRMED_Name
+                                        const allHeadValues = earningHeads.map((h: any) => h.HRMED_Id?.toString() || '').filter(Boolean);
+                                        const isAllSelected = allHeadValues.length > 0 && allHeadValues.every((val: string) => currentValue.includes(val));
+
+                                        return (
+                                            <MultiSelect
+                                                options={[
+                                                    { label: 'All', value: 'All' },
+                                                    ...earningHeads
+                                                        .filter((h: any) => h.HRMED_Name && h.HRMED_Id)
+                                                        .map((head: any) => ({
+                                                            label: head.HRMED_Name || '',
+                                                            value: head.HRMED_Id?.toString() || ''
+                                                        }))
+                                                ]}
+                                                onValueChange={(vals) => {
+                                                    if (vals.includes('All') && !isAllSelected) {
+                                                        field.onChange(allHeadValues);
+                                                    } else if (vals.includes('All') && isAllSelected) {
+                                                        field.onChange([]);
+                                                    } else {
+                                                        const filteredVals = vals.filter((v) => v !== 'All');
+                                                        field.onChange(filteredVals);
+                                                    }
+                                                }}
+                                                defaultValue={currentValue}
+                                                placeholder='Select Heads'
+                                                className='w-full'
+                                                maxHeight={240}
+                                            />
+                                        );
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Bottom Row: Action Buttons */}
+                        <div className='flex items-end gap-2'>
+                            <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105' disabled={isFiltering}>
+                                <RefreshCw className={`mr-2 h-4 w-4 ${isFiltering ? 'animate-spin' : ''}`} />
+                                {isFiltering ? 'SEARCHING...' : 'SEARCH'}
                             </Button>
                             <Button
                                 type='button'
                                 variant='outline'
                                 className='w-fit transition-all duration-200 hover:scale-105'
                                 onClick={() => {
-                                    reset();
+                                    reset({
+                                        groupType: [],
+                                        department: [],
+                                        designation: [],
+                                        earningDeduction: 'All Earning & Deduction',
+                                        amountType: 'All',
+                                        amountValue: '',
+                                        heads: [],
+                                        selectedHead: '',
+                                        updateValue: '',
+                                        addRemove: 'Add'
+                                    });
                                     setHasSearched(false);
                                     setSelectedEmployees([]);
+                                    setCascadingDepartments([]);
+                                    setCascadingDesignations([]);
                                 }}>
                                 <X className='mr-2 h-4 w-4' />
                                 CANCEL
@@ -338,43 +768,277 @@ function SalaryUpdationPageContent({
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <div className='space-y-4'>
-                            {/* Add Button */}
-                            <div className='flex justify-end'>
-                                <Button
-                                    type='button'
-                                    onClick={openAddForm}
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <Plus className='h-4 w-4' />
-                                    Add Salary Updation
-                                </Button>
+                            <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                                {/* Left Panel - Employee Details Form */}
+                                <div className='space-y-4 rounded-lg border p-4'>
+                                    <h3 className='text-lg font-semibold'>EMPLOYEE DETAILS</h3>
+                                    
+                                    {/* Earning/Deduction Radio Buttons */}
+                                    <div className='space-y-2'>
+                                        <Label className='font-semibold'>
+                                            Earning <span className='text-destructive'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='earningDeduction'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <RadioGroup
+                                                    value={field.value === 'All Earning & Deduction' ? 'Earning' : (field.value || 'Earning')}
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        setValue('selectedHead', '');
+                                                        setValue('updateValue', '');
+                                                    }}
+                                                    className='flex gap-6'>
+                                                    <div className='flex items-center gap-2'>
+                                                        <RadioGroupItem value='Earning' id='ed-earn-details' />
+                                                        <Label htmlFor='ed-earn-details' className='cursor-pointer font-normal'>
+                                                            Earning
+                                                        </Label>
+                                                    </div>
+                                                    <div className='flex items-center gap-2'>
+                                                        <RadioGroupItem value='Deduction' id='ed-ded-details' />
+                                                        <Label htmlFor='ed-ded-details' className='cursor-pointer font-normal'>
+                                                            Deduction
+                                                        </Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            )}
+                                        />
+                                    </div>
+
+                                    {/* Amount/Percentage Radio Buttons */}
+                                    <div className='space-y-2'>
+                                        <Label className='font-semibold'>
+                                            Amount <span className='text-destructive'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='amountType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <RadioGroup
+                                                    value={field.value === 'All' ? 'Percentage' : field.value}
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        setValue('selectedHead', '');
+                                                        setValue('updateValue', '');
+                                                    }}
+                                                    className='flex gap-6'>
+                                                    <div className='flex items-center gap-2'>
+                                                        <RadioGroupItem value='Amount' id='amt-amt-details' />
+                                                        <Label htmlFor='amt-amt-details' className='cursor-pointer font-normal'>
+                                                            Amount
+                                                        </Label>
+                                                    </div>
+                                                    <div className='flex items-center gap-2'>
+                                                        <RadioGroupItem value='Percentage' id='amt-per-details' />
+                                                        <Label htmlFor='amt-per-details' className='cursor-pointer font-normal'>
+                                                            Percentage
+                                                        </Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            )}
+                                        />
+                                    </div>
+
+                                    {/* Head Dropdown */}
+                                    <div className='space-y-2'>
+                                        <Label className='font-semibold'>
+                                            Head :<span className='text-destructive'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='selectedHead'
+                                            control={control}
+                                            render={({ field }) => {
+                                                // Filter heads based on current selections in the left panel
+                                                // watchedEarningDeduction in left panel will be 'Earning' or 'Deduction'
+                                                // watchedAmountType in left panel will be 'Amount' or 'Percentage'
+                                                const filteredHeadsForDropdown = earningHeads.filter((h: any) => {
+                                                    const earnDedMatch = h.HRMED_EarnDedFlag === watchedEarningDeduction;
+                                                    const amountPercentMatch = h.HRMED_AmountPercentFlag === watchedAmountType;
+                                                    return earnDedMatch && amountPercentMatch;
+                                                });
+
+                                                return (
+                                                    <Select value={field.value} onValueChange={field.onChange}>
+                                                        <SelectTrigger className='w-full'>
+                                                            <SelectValue placeholder='Select' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {filteredHeadsForDropdown.length === 0 ? (
+                                                                <div className='p-2 text-center text-muted-foreground text-sm'>
+                                                                    No heads available
+                                                                </div>
+                                                            ) : (
+                                                                filteredHeadsForDropdown.map((head: any) => (
+                                                                    <SelectItem key={head.HRMED_Id} value={head.HRMED_Id.toString()}>
+                                                                        {head.HRMED_Name}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                );
+                                            }}
+                                        />
+                                    </div>
+
+                                    {/* Amount/Percentage Input */}
+                                    {(watchedAmountType === 'Amount' || watchedAmountType === 'Percentage') && (
+                                        <div className='space-y-2'>
+                                            <Label className='font-semibold'>
+                                                {watchedAmountType === 'Amount' ? 'Amount' : 'Percentage'}:<span className='text-destructive'>*</span>
+                                            </Label>
+                                            <InputText
+                                                type='number'
+                                                step='0.01'
+                                                placeholder={`Enter ${watchedAmountType === 'Amount' ? 'amount' : 'percentage'}`}
+                                                {...register('updateValue')}
+                                                className='w-full'
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Add/Remove Radio Buttons */}
+                                    <div className='space-y-2'>
+                                        <Label className='font-semibold'>
+                                            Add <span className='text-destructive'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='addRemove'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <RadioGroup
+                                                    value={field.value || 'Add'}
+                                                    onValueChange={field.onChange}
+                                                    className='flex gap-6'>
+                                                    <div className='flex items-center gap-2'>
+                                                        <RadioGroupItem value='Add' id='ar-add' />
+                                                        <Label htmlFor='ar-add' className='cursor-pointer font-normal'>
+                                                            Add
+                                                        </Label>
+                                                    </div>
+                                                    <div className='flex items-center gap-2'>
+                                                        <RadioGroupItem value='Remove' id='ar-remove' />
+                                                        <Label htmlFor='ar-remove' className='cursor-pointer font-normal'>
+                                                            Remove
+                                                        </Label>
+                                                    </div>
+                                                </RadioGroup>
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Right Panel - Employee List */}
+                                <div className='space-y-4'>
+                                    <h3 className='text-lg font-semibold'>Employee List</h3>
+                                    
+                                    <GenericDataTable<EmployeeDropdown>
+                                        data={filteredEmployees}
+                                        totalItems={filteredEmployees.length}
+                                        columns={[
+                                            {
+                                                id: 'select',
+                                                header: () => (
+                                                    <Checkbox
+                                                        checked={filteredEmployees.length > 0 && selectedEmployees.length === filteredEmployees.length}
+                                                        onCheckedChange={(checked) => {
+                                                            if (checked) {
+                                                                setSelectedEmployees(filteredEmployees.map((emp) => emp.HRME_Id));
+                                                            } else {
+                                                                setSelectedEmployees([]);
+                                                            }
+                                                        }}
+                                                        aria-label='Select all'
+                                                    />
+                                                ),
+                                                cell: ({ row }) => (
+                                                    <Checkbox
+                                                        checked={selectedEmployees.includes(row.original.HRME_Id)}
+                                                        onCheckedChange={(checked) => {
+                                                            if (checked) {
+                                                                setSelectedEmployees((prev) => [...prev, row.original.HRME_Id]);
+                                                            } else {
+                                                                setSelectedEmployees((prev) => prev.filter((id) => id !== row.original.HRME_Id));
+                                                            }
+                                                        }}
+                                                        aria-label='Select row'
+                                                    />
+                                                ),
+                                                enableSorting: false,
+                                                enableHiding: false
+                                            },
+                                            {
+                                                id: 'slNo',
+                                                header: 'SL. No',
+                                                cell: ({ row, table }) => {
+                                                    const pageIndex = table.getState().pagination.pageIndex;
+                                                    const pageSize = table.getState().pagination.pageSize;
+                                                    return <div>{pageIndex * pageSize + row.index + 1}</div>;
+                                                },
+                                                enableSorting: false
+                                            },
+                                            {
+                                                accessorKey: 'HRME_EmployeeCode',
+                                                header: 'Employee Code',
+                                                cell: ({ row }) => <div className='font-medium'>{row.original.HRME_EmployeeCode}</div>
+                                            },
+                                            {
+                                                accessorKey: 'employeeName',
+                                                header: 'Employee Name',
+                                                cell: ({ row }) => {
+                                                    const fullName = [
+                                                        row.original.HRME_EmployeeFirstName,
+                                                        row.original.HRME_EmployeeMiddleName,
+                                                        row.original.HRME_EmployeeLastName
+                                                    ]
+                                                        .filter(Boolean)
+                                                        .join(' ');
+                                                    return <div className='font-medium'>{fullName}</div>;
+                                                }
+                                            }
+                                        ]}
+                                        isLoading={isFiltering || isLoading}
+                                        error={error}
+                                        showViewOptions={true}
+                                        loadingMessage='Filtering employees...'
+                                        noDataTitle='No Employees Found'
+                                        noDataDescription='No employees match your search criteria'
+                                        errorTitle='Error Loading Employees'
+                                    />
+                                </div>
                             </div>
 
-                            <GenericDataTable<SalaryUpdationItem>
-                                data={filteredEmployees}
-                                totalItems={filteredEmployees.length}
-                                columns={salaryUpdationColumns}
-                                isLoading={isLoading}
-                                error={error}
-                                showViewOptions={true}
-                                columnPinning={{ right: ['actions'] }}
-                                loadingMessage='Loading salary records...'
-                                noDataTitle='No Records Found'
-                                noDataDescription='No salary records match your search criteria'
-                                errorTitle='Error Loading Records'
-                            />
-
-                            <div className='flex justify-end gap-2'>
-                                <Button onClick={handleUpdate} className='w-fit transition-all duration-200 hover:scale-105'>
-                                    <RefreshCw className='mr-2 h-4 w-4' />
-                                    UPDATE
+                            {/* Bottom Action Buttons */}
+                            <div className='flex justify-end gap-2 border-t pt-4'>
+                                <Button
+                                    onClick={handleUpdate}
+                                    className='w-fit bg-blue-600 transition-all duration-200 hover:scale-105 hover:bg-blue-700'
+                                    disabled={isGettingDetails || selectedEmployees.length === 0 || !watchedSelectedHead || !watchedUpdateValue}>
+                                    <RefreshCw className={`mr-2 h-4 w-4 ${isGettingDetails ? 'animate-spin' : ''}`} />
+                                    {isGettingDetails ? 'SAVING...' : 'SAVE'}
                                 </Button>
                                 <Button
                                     variant='outline'
-                                    className='w-fit transition-all duration-200 hover:scale-105'
+                                    className='w-fit border-orange-500 text-orange-600 transition-all duration-200 hover:scale-105 hover:bg-orange-50'
                                     onClick={() => {
-                                        reset();
+                                        reset({
+                                            groupType: [],
+                                            department: [],
+                                            designation: [],
+                                            earningDeduction: 'All Earning & Deduction',
+                                            amountType: 'All',
+                                            amountValue: '',
+                                            heads: [],
+                                            selectedHead: '',
+                                            updateValue: '',
+                                            addRemove: 'Add'
+                                        });
                                         setHasSearched(false);
                                         setSelectedEmployees([]);
+                                        setCascadingDepartments([]);
+                                        setCascadingDesignations([]);
                                     }}>
                                     <X className='mr-2 h-4 w-4' />
                                     CANCEL

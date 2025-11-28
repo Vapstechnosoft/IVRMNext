@@ -7,13 +7,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { employeeLogReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { cn } from '@/lib/utils';
+import { employeeLogReportFilterSchema } from '@/schemas/hrms/attendance-management-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, FileDown, Printer, RefreshCw, X } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 export type LogReportFiltersState = z.infer<typeof employeeLogReportFilterSchema>;
@@ -32,18 +32,18 @@ interface LogReportFiltersProps {
     onPrint: () => void;
 }
 
-export function LogReportFilters({ 
-    filters, 
-    branches, 
-    departments, 
-    designations, 
+export function LogReportFilters({
+    filters,
+    branches,
+    departments,
+    designations,
     groupTypes = [],
     employees = [],
-    onFilterChange, 
-    onReport, 
-    onCancel, 
-    onExport, 
-    onPrint 
+    onFilterChange,
+    onReport,
+    onCancel,
+    onExport,
+    onPrint
 }: LogReportFiltersProps) {
     const {
         handleSubmit,
@@ -77,7 +77,20 @@ export function LogReportFilters({
         setValue('toDate', filters.toDate || '', { shouldDirty: false, shouldValidate: false });
         setValue('metric', filters.metric || 'Punch Time', { shouldDirty: false, shouldValidate: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filters.allOrIndividual, filters.type?.join(','), filters.department?.join(','), filters.designation?.join(','), filters.codeOrName, filters.query, filters.dateMode, filters.date, filters.month, filters.fromDate, filters.toDate, filters.metric]);
+    }, [
+        filters.allOrIndividual,
+        filters.type?.join(','),
+        filters.department?.join(','),
+        filters.designation?.join(','),
+        filters.codeOrName,
+        filters.query,
+        filters.dateMode,
+        filters.date,
+        filters.month,
+        filters.fromDate,
+        filters.toDate,
+        filters.metric
+    ]);
 
     const handleFilterChange = (key: keyof LogReportFiltersState, value: any) => {
         const newFilters = { ...filters, [key]: value };
@@ -103,10 +116,14 @@ export function LogReportFilters({
                             Type <span className='text-red-500'>*</span>
                         </label>
                         <MultiSelect
-                            options={groupTypes.length > 0 ? groupTypes : [
-                                { label: 'Permanent', value: 'Permanent' },
-                                { label: 'Contract', value: 'Contract' }
-                            ]}
+                            options={
+                                groupTypes.length > 0
+                                    ? groupTypes
+                                    : [
+                                          { label: 'Permanent', value: 'Permanent' },
+                                          { label: 'Contract', value: 'Contract' }
+                                      ]
+                            }
                             onValueChange={(values) => handleFilterChange('type', values)}
                             defaultValue={filters.type || []}
                             placeholder='Select Types'
@@ -167,9 +184,7 @@ export function LogReportFilters({
                             <label className='font-medium text-sm' htmlFor='employee'>
                                 Employee <span className='text-red-500'>*</span>
                             </label>
-                            <Select
-                                value={queryValue || undefined}
-                                onValueChange={(value) => handleFilterChange('query', value)}>
+                            <Select value={queryValue || undefined} onValueChange={(value) => handleFilterChange('query', value)}>
                                 <SelectTrigger id='employee' className={errors.query ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>

@@ -3,7 +3,6 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -221,7 +220,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                             Final Flag
                         </label>
                     </div>
-
                 </div>
             </div>
 

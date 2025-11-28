@@ -73,4 +73,3 @@ export const candidateInterviewColumns: ColumnDef<CandidateInterview>[] = [
         )
     }
 ];
-

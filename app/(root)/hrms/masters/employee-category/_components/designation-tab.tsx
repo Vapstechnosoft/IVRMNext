@@ -8,8 +8,8 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDesignation } from '@/hooks/hrms/useMasters';
 import type { ApiSearchparams } from '@/types';
 import type { DesignationDetail } from '@/types/hrms/master-designation';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { ListOrdered, Plus, Save, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { columns, getEditableColumns } from '../../designation/_components/columns';
@@ -17,7 +17,7 @@ import DesignationForm from '../../designation/_components/designation-form';
 
 export default function DesignationTab() {
     const roleId = HRMS_MI_ID;
-    
+
     // Read pagination and search params from URL
     const [page] = useQueryState('page', parseAsInteger.withDefault(1));
     const [page_size] = useQueryState('page_size', parseAsInteger.withDefault(10));
@@ -25,7 +25,7 @@ export default function DesignationTab() {
     const [search_column] = useQueryState('search_column', parseAsString.withDefault(''));
     const [sort_column] = useQueryState('sort_column', parseAsString.withDefault(''));
     const [sort_direction] = useQueryState('sort_direction', parseAsString.withDefault(''));
-    
+
     const searchParams: ApiSearchparams = {
         page,
         page_size,
@@ -34,7 +34,7 @@ export default function DesignationTab() {
         sort_column: sort_column || undefined,
         sort_direction: sort_direction || undefined
     };
-    
+
     const { listQuery, refetchAll } = useMasterDesignation(roleId, searchParams);
 
     return (

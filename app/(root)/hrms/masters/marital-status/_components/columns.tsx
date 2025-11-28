@@ -49,13 +49,24 @@ function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
     const handleToggle = useCallback(
         async (data: MaritalStatusDetail, newState: boolean) => {
             try {
-                await toggleMutation.mutateAsync({
+                const response = await toggleMutation.mutateAsync({
                     IVRMMMS_Id: data.IVRMMMS_Id,
                     IVRMMMS_ActiveFlag: newState
                 });
-                toast.success(`Marital Status ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} marital status`);
+
+                // Check the response success status
+                if (response?.success) {
+                    toast.success(response.message || `Marital Status ${newState ? 'activated' : 'deactivated'} successfully`);
+                } else {
+                    // Show the error message from the API response
+                    const errorMessage = response?.message || `Failed to ${newState ? 'activate' : 'deactivate'} marital status`;
+                    toast.error(errorMessage);
+                }
+            } catch (error: any) {
+                // Handle actual errors (network errors, etc.)
+                const errorMessage =
+                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} marital status`;
+                toast.error(errorMessage);
             }
         },
         [toggleMutation]

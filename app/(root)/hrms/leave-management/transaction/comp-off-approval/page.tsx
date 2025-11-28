@@ -5,7 +5,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { getCompOffApprovalColumns, type CompOffApproval } from './_components/columns';
+import { type CompOffApproval, getCompOffApprovalColumns } from './_components/columns';
 
 const compOffDB = createLocalCrud<CompOffApproval>('compOffApproval');
 
@@ -40,7 +40,6 @@ export default function CompOffApprovalPage() {
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-
                 <CollapsibleSection
                     title='Comp Off Approval'
                     description=''
