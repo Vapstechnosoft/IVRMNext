@@ -10,6 +10,8 @@ import type {
     IFeeOpeningGroupDropdownList,
     IFeeOpeningHeadDropDownList,
     IFeeOpeningInstallmentDropdownList,
+    IFeeOpeningPDA,
+    IFeeOpeningRefundable,
     IFeeOpeningSectionDropdownList
 } from '@/types/fees/transactions/transactions';
 
@@ -50,9 +52,20 @@ export async function getOpeningSectionDropdownData(asmaY_Id: number, asmcL_Id: 
     const url = `FeeOpeningBalance/section-dropdown-by-class?asmay_Id=${asmaY_Id || 0}&asmcl_Id=${asmcL_Id || 0}`;
     return await api.get<IFeeOpeningSectionDropdownList[]>('fees', url);
 }
-
-export async function getOpeningHeadDropdownData() {
-    const url = 'FeeOpeningBalance/fee-head-dropdown?asmay_Id=231';
+export async function getOpeningRefundable(asmaY_Id: number, filterrefund: string) {
+    const url = `FeeOpeningBalance/refundable?filterrefund=${filterrefund}&asmay_Id=${asmaY_Id || 0}`;
+    return await api.get<IFeeOpeningRefundable[]>('fees', url);
+}
+export async function getOpeningBalanceList(asmaY_Id: number) {
+    const url = `FeeOpeningBalance/opening-balance-list/${asmaY_Id}`;
+    return await api.get<IFeeOpeningBalanceList[]>('fees', url);
+}
+export async function getOpeningPDAList(asmaY_Id: number) {
+    const url = `FeeOpeningBalance/opening-balance-pda-list/${asmaY_Id}`;
+    return await api.get<IFeeOpeningPDA[]>('fees', url);
+}
+export async function getOpeningHeadDropdownData(asmaY_Id: number) {
+    const url = `FeeOpeningBalance/fee-head-dropdown?asmay_Id=${asmaY_Id}`;
     return await api.get<IFeeOpeningHeadDropDownList[]>('fees', url);
 }
 
@@ -68,4 +81,9 @@ export async function getOpeningGroupDropdownData(fmH_Id: number) {
 export async function getOpeningInstallmentDropdownData(asmaY_Id: number, fmG_id: number, fmH_Id: number) {
     const url = `FeeOpeningBalance/installment-dropdown-by-group?asmay_Id=${asmaY_Id}&fmg_id=${fmG_id}&fmh_Id=${fmH_Id}`;
     return await api.get<IFeeOpeningInstallmentDropdownList[]>('fees', url);
+}
+
+export async function deleteOpeningBalance(fillbusroutestudents: string, fmoB_Id: number) {
+    const url = `FeeOpeningBalance/delete?fillbusroutestudents=${fillbusroutestudents}&FMOB_Id=${fmoB_Id}`;
+    return await api.delete<any>('fees', url);
 }

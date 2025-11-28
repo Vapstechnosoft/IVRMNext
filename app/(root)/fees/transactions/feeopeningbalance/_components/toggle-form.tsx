@@ -3,25 +3,26 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
-import { feeConfigSchema } from '@/schemas/fees/configuration';
+import { useFeeOpeningBalanceList } from '@/hooks/fees/useTrasactions';
+import { feeOpeningBalanceSchema } from '@/schemas/fees/trasactions';
 import { toggleMasterfeeconfig } from '@/server/fees/configuration/feeconfiguration';
-import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
+import type { IFeeOpeningBalanceList } from '@/types/fees/transactions/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof feeConfigSchema.delete>;
+type FormFields = z.infer<typeof feeOpeningBalanceSchema.delete>;
 
 interface ToggleMasterFeesConfigFormProps {
-    rowData: IFeeConfig;
+    rowData: IFeeOpeningBalanceList;
     onClose: () => void;
 }
 
 export default function ToggleMasterFeesConfigForm({ rowData, onClose }: ToggleMasterFeesConfigFormProps) {
-    const { refetchAll } = useFeeconfiguration();
-    const isActive = rowData.fmC_Id;
+    const asmayId = (rowData as any).asmay_id ?? (rowData as any).fmC_Id ?? (rowData as any).id;
+    const { refetchAll } = useFeeOpeningBalanceList(asmayId);
+    const isActive = Boolean(asmayId);
 
     const {
         register,
@@ -29,7 +30,7 @@ export default function ToggleMasterFeesConfigForm({ rowData, onClose }: ToggleM
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(feeConfigSchema.delete),
+        resolver: zodResolver(feeOpeningBalanceSchema.delete),
         mode: 'onChange'
     });
 
@@ -40,7 +41,7 @@ export default function ToggleMasterFeesConfigForm({ rowData, onClose }: ToggleM
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterfeeconfig(30, Number(rowData.fmC_Id));
+            const response = await toggleMasterfeeconfig(30, Number(asmayId));
 
             if (response.success) {
                 toast.success(response.message);
@@ -58,9 +59,9 @@ export default function ToggleMasterFeesConfigForm({ rowData, onClose }: ToggleM
         <AdaptiveDialog title='Toggle Master Fee Config Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('fmC_Id')} defaultValue={rowData.fmC_Id} />
+                    <input type='hidden' {...register('fmC_Id')} defaultValue={asmayId} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmC_Id}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{asmayId}</strong>?
                     </p>
                     <FormError>{errors.fmC_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

@@ -7,11 +7,14 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
     getOpeningAcademicYearDropdownData,
+    getOpeningBalanceList,
     getOpeningCategoryDropdownData,
     getOpeningClassDropdownData,
     getOpeningGroupDropdownData,
     getOpeningHeadDropdownData,
     getOpeningInstallmentDropdownData,
+    getOpeningPDAList,
+    getOpeningRefundable,
     getOpeningSectionDropdownData
 } from '@/server/fees/trasactions/fee_opening_balance';
 import { getFeeStudentTransactionDetails } from '@/server/fees/trasactions/fee_student_transaction';
@@ -113,13 +116,30 @@ export const useopeningSectiondropdowndatafee = (asmaY_Id: number, asmcL_Id: num
     };
 };
 
-export const useopeningHeaddropdowndatafee = (searchParams?: ApiSearchparams) => {
+// export const useopeningHeaddropdowndatafee = (searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.FEE_OPENING_HEAD_DROPDOWN, searchParams ?? {}],
+//             queryFn: async () => getOpeningHeadDropdownData(),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.FEE_OPENING_HEAD_DROPDOWN]
+//             });
+//         }
+//     };
+// };
+
+export const useopeningHeaddropdowndatafee = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_HEAD_DROPDOWN, searchParams ?? {}],
-            queryFn: async () => getOpeningHeadDropdownData(),
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_HEAD_DROPDOWN, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningHeadDropdownData(asmaY_Id),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -450,6 +470,55 @@ export const useFeeTransactionWaivedOffGrid = (searchParams?: ApiSearchparams) =
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_TRANSACTION_WAIVED_OFF_grid]
+            });
+        }
+    };
+};
+
+export const useFeeOpeningBalanceList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_BALANCE_LIST, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningBalanceList(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_BALANCE_LIST]
+            });
+        }
+    };
+};
+export const useFeeOpeningPDAList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_PDA_LIST, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningPDAList(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_PDA_LIST]
+            });
+        }
+    };
+};
+export const useFeeOpeningRefundable = (asmaY_Id: number, filterrefund: string, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_REFUNDABLE, asmaY_Id, filterrefund, searchParams ?? {}],
+            queryFn: async () => getOpeningRefundable(asmaY_Id, filterrefund),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_REFUNDABLE]
             });
         }
     };

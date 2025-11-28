@@ -103,7 +103,9 @@ export default function UpdateSpecalFeeHeadForm({ onSuccess, termname = '', sele
                     fmH_ID: Number(item.fmH_Id)
                 }))
             };
+            const js = JSON.stringify(payload);
 
+            console.log('Payload for Special Fee Head Submission:', js);
             const response = await addOrUpdateSpecialfeehead(payload);
 
             if (response.success) {

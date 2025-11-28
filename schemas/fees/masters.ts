@@ -736,6 +736,6 @@ export const specialFeeHeadSchema = {
         fmsfH_Name: z.string().min(1, { message: 'Special Fee Head Name is required' })
     }),
     delete: z.object({
-        FMSFH_Id: deleteIdSchema('FMSFH_Id')
+        fmsfhfH_Id: deleteIdSchema('fmsfhfH_Id')
     })
 };

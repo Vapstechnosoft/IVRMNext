@@ -40,7 +40,7 @@ export default function ToggleSpecialFeeHeadForm({ rowData, onClose }: ToggleSpe
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleSpecialfeehead(Number(rowData.fmsfH_Id));
+            const response = await toggleSpecialfeehead(Number(rowData.fmsfhfH_Id));
 
             if (response.success) {
                 toast.success(response.message);
@@ -58,11 +58,11 @@ export default function ToggleSpecialFeeHeadForm({ rowData, onClose }: ToggleSpe
         <AdaptiveDialog title='Toggle' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('FMSFH_Id')} defaultValue={rowData.fmsfH_Id} />
+                    <input type='hidden' {...register('fmsfhfH_Id')} defaultValue={rowData.fmsfhfH_Id} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.fmsfH_Name}</strong>?
                     </p>
-                    <FormError>{errors.FMSFH_Id?.message}</FormError>
+                    <FormError>{errors.fmsfhfH_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
