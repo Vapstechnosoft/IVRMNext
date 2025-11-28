@@ -210,11 +210,29 @@ export default function LeaveYearForm({ selectedRow, onSuccess }: LeaveYearFormP
                 <Input type='number' id='HRMLY_LeaveYearOrder' {...register('HRMLY_LeaveYearOrder', { valueAsNumber: true })} />
             </div>
 
-            <div className='col-span-full flex gap-2'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending || (isEditMode && !isDirty)}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
                 </Button>
-                {isEditMode && !isDirty && <span className='mt-2 flex items-center text-muted-foreground text-sm'>No changes made</span>}
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            HRMLY_LeaveYear: '',
+                            HRMLY_FromDate: '',
+                            HRMLY_ToDate: '',
+                            HRMLY_ActiveFlag: true,
+                            HRMLY_LeaveYearOrder: undefined
+                        });
+                    }}>
+                    Clear
+                </Button>
+                {isEditMode && !isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
             </div>
         </form>
     );

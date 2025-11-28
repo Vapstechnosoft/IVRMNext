@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 import { Plus, Trash2, Upload, X } from 'lucide-react';
 
 // Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
@@ -122,7 +123,7 @@ const ensureNonEmptyValue = (value: any, fallback: any = null): string | null =>
     return trimmed;
 };
 import { useMemo, useState, useEffect, useRef } from 'react';
-import { Controller, useFieldArray } from 'react-hook-form';
+import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
 function EmployeeTabComponent({
@@ -138,7 +139,9 @@ function EmployeeTabComponent({
     watch,
     onClear,
     setValue,
-    getValues
+    getValues,
+    currentTab,
+    onPreviousTab
 }: any) {
     // DEBUG: Track renders to identify infinite loops
     const renderCount = useRef(0);
@@ -147,45 +150,6 @@ function EmployeeTabComponent({
     const prevBankFields = useRef<any[]>([]);
     
     renderCount.current += 1;
-    
-    useEffect(() => {
-        if (renderCount.current > 20) {
-            console.error('🔴 [EmployeeTab] EXCESSIVE RENDERS DETECTED!', {
-                renderCount: renderCount.current,
-                mobileFieldsLength: mobileFields.length,
-                emailFieldsLength: emailFields.length,
-                bankFieldsLength: bankFields.length,
-                stack: new Error().stack?.split('\n').slice(0, 10).join('\n')
-            });
-        }
-        
-        // Track field changes
-        if (mobileFields.length !== prevMobileFields.current.length) {
-            console.log('🟡 [EmployeeTab] mobileFields changed:', {
-                prev: prevMobileFields.current.length,
-                current: mobileFields.length,
-                fields: mobileFields.map(f => ({ id: f.id, type: getValues(`mobileDetails.${mobileFields.indexOf(f)}.type`) }))
-            });
-            prevMobileFields.current = mobileFields;
-        }
-        
-        if (emailFields.length !== prevEmailFields.current.length) {
-            console.log('🟡 [EmployeeTab] emailFields changed:', {
-                prev: prevEmailFields.current.length,
-                current: emailFields.length,
-                fields: emailFields.map(f => ({ id: f.id, type: getValues(`emailDetails.${emailFields.indexOf(f)}.type`) }))
-            });
-            prevEmailFields.current = emailFields;
-        }
-        
-        if (bankFields.length !== prevBankFields.current.length) {
-            console.log('🟡 [EmployeeTab] bankFields changed:', {
-                prev: prevBankFields.current.length,
-                current: bankFields.length
-            });
-            prevBankFields.current = bankFields;
-        }
-    });
 
     // State for controlling date picker popovers
     const [_dateOfJoiningOpen, _setDateOfJoiningOpen] = useState(false);
@@ -223,8 +187,136 @@ function EmployeeTabComponent({
         name: 'bankDetails'
     });
 
-    // REMOVED: All useEffect hooks that call setValue - they were causing infinite loops
-    // The formDefaultValues in the parent component handles initialization
+    // DEBUG: Track renders to identify infinite loops (moved after field array declarations)
+    useEffect(() => {
+        if (renderCount.current > 20) {
+            console.error('🔴 [EmployeeTab] EXCESSIVE RENDERS DETECTED!', {
+                renderCount: renderCount.current,
+                mobileFieldsLength: mobileFields.length,
+                emailFieldsLength: emailFields.length,
+                bankFieldsLength: bankFields.length,
+                stack: new Error().stack?.split('\n').slice(0, 10).join('\n')
+            });
+        }
+        
+        // Track field changes
+        if (mobileFields.length !== prevMobileFields.current.length) {
+            console.log('🟡 [EmployeeTab] mobileFields changed:', {
+                prev: prevMobileFields.current.length,
+                current: mobileFields.length
+            });
+            prevMobileFields.current = mobileFields;
+        }
+        
+        if (emailFields.length !== prevEmailFields.current.length) {
+            console.log('🟡 [EmployeeTab] emailFields changed:', {
+                prev: prevEmailFields.current.length,
+                current: emailFields.length
+            });
+            prevEmailFields.current = emailFields;
+        }
+        
+        if (bankFields.length !== prevBankFields.current.length) {
+            console.log('🟡 [EmployeeTab] bankFields changed:', {
+                prev: prevBankFields.current.length,
+                current: bankFields.length
+            });
+            prevBankFields.current = bankFields;
+        }
+    }, [mobileFields.length, emailFields.length, bankFields.length]);
+
+    // Watch dateOfBirth to auto-calculate dateOfRetirement - use useWatch for better reactivity
+    const dateOfBirth = useWatch({ control, name: 'dateOfBirth' });
+    
+    // Helper function to parse DOB to Date object for fromDate prop
+    const parseDOBToDate = (dobValue: string | Date | undefined): Date | undefined => {
+        if (!dobValue) return undefined;
+        
+        try {
+            let dob: Date;
+            
+            if (typeof dobValue === 'string') {
+                // Handle date strings - could be ISO format or YYYY-MM-DD
+                if (dobValue.includes('T')) {
+                    dob = new Date(dobValue);
+                } else {
+                    // YYYY-MM-DD format - add time to avoid timezone issues
+                    dob = new Date(dobValue + 'T00:00:00');
+                }
+            } else if (dobValue instanceof Date) {
+                dob = dobValue;
+            } else {
+                return undefined;
+            }
+            
+            if (isNaN(dob.getTime())) {
+                return undefined;
+            }
+            
+            return dob;
+        } catch (error) {
+            console.error('Error parsing DOB:', error);
+            return undefined;
+        }
+    };
+    
+    // Helper function to calculate retirement date
+    const calculateRetirementDate = (dobValue: string | Date | undefined): string => {
+        const dob = parseDOBToDate(dobValue);
+        if (!dob) return '';
+        
+        try {
+            const retirementDate = new Date(dob);
+            retirementDate.setFullYear(retirementDate.getFullYear() + 60);
+            // Return ISO string format that DateField expects
+            return retirementDate.toISOString();
+        } catch (error) {
+            console.error('Error calculating retirement date:', error);
+            return '';
+        }
+    };
+    
+    // Convert DOB to Date object for fromDate prop
+    const dobDate = parseDOBToDate(dateOfBirth);
+    
+    // Auto-calculate dateOfRetirement as DOB + 60 years
+    useEffect(() => {
+        // Skip if dateOfBirth is falsy or empty
+        if (!dateOfBirth) {
+            // Clear retirement date if DOB is cleared
+            const currentRetirementDate = getValues('dateOfRetirement');
+            if (currentRetirementDate) {
+                setValue('dateOfRetirement', '', { 
+                    shouldValidate: false, 
+                    shouldDirty: false,
+                    shouldTouch: false
+                });
+            }
+            return;
+        }
+
+        // Check if DOB is a valid string (not empty after trim) or valid Date
+        const isValidString = typeof dateOfBirth === 'string' && dateOfBirth.trim() !== '';
+        const isValidDate = dateOfBirth instanceof Date && !isNaN(dateOfBirth.getTime());
+        
+        if (!isValidString && !isValidDate) {
+            return;
+        }
+
+        // Calculate retirement date
+        const calculatedDate = calculateRetirementDate(dateOfBirth);
+        if (calculatedDate && calculatedDate.trim() !== '') {
+            // Use setTimeout to ensure the value is set after the current render cycle
+            setTimeout(() => {
+                setValue('dateOfRetirement', calculatedDate, { 
+                    shouldValidate: false, 
+                    shouldDirty: false,
+                    shouldTouch: false
+                });
+            }, 0);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [dateOfBirth]);
     // Select components will handle empty values gracefully
 
     // Removed debug options tracking to reduce console noise
@@ -322,7 +414,7 @@ function EmployeeTabComponent({
     return (
         <div className='space-y-6'>
             {/* Main Form Fields in Two Columns */}
-            <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
+            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6 items-start'>
                 {/* Left Column */}
                 <div className='space-y-4'>
                     <HRMSInputText
@@ -364,7 +456,7 @@ function EmployeeTabComponent({
                     />
 
                     <HRMSInputText
-                        label="Father's Name"
+                        label="Father's Name *"
                         id='fatherName'
                         maxLength={100}
                         {...register('fatherName')}
@@ -372,7 +464,7 @@ function EmployeeTabComponent({
                     />
 
                     <HRMSInputText
-                        label="Mother's Name"
+                        label="Mother's Name *"
                         id='motherName'
                         maxLength={100}
                         {...register('motherName')}
@@ -382,13 +474,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='typeOfEmployment'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Type of Employment <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -427,6 +523,9 @@ function EmployeeTabComponent({
                                             .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -434,13 +533,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='employeeGroup'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Employee Group <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -464,6 +567,9 @@ function EmployeeTabComponent({
                                             .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -471,13 +577,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='school'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     School <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -501,6 +611,9 @@ function EmployeeTabComponent({
                                             .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -508,13 +621,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='designation'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Designation <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -538,6 +655,9 @@ function EmployeeTabComponent({
                                             .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -553,13 +673,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='grade'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Grade <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -583,6 +707,9 @@ function EmployeeTabComponent({
                                             .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -654,13 +781,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='teachingNonTeaching'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Teaching/NonTeaching <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -668,6 +799,9 @@ function EmployeeTabComponent({
                                         <SelectItem value='Non Teaching'>Non Teaching</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -687,14 +821,46 @@ function EmployeeTabComponent({
                     {watch?.('pfApplicable') ? (
                         <div className='space-y-4 border-blue-500 border-l-4 pl-4'>
                             <div className='space-y-2'>
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox id='pfMaxAmount' {...register('pfMaxAmount')} />
-                                    <Label htmlFor='pfMaxAmount'>PF Max Amount</Label>
-                                </div>
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox id='pfFixedAmount' {...register('pfFixedAmount')} />
-                                    <Label htmlFor='pfFixedAmount'>PF Fixed Amount</Label>
-                                </div>
+                                <Controller
+                                    name='pfMaxAmount'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                id='pfMaxAmount'
+                                                checked={!!field.value}
+                                                onCheckedChange={(checked) => {
+                                                    field.onChange(!!checked);
+                                                    // If this is checked, uncheck the other
+                                                    if (checked) {
+                                                        setValue('pfFixedAmount', false, { shouldValidate: false, shouldDirty: false });
+                                                    }
+                                                }}
+                                            />
+                                            <Label htmlFor='pfMaxAmount'>PF Max Amount</Label>
+                                        </div>
+                                    )}
+                                />
+                                <Controller
+                                    name='pfFixedAmount'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                id='pfFixedAmount'
+                                                checked={!!field.value}
+                                                onCheckedChange={(checked) => {
+                                                    field.onChange(!!checked);
+                                                    // If this is checked, uncheck the other
+                                                    if (checked) {
+                                                        setValue('pfMaxAmount', false, { shouldValidate: false, shouldDirty: false });
+                                                    }
+                                                }}
+                                            />
+                                            <Label htmlFor='pfFixedAmount'>PF Fixed Amount</Label>
+                                        </div>
+                                    )}
+                                />
                             </div>
 
                             <HRMSInputText
@@ -777,13 +943,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='religion'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Religion <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -820,6 +990,9 @@ function EmployeeTabComponent({
                                             .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -827,13 +1000,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='casteCategory'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Caste Category <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -877,13 +1054,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='caste'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Caste <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='Select Caste' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -913,6 +1094,9 @@ function EmployeeTabComponent({
                                             .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -929,25 +1113,40 @@ function EmployeeTabComponent({
                         name='dateOfRetirement'
                         control={control}
                         render={({ field, fieldState }) => (
-                            <DateField
-                                field={field}
-                                fieldState={fieldState}
-                                label='Date of Retirement'
-                                placeholder='Pick date of retirement'
-                            />
+                            <div className='mt-5 flex flex-col gap-1.5'>
+                                <Label htmlFor={field.name}>
+                                    Date of Retirement
+                                    <span className='ml-1 text-red-500'>*</span>
+                                </Label>
+                                <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground'>
+                                    {field.value ? (() => {
+                                        try {
+                                            const date = new Date(field.value);
+                                            return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                        } catch {
+                                            return field.value;
+                                        }
+                                    })() : 'Pick date of retirement'}
+                                </div>
+                                {fieldState?.error && <div className='text-sm text-destructive'>{fieldState.error.message}</div>}
+                            </div>
                         )}
                     />
 
                     <Controller
                         name='gender'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Gender <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -971,6 +1170,9 @@ function EmployeeTabComponent({
                                             .filter(Boolean)}
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -978,13 +1180,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='maritalStatus'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Marital Status <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1013,8 +1219,8 @@ function EmployeeTabComponent({
                     />
 
                     {/* Multiple Mobile Numbers */}
-                    <div className='space-y-2'>
-                        <Label>Mobile No.</Label>
+                    <div className='flex flex-col gap-1.5'>
+                        <Label>Mobile No. <span className='text-red-500'>*</span></Label>
                         <div className='space-y-2'>
                             {mobileFields.map((field, index) => (
                                 <div key={field.id} className='flex items-center gap-2'>
@@ -1063,7 +1269,7 @@ function EmployeeTabComponent({
                     </div>
 
                     {/* Multiple Email IDs */}
-                    <div className='space-y-2'>
+                    <div className='flex flex-col gap-1.5'>
                         <Label>Email -Id</Label>
                         <div className='space-y-2'>
                             {emailFields.map((field, index) => (
@@ -1133,7 +1339,7 @@ function EmployeeTabComponent({
                         name='bloodGroup'
                         control={control}
                         render={({ field }) => (
-                            <div className='space-y-2'>
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>Blood Group</Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
@@ -1157,8 +1363,8 @@ function EmployeeTabComponent({
                     <Controller
                         name='salaryType'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>Salary Type</Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
@@ -1169,6 +1375,9 @@ function EmployeeTabComponent({
                                         <SelectItem value='hourly'>hourly</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -1176,13 +1385,17 @@ function EmployeeTabComponent({
                     <Controller
                         name='modeOfPayment'
                         control={control}
-                        render={({ field }) => (
-                            <div className='space-y-2'>
+                        render={({ field, fieldState }) => (
+                            <div className='flex flex-col gap-1.5'>
                                 <Label>
                                     Mode of Payment <span className='text-red-500'>*</span>
                                 </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger>
+                                    <SelectTrigger className={cn(
+                                        fieldState.error
+                                            ? 'border-destructive focus-visible:ring-destructive'
+                                            : 'border-input focus-visible:ring-ring'
+                                    )}>
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1190,6 +1403,9 @@ function EmployeeTabComponent({
                                         <SelectItem value='Cash'>Cash</SelectItem>
                                     </SelectContent>
                                 </Select>
+                                {fieldState.error && (
+                                    <div className='font-medium text-[0.8rem] text-destructive'>{fieldState.error.message}</div>
+                                )}
                             </div>
                         )}
                     />
@@ -1217,8 +1433,8 @@ function EmployeeTabComponent({
                                 {selectedPhoto && (
                                     <Button
                                         type='button'
-                                        variant='destructive'
                                         size='sm'
+                                        className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
                                         onClick={() => {
                                             setSelectedPhoto(null);
                                             setPhotoFile(null);
@@ -1236,7 +1452,7 @@ function EmployeeTabComponent({
                     {watch('modeOfPayment') === 'Bank' ? (
                         <div className='space-y-4'>
                             <div className='rounded-md bg-blue-600 px-4 py-2 text-white'>
-                                <h3 className='font-semibold'>Employee Bank Details:</h3>
+                                <h3 className='font-semibold text-base text-gray-900 uppercase'>EMPLOYEE BANK DETAILS:</h3>
                             </div>
 
                             <div className='rounded-lg border bg-card'>
@@ -1331,7 +1547,7 @@ function EmployeeTabComponent({
                 </div>
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }

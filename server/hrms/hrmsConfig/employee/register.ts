@@ -50,7 +50,11 @@ import type {
     SavePersonalDetailsRequest,
     SavePersonalDetailsResponse,
     SaveQualificationRequest,
-    SaveQualificationResponse
+    SaveQualificationResponse,
+    SaveBankDetailsRequest,
+    SaveBankDetailsResponse,
+    SalaryCalculationRequest,
+    SalaryCalculationResponse
 } from '@/types/hrms/employee-register';
 
 /**
@@ -197,7 +201,6 @@ export async function getEmployeeRegisterOnload(payload: EmployeeRegisterOnloadR
         };
         return wrappedResponse;
     } catch (error: any) {
-        console.error('🔍 [SERVER] getEmployeeRegisterOnload ERROR:', error?.message);
         throw serializeError(error, 'Failed to load employee registration data');
     }
 }
@@ -433,6 +436,12 @@ export async function getEmployeeById(id: number) {
             console.log('🔍 [EDIT] Attached documentList to employee:', (employeeData as any).documentList.length, 'documents');
         }
 
+        // Attach employeebankDetails from root level if they exist
+        if ((response as any).employeebankDetails && Array.isArray((response as any).employeebankDetails)) {
+            (employeeData as any).employeebankDetails = (response as any).employeebankDetails;
+            console.log('🔍 [EDIT] Attached employeebankDetails to employee:', (employeeData as any).employeebankDetails.length, 'bank accounts');
+        }
+
         // Copy medical fields from root level if they exist AND are not null/empty
         // Only copy if the employee object doesn't already have a value OR if root has a non-null value
         if ((response as any).HRME_Height !== undefined && (response as any).HRME_Height !== null && (response as any).HRME_Height !== '') {
@@ -631,9 +640,33 @@ export async function saveQualification(qualifications: SaveQualificationRequest
 }
 
 /**
- * Save Personal Details (combined Employee + Address) on Address tab save
- * POST /api/EmployeeRegistrationNew/SavePersonalDetails
+ * Sanitize payload: Convert empty strings to null for API compatibility
  */
+function sanitizePayloadForApi<T extends Record<string, any>>(payload: T): T {
+    const sanitized = { ...payload };
+    
+    for (const key in sanitized) {
+        if (sanitized.hasOwnProperty(key)) {
+            const value = sanitized[key];
+            
+            // Convert empty strings to null
+            if (typeof value === 'string' && value.trim() === '') {
+                (sanitized as any)[key] = null;
+            }
+            // Handle nested objects (like dmoObj) - skip Date objects and arrays
+            else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                // Check if it's a Date object
+                const isDate = Object.prototype.toString.call(value) === '[object Date]';
+                if (!isDate) {
+                    (sanitized as any)[key] = sanitizePayloadForApi(value);
+                }
+            }
+        }
+    }
+    
+    return sanitized;
+}
+
 export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SavePersonalDetails';
 
@@ -647,51 +680,53 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
     console.log('───────────────────────────────────────────────────────────────');
 
     try {
-        // Log complete payload structure
-        console.log('🟠 [TERMINAL] Complete Payload Structure:');
+        // Sanitize payload: Convert empty strings to null for API compatibility
+        const sanitizedPayload = sanitizePayloadForApi(payload);
+        // Log complete payload structure (before sanitization)
+        console.log('🟠 [TERMINAL] Original Payload Structure:');
         console.log('🟠 [TERMINAL] Payload keys:', Object.keys(payload));
-        console.log('🟠 [TERMINAL] Payload size:', JSON.stringify(payload).length, 'bytes');
+        console.log('🟠 [TERMINAL] Original payload size:', JSON.stringify(payload).length, 'bytes');
 
-        // Log critical required fields
+        // Log critical required fields (from sanitized payload)
         console.log('🟠 [TERMINAL] Critical Required Fields:');
-        console.log('   - HRME_Id:', payload.HRME_Id);
-        console.log('   - MI_Id:', payload.MI_Id);
-        console.log('   - HRME_EmployeeFirstName:', payload.HRME_EmployeeFirstName || 'MISSING');
-        console.log('   - HRME_EmployeeLastName:', payload.HRME_EmployeeLastName || 'MISSING');
-        console.log('   - HRME_EmployeeCode:', payload.HRME_EmployeeCode || 'MISSING');
-        console.log('   - HRMET_Id (Employee Type):', payload.HRMET_Id || 'MISSING');
-        console.log('   - HRMGT_Id (Employee Group):', payload.HRMGT_Id || 'MISSING');
-        console.log('   - HRMD_Id (Department):', payload.HRMD_Id || 'MISSING');
-        console.log('   - HRMDES_Id (Designation):', payload.HRMDES_Id || 'MISSING');
-        console.log('   - HRMG_Id (Grade):', payload.HRMG_Id || 'MISSING');
-        console.log('   - HRME_MobileNo:', payload.HRME_MobileNo || 'MISSING');
-        console.log('   - HRME_PerStateId:', payload.HRME_PerStateId || 'MISSING');
-        console.log('   - HRME_PerCountryId:', payload.HRME_PerCountryId || 'MISSING');
-        console.log('   - HRME_PerPincode:', payload.HRME_PerPincode || 'MISSING');
-        console.log('   - HRME_LocStateId:', payload.HRME_LocStateId || 'MISSING');
-        console.log('   - HRME_LocCountryId:', payload.HRME_LocCountryId || 'MISSING');
-        console.log('   - HRME_LocPincode:', payload.HRME_LocPincode || 'MISSING');
-        console.log('   - IVRMMMS_Id (Marital Status):', payload.IVRMMMS_Id || 'MISSING');
-        console.log('   - IVRMMG_Id (Gender):', payload.IVRMMG_Id || 'MISSING');
-        console.log('   - CasteCategoryId:', payload.CasteCategoryId || 'MISSING');
-        console.log('   - CasteId:', payload.CasteId || 'MISSING');
-        console.log('   - ReligionId:', payload.ReligionId || 'MISSING');
+        console.log('   - HRME_Id:', sanitizedPayload.HRME_Id);
+        console.log('   - MI_Id:', sanitizedPayload.MI_Id);
+        console.log('   - HRME_EmployeeFirstName:', sanitizedPayload.HRME_EmployeeFirstName || 'MISSING');
+        console.log('   - HRME_EmployeeLastName:', sanitizedPayload.HRME_EmployeeLastName || 'MISSING');
+        console.log('   - HRME_EmployeeCode:', sanitizedPayload.HRME_EmployeeCode || 'MISSING');
+        console.log('   - HRMET_Id (Employee Type):', sanitizedPayload.HRMET_Id || 'MISSING');
+        console.log('   - HRMGT_Id (Employee Group):', sanitizedPayload.HRMGT_Id || 'MISSING');
+        console.log('   - HRMD_Id (Department):', sanitizedPayload.HRMD_Id || 'MISSING');
+        console.log('   - HRMDES_Id (Designation):', sanitizedPayload.HRMDES_Id || 'MISSING');
+        console.log('   - HRMG_Id (Grade):', sanitizedPayload.HRMG_Id || 'MISSING');
+        console.log('   - HRME_MobileNo:', sanitizedPayload.HRME_MobileNo || 'MISSING');
+        console.log('   - HRME_PerStateId:', sanitizedPayload.HRME_PerStateId || 'MISSING');
+        console.log('   - HRME_PerCountryId:', sanitizedPayload.HRME_PerCountryId || 'MISSING');
+        console.log('   - HRME_PerPincode:', sanitizedPayload.HRME_PerPincode || 'MISSING');
+        console.log('   - HRME_LocStateId:', sanitizedPayload.HRME_LocStateId || 'MISSING');
+        console.log('   - HRME_LocCountryId:', sanitizedPayload.HRME_LocCountryId || 'MISSING');
+        console.log('   - HRME_LocPincode:', sanitizedPayload.HRME_LocPincode || 'MISSING');
+        console.log('   - IVRMMMS_Id (Marital Status):', sanitizedPayload.IVRMMMS_Id || 'MISSING');
+        console.log('   - IVRMMG_Id (Gender):', sanitizedPayload.IVRMMG_Id || 'MISSING');
+        console.log('   - CasteCategoryId:', sanitizedPayload.CasteCategoryId || 'MISSING');
+        console.log('   - CasteId:', sanitizedPayload.CasteId || 'MISSING');
+        console.log('   - ReligionId:', sanitizedPayload.ReligionId || 'MISSING');
 
-        // Check for missing required fields
+        // Check for missing required fields (from sanitized payload)
         const missingFields: string[] = [];
-        if (!payload.HRME_EmployeeFirstName) missingFields.push('HRME_EmployeeFirstName');
-        if (!payload.HRMET_Id || payload.HRMET_Id === 0) missingFields.push('HRMET_Id');
-        if (!payload.HRMGT_Id || payload.HRMGT_Id === 0) missingFields.push('HRMGT_Id');
-        if (!payload.HRMD_Id || payload.HRMD_Id === 0) missingFields.push('HRMD_Id');
-        if (!payload.HRMDES_Id || payload.HRMDES_Id === 0) missingFields.push('HRMDES_Id');
-        if (!payload.HRMG_Id || payload.HRMG_Id === 0) missingFields.push('HRMG_Id');
-        if (!payload.HRME_MobileNo || payload.HRME_MobileNo === 0) missingFields.push('HRME_MobileNo');
-        if (!payload.HRME_PerStateId || payload.HRME_PerStateId === 0) missingFields.push('HRME_PerStateId');
-        if (!payload.HRME_PerCountryId || payload.HRME_PerCountryId === 0) missingFields.push('HRME_PerCountryId');
-        if (!payload.HRME_PerPincode || payload.HRME_PerPincode === 0) missingFields.push('HRME_PerPincode');
-        if (!payload.HRME_LocStateId || payload.HRME_LocStateId === 0) missingFields.push('HRME_LocStateId');
-        if (!payload.HRME_LocCountryId || payload.HRME_LocCountryId === 0) missingFields.push('HRME_LocCountryId');
-        if (!payload.HRME_LocPincode || payload.HRME_LocPincode === 0) missingFields.push('HRME_LocPincode');
+        if (!sanitizedPayload.HRME_EmployeeFirstName) missingFields.push('HRME_EmployeeFirstName');
+        if (!sanitizedPayload.HRMET_Id || sanitizedPayload.HRMET_Id === 0) missingFields.push('HRMET_Id');
+        if (!sanitizedPayload.HRMGT_Id || sanitizedPayload.HRMGT_Id === 0) missingFields.push('HRMGT_Id');
+        if (!sanitizedPayload.HRMD_Id || sanitizedPayload.HRMD_Id === 0) missingFields.push('HRMD_Id');
+        if (!sanitizedPayload.HRMDES_Id || sanitizedPayload.HRMDES_Id === 0) missingFields.push('HRMDES_Id');
+        if (!sanitizedPayload.HRMG_Id || sanitizedPayload.HRMG_Id === 0) missingFields.push('HRMG_Id');
+        if (!sanitizedPayload.HRME_MobileNo || sanitizedPayload.HRME_MobileNo === 0) missingFields.push('HRME_MobileNo');
+        if (!sanitizedPayload.HRME_PerStateId || sanitizedPayload.HRME_PerStateId === 0) missingFields.push('HRME_PerStateId');
+        if (!sanitizedPayload.HRME_PerCountryId || sanitizedPayload.HRME_PerCountryId === 0) missingFields.push('HRME_PerCountryId');
+        if (!sanitizedPayload.HRME_PerPincode || sanitizedPayload.HRME_PerPincode === 0) missingFields.push('HRME_PerPincode');
+        if (!sanitizedPayload.HRME_LocStateId || sanitizedPayload.HRME_LocStateId === 0) missingFields.push('HRME_LocStateId');
+        if (!sanitizedPayload.HRME_LocCountryId || sanitizedPayload.HRME_LocCountryId === 0) missingFields.push('HRME_LocCountryId');
+        if (!sanitizedPayload.HRME_LocPincode || sanitizedPayload.HRME_LocPincode === 0) missingFields.push('HRME_LocPincode');
 
         if (missingFields.length > 0) {
             console.log('⚠️ [TERMINAL] WARNING: Missing or invalid required fields:', missingFields);
@@ -699,46 +734,76 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
             console.log('✅ [TERMINAL] All critical required fields are present');
         }
 
-        console.log('🟠 [TERMINAL] Full Payload (JSON):', JSON.stringify(payload, null, 2));
-        console.log('🟠 [TERMINAL] Calling api.post...');
+        // Create a sanitized payload for logging (exclude large image data)
+        const logPayload = { ...sanitizedPayload };
+        let photoSize = 0;
+        let photoFormat = 'N/A';
+        
+        if (sanitizedPayload.HRME_Photo) {
+            photoSize = sanitizedPayload.HRME_Photo.length;
+            // Handle both base64 strings and data URLs (data:image/jpeg;base64,...)
+            if (sanitizedPayload.HRME_Photo.startsWith('data:')) {
+                const base64Part = sanitizedPayload.HRME_Photo.split(',')[1] || '';
+                photoSize = base64Part.length;
+                const mimeMatch = sanitizedPayload.HRME_Photo.match(/data:([^;]+)/);
+                photoFormat = mimeMatch ? mimeMatch[1] : 'image';
+                logPayload.HRME_Photo = `[DATA_URL_IMAGE - ${photoFormat} - ${(photoSize / 1024).toFixed(2)}KB - TRUNCATED FOR LOGGING]`;
+            } else {
+                photoFormat = 'base64';
+                logPayload.HRME_Photo = `[BASE64_IMAGE_DATA - ${(photoSize / 1024).toFixed(2)}KB - TRUNCATED FOR LOGGING]`;
+            }
+        }
+        
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🟠 [TERMINAL] REQUEST BODY (Empty strings converted to null, Image Data Excluded):');
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log(JSON.stringify(logPayload, null, 2));
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🟠 [TERMINAL] Sanitized payload size:', JSON.stringify(sanitizedPayload).length, 'bytes');
+        console.log('🟠 [TERMINAL] Photo Info:', {
+            present: !!sanitizedPayload.HRME_Photo,
+            format: photoFormat,
+            size: photoSize > 0 ? `${(photoSize / 1024).toFixed(2)}KB` : 'N/A'
+        });
+        console.log('🟠 [TERMINAL] Calling api.post with sanitized payload...');
         console.log('───────────────────────────────────────────────────────────────');
 
         console.log('🔍 [OTHER DETAILS SAVE] Server-side - Starting save:', {
-            employeeId: payload.HRME_Id || 'N/A',
+            employeeId: sanitizedPayload.HRME_Id || 'N/A',
             otherDetailsFields: {
-                biometricCode: payload.HRME_BiometricCode || 'N/A',
-                rfCardId: payload.HRME_RFCardId || 'N/A',
-                punchRelaxation: payload.HRME_ExcPunch || false,
-                stopPension: payload.HRME_RetiredFlg || false,
-                dateOfStopPension: payload.HRME_PensionStoppedDate || 'N/A',
-                msTeamsUserName: payload.HRME_MSTeamsUserId || 'N/A',
-                msTeamsPassword: payload.HRME_MSTeamsPassword ? '***' : 'N/A',
-                employeeLeft: payload.HRME_LeftFlag || false,
-                lastWorkingDay: payload.HRME_DOL || 'N/A',
-                reasonForLeaving: payload.HRME_LeavingReason || 'N/A'
+                biometricCode: sanitizedPayload.HRME_BiometricCode || 'N/A',
+                rfCardId: sanitizedPayload.HRME_RFCardId || 'N/A',
+                punchRelaxation: sanitizedPayload.HRME_ExcPunch || false,
+                stopPension: sanitizedPayload.HRME_RetiredFlg || false,
+                dateOfStopPension: sanitizedPayload.HRME_PensionStoppedDate || 'N/A',
+                msTeamsUserName: sanitizedPayload.HRME_MSTeamsUserId || 'N/A',
+                msTeamsPassword: sanitizedPayload.HRME_MSTeamsPassword ? '***' : 'N/A',
+                employeeLeft: sanitizedPayload.HRME_LeftFlag || false,
+                lastWorkingDay: sanitizedPayload.HRME_DOL || 'N/A',
+                reasonForLeaving: sanitizedPayload.HRME_LeavingReason || 'N/A'
             },
-            payloadKeys: Object.keys(payload)
+            payloadKeys: Object.keys(sanitizedPayload)
         });
 
         // Log the actual payload values for "Other Details" fields to verify they're being sent
         console.log('🔍 [OTHER DETAILS SAVE] Server-side - Payload values (other details):', {
-            HRME_BiometricCode: payload.HRME_BiometricCode,
-            HRME_RFCardId: payload.HRME_RFCardId,
-            HRME_ExcPunch: payload.HRME_ExcPunch,
-            HRME_RetiredFlg: payload.HRME_RetiredFlg,
-            HRME_PensionStoppedDate: payload.HRME_PensionStoppedDate,
-            HRME_MSTeamsUserId: payload.HRME_MSTeamsUserId,
-            HRME_MSTeamsPassword: payload.HRME_MSTeamsPassword ? '***' : '',
-            HRME_LeftFlag: payload.HRME_LeftFlag,
-            HRME_DOL: payload.HRME_DOL,
-            HRME_LeavingReason: payload.HRME_LeavingReason
+            HRME_BiometricCode: sanitizedPayload.HRME_BiometricCode,
+            HRME_RFCardId: sanitizedPayload.HRME_RFCardId,
+            HRME_ExcPunch: sanitizedPayload.HRME_ExcPunch,
+            HRME_RetiredFlg: sanitizedPayload.HRME_RetiredFlg,
+            HRME_PensionStoppedDate: sanitizedPayload.HRME_PensionStoppedDate,
+            HRME_MSTeamsUserId: sanitizedPayload.HRME_MSTeamsUserId,
+            HRME_MSTeamsPassword: sanitizedPayload.HRME_MSTeamsPassword ? '***' : '',
+            HRME_LeftFlag: sanitizedPayload.HRME_LeftFlag,
+            HRME_DOL: sanitizedPayload.HRME_DOL,
+            HRME_LeavingReason: sanitizedPayload.HRME_LeavingReason
         });
 
         console.log('🔍 [SAVE] savePersonalDetails:', {
-            HRME_Id: payload.HRME_Id,
-            Code: payload.HRME_EmployeeCode,
-            Name: `${payload.HRME_EmployeeFirstName} ${payload.HRME_EmployeeLastName}`,
-            Photo: payload.HRME_Photo ? `${(payload.HRME_Photo.length / 1024).toFixed(0)}KB` : 'No photo'
+            HRME_Id: sanitizedPayload.HRME_Id,
+            Code: sanitizedPayload.HRME_EmployeeCode,
+            Name: `${sanitizedPayload.HRME_EmployeeFirstName} ${sanitizedPayload.HRME_EmployeeLastName}`,
+            Photo: sanitizedPayload.HRME_Photo ? `${(sanitizedPayload.HRME_Photo.length / 1024).toFixed(0)}KB` : 'No photo'
         });
 
         // Use api.post like other modules (preadmission, etc.)
@@ -746,7 +811,7 @@ export async function savePersonalDetails(payload: SavePersonalDetailsRequest) {
         // The apiService will throw an error when response is a string due to 'in' operator check
         // We handle this in the outer catch block
         const startTime = Date.now();
-        const response = await api.post<SavePersonalDetailsResponse>('hrms', url, payload);
+        const response = await api.post<SavePersonalDetailsResponse>('hrms', url, sanitizedPayload);
         const duration = Date.now() - startTime;
 
         console.log('🟢 [TERMINAL] API Response Received');
@@ -1037,28 +1102,113 @@ export async function saveDocumentDetails(documents: SaveDocumentDetailsRequest[
 export async function saveMedicalDetails(payload: SaveMedicalDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SaveMedicalDetails';
 
-    console.log('🔍 [MEDICAL SAVE] Server-side - Starting save:', {
-        employeeId: payload.HRME_Id || 'N/A',
-        medicalFields: {
-            height: payload.HRME_Height || 'N/A',
-            heightUnit: payload.HRME_HeightUOM || 'N/A',
-            weight: payload.HRME_Weight || 'N/A',
-            weightUnit: payload.HRME_WeightUOM || 'N/A',
-            eyeSightIssue: payload.HRME_EyeSightIssue || 'N/A',
-            anyHealthIssue: payload.HRME_AnyHealthIssue || 'N/A',
-            identificationMark: payload.HRME_IdentificationMark || 'N/A'
-        },
-        payloadKeys: Object.keys(payload)
-    });
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟠 [TERMINAL] Employee Medical Details Save Endpoint Called');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟠 [TERMINAL] Timestamp:', new Date().toISOString());
+    console.log('🟠 [TERMINAL] Endpoint:', url);
+    console.log('🟠 [TERMINAL] Operation:', payload.HRME_Id && payload.HRME_Id > 0 ? 'UPDATE' : 'CREATE');
+    console.log('🟠 [TERMINAL] HRME_Id:', payload.HRME_Id || 0);
+    console.log('───────────────────────────────────────────────────────────────');
 
     try {
-        const response = await api.post<SaveMedicalDetailsResponse>('hrms', url, payload);
+        // Sanitize payload: Convert empty strings to null for API compatibility
+        const sanitizedPayload = sanitizePayloadForApi(payload);
+        
+        console.log('🟠 [TERMINAL] Original Payload Structure:');
+        console.log('🟠 [TERMINAL] Payload keys:', Object.keys(payload));
+        console.log('🟠 [TERMINAL] Original payload size:', JSON.stringify(payload).length, 'bytes');
+
+        // Log medical-specific fields
+        console.log('🟠 [TERMINAL] Medical Fields:');
+        console.log('   - HRME_Height:', sanitizedPayload.HRME_Height || 'N/A');
+        console.log('   - HRME_HeightUOM:', sanitizedPayload.HRME_HeightUOM || 'N/A');
+        console.log('   - HRME_Weight:', sanitizedPayload.HRME_Weight || 'N/A');
+        console.log('   - HRME_WeightUOM:', sanitizedPayload.HRME_WeightUOM || 'N/A');
+        console.log('   - HRME_IdentificationMark:', sanitizedPayload.HRME_IdentificationMark || 'N/A');
+        console.log('   - HRME_AnyHealthIssue:', sanitizedPayload.HRME_AnyHealthIssue || 'N/A');
+        console.log('   - HRME_EyeSightIssue:', sanitizedPayload.HRME_EyeSightIssue || 'N/A');
+
+        // Create a sanitized payload for logging (exclude large image data)
+        const logPayload = { ...sanitizedPayload };
+        let photoSize = 0;
+        let photoFormat = 'N/A';
+        
+        if (sanitizedPayload.HRME_Photo) {
+            photoSize = sanitizedPayload.HRME_Photo.length;
+            // Handle both base64 strings and data URLs (data:image/jpeg;base64,...)
+            if (sanitizedPayload.HRME_Photo.startsWith('data:')) {
+                const base64Part = sanitizedPayload.HRME_Photo.split(',')[1] || '';
+                photoSize = base64Part.length;
+                const mimeMatch = sanitizedPayload.HRME_Photo.match(/data:([^;]+)/);
+                photoFormat = mimeMatch ? mimeMatch[1] : 'image';
+                logPayload.HRME_Photo = `[DATA_URL_IMAGE - ${photoFormat} - ${(photoSize / 1024).toFixed(2)}KB - TRUNCATED FOR LOGGING]`;
+            } else {
+                photoFormat = 'base64';
+                logPayload.HRME_Photo = `[BASE64_IMAGE_DATA - ${(photoSize / 1024).toFixed(2)}KB - TRUNCATED FOR LOGGING]`;
+            }
+        }
+        
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🟠 [TERMINAL] REQUEST BODY (Empty strings converted to null, Image Data Excluded):');
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log(JSON.stringify(logPayload, null, 2));
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🟠 [TERMINAL] Sanitized payload size:', JSON.stringify(sanitizedPayload).length, 'bytes');
+        console.log('🟠 [TERMINAL] Photo Info:', {
+            present: !!sanitizedPayload.HRME_Photo,
+            format: photoFormat,
+            size: photoSize > 0 ? `${(photoSize / 1024).toFixed(2)}KB` : 'N/A'
+        });
+        console.log('🟠 [TERMINAL] Calling api.post with sanitized payload...');
+        console.log('───────────────────────────────────────────────────────────────');
+
+        console.log('🔍 [MEDICAL SAVE] Server-side - Starting save:', {
+            employeeId: sanitizedPayload.HRME_Id || 'N/A',
+            medicalFields: {
+                height: sanitizedPayload.HRME_Height || 'N/A',
+                heightUnit: sanitizedPayload.HRME_HeightUOM || 'N/A',
+                weight: sanitizedPayload.HRME_Weight || 'N/A',
+                weightUnit: sanitizedPayload.HRME_WeightUOM || 'N/A',
+                eyeSightIssue: sanitizedPayload.HRME_EyeSightIssue || 'N/A',
+                anyHealthIssue: sanitizedPayload.HRME_AnyHealthIssue || 'N/A',
+                identificationMark: sanitizedPayload.HRME_IdentificationMark || 'N/A'
+            },
+            payloadKeys: Object.keys(sanitizedPayload)
+        });
+
+        const startTime = Date.now();
+        const response = await api.post<SaveMedicalDetailsResponse>('hrms', url, sanitizedPayload);
+        const duration = Date.now() - startTime;
+
+        console.log('🟢 [TERMINAL] API Response Received');
+        console.log('🟢 [TERMINAL] Request Duration:', duration, 'ms');
+        console.log('🟢 [TERMINAL] Response Type:', typeof response);
+        console.log('🟢 [TERMINAL] Raw Response:', JSON.stringify(response, null, 2));
+
+        // Log response structure
+        if (typeof response === 'object' && response !== null) {
+            console.log('🟢 [TERMINAL] Response Keys:', Object.keys(response));
+            if ('success' in response) {
+                console.log('🟢 [TERMINAL] Response.success:', (response as any).success);
+            }
+            if ('message' in response) {
+                console.log('🟢 [TERMINAL] Response.message:', (response as any).message);
+            }
+            if ('data' in response) {
+                console.log('🟢 [TERMINAL] Response.data exists:', !!(response as any).data);
+            }
+        } else if (typeof response === 'string') {
+            console.log('🟢 [TERMINAL] Response is a string:', response);
+        }
+
+        console.log('───────────────────────────────────────────────────────────────');
 
         console.log('🔍 [MEDICAL SAVE] Server-side - Response received:', {
             success: (response as any)?.success || typeof response === 'object',
             message: (response as any)?.message || 'No message',
             dataType: typeof response,
-            responseKeys: typeof response === 'object' ? Object.keys(response) : [],
+            responseKeys: typeof response === 'object' && response !== null ? Object.keys(response) : [],
             fullResponse: response
         });
 
@@ -1081,6 +1231,23 @@ export async function saveMedicalDetails(payload: SaveMedicalDetailsRequest) {
             data: response as unknown as SaveMedicalDetailsResponse
         };
     } catch (error: any) {
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error in Save Medical Details');
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error Type:', typeof error);
+        console.log('🔴 [TERMINAL] Error Message:', error?.message || 'Unknown error');
+        console.log('🔴 [TERMINAL] Error Status:', error?.response?.status || 'N/A');
+        console.log('🔴 [TERMINAL] Error Status Text:', error?.response?.statusText || 'N/A');
+        console.log('🔴 [TERMINAL] Error Response Data:', JSON.stringify(error?.response?.data || {}, null, 2));
+        console.log('🔴 [TERMINAL] Error Response Headers:', error?.response?.headers || {});
+        console.log('🔴 [TERMINAL] Full Error Object:', error);
+        console.log('🔴 [TERMINAL] Error Data Type:', typeof error?.response?.data);
+        console.log('🔴 [TERMINAL] Error Data Keys:', error?.response?.data ? Object.keys(error.response.data) : []);
+        if (error?.response?.data?.errors) {
+            console.log('🔴 [TERMINAL] Validation Errors:', JSON.stringify(error.response.data.errors, null, 2));
+        }
+        console.log('───────────────────────────────────────────────────────────────');
+
         console.error('🔍 [MEDICAL SAVE] Server-side - Error:', {
             message: error?.message,
             status: error?.response?.status,
@@ -1127,8 +1294,112 @@ export async function saveMedicalDetails(payload: SaveMedicalDetailsRequest) {
 export async function saveOtherDetails(payload: SaveOtherDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SaveOtherDetails';
 
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟠 [TERMINAL] Employee Other Details Save Endpoint Called');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟠 [TERMINAL] Timestamp:', new Date().toISOString());
+    console.log('🟠 [TERMINAL] Endpoint:', url);
+    console.log('🟠 [TERMINAL] Operation:', payload.HRME_Id && payload.HRME_Id > 0 ? 'UPDATE' : 'CREATE');
+    console.log('🟠 [TERMINAL] HRME_Id:', payload.HRME_Id || 0);
+    console.log('───────────────────────────────────────────────────────────────');
+
     try {
-        const response = await api.post<SaveOtherDetailsResponse>('hrms', url, payload);
+        // Sanitize payload: Convert empty strings to null for API compatibility
+        const sanitizedPayload = sanitizePayloadForApi(payload);
+        
+        console.log('🟠 [TERMINAL] Original Payload Structure:');
+        console.log('🟠 [TERMINAL] Payload keys:', Object.keys(payload));
+        console.log('🟠 [TERMINAL] Original payload size:', JSON.stringify(payload).length, 'bytes');
+
+        // Log other details-specific fields
+        console.log('🟠 [TERMINAL] Other Details Fields:');
+        console.log('   - HRME_BiometricCode:', sanitizedPayload.HRME_BiometricCode || 'N/A');
+        console.log('   - HRME_RFCardId:', sanitizedPayload.HRME_RFCardId || 'N/A');
+        console.log('   - HRME_ExcPunch:', sanitizedPayload.HRME_ExcPunch || false);
+        console.log('   - HRME_RetiredFlg:', sanitizedPayload.HRME_RetiredFlg || false);
+        console.log('   - HRME_PensionStoppedDate:', sanitizedPayload.HRME_PensionStoppedDate || 'N/A');
+        console.log('   - HRME_MSTeamsUserId:', sanitizedPayload.HRME_MSTeamsUserId || 'N/A');
+        console.log('   - HRME_LeftFlag:', sanitizedPayload.HRME_LeftFlag || false);
+        console.log('   - HRME_DOL:', sanitizedPayload.HRME_DOL || 'N/A');
+        console.log('   - HRME_LeavingReason:', sanitizedPayload.HRME_LeavingReason || 'N/A');
+
+        // Create a sanitized payload for logging (exclude large image data)
+        const logPayload = { ...sanitizedPayload };
+        let photoSize = 0;
+        let photoFormat = 'N/A';
+        
+        if (sanitizedPayload.HRME_Photo) {
+            photoSize = sanitizedPayload.HRME_Photo.length;
+            // Handle both base64 strings and data URLs (data:image/jpeg;base64,...)
+            if (sanitizedPayload.HRME_Photo.startsWith('data:')) {
+                const base64Part = sanitizedPayload.HRME_Photo.split(',')[1] || '';
+                photoSize = base64Part.length;
+                const mimeMatch = sanitizedPayload.HRME_Photo.match(/data:([^;]+)/);
+                photoFormat = mimeMatch ? mimeMatch[1] : 'image';
+                logPayload.HRME_Photo = `[DATA_URL_IMAGE - ${photoFormat} - ${(photoSize / 1024).toFixed(2)}KB - TRUNCATED FOR LOGGING]`;
+            } else {
+                photoFormat = 'base64';
+                logPayload.HRME_Photo = `[BASE64_IMAGE_DATA - ${(photoSize / 1024).toFixed(2)}KB - TRUNCATED FOR LOGGING]`;
+            }
+        }
+        
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🟠 [TERMINAL] REQUEST BODY (Empty strings converted to null, Image Data Excluded):');
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log(JSON.stringify(logPayload, null, 2));
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🟠 [TERMINAL] Sanitized payload size:', JSON.stringify(sanitizedPayload).length, 'bytes');
+        console.log('🟠 [TERMINAL] Photo Info:', {
+            present: !!sanitizedPayload.HRME_Photo,
+            format: photoFormat,
+            size: photoSize > 0 ? `${(photoSize / 1024).toFixed(2)}KB` : 'N/A'
+        });
+        console.log('🟠 [TERMINAL] Calling api.post with sanitized payload...');
+        console.log('───────────────────────────────────────────────────────────────');
+
+        console.log('🔍 [OTHER DETAILS SAVE] Server-side - Starting save:', {
+            employeeId: sanitizedPayload.HRME_Id || 'N/A',
+            otherDetailsFields: {
+                biometricCode: sanitizedPayload.HRME_BiometricCode || 'N/A',
+                rfCardId: sanitizedPayload.HRME_RFCardId || 'N/A',
+                punchRelaxation: sanitizedPayload.HRME_ExcPunch || false,
+                stopPension: sanitizedPayload.HRME_RetiredFlg || false,
+                dateOfStopPension: sanitizedPayload.HRME_PensionStoppedDate || 'N/A',
+                msTeamsUserName: sanitizedPayload.HRME_MSTeamsUserId || 'N/A',
+                msTeamsPassword: sanitizedPayload.HRME_MSTeamsPassword ? '***' : 'N/A',
+                employeeLeft: sanitizedPayload.HRME_LeftFlag || false,
+                lastWorkingDay: sanitizedPayload.HRME_DOL || 'N/A',
+                reasonForLeaving: sanitizedPayload.HRME_LeavingReason || 'N/A'
+            },
+            payloadKeys: Object.keys(sanitizedPayload)
+        });
+
+        const startTime = Date.now();
+        const response = await api.post<SaveOtherDetailsResponse>('hrms', url, sanitizedPayload);
+        const duration = Date.now() - startTime;
+
+        console.log('🟢 [TERMINAL] API Response Received');
+        console.log('🟢 [TERMINAL] Request Duration:', duration, 'ms');
+        console.log('🟢 [TERMINAL] Response Type:', typeof response);
+        console.log('🟢 [TERMINAL] Raw Response:', JSON.stringify(response, null, 2));
+
+        // Log response structure
+        if (typeof response === 'object' && response !== null) {
+            console.log('🟢 [TERMINAL] Response Keys:', Object.keys(response));
+            if ('success' in response) {
+                console.log('🟢 [TERMINAL] Response.success:', (response as any).success);
+            }
+            if ('message' in response) {
+                console.log('🟢 [TERMINAL] Response.message:', (response as any).message);
+            }
+            if ('data' in response) {
+                console.log('🟢 [TERMINAL] Response.data exists:', !!(response as any).data);
+            }
+        } else if (typeof response === 'string') {
+            console.log('🟢 [TERMINAL] Response is a string:', response);
+        }
+
+        console.log('───────────────────────────────────────────────────────────────');
 
         // Check if response is a string (like "Add", "Update", "Duplicate")
         const stringResponse = handleStringResponse<SaveOtherDetailsResponse>(response);
@@ -1150,6 +1421,23 @@ export async function saveOtherDetails(payload: SaveOtherDetailsRequest) {
             data: response as unknown as SaveOtherDetailsResponse
         };
     } catch (error: any) {
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error in Save Other Details');
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error Type:', typeof error);
+        console.log('🔴 [TERMINAL] Error Message:', error?.message || 'Unknown error');
+        console.log('🔴 [TERMINAL] Error Status:', error?.response?.status || 'N/A');
+        console.log('🔴 [TERMINAL] Error Status Text:', error?.response?.statusText || 'N/A');
+        console.log('🔴 [TERMINAL] Error Response Data:', JSON.stringify(error?.response?.data || {}, null, 2));
+        console.log('🔴 [TERMINAL] Error Response Headers:', error?.response?.headers || {});
+        console.log('🔴 [TERMINAL] Full Error Object:', error);
+        console.log('🔴 [TERMINAL] Error Data Type:', typeof error?.response?.data);
+        console.log('🔴 [TERMINAL] Error Data Keys:', error?.response?.data ? Object.keys(error.response.data) : []);
+        if (error?.response?.data?.errors) {
+            console.log('🔴 [TERMINAL] Validation Errors:', JSON.stringify(error.response.data.errors, null, 2));
+        }
+        console.log('───────────────────────────────────────────────────────────────');
+
         // Try to extract string response from error
         const stringResponse = extractStringFromError(error);
         if (stringResponse) {
@@ -1170,6 +1458,204 @@ export async function saveOtherDetails(payload: SaveOtherDetailsRequest) {
         }
 
         throw serializeError(error, 'Failed to save other details');
+    }
+}
+
+/**
+ * Save Bank Details
+ * POST /api/EmployeeRegistrationNew/SaveBankDetails
+ */
+export async function saveBankDetails(payload: SaveBankDetailsRequest) {
+    const url = '/api/EmployeeRegistrationNew/SaveBankDetails';
+
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟠 [TERMINAL] Employee Bank Details Save Endpoint Called');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟠 [TERMINAL] Timestamp:', new Date().toISOString());
+    console.log('🟠 [TERMINAL] Endpoint:', url);
+    console.log('🟠 [TERMINAL] HRME_Id:', payload.HRME_Id || 0);
+    console.log('🟠 [TERMINAL] MI_Id:', payload.MI_Id || 0);
+    console.log('🟠 [TERMINAL] Bank Details Count:', payload.BankDetails?.length || 0);
+    console.log('───────────────────────────────────────────────────────────────');
+
+    try {
+        // Sanitize payload: Convert empty strings to null for API compatibility
+        const sanitizedPayload = sanitizePayloadForApi(payload);
+
+        // Log bank details
+        console.log('🟠 [TERMINAL] Bank Details:');
+        if (sanitizedPayload.BankDetails && sanitizedPayload.BankDetails.length > 0) {
+            sanitizedPayload.BankDetails.forEach((bank, index) => {
+                console.log(`   Bank ${index + 1}:`);
+                console.log(`     - HRMEB_Id: ${bank.HRMEB_Id || 0}`);
+                console.log(`     - HRMBD_Id: ${bank.HRMBD_Id || 0}`);
+                console.log(`     - HRMEB_AccountNo: ${bank.HRMEB_AccountNo || 'N/A'}`);
+                console.log(`     - HRMEB_ActiveFlag: ${bank.HRMEB_ActiveFlag || 'N/A'}`);
+            });
+        } else {
+            console.log('   No bank details provided');
+        }
+
+        console.log('───────────────────────────────────────────────────────────────');
+
+        // Use api.post
+        const startTime = Date.now();
+        const response = await api.post<SaveBankDetailsResponse>('hrms', url, sanitizedPayload);
+        const duration = Date.now() - startTime;
+
+        console.log('🟢 [TERMINAL] API Response Received');
+        console.log('🟢 [TERMINAL] Request Duration:', duration, 'ms');
+        console.log('🟢 [TERMINAL] Response Type:', typeof response);
+        console.log('🟢 [TERMINAL] Raw Response:', JSON.stringify(response, null, 2));
+
+        // Log response structure
+        if (typeof response === 'object' && response !== null) {
+            console.log('🟢 [TERMINAL] Response Keys:', Object.keys(response));
+            if ('success' in response) {
+                console.log('🟢 [TERMINAL] Response.success:', (response as any).success);
+            }
+            if ('message' in response) {
+                console.log('🟢 [TERMINAL] Response.message:', (response as any).message);
+            }
+            if ('data' in response) {
+                console.log('🟢 [TERMINAL] Response.data exists:', !!(response as any).data);
+            }
+        } else if (typeof response === 'string') {
+            console.log('🟢 [TERMINAL] Response is a string:', response);
+        }
+
+        console.log('───────────────────────────────────────────────────────────────');
+
+        // Check if response is a string (like "Add", "Update", "Duplicate")
+        const stringResponse = handleStringResponse<SaveBankDetailsResponse>(response);
+        if (stringResponse) {
+            return stringResponse;
+        }
+
+        // The backend returns raw data, not wrapped in ApiResponse format
+        // Wrap it to match the expected ApiResponse structure
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
+            // Already wrapped
+            return response;
+        }
+
+        // Wrap raw response data
+        return {
+            success: true,
+            message: 'Bank details saved successfully',
+            data: response as unknown as SaveBankDetailsResponse
+        };
+    } catch (error: any) {
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error in Save Bank Details');
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error Type:', typeof error);
+        console.log('🔴 [TERMINAL] Error Message:', error?.message || 'Unknown error');
+        console.log('🔴 [TERMINAL] Error Status:', error?.response?.status || 'N/A');
+        console.log('🔴 [TERMINAL] Error Status Text:', error?.response?.statusText || 'N/A');
+        console.log('🔴 [TERMINAL] Error Response Data:', JSON.stringify(error?.response?.data || {}, null, 2));
+        console.log('🔴 [TERMINAL] Error Response Headers:', error?.response?.headers || {});
+        console.log('🔴 [TERMINAL] Full Error Object:', error);
+        console.log('🔴 [TERMINAL] Error Data Type:', typeof error?.response?.data);
+        console.log('🔴 [TERMINAL] Error Data Keys:', error?.response?.data ? Object.keys(error.response.data) : []);
+        if (error?.response?.data?.errors) {
+            console.log('🔴 [TERMINAL] Validation Errors:', JSON.stringify(error.response.data.errors, null, 2));
+        }
+        console.log('───────────────────────────────────────────────────────────────');
+
+        // Try to extract string response from error
+        const stringResponse = extractStringFromError(error);
+        if (stringResponse) {
+            return {
+                success: stringResponse !== 'Duplicate',
+                message: stringResponse,
+                data: stringResponse as unknown as SaveBankDetailsResponse
+            };
+        }
+
+        // Check if error.response.data is a string
+        if (error?.response?.data && typeof error.response.data === 'string') {
+            return {
+                success: error.response.data !== 'Duplicate',
+                message: error.response.data,
+                data: error.response.data as unknown as SaveBankDetailsResponse
+            };
+        }
+
+        throw serializeError(error, 'Failed to save bank details');
+    }
+}
+
+/**
+ * Calculate Salary
+ * POST /api/EmployeeRegistrationNew/SalaryCalculation
+ */
+export async function calculateSalary(payload: SalaryCalculationRequest) {
+    const url = '/api/EmployeeRegistrationNew/SalaryCalculation';
+
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟡 [TERMINAL] Salary Calculation Endpoint Called');
+    console.log('═══════════════════════════════════════════════════════════════');
+    console.log('🟡 [TERMINAL] Timestamp:', new Date().toISOString());
+    console.log('🟡 [TERMINAL] Endpoint:', url);
+    console.log('🟡 [TERMINAL] MI_Id:', payload.MI_Id || 0);
+    console.log('🟡 [TERMINAL] HRMEID_Amount:', payload.HRMEID_Amount || 0);
+    console.log('───────────────────────────────────────────────────────────────');
+
+    try {
+        const startTime = Date.now();
+        const response = await api.post<SalaryCalculationResponse>('hrms', url, payload);
+        const duration = Date.now() - startTime;
+
+        console.log('🟢 [TERMINAL] API Response Received');
+        console.log('🟢 [TERMINAL] Request Duration:', duration, 'ms');
+        console.log('🟢 [TERMINAL] Response Type:', typeof response);
+        console.log('🟢 [TERMINAL] Raw Response:', JSON.stringify(response, null, 2));
+        console.log('───────────────────────────────────────────────────────────────');
+
+        const stringResponse = handleStringResponse<SalaryCalculationResponse>(response);
+        if (stringResponse) {
+            return stringResponse;
+        }
+
+        if (response && typeof response === 'object' && response !== null && 'success' in response && 'data' in response) {
+            return response;
+        }
+
+        return {
+            success: true,
+            message: 'Salary calculated successfully',
+            data: response as unknown as SalaryCalculationResponse
+        };
+    } catch (error: any) {
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error in Salary Calculation');
+        console.log('═══════════════════════════════════════════════════════════════');
+        console.log('🔴 [TERMINAL] Error Type:', typeof error);
+        console.log('🔴 [TERMINAL] Error Message:', error?.message || 'Unknown error');
+        console.log('🔴 [TERMINAL] Error Status:', error?.response?.status || 'N/A');
+        console.log('🔴 [TERMINAL] Error Status Text:', error?.response?.statusText || 'N/A');
+        console.log('🔴 [TERMINAL] Error Response Data:', JSON.stringify(error?.response?.data || {}, null, 2));
+        console.log('───────────────────────────────────────────────────────────────');
+
+        const stringResponse = extractStringFromError(error);
+        if (stringResponse) {
+            return {
+                success: false,
+                message: stringResponse,
+                data: stringResponse as unknown as SalaryCalculationResponse
+            };
+        }
+
+        if (error?.response?.data && typeof error.response.data === 'string') {
+            return {
+                success: false,
+                message: error.response.data,
+                data: error.response.data as unknown as SalaryCalculationResponse
+            };
+        }
+
+        throw serializeError(error, 'Failed to calculate salary');
     }
 }
 
@@ -1272,17 +1758,17 @@ export async function saveIncrementDetails(payload: SaveIncrementDetailsRequest)
  * Save Earning Details (Payroll Tab)
  * POST /api/EmployeeRegistrationNew/SaveEarningDetails
  */
-export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) {
+export async function saveEarningDetails(payload: SaveEarningDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SaveEarningDetails';
 
     console.log('🔍 [PAYROLL SAVE] Server - SaveEarningDetails called', {
         url,
-        earningsCount: earnings.length,
-        earnings: earnings.map((item) => ({
+        employeeId: payload.Employee.HRME_Id,
+        miId: payload.Employee.MI_Id,
+        earningsCount: payload.EmployeeEarningDeductionArrear.length,
+        earnings: payload.EmployeeEarningDeductionArrear.map((item) => ({
             HREED_Id: item.HREED_Id,
-            HRME_Id: item.HRME_Id,
             HRMED_Id: item.HRMED_Id,
-            HRMED_Name: item.HRMED_Name,
             HREED_Amount: item.HREED_Amount,
             HREED_Percentage: item.HREED_Percentage,
             HREED_ActiveFlag: item.HREED_ActiveFlag
@@ -1292,21 +1778,22 @@ export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) 
     try {
         console.log('🔍 [PAYROLL SAVE] Server - SaveEarningDetails - Before API call', {
             url,
-            earningsCount: earnings.length,
-            firstEarning: earnings[0]
+            employeeId: payload.Employee.HRME_Id,
+            miId: payload.Employee.MI_Id,
+            earningsCount: payload.EmployeeEarningDeductionArrear.length,
+            firstEarning: payload.EmployeeEarningDeductionArrear[0]
                 ? {
-                      HREED_Id: earnings[0].HREED_Id,
-                      HRME_Id: earnings[0].HRME_Id,
-                      HRMED_Id: earnings[0].HRMED_Id,
-                      HREED_Amount: earnings[0].HREED_Amount,
-                      HREED_Percentage: earnings[0].HREED_Percentage
+                      HREED_Id: payload.EmployeeEarningDeductionArrear[0].HREED_Id,
+                      HRMED_Id: payload.EmployeeEarningDeductionArrear[0].HRMED_Id,
+                      HREED_Amount: payload.EmployeeEarningDeductionArrear[0].HREED_Amount,
+                      HREED_Percentage: payload.EmployeeEarningDeductionArrear[0].HREED_Percentage
                   }
                 : null
         });
 
         let response: any;
         try {
-            response = await api.post<SaveEarningDetailsResponse>('hrms', url, earnings);
+            response = await api.post<SaveEarningDetailsResponse>('hrms', url, payload);
         } catch (apiError: any) {
             // Try to extract the actual response data from the error
             // The apiService might have the response in error.response or error.data
@@ -1471,17 +1958,17 @@ export async function saveEarningDetails(earnings: SaveEarningDetailsRequest[]) 
  * Save Arrear Details (Payroll Tab)
  * POST /api/EmployeeRegistrationNew/SaveArrearDetails
  */
-export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
+export async function saveArrearDetails(payload: SaveArrearDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SaveArrearDetails';
 
     console.log('🔍 [PAYROLL SAVE] Server - SaveArrearDetails called', {
         url,
-        arrearsCount: arrears.length,
-        arrears: arrears.map((item) => ({
+        employeeId: payload.Employee.HRME_Id,
+        miId: payload.Employee.MI_Id,
+        arrearsCount: payload.EmployeeEarningDeductionArrear.length,
+        arrears: payload.EmployeeEarningDeductionArrear.map((item) => ({
             HREED_Id: item.HREED_Id,
-            HRME_Id: item.HRME_Id,
             HRMED_Id: item.HRMED_Id,
-            HRMED_Name: item.HRMED_Name,
             HREED_Amount: item.HREED_Amount,
             HREED_Percentage: item.HREED_Percentage,
             HREED_ActiveFlag: item.HREED_ActiveFlag
@@ -1489,7 +1976,7 @@ export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
     });
 
     try {
-        const response = await api.post<SaveArrearDetailsResponse>('hrms', url, arrears);
+        const response = await api.post<SaveArrearDetailsResponse>('hrms', url, payload);
 
         console.log('🔍 [PAYROLL SAVE] Server - SaveArrearDetails API response', {
             success: response?.success,
@@ -1551,17 +2038,17 @@ export async function saveArrearDetails(arrears: SaveArrearDetailsRequest[]) {
  * Save Deduction Details (Payroll Tab)
  * POST /api/EmployeeRegistrationNew/SaveDeductionDetails
  */
-export async function saveDeductionDetails(deductions: SaveDeductionDetailsRequest[]) {
+export async function saveDeductionDetails(payload: SaveDeductionDetailsRequest) {
     const url = '/api/EmployeeRegistrationNew/SaveDeductionDetails';
 
     console.log('🔍 [PAYROLL SAVE] Server - SaveDeductionDetails called', {
         url,
-        deductionsCount: deductions.length,
-        deductions: deductions.map((item) => ({
+        employeeId: payload.Employee.HRME_Id,
+        miId: payload.Employee.MI_Id,
+        deductionsCount: payload.EmployeeEarningDeductionArrear.length,
+        deductions: payload.EmployeeEarningDeductionArrear.map((item) => ({
             HREED_Id: item.HREED_Id,
-            HRME_Id: item.HRME_Id,
             HRMED_Id: item.HRMED_Id,
-            HRMED_Name: item.HRMED_Name,
             HREED_Amount: item.HREED_Amount,
             HREED_Percentage: item.HREED_Percentage,
             HREED_ActiveFlag: item.HREED_ActiveFlag
@@ -1571,21 +2058,22 @@ export async function saveDeductionDetails(deductions: SaveDeductionDetailsReque
     try {
         console.log('🔍 [PAYROLL SAVE] Server - SaveDeductionDetails - Before API call', {
             url,
-            deductionsCount: deductions.length,
-            firstDeduction: deductions[0]
+            employeeId: payload.Employee.HRME_Id,
+            miId: payload.Employee.MI_Id,
+            deductionsCount: payload.EmployeeEarningDeductionArrear.length,
+            firstDeduction: payload.EmployeeEarningDeductionArrear[0]
                 ? {
-                      HREED_Id: deductions[0].HREED_Id,
-                      HRME_Id: deductions[0].HRME_Id,
-                      HRMED_Id: deductions[0].HRMED_Id,
-                      HREED_Amount: deductions[0].HREED_Amount,
-                      HREED_Percentage: deductions[0].HREED_Percentage
+                      HREED_Id: payload.EmployeeEarningDeductionArrear[0].HREED_Id,
+                      HRMED_Id: payload.EmployeeEarningDeductionArrear[0].HRMED_Id,
+                      HREED_Amount: payload.EmployeeEarningDeductionArrear[0].HREED_Amount,
+                      HREED_Percentage: payload.EmployeeEarningDeductionArrear[0].HREED_Percentage
                   }
                 : null
         });
 
         let response: any;
         try {
-            response = await api.post<SaveDeductionDetailsResponse>('hrms', url, deductions);
+            response = await api.post<SaveDeductionDetailsResponse>('hrms', url, payload);
         } catch (apiError: any) {
             // Try to extract the actual response data from the error
             // The apiService might have the response in error.response or error.data

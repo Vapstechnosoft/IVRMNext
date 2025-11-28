@@ -313,25 +313,21 @@ export default function MappingForm({ selectedRow, onSuccess, className = '' }: 
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting || isPending}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
+                <div className='flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-start sm:items-center'>
                     <Button
                         type='submit'
                         disabled={isSubmitting || isPending}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
                         isLoading={isSubmitting || isPending}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            {isEditMode ? 'Update Mapping' : 'Save Mapping'}
-                        </div>
+                        {isEditMode ? 'Update' : 'Save'}
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting || isPending}
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
+                        Clear
                     </Button>
                 </div>
             </form>

@@ -9,7 +9,8 @@ import {
     useSaveEmployeeExperience,
     useSaveEmployeeMedical,
     useSaveEmployeePersonalDetails,
-    useSaveEmployeeQualification
+    useSaveEmployeeQualification,
+    useSaveEmployeeBankDetails
 } from '@/hooks/hrms/useEmployeeRegister';
 import type { EmployeeListItem } from '@/types/hrms/employee';
 import type { SavePersonalDetailsRequest } from '@/types/hrms/employee-register';
@@ -144,7 +145,7 @@ const experienceDetailSchema = z
 // Document schema (using actual form field names)
 const documentSchema = z.object({
     documentName: z.string().min(1, 'Name of Document is required').max(255, 'Name of Document must not exceed 255 characters'),
-    documentDescription: z.string().max(500, 'Document Description must not exceed 500 characters').optional(),
+    documentDescription: z.string().min(1, 'Document Description is required').max(400, 'Document Description must not exceed 400 characters'),
     document: z
         .any()
         .optional()
@@ -200,19 +201,19 @@ const formSchema = z
         dateOfConfirmation: z.string().optional(),
         dateOfRetirement: z.string().optional(),
         gender: z.string().min(1, 'Gender is required'),
-        maritalStatus: z.string().optional(),
-        religion: z.string().optional(),
-        casteCategory: z.string().optional(),
-        caste: z.string().optional(),
+        maritalStatus: z.string().min(1, 'Marital Status is required'),
+        religion: z.string().min(1, 'Religion is required'),
+        casteCategory: z.string().min(1, 'Caste Category is required'),
+        caste: z.string().min(1, 'Caste is required'),
         bloodGroup: z.string().optional(),
         salaryType: z.string().optional(),
-        modeOfPayment: z.string().optional(),
+        modeOfPayment: z.string().min(1, 'Mode of Payment is required'),
         subjectTaught: z.string().optional(),
         epf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         ppf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         phdResearchGuide: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         recognitionYear: z.string().optional(),
-        teachingNonTeaching: z.string().optional(),
+        teachingNonTeaching: z.string().min(1, 'Teaching/Non-Teaching is required'),
         pfApplicable: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         ptMaxAmount: z
             .string()
@@ -323,23 +324,45 @@ const formSchema = z
             .refine((val) => {
                 if (!val) return true;
                 const num = Number.parseFloat(val);
-                return !Number.isNaN(num) && num >= 0;
-            }, 'Height must be a valid number'),
-        employeeHeightUnit: z.string().optional(),
+                if (Number.isNaN(num) || num < 0) return false;
+                // Validate DECIMAL(5,2) format: max 3 digits before decimal, 2 digits after
+                const decimalRegex = /^\d{1,3}(\.\d{1,2})?$/;
+                return decimalRegex.test(val.trim());
+            }, 'Height must be a valid number (max 999.99)'),
+        employeeHeightUnit: z.string().max(10, 'Unit of measure (Height) must not exceed 10 characters').optional(),
         employeeWeight: z
             .string()
             .optional()
             .refine((val) => {
                 if (!val) return true;
                 const num = Number.parseFloat(val);
-                return !Number.isNaN(num) && num >= 0;
-            }, 'Weight must be a valid number'),
-        employeeWeightUnit: z.string().optional(),
+                if (Number.isNaN(num) || num < 0) return false;
+                // Validate DECIMAL(5,2) format: max 3 digits before decimal, 2 digits after
+                const decimalRegex = /^\d{1,3}(\.\d{1,2})?$/;
+                return decimalRegex.test(val.trim());
+            }, 'Weight must be a valid number (max 999.99)'),
+        employeeWeightUnit: z.string().max(10, 'Unit of measure (Weight) must not exceed 10 characters').optional(),
         eyeSightIssue: z.string().max(255, 'Eye Sight Issue must not exceed 255 characters').optional(),
         anyHealthIssue: z.string().max(500, 'Any Health Issue must not exceed 500 characters').optional(),
         identificationMark: z.string().max(255, 'Identification Mark must not exceed 255 characters').optional(),
-        biometricCode: z.string().max(50, 'Biometric Code must not exceed 50 characters').optional(),
-        rfCardId: z.string().max(50, 'RF card ID must not exceed 50 characters').optional(),
+        biometricCode: z
+            .string()
+            .max(50, 'Biometric Code must not exceed 50 characters')
+            .refine((val) => {
+                if (!val) return true; // Allow empty (optional field)
+                // Must be alpha-numeric (letters and numbers only)
+                return /^[A-Za-z0-9]+$/.test(val);
+            }, 'Biometric Code must be an alpha-numeric string')
+            .optional(),
+        rfCardId: z
+            .string()
+            .max(50, 'RF card ID must not exceed 50 characters')
+            .refine((val) => {
+                if (!val) return true; // Allow empty (optional field)
+                // Must be alpha-numeric (letters and numbers only)
+                return /^[A-Za-z0-9]+$/.test(val);
+            }, 'RF card ID must be an alpha-numeric string')
+            .optional(),
         punchRelaxation: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         stopPension: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         dateOfStopPension: z.string().optional(),
@@ -411,11 +434,23 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
     const { mutate: saveExperienceDetails, isPending: isSavingExperience } = useSaveEmployeeExperience();
     const { mutate: saveDocumentDetails, isPending: isSavingDocument } = useSaveEmployeeDocument();
     const { mutate: saveMedicalDetails, isPending: isSavingMedical } = useSaveEmployeeMedical();
+    const { mutate: saveBankDetails, isPending: isSavingBank } = useSaveEmployeeBankDetails();
     const isEditMode = !!selectedRow;
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
     const [_photoFile, setPhotoFile] = useState<File | null>(null);
     const [activeTab, setActiveTab] = useState('employee');
     const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(selectedRow?.HRME_Id || null);
+
+    // Tab order for navigation
+    const tabOrder = ['employee', 'address', 'qualification', 'experience', 'document', 'medical', 'other', 'payroll'];
+    
+    // Function to go to previous tab
+    const handlePreviousTab = () => {
+        const currentIndex = tabOrder.indexOf(activeTab);
+        if (currentIndex > 0) {
+            setActiveTab(tabOrder[currentIndex - 1]);
+        }
+    };
 
     // Refs to track if we've already initialized form values to prevent infinite loops
     const hasInitializedDropdowns = useRef(false);
@@ -460,7 +495,9 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 documentList: [],
                 mobileDetails: [{ mobileNo: '', type: 'Default' }],
                 emailDetails: [{ emailId: '', type: 'Default' }],
-                bankDetails: []
+                bankDetails: [],
+                dateOfBirth: '',
+                dateOfRetirement: '' // Will be auto-calculated when DOB is set
             };
         }
 
@@ -521,10 +558,21 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             // Contact
             mobileDetails: emp.HRME_MobileNo ? [{ mobileNo: emp.HRME_MobileNo.toString(), type: 'Default' }] : [],
             emailDetails: emp.HRME_EmailId ? [{ emailId: emp.HRME_EmailId, type: 'Default' }] : [],
-            // Bank details - will be set properly after options load (see useEffect)
-            bankDetails: emp.HRME_BankAccountNo
-                ? [{ bankAccountNo: emp.HRME_BankAccountNo, employerBankName: '', accountType: 'Default' }]
-                : [],
+            // Bank details - map from employeebankDetails array
+            bankDetails: (() => {
+                const bankDetailsArray = (emp as any).employeebankDetails || [];
+                if (bankDetailsArray.length > 0) {
+                    return bankDetailsArray.map((bank: any) => ({
+                        bankAccountNo: bank.HRMEB_AccountNo || bank.AccountNo || bank.accountNo || '',
+                        employerBankName: bank.HRMBD_Id ? bank.HRMBD_Id.toString() : '',
+                        accountType: bank.HRMEB_ActiveFlag === 'Y' ? 'Default' : 'Alternate'
+                    }));
+                }
+                // Fallback to legacy HRME_BankAccountNo if employeebankDetails is not available
+                return emp.HRME_BankAccountNo
+                    ? [{ bankAccountNo: emp.HRME_BankAccountNo, employerBankName: '', accountType: 'Default' }]
+                    : [];
+            })(),
 
             // Address
             contactAddress: emp.HRME_LocStreet || '',
@@ -625,13 +673,15 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         trigger,
         setError,
         clearErrors,
-        formState: { errors, isSubmitting }
+        formState
     } = useForm<FormFields>({
         resolver: zodResolver(formSchema),
         mode: 'onChange', // Validate immediately on change
         reValidateMode: 'onChange', // Re-validate on change
         defaultValues: formDefaultValues
     });
+
+    const { errors, isSubmitting } = formState;
 
     // Removed debug logging to reduce console noise and improve performance
 
@@ -855,90 +905,84 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             const hasBankAccountNo = employeeDetails.HRME_BankAccountNo;
 
             if (hasBankOptions && (hasBankAccountNo || employeeBankDetails.length > 0)) {
-                let bankId = '';
-                let bankAccountNo = '';
-
-                // First, check if bank ID is directly in employee details
-                const directBankId =
-                    (employeeDetails as any).HRME_BankId ||
-                    (employeeDetails as any).HRMBD_Id ||
-                    (employeeDetails as any).BankId ||
-                    (employeeDetails as any).bankId;
-
-                if (directBankId) {
-                    bankId = directBankId.toString();
-                    bankAccountNo = employeeDetails.HRME_BankAccountNo || '';
-                }
-                // Second, try to get bank details from employeebankDetails array
-                else if (employeeBankDetails.length > 0) {
-                    const firstBank = employeeBankDetails[0];
-
-                    // Try multiple possible field names for bank ID
-                    bankId = (
-                        firstBank.HRMBD_Id ||
-                        firstBank.BankId ||
-                        firstBank.bankId ||
-                        firstBank.HRMEB_BankId ||
-                        firstBank.employerBankName ||
-                        ''
-                    ).toString();
-
-                    bankAccountNo =
-                        firstBank.HRMEB_AccountNo ||
-                        firstBank.AccountNo ||
-                        firstBank.accountNo ||
-                        firstBank.bankAccountNo ||
-                        employeeDetails.HRME_BankAccountNo ||
-                        '';
-                }
-                // Third, try to find bank ID by matching account number in bank list
-                else if (hasBankAccountNo) {
-                    // Try to find bank ID by matching account number in bank list
-                    bankAccountNo = employeeDetails.HRME_BankAccountNo || '';
-
-                    // Normalize account numbers for comparison (remove spaces, leading zeros, etc.)
-                    const normalizeAccountNo = (accNo: string | number | null | undefined): string => {
-                        if (!accNo) return '';
-                        return accNo.toString().trim().replace(/\s+/g, '').replace(/^0+/, '');
-                    };
-
-                    const normalizedEmployeeAccount = normalizeAccountNo(bankAccountNo);
-
-                    const matchingBank = onloadData.bankdropdownlist?.find((bank: any) => {
-                        const bankAccountNoFromList = bank.HRMBD_BankAccountNo || bank.BankAccountNo || bank.bankAccountNo;
-                        const normalizedBankAccount = normalizeAccountNo(bankAccountNoFromList);
-
-                        // Try exact match first
-                        const exactMatch =
-                            bankAccountNoFromList === bankAccountNo || bankAccountNoFromList?.toString() === bankAccountNo?.toString();
-
-                        // Try normalized match
-                        const normalizedMatch = normalizedBankAccount === normalizedEmployeeAccount && normalizedEmployeeAccount !== '';
-
-                        return exactMatch || normalizedMatch;
-                    });
-
-                    if (matchingBank) {
-                        bankId = (matchingBank.HRMBD_Id || matchingBank.BankId || matchingBank.id || '').toString();
-                    }
-                }
-
-                // Update bank details with found bank ID
-                // Only set bank ID if we found one, otherwise leave it empty for manual selection
-                if (bankAccountNo) {
+                // If we have employeebankDetails array, use it directly
+                if (employeeBankDetails.length > 0) {
                     hasInitializedBank.current = true;
-                    const updatedBankDetails = [
-                        {
-                            bankAccountNo: bankAccountNo,
-                            employerBankName: bankId || '', // Set bank ID here (empty string if not found - user will need to select manually)
-                            accountType: 'Default'
-                        }
-                    ];
+                    const mappedBankDetails = employeeBankDetails.map((bank: any) => ({
+                        bankAccountNo: bank.HRMEB_AccountNo || bank.AccountNo || bank.accountNo || '',
+                        employerBankName: bank.HRMBD_Id ? bank.HRMBD_Id.toString() : '',
+                        accountType: bank.HRMEB_ActiveFlag === 'Y' ? 'Default' : 'Alternate'
+                    }));
 
                     // Use requestAnimationFrame to ensure DOM is ready
                     requestAnimationFrame(() => {
-                        setValue('bankDetails', updatedBankDetails, { shouldValidate: false, shouldDirty: false });
+                        setValue('bankDetails', mappedBankDetails, { shouldValidate: false, shouldDirty: false });
                     });
+                }
+                // Fallback to legacy logic if employeebankDetails is not available
+                else if (hasBankAccountNo) {
+                    let bankId = '';
+                    let bankAccountNo = '';
+
+                    // First, check if bank ID is directly in employee details
+                    const directBankId =
+                        (employeeDetails as any).HRME_BankId ||
+                        (employeeDetails as any).HRMBD_Id ||
+                        (employeeDetails as any).BankId ||
+                        (employeeDetails as any).bankId;
+
+                    if (directBankId) {
+                        bankId = directBankId.toString();
+                        bankAccountNo = employeeDetails.HRME_BankAccountNo || '';
+                    }
+                    // Try to find bank ID by matching account number in bank list
+                    else {
+                        bankAccountNo = employeeDetails.HRME_BankAccountNo || '';
+
+                        // Normalize account numbers for comparison (remove spaces, leading zeros, etc.)
+                        const normalizeAccountNo = (accNo: string | number | null | undefined): string => {
+                            if (!accNo) return '';
+                            return accNo.toString().trim().replace(/\s+/g, '').replace(/^0+/, '');
+                        };
+
+                        const normalizedEmployeeAccount = normalizeAccountNo(bankAccountNo);
+
+                        const matchingBank = onloadData.bankdropdownlist?.find((bank: any) => {
+                            const bankAccountNoFromList = bank.HRMBD_BankAccountNo || bank.BankAccountNo || bank.bankAccountNo;
+                            const normalizedBankAccount = normalizeAccountNo(bankAccountNoFromList);
+
+                            // Try exact match first
+                            const exactMatch =
+                                bankAccountNoFromList === bankAccountNo || bankAccountNoFromList?.toString() === bankAccountNo?.toString();
+
+                            // Try normalized match
+                            const normalizedMatch = normalizedBankAccount === normalizedEmployeeAccount && normalizedEmployeeAccount !== '';
+
+                            return exactMatch || normalizedMatch;
+                        });
+
+                        if (matchingBank) {
+                            bankId = (matchingBank.HRMBD_Id || matchingBank.BankId || matchingBank.id || '').toString();
+                        }
+                    }
+
+                    // Update bank details with found bank ID
+                    // Only set bank ID if we found one, otherwise leave it empty for manual selection
+                    if (bankAccountNo) {
+                        hasInitializedBank.current = true;
+                        const updatedBankDetails = [
+                            {
+                                bankAccountNo: bankAccountNo,
+                                employerBankName: bankId || '', // Set bank ID here (empty string if not found - user will need to select manually)
+                                accountType: 'Default'
+                            }
+                        ];
+
+                        // Use requestAnimationFrame to ensure DOM is ready
+                        requestAnimationFrame(() => {
+                            setValue('bankDetails', updatedBankDetails, { shouldValidate: false, shouldDirty: false });
+                        });
+                    }
                 }
             }
         }
@@ -1183,6 +1227,27 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
     /**
      * Maps form field names (from tabs) to API field names
      */
+    // Helper function to map form data with address fields as null (for employee tab)
+    const mapFormDataToApiFormatWithoutAddress = (data: FormFields): SavePersonalDetailsRequest => {
+        const payload = mapFormDataToApiFormat(data);
+        // Set all address fields to null/0
+        payload.HRME_LocStreet = null;
+        payload.HRME_LocArea = null;
+        payload.HRME_LocCity = null;
+        payload.HRME_LocAdd4 = null;
+        payload.HRME_LocStateId = 0;
+        payload.HRME_LocCountryId = 0;
+        payload.HRME_LocPincode = 0;
+        payload.HRME_PerStreet = null;
+        payload.HRME_PerArea = null;
+        payload.HRME_PerCity = null;
+        payload.HRME_PerAdd4 = null;
+        payload.HRME_PerStateId = 0;
+        payload.HRME_PerCountryId = 0;
+        payload.HRME_PerPincode = 0;
+        return payload;
+    };
+
     const mapFormDataToApiFormat = (data: FormFields): SavePersonalDetailsRequest => {
         // Get mobile and email from arrays (take first/default)
         const defaultMobile = data.mobileDetails?.[0]?.mobileNo || '';
@@ -1196,7 +1261,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             UpdatedDate: new Date().toISOString(),
             HRME_Id: isEditMode && savedEmployeeId ? savedEmployeeId : 0, // Use employee ID for edit, 0 for new
             MI_Id: HRMS_MI_ID,
-            dmoObj: {}, // Required by API
             // Employee basic info
             HRME_EmployeeFirstName: data.firstName || '',
             HRME_EmployeeMiddleName: data.middleName || '',
@@ -1230,6 +1294,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             HRME_SalaryType: data.salaryType || '',
             HRME_PaymentType: data.modeOfPayment || '',
             HRME_SubjectsTaught: data.subjectTaught || '',
+            HRME_AppDownloadedDeviceId: '', // Required by API
             // Contact info
             HRME_MobileNo: Number(defaultMobile) || 0,
             HRME_EmailId: defaultEmail || '',
@@ -1283,6 +1348,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             HRME_Weight: Number(data.employeeWeight) || 0,
             HRME_WeightUOM: data.employeeWeightUnit || '',
             HRME_IdentificationMark: data.identificationMark || '',
+            HRME_ApprovalNo: '', // Required by API
             HRME_AnyHealthIssue: data.anyHealthIssue || '',
             HRME_EyeSightIssue: data.eyeSightIssue || '',
             HRME_SubstituteFlag: false,
@@ -1404,7 +1470,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     type: 'manual',
                     message: 'At least one qualification is required'
                 });
-                toast.error('At least one qualification is required');
                 return;
             }
 
@@ -1432,7 +1497,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 if (firstError) {
                     const result = qualificationDetailSchema.safeParse(firstError);
                     if (result.error) {
-                        toast.error(result.error.errors[0]?.message || 'Please check qualification details');
+                        // Set error on the qualification field - field will be highlighted
+                        setError('qualificationDetails', { 
+                            type: 'validation', 
+                            message: result.error.errors[0]?.message || 'Please check qualification details' 
+                        });
                     }
                 }
                 return;
@@ -1446,7 +1515,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     type: 'manual',
                     message: 'At least one experience is required'
                 });
-                toast.error('At least one experience is required');
                 return;
             }
 
@@ -1473,7 +1541,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 if (firstError) {
                     const result = experienceDetailSchema.safeParse(firstError);
                     if (result.error) {
-                        toast.error(result.error.errors[0]?.message || 'Please check experience details');
+                        // Set error on the experience field - field will be highlighted
+                        setError('experienceDetails', { 
+                            type: 'validation', 
+                            message: result.error.errors[0]?.message || 'Please check experience details' 
+                        });
                     }
                 }
                 return;
@@ -1487,7 +1559,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     type: 'manual',
                     message: 'At least one document is required'
                 });
-                toast.error('At least one document is required');
                 return;
             }
 
@@ -1514,7 +1585,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 if (firstError) {
                     const result = documentSchema.safeParse(firstError);
                     if (result.error) {
-                        toast.error(result.error.errors[0]?.message || 'Please check document details');
+                        // Set error on the document field - field will be highlighted
+                        setError('documentList', { 
+                            type: 'validation', 
+                            message: result.error.errors[0]?.message || 'Please check document details' 
+                        });
                     }
                 }
                 return;
@@ -1587,6 +1662,30 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     if (!formValues.gender || formValues.gender === '0' || formValues.gender === '') {
                         setError('gender', { type: 'required', message: 'Gender is required' });
                         currentErrors['gender'] = { message: 'Gender is required' };
+                    }
+                    if (!formValues.maritalStatus || formValues.maritalStatus === '0' || formValues.maritalStatus === '') {
+                        setError('maritalStatus', { type: 'required', message: 'Marital Status is required' });
+                        currentErrors['maritalStatus'] = { message: 'Marital Status is required' };
+                    }
+                    if (!formValues.religion || formValues.religion === '0' || formValues.religion === '') {
+                        setError('religion', { type: 'required', message: 'Religion is required' });
+                        currentErrors['religion'] = { message: 'Religion is required' };
+                    }
+                    if (!formValues.casteCategory || formValues.casteCategory === '0' || formValues.casteCategory === '') {
+                        setError('casteCategory', { type: 'required', message: 'Caste Category is required' });
+                        currentErrors['casteCategory'] = { message: 'Caste Category is required' };
+                    }
+                    if (!formValues.caste || formValues.caste === '0' || formValues.caste === '') {
+                        setError('caste', { type: 'required', message: 'Caste is required' });
+                        currentErrors['caste'] = { message: 'Caste is required' };
+                    }
+                    if (!formValues.teachingNonTeaching || formValues.teachingNonTeaching === '') {
+                        setError('teachingNonTeaching', { type: 'required', message: 'Teaching/Non-Teaching is required' });
+                        currentErrors['teachingNonTeaching'] = { message: 'Teaching/Non-Teaching is required' };
+                    }
+                    if (!formValues.modeOfPayment || formValues.modeOfPayment === '') {
+                        setError('modeOfPayment', { type: 'required', message: 'Mode of Payment is required' });
+                        currentErrors['modeOfPayment'] = { message: 'Mode of Payment is required' };
                     }
                 }
                 
@@ -1664,53 +1763,29 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     }
                 }
                 
-                // Show the first error message
+                // All validation errors are already set and will be displayed inline
+                // Scroll to first error field to help user see the errors
                 const errorFields = Object.keys(currentErrors);
                 if (errorFields.length > 0) {
-                    const firstError = currentErrors[errorFields[0]];
-                    let errorMessage = '';
-                    
-                    // Handle nested array errors
-                    if (firstError && typeof firstError === 'object' && 'root' in firstError) {
-                        errorMessage = firstError.root?.message || `Please check ${errorFields[0]}`;
-                    } else if (firstError && typeof firstError === 'object' && 'message' in firstError) {
-                        errorMessage = typeof firstError.message === 'string' 
-                            ? firstError.message 
-                            : `Please check ${errorFields[0]}`;
-                    } else if (Array.isArray(firstError) && firstError.length > 0) {
-                        const firstArrayError = firstError[0];
-                        if (firstArrayError && typeof firstArrayError === 'object' && 'message' in firstArrayError) {
-                            errorMessage = typeof firstArrayError.message === 'string'
-                                ? firstArrayError.message
-                                : `Please check ${errorFields[0]}`;
-                        }
-                    } else {
-                        errorMessage = `Please check ${errorFields.length} field(s) with errors in ${activeTab} tab`;
-                    }
-                    
-                    if (errorMessage) {
-                        toast.error(errorMessage);
-                    } else {
-                        toast.error(`Please fill all required fields in ${activeTab} tab`);
-                    }
-                    
-                    // Scroll to first error field
                     const firstField = errorFields[0];
-                    if (firstField) {
-                        // Try different selectors for the field
-                        const fieldElement = document.querySelector(`[name="${firstField}"]`) as HTMLElement ||
-                                           document.querySelector(`#${firstField}`) as HTMLElement ||
-                                           document.querySelector(`[id*="${firstField}"]`) as HTMLElement;
-                        if (fieldElement) {
-                            setTimeout(() => {
-                                fieldElement.focus();
-                                fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }, 100);
-                        }
+                    // Try different selectors for the field
+                    let fieldElement = document.querySelector(`[name="${firstField}"]`) as HTMLElement ||
+                                      document.querySelector(`#${firstField}`) as HTMLElement ||
+                                      document.querySelector(`[id*="${firstField}"]`) as HTMLElement;
+                    
+                    // For nested fields, try to find the actual input
+                    if (!fieldElement && firstField.includes('[')) {
+                        const baseField = firstField.split('[')[0];
+                        fieldElement = document.querySelector(`[name*="${baseField}"]`) as HTMLElement ||
+                                      document.querySelector(`#${baseField}`) as HTMLElement;
                     }
-                } else {
-                    // If no specific errors found, show generic message
-                    toast.error(`Please fill all required fields in ${activeTab} tab`);
+                    
+                    if (fieldElement) {
+                        setTimeout(() => {
+                            fieldElement.focus();
+                            fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }
                 }
                 return;
             }
@@ -1724,7 +1799,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
     const processFormSubmission = async (data: FormFields) => {
         console.log('🔍 [SUBMIT] processFormSubmission called', { activeTab, isEditMode, savedEmployeeId });
         try {
-            // Employee Tab: Just validate employee fields and move to Address tab (no API call)
+            // Employee Tab: Validate and save employee details (with address fields as null)
             if (activeTab === 'employee') {
                 // Validate only employee tab fields
                 const employeeErrors: string[] = [];
@@ -1797,17 +1872,142 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 }
 
                 if (employeeErrors.length > 0) {
-                    toast.error(employeeErrors[0] || 'Please fill all required employee fields');
+                    // Set errors on fields instead of showing toast
+                    employeeErrors.forEach((errorMsg, index) => {
+                        // Try to map error messages to field names
+                        if (errorMsg.includes('Mobile')) {
+                            setError('mobileDetails', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Email')) {
+                            setError('emailDetails', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Aadhar')) {
+                            setError('aadharNo', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('PAN')) {
+                            setError('panCardNo', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Date of Confirmation')) {
+                            setError('dateOfConfirmation', { type: 'validation', message: errorMsg });
+                        } else {
+                            // Set on first field if we can't map it
+                            setError('firstName', { type: 'validation', message: errorMsg });
+                        }
+                    });
                     return;
                 }
-                toast.success('Employee details validated. Please fill Address details.');
-                setActiveTab('address');
+
+                // Call API with address fields as null
+                console.log('🔍 [SUBMIT] Employee tab - preparing to save', { isEditMode, savedEmployeeId });
+                const payload = mapFormDataToApiFormatWithoutAddress(data);
+                console.log('🔍 [SUBMIT] Employee tab - payload prepared', { HRME_Id: payload.HRME_Id, employeeCode: payload.HRME_EmployeeCode });
+
+                savePersonalDetails(payload, {
+                    onSuccess: async (response) => {
+                        const responseData = (response as any)?.data;
+                        const responseMessage = (response as any)?.message;
+                        const responseSuccess = (response as any)?.success;
+
+                        // Check for duplicate employee code or error response
+                        if (responseData === 'Duplicate' || responseMessage === 'Duplicate' || 
+                            (responseSuccess === false && responseMessage)) {
+                            // Show the API error message
+                            const errorMessage = responseMessage || 'Duplicate Employee Code record cannot be added';
+                            toast.error(errorMessage);
+                            return;
+                        }
+
+                        // Extract HRME_Id from response
+                        let employeeId: number | null = null;
+                        
+                        console.log('🔍 [SAVE] Full response structure:', {
+                            responseType: typeof response,
+                            responseKeys: typeof response === 'object' && response !== null ? Object.keys(response) : [],
+                            responseData,
+                            responseMessage,
+                            responseSuccess,
+                            responseHRME_Id: (response as any)?.HRME_Id,
+                            responseDataHRME_Id: responseData?.HRME_Id
+                        });
+
+                        if (typeof response === 'object' && response !== null) {
+                            // Check direct property on response
+                            if ('HRME_Id' in response && typeof (response as any).HRME_Id === 'number' && (response as any).HRME_Id > 0) {
+                                employeeId = (response as any).HRME_Id;
+                            }
+                            // Check in data property (for wrapped ApiResponse)
+                            else if (responseData && typeof responseData === 'object' && 'HRME_Id' in responseData && typeof responseData.HRME_Id === 'number' && responseData.HRME_Id > 0) {
+                                employeeId = responseData.HRME_Id;
+                            }
+                            // Check nested in data.data (double-wrapped)
+                            else if (responseData && typeof responseData === 'object' && responseData.data && typeof responseData.data === 'object' && 'HRME_Id' in responseData.data) {
+                                employeeId = responseData.data.HRME_Id;
+                            }
+                        }
+
+                        // Store the employee ID for subsequent tabs
+                        if (employeeId && employeeId > 0) {
+                            console.log('✅ [SAVE] Extracted HRME_Id from response:', employeeId);
+                            setSavedEmployeeId(employeeId);
+                        } else if (!savedEmployeeId && (responseData === 'Add' || responseMessage === 'Add')) {
+                            console.warn('⚠️ [SAVE] Employee created (Add response) but HRME_Id not found in response. Please check API response structure.');
+                            console.warn('⚠️ [SAVE] Full response:', JSON.stringify(response, null, 2));
+                        } else if (savedEmployeeId) {
+                            console.log('ℹ️ [SAVE] Using existing savedEmployeeId:', savedEmployeeId);
+                        }
+
+                        if (responseData === 'Add' || responseMessage === 'Add') {
+                            toast.success('Employee details saved successfully!');
+                            setActiveTab('address');
+                            return;
+                        }
+
+                        if (responseData === 'Update' || responseMessage === 'Update') {
+                            toast.success('Employee details updated successfully!');
+                            setActiveTab('address');
+                            return;
+                        }
+
+                        // Fallback for other success responses
+                        if (responseSuccess === true || responseSuccess === undefined) {
+                            toast.success(responseMessage || 'Employee details saved successfully!');
+                            setActiveTab('address');
+                        }
+                    },
+                    onError: (error: any) => {
+                        console.error('🔍 [SAVE] ERROR:', error);
+                        
+                        // Extract error message from API response
+                        let errorMessage = 'Failed to save employee details';
+                        
+                        // Check if error has response data with message
+                        if (error?.response?.data) {
+                            const errorData = error.response.data;
+                            if (typeof errorData === 'object' && errorData !== null) {
+                                // Check for message in error response
+                                if (errorData.message) {
+                                    errorMessage = errorData.message;
+                                } else if (errorData.error) {
+                                    errorMessage = errorData.error;
+                                }
+                            } else if (typeof errorData === 'string') {
+                                errorMessage = errorData;
+                            }
+                        } else if (error?.message) {
+                            errorMessage = error.message;
+                        }
+                        
+                        toast.error(errorMessage);
+                    }
+                });
                 return;
             }
 
-            // Address Tab: Save Employee + Address together (same endpoint)
+            // Address Tab: Save Address details (call same endpoint again with address fields)
             // Note: Only validate address fields here - employee fields are validated in employee tab
             if (activeTab === 'address') {
+                if (!savedEmployeeId) {
+                    toast.error('Please save Employee details first');
+                    setActiveTab('employee');
+                    return;
+                }
+
                 // Validate only address fields (employee fields are validated in employee tab)
                 const addressErrors: string[] = [];
                 if (!data.contactAddress || data.contactAddress.trim() === '') {
@@ -1849,104 +2049,115 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     }
                 }
 
-                // Show address errors if any
+                // Set address errors on fields instead of showing toast
                 if (addressErrors.length > 0) {
-                    toast.error(addressErrors[0] || 'Please fill all required address fields');
+                    addressErrors.forEach((errorMsg) => {
+                        // Map error messages to field names
+                        if (errorMsg.includes('Contact Address')) {
+                            setError('contactAddress', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Contact Country')) {
+                            setError('contactCountry', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Contact State')) {
+                            setError('contactState', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Contact City')) {
+                            setError('contactCity', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Contact Pincode')) {
+                            setError('contactPincode', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Permanent Address')) {
+                            setError('permanentAddress', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Permanent Country')) {
+                            setError('permanentCountry', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Permanent State')) {
+                            setError('permanentState', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Permanent City')) {
+                            setError('permanentCity', { type: 'validation', message: errorMsg });
+                        } else if (errorMsg.includes('Permanent Pincode')) {
+                            setError('permanentPincode', { type: 'validation', message: errorMsg });
+                        }
+                    });
                     return;
                 }
 
                 console.log('🔍 [SUBMIT] Address tab - preparing to save', { isEditMode, savedEmployeeId });
                 const payload = mapFormDataToApiFormat(data);
+                // Ensure HRME_Id is set from savedEmployeeId
+                payload.HRME_Id = savedEmployeeId;
                 console.log('🔍 [SUBMIT] Address tab - payload prepared', { HRME_Id: payload.HRME_Id, employeeCode: payload.HRME_EmployeeCode });
 
                 savePersonalDetails(payload, {
                     onSuccess: async (response) => {
                         const responseData = (response as any)?.data;
                         const responseMessage = (response as any)?.message;
+                        const responseSuccess = (response as any)?.success;
 
-                        // Check for duplicate employee code
-                        if (responseData === 'Duplicate' || responseMessage === 'Duplicate') {
-                            toast.error('Employee code already exists. Please use a different code.');
+                        // Check for error response
+                        if (responseSuccess === false && responseMessage) {
+                            toast.error(responseMessage);
                             return;
                         }
 
-                        // Extract HRME_Id from response - it can be in various places depending on response structure
-                        let employeeId: number | null = null;
-                        
-                        // Log the full response for debugging
-                        console.log('🔍 [SAVE] Full response structure:', {
-                            responseType: typeof response,
-                            responseKeys: typeof response === 'object' && response !== null ? Object.keys(response) : [],
-                            responseData,
-                            responseMessage,
-                            responseHRME_Id: (response as any)?.HRME_Id,
-                            responseDataHRME_Id: responseData?.HRME_Id
-                        });
+                        // Save bank details if available
+                        if (data.bankDetails && data.bankDetails.length > 0 && savedEmployeeId && savedEmployeeId > 0) {
+                            const bankDetailsPayload = {
+                                MI_Id: HRMS_MI_ID,
+                                HRME_Id: savedEmployeeId,
+                                BankDetails: data.bankDetails.map((bank: any) => ({
+                                    CreatedDate: new Date().toISOString(),
+                                    UpdatedDate: new Date().toISOString(),
+                                    HRMEB_Id: 0, // New bank detail
+                                    HRME_Id: savedEmployeeId,
+                                    HRMBD_Id: Number(bank.employerBankName) || 0,
+                                    HRMEB_AccountNo: bank.bankAccountNo || '',
+                                    HRMEB_ActiveFlag: bank.accountType === 'Default' ? 'Y' : 'N'
+                                }))
+                            };
 
-                        if (typeof response === 'object' && response !== null) {
-                            // Check direct property on response
-                            if ('HRME_Id' in response && typeof (response as any).HRME_Id === 'number' && (response as any).HRME_Id > 0) {
-                                employeeId = (response as any).HRME_Id;
-                            }
-                            // Check in data property (for wrapped ApiResponse)
-                            else if (responseData && typeof responseData === 'object' && 'HRME_Id' in responseData && typeof responseData.HRME_Id === 'number' && responseData.HRME_Id > 0) {
-                                employeeId = responseData.HRME_Id;
-                            }
-                            // Check nested in data.data (double-wrapped)
-                            else if (responseData && typeof responseData === 'object' && responseData.data && typeof responseData.data === 'object' && 'HRME_Id' in responseData.data) {
-                                employeeId = responseData.data.HRME_Id;
-                            }
-                        }
-
-                        // Store the employee ID for subsequent tabs
-                        if (employeeId && employeeId > 0) {
-                            console.log('✅ [SAVE] Extracted HRME_Id from response:', employeeId);
-                            setSavedEmployeeId(employeeId);
-                            // Note: HRME_Id is not a form field, it's stored in savedEmployeeId state
-                        } else if (!savedEmployeeId && (responseData === 'Add' || responseMessage === 'Add')) {
-                            // If we don't have an ID but got "Add" response, log a warning
-                            // The user should check the API response structure
-                            console.warn('⚠️ [SAVE] Employee created (Add response) but HRME_Id not found in response. Please check API response structure.');
-                            console.warn('⚠️ [SAVE] Full response:', JSON.stringify(response, null, 2));
-                        } else if (savedEmployeeId) {
-                            // If we already have a saved employee ID, keep using it
-                            console.log('ℹ️ [SAVE] Using existing savedEmployeeId:', savedEmployeeId);
+                            console.log('🔍 [BANK SAVE] Saving bank details:', bankDetailsPayload);
+                            saveBankDetails(bankDetailsPayload);
                         }
 
                         if (responseData === 'Add' || responseMessage === 'Add') {
-                            toast.success('Employee and Address saved successfully!');
+                            toast.success('Address details saved successfully!');
                             setActiveTab('qualification');
                             return;
                         }
 
                         if (responseData === 'Update' || responseMessage === 'Update') {
-                            toast.success('Employee and Address updated successfully!');
+                            toast.success('Address details updated successfully!');
                             setActiveTab('qualification');
                             return;
                         }
 
                         // Fallback for other success responses
-                        if ((response as any)?.success) {
-                            toast.success('Employee and Address details saved successfully');
+                        if (responseSuccess === true || responseSuccess === undefined) {
+                            toast.success(responseMessage || 'Address details saved successfully!');
                             setActiveTab('qualification');
                         }
                     },
                     onError: (error: any) => {
-                        // Check if error message contains "Required"
-                        const errorMessage = error?.message || '';
-                        const errorDataString = typeof error?.response?.data === 'string' ? error.response.data : '';
-                        const hasRequiredError =
-                            errorMessage.includes('Required') ||
-                            errorMessage.includes('required') ||
-                            errorDataString.includes('Required') ||
-                            errorDataString.includes('required');
-
-                        if (hasRequiredError) {
-                            // Handle required field errors if needed
+                        console.error('🔍 [SAVE] ERROR:', error);
+                        
+                        // Extract error message from API response
+                        let errorMessage = 'Failed to save address details';
+                        
+                        // Check if error has response data with message
+                        if (error?.response?.data) {
+                            const errorData = error.response.data;
+                            if (typeof errorData === 'object' && errorData !== null) {
+                                // Check for message in error response
+                                if (errorData.message) {
+                                    errorMessage = errorData.message;
+                                } else if (errorData.error) {
+                                    errorMessage = errorData.error;
+                                }
+                            } else if (typeof errorData === 'string') {
+                                errorMessage = errorData;
+                            }
+                        } else if (error?.message) {
+                            errorMessage = error.message;
                         }
-
-                        console.error('🔍 [SAVE] ERROR:', error?.message);
-                        toast.error(error.message || 'Failed to save employee details');
+                        
+                        toast.error(errorMessage);
                     }
                 });
                 return;
@@ -1965,12 +2176,15 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 const qualificationDetails = data.qualificationDetails || [];
 
                 if (qualificationDetails.length === 0) {
-                    toast.error('Please add at least one qualification');
+                    setError('qualificationDetails', {
+                        type: 'required',
+                        message: 'Please add at least one qualification'
+                    });
                     return;
                 }
 
                 // Map form data to API format
-                const qualificationsPayload = qualificationDetails.map((qual: any) => {
+                const qualificationsPayload = qualificationDetails.map((qual: any, index: number) => {
                     const cgpaValue = qual.cgpa || '';
                     const isPercentage = qual.cgpaOrPercentage === 'Percentage';
 
@@ -1982,23 +2196,35 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     const registrationYear = qual.registrationYear ? Number(qual.registrationYear) : 0;
                     const hrmEqId = qual.HRMEQ_Id ? Number(qual.HRMEQ_Id) : 0;
 
-                    // Validate required fields
+                    // Validate required fields and set errors
                     if (!courseId) {
-                        toast.error('Course is required for all qualifications');
+                        setError(`qualificationDetails.${index}.course`, {
+                            type: 'required',
+                            message: 'Course is required for all qualifications'
+                        });
                         throw new Error('Course is required');
                     }
                     if (!yearOfPassing) {
-                        toast.error('Year of Passing is required for all qualifications');
+                        setError(`qualificationDetails.${index}.yearOfPassing`, {
+                            type: 'required',
+                            message: 'Year of Passing is required for all qualifications'
+                        });
                         throw new Error('Year of Passing is required');
                     }
                     if (!countryId) {
-                        toast.error('Country is required for all qualifications');
+                        setError(`qualificationDetails.${index}.qualificationCountry`, {
+                            type: 'required',
+                            message: 'Country is required for all qualifications'
+                        });
                         throw new Error('Country is required');
                     }
                     // Check if states are available before requiring state
                     const statesAvailable = options?.states && options.states.length > 0;
                     if (!stateId && statesAvailable) {
-                        toast.error('State is required. Please select a state from the dropdown.');
+                        setError(`qualificationDetails.${index}.qualificationState`, {
+                            type: 'required',
+                            message: 'State is required. Please select a state from the dropdown.'
+                        });
                         throw new Error('State is required');
                     }
 
@@ -2057,7 +2283,10 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 const experienceDetails = data.experienceDetails || [];
 
                 if (experienceDetails.length === 0) {
-                    toast.error('Please add at least one experience');
+                    setError('experienceDetails', {
+                        type: 'required',
+                        message: 'Please add at least one experience'
+                    });
                     return;
                 }
 
@@ -2106,7 +2335,10 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 const documentList = data.documentList || [];
 
                 if (documentList.length === 0) {
-                    toast.error('Please add at least one document');
+                    setError('documentList', {
+                        type: 'required',
+                        message: 'Please add at least one document'
+                    });
                     return;
                 }
 
@@ -2189,7 +2421,17 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     }
 
                     if (otherDetailsErrors.length > 0) {
-                        toast.error(otherDetailsErrors[0] || 'Please fill all required fields');
+                        // Set errors on fields instead of showing toast
+                        otherDetailsErrors.forEach((errorMsg) => {
+                            // Map error messages to field names
+                            if (errorMsg.includes('Date of Stop Pension')) {
+                                setError('dateOfStopPension', { type: 'validation', message: errorMsg });
+                            } else if (errorMsg.includes('Last Working Day')) {
+                                setError('lastWorkingDay', { type: 'validation', message: errorMsg });
+                            } else if (errorMsg.includes('Reason for Leaving')) {
+                                setError('reasonForLeaving', { type: 'validation', message: errorMsg });
+                            }
+                        });
                         return;
                     }
                 }
@@ -2321,64 +2563,190 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             if (!isValid) {
                 console.log('🔴 [SUBMIT] Current tab validation failed');
                 // Wait a bit for errors to be set in form state
-                await new Promise(resolve => setTimeout(resolve, 100));
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Get errors from formState directly to ensure we have the latest errors after trigger
+                // Access formState.errors directly instead of destructured errors for latest state
+                const formErrors = formState.errors;
+                
+                // For employee tab, manually validate required fields if trigger didn't catch them
+                if (activeTab === 'employee') {
+                    const formValues = getValues();
+                    
+                    // Manually check required fields and set errors if missing
+                    const requiredFields: Array<{ field: keyof FormFields; message: string }> = [
+                        { field: 'firstName', message: 'Name of the Employee is required' },
+                        { field: 'employeeCode', message: 'Employee Code is required' },
+                        { field: 'typeOfEmployment', message: 'Type of Employment is required' },
+                        { field: 'employeeGroup', message: 'Employee Group is required' },
+                        { field: 'school', message: 'Department is required' },
+                        { field: 'designation', message: 'Designation is required' },
+                        { field: 'grade', message: 'Grade is required' },
+                        { field: 'fatherName', message: "Father's Name is required" },
+                        { field: 'motherName', message: "Mother's Name is required" },
+                        { field: 'dateOfBirth', message: 'Date of Birth is required' },
+                        { field: 'dateOfJoining', message: 'Date of Joining is required' },
+                        { field: 'gender', message: 'Gender is required' },
+                        { field: 'maritalStatus', message: 'Marital Status is required' },
+                        { field: 'religion', message: 'Religion is required' },
+                        { field: 'casteCategory', message: 'Caste Category is required' },
+                        { field: 'caste', message: 'Caste is required' },
+                        { field: 'modeOfPayment', message: 'Mode of Payment is required' },
+                        { field: 'teachingNonTeaching', message: 'Teaching/Non-Teaching is required' }
+                    ];
+                    
+                    requiredFields.forEach(({ field, message }) => {
+                        const value = formValues[field];
+                        if (!value || value === '' || value === '0') {
+                            if (!formState.errors[field]) {
+                                setError(field, {
+                                    type: 'required',
+                                    message
+                                });
+                            }
+                        }
+                    });
+                    
+                    // Check mobile details
+                    if (!formValues.mobileDetails || formValues.mobileDetails.length === 0) {
+                        if (!formState.errors.mobileDetails) {
+                            setError('mobileDetails', {
+                                type: 'required',
+                                message: 'At least one mobile number is required'
+                            });
+                        }
+                    }
+                }
                 
                 // Get errors for current tab only
                 const currentErrors: Record<string, any> = {};
+                const errorMessages: string[] = [];
+                
                 currentTabFields.forEach((field) => {
-                    const fieldError = errors[field as keyof typeof errors];
+                    const fieldError = formState.errors[field as keyof typeof formState.errors];
                     if (fieldError) {
                         currentErrors[field] = fieldError;
+                        const errorMsg = typeof fieldError === 'string' ? fieldError : fieldError?.message;
+                        if (errorMsg) {
+                            errorMessages.push(errorMsg);
+                        }
                     }
                 });
                 
                 // Also check nested fields for employee tab
                 if (activeTab === 'employee') {
-                    if (errors.mobileDetails) currentErrors['mobileDetails'] = errors.mobileDetails;
-                    if (errors.emailDetails) currentErrors['emailDetails'] = errors.emailDetails;
-                    if (errors.bankDetails) currentErrors['bankDetails'] = errors.bankDetails;
+                    if (formState.errors.mobileDetails) {
+                        currentErrors['mobileDetails'] = formState.errors.mobileDetails;
+                        const mobileError = typeof formState.errors.mobileDetails === 'string' 
+                            ? formState.errors.mobileDetails 
+                            : formState.errors.mobileDetails?.message || 'Mobile details validation failed';
+                        errorMessages.push(mobileError);
+                    }
+                    if (formState.errors.emailDetails) {
+                        currentErrors['emailDetails'] = formState.errors.emailDetails;
+                        const emailError = typeof formState.errors.emailDetails === 'string' 
+                            ? formState.errors.emailDetails 
+                            : formState.errors.emailDetails?.message || 'Email details validation failed';
+                        errorMessages.push(emailError);
+                    }
+                    if (formState.errors.bankDetails) {
+                        currentErrors['bankDetails'] = formState.errors.bankDetails;
+                        const bankError = typeof formState.errors.bankDetails === 'string' 
+                            ? formState.errors.bankDetails 
+                            : formState.errors.bankDetails?.message || 'Bank details validation failed';
+                        errorMessages.push(bankError);
+                    }
                 }
                 
-                // Show first error for current tab
+                // Log all errors for debugging
+                console.log('🔴 [SUBMIT] Validation errors found:', currentErrors);
+                console.log('🔴 [SUBMIT] Error messages:', errorMessages);
+                console.log('🔴 [SUBMIT] Form errors object:', formState.errors);
+                console.log('🔴 [SUBMIT] All form errors keys:', Object.keys(formState.errors));
+                
+                // Show all validation errors - fields are already highlighted via react-hook-form
                 const errorFields = Object.keys(currentErrors);
                 if (errorFields.length > 0) {
-                    const firstError = currentErrors[errorFields[0]];
-                    let errorMessage = '';
+                    // Show toast with first error message
+                    const firstErrorMsg = errorMessages[0] || 'Please fix the validation errors in the form';
+                    toast.error(firstErrorMsg);
                     
-                    if (typeof firstError === 'object') {
-                        if (firstError.message) {
-                            errorMessage = firstError.message;
-                        } else if (Array.isArray(firstError) && firstError[0]) {
-                            const nestedError = firstError[0];
-                            if (typeof nestedError === 'object' && nestedError !== null) {
-                                // Check for nested field errors like employerBankName.message
-                                const nestedFieldError = Object.values(nestedError).find((err: any) => err && typeof err === 'object' && 'message' in err);
-                                if (nestedFieldError && typeof nestedFieldError === 'object' && nestedFieldError !== null && 'message' in nestedFieldError) {
-                                    errorMessage = (nestedFieldError as { message: string }).message;
-                                } else if ('message' in nestedError && typeof (nestedError as any).message === 'string') {
-                                    errorMessage = (nestedError as { message: string }).message;
+                    // Scroll to first error field to help user see the errors
+                    setTimeout(() => {
+                        const firstField = errorFields[0];
+                        // Try different selectors for nested fields
+                        let fieldElement = document.querySelector(`[name="${firstField}"]`) as HTMLElement ||
+                                          document.querySelector(`#${firstField}`) as HTMLElement ||
+                                          document.querySelector(`input[id*="${firstField}"]`) as HTMLElement ||
+                                          document.querySelector(`select[id*="${firstField}"]`) as HTMLElement;
+                        
+                        // For nested fields like mobileDetails[0].mobileNo, try to find the actual input
+                        if (!fieldElement && firstField.includes('[')) {
+                            const baseField = firstField.split('[')[0];
+                            fieldElement = document.querySelector(`[name*="${baseField}"]`) as HTMLElement ||
+                                          document.querySelector(`#${baseField}`) as HTMLElement ||
+                                          document.querySelector(`input[id*="${baseField}"]`) as HTMLElement ||
+                                          document.querySelector(`select[id*="${baseField}"]`) as HTMLElement;
+                        }
+                        
+                        // Try to find by label text if still not found
+                        if (!fieldElement) {
+                            // Get the field label from the error message or field name
+                            const fieldLabels: Record<string, string> = {
+                                firstName: 'First Name',
+                                employeeCode: 'Employee Code',
+                                typeOfEmployment: 'Type of Employment',
+                                employeeGroup: 'Employee Group',
+                                school: 'Department',
+                                designation: 'Designation',
+                                grade: 'Grade',
+                                fatherName: "Father's Name",
+                                motherName: "Mother's Name",
+                                dateOfBirth: 'Date of Birth',
+                                dateOfJoining: 'Date of Joining',
+                                gender: 'Gender',
+                                maritalStatus: 'Marital Status',
+                                religion: 'Religion',
+                                casteCategory: 'Caste Category',
+                                caste: 'Caste',
+                                modeOfPayment: 'Mode of Payment'
+                            };
+                            
+                            const labelText = fieldLabels[firstField] || firstField;
+                            // Try to find label and then the associated input
+                            const labels = Array.from(document.querySelectorAll('label'));
+                            const matchingLabel = labels.find(label => 
+                                label.textContent?.includes(labelText) || 
+                                label.getAttribute('for')?.includes(firstField)
+                            );
+                            
+                            if (matchingLabel) {
+                                const labelFor = matchingLabel.getAttribute('for');
+                                if (labelFor) {
+                                    fieldElement = document.querySelector(`#${labelFor}`) as HTMLElement;
+                                }
+                                if (!fieldElement && matchingLabel.parentElement) {
+                                    fieldElement = matchingLabel.parentElement.querySelector('input, select, textarea') as HTMLElement;
                                 }
                             }
-                        } else if (firstError.root?.message) {
-                            errorMessage = firstError.root.message;
                         }
-                    }
-                    
-                    if (!errorMessage) {
-                        errorMessage = `Please fix the error in ${errorFields[0]}`;
-                    }
-                    
-                    toast.error(errorMessage);
-                    
-                    // Scroll to first error field
-                    setTimeout(() => {
-                        const fieldElement = document.querySelector(`[name="${errorFields[0]}"]`) as HTMLElement ||
-                                           document.querySelector(`#${errorFields[0]}`) as HTMLElement;
+                        
                         if (fieldElement) {
                             fieldElement.focus();
                             fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        } else {
+                            // If we can't find the field, scroll to top of form to show errors
+                            const formElement = document.querySelector('form') || document.querySelector('[class*="space-y"]');
+                            if (formElement) {
+                                formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
                         }
-                    }, 100);
+                    }, 200);
+                    return;
+                } else {
+                    // If no errors found but validation failed, show generic message
+                    console.warn('⚠️ [SUBMIT] Validation failed but no errors found in form state');
+                    toast.error('Please check the form fields and fix any validation errors');
                     return;
                 }
             }
@@ -2506,9 +2874,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     errorMessage = `Please fix the error in ${fieldName}`;
                 }
                 
-                toast.error(errorMessage);
-                
-                // Scroll to the first error field
+                // Errors are already set on fields, just scroll to first error
                 setTimeout(() => {
                     const fieldElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement ||
                                        document.querySelector(`#${firstErrorField}`) as HTMLElement;
@@ -2517,8 +2883,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 }, 100);
-            } else {
-                toast.error(`Please fill all required fields in ${activeTab} tab`);
             }
         }
     );
@@ -2557,6 +2921,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             onClear={handleClearCurrentTab}
                             setValue={setValue}
                             getValues={getValues}
+                            currentTab={activeTab}
+                            onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
 
@@ -2571,6 +2937,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             countries={options?.countries || []}
                             states={options?.states || []}
                             onClear={handleClearCurrentTab}
+                            currentTab={activeTab}
+                            onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
 
@@ -2585,6 +2953,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             states={options?.states || []}
                             setValue={setValue}
                             onClear={handleClearCurrentTab}
+                            currentTab={activeTab}
+                            onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
 
@@ -2596,6 +2966,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             isSubmitting={isSubmitting || isSavingExperience}
                             setValue={setValue}
                             onClear={handleClearCurrentTab}
+                            currentTab={activeTab}
+                            onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
 
@@ -2607,6 +2979,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             isSubmitting={isSubmitting || isSavingDocument}
                             watch={watch}
                             onClear={handleClearCurrentTab}
+                            currentTab={activeTab}
+                            onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
 
@@ -2617,6 +2991,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             errors={errors}
                             isSubmitting={isSubmitting || isSavingMedical}
                             onClear={handleClearCurrentTab}
+                            currentTab={activeTab}
+                            onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
 
@@ -2629,6 +3005,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             watch={watch}
                             options={options}
                             onClear={handleClearCurrentTab}
+                            currentTab={activeTab}
+                            onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
 
@@ -2641,6 +3019,7 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                 earningList={onloadData?.earningList || []}
                                 detectionList={onloadData?.detectionList || []}
                                 arrearList={onloadData?.arrearList || []}
+                                onSuccess={onSuccess}
                             />
                         ) : (
                             <div className='rounded-md border p-6 text-center text-muted-foreground'>

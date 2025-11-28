@@ -45,8 +45,14 @@ export default function SpecializationForm({ selectedRow, onSuccess }: Specializ
     }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterSpecializationInput) => {
+        // Trim whitespace from text fields
+        const sanitizedData: MasterSpecializationInput = {
+            ...data,
+            HRMSPL_SpecialisationName: data.HRMSPL_SpecialisationName?.trim() || ''
+        };
+
         try {
-            const res = await saveMutation.mutateAsync(data);
+            const res = await saveMutation.mutateAsync(sanitizedData);
             if (res?.success) {
                 toast.success(res?.message || (isEditMode ? 'Specialization updated successfully' : 'Specialization added successfully'));
                 if (onSuccess) onSuccess();
@@ -76,9 +82,24 @@ export default function SpecializationForm({ selectedRow, onSuccess }: Specializ
                     {...register('HRMSPL_SpecialisationName', SPECIALIZATION_VALIDATION.HRMSPL_SpecialisationName)}
                 />
             </div>
-            <div className='col-span-full'>
-                <Button type='submit' className='mt-2' disabled={saveMutation.isPending}>
+            <div className='col-span-full flex gap-2 items-center'>
+                <Button 
+                    type='submit' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90' 
+                    disabled={saveMutation.isPending}>
                     {saveMutation.isPending ? (isEditMode ? 'Updating...' : 'Saving...') : isEditMode ? 'Update' : 'Save'}
+                </Button>
+                <Button 
+                    type='button' 
+                    className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90' 
+                    onClick={() => {
+                        reset({
+                            MI_Id: roleId,
+                            HRMSPL_SpecialisationName: '',
+                            HRMSPL_ActiveFlg: true
+                        });
+                    }}>
+                    Clear
                 </Button>
             </div>
         </form>

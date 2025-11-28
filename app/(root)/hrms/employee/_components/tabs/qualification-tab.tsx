@@ -16,72 +16,8 @@ import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 import { useStatesByCountryId } from '@/hooks/hrms/useEmployeeRegister';
 
-// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
-const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
-    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
-    if (value == null || value === undefined || value === '') {
-        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY VALUE DETECTED:', {
-            value,
-            valueType: typeof value,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Convert to string
-    const strValue = String(value);
-
-    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
-    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY STRING DETECTED:', {
-            originalValue: value,
-            strValue,
-            strValueLength: strValue.length,
-            trimmed: strValue.trim(),
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    const trimmedValue = strValue.trim();
-
-    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
-    if (trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - qualification-tab] EMPTY TRIMMED VALUE DETECTED:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue.length,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
-    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - qualification-tab] FINAL CHECK FAILED - trimmedValue is empty:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue?.length,
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Only render if we have a valid non-empty string
-    return (
-        <SelectItem {...props} value={trimmedValue}>
-            {children}
-        </SelectItem>
-    );
-};
+// Note: We render SelectItem directly in the map (not via helper function)
+// This ensures collectItemValues can find them by type check (child.type === SelectItem)
 
 // Helper function to ensure SelectItem value is never empty string
 const ensureNonEmptyValue = (value: any, fallback: any = null): string | null => {
@@ -217,10 +153,11 @@ function QualificationStateDropdown({
                                             state.label ||
                                             `State ${stateId}`;
                                         if (!stateId || stateId.trim() === '') return null;
+                                        // Render SelectItem directly so collectItemValues can find it
                                         return (
-                                            <SafeSelectItem key={stateId} value={stateId}>
+                                            <SelectItem key={stateId} value={stateId} textValue={stateName}>
                                                 {stateName}
-                                            </SafeSelectItem>
+                                            </SelectItem>
                                         );
                                     })
                                     .filter(Boolean)
@@ -242,8 +179,10 @@ export function QualificationTab({
     countries = [],
     states = [],
     setValue,
-    onClear
-}: QualificationTabProps) {
+    onClear,
+    currentTab,
+    onPreviousTab
+}: QualificationTabProps & { currentTab?: string; onPreviousTab?: () => void }) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'qualificationDetails'
@@ -284,9 +223,12 @@ export function QualificationTab({
         <div className='space-y-4'>
             <div className='rounded-md border'>
                 <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
-                    <h3 className='font-semibold'>EMPLOYEE QUALIFICATION DETAILS</h3>
-                    <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
-                        <Plus className='mr-1 h-4 w-4' /> Add Qualification
+                    <h3 className='font-semibold text-base text-gray-900 uppercase'>EMPLOYEE QUALIFICATION DETAILS</h3>
+                    <Button 
+                        type='button' 
+                        className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80'
+                        onClick={addEmptyRow}>
+                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Qualification
                     </Button>
                 </div>
             </div>
@@ -310,8 +252,11 @@ export function QualificationTab({
                                     <Badge variant='secondary'>Serial NO. {index + 1}</Badge>
                                     <div className='font-semibold'>Qualification #{index + 1}</div>
                                 </div>
-                                <Button type='button' variant='ghost' size='sm' onClick={() => remove(index)}>
-                                    <Trash2 className='mr-1 h-4 w-4' /> Remove
+                                <Button 
+                                    type='button' 
+                                    className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
+                                    onClick={() => remove(index)}>
+                                    <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
                                 </Button>
                             </div>
 
@@ -374,10 +319,11 @@ export function QualificationTab({
 
                                                                     // Final safety check - ensure value is never empty
                                                                     if (!courseId || courseId.trim() === '') return null;
+                                                                    // Render SelectItem directly so collectItemValues can find it
                                                                     return (
-                                                                        <SafeSelectItem key={courseId} value={courseId}>
+                                                                        <SelectItem key={courseId} value={courseId} textValue={courseName}>
                                                                             {courseName}
-                                                                        </SafeSelectItem>
+                                                                        </SelectItem>
                                                                     );
                                                                 })
                                                                 .filter(Boolean)}
@@ -455,10 +401,11 @@ export function QualificationTab({
                                                                     `Country ${countryId}`;
                                                                 // Final safety check - ensure value is never empty
                                                                 if (!countryId || countryId.trim() === '') return null;
+                                                                // Render SelectItem directly so collectItemValues can find it
                                                                 return (
-                                                                    <SafeSelectItem key={countryId} value={countryId}>
+                                                                    <SelectItem key={countryId} value={countryId} textValue={countryName}>
                                                                         {countryName}
-                                                                    </SafeSelectItem>
+                                                                    </SelectItem>
                                                                 );
                                                             })
                                                             .filter(Boolean)}
@@ -507,8 +454,8 @@ export function QualificationTab({
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SafeSelectItem value="CGPA">CGPA</SafeSelectItem>
-                                                        <SafeSelectItem value="Percentage">Percentage</SafeSelectItem>
+                                                        <SelectItem value="CGPA" textValue="CGPA">CGPA</SelectItem>
+                                                        <SelectItem value="Percentage" textValue="Percentage">Percentage</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -576,10 +523,11 @@ export function QualificationTab({
 
                                                                     // Final safety check - ensure value is never empty
                                                                     if (!specId || specId.trim() === '') return null;
+                                                                    // Render SelectItem directly so collectItemValues can find it
                                                                     return (
-                                                                        <SafeSelectItem key={specId} value={specId}>
+                                                                        <SelectItem key={specId} value={specId} textValue={specName}>
                                                                             {specName}
-                                                                        </SafeSelectItem>
+                                                                        </SelectItem>
                                                                     );
                                                                 })
                                                                 .filter(Boolean)}
@@ -680,12 +628,14 @@ export function QualificationTab({
                                         name={`qualificationDetails.${index}.qualifiedDate`}
                                         control={control}
                                         render={({ field, fieldState }) => (
-                                            <DateField
-                                                field={field}
-                                                fieldState={fieldState}
-                                                label='Qualified Date'
-                                                placeholder='Pick qualified date'
-                                            />
+                                            <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
+                                                <DateField
+                                                    field={field}
+                                                    fieldState={fieldState}
+                                                    label='Qualified Date'
+                                                    placeholder='Pick qualified date'
+                                                />
+                                            </div>
                                         )}
                                     />
                                 </div>
@@ -695,7 +645,7 @@ export function QualificationTab({
                 })}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }

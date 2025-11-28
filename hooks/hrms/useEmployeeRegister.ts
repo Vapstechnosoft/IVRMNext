@@ -11,12 +11,14 @@ import {
     saveDocumentDetails,
     saveMedicalDetails,
     saveOtherDetails,
+    saveBankDetails,
     saveEarningDetails,
     saveDeductionDetails,
     saveArrearDetails,
     activateDeactivateEmployee,
     getEmployeeSalaryDetails,
-    getStatesByCountryId
+    getStatesByCountryId,
+    calculateSalary
 } from '@/server/hrms/hrmsConfig/employee/register';
 import type {
     SavePersonalDetailsRequest,
@@ -25,10 +27,13 @@ import type {
     SaveDocumentDetailsRequest,
     SaveMedicalDetailsRequest,
     SaveOtherDetailsRequest,
+    SaveBankDetailsRequest,
     SaveEarningDetailsRequest,
     SaveDeductionDetailsRequest,
     SaveArrearDetailsRequest,
-    GetEmployeeSalaryDetailsRequest
+    GetEmployeeSalaryDetailsRequest,
+    SalaryCalculationRequest,
+    SalaryCalculationResponse
 } from '@/types/hrms/employee-register';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -104,7 +109,32 @@ export function useSaveEmployeePersonalDetails() {
             console.log('🟣 [HOOK] Payload Employee Name:', `${data.HRME_EmployeeFirstName} ${data.HRME_EmployeeLastName}`);
             console.log('🟣 [HOOK] Payload Employee Code:', data.HRME_EmployeeCode);
             console.log('🟣 [HOOK] Payload Keys:', Object.keys(data));
-            console.log('🟣 [HOOK] Full Payload:', JSON.stringify(data, null, 2));
+            
+            // Create sanitized payload for logging (exclude large image data)
+            const sanitizedData = { ...data };
+            let photoSize = 0;
+            let photoFormat = 'N/A';
+            
+            if (data.HRME_Photo) {
+                photoSize = data.HRME_Photo.length;
+                // Handle both base64 strings and data URLs (data:image/jpeg;base64,...)
+                if (data.HRME_Photo.startsWith('data:')) {
+                    const base64Part = data.HRME_Photo.split(',')[1] || '';
+                    photoSize = base64Part.length;
+                    const mimeMatch = data.HRME_Photo.match(/data:([^;]+)/);
+                    photoFormat = mimeMatch ? mimeMatch[1] : 'image';
+                    sanitizedData.HRME_Photo = `[DATA_URL_IMAGE - ${photoFormat} - ${(photoSize / 1024).toFixed(2)}KB - TRUNCATED FOR LOGGING]`;
+                } else {
+                    photoFormat = 'base64';
+                    sanitizedData.HRME_Photo = `[BASE64_IMAGE_DATA - ${(photoSize / 1024).toFixed(2)}KB - TRUNCATED FOR LOGGING]`;
+                }
+            }
+            console.log('🟣 [HOOK] Full Payload (Image Data Excluded):', JSON.stringify(sanitizedData, null, 2));
+            console.log('🟣 [HOOK] Photo Info:', {
+                present: !!data.HRME_Photo,
+                format: photoFormat,
+                size: photoSize > 0 ? `${(photoSize / 1024).toFixed(2)}KB` : 'N/A'
+            });
             console.log('🟣 [HOOK] Calling savePersonalDetails server function...');
             
             console.log('🔍 [OTHER DETAILS SAVE] Browser - Starting save:', {
@@ -164,31 +194,45 @@ export function useSaveEmployeePersonalDetails() {
                 });
             }
         },
-        onError: (error: Error) => {
+        onError: (error: any) => {
             console.log('═══════════════════════════════════════════════════════════════');
             console.log('🔴 [HOOK] useSaveEmployeePersonalDetails onError called');
             console.log('═══════════════════════════════════════════════════════════════');
             console.log('🔴 [HOOK] Error Type:', typeof error);
-            console.log('🔴 [HOOK] Error Message:', error.message);
-            console.log('🔴 [HOOK] Error Stack:', error.stack);
+            console.log('🔴 [HOOK] Error Message:', error?.message);
+            console.log('🔴 [HOOK] Error Stack:', error?.stack);
             console.log('🔴 [HOOK] Full Error:', error);
-            console.log('🔴 [HOOK] Error as JSON:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+            console.log('🔴 [HOOK] Error Response Data:', error?.response?.data);
             
-            // Check if error message contains "Required"
-            const hasRequiredError = error.message?.includes('Required') || 
-                                    error.message?.includes('required');
+            // Extract error message from API response
+            let errorMessage = 'An error occurred while saving personal details';
             
-            if (hasRequiredError) {
-                console.log('⚠️ [HOOK] "Required" error detected in error message!');
-                console.log('⚠️ [HOOK] Error Message:', error.message);
+            // Check if error has response data with message
+            if (error?.response?.data) {
+                const errorData = error.response.data;
+                if (typeof errorData === 'object' && errorData !== null) {
+                    // Check for message in error response
+                    if (errorData.message) {
+                        errorMessage = errorData.message;
+                    } else if (errorData.error) {
+                        errorMessage = errorData.error;
+                    }
+                } else if (typeof errorData === 'string') {
+                    errorMessage = errorData;
+                }
+            } else if (error?.message) {
+                errorMessage = error.message;
             }
             
             console.error('🔍 [OTHER DETAILS SAVE] Browser - Error:', {
-                message: error.message,
-                stack: error.stack,
-                error: error
+                message: errorMessage,
+                originalError: error
             });
-            toast.error(error.message || 'An error occurred while saving personal details');
+            // Component will handle error display with proper message extraction
+            // Update error message for better error handling in component
+            if (error && typeof error === 'object') {
+                error.message = errorMessage;
+            }
         }
     });
 }
@@ -331,6 +375,84 @@ export function useSaveEmployeeMedical() {
 }
 
 /**
+ * Hook to save employee bank details
+ */
+export function useSaveEmployeeBankDetails() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (data: SaveBankDetailsRequest) => {
+            console.log('🔍 [BANK SAVE] Browser - Starting save:', {
+                employeeId: data.HRME_Id || 'N/A',
+                miId: data.MI_Id || 'N/A',
+                bankCount: data.BankDetails?.length || 0,
+                banks: data.BankDetails?.map((bank, index) => ({
+                    index: index + 1,
+                    bankId: bank.HRMBD_Id || 'N/A',
+                    accountNo: bank.HRMEB_AccountNo || 'N/A',
+                    activeFlag: bank.HRMEB_ActiveFlag || 'N/A'
+                })) || []
+            });
+            return saveBankDetails(data);
+        },
+        onSuccess: (response) => {
+            console.log('🔍 [BANK SAVE] Browser - Success:', {
+                success: response.success,
+                message: response.message,
+                data: response.data
+            });
+            
+            if (response.success) {
+                toast.success(response.message || 'Bank details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_ONLOAD]
+                });
+            } else {
+                toast.error(response.message || 'Failed to save bank details');
+            }
+        },
+        onError: (error: any) => {
+            console.error('🔍 [BANK SAVE] Browser - Error:', error);
+            const errorMsg = error?.response?.data?.message || error?.message || 'Failed to save bank details';
+            toast.error(errorMsg);
+        }
+    });
+}
+
+/**
+ * Hook to calculate salary
+ */
+export function useCalculateSalary() {
+    return useMutation({
+        mutationFn: (data: SalaryCalculationRequest) => {
+            console.log('🔍 [SALARY CALC] Browser - Starting calculation:', {
+                miId: data.MI_Id || 'N/A',
+                amount: data.HRMEID_Amount || 0
+            });
+            return calculateSalary(data);
+        },
+        onSuccess: (response) => {
+            console.log('🔍 [SALARY CALC] Browser - Success:', {
+                success: response.success,
+                message: response.message,
+                data: response.data
+            });
+        },
+        onError: (error: Error) => {
+            // Don't show toast for 404 errors - we'll use fallback calculation
+            const errorMessage = error.message || 'An error occurred while calculating salary';
+            if (!errorMessage.includes('404')) {
+                console.warn('🔍 [SALARY CALC] Browser - Error (non-critical):', {
+                    message: errorMessage,
+                    error: error
+                });
+            }
+            // Don't show toast - let the component handle fallback silently
+        }
+    });
+}
+
+/**
  * Hook to save employee other details
  */
 export function useSaveEmployeeOther() {
@@ -364,15 +486,17 @@ export function useSaveEmployeeEarning() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: SaveEarningDetailsRequest[]) => {
+        mutationFn: (data: SaveEarningDetailsRequest) => {
             console.log('🔍 [PAYROLL SAVE] Browser - useSaveEmployeeEarning called', {
-                dataCount: data.length,
-                data: data.map((item) => ({
+                employeeId: data.Employee.HRME_Id,
+                miId: data.Employee.MI_Id,
+                earningsCount: data.EmployeeEarningDeductionArrear.length,
+                data: data.EmployeeEarningDeductionArrear.map((item) => ({
                     HREED_Id: item.HREED_Id,
-                    HRME_Id: item.HRME_Id,
-                    HRMED_Name: item.HRMED_Name,
+                    HRMED_Id: item.HRMED_Id,
                     HREED_Amount: item.HREED_Amount,
-                    HREED_Percentage: item.HREED_Percentage
+                    HREED_Percentage: item.HREED_Percentage,
+                    HREED_ActiveFlag: item.HREED_ActiveFlag
                 }))
             });
             return saveEarningDetails(data);
@@ -412,15 +536,17 @@ export function useSaveEmployeeDeduction() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: SaveDeductionDetailsRequest[]) => {
+        mutationFn: (data: SaveDeductionDetailsRequest) => {
             console.log('🔍 [PAYROLL SAVE] Browser - useSaveEmployeeDeduction called', {
-                dataCount: data.length,
-                data: data.map((item) => ({
+                employeeId: data.Employee.HRME_Id,
+                miId: data.Employee.MI_Id,
+                deductionsCount: data.EmployeeEarningDeductionArrear.length,
+                data: data.EmployeeEarningDeductionArrear.map((item) => ({
                     HREED_Id: item.HREED_Id,
-                    HRME_Id: item.HRME_Id,
-                    HRMED_Name: item.HRMED_Name,
+                    HRMED_Id: item.HRMED_Id,
                     HREED_Amount: item.HREED_Amount,
-                    HREED_Percentage: item.HREED_Percentage
+                    HREED_Percentage: item.HREED_Percentage,
+                    HREED_ActiveFlag: item.HREED_ActiveFlag
                 }))
             });
             return saveDeductionDetails(data);
@@ -460,15 +586,17 @@ export function useSaveEmployeeArrear() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (data: SaveArrearDetailsRequest[]) => {
+        mutationFn: (data: SaveArrearDetailsRequest) => {
             console.log('🔍 [PAYROLL SAVE] Browser - useSaveEmployeeArrear called', {
-                dataCount: data.length,
-                data: data.map((item) => ({
+                employeeId: data.Employee.HRME_Id,
+                miId: data.Employee.MI_Id,
+                arrearsCount: data.EmployeeEarningDeductionArrear.length,
+                data: data.EmployeeEarningDeductionArrear.map((item) => ({
                     HREED_Id: item.HREED_Id,
-                    HRME_Id: item.HRME_Id,
-                    HRMED_Name: item.HRMED_Name,
+                    HRMED_Id: item.HRMED_Id,
                     HREED_Amount: item.HREED_Amount,
-                    HREED_Percentage: item.HREED_Percentage
+                    HREED_Percentage: item.HREED_Percentage,
+                    HREED_ActiveFlag: item.HREED_ActiveFlag
                 }))
             });
             return saveArrearDetails(data);

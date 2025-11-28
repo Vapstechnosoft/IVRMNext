@@ -75,8 +75,15 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
     const handleFormSubmit = (_e?: React.FormEvent) => {};
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
+        // Trim whitespace from text fields
+        const sanitizedData = {
+            ...data,
+            HRMG_GradeName: data.HRMG_GradeName?.trim() || '',
+            HRMG_GradeDisplayName: data.HRMG_GradeDisplayName?.trim() || ''
+        };
+
         try {
-            const response = await saveMutation.mutateAsync(data);
+            const response = await saveMutation.mutateAsync(sanitizedData);
 
             if (response?.success) {
                 toast.success(response.message || (isEditMode ? 'Grade updated successfully' : 'Grade saved successfully'));
@@ -338,24 +345,19 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
 
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting || (isEditMode && !isDirty)}
-                        onClick={() => {}}
-                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
                         isLoading={isSubmitting}
                         loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            {isEditMode ? 'Update Grade' : 'Save Grade'}
-                        </div>
+                        {isEditMode ? 'Update' : 'Save'}
+                    </Button>
+                    <Button
+                        type='button'
+                        onClick={handleReset}
+                        disabled={isSubmitting}
+                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
+                        Clear
                     </Button>
                 </div>
             </form>

@@ -6,13 +6,15 @@ export interface ApiResponse<T> {
     data?: T;
 }
 
-// Employee Dropdown
+// Employee Dropdown - API returns full employee object, but we only need these fields for dropdown
 export interface EmployeeDropdown {
     HRME_Id: number;
     HRME_EmployeeCode: string;
     HRME_EmployeeFirstName: string;
-    HRME_EmployeeMiddleName?: string;
-    HRME_EmployeeLastName?: string;
+    HRME_EmployeeMiddleName?: string | null;
+    HRME_EmployeeLastName?: string | null;
+    // API returns many more fields, but these are the ones we use
+    [key: string]: any; // Allow additional fields from API
 }
 
 // Earning/Deduction Type
@@ -46,7 +48,23 @@ export interface SalaryIncrementGridItem {
     HRMD_DepartmentName?: string;
     HRMED_Name?: string;
     Amount: number;
+    PreviousAmount?: number;
     Flag?: string;
+    HREIC_IncrementDate?: string | Date;
+    [key: string]: any; // Allow additional fields from API
+}
+
+// Monthly Data (Leave Year) from API
+export interface MonthlyData {
+    HRMLY_Id: number;
+    MI_Id: number;
+    HRMLY_LeaveYear: string;
+    HRMLY_FromDate: string;
+    HRMLY_ToDate: string;
+    HRMLY_ActiveFlag: boolean;
+    HRMLY_LeaveYearOrder: number;
+    CreatedDate: string;
+    UpdatedDate: string;
 }
 
 // Onload Response
@@ -79,6 +97,7 @@ export interface SalaryIncrementOnloadResponse {
     earningdeductiontype: EarningDeductionType[] | null;
     getempsdetails: any | null;
     leaveyeardropdown: LeaveYearDropdown[] | null;
+    monthlydata: MonthlyData[] | null; // API returns this instead of leaveyeardropdown
     Type: string | null;
     Option: string | null;
     Month: number | null;

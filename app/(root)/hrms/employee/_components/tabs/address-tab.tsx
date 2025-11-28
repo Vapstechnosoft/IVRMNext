@@ -8,72 +8,8 @@ import { Controller, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 import { useStatesByCountryId } from '@/hooks/hrms/useEmployeeRegister';
 
-// Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
-const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
-    // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
-    if (value == null || value === undefined || value === '') {
-        console.error('🔴 [SafeSelectItem - address-tab] EMPTY VALUE DETECTED:', {
-            value,
-            valueType: typeof value,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Convert to string
-    const strValue = String(value);
-
-    // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
-    if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - address-tab] EMPTY STRING DETECTED:', {
-            originalValue: value,
-            strValue,
-            strValueLength: strValue.length,
-            trimmed: strValue.trim(),
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    const trimmedValue = strValue.trim();
-
-    // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
-    if (trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - address-tab] EMPTY TRIMMED VALUE DETECTED:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue.length,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
-    if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - address-tab] FINAL CHECK FAILED - trimmedValue is empty:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue?.length,
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
-        return null;
-    }
-
-    // Only render if we have a valid non-empty string
-    return (
-        <SelectItem {...props} value={trimmedValue}>
-            {children}
-        </SelectItem>
-    );
-};
+// Note: We render SelectItem directly in the map (not via helper function)
+// This ensures collectItemValues can find them by type check (child.type === SelectItem)
 
 // Helper function to ensure SelectItem value is never empty string
 const ensureNonEmptyValue = (value: any, fallback: any = null): string | null => {
@@ -143,8 +79,10 @@ export function AddressTab({
     setValue,
     countries = [],
     states = [],
-    onClear
-}: AddressTabProps) {
+    onClear,
+    currentTab,
+    onPreviousTab
+}: AddressTabProps & { currentTab?: string; onPreviousTab?: () => void }) {
     // Use useWatch instead of watch() to prevent unnecessary re-renders
     const sameAsCommunicationAddress = useWatch({ control, name: 'sameAsCommunicationAddress' });
     const contactAddress = useWatch({ control, name: 'contactAddress' });
@@ -252,14 +190,13 @@ export function AddressTab({
             <div className='space-y-4'>
                 <div className='rounded-md border'>
                     <div className='border-b bg-muted px-4 py-2'>
-                        <h3 className='font-semibold'>Contact Address:</h3>
+                        <h3 className='font-semibold text-base text-gray-900 uppercase'>CONTACT ADDRESS:</h3>
                     </div>
                     <div className='p-4'>
-                        <div className='grid grid-cols-1 gap-4'>
+                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                             <HRMSInputText label='Address' id='contactAddress' maxLength={100} {...register('contactAddress')} error={errors.contactAddress?.message} />
                             <HRMSInputText label='Area' id='contactArea' {...register('contactArea')} error={errors.contactArea?.message} />
-                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                        <div className='flex-1 space-y-2'>
+                            <div className='space-y-2'>
                             <Controller
                                 name='contactCountry'
                                 control={control}
@@ -291,10 +228,11 @@ export function AddressTab({
                                                             country.label ||
                                                             country.name ||
                                                             `Country ${countryIdRaw}`;
+                                                        // Render SelectItem directly so collectItemValues can find it
                                                         return (
-                                                            <SafeSelectItem key={countryIdRaw} value={finalCountryId}>
+                                                            <SelectItem key={countryIdRaw} value={finalCountryId} textValue={countryName}>
                                                                 {countryName}
-                                                            </SafeSelectItem>
+                                                            </SelectItem>
                                                         );
                                                     })
                                                     .filter(Boolean)}
@@ -303,8 +241,8 @@ export function AddressTab({
                                     </>
                                 )}
                             />
-                        </div>
-                        <div className='flex-1 space-y-2'>
+                            </div>
+                            <div className='space-y-2'>
                             <Controller
                                 name='contactState'
                                 control={control}
@@ -333,10 +271,11 @@ export function AddressTab({
                                                             if (finalStateId === '') return null;
                                                             const stateName =
                                                                 state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
+                                                            // Render SelectItem directly so collectItemValues can find it
                                                             return (
-                                                                <SafeSelectItem key={stateId} value={finalStateId}>
+                                                                <SelectItem key={stateId} value={finalStateId} textValue={stateName}>
                                                                     {stateName}
-                                                                </SafeSelectItem>
+                                                                </SelectItem>
                                                             );
                                                         })
                                                         .filter(Boolean)
@@ -346,13 +285,8 @@ export function AddressTab({
                                     </>
                                 )}
                             />
-                        </div>
-                    </div>
-                    <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                        <div className='flex-1 space-y-2'>
+                            </div>
                             <HRMSInputText label='City' id='contactCity' {...register('contactCity')} error={errors.contactCity?.message} />
-                        </div>
-                        <div className='flex-1 space-y-2'>
                             <HRMSInputText
                                 label='Pincode'
                                 id='contactPincode'
@@ -360,8 +294,6 @@ export function AddressTab({
                                 {...register('contactPincode')}
                                 error={errors.contactPincode?.message}
                             />
-                        </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -371,7 +303,7 @@ export function AddressTab({
             <div className='space-y-4'>
                 <div className='rounded-md border'>
                     <div className='border-b bg-muted px-4 py-2'>
-                        <h3 className='font-semibold'>Permanent Address:</h3>
+                        <h3 className='font-semibold text-base text-gray-900 uppercase'>PERMANENT ADDRESS:</h3>
                     </div>
                     <div className='p-4'>
                         <div className='mb-4 flex items-center space-x-2'>
@@ -384,7 +316,7 @@ export function AddressTab({
                             />
                             <Label htmlFor='sameAsCommunicationAddress'>Same As Communication Address</Label>
                         </div>
-                        <div className='grid grid-cols-1 gap-4'>
+                        <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                             <HRMSInputText
                                 label='Address'
                                 id='permanentAddress'
@@ -400,8 +332,7 @@ export function AddressTab({
                                 error={errors.permanentArea?.message}
                                 disabled={sameAsCommunicationAddress}
                             />
-                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                        <div className='flex-1 space-y-2'>
+                            <div className='space-y-2'>
                             <Controller
                                 name='permanentCountry'
                                 control={control}
@@ -433,10 +364,11 @@ export function AddressTab({
                                                             country.label ||
                                                             country.name ||
                                                             `Country ${countryIdRaw}`;
+                                                        // Render SelectItem directly so collectItemValues can find it
                                                         return (
-                                                            <SafeSelectItem key={countryIdRaw} value={finalCountryId}>
+                                                            <SelectItem key={countryIdRaw} value={finalCountryId} textValue={countryName}>
                                                                 {countryName}
-                                                            </SafeSelectItem>
+                                                            </SelectItem>
                                                         );
                                                     })
                                                     .filter(Boolean)}
@@ -445,8 +377,8 @@ export function AddressTab({
                                     </>
                                 )}
                             />
-                        </div>
-                        <div className='flex-1 space-y-2'>
+                            </div>
+                            <div className='space-y-2'>
                             <Controller
                                 name='permanentState'
                                 control={control}
@@ -475,10 +407,11 @@ export function AddressTab({
                                                             if (finalStateId === '') return null;
                                                             const stateName =
                                                                 state.IVRMMS_Name || state.label || state.name || `State ${stateId}`;
+                                                            // Render SelectItem directly so collectItemValues can find it
                                                             return (
-                                                                <SafeSelectItem key={stateId} value={finalStateId}>
+                                                                <SelectItem key={stateId} value={finalStateId} textValue={stateName}>
                                                                     {stateName}
-                                                                </SafeSelectItem>
+                                                                </SelectItem>
                                                             );
                                                         })
                                                         .filter(Boolean)
@@ -488,34 +421,27 @@ export function AddressTab({
                                     </>
                                 )}
                             />
-                        </div>
                             </div>
-                            <div className='flex flex-col gap-4 lg:flex-row lg:gap-4'>
-                                <div className='flex-1 space-y-2'>
-                                    <HRMSInputText
-                                        label='City'
-                                        id='permanentCity'
-                                        {...register('permanentCity')}
-                                        error={errors.permanentCity?.message}
-                                        disabled={sameAsCommunicationAddress}
-                                    />
-                                </div>
-                                <div className='flex-1 space-y-2'>
-                                    <HRMSInputText
-                                        label='Pincode'
-                                        id='permanentPincode'
-                                        maxLength={10}
-                                        {...register('permanentPincode')}
-                                        error={errors.permanentPincode?.message}
-                                        disabled={sameAsCommunicationAddress}
-                                    />
-                                </div>
-                            </div>
+                            <HRMSInputText
+                                label='City'
+                                id='permanentCity'
+                                {...register('permanentCity')}
+                                error={errors.permanentCity?.message}
+                                disabled={sameAsCommunicationAddress}
+                            />
+                            <HRMSInputText
+                                label='Pincode'
+                                id='permanentPincode'
+                                maxLength={10}
+                                {...register('permanentPincode')}
+                                error={errors.permanentPincode?.message}
+                                disabled={sameAsCommunicationAddress}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }

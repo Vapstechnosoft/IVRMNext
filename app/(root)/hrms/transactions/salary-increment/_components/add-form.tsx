@@ -110,17 +110,12 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                 control={control}
                                 render={({ field, fieldState }) => (
                                     <MultiSelect
-                                        options={[
-                                            { label: 'All', value: 'all' },
-                                            ...employees.map((emp) => ({
-                                                label: `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                                                value: String(emp.HRME_Id)
-                                            }))
-                                        ]}
+                                        options={employees.map((emp) => ({
+                                            label: `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
+                                            value: String(emp.HRME_Id)
+                                        }))}
                                         onValueChange={(vals) => {
-                                            if (vals.includes('all')) {
-                                                field.onChange(0);
-                                            } else if (vals.length > 0) {
+                                            if (vals.length > 0) {
                                                 field.onChange(Number(vals[0]));
                                             } else {
                                                 field.onChange(0);
@@ -152,11 +147,13 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                             <SelectValue placeholder='Select Head' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {earningDeductions.map((head) => (
-                                                <SelectItem key={head.HRMED_Id} value={String(head.HRMED_Id)}>
-                                                    {head.HRMED_Name}
-                                                </SelectItem>
-                                            ))}
+                                            {Array.isArray(earningDeductions) && earningDeductions.length > 0
+                                                ? earningDeductions.map((head) => (
+                                                      <SelectItem key={head.HRMED_Id} value={String(head.HRMED_Id)}>
+                                                          {head.HRMED_Name}
+                                                      </SelectItem>
+                                                  ))
+                                                : null}
                                         </SelectContent>
                                     </Select>
                                 )}

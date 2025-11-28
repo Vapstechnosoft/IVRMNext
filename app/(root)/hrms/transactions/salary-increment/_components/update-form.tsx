@@ -127,11 +127,13 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                                             <SelectValue placeholder='Select employee' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {employees.map((emp: any) => (
+                                            {Array.isArray(employees) && employees.length > 0
+                                                ? employees.map((emp: any) => (
                                                 <SelectItem key={emp.HRME_Id} value={String(emp.HRME_Id)}>
                                                     {emp.HRME_EmployeeCode} - {emp.HRME_EmployeeFirstName} {emp.HRME_EmployeeLastName}
                                                 </SelectItem>
-                                            ))}
+                                                  ))
+                                                : null}
                                         </SelectContent>
                                     </Select>
                                 )}

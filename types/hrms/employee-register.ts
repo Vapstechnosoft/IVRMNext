@@ -83,6 +83,7 @@ export interface ApiResponse<T> {
 }
 
 // Save Personal Details Request (Employee + Address tabs combined)
+// Note: Optional string fields should be null (not empty string) when not provided
 export interface SavePersonalDetailsRequest {
     CreatedDate: string;
     UpdatedDate: string;
@@ -95,22 +96,22 @@ export interface SavePersonalDetailsRequest {
     HRMDES_Id: number;
     HRMG_Id: number;
     HRME_EmployeeFirstName: string;
-    HRME_EmployeeMiddleName?: string;
-    HRME_EmployeeLastName?: string;
-    HRME_EmployeeCode?: string;
-    HRME_BiometricCode?: string;
-    HRME_RFCardId?: string;
-    HRME_PerStreet?: string;
-    HRME_PerArea?: string;
-    HRME_PerCity?: string;
-    HRME_PerAdd4?: string;
+    HRME_EmployeeMiddleName?: string | null;
+    HRME_EmployeeLastName?: string | null;
+    HRME_EmployeeCode?: string | null;
+    HRME_BiometricCode?: string | null;
+    HRME_RFCardId?: string | null;
+    HRME_PerStreet?: string | null;
+    HRME_PerArea?: string | null;
+    HRME_PerCity?: string | null;
+    HRME_PerAdd4?: string | null;
     HRME_PerStateId: number;
     HRME_PerCountryId: number;
     HRME_PerPincode: number;
-    HRME_LocStreet?: string;
-    HRME_LocArea?: string;
-    HRME_LocCity?: string;
-    HRME_LocAdd4?: string;
+    HRME_LocStreet?: string | null;
+    HRME_LocArea?: string | null;
+    HRME_LocCity?: string | null;
+    HRME_LocAdd4?: string | null;
     HRME_LocStateId: number;
     HRME_LocCountryId: number;
     HRME_LocPincode: number;
@@ -119,61 +120,61 @@ export interface SavePersonalDetailsRequest {
     CasteCategoryId: number;
     CasteId: number;
     ReligionId: number;
-    HRME_FatherName?: string;
-    HRME_MotherName?: string;
-    HRME_SpouseName?: string;
-    HRME_SpouseOccupation?: string;
+    HRME_FatherName?: string | null;
+    HRME_MotherName?: string | null;
+    HRME_SpouseName?: string | null;
+    HRME_SpouseOccupation?: string | null;
     HRME_SpouseMobileNo: number;
-    HRME_SpouseEmailId?: string;
-    HRME_SpouseAddress?: string;
-    HRME_DOB?: string;
-    HRME_DOJ?: string;
-    HRME_ExpectedRetirementDate?: string;
-    HRME_PFDate?: string;
-    HRME_ESIDate?: string;
+    HRME_SpouseEmailId?: string | null;
+    HRME_SpouseAddress?: string | null;
+    HRME_DOB?: string | null;
+    HRME_DOJ?: string | null;
+    HRME_ExpectedRetirementDate?: string | null;
+    HRME_PFDate?: string | null;
+    HRME_ESIDate?: string | null;
     HRME_MobileNo: number;
-    HRME_EmailId?: string;
-    HRME_BloodGroup?: string;
-    HRME_PaymentType?: string;
-    HRME_BankAccountNo?: string;
+    HRME_EmailId?: string | null;
+    HRME_BloodGroup?: string | null;
+    HRME_PaymentType?: string | null;
+    HRME_BankAccountNo?: string | null;
     HRME_PFApplicableFlag: boolean;
     HRME_PFMaxFlag: boolean;
     HRME_PFFixedFlag: boolean;
-    HRME_PFAccNo?: string;
-    HRME_ESIAccNo?: string;
-    HRME_GratuityAccNo?: string;
+    HRME_PFAccNo?: string | null;
+    HRME_ESIAccNo?: string | null;
+    HRME_GratuityAccNo?: string | null;
     HRME_ESIApplicableFlag: boolean;
-    HRME_Photo?: string;
+    HRME_Photo?: string | null;
     HRME_LeftFlag: boolean;
     HRME_DOL?: string | null;
-    HRME_LeavingReason?: string;
-    HRME_Height?: string;
-    HRME_HeightUOM?: string;
+    HRME_LeavingReason?: string | null;
+    HRME_Height?: string | null;
+    HRME_HeightUOM?: string | null;
     HRME_Weight: number;
-    HRME_WeightUOM?: string;
-    HRME_IdentificationMark?: string;
-    HRME_ApprovalNo?: string;
-    HRME_PANCardNo?: string;
+    HRME_WeightUOM?: string | null;
+    HRME_IdentificationMark?: string | null;
+    HRME_ApprovalNo?: string | null;
+    HRME_PANCardNo?: string | null;
     HRME_AadharCardNo: number;
     HRME_SubstituteFlag: boolean;
-    HRME_NationalSSN?: string;
-    HRME_SalaryType?: string;
+    HRME_NationalSSN?: string | null;
+    HRME_SalaryType?: string | null;
     HRME_EmployeeOrder: number;
     HRME_ActiveFlag: boolean;
-    HRME_UINumber?: string;
-    HRME_DOC?: string;
-    HRME_SubjectsTaught?: string;
-    HRME_AppDownloadedDeviceId?: string;
+    HRME_UINumber?: string | null;
+    HRME_DOC?: string | null;
+    HRME_SubjectsTaught?: string | null;
+    HRME_AppDownloadedDeviceId?: string | null;
     HRME_PHDResearchGuideFlg: boolean;
-    HRME_TechNonTeachingFlg?: string;
+    HRME_TechNonTeachingFlg?: string | null;
     HRME_RGRecognitionYear: number;
-    HRME_AnyHealthIssue?: string;
-    HRME_EyeSightIssue?: string;
+    HRME_AnyHealthIssue?: string | null;
+    HRME_EyeSightIssue?: string | null;
     HRME_TransfferedTo: number;
     HRME_RecordTransferredFlg: boolean;
-    HRME_MSTeamsUserId?: string;
-    HRME_MSTeamsEmailId?: string;
-    HRME_MSTeamsPassword?: string;
+    HRME_MSTeamsUserId?: string | null;
+    HRME_MSTeamsEmailId?: string | null;
+    HRME_MSTeamsPassword?: string | null;
     HRME_ExcPunch: boolean;
     HRME_RetiredFlg: boolean;
     HRME_PensionStoppedDate?: string | null;
@@ -682,6 +683,7 @@ export interface EmployeeMedicalDetailsResponse {
 }
 
 // Save Medical Details Request - Updated to match API structure
+// Note: Optional string fields should be null (not empty string) when not provided
 export interface SaveMedicalDetailsRequest {
     CreatedDate: string;
     UpdatedDate: string;
@@ -692,23 +694,23 @@ export interface SaveMedicalDetailsRequest {
     HRMD_Id: number;
     HRMDES_Id: number;
     HRMG_Id: number;
-    HRME_EmployeeFirstName?: string;
-    HRME_EmployeeMiddleName?: string;
-    HRME_EmployeeLastName?: string;
-    HRME_EmployeeCode?: string;
-    HRME_BiometricCode?: string;
-    HRME_RFCardId?: string;
-    HRME_PerStreet?: string;
-    HRME_PerArea?: string;
-    HRME_PerCity?: string;
-    HRME_PerAdd4?: string;
+    HRME_EmployeeFirstName?: string | null;
+    HRME_EmployeeMiddleName?: string | null;
+    HRME_EmployeeLastName?: string | null;
+    HRME_EmployeeCode?: string | null;
+    HRME_BiometricCode?: string | null;
+    HRME_RFCardId?: string | null;
+    HRME_PerStreet?: string | null;
+    HRME_PerArea?: string | null;
+    HRME_PerCity?: string | null;
+    HRME_PerAdd4?: string | null;
     HRME_PerStateId: number;
     HRME_PerCountryId: number;
     HRME_PerPincode: number;
-    HRME_LocStreet?: string;
-    HRME_LocArea?: string;
-    HRME_LocCity?: string;
-    HRME_LocAdd4?: string;
+    HRME_LocStreet?: string | null;
+    HRME_LocArea?: string | null;
+    HRME_LocCity?: string | null;
+    HRME_LocAdd4?: string | null;
     HRME_LocStateId: number;
     HRME_LocCountryId: number;
     HRME_LocPincode: number;
@@ -717,61 +719,61 @@ export interface SaveMedicalDetailsRequest {
     CasteCategoryId: number;
     CasteId: number;
     ReligionId: number;
-    HRME_FatherName?: string;
-    HRME_MotherName?: string;
-    HRME_SpouseName?: string;
-    HRME_SpouseOccupation?: string;
+    HRME_FatherName?: string | null;
+    HRME_MotherName?: string | null;
+    HRME_SpouseName?: string | null;
+    HRME_SpouseOccupation?: string | null;
     HRME_SpouseMobileNo: number;
-    HRME_SpouseEmailId?: string;
-    HRME_SpouseAddress?: string;
-    HRME_DOB?: string;
-    HRME_DOJ?: string;
-    HRME_ExpectedRetirementDate?: string;
-    HRME_PFDate?: string;
-    HRME_ESIDate?: string;
+    HRME_SpouseEmailId?: string | null;
+    HRME_SpouseAddress?: string | null;
+    HRME_DOB?: string | null;
+    HRME_DOJ?: string | null;
+    HRME_ExpectedRetirementDate?: string | null;
+    HRME_PFDate?: string | null;
+    HRME_ESIDate?: string | null;
     HRME_MobileNo: number;
-    HRME_EmailId?: string;
-    HRME_BloodGroup?: string;
-    HRME_PaymentType?: string;
-    HRME_BankAccountNo?: string;
+    HRME_EmailId?: string | null;
+    HRME_BloodGroup?: string | null;
+    HRME_PaymentType?: string | null;
+    HRME_BankAccountNo?: string | null;
     HRME_PFApplicableFlag: boolean;
     HRME_PFMaxFlag: boolean;
     HRME_PFFixedFlag: boolean;
-    HRME_PFAccNo?: string;
-    HRME_ESIAccNo?: string;
-    HRME_GratuityAccNo?: string;
+    HRME_PFAccNo?: string | null;
+    HRME_ESIAccNo?: string | null;
+    HRME_GratuityAccNo?: string | null;
     HRME_ESIApplicableFlag: boolean;
-    HRME_Photo?: string;
+    HRME_Photo?: string | null;
     HRME_LeftFlag: boolean;
     HRME_DOL?: string | null;
-    HRME_LeavingReason?: string;
-    HRME_Height?: string;
-    HRME_HeightUOM?: string;
+    HRME_LeavingReason?: string | null;
+    HRME_Height?: string | null;
+    HRME_HeightUOM?: string | null;
     HRME_Weight: number;
-    HRME_WeightUOM?: string;
-    HRME_IdentificationMark?: string;
-    HRME_ApprovalNo?: string;
-    HRME_PANCardNo?: string;
+    HRME_WeightUOM?: string | null;
+    HRME_IdentificationMark?: string | null;
+    HRME_ApprovalNo?: string | null;
+    HRME_PANCardNo?: string | null;
     HRME_AadharCardNo: number;
     HRME_SubstituteFlag: boolean;
-    HRME_NationalSSN?: string;
-    HRME_SalaryType?: string;
+    HRME_NationalSSN?: string | null;
+    HRME_SalaryType?: string | null;
     HRME_EmployeeOrder: number;
     HRME_ActiveFlag: boolean;
-    HRME_UINumber?: string;
-    HRME_DOC?: string;
-    HRME_SubjectsTaught?: string;
-    HRME_AppDownloadedDeviceId?: string;
+    HRME_UINumber?: string | null;
+    HRME_DOC?: string | null;
+    HRME_SubjectsTaught?: string | null;
+    HRME_AppDownloadedDeviceId?: string | null;
     HRME_PHDResearchGuideFlg: boolean;
-    HRME_TechNonTeachingFlg?: string;
+    HRME_TechNonTeachingFlg?: string | null;
     HRME_RGRecognitionYear: number;
-    HRME_AnyHealthIssue?: string;
-    HRME_EyeSightIssue?: string;
+    HRME_AnyHealthIssue?: string | null;
+    HRME_EyeSightIssue?: string | null;
     HRME_TransfferedTo: number;
     HRME_RecordTransferredFlg: boolean;
-    HRME_MSTeamsUserId?: string;
-    HRME_MSTeamsEmailId?: string;
-    HRME_MSTeamsPassword?: string;
+    HRME_MSTeamsUserId?: string | null;
+    HRME_MSTeamsEmailId?: string | null;
+    HRME_MSTeamsPassword?: string | null;
     HRME_ExcPunch: boolean;
     HRME_RetiredFlg: boolean;
     HRME_PensionStoppedDate?: string | null;
@@ -1213,6 +1215,7 @@ export interface EmployeeSalaryDetailItem {
     HRMED_Id: number;
     HREED_Amount: number;
     HREED_Percentage: string;
+    HREED_ApplicablePercentage?: string; // % Applicable (separate from Actual %)
     HREED_ActiveFlag: boolean;
     HRMED_Name: string;
     HRMED_EarnDedFlag: string; // "Earning" or "Deduction"
@@ -1302,6 +1305,22 @@ export type GetEmployeeSalaryDetailsByHeadRequest = EmployeeSalaryDetailItem;
 // Response is an array of EmployeeSalaryDetailItem (same as getEmployeeSalaryDetails)
 export type GetEmployeeSalaryDetailsByHeadResponse = EmployeeSalaryDetailItem[];
 
+// Salary Calculation Request
+export interface SalaryCalculationRequest {
+    MI_Id: number;
+    HRMEID_Amount: number;
+}
+
+export interface SalaryCalculationResponse {
+    success?: boolean;
+    message?: string;
+    totalEarning?: number;
+    totalDeduction?: number;
+    totalArrear?: number;
+    netSalary?: number;
+    [key: string]: any;
+}
+
 // Save Increment Details Request
 export interface SaveIncrementDetailsRequest {
     HRMEID_Id: number;
@@ -1323,8 +1342,20 @@ export interface SaveIncrementDetailsResponse {
     [key: string]: any;
 }
 
-// Save Earning Details - uses the same structure as EmployeeSalaryDetailItem
-export type SaveEarningDetailsRequest = EmployeeSalaryDetailItem;
+// Save Earning Details Request
+export interface SaveEarningDetailsRequest {
+    Employee: {
+        MI_Id: number;
+        HRME_Id: number;
+    };
+    EmployeeEarningDeductionArrear: Array<{
+        HREED_Id: number;
+        HRMED_Id: number;
+        HREED_Amount: number;
+        HREED_Percentage: string; // Should be "0" if zero, not empty string
+        HREED_ActiveFlag: boolean;
+    }>;
+}
 
 export interface SaveEarningDetailsResponse {
     success?: boolean;
@@ -1333,8 +1364,20 @@ export interface SaveEarningDetailsResponse {
     [key: string]: any;
 }
 
-// Save Arrear Details - uses the same structure as EmployeeSalaryDetailItem
-export type SaveArrearDetailsRequest = EmployeeSalaryDetailItem;
+// Save Arrear Details Request
+export interface SaveArrearDetailsRequest {
+    Employee: {
+        MI_Id: number;
+        HRME_Id: number;
+    };
+    EmployeeEarningDeductionArrear: Array<{
+        HREED_Id: number;
+        HRMED_Id: number;
+        HREED_Amount: number;
+        HREED_Percentage: string; // Should be "0" if zero, not empty string
+        HREED_ActiveFlag: boolean;
+    }>;
+}
 
 export interface SaveArrearDetailsResponse {
     success?: boolean;
@@ -1343,10 +1386,46 @@ export interface SaveArrearDetailsResponse {
     [key: string]: any;
 }
 
-// Save Deduction Details - uses the same structure as EmployeeSalaryDetailItem
-export type SaveDeductionDetailsRequest = EmployeeSalaryDetailItem;
+// Save Deduction Details Request
+export interface SaveDeductionDetailsRequest {
+    Employee: {
+        MI_Id: number;
+        HRME_Id: number;
+    };
+    EmployeeEarningDeductionArrear: Array<{
+        HREED_Id: number;
+        HRMED_Id: number;
+        HREED_Amount: number;
+        HREED_Percentage: string; // Should be "0" if zero, not empty string
+        HREED_ActiveFlag: boolean;
+    }>;
+}
 
 export interface SaveDeductionDetailsResponse {
+    success?: boolean;
+    message?: string;
+    retrunMsg?: string;
+    [key: string]: any;
+}
+
+// Save Bank Details Request
+export interface BankDetailItem {
+    CreatedDate: string;
+    UpdatedDate: string;
+    HRMEB_Id: number;
+    HRME_Id: number;
+    HRMBD_Id: number;
+    HRMEB_AccountNo: string;
+    HRMEB_ActiveFlag: string;
+}
+
+export interface SaveBankDetailsRequest {
+    MI_Id: number;
+    HRME_Id: number;
+    BankDetails: BankDetailItem[];
+}
+
+export interface SaveBankDetailsResponse {
     success?: boolean;
     message?: string;
     retrunMsg?: string;

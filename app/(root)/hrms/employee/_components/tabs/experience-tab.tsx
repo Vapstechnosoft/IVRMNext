@@ -11,7 +11,7 @@ import { useEffect } from 'react';
 import { Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
 
-export function ExperienceTab({ control, register, errors, isSubmitting, setValue, onClear }: any) {
+export function ExperienceTab({ control, register, errors, isSubmitting, setValue, onClear, currentTab, onPreviousTab }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'experienceDetails'
@@ -110,9 +110,12 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
         <div className='space-y-4'>
             <div className='rounded-md border'>
                 <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
-                    <h3 className='font-semibold'>PREVIOUS EMPLOYMENT DETAILS</h3>
-                    <Button type='button' size='sm' variant='secondary' onClick={addEmptyRow}>
-                        <Plus className='mr-1 h-4 w-4' /> Add Experience
+                    <h3 className='font-semibold text-base text-gray-900 uppercase'>PREVIOUS EMPLOYMENT DETAILS</h3>
+                    <Button 
+                        type='button' 
+                        className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80'
+                        onClick={addEmptyRow}>
+                        <Plus className='mr-1 h-3.5 w-3.5' /> Add Experience
                     </Button>
                 </div>
             </div>
@@ -130,8 +133,11 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
                             <div className='font-semibold'>Experience #{index + 1}</div>
                             <div className='flex gap-2'>
                                 <Badge variant='secondary'>Row {index + 1}</Badge>
-                                <Button type='button' variant='ghost' size='sm' onClick={() => remove(index)}>
-                                    <Trash2 className='mr-1 h-4 w-4' /> Remove
+                                <Button 
+                                    type='button' 
+                                    className='h-7 w-auto rounded-md px-2.5 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground'
+                                    onClick={() => remove(index)}>
+                                    <Trash2 className='mr-1 h-3.5 w-3.5' /> Remove
                                 </Button>
                             </div>
                         </div>
@@ -152,7 +158,7 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
                             />
 
                             <HRMSInputText
-                                label='Designation'
+                                label='Designation *'
                                 id={`experienceDetails.${index}.designation`}
                                 maxLength={100}
                                 {...register(`experienceDetails.${index}.designation`)}
@@ -165,26 +171,28 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
                                     // Use the already-watched experienceDetails array instead of calling useWatch inside render
                                     const exitDate = experienceDetails[index]?.exitDate;
                                     return (
-                                        <DateField
-                                            field={{
-                                                ...field,
-                                                onChange: (value: any) => {
-                                                    field.onChange(value);
-                                                    // Trigger recalculation when join date changes
-                                                    if (value && exitDate) {
-                                                        const { years, months } = calculateYearsAndMonths(value, exitDate);
-                                                        setValue(`experienceDetails.${index}.noOfYears`, years.toString(), { shouldValidate: false, shouldDirty: false });
-                                                        setValue(`experienceDetails.${index}.noOfMonths`, months.toString(), { shouldValidate: false, shouldDirty: false });
-                                                    } else {
-                                                        setValue(`experienceDetails.${index}.noOfYears`, '', { shouldValidate: false, shouldDirty: false });
-                                                        setValue(`experienceDetails.${index}.noOfMonths`, '', { shouldValidate: false, shouldDirty: false });
+                                        <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
+                                            <DateField
+                                                field={{
+                                                    ...field,
+                                                    onChange: (value: any) => {
+                                                        field.onChange(value);
+                                                        // Trigger recalculation when join date changes
+                                                        if (value && exitDate) {
+                                                            const { years, months } = calculateYearsAndMonths(value, exitDate);
+                                                            setValue(`experienceDetails.${index}.noOfYears`, years.toString(), { shouldValidate: false, shouldDirty: false });
+                                                            setValue(`experienceDetails.${index}.noOfMonths`, months.toString(), { shouldValidate: false, shouldDirty: false });
+                                                        } else {
+                                                            setValue(`experienceDetails.${index}.noOfYears`, '', { shouldValidate: false, shouldDirty: false });
+                                                            setValue(`experienceDetails.${index}.noOfMonths`, '', { shouldValidate: false, shouldDirty: false });
+                                                        }
                                                     }
-                                                }
-                                            }}
-                                            fieldState={fieldState}
-                                            label='Join Date'
-                                            placeholder='Pick join date'
-                                        />
+                                                }}
+                                                fieldState={fieldState}
+                                                label='Join Date'
+                                                placeholder='Pick join date'
+                                            />
+                                        </div>
                                     );
                                 }}
                             />
@@ -196,26 +204,28 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
                                     // Use the already-watched experienceDetails array instead of calling useWatch inside render
                                     const joinDate = experienceDetails[index]?.joinDate;
                                     return (
-                                        <DateField
-                                            field={{
-                                                ...field,
-                                                onChange: (value: any) => {
-                                                    field.onChange(value);
-                                                    // Trigger recalculation when exit date changes
-                                                    if (value && joinDate) {
-                                                        const { years, months } = calculateYearsAndMonths(joinDate, value);
-                                                        setValue(`experienceDetails.${index}.noOfYears`, years.toString(), { shouldValidate: false, shouldDirty: false });
-                                                        setValue(`experienceDetails.${index}.noOfMonths`, months.toString(), { shouldValidate: false, shouldDirty: false });
-                                                    } else {
-                                                        setValue(`experienceDetails.${index}.noOfYears`, '', { shouldValidate: false, shouldDirty: false });
-                                                        setValue(`experienceDetails.${index}.noOfMonths`, '', { shouldValidate: false, shouldDirty: false });
+                                        <div className='flex flex-col gap-1.5 [&>div]:mt-0'>
+                                            <DateField
+                                                field={{
+                                                    ...field,
+                                                    onChange: (value: any) => {
+                                                        field.onChange(value);
+                                                        // Trigger recalculation when exit date changes
+                                                        if (value && joinDate) {
+                                                            const { years, months } = calculateYearsAndMonths(joinDate, value);
+                                                            setValue(`experienceDetails.${index}.noOfYears`, years.toString(), { shouldValidate: false, shouldDirty: false });
+                                                            setValue(`experienceDetails.${index}.noOfMonths`, months.toString(), { shouldValidate: false, shouldDirty: false });
+                                                        } else {
+                                                            setValue(`experienceDetails.${index}.noOfYears`, '', { shouldValidate: false, shouldDirty: false });
+                                                            setValue(`experienceDetails.${index}.noOfMonths`, '', { shouldValidate: false, shouldDirty: false });
+                                                        }
                                                     }
-                                                }
-                                            }}
-                                            fieldState={fieldState}
-                                            label='Exit Date'
-                                            placeholder='Pick exit date'
-                                        />
+                                                }}
+                                                fieldState={fieldState}
+                                                label='Exit Date'
+                                                placeholder='Pick exit date'
+                                            />
+                                        </div>
                                     );
                                 }}
                             />
@@ -239,6 +249,7 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
                             <HRMSInputText
                                 label='Annual Salary'
                                 id={`experienceDetails.${index}.annualSalary`}
+                                maxLength={15}
                                 {...register(`experienceDetails.${index}.annualSalary`)}
                             />
 
@@ -288,7 +299,7 @@ export function ExperienceTab({ control, register, errors, isSubmitting, setValu
                 ))}
             </div>
 
-            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} />
+            <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }

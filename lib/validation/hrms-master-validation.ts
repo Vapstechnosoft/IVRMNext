@@ -72,6 +72,14 @@ export const EMPLOYEE_TYPE_VALIDATION = {
             message: VALIDATION_MESSAGES.MAX_LENGTH('Employee Type', 50)
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Employee Type');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Employee Type cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Employee Type must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             return true;
         }
@@ -86,6 +94,14 @@ export const GROUP_TYPE_VALIDATION = {
             message: VALIDATION_MESSAGES.MAX_LENGTH('Group Type', 50)
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Group Type');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Group Type cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Group Type must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             return true;
         }
@@ -97,6 +113,14 @@ export const GROUP_TYPE_VALIDATION = {
             message: VALIDATION_MESSAGES.MAX_LENGTH('Group Code', 10)
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Group Code');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Group Code cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Group Code must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             return true;
         }
@@ -124,6 +148,14 @@ export const DEPARTMENT_VALIDATION = {
             message: VALIDATION_MESSAGES.MAX_LENGTH('Department Name', 50)
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Department Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Department Name cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Department Name must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             return true;
         }
@@ -169,6 +201,14 @@ export const DESIGNATION_VALIDATION = {
             message: VALIDATION_MESSAGES.MAX_LENGTH('Designation Name', 50)
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Designation Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Designation Name cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Designation Name must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             return true;
         }
@@ -248,6 +288,17 @@ export const GRADE_VALIDATION = {
         pattern: {
             value: VALIDATION_PATTERNS.ALPHABET_ONLY,
             message: VALIDATION_MESSAGES.ALPHABET_ONLY('Grade Name')
+        },
+        validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Grade Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Grade Name cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Grade Name must contain at least one alphabet character';
+            }
+            return true;
         }
     },
     gradeDisplayName: {
@@ -259,6 +310,17 @@ export const GRADE_VALIDATION = {
         pattern: {
             value: VALIDATION_PATTERNS.ALPHABET_ONLY,
             message: VALIDATION_MESSAGES.ALPHABET_ONLY('Grade Display Name')
+        },
+        validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Grade Display Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Grade Display Name cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Grade Display Name must contain at least one alphabet character';
+            }
+            return true;
         }
     },
     payScaleFrom: {
@@ -316,14 +378,26 @@ export const BANK_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_LENGTH('Bank Name', 3)
         },
         maxLength: {
-            value: 100,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Bank Name', 100)
+            value: 50,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Bank Name', 50)
         },
         pattern: {
             value: VALIDATION_PATTERNS.BANK_NAME,
             message: 'Bank Name must contain only alphabets, numbers, spaces, and periods (.)'
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Bank Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Bank Name cannot be empty or contain only spaces';
+            }
+            if (trimmed.length < 3) {
+                return VALIDATION_MESSAGES.MIN_LENGTH('Bank Name', 3);
+            }
+            // Check if it contains at least one alphabet character
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Bank Name must contain at least one alphabet character';
+            }
             // Uniqueness validation: Must be unique w.r.t all details are same. Can be duplicate with unique account number.
             // This is a placeholder - implement actual uniqueness check
             return true;
@@ -336,12 +410,27 @@ export const BANK_VALIDATION = {
             message: VALIDATION_MESSAGES.MIN_LENGTH('Branch Name', 3)
         },
         maxLength: {
-            value: 100,
-            message: VALIDATION_MESSAGES.MAX_LENGTH('Branch Name', 100)
+            value: 50,
+            message: VALIDATION_MESSAGES.MAX_LENGTH('Branch Name', 50)
         },
         pattern: {
             value: VALIDATION_PATTERNS.BRANCH_NAME,
             message: 'Branch Name must contain only alphabets, numbers, spaces, /, -, and periods (.)'
+        },
+        validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Branch Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Branch Name cannot be empty or contain only spaces';
+            }
+            if (trimmed.length < 3) {
+                return VALIDATION_MESSAGES.MIN_LENGTH('Branch Name', 3);
+            }
+            // Check if it contains at least one alphabet character
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Branch Name must contain at least one alphabet character';
+            }
+            return true;
         }
     },
     HRMBK_AccountNumber: {
@@ -385,6 +474,20 @@ export const BANK_VALIDATION = {
         pattern: {
             value: VALIDATION_PATTERNS.BANK_ADDRESS,
             message: 'Invalid characters in Bank Address. Only alphanumeric, commas, /, -, and periods (.) allowed'
+        },
+        validate: async (value: string) => {
+            // Bank Address is optional, but if provided, it must have actual content
+            if (value) {
+                const trimmed = value.trim();
+                if (trimmed.length === 0) {
+                    return 'Bank Address cannot contain only spaces';
+                }
+                // Check if it contains at least one alphabet character
+                if (!/[A-Za-z]/.test(trimmed)) {
+                    return 'Bank Address must contain at least one alphabet character';
+                }
+            }
+            return true;
         }
     }
 };
@@ -405,6 +508,17 @@ export const EARNING_DEDUCTION_VALIDATION = {
             message: 'Name must contain only alphanumeric characters and spaces'
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Name cannot be empty or contain only spaces';
+            }
+            if (trimmed.length < 3) {
+                return VALIDATION_MESSAGES.MIN_LENGTH('Name', 3);
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Name must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             // This is a placeholder - implement actual uniqueness check
             return true;
@@ -453,8 +567,8 @@ export const EARNING_DEDUCTION_VALIDATION = {
             if (Number.isNaN(numValue)) {
                 return 'Amount/Percentage must be a valid number';
             }
-            if (numValue < 0) {
-                return 'Amount/Percentage cannot be negative';
+            if (numValue < 1) {
+                return 'Amount/Percentage cannot be less than 1';
             }
             const calculationType = formValues.HRMED_AmountPercentFlag;
             if (calculationType === 'Amount') {
@@ -502,6 +616,20 @@ export const GENDER_VALIDATION = {
         maxLength: {
             value: 50,
             message: VALIDATION_MESSAGES.MAX_LENGTH('Gender Name', 50)
+        },
+        validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Gender Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Gender Name cannot be empty or contain only spaces';
+            }
+            if (trimmed.length < 3) {
+                return VALIDATION_MESSAGES.MIN_LENGTH('Gender Name', 3);
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Gender Name must contain at least one alphabet character';
+            }
+            return true;
         }
     }
 };
@@ -567,6 +695,14 @@ export const MASTER_LEAVE_VALIDATION = {
             message: 'Leave Name accepts alphanumeric and special characters'
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Leave Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Leave Name cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Leave Name must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             // This is a placeholder - implement actual uniqueness check
             return true;
@@ -584,6 +720,14 @@ export const MASTER_LEAVE_VALIDATION = {
             message: VALIDATION_MESSAGES.ALPHANUMERIC('Leave Code')
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Leave Code');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Leave Code cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Leave Code must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             // This is a placeholder - implement actual uniqueness check
             return true;
@@ -594,6 +738,17 @@ export const MASTER_LEAVE_VALIDATION = {
         maxLength: {
             value: 250,
             message: VALIDATION_MESSAGES.MAX_LENGTH('Leave Details', 250)
+        },
+        validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Leave Details');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Leave Details cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Leave Details must contain at least one alphabet character';
+            }
+            return true;
         }
     },
     leaveType: {
@@ -888,6 +1043,14 @@ export const LOAN_TYPE_VALIDATION = {
             message: VALIDATION_MESSAGES.MAX_LENGTH('Loan Type', 50)
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Loan Type');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Loan Type cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Loan Type must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             return true;
         }
@@ -932,6 +1095,17 @@ export const MARITAL_STATUS_VALIDATION = {
             message: 'Marital Status must contain only alphabetic characters and spaces (no numeric or special characters)'
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Marital Status');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Marital Status cannot be empty or contain only spaces';
+            }
+            if (trimmed.length < 2) {
+                return VALIDATION_MESSAGES.MIN_LENGTH('Marital Status', 2);
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Marital Status must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             return true;
         }
@@ -950,6 +1124,14 @@ export const COURSE_VALIDATION = {
             message: 'Qualification Name must contain only alphanumeric characters and spaces'
         },
         validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Qualification Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Qualification Name cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Qualification Name must contain at least one alphabet character';
+            }
             // Uniqueness validation should be checked against the database
             return true;
         }
@@ -967,6 +1149,20 @@ export const COURSE_VALIDATION = {
         pattern: {
             value: VALIDATION_PATTERNS.ALPHANUMERIC,
             message: 'Qualification Description must contain only alphanumeric characters and spaces'
+        },
+        validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Qualification Description');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Qualification Description cannot be empty or contain only spaces';
+            }
+            if (trimmed.length < 3) {
+                return VALIDATION_MESSAGES.MIN_LENGTH('Qualification Description', 3);
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'Qualification Description must contain at least one alphabet character';
+            }
+            return true;
         }
     },
     HRMC_Specialization: {
@@ -1004,10 +1200,15 @@ export const SPECIALIZATION_VALIDATION = {
             message: 'Specialization Name must contain exactly 10 alphabetic characters'
         },
         validate: (value: string) => {
-            if (!value || value.length !== 10) {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('Specialization Name');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'Specialization Name cannot be empty or contain only spaces';
+            }
+            if (trimmed.length !== 10) {
                 return 'Specialization Name must be exactly 10 alphabetic characters';
             }
-            if (!/^[A-Za-z]+$/.test(value)) {
+            if (!/^[A-Za-z]+$/.test(trimmed)) {
                 return 'Specialization Name must contain only alphabetic characters';
             }
             return true;
@@ -1033,8 +1234,8 @@ export const PROFESSIONAL_TAX_VALIDATION = {
                 return VALIDATION_MESSAGES.POSITIVE_NUMBER('Amount From');
             }
             const amountTo = formValues.HRMPT_AmountTo ? (typeof formValues.HRMPT_AmountTo === 'string' ? Number.parseFloat(formValues.HRMPT_AmountTo) : formValues.HRMPT_AmountTo) : null;
-            if (amountTo !== null && numValue > amountTo) {
-                return 'Amount From must be less than or equal to Amount To';
+            if (amountTo !== null && numValue >= amountTo) {
+                return 'Amount From must be less than Amount To';
             }
             return true;
         }
@@ -1055,8 +1256,8 @@ export const PROFESSIONAL_TAX_VALIDATION = {
                 return VALIDATION_MESSAGES.POSITIVE_NUMBER('Amount To');
             }
             const amountFrom = formValues.HRMPT_AmountFrom ? (typeof formValues.HRMPT_AmountFrom === 'string' ? Number.parseFloat(formValues.HRMPT_AmountFrom) : formValues.HRMPT_AmountFrom) : null;
-            if (amountFrom !== null && numValue < amountFrom) {
-                return 'Amount To must be greater than or equal to Amount From';
+            if (amountFrom !== null && numValue <= amountFrom) {
+                return 'Amount To must be greater than Amount From';
             }
             return true;
         }
@@ -1086,6 +1287,17 @@ export const PAYROLL_STANDARD_VALIDATION = {
         pattern: {
             value: VALIDATION_PATTERNS.ALPHANUMERIC,
             message: VALIDATION_MESSAGES.ALPHANUMERIC('PF Account Prefix')
+        },
+        validate: async (value: string) => {
+            if (!value) return VALIDATION_MESSAGES.REQUIRED('PF Account Prefix');
+            const trimmed = value.trim();
+            if (trimmed.length === 0) {
+                return 'PF Account Prefix cannot be empty or contain only spaces';
+            }
+            if (!/[A-Za-z]/.test(trimmed)) {
+                return 'PF Account Prefix must contain at least one alphabet character';
+            }
+            return true;
         }
     },
     HRMPS_PFMaxAmount: {

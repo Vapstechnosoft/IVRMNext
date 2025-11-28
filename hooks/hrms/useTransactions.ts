@@ -578,7 +578,7 @@ export function useSalaryIncrementOnload(payload: SalaryIncrementOnloadRequest) 
             return res.data;
         },
         staleTime: 1000 * 60 * 5,
-        enabled: !!(payload.MIID || payload.MI_Id) && !!(payload.LoginUserId || payload.roleId)
+        enabled: !!(payload.MIID || payload.MI_Id) && (payload.LoginUserId !== undefined || payload.roleId !== undefined)
     });
 }
 
