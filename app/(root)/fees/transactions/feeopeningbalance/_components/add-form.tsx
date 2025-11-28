@@ -106,7 +106,7 @@ export default function AddFeeOpeningBalanceForm({
         groupId ? Number(groupId) : 0,
         headId ? Number(headId) : 0
     );
-
+    const [searchValue, setSearchValue] = useState('');
     useEffect(() => {
         setValue('headId', undefined);
         setValue('groupId', undefined);
@@ -770,6 +770,7 @@ export default function AddFeeOpeningBalanceForm({
                         loadingStudents ||
                         !academicYearId ||
                         !headId ||
+                        !groupId ||
                         (selectionType === 'G' && !studentWise) ||
                         (selectionType === 'C' && !categoryId) ||
                         (selectionType !== 'C' && !classId)
@@ -782,18 +783,30 @@ export default function AddFeeOpeningBalanceForm({
             </div>
 
             {/* Table */}
+
             {showTable && (
                 <Card className='shadow-lg'>
                     <CardHeader>
                         <CardTitle className='text-lg sm:text-xl'>Student Opening Balance</CardTitle>
                     </CardHeader>
                     <CardContent className='overflow-x-auto'>
+                        <div className='mb-4'>
+                            <Input
+                                placeholder='Search by student name...'
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                className='max-w-sm'
+                            />
+                        </div>
+
                         <DataTable
                             columns={columns}
-                            data={students}
-                            totalItems={totalStudentCount}
-                            pageSizeOptions={[10, 25, 50, 100, 200]}
+                            data={students.filter((s) => s.fullName.toLowerCase().includes(searchValue.toLowerCase()))}
+                            totalItems={students.filter((s) => s.fullName.toLowerCase().includes(searchValue.toLowerCase())).length}
                             isLoading={loadingStudents}
+                            isPaginationRequired={false}
+                            showViewOptions={false}
+                            isSearchRequired={false} // Hides the broken search
                         />
                     </CardContent>
                 </Card>
