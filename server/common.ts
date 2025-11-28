@@ -690,14 +690,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Exam Subject Wizard',
                                             description: 'Manage Exam Subject Wizard Details'
                                         },
-                                        // {
-                                        //     id: 54,
-                                        //     name: 'Exam Login Privilages',
-                                        //     icon: 'CalendarDays',
-                                        //     url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
-                                        //     title: 'Exam Login Privilages',
-                                        //     description: 'Manage Exam Login Privilages Details'
-                                        // },
+                                        {
+                                            id: 54,
+                                            name: 'Exam Login Privilages',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/exam-mapping/exam-login-privilages',
+                                            title: 'Exam Login Privilages',
+                                            description: 'Manage Exam Login Privilages Details'
+                                        },
                                         {
                                             id: 55,
                                             name: 'Yearly category Subject Mapping',
@@ -753,7 +753,15 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/exam-marks-process-condition',
                                             title: 'Exam Marks Process Condition',
                                             description: 'Manage Exam Marks Process Condition Details'
-                                        }
+                                        },
+                                          {
+                                            id: 62,
+                                            name: 'Hall Ticket Generation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/exam-hall-ticket-generation',
+                                            title: 'Hall Ticket Generation',
+                                            description: 'Manage Hall Ticket Generation Details'
+                                        },
                                     ]
                                 },
                                 {
@@ -762,12 +770,28 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 62,
+                                            id: 63,
                                             name: 'Exam Wise Student Remarks Entry',
                                             icon: 'CalendarDays',
                                             url: '/Exam/exam-module/marks-entry/exam-wise-student-remarks-entry',
                                             title: 'Exam Wise Student Remarks Entry',
                                             description: 'Manage Exam Wise Student Remarks Entry Details'
+                                        },
+                                        {
+                                            id: 64,
+                                            name: 'Promotion Remarks',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/exam-promotion-remarks',
+                                            title: 'PROMOTION REMARKS',
+                                            description: ''
+                                        },
+                                        {
+                                            id: 65,
+                                            name: 'Marks Entry',
+                                            icon: 'CalendarDays',
+                                            url: '/Exam/exam-module/marks-entry/exam-marks-entry',
+                                            title: 'Marks Entry',
+                                            description: 'Manage Marks Entry Details'
                                         }
                                     ]
                                 },
@@ -777,7 +801,7 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 63,
+                                            id: 70,
                                             name: 'Cumulative Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/cumulative-report',
@@ -785,7 +809,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Cumulative Report Details'
                                         },
                                         {
-                                            id: 62,
+                                            id: 71,
                                             name: 'Progress Card Report',
                                             icon: 'BookOpen',
                                             url: '/Exam/exam-module/reports/vvehpc_exam-report-card',

@@ -20,7 +20,7 @@ export async function toggleCoScholasticArea(mi_id: number, id: number) {
 }
 export async function getCoScholasticAreaOrderData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/coscholastic_activity/co_scholastic_area_list/30?${urlParams}`;
+    const url = '/coscholastic_activity/co_scholastic_area_order_wise_list';
     return await api.get<any>('exam', url);
 }
 export async function UpdatedOrderdCoScholasticArea(data: any) {

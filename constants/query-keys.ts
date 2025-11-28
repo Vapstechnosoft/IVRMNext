@@ -149,7 +149,9 @@ export const FEES_QUERY_KEYS = {
 
 export const EXAM_QUERY_KEYS = {
     MASTER_SUBJECT: 'master_subject',
+    MASTER_SUBJECT_DROPDOWN_LIST: 'master_subject_dropdown_list',
     MASTER_SUB_SUBJECT_EX: 'master_sub_subject-ex',
+    MASTER_SUB_SUBJECT_EX_DROPDOWN_LIST: 'master_sub_subject-ex_dropdown_list',
     MASTER_EXAM: 'master-exam',
     MASTER_EXAM_PAPER: 'master-exam-paper',
     MASTER_SUB_EXAM: 'master-sub-exam',
@@ -190,7 +192,10 @@ export const EXAM_QUERY_KEYS = {
     EXAM_MARKS_PROCESS_CONDITION: 'exam-marks-process-condition',
     EXAM_WISE_REMARKS_DATA_GRID: 'exam-wise-remarks-data-grid',
 
-    EXAM_STANDARD: 'exam-standared'
+    EXAM_STANDARD: 'exam-standared',
+
+    EXAM_HALL_TICKET_GENERATED_DATA : 'exam-hall-ticket-generated-data',
+    EXAM_HALL_TICKET_STUDENT_LIST: 'exam-hall-ticket-student-list',
 };
 
 export const HRMS_QUERY_KEYS = {

@@ -30,6 +30,7 @@ import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam
 import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateExamSubjectWizard,
+    getExamDropdownForWizardSubjectMapping,
     getSubExamsMappedList,
     getSubSubjectSubExamList,
     getSubSubjectsAndSubExamsMappedList,
@@ -181,18 +182,18 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
     // when category (and EMCA_Id) changes -> fetch exams and subjects
     useEffect(() => {
-        if (!watchEMCA_ID || !watchYear) return;
+        if (!watchCategory) return;
 
         // Fetch exams only when Category or EMCA changes
         (async () => {
             try {
-                const { data: ex } = await getExamsByCategoryandAcademicYear(30, Number(watchYear), Number(watchEMCA_ID));
+                const { data: ex } = await getExamDropdownForWizardSubjectMapping(Number(watchCategory));
                 const mappedExams = Array.isArray(ex)
                     ? ex.map((e: any) => ({
-                          EME_Id: e.emE_Id ?? e.EME_Id,
-                          EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
-                          checked: rowData?.emE_Id === e.emE_Id
-                      }))
+                        EME_Id: e.emE_Id ?? e.EME_Id,
+                        EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
+                        checked: rowData?.emE_Id === e.emE_Id
+                    }))
                     : [];
                 setExams(mappedExams);
                 if (rowData) {
@@ -212,7 +213,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 toast.error('Failed to load exams.');
             }
         })();
-    }, [watchCategory, watchEMCA_ID, rowData]);
+    }, [watchCategory, rowData]);
     useEffect(() => {
         if (formState.isSubmitted) {
             // 1️ No subject selected
@@ -265,26 +266,26 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
-                          ISMS_Id: s.ismS_Id ?? s.ISMS_Id,
-                          ISMS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName,
-                          EYCES_MaxMarks: s.EYCES_MaxMarks ?? 0,
-                          EYCES_MinMarks: s.EYCES_MinMarks ?? 0,
-                          EYCES_MarksEntryMax: s.EYCES_MarksEntryMax ?? 0,
-                          EMGR_Id: watchGrade ?? s.EMGR_Id ?? undefined,
-                          EYCES_Id: s.eyceS_Id ?? s.EYCES_Id,
-                          EYCES_SubExamFlg: false,
-                          EYCES_SubSubjectFlg: false,
-                          EYCES_ActiveFlg: true,
-                          EYCES_MarksGradeEntryFlg: s.eyceS_MarksDisplayFlg ? 'M' : '',
-                          EYCES_MarksDisplayFlg: s.eyceS_MarksDisplayFlg ?? false,
-                          EYCES_GradeDisplayFlg: s.eyceS_GradeDisplayFlg ?? false,
-                          EYCES_AplResultFlg: s.eyceS_AplResultFlg ?? false,
-                          subExamConfig: s.subExamConfig ?? [],
-                          EYCES_SubjectOrder: s.eyceS_SubjectOrder ?? 0,
-                          subSubjectConfig: s.subSubjectConfig ?? [],
-                          subSubjectSubExamConfig: s.subSubjectSubExamConfig ?? [],
-                          Exam_Subject_PT_GradeList: []
-                      }))
+                        ISMS_Id: s.ismS_Id ?? s.ISMS_Id,
+                        ISMS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName,
+                        EYCES_MaxMarks: s.EYCES_MaxMarks ?? 0,
+                        EYCES_MinMarks: s.EYCES_MinMarks ?? 0,
+                        EYCES_MarksEntryMax: s.EYCES_MarksEntryMax ?? 0,
+                        EMGR_Id: watchGrade ?? s.EMGR_Id ?? undefined,
+                        EYCES_Id: s.eyceS_Id ?? s.EYCES_Id,
+                        EYCES_SubExamFlg: false,
+                        EYCES_SubSubjectFlg: false,
+                        EYCES_ActiveFlg: true,
+                        EYCES_MarksGradeEntryFlg: s.eyceS_MarksDisplayFlg ? 'M' : '',
+                        EYCES_MarksDisplayFlg: s.eyceS_MarksDisplayFlg ?? false,
+                        EYCES_GradeDisplayFlg: s.eyceS_GradeDisplayFlg ?? false,
+                        EYCES_AplResultFlg: s.eyceS_AplResultFlg ?? false,
+                        subExamConfig: s.subExamConfig ?? [],
+                        EYCES_SubjectOrder: s.eyceS_SubjectOrder ?? 0,
+                        subSubjectConfig: s.subSubjectConfig ?? [],
+                        subSubjectSubExamConfig: s.subSubjectSubExamConfig ?? [],
+                        Exam_Subject_PT_GradeList: []
+                    }))
                     : [];
 
                 setSubjects(formattedSubjects);

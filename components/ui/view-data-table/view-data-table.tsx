@@ -250,11 +250,11 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                     <TableBody>
                                         {table.getRowModel().rows?.length ? (
                                             table.getRowModel().rows.map((row) => (
-                                                <TableRow key={row.id} data-state={row.getIsSelected()} className='border-b'>
+                                                <TableRow key={row.id} data-state={row.getIsSelected()} className="border-b last:border-b">
                                                     {row.getVisibleCells().map((cell) => (
                                                         <TableCell
                                                             key={cell.id}
-                                                            className='whitespace-nowrap'
+                                                            className='whitespace-nowrap border-b'
                                                             style={{
                                                                 ...getCommonPinningStyles({
                                                                     column: cell.column

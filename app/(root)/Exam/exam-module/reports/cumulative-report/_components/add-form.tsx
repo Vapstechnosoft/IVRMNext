@@ -119,6 +119,20 @@ export default function CumulativeReportForm({
         })();
     }, [selectedYear, selectedClass, setValue]);
 
+    // ---------- Load Exams ----------
+    useEffect(() => {
+        if (!selectedYear || !selectedClass || !selectedSection) return;
+        (async () => {
+            try {
+                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
+                setExams(Array.isArray(data) ? data : []);
+                setValue('emE_Id', 0);
+            } catch {
+                toast.error('Failed to load exams');
+            }
+        })();
+    }, [selectedYear, selectedClass, selectedSection, setValue]);
+
     // ---------- Load Students ----------
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
@@ -141,19 +155,7 @@ export default function CumulativeReportForm({
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    // ---------- Load Exams ----------
-    useEffect(() => {
-        if (!selectedYear || !selectedClass || !selectedSection) return;
-        (async () => {
-            try {
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                setExams(Array.isArray(data) ? data : []);
-                setValue('emE_Id', 0);
-            } catch {
-                toast.error('Failed to load exams');
-            }
-        })();
-    }, [selectedYear, selectedClass, selectedSection, setValue]);
+
 
     // ---------- Submit ----------
     const onSubmit = async (data: FormFields) => {

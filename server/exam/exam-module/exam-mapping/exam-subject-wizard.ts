@@ -82,6 +82,11 @@ export async function getSubSubjectsMappedList(mI_Id: number, eyceS_Id: number) 
     return await api.get<any>('exam', url);
 }
 
+export async function getExamDropdownForWizardSubjectMapping(eyC_Id : number) {
+    const url = `exam_subject_mapping/exam_drop_down_for_wizard_subject_mapping/${eyC_Id}`;
+    return await api.get<any>('exam', url); 
+}
+
 // --------------------------------------------
 // Get Sub Exams Mapped List
 // --------------------------------------------
