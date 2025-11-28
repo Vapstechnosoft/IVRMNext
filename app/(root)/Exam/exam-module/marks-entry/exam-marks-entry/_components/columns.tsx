@@ -371,8 +371,6 @@ export function buildMarksEntryColumns(
         columns: []
     };
 
-    // Middle label (ACTIVITY / TEST) - in your screenshot middle row shows a label above all sub columns.
-    // We create a group (subSubGroup) which will hold each sub column + TOTAL
     const subSubGroup: ColumnDef<IStudentMarksRow> = {
         id: `subsub_group_${subjectMeta.subjectId}`,
         header: () => (
