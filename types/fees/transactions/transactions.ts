@@ -451,8 +451,13 @@ export interface feeTransactionWaivedOffGrid {
     fswO_Date: string;
     mI_Id: number;
     asmaY_Id: number;
+    amsT_Id: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    fswO_WaivedOffRemarks: string;
+    fmG_Id: number;
+    fmH_Id: number;
 }
-
 export interface feeTransactionWaivedOffStudentDetails {
     amsT_RegistrationNo: number;
     studentName: string;
@@ -474,6 +479,7 @@ export interface feeTransactionWaivedOffHead {
     totalTobepaid: number;
     tobepaid: number;
     fsS_PaidAmount: number;
+    waivedOff: number;
 }
 
 export interface IFeeOpeningBalance {

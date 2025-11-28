@@ -89,6 +89,15 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
+            // --- Manual validation for all date fields ---
+            const missing = masterInstallmentDueData.some((item) => {
+                return !item.fdate || !item.tdate || !item.aplc || !item.ddate;
+            });
+
+            if (missing) {
+                toast.error('Please fill all date fields before saving.');
+                return;
+            }
             const buildPayload = () => {
                 return {
                     // fmI_Id: fmI_Installment_Type,

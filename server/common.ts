@@ -543,6 +543,15 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Preadmission Transaction',
                                             description: 'Fee Preadmission Transaction'
                                         }
+                                        // ,
+                                        // {
+                                        //     id: 505,
+                                        //     name: 'Fee Transaction',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/transactions/feetransaction',
+                                        //     title: 'Fee Transaction',
+                                        //     description: 'Fee Transaction'
+                                        // }
                                     ]
                                 }
                             ]

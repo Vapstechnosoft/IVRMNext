@@ -204,9 +204,12 @@ export default function AddFeeOpeningBalanceForm({
                 FMG_Id: groupId ? Number(groupId) : 0,
                 FMH_Id: Number(headId),
                 userid: 9,
-                TempArrayHeadList: installmentId ? [{ FTI_Id: Number(installmentId) }] : [{ FTI_Id: 83 }],
+                TempArrayHeadList: installmentId ? [{ FTI_Id: Number(installmentId) }] : [{ FTI_Id: 0 }],
                 isPDA: isPDA ? 'Y' : 'N'
             };
+
+            const js = JSON.stringify(payload);
+            console.log('Payload JSON:', js);
 
             const res = await studentListDropdown(payload);
 
