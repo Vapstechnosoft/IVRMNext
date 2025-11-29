@@ -73,25 +73,26 @@ export async function getSubSubjectSubExamList(mI_Id: number) {
     const url = `exam_subject_mapping/sub_subjects_and_sub_exam_list/${mI_Id}`;
     return await api.get('exam', url);
 }
+
+export async function getExamDropdownForWizardSubjectMapping(eyC_Id: number) {
+    const url = `exam_subject_mapping/exam_drop_down_for_wizard_subject_mapping/${eyC_Id}`;
+    return await api.get<any>('exam', url);
+}
 // --------------------------------------------
 // Get Sub Subjects Mapped List
 // --------------------------------------------
 export async function getSubSubjectsMappedList(mI_Id: number, eyceS_Id: number) {
     if (!mI_Id) throw new Error('Organization ID is required');
+    console.log('subsubjects', mI_Id, eyceS_Id);
     const url = `exam_subject_mapping/sub_subjects_mapped_popup_list/${mI_Id}/${eyceS_Id}`;
     return await api.get<any>('exam', url);
 }
-
-export async function getExamDropdownForWizardSubjectMapping(eyC_Id : number) {
-    const url = `exam_subject_mapping/exam_drop_down_for_wizard_subject_mapping/${eyC_Id}`;
-    return await api.get<any>('exam', url); 
-}
-
 // --------------------------------------------
 // Get Sub Exams Mapped List
 // --------------------------------------------
 export async function getSubExamsMappedList(mI_Id: number, eyceS_Id: number) {
     if (!mI_Id) throw new Error('Organization ID is required');
+    console.log('subexams', mI_Id, eyceS_Id);
     const url = `exam_subject_mapping/sub_exams_mapped_popup_list/${mI_Id}/${eyceS_Id}`;
     return await api.get<any>('exam', url);
 }

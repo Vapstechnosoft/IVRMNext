@@ -85,18 +85,18 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             emsE_SubExamName: l.emsE_SubExamName,
             emsE_SubExamCode: l.emsE_SubExamCode,
             checkedvalue: Boolean(l.checkedvalue),
-            eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
-            eycessS_MinMarks: l.eycessS_MinMarks ?? '',
-            emgR_Id: l.emgR_Id ?? subject.emgR_Id ?? '',
-            eycessS_ExemptedFlg: !!l.eycessS_ExemptedFlg,
-            eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-            eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder ?? '',
-            eycessS_ActiveFlg: !!l.eycessS_ActiveFlg,
-            eycessS_GradesFlg: !!l.eycessS_GradesFlg,
-            eycessS_MarksFlg: !!l.eycessS_MarksFlg,
-            eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
-            eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
-            EYCESSE_SubExamOrder: l.emsE_SubExamOrder
+            eycessS_MaxMarks: l.EYCESSE_MaxMarks ?? '',
+            eycessS_MinMarks: l.EYCESSE_MinMarks ?? '',
+            emgR_Id: l.EMGR_Id ?? '',
+            eycessS_ExemptedFlg: !!l.EYCESSE_ExemptedFlg,
+            eycessS_ExemptedPer: l.EYCESSE_ExemptedPer ?? '',
+            eycessS_SubSubjectOrder: l.EYCESSS_SubSubjectOrder ?? '',
+            eycessS_ActiveFlg: !!l.EYCESSE_ActiveFlg,
+            eycessS_GradesFlg: !!l.EYCESSS_GradesFlg,
+            eycessS_MarksFlg: !!l.EYCESSS_MarksFlg,
+            eycessS_AplResultFlg: !!l.EYCESSS_AplResultFlg,
+            eycessS_MarksEntryMax: l.EYCESSS_MarksEntryMax ?? '',
+            EYCESSE_SubExamOrder: l.EYCESSE_SubExamOrder
         }));
 
         replace(list);
@@ -235,7 +235,6 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                     <th className='border p-2'>Grades Flag</th>
                                     <th className='border p-2'>Apl Result</th>
                                     <th className='border p-2'>Marks Entry Max</th>
-                                    <th className='border p-2'>Active</th>
                                 </tr>
                             </thead>
 
@@ -417,17 +416,6 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                         }}
                                                         className='text-center'
                                                     />
-                                                )}
-                                            />
-                                        </td>
-
-                                        {/* Active */}
-                                        <td className='border p-2 text-center'>
-                                            <Controller
-                                                control={control}
-                                                name={`subexam_list.${idx}.eycessS_ActiveFlg`}
-                                                render={({ field }) => (
-                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
                                                 )}
                                             />
                                         </td>
