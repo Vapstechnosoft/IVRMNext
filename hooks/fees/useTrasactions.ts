@@ -5,6 +5,18 @@ import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 import { getAcademicYearDropdownData, getAmountEntry } from '@/server/fees/trasactions/feeAmountEntry';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
+import {
+    getOpeningAcademicYearDropdownData,
+    getOpeningBalanceList,
+    getOpeningCategoryDropdownData,
+    getOpeningClassDropdownData,
+    getOpeningGroupDropdownData,
+    getOpeningHeadDropdownData,
+    getOpeningInstallmentDropdownData,
+    getOpeningPDAList,
+    getOpeningRefundable,
+    getOpeningSectionDropdownData
+} from '@/server/fees/trasactions/fee_opening_balance';
 import { getFeeStudentTransactionDetails } from '@/server/fees/trasactions/fee_student_transaction';
 import { getFeePreadmissionTransactionList, getPreadmissionStudentDropdownData } from '@/server/fees/trasactions/feepreadmissiontrasaction';
 import {
@@ -16,7 +28,7 @@ import {
     get_Receipt_number,
     geteditThirdpartytrasaction
 } from '@/server/fees/trasactions/thirdPartyTrasaction';
-import { getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
+import { feeTransactionWaivedOff, getClassdetails, getsectiondetails } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
 
 export const useFeeAmountEntry = (searchParams?: ApiSearchparams) => {
@@ -53,6 +65,141 @@ export const useacademicyerdropdowndatafee = (searchParams?: ApiSearchparams) =>
     };
 };
 
+export const useopeningacademicyerdropdowndatafee = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_ACADEMIC_YEAR_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getOpeningAcademicYearDropdownData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_ACADEMIC_YEAR_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useopeningClassdropdowndatafee = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getOpeningClassDropdownData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CLASS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useopeningSectiondropdowndatafee = (asmaY_Id: number, asmcL_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_SECTION_DROPDOWN, asmaY_Id, asmcL_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningSectionDropdownData(asmaY_Id, asmcL_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_SECTION_DROPDOWN]
+            });
+        }
+    };
+};
+
+// export const useopeningHeaddropdowndatafee = (searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.FEE_OPENING_HEAD_DROPDOWN, searchParams ?? {}],
+//             queryFn: async () => getOpeningHeadDropdownData(),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.FEE_OPENING_HEAD_DROPDOWN]
+//             });
+//         }
+//     };
+// };
+
+export const useopeningHeaddropdowndatafee = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_HEAD_DROPDOWN, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningHeadDropdownData(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_HEAD_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useopeningCategorydropdowndatafee = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CATEGORY_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getOpeningCategoryDropdownData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_CATEGORY_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useopeningGroupdropdowndatafee = (fmH_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_GROUP_DROPDOWN, fmH_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningGroupDropdownData(fmH_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_GROUP_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useopeningInstallmentdropdowndatafee = (asmaY_Id: number, fmG_id: number, fmH_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_INSTALLMENT_DROPDOWN, asmaY_Id, fmG_id, fmH_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningInstallmentDropdownData(asmaY_Id, fmG_id, fmH_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_INSTALLMENT_DROPDOWN]
+            });
+        }
+    };
+};
 export const useMasterFeeTransactionWaiveOff = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
     return {
@@ -306,6 +453,72 @@ export const useClassdropdowndatafee = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_CLASSDROPDOWN_DETAILS]
+            });
+        }
+    };
+};
+
+export const useFeeTransactionWaivedOffGrid = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_TRANSACTION_WAIVED_OFF_grid, searchParams ?? {}],
+            queryFn: async () => feeTransactionWaivedOff(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_TRANSACTION_WAIVED_OFF_grid]
+            });
+        }
+    };
+};
+
+export const useFeeOpeningBalanceList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_BALANCE_LIST, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningBalanceList(asmaY_Id, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_BALANCE_LIST]
+            });
+        }
+    };
+};
+export const useFeeOpeningPDAList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_PDA_LIST, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getOpeningPDAList(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_PDA_LIST]
+            });
+        }
+    };
+};
+export const useFeeOpeningRefundable = (asmaY_Id: number, filterrefund: string, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_OPENING_REFUNDABLE, asmaY_Id, filterrefund, searchParams ?? {}],
+            queryFn: async () => getOpeningRefundable(asmaY_Id, filterrefund),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_OPENING_REFUNDABLE]
             });
         }
     };

@@ -261,6 +261,9 @@ export interface IMasterFeePrevilegeList {
     ifp_FeePrevilegeName: string;
     ifp_Description: string;
     ifp_ActiveFlag: boolean;
+    ivrmR_Id: number;
+    fmG_Id: number;
+    fmH_Id: number;
 }
 
 export interface IAcademicYearDropDown {
@@ -627,6 +630,8 @@ export interface IMasterStudentFeeGroupMappingList {
     fmG_GroupName: string;
     fmG_Id: number;
     fmsG_Id: number;
+    asmaY_Id: number;
+    mI_Id: number;
 }
 export interface IMasterFeeClassDropDownList {
     asmcL_Id: number;
@@ -770,4 +775,16 @@ export interface MasterFeeOtherStudentType {
     fmosT_StudentMobileNo: number;
     fmosT_StudentEmailId: string;
     fmosT_ActiveFlag: boolean;
+}
+
+export interface IFeeHeadsListSetOrder {
+    fmH_Id: number;
+    mI_Id: number;
+    fmH_FeeName: string;
+    fmH_Flag: string;
+    fmH_ActiveFlag: boolean;
+    fmH_Order: number;
+    fmH_SpecialFeeFlag: boolean;
+    fmH_PDAFlag: boolean;
+    fmH_RefundFlag: boolean;
 }

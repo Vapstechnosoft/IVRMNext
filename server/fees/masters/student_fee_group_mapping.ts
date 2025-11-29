@@ -7,7 +7,6 @@ import type {
     IMasterFeeBusRoutingMappingList,
     IMasterFeeCasteCategoryMappingList,
     IMasterFeeClassDropDownList,
-    IMasterFeeGroupHeadMappinList,
     IMasterFeeGroupList,
     IMasterFeeHeadList,
     IMasterFeeInstallmentList,
@@ -34,12 +33,12 @@ export async function getStudentFeeGroupMappingAcademicYearDropdown() {
 }
 
 export async function getAdmClassCategorydropdown() {
-    const url = '/StudentFeeGroupMappingFacade/getAdmissionCategories?MI_Id=30';
+    const url = '/StudentFeeGroupMappingFacade/getAdmissionCategories';
     return await api.get<IMasterAdmClassCategoryMappingList[]>('fees', url);
 }
 
 export async function getFeeClassCategorydropdown() {
-    const url = '/StudentFeeGroupMappingFacade/getAdmissionCategories?MI_Id=30';
+    const url = '/StudentFeeGroupMappingFacade/getAdmissionCategories';
     return await api.get<IMasterAdmClassCategoryMappingList[]>('fees', url);
 }
 
@@ -54,7 +53,7 @@ export async function getSectionropdown() {
 }
 
 export async function getFeeBusRoutingdropdown() {
-    const url = 'StudentFeeGroupMappingFacade/getBusRoutes?MI_Id=30';
+    const url = 'StudentFeeGroupMappingFacade/getBusRoutes';
     return await api.get<IMasterFeeBusRoutingMappingList[]>('fees', url);
 }
 
@@ -63,34 +62,41 @@ export async function getFeeCasteCategorydropdown() {
     return await api.get<IMasterFeeCasteCategoryMappingList[]>('fees', url);
 }
 
-export async function getStudentClassMapping(academicYear: number, searchParams?: ApiSearchparams) {
+export async function getStudentClassMapping(
+    academicYear: number,
+    classId: number,
+    sectionId: number,
+    admCategoryId: number,
+    radioFilter: string,
+    searchParams?: ApiSearchparams
+) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
-    const url = `/StudentFeeGroupMappingFacade/getStudentClassMapping?MIId=30&AcademicYearId=${academicYear}&${urlParams}`;
+    const url = `/StudentFeeGroupMappingFacade/getStudentClassMapping?AcademicYearId=${academicYear}&ClassId=${classId}&SectionId=${sectionId}&AdmissionCategoryId=${admCategoryId}&RadioFilter=${radioFilter}&${urlParams}`;
     return await api.get<IMasterStudentClassMappingList[]>('fees', url);
 }
 
-export async function getStudentFeeGroupList() {
-    const url = '/StudentFeeGroupMappingFacade/getGroupMappingList?asmay_id=231';
+export async function getStudentFeeGroupList(academicYear: number) {
+    const url = `/StudentFeeGroupMappingFacade/getGroupMappingList?asmay_id=${academicYear}`;
     return await api.get<IMasterFeeGroupList[]>('fees', url);
 }
 
-export async function getStudentFeeHeadList(groupId: any) {
-    const url = '/StudentFeeGroupMappingFacade/getHeadMappingList?asmay_id=231';
+export async function getStudentFeeHeadList(groupId: any, academicYear: number) {
+    const url = `/StudentFeeGroupMappingFacade/getHeadMappingList?asmay_id=${academicYear}`;
     return await api.post<IMasterFeeHeadList[]>('fees', url, groupId);
 }
 
-export async function getStudentFeeInstallmentList(groupId: any) {
-    const url = '/StudentFeeGroupMappingFacade/getInstallmentMappingList?asmay_id=231';
+export async function getStudentFeeInstallmentList(groupId: any, academicYear: number) {
+    const url = `/StudentFeeGroupMappingFacade/getInstallmentMappingList?asmay_id=${academicYear}`;
     return await api.post<IMasterFeeInstallmentList[]>('fees', url, groupId);
 }
 
-export async function getStudentFeeGeoupHeadMapping() {
-    const url = '/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?MI_Id=30&ASMAY_Id=231';
-    return await api.get<IMasterFeeGroupHeadMappinList[]>('fees', url);
-}
+// export async function getStudentFeeGeoupHeadMapping() {
+//     const url = '/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?MI_Id=30&ASMAY_Id=231';
+//     return await api.get<IMasterFeeGroupHeadMappinList[]>('fees', url);
+// }
 
 export async function getStudentFeeSummaryById(academicId: number, studentId: number): Promise<StudentFeeGroupSummaryById[]> {
-    const url = `/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?MI_Id=30&ASMAY_Id=${academicId}&AMST_Id=${studentId}`;
+    const url = `/StudentFeeGroupMappingFacade/getFeeMappingSummaryById?ASMAY_Id=${academicId}&AMST_Id=${studentId}`;
     const response = await api.get<any>('fees', url);
     return response.data?.feeGroups ?? [];
 }

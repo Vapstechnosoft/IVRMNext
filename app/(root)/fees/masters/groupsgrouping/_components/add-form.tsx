@@ -57,6 +57,7 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
         control,
         handleSubmit,
         reset,
+        register,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterGroupsGroupingSchema.addOrUpdate),
@@ -105,12 +106,36 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                             name='fmgG_GroupName'
                             control={control}
                             render={({ field }) => (
+                                // <InputText
+                                //     label='Fees Group Name'
+                                //     required
+                                //     id='fmgG_GroupName'
+                                //     value={field.value}
+                                //     onChange={field.onChange}
+                                //     error={errors.fmgG_GroupName?.message}
+                                //     className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                // />
+
                                 <InputText
                                     label='Fees Group Name'
                                     required
                                     id='fmgG_GroupName'
-                                    value={field.value}
-                                    onChange={field.onChange}
+                                    {...register('fmgG_GroupName', {
+                                        required: 'Fee Group is required'
+                                    })}
+                                    onKeyDown={(e) => {
+                                        const allowed = /^[A-Za-z\s]$/;
+
+                                        // Allow navigation keys
+                                        if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                            return;
+                                        }
+
+                                        // Block characters that are not letters/spaces
+                                        if (!allowed.test(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     error={errors.fmgG_GroupName?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
@@ -122,12 +147,35 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                             name='fmgG_GroupCode'
                             control={control}
                             render={({ field }) => (
+                                // <InputText
+                                //     label='Groups Code'
+                                //     required
+                                //     id='fmgG_GroupCode'
+                                //     value={field.value}
+                                //     onChange={field.onChange}
+                                //     error={errors.fmgG_GroupCode?.message}
+                                //     className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                // />
                                 <InputText
                                     label='Groups Code'
                                     required
                                     id='fmgG_GroupCode'
-                                    value={field.value}
-                                    onChange={field.onChange}
+                                    {...register('fmgG_GroupCode', {
+                                        required: 'Fee Group is required'
+                                    })}
+                                    onKeyDown={(e) => {
+                                        const allowed = /^[A-Za-z\s]$/;
+
+                                        // Allow navigation keys
+                                        if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                            return;
+                                        }
+
+                                        // Block characters that are not letters/spaces
+                                        if (!allowed.test(e.key)) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     error={errors.fmgG_GroupCode?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />

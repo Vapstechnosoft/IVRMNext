@@ -98,6 +98,14 @@ export const FEES_QUERY_KEYS = {
     FEES_PRIVILEGE_LIST: 'fees_privilege_list',
     FEE_WAVIED_OFF: 'fee_waived_off',
     FEE_OPENING_BALANCE: 'fee_opening_balance',
+    FEE_OPENING_ACADEMIC_YEAR_DROPDOWN: 'fee_opening_academic_year_dropdown',
+    FEE_OPENING_CATEGORY_DROPDOWN: 'fee_opening_category_dropdown',
+    FEE_OPENING_CLASS_DROPDOWN: 'fee_opening_class_dropdown',
+    FEE_OPENING_SECTION_DROPDOWN: 'fee_opening_section_dropdown',
+    FEE_OPENING_HEAD_DROPDOWN: 'fee_opening_head_dropdown',
+    FEE_OPENING_GROUP_DROPDOWN: 'fee_opening_group_dropdown',
+    FEE_OPENING_INSTALLMENT_DROPDOWN: 'fee_opening_installment_dropdown',
+
     GROUPS_DROPDOWN: 'groups_dropdown',
     ROLES_DROPDOWN: 'roles_dropdown',
     FEE_THIRDPARTY_TRASACTION: 'fee_thirdparty_transaction',
@@ -144,7 +152,13 @@ export const FEES_QUERY_KEYS = {
     FEE_OTHER_STUDENT: 'fee_other_student',
     FEE_CLASSDROPDOWN_DETAILS: 'fee_classdropdown_details',
     FEE_SECTIONDROPDOWN_DETAILS: 'fee_sectiondropdown_details',
-    FEE_INSATALLMENT_DROP_DOWN: 'fee_installment_drop_down'
+    FEE_INSATALLMENT_DROP_DOWN: 'fee_installment_drop_down',
+    FEE_TRANSACTION_WAIVED_OFF_grid: 'fee_transaction_waived_off_grid',
+    FEE_SPECIAL_FEE_HEAD: 'fee_special_fee_head',
+    FEE_SPECIAL_FEE_HEAD_DROPDOWN: 'fee_special_fee_head_dropdown',
+    FEE_OPENING_BALANCE_LIST: 'fee_opening_balance_list',
+    FEE_OPENING_PDA_LIST: 'fee_opening_pda_list',
+    FEE_OPENING_REFUNDABLE: 'fee_opening_refundable'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -194,8 +208,8 @@ export const EXAM_QUERY_KEYS = {
 
     EXAM_STANDARD: 'exam-standared',
 
-    EXAM_HALL_TICKET_GENERATED_DATA : 'exam-hall-ticket-generated-data',
-    EXAM_HALL_TICKET_STUDENT_LIST: 'exam-hall-ticket-student-list',
+    EXAM_HALL_TICKET_GENERATED_DATA: 'exam-hall-ticket-generated-data',
+    EXAM_HALL_TICKET_STUDENT_LIST: 'exam-hall-ticket-student-list'
 };
 
 export const HRMS_QUERY_KEYS = {

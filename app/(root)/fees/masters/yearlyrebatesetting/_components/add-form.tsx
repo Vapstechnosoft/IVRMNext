@@ -37,12 +37,22 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
         resolver: zodResolver(YearlyRebateSettingsSchema.addOrUpdate),
         defaultValues: {
             asmaY_Id: '',
-            fyrebseT_RebateTypeFlg: '',
-            fyrebseT_Id: undefined,
+            fyrebseT_RebateTypeFlg: undefined,
+            fyrebseT_Id: '',
             fyrebseT_RebateAmtOrPercentValue: 0,
             fyrebseT_RebateDate: ''
         }
     });
+
+    const handleReset = () => {
+        reset({
+            asmaY_Id: '',
+            fyrebseT_Id: '',
+            fyrebseT_RebateTypeFlg: undefined,
+            fyrebseT_RebateAmtOrPercentValue: 0,
+            fyrebseT_RebateDate: ''
+        });
+    };
 
     const rebateId = watch('fyrebseT_Id');
 
@@ -245,7 +255,8 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                 <Button
                     type='button'
                     variant='outline'
-                    onClick={() => reset()}
+                    // onClick={() => reset()}
+                    onClick={handleReset}
                     disabled={isSubmitting}
                     className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                     Reset

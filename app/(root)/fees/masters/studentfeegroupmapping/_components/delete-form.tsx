@@ -29,7 +29,13 @@ export default function DeleteStudentFeeGroupMappingForm({ rowData, onClose, onS
 
         setIsSubmitting(true);
         try {
-            const response = await deleteStudentFeeGroupMapping(rowData.amsT_Id, rowData.fmG_Id, rowData.fmsG_Id, 231, 30);
+            const response = await deleteStudentFeeGroupMapping(
+                rowData.amsT_Id,
+                rowData.fmG_Id,
+                rowData.fmsG_Id,
+                rowData.asmaY_Id,
+                rowData.mI_Id
+            );
 
             if (response.success) {
                 toast.success(`${rowData.fmG_GroupName} deleted successfully`);
