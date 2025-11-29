@@ -184,7 +184,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 return acc;
             }, []);
 
-            console.log('preSelectedStudentIds', preSelectedStudentIds);
             setPreSelectedStudentIds(preSelectedStudentIds);
             setStudents(studentList);
             setTableProps(
@@ -226,7 +225,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                     }))
             };
 
-            console.log(payload);
             const res = await addOrUpdateExamStudentRemarks(payload);
             if (res?.success) {
                 toast.success(res.message || 'Remarks saved successfully');
@@ -269,11 +267,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
             return updated;
         });
     };
-    useEffect(() => {
-        if (Object.keys(methods.formState.errors).length > 0) {
-            console.log('❌ Form Validation Errors:', methods.formState.errors);
-        }
-    }, [methods.formState.errors]);
 
     // Pass to columns
     const columns = ExamWiseStudentRemarksColumns(updateStudent);
@@ -414,8 +407,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 columns={columns}
                                 isLoading={isLoading}
                                 onRowSelectionChange={(selectedRows: IExamWiseStudentRemarksStudent[]) => {
-                                    console.log('selectedRows', selectedRows);
-                                    console.log('students', students);
                                     const selectedRowIds = selectedRows.map((r) => String(r.amsT_Id));
                                     const selected = students.filter((s, index) => {
                                         const isSelected = selectedRowIds.includes(s.amsT_Id.toString());

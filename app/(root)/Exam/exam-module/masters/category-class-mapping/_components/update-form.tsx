@@ -85,16 +85,6 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     useEffect(() => {
         setValue('asmaY_Id', selectedRow?.asmaY_Id ?? 0);
         setValue('emcA_Id', selectedRow?.emcA_Id ?? 0);
-        //setValue('asmcL_Id', selectedRow?.asmcL_Id ?? 0);
-        console.log(classes, categories, academicYears);
-        console.log(
-            selectedRow?.asmaY_Id,
-            selectedRow?.emcA_Id,
-            selectedRow?.asmcL_Id,
-            classes.length,
-            categories.length,
-            academicYears.length
-        );
     }, [selectedRow, classes.length, categories.length, academicYears.length]);
 
     // Academic years hook

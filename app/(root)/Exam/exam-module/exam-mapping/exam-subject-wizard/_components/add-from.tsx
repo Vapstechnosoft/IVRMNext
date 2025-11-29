@@ -140,7 +140,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     // when rowData (edit) is provided, populate top-level fields
     useEffect(() => {
         if (!rowData) return;
-        console.log('rowData', rowData);
 
         setValue('EYCE_Id', rowData.eycE_Id || 0);
         setValue('ASMAY_Id', rowData.asmaY_Id ?? undefined);
@@ -163,7 +162,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             try {
                 const { data: cats } = await getCategoryDropDowByExamYearCategoryList(30, Number(watchYear));
                 setCategories(Array.isArray(cats) ? cats : []);
-                console.log('🟡 [HOOK] fetchRelated categories:', cats);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
                 setCategories([]);
@@ -345,7 +343,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                 const { data: mappedList } = await getSubSubjectsMappedList(30, updated.EYCES_Id);
                                 if (mappedList?.length) {
                                     updated.subSubjectConfig = mappedList.map(mapToSubSubjectConfig);
-                                    console.log(updated.subSubjectConfig);
                                 }
                             }
 
@@ -407,7 +404,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             const safeList = Array.isArray(list) ? list : [];
 
             const configList = Array.isArray(subject.subExamConfig) ? subject.subExamConfig : [];
-            console.log(' [HOOK] onOpenSubExamModal configList:', configList);
 
             // Merge logic
             const updatedList = safeList.map((item: any) => {
@@ -423,7 +419,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     checkedvalue: true
                 };
             });
-            console.log(' [HOOK] onOpenSubExamModal updatedList:', updatedList);
             setSubExamModalState({
                 open: true,
                 subject: {

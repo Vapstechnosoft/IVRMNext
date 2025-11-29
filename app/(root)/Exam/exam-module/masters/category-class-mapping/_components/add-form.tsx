@@ -263,8 +263,6 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                 }))
             };
 
-            console.log('FINAL PAYLOAD → ', payload);
-
             const res = await addOrUpdateCategoryClassMapping(payload);
 
             if (res?.success) {
