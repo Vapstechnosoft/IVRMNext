@@ -68,8 +68,8 @@ export async function saveFeeWivedOff(payload: any) {
 }
 
 export async function uploadDocument(data: any) {
-    const url = '/document_upload/upload_document';
-    return await api.postMultipart<string>('preadmission', url, data);
+    const url = '/FeeWaivedOff/upload_document';
+    return await api.postMultipart<string>('fees', url, data);
 }
 
 export async function deleteWaivedoff(id: number) {
