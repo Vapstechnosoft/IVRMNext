@@ -14,17 +14,17 @@ import UpdateFeeTransactionWaiveOffForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function fineSlabPage(props: { searchParams: SearchParams }) {
+export default function FeeWaivedOff(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error, refetchAll } = useFeeTransactionWaivedOffGrid(searchParams);
 
     return (
         <FormProvider<feeTransactionWaivedOffGrid>>
-            <MasterFeeOpeningBalancePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterFeeWaivedOffContentPage response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
         </FormProvider>
     );
 }
-function MasterFeeOpeningBalancePageContent({
+function MasterFeeWaivedOffContentPage({
     response,
     isLoading,
     error
