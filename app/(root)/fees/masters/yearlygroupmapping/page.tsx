@@ -34,11 +34,13 @@ function FeeGroupMappingContent() {
 
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
+    // ⬇️ INCLUDE refetch here
     const {
         data: feeHeadResponse,
         isLoading: feeHeadLoading,
         error: feeHeadError,
-        isFetching
+        isFetching,
+        refetch // ⬅️ IMPORTANT
     } = useMasterAllFeeHead(academicYearId > 0 ? academicYearId : 0, searchQuery ? { search_query: searchQuery } : undefined);
 
     const feeGroupData = academicYearId > 0 && Array.isArray(feeHeadResponse?.data) ? feeHeadResponse.data : [];
@@ -50,9 +52,8 @@ function FeeGroupMappingContent() {
 
     return (
         <div className='min-h-screen space-y-6'>
-            {/* Top Bar: Filter Card and Add Button */}
+            {/* Top Bar */}
             <div className='flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between'>
-                {/* Filter Card */}
                 <div className='w-full rounded-lg border bg-card p-6 shadow-sm sm:w-auto'>
                     <div className='flex flex-col gap-2 sm:w-64'>
                         <Label htmlFor='academic-year' className='font-semibold text-sm'>
@@ -106,11 +107,7 @@ function FeeGroupMappingContent() {
 
             {/* Data Table */}
             <div className='space-y-4'>
-                <CollapsibleSection
-                    defaultOpen
-                    variant='default'
-                    size='lg'
-                    className='shadow-sm transition-shadow duration-300 hover:shadow-md'>
+                <CollapsibleSection defaultOpen variant='default' size='lg' className='shadow-sm'>
                     <GenericDataTable<IFeeGroupMapping>
                         {...tableProps}
                         ref={tableRef}
@@ -130,6 +127,9 @@ function FeeGroupMappingContent() {
                     />
                 </CollapsibleSection>
             </div>
+
+            {/* Pass refetch to form section */}
+            <FormSections refetchTable={refetch} />
         </div>
     );
 }
@@ -143,12 +143,13 @@ export default function FeeGroupMappingView({
     return (
         <FormProvider<IFeeGroupMapping>>
             <FeeGroupMappingContent />
-            <FormSections />
         </FormProvider>
     );
 }
 
-function FormSections() {
+/* ----------------- FORM SECTIONS ---------------- */
+
+function FormSections({ refetchTable }: { refetchTable: () => void }) {
     const { isAddFormOpen, closeAddForm, addFormRef, isDeleteFormOpen, closeDeleteForm, selectedRow } = useFormContext<IFeeGroupMapping>();
 
     return (
@@ -171,11 +172,19 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <YearlyFeeGroupMapping />
+
+                            {/* SUCCESS → close form + refetch table */}
+                            <YearlyFeeGroupMapping
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetchTable(); // 🔥 IMPORTANT: refresh table
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+
             {isDeleteFormOpen && selectedRow && (
                 <DeleteMasterYearlyGroupForm rowData={selectedRow} fyghM_Id={selectedRow.fyghM_Id} onClose={closeDeleteForm} />
             )}

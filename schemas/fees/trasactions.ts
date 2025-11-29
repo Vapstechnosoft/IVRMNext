@@ -48,7 +48,8 @@ export const thirdPartyTransactionSchema = {
             paymentMode: z.enum(['B', 'C', 'R', 'S']),
             bankId: z.number().optional(),
             chequeDate: z.string().optional(),
-            chequeNo: z.string().optional(),
+            // chequeNo: z.string().optional(),
+            chequeNo: z.string().min(13, 'Cheque Number is required').max(19, 'Cheque Number is too long'),
             bankName: z.string().optional()
         })
         .superRefine((data, ctx) => {

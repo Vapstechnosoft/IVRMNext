@@ -457,6 +457,9 @@ export interface feeTransactionWaivedOffGrid {
     fswO_WaivedOffRemarks: string;
     fmG_Id: number;
     fmH_Id: number;
+    fswO_FineFlg: number;
+    fswO_FullFineWaiveOffFlg: number;
+    ftI_Id: number;
 }
 export interface feeTransactionWaivedOffStudentDetails {
     amsT_RegistrationNo: number;

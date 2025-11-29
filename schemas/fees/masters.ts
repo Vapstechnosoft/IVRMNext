@@ -232,7 +232,7 @@ export const masterGroupSchema = {
         fmG_Id: z.number().int().optional(),
         //fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
         //fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
-        fmG_GroupName: createStringSchema('Fee Group', 1, 200),
+        fmG_GroupName: createStringSchema('Fee Group', 3, 200),
         fmG_Remarks: z.string().min(1, { message: 'Remarks is required' }).max(500),
         transportHostelType: z.preprocess((val) => {
             if (typeof val === 'string' && val.trim() === '') return undefined;
