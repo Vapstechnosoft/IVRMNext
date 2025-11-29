@@ -292,7 +292,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/feehead',
                                             title: 'Master Fee Head',
-                                            description: 'Manage Fee Head Details'
+                                            description: 'Manage Master Fee Head Details'
                                         },
                                         {
                                             id: 23,
@@ -300,7 +300,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/modeofpayment',
                                             title: 'Master Mode Of Payment',
-                                            description: 'Manage Mode Of Payment Details'
+                                            description: 'Manage Master Mode Of Payment Details'
                                         },
                                         {
                                             id: 24,
@@ -308,7 +308,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/paymentGatewayDetails',
                                             title: 'Master Payment Gateway Details',
-                                            description: 'Manage Payment Gateway Details'
+                                            description: 'Manage Master Payment Gateway Details'
                                         },
                                         {
                                             id: 25,
@@ -324,7 +324,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/masters/masterfeeconcession',
                                             title: 'Fee Master Concession',
-                                            description: 'Manage Fee Master Concession Details'
+                                            description: 'Manage Master Fee Concession Details'
                                         },
 
                                         {
@@ -332,24 +332,24 @@ export async function getUserAccessibleModules() {
                                             name: 'Master Concession Category Details',
                                             icon: 'Settings',
                                             url: '/fees/masters/masterfeeconcessiondetails',
-                                            title: 'Concession Category Details',
-                                            description: 'Concession Category Details'
+                                            title: 'Master Concession Category Details',
+                                            description: 'Master Master Concession Category Details'
                                         },
                                         {
                                             id: 650,
                                             name: 'Master Concession Category Group Head Mapping',
                                             icon: 'Settings',
                                             url: '/fees/masters/concessioncategorygroupheadmapping',
-                                            title: 'Concession Category Group Head Mapping',
-                                            description: 'Concession Category Group Head Mapping'
+                                            title: 'Master Concession Category Group Head Mapping',
+                                            description: 'Master Master Concession Category Group Head Mapping'
                                         },
                                         {
                                             id: 27,
                                             name: 'Master Fee Terms',
                                             icon: 'Settings',
                                             url: '/fees/masters/feemasterterms',
-                                            title: 'Fee Terms',
-                                            description: 'Manage Fee Terms Details'
+                                            title: 'Master Fee Terms',
+                                            description: 'Manage Master Fee Terms Details'
                                         },
                                         {
                                             id: 28,
@@ -380,56 +380,56 @@ export async function getUserAccessibleModules() {
                                             name: 'Master Class Category',
                                             icon: 'Settings',
                                             url: '/fees/masters/classcategory',
-                                            title: 'Class Category',
-                                            description: 'Manage Class Category'
+                                            title: ' Master Class Category',
+                                            description: 'Manage Master Class Category'
                                         },
                                         {
                                             id: 30,
                                             name: 'Master Yearly Category',
                                             icon: 'Settings',
                                             url: '/fees/masters/category',
-                                            title: 'Yearly Category',
-                                            description: 'Manage Yearly Category'
+                                            title: 'Master Yearly Category',
+                                            description: 'Manage Master Yearly Category'
                                         },
                                         {
                                             id: 31,
                                             name: 'Master Fee Installment',
                                             icon: 'Settings',
                                             url: '/fees/masters/feesinstallment',
-                                            title: 'Fee Installment',
-                                            description: ' Manage Fee Installment'
+                                            title: 'Master Fee Installment',
+                                            description: 'Manage Master Fee Installment'
                                         },
                                         {
                                             id: 32,
                                             name: 'Master Installment due date',
                                             icon: 'Settings',
                                             url: '/fees/masters/feesinstallmentduedate',
-                                            title: 'Installment due date',
-                                            description: 'Installment due date'
+                                            title: 'Master Installment due date',
+                                            description: 'Manage Master Installment due date'
                                         },
                                         {
                                             id: 33,
                                             name: 'Master Fee Group Grouping',
                                             icon: 'Settings',
                                             url: '/fees/masters/groupsgrouping',
-                                            title: 'Group Grouping',
-                                            description: 'Manage Group Grouping'
+                                            title: 'Master Fee Group Grouping',
+                                            description: 'Manage Master Fee Group Grouping'
                                         },
                                         {
                                             id: 34,
                                             name: 'Master Fee Groups',
                                             icon: 'Settings',
                                             url: '/fees/masters/mastergroup',
-                                            title: 'Groups',
-                                            description: 'Manage Groups'
+                                            title: 'Master Fee Groups',
+                                            description: 'Manage Master Fee Groups'
                                         },
                                         {
                                             id: 35,
-                                            name: 'Fee Yearly Groups',
+                                            name: 'Master Fee Yearly Groups',
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlygroup',
-                                            title: 'Yearly Groups',
-                                            description: 'Manage Yearly Groups'
+                                            title: 'Master Fee Yearly Groups',
+                                            description: 'Manage Master Fee Yearly Groups'
                                         },
 
                                         {
@@ -437,64 +437,64 @@ export async function getUserAccessibleModules() {
                                             name: 'Master Fee Yearly Groups Mapping',
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlygroupmapping',
-                                            title: 'Yearly Groups Mapping',
-                                            description: 'Manage Yearly Groups Mapping'
+                                            title: 'Master Fee Yearly Groups Mapping',
+                                            description: 'Manage Master Fee Yearly Groups Mapping'
                                         },
                                         {
                                             id: 37,
-                                            name: 'Master Fee Group wise  Auto Receipt',
+                                            name: 'Master Fee Group wise Auto Receipt',
                                             icon: 'Settings',
                                             url: '/fees/masters/groupwiseautoreceipt',
-                                            title: 'Group wise  Auto Receipt',
-                                            description: 'Manage Group wise  Auto Receipt'
+                                            title: 'Master Fee Group wise Auto Receipt',
+                                            description: 'Manage Master Fee Group wise Auto Receipt'
                                         },
                                         {
                                             id: 38,
                                             name: 'Master Fee Yearly Rebate Settings',
                                             icon: 'Settings',
                                             url: '/fees/masters/yearlyrebatesetting',
-                                            title: 'Yearly Rebate Settings',
-                                            description: 'Manage Yeary Rebate Settings'
+                                            title: 'Master Yearly Rebate Settings',
+                                            description: 'Manage Master Yeary Rebate Settings'
                                         },
                                         {
                                             id: 39,
                                             name: 'Master Fee Privilege',
                                             icon: 'Settings',
                                             url: '/fees/masters/feeprevilege',
-                                            title: 'Fee Privilege',
-                                            description: 'Manage Fee Privilege Details'
+                                            title: 'Master Fee Privilege',
+                                            description: 'Manage Master Fee Privilege Details'
                                         },
                                         {
                                             id: 40,
                                             name: 'Master Online Payment Head Group',
                                             icon: 'Settings',
                                             url: '/fees/masters/onlinepaymentheadgroupmapping',
-                                            title: 'Online Payment Head Group',
-                                            description: 'Manage Online Payment Head Group Mapping Details'
+                                            title: 'Master Online Payment Head Group',
+                                            description: 'Manage Master Online Payment Head Group Mapping Details'
                                         },
                                         // {
                                         //     id: 900,
                                         //     name: 'Master Student Fee Group Mapping',
                                         //     icon: 'Settings',
                                         //     url: '/fees/masters/studentfeegroupmapping',
-                                        //     title: 'Student Fee Group Mapping',
-                                        //     description: 'Manage Student Fee Group Mapping Details'
+                                        //     title: 'MasterStudent Fee Group Mapping',
+                                        //     description: 'Manage Manage Student Fee Group Mapping Details'
                                         // },
                                         {
                                             id: 501,
                                             name: 'Master Fee Other Student',
                                             icon: 'Settings',
                                             url: '/fees/masters/feeotherstudent',
-                                            title: 'Fee Other Student',
-                                            description: 'Manage Fee Other Student Details'
+                                            title: 'Master Fee Other Student',
+                                            description: 'Manage Master Fee Other Student Details'
                                         },
                                         {
                                             id: 502,
                                             name: 'Master Special Fee Head',
                                             icon: 'Settings',
                                             url: '/fees/masters/specialFeeHead',
-                                            title: 'Special Fee Head',
-                                            description: 'Manage Special Fee Head Details'
+                                            title: 'Master Special Fee Head',
+                                            description: 'Manage Master Special Fee Head Details'
                                         }
                                     ]
                                 },
@@ -517,7 +517,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/transactions/thirdPartyTransaction',
                                             title: 'Third Party Transaction',
-                                            description: 'Third Party Transaction'
+                                            description: 'Manage Third Party Transaction'
                                         },
                                         {
                                             id: 42,
@@ -525,15 +525,15 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/transactions/feeopeningbalance',
                                             title: 'Fee Opening Balance',
-                                            description: 'Fee Opening Balance'
+                                            description: 'Manage Fee Opening Balance'
                                         },
                                         {
                                             id: 43,
-                                            name: 'Fee waivedoff',
+                                            name: 'Fee Waivedoff',
                                             icon: 'Settings',
                                             url: '/fees/transactions/waivedoff',
-                                            title: 'Fee waivedoff',
-                                            description: 'Fee waivedoff'
+                                            title: 'Fee Waivedoff',
+                                            description: 'Manage Fee Waivedoff'
                                         },
                                         {
                                             id: 500,
@@ -541,7 +541,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'Settings',
                                             url: '/fees/transactions/feepreadmissiontrasaction',
                                             title: 'Fee Preadmission Transaction',
-                                            description: 'Fee Preadmission Transaction'
+                                            description: 'Manage Fee Preadmission Transaction'
                                         }
                                         // ,
                                         // {
