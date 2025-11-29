@@ -385,3 +385,38 @@ export interface IExamWiseStudentRemarksStudent {
     estmP_TotalMaxMarks: number;
     estmP_Percentage: number;
 }
+
+export interface IHallTicketGeneratedItem {
+    asmaY_Year: string;
+    emE_ExamName: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    asmaY_Order: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    asmaY_Id: number;
+    emE_Id: number;
+}
+
+
+// Student List Response
+export interface IHallTicketStudentItem {
+    amsT_Id: number;
+    amsT_FirstName: string;
+    amsT_AdmNo: string;
+    ehT_HallTicketNo: string;
+    amaY_Rollno: number;
+    ehT_Id: number;
+    ehT_PublishFlg: boolean | null;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+}
+
+export interface IPromotionRemarksGrid {
+    slNo: number;          // Serial number
+    admNo: string;         // Admission number
+    studentName: string;   // Student's full name
+    studentId: number;     // Student ID
+    remarks?: string;      // Remarks for the student
+}
+

@@ -16,14 +16,14 @@ import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper
 import { getGradeDetailsById, getMasterGrade } from '@/server/exam/exam-module/masters/grade';
 import { getMasterLifeSkillAreas, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
 import { getMasterSubExam } from '@/server/exam/exam-module/masters/sub-exam';
-import { getMasterSubject } from '@/server/exam/exam-module/masters/subject';
+import { getMasterSubject, getMasterSubjectDropdownList } from '@/server/exam/exam-module/masters/subject';
 import {
     getAllMasterSubjectDetails,
     getMasterSubjectGroup,
     getMasterSubjectGroupDetails,
     getSubjectsGroupDropDownByList
 } from '@/server/exam/exam-module/masters/subject-group';
-import { getMasterSubSubject } from '@/server/exam/exam-module/masters/sus-subject';
+import { getMasterSubSubject, getMasterSubSubjectDropdownList } from '@/server/exam/exam-module/masters/sus-subject';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -44,6 +44,25 @@ export const useMasterSubject = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+
+export const useGetMasterSubjectDropdownList = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST, searchParams ?? {}],
+            queryFn: async () => getMasterSubjectDropdownList(30),
+            staleTime: 300
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_SUBJECT_DROPDOWN_LIST]
+            });
+        }
+    };
+};
+
 
 export const useMasterExam = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -108,6 +127,23 @@ export const useMasterSubSubject = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_SUBJECT_EX]
+            });
+        }
+    };
+};
+
+export const useMasterSubSubjectDropdownList = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_SUBJECT_EX_DROPDOWN_LIST, searchParams ?? {}],
+            queryFn: async () => getMasterSubSubjectDropdownList(30),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_SUB_SUBJECT_EX_DROPDOWN_LIST]
             });
         }
     };
@@ -391,3 +427,4 @@ export const useMasterLifeSkillAreaMapping = (searchParams?: ApiSearchparams) =>
         }
     };
 };
+
