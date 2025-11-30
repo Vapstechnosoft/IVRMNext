@@ -1,9 +1,7 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface ESIRecord {
     id?: number;
     createdAt?: string;
@@ -26,7 +24,6 @@ export interface ESIRecord {
     presentDays: number;
     esiStatus: 'Active' | 'Inactive' | 'Exempted';
 }
-
 export const esiReportColumns: ColumnDef<ESIRecord>[] = [
     {
         accessorKey: 'id',

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
@@ -7,34 +6,26 @@ import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDepartment } from '@/hooks/hrms/useMasters';
 import { departmentSchema } from '@/schemas/hrms/employee-category-schemas';
-import type { DepartmentDetail } from '@/types/hrms/master-department';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
 type FormFields = z.infer<typeof departmentSchema.addOrUpdate>;
-
-interface DepartmentFormProps {
-    selectedRow?: DepartmentDetail;
+interface AddDepartmentFormProps {
     onSuccess?: () => void;
     className?: string;
 }
-
-export default function DepartmentForm({ selectedRow, onSuccess, className = '' }: DepartmentFormProps) {
+export default function AddDepartmentForm({ onSuccess, className = '' }: AddDepartmentFormProps) {
     const roleId = HRMS_MI_ID;
     const { saveMutation, refetchAll } = useMasterDepartment(roleId);
-    const isEditMode = !!selectedRow;
-
     const {
         register,
         handleSubmit,
         reset,
         control,
         setValue,
-        formState: { errors, isSubmitting, isDirty }
+        formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(departmentSchema.addOrUpdate),
         mode: 'onChange',
@@ -46,25 +37,6 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
             HRMD_ActiveFlag: true
         }
     });
-
-    useEffect(() => {
-        if (selectedRow) {
-            reset(
-                {
-                    HRMD_Id: selectedRow.HRMD_Id,
-                    MI_Id: selectedRow.MI_Id,
-                    HRMD_DepartmentName: selectedRow.HRMD_DepartmentName,
-                    HRMD_Order: selectedRow.HRMD_Order,
-                    HRMD_InternalTrainingMinimumHrs: selectedRow.HRMD_InternalTrainingMinimumHrs,
-                    HRMD_ActiveFlag: selectedRow.HRMD_ActiveFlag
-                },
-                { keepDefaultValues: false }
-            ); // Reset default values to mark form as clean
-        }
-    }, [selectedRow, reset]);
-    if (isEditMode) {
-    }
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         // Trim whitespace from text fields
         const sanitizedData = {
@@ -72,27 +44,23 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
             HRMD_DepartmentName: data.HRMD_DepartmentName?.trim() || '',
             HRMD_InternalTrainingMinimumHrs: data.HRMD_InternalTrainingMinimumHrs ?? 0
         };
-
         try {
             const response = await saveMutation.mutateAsync(sanitizedData);
-
             if (response?.success) {
-                toast.success(response.message || (isEditMode ? 'Department updated successfully' : 'Department saved successfully'));
-                if (!isEditMode) reset();
+                toast.success(response.message || 'Department saved successfully');
+                reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response?.message || (isEditMode ? 'Failed to update department' : 'Failed to save department'));
+                toast.error(response?.message || 'Failed to save department');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
         }
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -115,14 +83,12 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                 // Callback ref to attach input listener when element is mounted
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-
                                     // Find the actual input element inside the NumberField
                                     const findInput = () => {
                                         return containerElement.querySelector(
                                             'input[type="text"], input[type="number"]'
                                         ) as HTMLInputElement;
                                     };
-
                                     // Try to find input immediately, or after a short delay for React Aria rendering
                                     const attachListener = () => {
                                         const inputElement = findInput();
@@ -130,16 +96,13 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                             setTimeout(attachListener, 50);
                                             return;
                                         }
-
                                         // Check if listener is already attached to avoid duplicates
                                         if ((inputElement as any).__dirtyHandlerAttached) {
                                             return;
                                         }
-
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-
                                             // Only process if there's a valid number
                                             if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
@@ -152,14 +115,11 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                                 }
                                             }
                                         };
-
                                         inputElement.addEventListener('input', handleInput, { passive: true });
                                         (inputElement as any).__dirtyHandlerAttached = true;
                                     };
-
                                     attachListener();
                                 };
-
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
@@ -187,14 +147,12 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                 // Callback ref to attach input listener when element is mounted
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
                                     if (!containerElement) return;
-
                                     // Find the actual input element inside the NumberField
                                     const findInput = () => {
                                         return containerElement.querySelector(
                                             'input[type="text"], input[type="number"]'
                                         ) as HTMLInputElement;
                                     };
-
                                     // Try to find input immediately, or after a short delay for React Aria rendering
                                     const attachListener = () => {
                                         const inputElement = findInput();
@@ -202,16 +160,13 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                             setTimeout(attachListener, 50);
                                             return;
                                         }
-
                                         // Check if listener is already attached to avoid duplicates
                                         if ((inputElement as any).__dirtyHandlerAttached) {
                                             return;
                                         }
-
                                         const handleInput = (e: Event) => {
                                             const target = e.target as HTMLInputElement;
                                             const inputValue = target.value.trim();
-
                                             // Only process if there's a valid number
                                             if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
                                                 const numValue = Number(inputValue);
@@ -227,20 +182,18 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                                                 }
                                             }
                                         };
-
                                         inputElement.addEventListener('input', handleInput, { passive: true });
                                         (inputElement as any).__dirtyHandlerAttached = true;
                                     };
-
                                     attachListener();
                                 };
-
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Internal Training Min. Hours'
                                             id='HRMD_InternalTrainingMinimumHrs'
                                             value={field.value}
+                                            maxDigits={3}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
@@ -259,29 +212,29 @@ export default function DepartmentForm({ selectedRow, onSuccess, className = '' 
                             }}
                         />
                     </div>
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
-                <div className='flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-start sm:items-center'>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting || (isEditMode && !isDirty)}
-                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
-                        isLoading={isSubmitting}
-                        loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                        {isEditMode ? 'Update' : 'Save'}
-                    </Button>
+                {/* Action Buttons */}
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
+                        variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
-                        Clear
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        Reset
                     </Button>
-                    {isEditMode && !isDirty && (
-                        <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>
-                    )}
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        isLoading={isSubmitting}
+                        loadingText='Saving...'>
+                        <div className='flex items-center'>
+                            <Save className='mr-2 h-4 w-4' />
+                            Save Department
+                        </div>
+                    </Button>
                 </div>
             </form>
         </div>

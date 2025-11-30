@@ -1,15 +1,12 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { GroupDeptDessgMappingDetail, GroupDeptDessgMappingInput, GroupDeptDessgMappingResponse, LoadDataRequest } from '@/types/hrms/group-dept-dessg-mapping';
-
 /**
  * Helper function to convert searchParams from URL (strings) to proper types
  */
 function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
     if (!searchParams) return {};
-    
     // Helper to get first value if array, or the value itself
     const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
         if (value === undefined) return defaultValue;
@@ -17,7 +14,6 @@ function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, s
         if (Array.isArray(value)) return value[0] || defaultValue;
         return value;
     };
-    
     return {
         page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
         page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
@@ -27,7 +23,6 @@ function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, s
         sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
     };
 }
-
 /**
  * Get onload details for group department designation mapping with search, sort, and pagination
  * POST /api/MasterGroupDeptDessgFacade/onloadgetdetails
@@ -43,27 +38,22 @@ export async function getGroupDeptDessgMappingList(
     }
 ) {
     const url = '/api/MasterGroupDeptDessgFacade/onloadgetdetails';
-    
     // Normalize searchParams (convert strings to proper types)
     const normalizedParams = normalizeSearchParams(searchParams);
-    
     // Extract pagination, search, and sort parameters
     const page = normalizedParams.page || 1;
     const page_size = normalizedParams.page_size || 10;
     const search_query = normalizedParams.search_query || '';
-    
     // Define searchable columns
     // These are the columns that can be searched when search_query is provided
     const searchableColumns = 'HRMGT_EmployeeGroupType,HRMD_DepartmentName,HRMDES_DesignationName';
     const search_column = normalizedParams.search_column || (search_query ? searchableColumns : '');
-    
     // If sort_column is provided but sort_direction is empty, default to 'asc'
     // The API requires sort_direction to be 'asc' or 'desc' when sort_column is provided
     const sort_column = normalizedParams.sort_column || '';
     const sort_direction = sort_column && !normalizedParams.sort_direction 
         ? 'asc' 
         : (normalizedParams.sort_direction || '');
-    
     const requestBody = {
         page,
         page_size,
@@ -76,12 +66,9 @@ export async function getGroupDeptDessgMappingList(
         LoginUserId: params?.LogInUserId ?? 0,
         UserRole: ''
     };
-    
     try {
         const response = await api.post<any>('hrms', url, requestBody);
-        
         console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
-        
         // Response structure from API:
         // {
         //   "success": true,
@@ -96,54 +83,35 @@ export async function getGroupDeptDessgMappingList(
         //   "page": null,
         //   "page_size": null
         // }
-        
         // Extract data from response structure
         let gridviewdata: GroupDeptDessgMappingDetail[] = [];
         let groupTypedropdown: any[] = [];
         let departmentdropdown: any[] = [];
         let designationdropdown: any[] = [];
-        
         if (response && typeof response === 'object') {
             const responseData = response.data;
-            
             // Extract from data object
             if (responseData && typeof responseData === 'object') {
                 // Extract gridviewdata array
                 if (Array.isArray(responseData.gridviewdata)) {
                     gridviewdata = responseData.gridviewdata;
                 }
-                
                 // Extract groupTypedropdown
                 if (Array.isArray(responseData.groupTypedropdown)) {
                     groupTypedropdown = responseData.groupTypedropdown;
                 }
-                
                 // Extract departmentdropdown
                 if (Array.isArray(responseData.departmentdropdown)) {
                     departmentdropdown = responseData.departmentdropdown;
                 }
-                
                 // Extract designationdropdown
                 if (Array.isArray(responseData.designationdropdown)) {
                     designationdropdown = responseData.designationdropdown;
                 }
             }
         }
-        
         // Use API's total if provided, otherwise use array length
         const total = response?.total ?? (Array.isArray(gridviewdata) ? gridviewdata.length : 0);
-        
-        console.log('🟢 [API] Response parsing:');
-        console.log('🟢 [API] - success:', response?.success);
-        console.log('🟢 [API] - message:', response?.message);
-        console.log('🟢 [API] - gridviewdata length:', gridviewdata.length);
-        console.log('🟢 [API] - groupTypedropdown length:', groupTypedropdown.length);
-        console.log('🟢 [API] - departmentdropdown length:', departmentdropdown.length);
-        console.log('🟢 [API] - designationdropdown length:', designationdropdown.length);
-        console.log('🟢 [API] - total:', total);
-        console.log('🟢 [API] - page:', response?.page);
-        console.log('🟢 [API] - page_size:', response?.page_size);
-        
         // Return in the expected format
         const transformedResponse: GroupDeptDessgMappingResponse = {
             success: response?.success ?? true,
@@ -162,55 +130,41 @@ export async function getGroupDeptDessgMappingList(
             page: (typeof response?.page === 'number' ? response.page : page) || page,
             page_size: (typeof response?.page_size === 'number' ? response.page_size : page_size) || page_size
         };
-        
         return {
             success: transformedResponse.success ?? true,
             message: transformedResponse.message || 'Data loaded successfully',
             data: transformedResponse
         } as ApiResponse<GroupDeptDessgMappingResponse>;
     } catch (error: any) {
-        console.error('🔴 [DEBUG] getGroupDeptDessgMappingList - Error Details:');
-        console.error('🔴 [DEBUG] Error Message:', error?.message);
-        console.error('🔴 [DEBUG] Error Response Status:', error?.response?.status);
         console.error('🔴 [DEBUG] Error Response Data:', JSON.stringify(error?.response?.data, null, 2));
         throw error;
     }
 }
-
 /**
  * Save/Update group department designation mapping
  * POST /api/MasterGroupDeptDessgFacade/savedata (both create and update)
  */
 export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput) {
     const url = '/api/MasterGroupDeptDessgFacade/savedata';
-    
-    console.log('🟠 [API] saveGroupDeptDessgMapping called');
     console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
-    
     // Get designation IDs from designationids array
     const designationIds = data.designationids || [];
-    
     // Validate that we have at least one designation ID
     if (designationIds.length === 0) {
         throw new Error('At least one valid designation ID is required');
     }
-    
     // Filter out 0 values from designation IDs
     const validDesignationIds = designationIds.filter((id): id is number => typeof id === 'number' && !Number.isNaN(id) && id > 0);
-    
     if (validDesignationIds.length === 0) {
         throw new Error('At least one valid designation ID is required');
     }
-    
     // Validate that we have valid group type and department IDs
     if (!data.hrmgT_Id || data.hrmgT_Id === 0) {
         throw new Error('Group Type ID is required and must be greater than 0');
     }
-    
     if (!data.hrmD_Id || data.hrmD_Id === 0) {
         throw new Error('Department ID is required and must be greater than 0');
     }
-    
     // Request body matches the exact structure from Swagger
     // Structure: { MI_Id, HRMGT_Id, HRMD_Id, HRMDES_Ids[], UserId }
     const requestBody = {
@@ -220,28 +174,20 @@ export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput
         HRMDES_Ids: validDesignationIds,
         UserId: data.logInUserId || 0
     };
-    
-    console.log('🟠 [API] Request URL:', url);
     console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
-    console.log('🟠 [API] Calling api.post...');
-    
     try {
         const response = await api.post<any>('hrms', url, requestBody);
-        
         console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
-        
         // Extract response data
         const responseData = response?.data || response;
         const success = response?.success ?? false;
         const message = response?.message || responseData?.msg || responseData?.retrunMsg || '';
-        
         // Check for error messages (even if success is true, error message means failure)
         const messageLower = message.toLowerCase();
         const hasError = messageLower.includes('error') || 
                         messageLower.includes('failed') ||
                         messageLower.includes('exception') ||
                         messageLower.includes('duplicate');
-        
         // Check if the operation was successful
         // Success indicators:
         // 1. No error message
@@ -255,18 +201,8 @@ export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput
             messageLower.includes('added') ||
             messageLower.includes('updated')
         );
-        
         // Success only if no error AND (success flag OR returnval OR has success message)
         const isSuccess = !hasError && (success || returnval || hasSuccessMessage);
-        
-        console.log('🟢 [API] Response parsing:');
-        console.log('🟢 [API] - success:', success);
-        console.log('🟢 [API] - message:', message);
-        console.log('🟢 [API] - hasError:', hasError);
-        console.log('🟢 [API] - returnval:', returnval);
-        console.log('🟢 [API] - hasSuccessMessage:', hasSuccessMessage);
-        console.log('🟢 [API] - Final isSuccess:', isSuccess);
-        
         // Determine the message to return - prioritize API message
         let finalMessage = message;
         if (!finalMessage) {
@@ -276,7 +212,6 @@ export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput
                 finalMessage = 'Failed to save mapping';
             }
         }
-        
         // Return response matching Swagger structure
         return {
             success: isSuccess,
@@ -287,18 +222,11 @@ export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput
             page_size: response?.page_size ?? null
         } as ApiResponse<GroupDeptDessgMappingResponse>;
     } catch (error: any) {
-        console.log('🔴 [API] Error occurred in api.post');
-        console.error('🔴 [API] Error:', error);
-        console.error('🔴 [API] Error message:', error?.message);
-        console.error('🔴 [API] Error response:', error?.response);
-        console.error('🔴 [API] Error response data:', error?.response?.data);
-        
         // Extract error message from response if available
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.msg ||
                            error?.message || 
                            'Failed to save mapping';
-        
         return {
             success: false,
             message: errorMessage,
@@ -309,30 +237,21 @@ export async function saveGroupDeptDessgMapping(data: GroupDeptDessgMappingInput
         } as unknown as ApiResponse<GroupDeptDessgMappingResponse>;
     }
 }
-
 /**
  * Activate/Deactivate group department designation mapping
  * POST /api/MasterGroupDeptDessgFacade/deactivateRecordById
  */
 export async function activateDeactivateGroupDeptDessgMapping(data: GroupDeptDessgMappingDetail & { HRGTDDS_ActiveFlg: boolean }) {
     const url = '/api/MasterGroupDeptDessgFacade/deactivateRecordById';
-    
     // Simple request body as per API specification
     const requestBody = {
         HRGTDDS_Id: data.HRGTDDS_Id,
         MI_Id: data.MI_Id || 30
     };
-    
-    console.log('🟠 [API] activateDeactivateGroupDeptDessgMapping called');
-    console.log('🟠 [API] Request URL:', url);
     console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
-    console.log('🟠 [API] Action:', data.HRGTDDS_ActiveFlg ? 'Activate' : 'Deactivate');
-    
     try {
         const response: any = await api.post<any>('hrms', url, requestBody);
-        
         console.log('🟢 [API] Deactivate response:', JSON.stringify(response, null, 2));
-        
         // Handle the API response structure
         // Response format: { success: boolean, message: string, data: {...} }
         if (response && typeof response === 'object') {
@@ -344,26 +263,22 @@ export async function activateDeactivateGroupDeptDessgMapping(data: GroupDeptDes
                     data: response.data || response
                 } as ApiResponse<GroupDeptDessgMappingResponse>;
             }
-            
             // If response has data field with returnval
             if ('data' in response && response.data && typeof response.data === 'object') {
                 const responseData: any = response.data;
                 const message = response.message || responseData.msg || 'Updated successfully';
                 const success = response.success !== undefined ? response.success : (responseData.returnval === true || message.toLowerCase().includes('success') || message.toLowerCase().includes('updated'));
-                
                 return {
                     success: success,
                     message: message,
                     data: responseData
                 } as ApiResponse<GroupDeptDessgMappingResponse>;
             }
-            
             // If response itself is the data object
             if ('returnval' in response || 'HRGTDDS_Id' in response) {
                 const rawResponse: any = response;
                 const message = rawResponse.msg || response.message || 'Updated successfully';
                 const success = rawResponse.returnval === true || message.toLowerCase().includes('success') || message.toLowerCase().includes('updated');
-                
                 return {
                     success: success,
                     message: message,
@@ -371,7 +286,6 @@ export async function activateDeactivateGroupDeptDessgMapping(data: GroupDeptDes
                 } as ApiResponse<GroupDeptDessgMappingResponse>;
             }
         }
-        
         // Default: assume success if we got a response
         return {
             success: true,
@@ -379,14 +293,6 @@ export async function activateDeactivateGroupDeptDessgMapping(data: GroupDeptDes
             data: response as unknown as GroupDeptDessgMappingResponse
         } as ApiResponse<GroupDeptDessgMappingResponse>;
     } catch (error: any) {
-        console.error('🔴 [API] Deactivate error:', error);
-        console.error('🔴 [API] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data
-        });
-        
         // Extract error message
         let errorMessage = 'Failed to update record';
         if (error?.response?.data) {
@@ -401,7 +307,6 @@ export async function activateDeactivateGroupDeptDessgMapping(data: GroupDeptDes
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         throw new Error(errorMessage);
     }
 }

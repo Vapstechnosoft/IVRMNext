@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -11,7 +10,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type Form6ARecord as Form6ARecordColumn, form6AColumns } from './_components/columns';
 import { type Form6AFilters, PFForm6AFilters } from './_components/filters';
-
 // Form 6A data structure (Annual Return of PF Contributions)
 interface Form6ARecord {
     id?: string;
@@ -36,7 +34,6 @@ interface Form6ARecord {
     period: string;
     financialYear: string;
 }
-
 // Form 6A summary
 interface Form6ASummary {
     totalEmployees: number;
@@ -52,32 +49,26 @@ interface Form6ASummary {
     totalClosingBalance: number;
     netContribution: number;
 }
-
 export default function PFForm6APage() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm6AReportOnload(roleId);
     const _filterMutation = useFilterPFForm6AEmployeeData();
     const searchMutation = useSearchPFForm6AReport();
-
     // State
     const [form6ARecords, setForm6ARecords] = useState<Form6ARecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<Form6ARecord[]>([]);
     const [showForm, setShowForm] = useState(false);
-
     const [filters, setFilters] = useState<Form6AFilters>({
         fromDate: undefined,
         toDate: undefined
     });
-
     // Get institution details from API
     const institutionDetails = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return null;
         return (data as any).institutionDetails || null;
     }, [onloadData?.data]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -88,25 +79,20 @@ export default function PFForm6APage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Filter Form 6A records based on selected date range
     useEffect(() => {
         let filtered = form6ARecords;
-
         if (filters.fromDate && filters.toDate) {
             filtered = filtered.filter((record) => {
                 const recordDate = new Date(record.dateOfJoining);
                 return recordDate >= filters.fromDate! && recordDate <= filters.toDate!;
             });
         }
-
         setFilteredRecords(filtered);
     }, [filters, form6ARecords]);
-
     const handleDateChange = (key: keyof Form6AFilters, date: Date | undefined) => {
         setFilters((prev) => ({ ...prev, [key]: date }));
     };
-
     const handleGenerate = () => {
         if (!filters.fromDate || !filters.toDate) {
             toast.error('Please select both from and to dates');
@@ -116,21 +102,18 @@ export default function PFForm6APage() {
             toast.error('From date cannot be later than to date');
             return;
         }
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
             FromDate: filters.fromDate.toISOString(),
             ToDate: filters.toDate.toISOString()
         };
-
         // Call search API to get PF Form 6A data
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
                     // Extract PF Form 6A data from response
                     const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
-
                     if (Array.isArray(pfData) && pfData.length > 0) {
                         // Map API response to Form6ARecord format
                         const mappedRecords: Form6ARecord[] = pfData.map((item: any, index: number) => {
@@ -141,13 +124,11 @@ export default function PFForm6APage() {
                                 fromYear === toYear
                                     ? `${fromYear}-${String(toYear + 1).slice(-2)}`
                                     : `${fromYear}-${String(toYear).slice(-2)}`;
-
                             // Calculate months between dates
                             const monthsDiff = Math.max(
                                 1,
                                 Math.round((filters.toDate!.getTime() - filters.fromDate!.getTime()) / (1000 * 60 * 60 * 24 * 30))
                             );
-
                             // Extract PF amounts
                             const employeeContribution = item.HRES_EPF || item.employeeContribution || 0;
                             const employerContribution = item.HRES_FPF || item.employerContribution || 0;
@@ -160,7 +141,6 @@ export default function PFForm6APage() {
                             const refundAmount = item.refundAmount || 0;
                             const transferInAmount = item.transferInAmount || 0;
                             const transferOutAmount = item.transferOutAmount || 0;
-
                             // Calculate closing balance
                             const totalAdditions =
                                 openingBalance +
@@ -172,7 +152,6 @@ export default function PFForm6APage() {
                             const totalDeductions = withdrawalAmount + refundAmount + transferOutAmount;
                             const closingBalance = totalAdditions - totalDeductions;
                             const averageBalance = (openingBalance + closingBalance) / 2;
-
                             return {
                                 id: `form6a-${item.HRME_Id || item.HRES_Id || index}`,
                                 employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
@@ -204,7 +183,6 @@ export default function PFForm6APage() {
                                 financialYear: financialYear
                             };
                         });
-
                         setForm6ARecords(mappedRecords);
                         setShowForm(true);
                         toast.success('PF Form 6A generated successfully');
@@ -219,12 +197,10 @@ export default function PFForm6APage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching PF Form 6A report:', error);
                 toast.error(error.message || 'Failed to generate PF Form 6A');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             fromDate: undefined,
@@ -235,16 +211,13 @@ export default function PFForm6APage() {
         setShowForm(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('PF Form 6A exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate Form 6A summary
     const form6ASummary: Form6ASummary = useMemo(() => {
         const summary = filteredRecords.reduce(
@@ -277,13 +250,10 @@ export default function PFForm6APage() {
                 netContribution: 0
             }
         );
-
         // Calculate net contribution
         summary.netContribution = summary.totalEmployeeContribution + summary.totalEmployerContribution + summary.totalVPFContribution;
-
         return summary;
     }, [filteredRecords]);
-
     // Calculate financial year from date range
     const financialYear = useMemo(() => {
         if (!filters.fromDate || !filters.toDate) return '';
@@ -291,7 +261,6 @@ export default function PFForm6APage() {
         const toYear = filters.toDate.getFullYear();
         return fromYear === toYear ? `${fromYear}-${String(toYear + 1).slice(-2)}` : `${fromYear}-${String(toYear).slice(-2)}`;
     }, [filters.fromDate, filters.toDate]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -302,7 +271,6 @@ export default function PFForm6APage() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Form 6A Results */}
             {showForm && (
                 <div className='space-y-4'>
@@ -327,7 +295,6 @@ export default function PFForm6APage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Form 6A Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -375,7 +342,6 @@ export default function PFForm6APage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Form 6A Breakdown */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <Card>
@@ -416,7 +382,6 @@ export default function PFForm6APage() {
                                 </div>
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className='flex items-center gap-2 text-sm'>
@@ -452,7 +417,6 @@ export default function PFForm6APage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoadingOnload}
@@ -462,7 +426,6 @@ export default function PFForm6APage() {
                         showViewOptions={true}
                         columnPinning={{ left: ['id'] }}
                     />
-
                     {/* Official Form 6A Format */}
                     <div className='rounded-lg border bg-card p-8'>
                         <div className='space-y-6 text-center'>
@@ -473,7 +436,6 @@ export default function PFForm6APage() {
                                     Annual Return of Contributions and other receipts in respect of Provident Fund
                                 </h3>
                             </div>
-
                             <div className='mx-auto max-w-6xl space-y-4 text-left'>
                                 <div className='grid grid-cols-2 gap-8 text-sm'>
                                     <div className='space-y-2'>
@@ -508,10 +470,8 @@ export default function PFForm6APage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className='space-y-4 rounded-lg border p-4'>
                                     <h3 className='text-center font-semibold'>ANNUAL RETURN SUMMARY</h3>
-
                                     <div className='grid grid-cols-2 gap-8 text-sm'>
                                         <div className='space-y-2'>
                                             <h4 className='text-center font-semibold underline'>RECEIPTS</h4>
@@ -588,7 +548,6 @@ export default function PFForm6APage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className='space-y-2 text-sm'>
                                     <div>
                                         <strong>Certification:</strong>
@@ -599,7 +558,6 @@ export default function PFForm6APage() {
                                         with the provisions of the Employees' Provident Funds and Miscellaneous Provisions Act, 1952.
                                     </p>
                                 </div>
-
                                 <div className='flex justify-between pt-8'>
                                     <div className='text-sm'>
                                         <div className='font-semibold'>Prepared By</div>

@@ -1,7 +1,6 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
@@ -9,15 +8,13 @@ import { useMasterLoan } from '@/hooks/hrms/useMasters';
 import type { ApiSearchparams } from '@/types';
 import type { MasterLoanDetail } from '@/types/hrms/master-loan';
 import { Plus, X } from 'lucide-react';
-import { use, useMemo } from 'react';
+import { use } from 'react';
+import AddLoanForm from './_components/add-form';
 import { columns } from './_components/columns';
-import LoanForm from './_components/loan-form';
-
+import UpdateLoanForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterLoanPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
-
     // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
     // This matches how other master pages handle it
     const searchParams: ApiSearchparams = {
@@ -62,42 +59,31 @@ export default function MasterLoanPage(props: { searchParams: SearchParams }) {
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterLoan(roleId, searchParams);
-
+    const { listQuery, refetchAll } = useMasterLoan(roleId, searchParams);
     return (
         <FormProvider<MasterLoanDetail>>
-            <MasterLoanPageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
+            <MasterLoanPageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} refetch={refetchAll} />
         </FormProvider>
     );
 }
-
 function MasterLoanPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<MasterLoanDetail>();
-    // Memoize array to prevent unnecessary re-renders
-    // API returns data as an array directly, not nested in gmasterloanList
-    const rows: MasterLoanDetail[] = useMemo(() => {
-        if (Array.isArray(response?.data)) {
-            return response.data;
-        }
-        // Fallback for backward compatibility
-        return response?.gmasterloanList ?? [];
-    }, [response?.data, response?.gmasterloanList]);
-
-    const totalItems = response?.total ?? rows.length;
-
+    const tableProps = useDataTableProps(response);
     return (
         <div className='min-h-screen'>
-            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex justify-end'>
                     <Button
                         type='button'
@@ -107,18 +93,18 @@ function MasterLoanPageContent({
                         Add Loan Type
                     </Button>
                 </div>
-
+                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<MasterLoanDetail>
-                        data={rows}
-                        totalItems={totalItems}
+                        {...tableProps}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading loan types...'
                         noDataTitle='No Loan Types Found'
@@ -126,17 +112,15 @@ function MasterLoanPageContent({
                         errorTitle='Error Loading Loan Types'
                     />
                 </CollapsibleSection>
-
-                <FormSections />
+                {/* Forms */}
+                <FormSections refetch={refetch} />
             </div>
         </div>
     );
 }
-
-function FormSections() {
+function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<MasterLoanDetail>();
-
     return (
         <>
             {isAddFormOpen && (
@@ -157,12 +141,16 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <LoanForm onSuccess={closeAddForm} />
+                            <AddLoanForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
-
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -180,7 +168,13 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <LoanForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateLoanForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

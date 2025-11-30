@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -15,7 +14,6 @@ import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
-
 // Schema based on visible fields in the image
 const payrollStandardSchema = z.object({
     HRC_Id: z.number().optional(),
@@ -66,18 +64,14 @@ const payrollStandardSchema = z.object({
     HRC_SalaryToDay: z.number().min(1).max(31),
     HRC_ActiveFlag: z.boolean()
 });
-
 type FormFields = z.infer<typeof payrollStandardSchema>;
-
 interface PayrollStandardFormProps {
     existingData?: PayrollStandardDetail;
     className?: string;
 }
-
 export default function PayrollStandardForm({ existingData, className = '' }: PayrollStandardFormProps) {
     const roleId = HRMS_MI_ID;
     const { saveMutation } = useMasterPayrollStandard(roleId);
-
     const {
         control,
         register,
@@ -132,16 +126,13 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             HRC_ActiveFlag: true
         }
     });
-
     // Watch for Arrear Salary Report changes
     const arrearSalaryReport = watch('HRC_ArrearSalaryReport');
-
     // Pre-populate form with existing data
     useEffect(() => {
         if (existingData) {
             // Helper function to convert 0 to undefined for empty display
             const clearZero = (value: number | undefined) => (value === 0 ? undefined : value);
-
             reset({
                 HRC_Id: existingData.HRC_Id,
                 MI_Id: existingData.MI_Id,
@@ -193,7 +184,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             } as any);
         }
     }, [existingData, reset]);
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         // Map form fields to API fields
         const payload = {
@@ -246,7 +236,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             HRC_SalaryToDay: data.HRC_SalaryToDay || 31,
             HRC_ActiveFlag: data.HRC_ActiveFlag ?? true
         };
-
         saveMutation.mutate(payload, {
             onSuccess: (response) => {
                 if (response?.success) {
@@ -260,7 +249,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             }
         });
     };
-
     const handleReset = () => {
         if (existingData) {
             reset();
@@ -280,7 +268,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             } as any);
         }
     };
-
     const months = [
         'January',
         'February',
@@ -295,15 +282,12 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
         'November',
         'December'
     ];
-
     // Add debug logging for form state changes
     const _formValues = watch();
     // Error handling for HRC_SalaryFromDay and HRC_SalaryToDay done in form validation
-
     const handleFormSubmit = (e?: React.FormEvent) => {
         return handleSubmit(onSubmit)(e);
     };
-
     return (
         <div className={className}>
             <form onSubmit={handleFormSubmit} className='space-y-6'>
@@ -320,7 +304,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             error={errors.HRC_PFAccPrefix?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <Controller
                             name='HRC_PFMaxAmt'
                             control={control}
@@ -373,7 +356,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_FPFPer'
                             control={control}
@@ -427,7 +409,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_EPFPer'
                             control={control}
@@ -481,7 +462,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_EPFPerAfterRetirement'
                             control={control}
@@ -540,7 +520,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_EPFPerAfterRetirement2'
                             control={control}
@@ -599,7 +578,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_AccNo2Per'
                             control={control}
@@ -652,7 +630,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_AC2MinAmt'
                             control={control}
@@ -704,7 +681,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_AccNo21Per'
                             control={control}
@@ -757,7 +733,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_AC21MinAmt'
                             control={control}
@@ -809,7 +784,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_AccNo22Per'
                             control={control}
@@ -862,7 +836,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_AC22MinAmt'
                             control={control}
@@ -914,7 +887,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_EducationCess'
                             control={control}
@@ -966,7 +938,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_PartAMaxLimit'
                             control={control}
@@ -1018,7 +989,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_PartBMaxLimit'
                             control={control}
@@ -1070,7 +1040,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRC_AsPerEmployee'
@@ -1083,7 +1052,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 As Per Employee
                             </Label>
                         </div>
-
                         <Controller
                             name='HRC_RetirementYrs'
                             control={control}
@@ -1138,7 +1106,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         />
                     </div>
                 </div>
-
                 {/* ESI Section */}
                 <div className='rounded-lg bg-purple-600 p-4 text-white'>
                     <h3 className='font-semibold text-lg'>ESI</h3>
@@ -1152,7 +1119,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             error={errors.HRC_ESIAccPrefix?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <Controller
                             name='HRC_ESIMax'
                             control={control}
@@ -1205,7 +1171,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_ESIMax'
                             control={control}
@@ -1257,7 +1222,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_ESIEmplrCont'
                             control={control}
@@ -1313,7 +1277,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         />
                     </div>
                 </div>
-
                 {/* Arrear Details Section */}
                 <div className='rounded-lg bg-purple-600 p-4 text-white'>
                     <h3 className='font-semibold text-lg'>Arrear Details</h3>
@@ -1362,7 +1325,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             </div>
                         </div>
                     </div>
-
                     {/* Conditional Arrear Required Section - Only shown when "Separate" is selected */}
                     {arrearSalaryReport === 'Separate' && (
                         <div className='group flex flex-col gap-1.5 rounded-md border border-purple-200 bg-purple-50 p-4'>
@@ -1410,7 +1372,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         </div>
                     )}
                 </div>
-
                 {/* Approval Process Section */}
                 <div className='rounded-lg bg-purple-600 p-4 text-white'>
                     <h3 className='font-semibold text-lg'>Approval Process</h3>
@@ -1429,7 +1390,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 Salary Approval
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRC_SalaryAdvance'
@@ -1442,7 +1402,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 Salary Advance
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRC_Loan'
@@ -1453,7 +1412,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 Loan
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRC_Leave'
@@ -1464,7 +1422,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 Leave
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRC_Increment'
@@ -1477,7 +1434,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 Increment
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRC_Probation'
@@ -1492,7 +1448,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         </div>
                     </div>
                 </div>
-
                 {/* Payment Method Section */}
                 <div className='rounded-lg bg-purple-600 p-4 text-white'>
                     <h3 className='font-semibold text-lg'>Payment Method</h3>
@@ -1522,7 +1477,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         ))}
                     </div>
                 </div>
-
                 {/* Increment Process Section */}
                 <div className='rounded-lg bg-purple-600 p-4 text-white'>
                     <h3 className='font-semibold text-lg'>Increment Process</h3>
@@ -1580,7 +1534,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <div className='flex items-center space-x-3 pt-6'>
                             <Controller
                                 name='HRC_ApplicableFlag'
@@ -1593,7 +1546,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 Applicable
                             </Label>
                         </div>
-
                         <Controller
                             name='HRC_MinimumPeriods'
                             control={control}
@@ -1645,7 +1597,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRC_IncrementMonth'>Increment Month</Label>
                             <Controller
@@ -1670,7 +1621,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             />
                             {errors.HRC_IncrementMonth && <FormError>{errors.HRC_IncrementMonth.message}</FormError>}
                         </div>
-
                         <Controller
                             name='HRC_IncrementOnceInMonths'
                             control={control}
@@ -1728,7 +1678,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                 );
                             }}
                         />
-
                         <Controller
                             name='HRC_AlertDays'
                             control={control}
@@ -1782,7 +1731,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         />
                     </div>
                 </div>
-
                 {/* Salary Days Section */}
                 <div className='rounded-lg bg-purple-600 p-4 text-white'>
                     <h3 className='font-semibold text-lg'>Salary Days</h3>
@@ -1815,7 +1763,6 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                             />
                             {errors.HRC_SalaryFromDay && <FormError>{errors.HRC_SalaryFromDay.message}</FormError>}
                         </div>
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRC_SalaryToDay'>To Day</Label>
                             <Controller
@@ -1844,9 +1791,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                         </div>
                     </div>
                 </div>
-
                 {errors.root && <FormError>{errors.root.message}</FormError>}
-
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

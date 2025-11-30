@@ -1,11 +1,9 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-
 export interface EmployeeShiftMapping {
     id: number;
     employeeTypes?: string[];
@@ -42,7 +40,6 @@ export interface EmployeeShiftMapping {
     earlyPerShift?: string;
     lunchHours?: string;
 }
-
 export const employeeShiftMappingColumns: ColumnDef<EmployeeShiftMapping>[] = [
     {
         id: 'serialNumber',
@@ -155,24 +152,20 @@ export const employeeShiftMappingColumns: ColumnDef<EmployeeShiftMapping>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: EmployeeShiftMapping }) {
     const { openEditForm, openDeleteForm } = useFormContext<EmployeeShiftMapping>();
-
     const handleEdit = useCallback(
         (data: EmployeeShiftMapping) => {
             openEditForm(data);
         },
         [openEditForm]
     );
-
     const handleDelete = useCallback(
         (data: EmployeeShiftMapping) => {
             openDeleteForm(data);
         },
         [openDeleteForm]
     );
-
     return (
         <ActionButtons
             rowData={rowData}
@@ -182,7 +175,6 @@ function ActionButtonsCell({ rowData }: { rowData: EmployeeShiftMapping }) {
         />
     );
 }
-
 // Dropdown options are now fetched from API via useEmployeeShiftMappingDropdowns hook
 // These exports are kept for backward compatibility but should be replaced with API data
 export const employeeTypeOptions: string[] = [];

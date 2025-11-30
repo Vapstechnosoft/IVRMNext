@@ -1,10 +1,8 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ActionsCell } from './actions-cell';
-
 export const salaryIncrementColumns: ColumnDef<SalaryIncrementGridItem>[] = [
     {
         id: 'slNo',

@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,7 +8,6 @@ import type { MasterProfessionalTaxResponse, ProfessionalTaxDetail } from '@/typ
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<ProfessionalTaxDetail>[] = [
     {
         id: 'slNo',
@@ -42,18 +40,15 @@ export const columns: ColumnDef<ProfessionalTaxDetail>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: ProfessionalTaxDetail }) {
     const { openEditForm } = useFormContext<MasterProfessionalTaxResponse>();
     const { toggleMutation } = useMasterProfessionalTax(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: ProfessionalTaxDetail) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: ProfessionalTaxDetail, newState: boolean) => {
             try {
@@ -68,7 +63,6 @@ function ActionButtonsCell({ rowData }: { rowData: ProfessionalTaxDetail }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

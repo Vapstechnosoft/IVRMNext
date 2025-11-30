@@ -1,8 +1,6 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Download, Printer, X } from 'lucide-react';
-
 interface EmployeeStrengthRecord {
     id?: string;
     departmentName: string;
@@ -12,7 +10,6 @@ interface EmployeeStrengthRecord {
     activeEmployees?: number;
     leftEmployees?: number;
 }
-
 interface ReportTemplateProps {
     schoolName?: string;
     schoolAddress?: string;
@@ -22,7 +19,6 @@ interface ReportTemplateProps {
     onExport: () => void;
     onCancel: () => void;
 }
-
 export function EmployeeStrengthReportTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -38,7 +34,6 @@ export function EmployeeStrengthReportTemplate({
         totalWorkingEmployees: reportData.reduce((sum, record) => sum + (record.activeEmployees || 0), 0),
         totalLeftEmployees: reportData.reduce((sum, record) => sum + (record.leftEmployees || 0), 0)
     };
-
     return (
         <div className='mx-auto w-full max-w-[1600px] bg-white p-6 print:p-4'>
             {/* Report Header */}
@@ -47,7 +42,6 @@ export function EmployeeStrengthReportTemplate({
                 {schoolName && <div className='mb-1 font-semibold text-gray-800 text-lg'>{schoolName}</div>}
                 {schoolAddress && <div className='text-gray-600 text-sm'>{schoolAddress}</div>}
             </div>
-
             {/* Report Table */}
             <div className='mb-6 overflow-x-auto'>
                 <table className='w-full border-collapse border border-gray-300 text-sm'>
@@ -108,7 +102,6 @@ export function EmployeeStrengthReportTemplate({
                     </tfoot>
                 </table>
             </div>
-
             {/* Summary Section */}
             <div className='mb-6 space-y-2'>
                 <p className='font-medium text-gray-700 text-sm'>
@@ -121,7 +114,6 @@ export function EmployeeStrengthReportTemplate({
                     Total: <span className='font-bold text-gray-900'>{totals.totalEmployees}</span>
                 </p>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
                 <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>

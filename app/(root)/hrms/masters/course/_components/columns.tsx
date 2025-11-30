@@ -1,16 +1,13 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
 import type { CourseDetail, MasterCourseResponse } from '@/types/hrms/master-course';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<CourseDetail>[] = [
     {
         id: 'slNo',
@@ -57,18 +54,15 @@ export const columns: ColumnDef<CourseDetail>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: CourseDetail }) {
     const { openEditForm } = useFormContext<MasterCourseResponse>();
     const { toggleMutation } = useMasterCourse(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: CourseDetail) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: CourseDetail, newState: boolean) => {
             try {
@@ -84,7 +78,6 @@ function ActionButtonsCell({ rowData }: { rowData: CourseDetail }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}
@@ -94,53 +87,4 @@ function ActionButtonsCell({ rowData }: { rowData: CourseDetail }) {
             toggleConditionKey='HRMC_ActiveFlag'
         />
     );
-}
-
-// Editable columns for order editing mode
-export function getEditableColumns(onOrderChange: (rowId: number, newOrder: number) => void): ColumnDef<CourseDetail>[] {
-    return [
-        {
-            id: 'slNo',
-            header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            size: 60
-        },
-        {
-            accessorKey: 'HRMC_QulaificationName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Qualification Name' />
-        },
-        {
-            accessorKey: 'HRMC_QualificationDesc',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />
-        },
-        {
-            accessorKey: 'HRMC_Order',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' />,
-            cell: ({ row }) => (
-                <Input
-                    type='number'
-                    value={row.original.HRMC_Order}
-                    onChange={(e) => onOrderChange(row.original.HRMC_Id, Number.parseInt(e.target.value) || 0)}
-                    className='w-20'
-                    min='0'
-                />
-            )
-        },
-        {
-            accessorKey: 'HRMC_DefaultQualFag',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Default' />,
-            cell: ({ row }) => (row.original.HRMC_DefaultQualFag ? 'Yes' : 'No')
-        },
-        {
-            accessorKey: 'HRMC_SpecialisationFlag',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Has Specialization' />,
-            cell: ({ row }) => (row.original.HRMC_SpecialisationFlag ? 'Yes' : 'No')
-        }
-    ];
 }

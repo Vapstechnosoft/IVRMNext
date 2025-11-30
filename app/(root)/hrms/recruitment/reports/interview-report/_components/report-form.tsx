@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -10,7 +9,6 @@ import { BarChart3, FileSpreadsheet, Printer } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-
 const interviewReportSchema = z.object({
     fromDate: z.string().min(1, 'From Date is required'),
     toDate: z.string().min(1, 'To Date is required'),
@@ -18,14 +16,11 @@ const interviewReportSchema = z.object({
     interviewRound: z.string().min(1, 'Interview Round is required'),
     grade: z.string().optional()
 });
-
 type FormFields = z.infer<typeof interviewReportSchema>;
-
 interface InterviewReportFormProps {
     onGenerateReport?: (filters: FormFields) => void;
     className?: string;
 }
-
 export default function InterviewReportForm({ onGenerateReport, className = '' }: InterviewReportFormProps) {
     const {
         control,
@@ -41,7 +36,6 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
             grade: 'All'
         }
     });
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // Call the parent handler to generate report
@@ -51,16 +45,13 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
             toast.error(error.message || 'Failed to generate report');
         }
     };
-
     const handleExportToExcel = () => {
         // TODO: Implement Excel export
         toast.info('Exporting to Excel...');
     };
-
     const handlePrint = () => {
         window.print();
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
             <div className='flex flex-col gap-5'>
@@ -80,7 +71,6 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                 />
                             </div>
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>Status:</label>
                             <Controller
@@ -123,7 +113,6 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                             {errors.status && <FormError>{errors.status.message}</FormError>}
                         </div>
                     </div>
-
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <div className='space-y-2'>
@@ -134,7 +123,6 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                 <InputText type='date' placeholder='Enter date' {...register('toDate')} error={errors.toDate?.message} />
                             </div>
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Interview Rounds:<span className='text-red-500'>*</span>
@@ -159,7 +147,6 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                             />
                             {errors.interviewRound && <FormError>{errors.interviewRound.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>Grade:</label>
                             <Controller

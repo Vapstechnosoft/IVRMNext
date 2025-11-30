@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,7 +27,6 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import type { Candidate, DocumentDetail, ExperienceDetail, FamilyDetail, LanguageDetail, QualificationDetail } from './columns';
-
 const candidateSchema = z.object({
     firstName: z.string().min(1, 'First Name is required'),
     middleName: z.string().optional(),
@@ -70,16 +68,13 @@ const candidateSchema = z.object({
     permanentPincode: z.string().min(1, 'Permanent Pincode is required'),
     sameAsLocalAddress: z.boolean().optional()
 });
-
 type FormFields = z.infer<typeof candidateSchema>;
-
 interface AddCandidateFormProps {
     rowData?: Candidate | null;
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-
 const tabs = [
     { id: 'candidate', name: 'Candidate', icon: User },
     { id: 'qualification', name: 'Qualification', icon: GraduationCap },
@@ -88,7 +83,6 @@ const tabs = [
     { id: 'language', name: 'Language', icon: MessageSquare },
     { id: 'documents', name: 'Documents', icon: FileImage }
 ];
-
 export default function AddCandidateForm({ rowData, onSuccess, onCancel, className = '' }: AddCandidateFormProps) {
     const [currentTab, setCurrentTab] = useState('candidate');
     const [qualifications, setQualifications] = useState<QualificationDetail[]>([]);
@@ -97,7 +91,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
     const [languages, setLanguages] = useState<LanguageDetail[]>([]);
     const [documents, setDocuments] = useState<DocumentDetail[]>([]);
     const [hasExperience, setHasExperience] = useState(false);
-
     const {
         control,
         register,
@@ -115,9 +108,7 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
             interviewDate: new Date().toISOString().split('T')[0]
         }
     });
-
     const sameAsLocalAddress = watch('sameAsLocalAddress');
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // TODO: Replace with actual API call
@@ -137,7 +128,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
             toast.error(error.message || 'Failed to save candidate');
         }
     };
-
     const handleClear = () => {
         reset();
         setQualifications([]);
@@ -148,7 +138,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
         setHasExperience(false);
         toast.info('Form cleared');
     };
-
     const addQualification = () => {
         setQualifications([
             ...qualifications,
@@ -161,11 +150,9 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
             }
         ]);
     };
-
     const removeQualification = (index: number) => {
         setQualifications(qualifications.filter((_, i) => i !== index));
     };
-
     const addExperience = () => {
         setExperiences([
             ...experiences,
@@ -179,11 +166,9 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
             }
         ]);
     };
-
     const removeExperience = (index: number) => {
         setExperiences(experiences.filter((_, i) => i !== index));
     };
-
     const addFamilyMember = () => {
         setFamilyMembers([
             ...familyMembers,
@@ -196,11 +181,9 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
             }
         ]);
     };
-
     const removeFamilyMember = (index: number) => {
         setFamilyMembers(familyMembers.filter((_, i) => i !== index));
     };
-
     const addLanguage = () => {
         setLanguages([
             ...languages,
@@ -213,11 +196,9 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
             }
         ]);
     };
-
     const removeLanguage = (index: number) => {
         setLanguages(languages.filter((_, i) => i !== index));
     };
-
     const addDocument = () => {
         setDocuments([
             ...documents,
@@ -229,25 +210,21 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
             }
         ]);
     };
-
     const removeDocument = (index: number) => {
         setDocuments(documents.filter((_, i) => i !== index));
     };
-
     const handlePrevious = () => {
         const currentIndex = tabs.findIndex((tab) => tab.id === currentTab);
         if (currentIndex > 0) {
             setCurrentTab(tabs[currentIndex - 1].id);
         }
     };
-
     const handleNext = () => {
         const currentIndex = tabs.findIndex((tab) => tab.id === currentTab);
         if (currentIndex < tabs.length - 1) {
             setCurrentTab(tabs[currentIndex + 1].id);
         }
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
             <Tabs value={currentTab} onValueChange={setCurrentTab} className='w-full'>
@@ -262,7 +239,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         );
                     })}
                 </TabsList>
-
                 {/* Candidate Tab */}
                 <TabsContent value='candidate' className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
@@ -624,7 +600,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                             </div>
                         </div>
                     </div>
-
                     {/* Photo Upload */}
                     <Card>
                         <CardHeader>
@@ -644,7 +619,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                             </div>
                         </CardContent>
                     </Card>
-
                     {/* Address Section */}
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         <Card>
@@ -676,7 +650,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                                 />
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className='flex items-center gap-2 text-sm'>
@@ -725,7 +698,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         </Card>
                     </div>
                 </TabsContent>
-
                 {/* Qualification Tab */}
                 <TabsContent value='qualification' className='space-y-4'>
                     <Card>
@@ -781,7 +753,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         </CardContent>
                     </Card>
                 </TabsContent>
-
                 {/* Experience Tab */}
                 <TabsContent value='experience' className='space-y-4'>
                     <div className='flex items-center gap-2'>
@@ -854,7 +825,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         </Card>
                     )}
                 </TabsContent>
-
                 {/* Family Tab */}
                 <TabsContent value='family' className='space-y-4'>
                     <Card>
@@ -919,7 +889,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         </CardContent>
                     </Card>
                 </TabsContent>
-
                 {/* Language Tab */}
                 <TabsContent value='language' className='space-y-4'>
                     <Card>
@@ -975,7 +944,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                         </CardContent>
                     </Card>
                 </TabsContent>
-
                 {/* Documents Tab */}
                 <TabsContent value='documents' className='space-y-4'>
                     <div className='text-red-500 text-xs'>
@@ -1019,7 +987,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                                     Add Document
                                 </Button>
                             </div>
-
                             <div className='mt-6 rounded-lg bg-gray-50 p-4'>
                                 <div className='space-y-2 text-sm'>
                                     <p>
@@ -1034,7 +1001,6 @@ export default function AddCandidateForm({ rowData, onSuccess, onCancel, classNa
                     </Card>
                 </TabsContent>
             </Tabs>
-
             {/* Form Actions */}
             <div className='flex flex-row items-center justify-center gap-2 border-t pt-6'>
                 <Button type='button' variant='outline' onClick={onCancel} disabled={isSubmitting}>

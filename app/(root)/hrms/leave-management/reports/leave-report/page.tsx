@@ -1,11 +1,9 @@
 'use client';
-
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useState } from 'react';
 import { type LeaveReportRow, leaveReportColumns } from './_components/columns';
 import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_components/filters';
-
 // TODO: Replace with actual API hooks
 // Example structure:
 // const { data: typesData, isLoading: isLoadingTypes } = useLeaveReportTypes();
@@ -16,7 +14,6 @@ import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_c
 //     departments: filters.selectedDepartments,
 //     designations: filters.selectedDesignations
 // });
-
 export default function LeaveReportPage() {
     const [rows, setRows] = useState<LeaveReportRow[]>([]);
     const [filters, setFilters] = useState<FiltersType>({
@@ -30,7 +27,6 @@ export default function LeaveReportPage() {
         toDate: '',
         showEmployeeLeaveBalance: false
     });
-
     // TODO: Replace with actual API calls
     // These will be populated from API responses
     const types: Array<{ id: number; name: string }> = [];
@@ -41,11 +37,9 @@ export default function LeaveReportPage() {
     const isLoadingDepartments = false;
     const isLoadingDesignations = false;
     const isLoadingEmployees = false;
-
     const handleFilterChange = (key: keyof FiltersType, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
     };
-
     const handleReport = () => {
         setRows(
             Array.from({ length: 12 }).map((_, i) => ({
@@ -61,7 +55,6 @@ export default function LeaveReportPage() {
             }))
         );
     };
-
     const handleClear = () => {
         setFilters({
             selectedTypes: [],
@@ -76,7 +69,6 @@ export default function LeaveReportPage() {
         });
         setRows([]);
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -94,7 +86,6 @@ export default function LeaveReportPage() {
                     onReport={handleReport}
                     onCancel={handleClear}
                 />
-
                 <CollapsibleSection
                     title='Leave Report'
                     description=''

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -7,66 +6,27 @@ import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useEmployeeById, useEmployeeOnload, useSaveEmployee } from '@/hooks/hrms/useEmployee';
-
 // Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
 const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
     // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
     if (value == null || value === undefined || value === '') {
-        console.error('🔴 [SafeSelectItem - update-form] EMPTY VALUE DETECTED:', {
-            value,
-            valueType: typeof value,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
         return null;
     }
-
     // Convert to string
     const strValue = String(value);
-
     // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
     if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - update-form] EMPTY STRING DETECTED:', {
-            originalValue: value,
-            strValue,
-            strValueLength: strValue.length,
-            trimmed: strValue.trim(),
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
         return null;
     }
-
     const trimmedValue = strValue.trim();
-
     // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
     if (trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - update-form] EMPTY TRIMMED VALUE DETECTED:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue.length,
-            props: Object.keys(props),
-            children: typeof children === 'string' ? children : 'ReactNode',
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
         return null;
     }
-
     // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
     if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
-        console.error('🔴 [SafeSelectItem - update-form] FINAL CHECK FAILED - trimmedValue is empty:', {
-            originalValue: value,
-            strValue,
-            trimmedValue,
-            trimmedLength: trimmedValue?.length,
-            stack: new Error().stack?.split('\n').slice(0, 5).join('\n')
-        });
         return null;
     }
-
     // Only render if we have a valid non-empty string
     return (
         <SelectItem {...props} value={trimmedValue}>
@@ -74,7 +34,6 @@ const SafeSelectItem = ({ value, children, ...props }: { value: any; children: R
         </SelectItem>
     );
 };
-
 // Helper function to ensure SelectItem value is never empty string
 const ensureNonEmptyValue = (value: any): string | null => {
     if (value == null) return null;
@@ -88,7 +47,6 @@ import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
-
 const formSchema = z.object({
     HRME_EmployeeFirstName: z.string().min(1, 'First name is required'),
     HRME_EmployeeMiddleName: z.string().optional(),
@@ -114,20 +72,16 @@ const formSchema = z.object({
     HRME_TechNonTeachingFlg: z.boolean().optional(),
     HRME_ActiveFlag: z.boolean().optional()
 });
-
 type FormFields = z.infer<typeof formSchema>;
-
 interface UpdateEmployeeFormProps {
     selectedRow: EmployeeListItem;
     onSuccess: () => void;
     className?: string;
 }
-
 export default function UpdateEmployeeForm({ selectedRow, onSuccess, className = '' }: UpdateEmployeeFormProps) {
     const { data: onloadData } = useEmployeeOnload();
     const { data: employeeDetailData } = useEmployeeById(selectedRow.HRME_Id);
     const { mutate: saveEmployee, isPending } = useSaveEmployee();
-
     const {
         control,
         register,
@@ -148,7 +102,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             HRME_ActiveFlag: selectedRow.HRME_ActiveFlag
         }
     });
-
     // Load full employee details when available
     useEffect(() => {
         if (employeeDetailData?.data) {
@@ -180,7 +133,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             });
         }
     }, [employeeDetailData, reset]);
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         saveEmployee(
             {
@@ -205,7 +157,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             }
         );
     };
-
     // Memoize arrays to prevent unnecessary re-renders
     const employeeTypes = useMemo(() => onloadData?.data?.employeeTypedropdownlist || [], [onloadData?.data?.employeeTypedropdownlist]);
     const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
@@ -215,7 +166,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const genders = useMemo(() => onloadData?.data?.genderdropdownlist || [], [onloadData?.data?.genderdropdownlist]);
     const maritalStatuses = useMemo(() => onloadData?.data?.maritalStatusdropdownlist || [], [onloadData?.data?.maritalStatusdropdownlist]);
     const religions = useMemo(() => onloadData?.data?.religiondropdownlist || [], [onloadData?.data?.religiondropdownlist]);
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -232,7 +182,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_EmployeeCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <HRMSInputText
                             label='First Name'
                             required
@@ -242,7 +191,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_EmployeeFirstName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <HRMSInputText
                             label='Middle Name'
                             id='HRME_EmployeeMiddleName'
@@ -251,7 +199,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_EmployeeMiddleName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <HRMSInputText
                             label='Last Name'
                             id='HRME_EmployeeLastName'
@@ -260,7 +207,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_EmployeeLastName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMET_Id'>
                                 Employee Type <span className='text-destructive'>*</span>
@@ -298,7 +244,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             />
                             {errors.HRMET_Id && <FormError>{errors.HRMET_Id.message}</FormError>}
                         </div>
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMGT_Id'>Group Type</Label>
                             <Controller
@@ -334,7 +279,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             />
                             {errors.HRMGT_Id && <FormError>{errors.HRMGT_Id.message}</FormError>}
                         </div>
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMD_Id'>Department</Label>
                             <Controller
@@ -370,7 +314,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             />
                             {errors.HRMD_Id && <FormError>{errors.HRMD_Id.message}</FormError>}
                         </div>
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMDES_Id'>Designation</Label>
                             <Controller
@@ -406,7 +349,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             />
                             {errors.HRMDES_Id && <FormError>{errors.HRMDES_Id.message}</FormError>}
                         </div>
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMG_Id'>Grade</Label>
                             <Controller
@@ -444,7 +386,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         </div>
                     </div>
                 </div>
-
                 {/* Personal Details */}
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Personal Details</h3>
@@ -457,7 +398,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_DOB?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <HRMSInputText
                             label='Date of Joining'
                             type='date'
@@ -466,7 +406,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_DOJ?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='IVRMMG_Id'>Gender</Label>
                             <Controller
@@ -502,7 +441,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             />
                             {errors.IVRMMG_Id && <FormError>{errors.IVRMMG_Id.message}</FormError>}
                         </div>
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='IVRMMMS_Id'>Marital Status</Label>
                             <Controller
@@ -538,7 +476,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             />
                             {errors.IVRMMMS_Id && <FormError>{errors.IVRMMMS_Id.message}</FormError>}
                         </div>
-
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='ReligionId'>Religion</Label>
                             <Controller
@@ -574,7 +511,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             />
                             {errors.ReligionId && <FormError>{errors.ReligionId.message}</FormError>}
                         </div>
-
                         <HRMSInputText
                             label='Blood Group'
                             id='HRME_BloodGroup'
@@ -583,7 +519,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_BloodGroup?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <HRMSInputText
                             label='Father Name'
                             id='HRME_FatherName'
@@ -592,7 +527,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_FatherName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <HRMSInputText
                             label='Mother Name'
                             id='HRME_MotherName'
@@ -603,7 +537,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         />
                     </div>
                 </div>
-
                 {/* Contact Details */}
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Contact Details</h3>
@@ -617,7 +550,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                             error={errors.HRME_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <HRMSInputText
                             label='Email ID'
                             type='email'
@@ -629,7 +561,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         />
                     </div>
                 </div>
-
                 {/* Flags */}
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Additional Information</h3>
@@ -646,7 +577,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                 PF Applicable
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRME_ESIApplicableFlag'
@@ -659,7 +589,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                 ESI Applicable
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRME_TechNonTeachingFlg'
@@ -672,7 +601,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                 Teaching Staff
                             </Label>
                         </div>
-
                         <div className='flex items-center space-x-3'>
                             <Controller
                                 name='HRME_ActiveFlag'
@@ -687,9 +615,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         </div>
                     </div>
                 </div>
-
                 {errors.root && <FormError>{errors.root.message}</FormError>}
-
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 export interface ESIReportFilters {
     groupType: string;
     department: string;
@@ -12,7 +10,6 @@ export interface ESIReportFilters {
     month: string;
     year: string;
 }
-
 interface ESIReportFiltersProps {
     filters: ESIReportFilters;
     groupTypes: Array<{ id: number; groupType: string }>;
@@ -25,7 +22,6 @@ interface ESIReportFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function ESIReportFilters({
     filters,
     groupTypes,
@@ -40,7 +36,6 @@ export function ESIReportFilters({
 }: ESIReportFiltersProps) {
     const handleFilterChange = (key: keyof ESIReportFilters, value: string) => {
         const newFilters = { ...filters, [key]: value };
-
         // Reset dependent filters when parent changes
         if (key === 'groupType') {
             newFilters.department = 'All';
@@ -48,10 +43,8 @@ export function ESIReportFilters({
         } else if (key === 'department') {
             newFilters.designation = 'All';
         }
-
         onFilterChange(newFilters);
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -80,7 +73,6 @@ export function ESIReportFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Department Filter */}
                     <div className='space-y-2'>
                         <span className='font-medium text-foreground text-sm'>
@@ -100,7 +92,6 @@ export function ESIReportFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Designation Filter */}
                     <div className='space-y-2'>
                         <span className='font-medium text-foreground text-sm'>
@@ -121,7 +112,6 @@ export function ESIReportFilters({
                         </Select>
                     </div>
                 </div>
-
                 {/* Filter Section - Row 2: Month and Year */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Month Filter */}
@@ -150,7 +140,6 @@ export function ESIReportFilters({
                             </Select>
                         )}
                     </div>
-
                     {/* Year Filter */}
                     <div className='space-y-2'>
                         <span className='font-medium text-foreground text-sm'>
@@ -178,7 +167,6 @@ export function ESIReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button onClick={onSearch}>

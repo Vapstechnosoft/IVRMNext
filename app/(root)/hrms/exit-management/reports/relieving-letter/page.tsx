@@ -4,11 +4,8 @@
 // 2. Import form from _components/filters.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { useState } from 'react';
-
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,14 +17,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { format } from 'date-fns';
 import { CalendarIcon, FileText, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
-
 type RelievingLetterFormData = {
     departments: string[];
     designations: string[];
     fromDate: Date;
     toDate: Date;
 };
-
 const departmentOptions = [
     'IT Education',
     'Sales and Marketing',
@@ -37,7 +32,6 @@ const departmentOptions = [
     'Customer Support',
     'Research and Development'
 ];
-
 const designationOptions = [
     'E-learning coordinator',
     'Client Acquisition',
@@ -50,13 +44,11 @@ const designationOptions = [
     'Director',
     'CEO'
 ];
-
 export default function RelievingLetterPage() {
     const [departmentDropdownOpen, setDepartmentDropdownOpen] = useState(false);
     const [designationDropdownOpen, setDesignationDropdownOpen] = useState(false);
     const [fromDateOpen, setFromDateOpen] = useState(false);
     const [toDateOpen, setToDateOpen] = useState(false);
-
     const { handleSubmit, setValue, watch } = useForm<RelievingLetterFormData>({
         defaultValues: {
             departments: ['ALL'],
@@ -65,12 +57,10 @@ export default function RelievingLetterPage() {
             toDate: new Date('2018-01-31')
         }
     });
-
     const watchedDepartments = watch('departments');
     const watchedDesignations = watch('designations');
     const watchedFromDate = watch('fromDate');
     const watchedToDate = watch('toDate');
-
     const handleDepartmentToggle = (dept: string) => {
         const current = watchedDepartments || [];
         if (dept === 'ALL') {
@@ -82,7 +72,6 @@ export default function RelievingLetterPage() {
             setValue('departments', newSelection.length === 0 ? ['ALL'] : newSelection);
         }
     };
-
     const handleDesignationToggle = (desig: string) => {
         const current = watchedDesignations || [];
         if (desig === 'ALL') {
@@ -94,16 +83,13 @@ export default function RelievingLetterPage() {
             setValue('designations', newSelection.length === 0 ? ['ALL'] : newSelection);
         }
     };
-
     const onSubmit = (_data: RelievingLetterFormData) => {
         // Handle relieving letter generation
     };
-
     const getDisplayText = (items: string[], allText: string) => {
         if (items.includes('ALL') || items.length === 0) return allText;
         return items.length === 1 ? items[0] : `${items.length} selected`;
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-6 p-1'>
@@ -116,7 +102,6 @@ export default function RelievingLetterPage() {
                         />
                     </div>
                 </div>
-
                 {/* Relieving Letter Form Section */}
                 <Card className='shadow-lg'>
                     <CardHeader>
@@ -160,7 +145,6 @@ export default function RelievingLetterPage() {
                                         </PopoverContent>
                                     </Popover>
                                 </div>
-
                                 {/* Designation Filter */}
                                 <div className='space-y-2'>
                                     <Label>
@@ -196,7 +180,6 @@ export default function RelievingLetterPage() {
                                         </PopoverContent>
                                     </Popover>
                                 </div>
-
                                 {/* From Date */}
                                 <div className='space-y-2'>
                                     <Label>From Date</Label>
@@ -220,7 +203,6 @@ export default function RelievingLetterPage() {
                                         </PopoverContent>
                                     </Popover>
                                 </div>
-
                                 {/* To Date */}
                                 <div className='space-y-2'>
                                     <Label>To Date</Label>
@@ -245,7 +227,6 @@ export default function RelievingLetterPage() {
                                     </Popover>
                                 </div>
                             </div>
-
                             {/* Action Buttons */}
                             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
                                 <Button

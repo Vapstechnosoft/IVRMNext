@@ -1,20 +1,14 @@
 'use server';
-
 import { api } from '@/lib/apiService';
 import type {
     MasterPayrollStandardInput,
     MasterPayrollStandardResponse
 } from '@/types/hrms/master-payroll-standard';
-
 /**
  * Get onload details for master payroll standard
  * POST /api/MasterPayrollStandardFacade/onloadgetdetails
  */
 export async function getMasterPayrollStandardList(roleId: number) {
-    console.log('🟠 ========== PAYROLL STANDARD ONLOAD API ==========');
-    console.log('🟠 [API] getMasterPayrollStandardList called');
-    console.log('🟠 [API] roleId:', roleId);
-    
     const url = '/api/MasterPayrollStandardFacade/onloadgetdetails';
     const requestBody = {
         HRC_Id: 0,
@@ -62,32 +56,19 @@ export async function getMasterPayrollStandardList(roleId: number) {
         HRC_IncrementOnceInMonths: 0,
         HRC_AlertDay: 0
     };
-
-    console.log('🟠 [API] Request URL:', url);
     console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
-
     const response = await api.post<MasterPayrollStandardResponse>('hrms', url, requestBody);
-
-    console.log('🟢 ========== PAYROLL STANDARD ONLOAD RESPONSE ==========');
     console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
-    console.log('🟢 [API] Response hrStandardList:', response?.hrStandardList);
     const hrStandardList = (response?.hrStandardList || []) as any[];
-    console.log('🟢 [API] Response hrStandardList length:', hrStandardList.length || 0);
     console.log('🟢 [API] First record:', JSON.stringify(hrStandardList[0], null, 2));
-    console.log('🟢 ========== PAYROLL STANDARD ONLOAD END ==========');
-
     return response;
 }
-
 /**
  * Save or Update master payroll standard record
  * POST /api/MasterPayrollStandardFacade
  */
 export async function saveMasterPayrollStandard(data: MasterPayrollStandardInput) {
-    console.log('🟠 ========== PAYROLL STANDARD SAVE API ==========');
-    console.log('🟠 [API] saveMasterPayrollStandard called');
     console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
-
     const url = '/api/MasterPayrollStandardFacade';
     const requestBody = {
         HRC_Id: data.HRC_Id || 0,
@@ -135,39 +116,20 @@ export async function saveMasterPayrollStandard(data: MasterPayrollStandardInput
         HRC_IncrementOnceInMonths: data.HRC_IncrementOnceInMonths || 0,
         HRC_AlertDay: data.HRC_AlertDay || 0
     };
-
-    console.log('🟠 [API] Request URL:', url);
     console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
-    console.log('🟠 [API] HRC_IncrementMonth being sent:', requestBody.HRC_IncrementMonth);
-    console.log('🟠 [API] HRC_SalaryFromDay being sent:', requestBody.HRC_SalaryFromDay);
-    console.log('🟠 [API] HRC_SalaryToDay being sent:', requestBody.HRC_SalaryToDay);
-
     const response = await api.post<MasterPayrollStandardResponse>('hrms', url, requestBody);
-
-    console.log('🟢 ========== PAYROLL STANDARD SAVE RESPONSE ==========');
     console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
-    console.log('🟢 [API] Response retrunMsg:', response?.retrunMsg);
-    console.log('🟢 [API] Response hrStandardList:', response?.hrStandardList);
-    console.log('🟢 [API] Response HRC_IncrementMonth:', response?.HRC_IncrementMonth);
-    console.log('🟢 [API] Response HRC_SalaryFromDay:', response?.HRC_SalaryFromDay);
-    console.log('🟢 [API] Response HRC_SalaryToDay:', response?.HRC_SalaryToDay);
-
     // Parse response and normalize
     const retrunMsg: string = (response?.retrunMsg || '') as string;
     const hrcId: number = (response?.HRC_Id || 0) as number;
-
     // Check for success
     const isSuccess =
         retrunMsg === 'Update' ||
         retrunMsg === 'Saved' ||
         retrunMsg === 'Add' ||
         hrcId > 0;
-
     // Check for duplicate
     const isDuplicate = retrunMsg === 'Duplicate' || (retrunMsg && retrunMsg.toLowerCase().includes('duplicate'));
-
-    console.log('🟢 [API] Parsed - isSuccess:', isSuccess, 'isDuplicate:', isDuplicate);
-
     let message = 'Operation failed';
     if (isDuplicate) {
         message = 'Payroll standard already exists';
@@ -176,17 +138,12 @@ export async function saveMasterPayrollStandard(data: MasterPayrollStandardInput
     } else {
         message = retrunMsg || 'Failed to save payroll standard';
     }
-
-    console.log('🟢 [API] Final message:', message);
-    console.log('🟢 ========== PAYROLL STANDARD SAVE END ==========');
-
     return {
         success: isSuccess && !isDuplicate,
         message,
         data: response
     };
 }
-
 /**
  * Get details of a specific master payroll standard by ID
  * GET /api/MasterPayrollStandardFacade/getRecordById/{id}
@@ -195,7 +152,6 @@ export async function getMasterPayrollStandardDetails(id: number) {
     const url = `/api/MasterPayrollStandardFacade/getRecordById/${id}`;
     return await api.get<MasterPayrollStandardResponse>('hrms', url);
 }
-
 /**
  * Activate or Deactivate a master payroll standard record
  * POST /api/MasterPayrollStandardFacade/deactivateRecordById

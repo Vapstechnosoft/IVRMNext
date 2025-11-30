@@ -1,13 +1,10 @@
 'use client';
-
 import { InputText } from '@/components/ui/extension/input-text';
 import { cn } from '@/lib/utils';
 import React from 'react';
-
 export interface HRMSInputTextProps extends React.ComponentProps<typeof InputText> {
     error?: string;
 }
-
 /**
  * HRMS-specific InputText component that adds error styling to the input field
  * This component wraps the base InputText and adds red border styling when there's an error
@@ -30,6 +27,4 @@ const HRMSInputText = React.forwardRef<HTMLInputElement, HRMSInputTextProps>(
     }
 );
 HRMSInputText.displayName = 'HRMSInputText';
-
 export { HRMSInputText };
-

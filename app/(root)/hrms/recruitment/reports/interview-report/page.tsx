@@ -1,5 +1,4 @@
 'use client';
-
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
@@ -7,9 +6,7 @@ import { useSession } from 'next-auth/react';
 import { use, useEffect, useState } from 'react';
 import { interviewReportColumns } from './_components/columns';
 import InterviewReportForm from './_components/report-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function InterviewReportPage(props: {
     searchParams: SearchParams;
 }) {
@@ -17,7 +14,6 @@ export default function InterviewReportPage(props: {
     const [reportData, setReportData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<any>(null);
-
     const handleGenerateReport = async (_filters: any) => {
         setIsLoading(true);
         setError(null);
@@ -25,7 +21,6 @@ export default function InterviewReportPage(props: {
             // TODO: Replace with actual API call
             // const response = await generateInterviewReport(filters);
             // setReportData(response.data);
-
             // Mock data for now
             setReportData([]);
         } catch (err: any) {
@@ -34,16 +29,13 @@ export default function InterviewReportPage(props: {
             setIsLoading(false);
         }
     };
-
     const response = { data: reportData, totalItems: reportData.length, isLoading, error };
-
     return (
         <FormProvider<any>>
             <InterviewReportPageContent response={response} onGenerateReport={handleGenerateReport} />
         </FormProvider>
     );
 }
-
 function InterviewReportPageContent({
     response,
     onGenerateReport
@@ -53,13 +45,11 @@ function InterviewReportPageContent({
 }) {
     const tableProps = useDataTableProps(response);
     const session = useSession();
-
     useEffect(() => {
         if (session?.data?.role === undefined) {
             window.location.reload();
         }
     }, [session?.data?.role]);
-
     return (
         <div className='min-h-screen'>
             <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
@@ -73,7 +63,6 @@ function InterviewReportPageContent({
                     className='shadow-lg duration-300'>
                     <InterviewReportForm onGenerateReport={onGenerateReport} />
                 </CollapsibleSection>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}

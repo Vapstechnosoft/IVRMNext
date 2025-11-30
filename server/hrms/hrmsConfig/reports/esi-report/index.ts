@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     ESIReportOnloadRequest,
@@ -7,7 +6,6 @@ import type {
     ESIReportSearchRequest,
     ESIReportSearchResponse
 } from '@/types/hrms/reports/esi-report';
-
 /**
  * Get onload data for ESI Report
  * POST /api/ESIReportFacade/onloadgetdetails
@@ -19,22 +17,16 @@ export async function getESIReportOnload(
     LogInUserId = 0
 ): Promise<ApiResponse<ESIReportOnloadResponse>> {
     const url = '/api/ESIReportFacade/onloadgetdetails';
-
     const requestBody: ESIReportOnloadRequest = {
         MI_Id,
         LogInUserId
     };
-
-    console.log('🔵 ========== ESI REPORT ONLOAD ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<ESIReportOnloadResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to load ESI report data',
@@ -76,14 +68,12 @@ export async function getESIReportOnload(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<ESIReportOnloadResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as ESIReportOnloadResponse;
     return {
@@ -92,7 +82,6 @@ export async function getESIReportOnload(
         data: rawResponse
     };
 }
-
 /**
  * Search ESI report by selection criteria
  * POST /api/ESIReportFacade/getEmployeedetailsBySelection
@@ -103,7 +92,6 @@ export async function searchESIReport(
     request: ESIReportSearchRequest
 ): Promise<ApiResponse<ESIReportSearchResponse>> {
     const url = '/api/ESIReportFacade/getEmployeedetailsBySelection';
-
     const requestBody: ESIReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
         groupTypeselected: request.groupTypeselected || [],
@@ -112,17 +100,12 @@ export async function searchESIReport(
         HRES_Year: request.HRES_Year || '',
         HRES_Month: request.HRES_Month || ''
     };
-
-    console.log('🔵 ========== ESI REPORT SEARCH ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<ESIReportSearchResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to search ESI report',
@@ -133,14 +116,12 @@ export async function searchESIReport(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<ESIReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as ESIReportSearchResponse;
     return {
@@ -149,4 +130,3 @@ export async function searchESIReport(
         data: rawResponse
     };
 }
-

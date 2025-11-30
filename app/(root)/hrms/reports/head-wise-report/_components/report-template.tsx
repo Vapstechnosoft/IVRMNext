@@ -1,8 +1,6 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Download, Printer, X } from 'lucide-react';
-
 interface HeadWiseRecord {
     id?: string;
     employeeName: string;
@@ -11,7 +9,6 @@ interface HeadWiseRecord {
     totalDeduction: number;
     netSalary: number;
 }
-
 interface ReportTemplateProps {
     schoolName?: string;
     schoolAddress?: string;
@@ -23,7 +20,6 @@ interface ReportTemplateProps {
     onExport: () => void;
     onCancel: () => void;
 }
-
 export function HeadWiseReportTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -39,14 +35,12 @@ export function HeadWiseReportTemplate({
     const formatCurrency = (value: number) => {
         return value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
-
     // Calculate totals
     const totals = {
         totalEarning: reportData.reduce((sum, record) => sum + (record.totalEarning || 0), 0),
         totalDeduction: reportData.reduce((sum, record) => sum + (record.totalDeduction || 0), 0),
         netSalary: reportData.reduce((sum, record) => sum + (record.netSalary || 0), 0)
     };
-
     return (
         <div className='mx-auto w-full max-w-[1600px] bg-white p-6 print:p-4'>
             {/* Report Header */}
@@ -55,7 +49,6 @@ export function HeadWiseReportTemplate({
                 {schoolName && <div className='mb-1 font-semibold text-gray-800 text-lg'>{schoolName}</div>}
                 {schoolAddress && <div className='text-gray-600 text-sm'>{schoolAddress}</div>}
             </div>
-
             {/* Report Table */}
             <div className='mb-6 overflow-x-auto'>
                 <table className='w-full border-collapse border border-gray-300 text-sm'>
@@ -133,7 +126,6 @@ export function HeadWiseReportTemplate({
                     </tfoot>
                 </table>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
                 <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>

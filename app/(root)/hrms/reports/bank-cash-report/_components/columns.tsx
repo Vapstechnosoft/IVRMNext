@@ -1,25 +1,21 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import { CreditCard, Wallet } from 'lucide-react';
-
 export interface GroupType extends BaseEntity {
     groupType: string;
     groupCode: string;
     order: number;
     isActive: boolean;
 }
-
 export interface Department extends BaseEntity {
     departmentName: string;
     internalTrainingHours: string;
     order: number;
     isActive: boolean;
 }
-
 export interface Designation extends BaseEntity {
     designationName: string;
     basicAmount: string;
@@ -28,7 +24,6 @@ export interface Designation extends BaseEntity {
     order: number;
     isActive: boolean;
 }
-
 // Bank cash report data structure
 export interface BankCashRecord extends BaseEntity {
     employeeCode: string;
@@ -48,7 +43,6 @@ export interface BankCashRecord extends BaseEntity {
     paymentDate: string;
     paymentStatus: 'Paid' | 'Pending' | 'Failed';
 }
-
 // Table columns for Bank Cash Report
 export const bankCashColumns: ColumnDef<BankCashRecord>[] = [
     {

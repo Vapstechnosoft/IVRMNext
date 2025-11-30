@@ -1,5 +1,4 @@
 'use server';
-
 import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     PFForm6AReportFilterRequest,
@@ -9,7 +8,6 @@ import type {
     PFForm6AReportSearchRequest,
     PFForm6AReportSearchResponse
 } from '@/types/hrms/reports/pf-form-6a-report';
-
 /**
  * Get onload data for PF Form 6A Report
  * POST /api/PFForm6AFacade/onloadgetdetails
@@ -18,21 +16,15 @@ import type {
  */
 export async function getPFForm6AReportOnload(MI_Id = 30): Promise<ApiResponse<PFForm6AReportOnloadResponse>> {
     const url = '/api/PFForm6AFacade/onloadgetdetails';
-
     const requestBody: PFForm6AReportOnloadRequest = {
         MI_Id
     };
-
-    console.log('🔵 ========== PF FORM 6A REPORT ONLOAD ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<PFForm6AReportOnloadResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to load PF Form 6A report data',
@@ -151,14 +143,12 @@ export async function getPFForm6AReportOnload(MI_Id = 30): Promise<ApiResponse<P
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<PFForm6AReportOnloadResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as PFForm6AReportOnloadResponse;
     return {
@@ -167,7 +157,6 @@ export async function getPFForm6AReportOnload(MI_Id = 30): Promise<ApiResponse<P
         data: rawResponse
     };
 }
-
 /**
  * Filter employee data for PF Form 6A Report
  * POST /api/PFForm6AFacade/FilterEmployeeData
@@ -176,21 +165,15 @@ export async function getPFForm6AReportOnload(MI_Id = 30): Promise<ApiResponse<P
  */
 export async function filterPFForm6AEmployeeData(request: PFForm6AReportFilterRequest): Promise<ApiResponse<PFForm6AReportFilterResponse>> {
     const url = '/api/PFForm6AFacade/FilterEmployeeData';
-
     const requestBody: PFForm6AReportFilterRequest = {
         MI_Id: request.MI_Id || 30
     };
-
-    console.log('🔵 ========== PF FORM 6A REPORT FILTER ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<PFForm6AReportFilterResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to filter PF Form 6A employee data',
@@ -201,14 +184,12 @@ export async function filterPFForm6AEmployeeData(request: PFForm6AReportFilterRe
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<PFForm6AReportFilterResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as PFForm6AReportFilterResponse;
     return {
@@ -217,7 +198,6 @@ export async function filterPFForm6AEmployeeData(request: PFForm6AReportFilterRe
         data: rawResponse
     };
 }
-
 /**
  * Get employee details by selection for PF Form 6A Report
  * POST /api/PFForm6AFacade/getEmployeedetailsBySelection
@@ -226,23 +206,17 @@ export async function filterPFForm6AEmployeeData(request: PFForm6AReportFilterRe
  */
 export async function searchPFForm6AReport(request: PFForm6AReportSearchRequest): Promise<ApiResponse<PFForm6AReportSearchResponse>> {
     const url = '/api/PFForm6AFacade/getEmployeedetailsBySelection';
-
     const requestBody: PFForm6AReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
         FromDate: request.FromDate || '',
         ToDate: request.ToDate || ''
     };
-
-    console.log('🔵 ========== PF FORM 6A REPORT SEARCH ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<PFForm6AReportSearchResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to search PF Form 6A report',
@@ -253,14 +227,12 @@ export async function searchPFForm6AReport(request: PFForm6AReportSearchRequest)
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<PFForm6AReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as PFForm6AReportSearchResponse;
     return {

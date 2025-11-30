@@ -1,10 +1,8 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface MonthlyRow extends BaseEntity {
     employeeCode: string;
     employeeName: string;
@@ -16,7 +14,6 @@ export interface MonthlyRow extends BaseEntity {
     totalHolidayPunches?: number;
     // Add more fields as needed based on the actual report structure
 }
-
 export const employeeMonthlyReportColumns: ColumnDef<MonthlyRow>[] = [
     {
         id: 'select',

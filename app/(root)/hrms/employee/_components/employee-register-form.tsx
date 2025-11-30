@@ -1,5 +1,4 @@
 'use client';
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import {
@@ -27,34 +26,28 @@ import { MedicalRecordTab } from './tabs/medical-tab';
 import { OtherDetailsTab } from './tabs/other-details-tab';
 import { PayrollTab } from './tabs/payroll-tab-new';
 import { QualificationTab } from './tabs/qualification-tab';
-
 // Helper functions for validation
 const validateMobileNumber = (mobile: string) => {
     const cleaned = mobile.replace(/\D/g, ''); // Remove non-digits
     return cleaned.length === 10;
 };
-
 const validateAadharNumber = (aadhar: string) => {
     const cleaned = aadhar.replace(/\D/g, ''); // Remove non-digits
     return cleaned.length === 12;
 };
-
 const validatePANNumber = (pan: string) => {
     // PAN format: 5 letters, 4 numbers, 1 letter (e.g., ABCDE1234F)
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
     return panRegex.test(pan.toUpperCase());
 };
-
 const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 };
-
 const validatePincode = (pincode: string) => {
     const cleaned = pincode.replace(/\D/g, ''); // Remove non-digits
     return cleaned.length >= 5 && cleaned.length <= 10;
 };
-
 // Qualification details schema (using actual form field names)
 const qualificationDetailSchema = z
     .object({
@@ -111,7 +104,6 @@ const qualificationDetailSchema = z
             path: ['cgpa']
         }
     );
-
 // Experience details schema (using actual form field names)
 const experienceDetailSchema = z
     .object({
@@ -141,7 +133,6 @@ const experienceDetailSchema = z
             path: ['exitDate']
         }
     );
-
 // Document schema (using actual form field names)
 const documentSchema = z.object({
     documentName: z.string().min(1, 'Name of Document is required').max(255, 'Name of Document must not exceed 255 characters'),
@@ -152,7 +143,6 @@ const documentSchema = z.object({
         .refine((file) => {
             // Handle null/undefined (for edit mode when document is not changed)
             if (!file) return true;
-
             // Handle FileList - extract first file
             let actualFile: File | null = null;
             if (file instanceof FileList) {
@@ -167,9 +157,7 @@ const documentSchema = z.object({
                 // Allow it to pass validation if it's not a File/FileList
                 return true;
             }
-
             if (!actualFile) return true;
-            
             const maxSize = 2 * 1024 * 1024; // 2MB
             const allowedTypes = [
                 'image/jpeg',
@@ -180,22 +168,21 @@ const documentSchema = z.object({
             return actualFile.size <= maxSize && allowedTypes.includes(actualFile.type);
         }, 'File must be JPEG, DOC, DOCX, or PDF and not exceed 2MB')
 });
-
 // Extended form schema to include all tab fields (using tab field names)
 const formSchema = z
     .object({
         // Employee tab fields (using tab field names)
-        firstName: z.string().min(1, 'Name of the Employee is required').max(100, 'Name must not exceed 100 characters'),
-        middleName: z.string().max(100, 'Middle Name must not exceed 100 characters').optional(),
-        lastName: z.string().max(100, 'Last Name must not exceed 100 characters').optional(),
+        firstName: z.string().min(1, 'Name of the Employee is required').max(50, 'Name must not exceed 50 characters'),
+        middleName: z.string().max(50, 'Middle Name must not exceed 50 characters').optional(),
+        lastName: z.string().max(50, 'Last Name must not exceed 50 characters').optional(),
         employeeCode: z.string().min(1, 'Employee Code is required').max(20, 'Employee Code must not exceed 20 characters'),
         typeOfEmployment: z.string().min(1, 'Type of Employment is required'),
         employeeGroup: z.string().min(1, 'Employee Group is required'),
         school: z.string().min(1, 'Department is required'),
         designation: z.string().min(1, 'Designation is required'),
         grade: z.string().min(1, 'Grade is required'),
-        fatherName: z.string().min(1, "Father's Name is required").max(100, "Father's Name must not exceed 100 characters"),
-        motherName: z.string().min(1, "Mother's Name is required").max(100, "Mother's Name must not exceed 100 characters"),
+        fatherName: z.string().min(1, "Father's Name is required").max(50, "Father's Name must not exceed 50 characters"),
+        motherName: z.string().min(1, "Mother's Name is required").max(50, "Mother's Name must not exceed 50 characters"),
         dateOfBirth: z.string().min(1, 'Date of Birth is required'),
         dateOfJoining: z.string().min(1, 'Date of Joining is required'),
         dateOfConfirmation: z.string().optional(),
@@ -208,11 +195,11 @@ const formSchema = z
         bloodGroup: z.string().optional(),
         salaryType: z.string().optional(),
         modeOfPayment: z.string().min(1, 'Mode of Payment is required'),
-        subjectTaught: z.string().optional(),
+        subjectTaught: z.string().max(50, 'Subject Taught must not exceed 50 characters').optional(),
         epf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         ppf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         phdResearchGuide: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-        recognitionYear: z.string().optional(),
+        recognitionYear: z.string().max(4, 'Recognition Year must not exceed 4 characters').regex(/^\d{4}$/, 'Recognition Year must contain only numbers').optional(),
         teachingNonTeaching: z.string().min(1, 'Teaching/Non-Teaching is required'),
         pfApplicable: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         ptMaxAmount: z
@@ -225,14 +212,14 @@ const formSchema = z
             }, 'PT Max Amount must be a positive number'),
         pfMaxAmount: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
         pfFixedAmount: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-        pfAccNo: z.string().max(20, 'PF Acc. No. must not exceed 20 characters').optional(),
-        uanNumber: z.string().max(20, 'UAN Number must not exceed 20 characters').optional(),
+        pfAccNo: z.string().max(22, 'PF Acc. No. must not exceed 22 characters').optional(),
+        uanNumber: z.string().max(12, 'UAN Number must not exceed 12 characters').optional(),
         pfDate: z.string().optional(),
         esiApplicable: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-        esiAccNo: z.string().max(20, 'ESI Acc. No. must not exceed 20 characters').optional(),
-        gratuityAccNo: z.string().max(20, 'Gratuity Acc No. must not exceed 20 characters').optional(),
+        esiAccNo: z.string().max(10, 'ESI Acc. No. must not exceed 10 characters').optional(),
+        gratuityAccNo: z.string().max(25, 'Gratuity Acc No. must not exceed 20 characters').optional(),
         esiDate: z.string().optional(),
-        nationalSSN: z.string().max(20, 'National SSN must not exceed 20 characters').optional(),
+        nationalSSN: z.string().max(9, 'National SSN must not exceed 9 characters').regex(/^\d*$/, 'National SSN must contain only numbers').optional(),
         aadharNo: z
             .string()
             .max(12, 'Aadhar No. must not exceed 12 characters')
@@ -255,7 +242,7 @@ const formSchema = z
                     mobileNo: z
                         .string()
                         .min(1, 'Mobile No. is required')
-                        .max(15, 'Mobile No. must not exceed 15 characters')
+                        .max(10, 'Mobile No. must not exceed 10 characters')
                         .refine((val) => validateMobileNumber(val), 'Mobile No. must be a valid 10-digit number'),
                     type: z.string().optional()
                 })
@@ -416,18 +403,14 @@ const formSchema = z
             path: ['lastWorkingDay']
         }
     );
-
 type FormFields = z.infer<typeof formSchema>;
-
 interface EmployeeRegisterFormProps {
     selectedRow?: EmployeeListItem;
     onSuccess?: () => void;
     className?: string;
 }
-
 export default function EmployeeRegisterForm({ selectedRow, onSuccess, className = '' }: EmployeeRegisterFormProps) {
     const { data: onloadData, isLoading: isLoadingOnload } = useEmployeeRegisterOnload();
-
     // Removed non-qualification debug logs
     const { mutate: savePersonalDetails, isPending } = useSaveEmployeePersonalDetails();
     const { mutate: saveQualificationDetails, isPending: isSavingQualification } = useSaveEmployeeQualification();
@@ -440,10 +423,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
     const [_photoFile, setPhotoFile] = useState<File | null>(null);
     const [activeTab, setActiveTab] = useState('employee');
     const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(selectedRow?.HRME_Id || null);
-
     // Tab order for navigation
     const tabOrder = ['employee', 'address', 'qualification', 'experience', 'document', 'medical', 'other', 'payroll'];
-    
     // Function to go to previous tab
     const handlePreviousTab = () => {
         const currentIndex = tabOrder.indexOf(activeTab);
@@ -451,7 +432,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             setActiveTab(tabOrder[currentIndex - 1]);
         }
     };
-
     // Refs to track if we've already initialized form values to prevent infinite loops
     const hasInitializedDropdowns = useRef(false);
     const hasInitializedAddress = useRef(false);
@@ -459,12 +439,9 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
     const hasInitializedArrays = useRef(false);
     const lastEmployeeId = useRef<number | null>(null);
     const resetInProgress = useRef(false);
-
     // Fetch full employee details when in edit mode
     const { data: employeeDetails, isLoading: isLoadingEmployee } = useEmployeeRegisterById(selectedRow?.HRME_Id || null);
-
     // Removed debug log
-
     // Compute default values based on edit mode and employee data
     const formDefaultValues = useMemo(() => {
         if (!isEditMode || !employeeDetails) {
@@ -500,10 +477,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 dateOfRetirement: '' // Will be auto-calculated when DOB is set
             };
         }
-
         const emp = employeeDetails;
         // Removed debug log
-
         return {
             // Employee tab
             firstName: emp.HRME_EmployeeFirstName || '',
@@ -537,7 +512,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             rfCardId: emp.HRME_RFCardId || '',
             epf: !emp.HRME_EPFNotApplicableFlg,
             ppf: !emp.HRME_FPFNotApplicableFlg,
-
             // PF/ESI
             pfApplicable: emp.HRME_PFApplicableFlag || false,
             pfAccNo: emp.HRME_PFAccNo || '',
@@ -549,12 +523,10 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             esiAccNo: emp.HRME_ESIAccNo || '',
             esiDate: emp.HRME_ESIDate ? new Date(emp.HRME_ESIDate).toISOString().split('T')[0] : '',
             gratuityAccNo: emp.HRME_GratuityAccNo || '',
-
             // IDs
             nationalSSN: emp.HRME_NationalSSN || '',
             aadharNo: emp.HRME_AadharCardNo?.toString() || '',
             panCardNo: emp.HRME_PANCardNo || '',
-
             // Contact
             mobileDetails: emp.HRME_MobileNo ? [{ mobileNo: emp.HRME_MobileNo.toString(), type: 'Default' }] : [],
             emailDetails: emp.HRME_EmailId ? [{ emailId: emp.HRME_EmailId, type: 'Default' }] : [],
@@ -573,7 +545,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     ? [{ bankAccountNo: emp.HRME_BankAccountNo, employerBankName: '', accountType: 'Default' }]
                     : [];
             })(),
-
             // Address
             contactAddress: emp.HRME_LocStreet || '',
             contactArea: emp.HRME_LocArea || '',
@@ -587,7 +558,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             permanentPincode: emp.HRME_PerPincode != null ? emp.HRME_PerPincode.toString() : '',
             permanentCountry: emp.HRME_PerCountryId != null ? emp.HRME_PerCountryId.toString() : '',
             permanentState: emp.HRME_PerStateId != null ? emp.HRME_PerStateId.toString() : '',
-
             // Medical/Physical
             employeeHeight: emp.HRME_Height || '',
             employeeHeightUnit: emp.HRME_HeightUOM || '',
@@ -596,7 +566,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             identificationMark: emp.HRME_IdentificationMark || '',
             eyeSightIssue: emp.HRME_EyeSightIssue || '',
             anyHealthIssue: emp.HRME_AnyHealthIssue || '',
-
             // Other
             employeeLeft: emp.HRME_LeftFlag || false,
             lastWorkingDay: emp.HRME_DOL ? new Date(emp.HRME_DOL).toISOString().split('T')[0] : '',
@@ -606,7 +575,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             punchRelaxation: emp.HRME_ExcPunch || false,
             stopPension: emp.HRME_RetiredFlg || false,
             dateOfStopPension: emp.HRME_PensionStoppedDate ? new Date(emp.HRME_PensionStoppedDate).toISOString().split('T')[0] : '',
-
             sameAsCommunicationAddress: false,
             qualificationDetails: (() => {
                 const quals = emp.qualificationDetails || [];
@@ -661,7 +629,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             })()
         };
     }, [isEditMode, employeeDetails]);
-
     const {
         control,
         register,
@@ -680,22 +647,17 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         reValidateMode: 'onChange', // Re-validate on change
         defaultValues: formDefaultValues
     });
-
     const { errors, isSubmitting } = formState;
-
     // Removed debug logging to reduce console noise and improve performance
-
     // Watch for country changes using useWatch (more optimized, doesn't cause re-renders)
     const contactCountry = useWatch({ control, name: 'contactCountry' });
     const permanentCountry = useWatch({ control, name: 'permanentCountry' });
-
     // Update savedEmployeeId when selectedRow changes
     useEffect(() => {
         if (selectedRow?.HRME_Id) {
             setSavedEmployeeId(selectedRow.HRME_Id);
         }
     }, [selectedRow]);
-
     // Reset form when switching modes or when employee details load in edit mode
     // CRITICAL: Only reset once per employee ID change to prevent infinite loops
     useEffect(() => {
@@ -705,29 +667,23 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         const employeeIdChanged = lastEmployeeId.current !== currentEmployeeId;
         const isFirstLoad = lastEmployeeId.current === null && currentEmployeeId !== null;
         const shouldReset = employeeIdChanged || isFirstLoad;
-        
         // Prevent multiple resets from happening simultaneously
         if (resetInProgress.current) {
             return;
         }
-        
         // Don't reset if formDefaultValues hasn't been computed yet
         if (!formDefaultValues) {
             return;
         }
-        
         if (!isLoadingEmployee && !isLoadingOnload && shouldReset) {
             resetInProgress.current = true;
-            
             // Reset initialization flags when resetting
             hasInitializedDropdowns.current = false;
             hasInitializedAddress.current = false;
             hasInitializedBank.current = false;
             hasInitializedArrays.current = false;
-            
             // Update lastEmployeeId BEFORE reset to prevent re-triggering
             lastEmployeeId.current = currentEmployeeId;
-            
             // Use requestAnimationFrame to ensure reset happens after current render cycle
             requestAnimationFrame(() => {
                 try {
@@ -746,7 +702,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload]); // DO NOT include formDefaultValues - it causes infinite loops
-
     // Ensure dropdown values are set after options are loaded (handles timing issues)
     useEffect(() => {
         // Reset initialization flag when employee ID changes
@@ -757,7 +712,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             hasInitializedArrays.current = false;
             lastEmployeeId.current = employeeDetails?.HRME_Id || null;
         }
-
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData && !hasInitializedDropdowns.current) {
             // Check if basic options are available
             const hasBasicOptions =
@@ -770,7 +724,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 (onloadData.religiondropdownlist?.length ?? 0) > 0 &&
                 (onloadData.casteCategorydropdownlist?.length ?? 0) > 0 &&
                 (onloadData.castedropdownlist?.length ?? 0) > 0;
-
             if (hasBasicOptions && formDefaultValues) {
                 // Mark as initialized before setting values to prevent re-running
                 hasInitializedDropdowns.current = true;
@@ -811,7 +764,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, onloadData, setValue]);
-
     // Set address dropdown values after countries and states are loaded
     useEffect(() => {
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData && !hasInitializedAddress.current) {
@@ -819,10 +771,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             const _statesCount = Array.isArray(onloadData.AllState) ? onloadData.AllState.length : 0; // AllState might be null
             const hasCountries = countriesCount > 0;
             // States might be filtered by country, so we'll set them separately
-
             // Debug: Check what state-related properties exist
             const _stateProperties = Object.keys(onloadData || {}).filter((k) => k.toLowerCase().includes('state'));
-
             if (hasCountries && formDefaultValues) {
                 hasInitializedAddress.current = true;
                 requestAnimationFrame(() => {
@@ -833,7 +783,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     if (formDefaultValues.permanentCountry) {
                         setValue('permanentCountry', formDefaultValues.permanentCountry, { shouldValidate: false, shouldDirty: false });
                     }
-
                     // Set states even if options aren't loaded yet - they'll appear when options load
                     if (formDefaultValues.contactState) {
                         setValue('contactState', formDefaultValues.contactState, { shouldValidate: false, shouldDirty: false });
@@ -846,7 +795,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, onloadData, setValue]);
-
     // Set states when they become available (might load after country is selected or separately)
     useEffect(() => {
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData && hasInitializedAddress.current) {
@@ -855,7 +803,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 // Only set states if they haven't been set yet (check current form values using getValues to avoid re-renders)
                 const currentContactState = getValues('contactState');
                 const currentPermanentState = getValues('permanentState');
-                
                 requestAnimationFrame(() => {
                     if (formDefaultValues.contactState && !currentContactState) {
                         setValue('contactState', formDefaultValues.contactState, { shouldValidate: false, shouldDirty: false });
@@ -876,7 +823,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         setValue,
         getValues
     ]);
-
     // Monitor when countries are selected to check if states become available
     // NOTE: This useEffect was causing infinite loops. Removed dependency on contactCountry/permanentCountry
     // States are now set in the previous useEffect when AllState becomes available
@@ -885,12 +831,10 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         // States are handled in the previous useEffect when AllState length changes
         // No action needed here to prevent infinite loops
     }, [onloadData?.AllState?.length]);
-
     // Set bank details after banks are loaded
     useEffect(() => {
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && onloadData && !hasInitializedBank.current) {
             const hasBankOptions = (onloadData.bankdropdownlist?.length ?? 0) > 0;
-
             // Debug: Check what bank-related properties exist in employee data
             const _bankProperties = Object.keys(employeeDetails || {}).filter((k) => k.toLowerCase().includes('bank'));
             const _allBankFields: Record<string, any> = {};
@@ -899,11 +843,9 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 .forEach((k) => {
                     _allBankFields[k] = (employeeDetails as any)[k];
                 });
-
             // Check for bank details in employee data
             const employeeBankDetails = (employeeDetails as any).employeebankDetails || [];
             const hasBankAccountNo = employeeDetails.HRME_BankAccountNo;
-
             if (hasBankOptions && (hasBankAccountNo || employeeBankDetails.length > 0)) {
                 // If we have employeebankDetails array, use it directly
                 if (employeeBankDetails.length > 0) {
@@ -913,7 +855,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         employerBankName: bank.HRMBD_Id ? bank.HRMBD_Id.toString() : '',
                         accountType: bank.HRMEB_ActiveFlag === 'Y' ? 'Default' : 'Alternate'
                     }));
-
                     // Use requestAnimationFrame to ensure DOM is ready
                     requestAnimationFrame(() => {
                         setValue('bankDetails', mappedBankDetails, { shouldValidate: false, shouldDirty: false });
@@ -923,14 +864,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 else if (hasBankAccountNo) {
                     let bankId = '';
                     let bankAccountNo = '';
-
                     // First, check if bank ID is directly in employee details
                     const directBankId =
                         (employeeDetails as any).HRME_BankId ||
                         (employeeDetails as any).HRMBD_Id ||
                         (employeeDetails as any).BankId ||
                         (employeeDetails as any).bankId;
-
                     if (directBankId) {
                         bankId = directBankId.toString();
                         bankAccountNo = employeeDetails.HRME_BankAccountNo || '';
@@ -938,34 +877,26 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     // Try to find bank ID by matching account number in bank list
                     else {
                         bankAccountNo = employeeDetails.HRME_BankAccountNo || '';
-
                         // Normalize account numbers for comparison (remove spaces, leading zeros, etc.)
                         const normalizeAccountNo = (accNo: string | number | null | undefined): string => {
                             if (!accNo) return '';
                             return accNo.toString().trim().replace(/\s+/g, '').replace(/^0+/, '');
                         };
-
                         const normalizedEmployeeAccount = normalizeAccountNo(bankAccountNo);
-
                         const matchingBank = onloadData.bankdropdownlist?.find((bank: any) => {
                             const bankAccountNoFromList = bank.HRMBD_BankAccountNo || bank.BankAccountNo || bank.bankAccountNo;
                             const normalizedBankAccount = normalizeAccountNo(bankAccountNoFromList);
-
                             // Try exact match first
                             const exactMatch =
                                 bankAccountNoFromList === bankAccountNo || bankAccountNoFromList?.toString() === bankAccountNo?.toString();
-
                             // Try normalized match
                             const normalizedMatch = normalizedBankAccount === normalizedEmployeeAccount && normalizedEmployeeAccount !== '';
-
                             return exactMatch || normalizedMatch;
                         });
-
                         if (matchingBank) {
                             bankId = (matchingBank.HRMBD_Id || matchingBank.BankId || matchingBank.id || '').toString();
                         }
                     }
-
                     // Update bank details with found bank ID
                     // Only set bank ID if we found one, otherwise leave it empty for manual selection
                     if (bankAccountNo) {
@@ -977,7 +908,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                 accountType: 'Default'
                             }
                         ];
-
                         // Use requestAnimationFrame to ensure DOM is ready
                         requestAnimationFrame(() => {
                             setValue('bankDetails', updatedBankDetails, { shouldValidate: false, shouldDirty: false });
@@ -996,7 +926,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         onloadData,
         setValue
     ]);
-
     // Set qualification details after form reset (for edit mode)
     useEffect(() => {
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues && !hasInitializedArrays.current) {
@@ -1010,7 +939,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.qualificationDetails?.length, setValue]);
-
     // Set experience details after form reset (for edit mode)
     useEffect(() => {
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues && !hasInitializedArrays.current) {
@@ -1023,7 +951,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.experienceDetails?.length, setValue]);
-
     // Set document details after form reset (for edit mode)
     useEffect(() => {
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues && !hasInitializedArrays.current) {
@@ -1036,7 +963,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, formDefaultValues?.documentList?.length, setValue]);
-
     // Set medical fields after form reset (for edit mode)
     useEffect(() => {
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues) {
@@ -1053,7 +979,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, setValue]);
-
     // Set other details fields after form reset (for edit mode)
     useEffect(() => {
         if (isEditMode && employeeDetails && !isLoadingEmployee && !isLoadingOnload && formDefaultValues) {
@@ -1073,14 +998,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isEditMode, employeeDetails?.HRME_Id, isLoadingEmployee, isLoadingOnload, setValue]);
-
     // Set photo when employee details load
     useEffect(() => {
         if (employeeDetails?.HRME_Photo && isEditMode) {
             setSelectedPhoto(employeeDetails.HRME_Photo);
         }
     }, [employeeDetails, isEditMode]);
-
     const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -1092,7 +1015,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             reader.readAsDataURL(file);
         }
     };
-
     // Function to clear only the current tab's fields
     const handleClearCurrentTab = () => {
         // Define field groups for each tab with their default empty values
@@ -1199,12 +1121,9 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 ]
             }
         };
-
         const tabConfig = tabFields[activeTab];
         if (!tabConfig) return;
-
         const fieldsToReset = tabConfig.fields;
-
         // Reset each field to its default empty value
         fieldsToReset.forEach((field) => {
             const currentValue = watch(field);
@@ -1216,14 +1135,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 setValue(field, '' as any, { shouldValidate: false, shouldDirty: false });
             }
         });
-
         // Special handling for photo in employee tab
         if (activeTab === 'employee') {
             setSelectedPhoto(null);
             setPhotoFile(null);
         }
     };
-
     /**
      * Maps form field names (from tabs) to API field names
      */
@@ -1247,15 +1164,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         payload.HRME_PerPincode = 0;
         return payload;
     };
-
     const mapFormDataToApiFormat = (data: FormFields): SavePersonalDetailsRequest => {
         // Get mobile and email from arrays (take first/default)
         const defaultMobile = data.mobileDetails?.[0]?.mobileNo || '';
         const defaultEmail = data.emailDetails?.[0]?.emailId || '';
-
         // Get bank account from bank details (take first/default)
         const defaultBankAccount = data.bankDetails?.[0]?.bankAccountNo || '';
-
         const payload: SavePersonalDetailsRequest = {
             CreatedDate: new Date().toISOString(),
             UpdatedDate: new Date().toISOString(),
@@ -1363,10 +1277,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             HRME_PensionStoppedDate: data.dateOfStopPension || null,
             HRME_AllowSoftwareAccessFlg: false
         };
-
         return payload;
     };
-
     // Tab-specific field lists for validation
     const tabFieldMap: Record<string, (keyof FormFields)[]> = {
         employee: [
@@ -1438,20 +1350,14 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         medical: ['employeeHeight', 'employeeHeightUnit', 'employeeWeight', 'employeeWeightUnit', 'eyeSightIssue', 'anyHealthIssue', 'identificationMark'],
         other: ['biometricCode', 'rfCardId', 'punchRelaxation', 'stopPension', 'dateOfStopPension', 'msTeamsUserName', 'msTeamsPassword', 'employeeLeft', 'lastWorkingDay', 'reasonForLeaving']
     };
-
     // Custom tab-specific submit handler - now receives data from handleSubmit
     const handleTabSubmit = async (data: FormFields) => {
-        console.log('🔍 [SUBMIT] handleTabSubmit called', { activeTab, isEditMode, savedEmployeeId });
-        
         const currentTabFields = tabFieldMap[activeTab] || [];
-        
         if (currentTabFields.length === 0) {
             // If no fields defined for this tab, proceed without validation
-            console.log('🔍 [SUBMIT] No fields defined for tab, proceeding to processFormSubmission');
             await processFormSubmission(data);
             return;
         }
-
         // Clear previous errors for fields not in current tab
         // Get all possible fields from the tabFieldMap
         const allTabFields = Object.values(tabFieldMap).flat();
@@ -1461,7 +1367,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 clearErrors(field);
             }
         });
-
         // For qualification tab, validate qualificationDetails array directly
         if (activeTab === 'qualification') {
             const quals = data.qualificationDetails || [];
@@ -1472,7 +1377,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
                 return;
             }
-
             // Validate each qualification using the qualificationDetailSchema
             let hasErrors = false;
             quals.forEach((qual: any, index: number) => {
@@ -1488,7 +1392,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     });
                 }
             });
-
             if (hasErrors) {
                 const firstError = quals.find((qual: any, index: number) => {
                     const result = qualificationDetailSchema.safeParse(qual);
@@ -1517,7 +1420,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
                 return;
             }
-
             let hasErrors = false;
             exps.forEach((exp: any, index: number) => {
                 const result = experienceDetailSchema.safeParse(exp);
@@ -1532,7 +1434,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     });
                 }
             });
-
             if (hasErrors) {
                 const firstError = exps.find((exp: any, index: number) => {
                     const result = experienceDetailSchema.safeParse(exp);
@@ -1561,7 +1462,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
                 return;
             }
-
             let hasErrors = false;
             docs.forEach((doc: any, index: number) => {
                 const result = documentSchema.safeParse(doc);
@@ -1576,7 +1476,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     });
                 }
             });
-
             if (hasErrors) {
                 const firstError = docs.find((doc: any, index: number) => {
                     const result = documentSchema.safeParse(doc);
@@ -1598,20 +1497,14 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         // For other tabs (including employee), use trigger to validate only current tab fields
         else {
             // Validate only the current tab's fields
-            console.log('🔍 [VALIDATION] Triggering validation for fields:', currentTabFields);
             const isValid = await trigger(currentTabFields as any);
-            console.log('🔍 [VALIDATION] Validation result:', { isValid, activeTab, errors: Object.keys(errors) });
-            
             if (!isValid) {
-                console.log('🔴 [VALIDATION] Validation failed for tab:', activeTab);
                 // Wait a bit for errors to be set in the form state
                 await new Promise(resolve => setTimeout(resolve, 100));
-                
                 // Get current errors after trigger (errors is already destructured from formState)
                 // Re-read errors to get the latest state after trigger
                 const formValues = getValues();
                 const currentErrors: Record<string, any> = {};
-                
                 // Check each field and manually set errors if they're missing and required
                 if (activeTab === 'employee') {
                     // Manually validate required employee fields and set errors
@@ -1688,7 +1581,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         currentErrors['modeOfPayment'] = { message: 'Mode of Payment is required' };
                     }
                 }
-                
                 // Get errors from form state (after manual setError calls)
                 const formStateErrors = errors;
                 currentTabFields.forEach((field) => {
@@ -1697,13 +1589,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         currentErrors[field] = fieldError;
                     }
                 });
-                
                 // Also check nested fields for employee tab (mobileDetails, emailDetails, bankDetails)
                 if (activeTab === 'employee') {
                     const mobileErrors = formStateErrors.mobileDetails;
                     const emailErrors = formStateErrors.emailDetails;
                     const bankErrors = formStateErrors.bankDetails;
-                    
                     if (mobileErrors) {
                         currentErrors['mobileDetails'] = mobileErrors;
                     }
@@ -1714,7 +1604,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         currentErrors['bankDetails'] = bankErrors;
                     }
                 }
-                
                 // For address tab, manually validate and set errors for required fields
                 if (activeTab === 'address') {
                     if (!formValues.contactAddress || formValues.contactAddress.trim() === '') {
@@ -1737,7 +1626,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         setError('contactPincode', { type: 'required', message: 'Contact Pincode is required' });
                         currentErrors['contactPincode'] = { message: 'Contact Pincode is required' };
                     }
-                    
                     // Validate permanent address if "Same As Communication Address" is not checked
                     if (!formValues.sameAsCommunicationAddress) {
                         if (!formValues.permanentAddress || formValues.permanentAddress.trim() === '') {
@@ -1762,7 +1650,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         }
                     }
                 }
-                
                 // All validation errors are already set and will be displayed inline
                 // Scroll to first error field to help user see the errors
                 const errorFields = Object.keys(currentErrors);
@@ -1772,14 +1659,12 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     let fieldElement = document.querySelector(`[name="${firstField}"]`) as HTMLElement ||
                                       document.querySelector(`#${firstField}`) as HTMLElement ||
                                       document.querySelector(`[id*="${firstField}"]`) as HTMLElement;
-                    
                     // For nested fields, try to find the actual input
                     if (!fieldElement && firstField.includes('[')) {
                         const baseField = firstField.split('[')[0];
                         fieldElement = document.querySelector(`[name*="${baseField}"]`) as HTMLElement ||
                                       document.querySelector(`#${baseField}`) as HTMLElement;
                     }
-                    
                     if (fieldElement) {
                         setTimeout(() => {
                             fieldElement.focus();
@@ -1790,20 +1675,15 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 return;
             }
         }
-
         // If validation passes, proceed with submission
-        console.log('🔍 [SUBMIT] Validation passed, proceeding to processFormSubmission');
         await processFormSubmission(data);
     };
-
     const processFormSubmission = async (data: FormFields) => {
-        console.log('🔍 [SUBMIT] processFormSubmission called', { activeTab, isEditMode, savedEmployeeId });
         try {
             // Employee Tab: Validate and save employee details (with address fields as null)
             if (activeTab === 'employee') {
                 // Validate only employee tab fields
                 const employeeErrors: string[] = [];
-
                 // Required employee fields
                 if (!data.firstName || data.firstName.trim() === '') {
                     employeeErrors.push('Name of the Employee is required');
@@ -1841,36 +1721,30 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 if (!data.gender || data.gender === '0' || data.gender === '') {
                     employeeErrors.push('Gender is required');
                 }
-
                 // Validate mobile number if provided
                 const mobileNo = data.mobileDetails?.[0]?.mobileNo;
                 if (mobileNo && mobileNo.trim() !== '' && !validateMobileNumber(mobileNo)) {
                     employeeErrors.push('Mobile Number must be 10 digits');
                 }
-
                 // Validate email if provided
                 const emailId = data.emailDetails?.[0]?.emailId;
                 if (emailId && emailId.trim() !== '' && !validateEmail(emailId)) {
                     employeeErrors.push('Email must be a valid email address');
                 }
-
                 // Validate Aadhar if provided
                 if (data.aadharNo && data.aadharNo.trim() !== '' && !validateAadharNumber(data.aadharNo)) {
                     employeeErrors.push('Aadhar Number must be 12 digits');
                 }
-
                 // Validate PAN if provided
                 if (data.panCardNo && data.panCardNo.trim() !== '' && !validatePANNumber(data.panCardNo)) {
                     employeeErrors.push('PAN Number must be in format ABCDE1234F');
                 }
-
                 // Validate date of confirmation if provided
                 if (data.dateOfConfirmation && data.dateOfJoining) {
                     if (new Date(data.dateOfConfirmation) < new Date(data.dateOfJoining)) {
                         employeeErrors.push('Date of Confirmation must be after Date of Joining');
                     }
                 }
-
                 if (employeeErrors.length > 0) {
                     // Set errors on fields instead of showing toast
                     employeeErrors.forEach((errorMsg, index) => {
@@ -1892,18 +1766,13 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     });
                     return;
                 }
-
                 // Call API with address fields as null
-                console.log('🔍 [SUBMIT] Employee tab - preparing to save', { isEditMode, savedEmployeeId });
                 const payload = mapFormDataToApiFormatWithoutAddress(data);
-                console.log('🔍 [SUBMIT] Employee tab - payload prepared', { HRME_Id: payload.HRME_Id, employeeCode: payload.HRME_EmployeeCode });
-
                 savePersonalDetails(payload, {
                     onSuccess: async (response) => {
                         const responseData = (response as any)?.data;
                         const responseMessage = (response as any)?.message;
                         const responseSuccess = (response as any)?.success;
-
                         // Check for duplicate employee code or error response
                         if (responseData === 'Duplicate' || responseMessage === 'Duplicate' || 
                             (responseSuccess === false && responseMessage)) {
@@ -1912,20 +1781,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             toast.error(errorMessage);
                             return;
                         }
-
                         // Extract HRME_Id from response
                         let employeeId: number | null = null;
-                        
-                        console.log('🔍 [SAVE] Full response structure:', {
-                            responseType: typeof response,
-                            responseKeys: typeof response === 'object' && response !== null ? Object.keys(response) : [],
-                            responseData,
-                            responseMessage,
-                            responseSuccess,
-                            responseHRME_Id: (response as any)?.HRME_Id,
-                            responseDataHRME_Id: responseData?.HRME_Id
-                        });
-
                         if (typeof response === 'object' && response !== null) {
                             // Check direct property on response
                             if ('HRME_Id' in response && typeof (response as any).HRME_Id === 'number' && (response as any).HRME_Id > 0) {
@@ -1940,30 +1797,23 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                 employeeId = responseData.data.HRME_Id;
                             }
                         }
-
                         // Store the employee ID for subsequent tabs
                         if (employeeId && employeeId > 0) {
-                            console.log('✅ [SAVE] Extracted HRME_Id from response:', employeeId);
                             setSavedEmployeeId(employeeId);
                         } else if (!savedEmployeeId && (responseData === 'Add' || responseMessage === 'Add')) {
-                            console.warn('⚠️ [SAVE] Employee created (Add response) but HRME_Id not found in response. Please check API response structure.');
                             console.warn('⚠️ [SAVE] Full response:', JSON.stringify(response, null, 2));
                         } else if (savedEmployeeId) {
-                            console.log('ℹ️ [SAVE] Using existing savedEmployeeId:', savedEmployeeId);
                         }
-
                         if (responseData === 'Add' || responseMessage === 'Add') {
                             toast.success('Employee details saved successfully!');
                             setActiveTab('address');
                             return;
                         }
-
                         if (responseData === 'Update' || responseMessage === 'Update') {
                             toast.success('Employee details updated successfully!');
                             setActiveTab('address');
                             return;
                         }
-
                         // Fallback for other success responses
                         if (responseSuccess === true || responseSuccess === undefined) {
                             toast.success(responseMessage || 'Employee details saved successfully!');
@@ -1971,11 +1821,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         }
                     },
                     onError: (error: any) => {
-                        console.error('🔍 [SAVE] ERROR:', error);
-                        
                         // Extract error message from API response
                         let errorMessage = 'Failed to save employee details';
-                        
                         // Check if error has response data with message
                         if (error?.response?.data) {
                             const errorData = error.response.data;
@@ -1992,13 +1839,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         } else if (error?.message) {
                             errorMessage = error.message;
                         }
-                        
                         toast.error(errorMessage);
                     }
                 });
                 return;
             }
-
             // Address Tab: Save Address details (call same endpoint again with address fields)
             // Note: Only validate address fields here - employee fields are validated in employee tab
             if (activeTab === 'address') {
@@ -2007,7 +1852,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     setActiveTab('employee');
                     return;
                 }
-
                 // Validate only address fields (employee fields are validated in employee tab)
                 const addressErrors: string[] = [];
                 if (!data.contactAddress || data.contactAddress.trim() === '') {
@@ -2027,7 +1871,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 } else if (!validatePincode(data.contactPincode)) {
                     addressErrors.push('Contact Pincode must be a valid numerical value (5-10 digits)');
                 }
-
                 // Validate permanent address if "Same As Communication Address" is not checked
                 if (!data.sameAsCommunicationAddress) {
                     if (!data.permanentAddress || data.permanentAddress.trim() === '') {
@@ -2048,7 +1891,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         addressErrors.push('Permanent Pincode must be a valid numerical value (5-10 digits)');
                     }
                 }
-
                 // Set address errors on fields instead of showing toast
                 if (addressErrors.length > 0) {
                     addressErrors.forEach((errorMsg) => {
@@ -2077,25 +1919,19 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     });
                     return;
                 }
-
-                console.log('🔍 [SUBMIT] Address tab - preparing to save', { isEditMode, savedEmployeeId });
                 const payload = mapFormDataToApiFormat(data);
                 // Ensure HRME_Id is set from savedEmployeeId
                 payload.HRME_Id = savedEmployeeId;
-                console.log('🔍 [SUBMIT] Address tab - payload prepared', { HRME_Id: payload.HRME_Id, employeeCode: payload.HRME_EmployeeCode });
-
                 savePersonalDetails(payload, {
                     onSuccess: async (response) => {
                         const responseData = (response as any)?.data;
                         const responseMessage = (response as any)?.message;
                         const responseSuccess = (response as any)?.success;
-
                         // Check for error response
                         if (responseSuccess === false && responseMessage) {
                             toast.error(responseMessage);
                             return;
                         }
-
                         // Save bank details if available
                         if (data.bankDetails && data.bankDetails.length > 0 && savedEmployeeId && savedEmployeeId > 0) {
                             const bankDetailsPayload = {
@@ -2111,23 +1947,18 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                     HRMEB_ActiveFlag: bank.accountType === 'Default' ? 'Y' : 'N'
                                 }))
                             };
-
-                            console.log('🔍 [BANK SAVE] Saving bank details:', bankDetailsPayload);
                             saveBankDetails(bankDetailsPayload);
                         }
-
                         if (responseData === 'Add' || responseMessage === 'Add') {
                             toast.success('Address details saved successfully!');
                             setActiveTab('qualification');
                             return;
                         }
-
                         if (responseData === 'Update' || responseMessage === 'Update') {
                             toast.success('Address details updated successfully!');
                             setActiveTab('qualification');
                             return;
                         }
-
                         // Fallback for other success responses
                         if (responseSuccess === true || responseSuccess === undefined) {
                             toast.success(responseMessage || 'Address details saved successfully!');
@@ -2135,11 +1966,8 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         }
                     },
                     onError: (error: any) => {
-                        console.error('🔍 [SAVE] ERROR:', error);
-                        
                         // Extract error message from API response
                         let errorMessage = 'Failed to save address details';
-                        
                         // Check if error has response data with message
                         if (error?.response?.data) {
                             const errorData = error.response.data;
@@ -2156,25 +1984,19 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         } else if (error?.message) {
                             errorMessage = error.message;
                         }
-                        
                         toast.error(errorMessage);
                     }
                 });
                 return;
             }
-
             // Qualification Tab: Save qualification details
             if (activeTab === 'qualification') {
-                console.log('🔍 [SUBMIT] Qualification tab - checking savedEmployeeId', { savedEmployeeId, isEditMode });
                 if (!savedEmployeeId) {
                     toast.error('Please save Employee and Address details first');
                     setActiveTab('employee');
                     return;
                 }
-                console.log('🔍 [SUBMIT] Qualification tab - proceeding with save');
-
                 const qualificationDetails = data.qualificationDetails || [];
-
                 if (qualificationDetails.length === 0) {
                     setError('qualificationDetails', {
                         type: 'required',
@@ -2182,12 +2004,10 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     });
                     return;
                 }
-
                 // Map form data to API format
                 const qualificationsPayload = qualificationDetails.map((qual: any, index: number) => {
                     const cgpaValue = qual.cgpa || '';
                     const isPercentage = qual.cgpaOrPercentage === 'Percentage';
-
                     // Ensure numeric fields are properly converted
                     const courseId = qual.course ? Number(qual.course) : 0;
                     const yearOfPassing = qual.yearOfPassing ? Number(qual.yearOfPassing) : 0;
@@ -2195,7 +2015,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     const stateId = qual.qualificationState ? Number(qual.qualificationState) : 0;
                     const registrationYear = qual.registrationYear ? Number(qual.registrationYear) : 0;
                     const hrmEqId = qual.HRMEQ_Id ? Number(qual.HRMEQ_Id) : 0;
-
                     // Validate required fields and set errors
                     if (!courseId) {
                         setError(`qualificationDetails.${index}.course`, {
@@ -2227,7 +2046,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         });
                         throw new Error('State is required');
                     }
-
                     return {
                         CreatedDate: new Date().toISOString(),
                         UpdatedDate: new Date().toISOString(),
@@ -2257,7 +2075,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         retrunMsg: ''
                     };
                 });
-
                 saveQualificationDetails(qualificationsPayload, {
                     onSuccess: (_response) => {
                         toast.success('Qualification details saved successfully!');
@@ -2269,19 +2086,14 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
                 return;
             }
-
             // Experience Tab: Save experience details
             if (activeTab === 'experience') {
-                console.log('🔍 [SUBMIT] Experience tab - checking savedEmployeeId', { savedEmployeeId, isEditMode });
                 if (!savedEmployeeId) {
                     toast.error('Please save Employee and Address details first');
                     setActiveTab('employee');
                     return;
                 }
-                console.log('🔍 [SUBMIT] Experience tab - proceeding with save');
-
                 const experienceDetails = data.experienceDetails || [];
-
                 if (experienceDetails.length === 0) {
                     setError('experienceDetails', {
                         type: 'required',
@@ -2289,7 +2101,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     });
                     return;
                 }
-
                 // Map form data to API format
                 const experiencesPayload = experienceDetails.map((exp: any) => ({
                     CreatedDate: new Date().toISOString(),
@@ -2309,7 +2120,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     HRMEE_ReasonForLeaving: exp.reasonForLeaving || '',
                     retrunMsg: ''
                 }));
-
                 saveExperienceDetails(experiencesPayload, {
                     onSuccess: (_response) => {
                         toast.success('Experience details saved successfully!');
@@ -2321,19 +2131,14 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
                 return;
             }
-
             // Document Tab: Save document details
             if (activeTab === 'document') {
-                console.log('🔍 [SUBMIT] Document tab - checking savedEmployeeId', { savedEmployeeId, isEditMode });
                 if (!savedEmployeeId) {
                     toast.error('Please save Employee and Address details first');
                     setActiveTab('employee');
                     return;
                 }
-                console.log('🔍 [SUBMIT] Document tab - proceeding with save');
-
                 const documentList = data.documentList || [];
-
                 if (documentList.length === 0) {
                     setError('documentList', {
                         type: 'required',
@@ -2341,13 +2146,11 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     });
                     return;
                 }
-
                 // Map form data to API format
                 const documentsPayload = documentList.map((doc: any) => {
                     const documentName = doc.documentName || doc.name || '';
                     const documentImageName = doc.document?.[0]?.name || doc.imageName || '';
                     const documentDescription = doc.description || doc.documentDescription || '';
-
                     return {
                         CreatedDate: new Date().toISOString(),
                         UpdatedDate: new Date().toISOString(),
@@ -2360,7 +2163,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         retrunMsg: ''
                     };
                 });
-
                 saveDocumentDetails(documentsPayload, {
                     onSuccess: (_response) => {
                         toast.success('Document details saved successfully!');
@@ -2372,7 +2174,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 });
                 return;
             }
-
             // Medical Tab: Save medical details
             if (activeTab === 'medical') {
                 if (!savedEmployeeId) {
@@ -2380,28 +2181,23 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     setActiveTab('employee');
                     return;
                 }
-
                 // Medical endpoint requires full employee object, reuse the mapping function
                 const payload = mapFormDataToApiFormat(data) as any;
-
                 // Ensure HRME_Id is set
                 payload.HRME_Id = savedEmployeeId;
                 payload.CreatedDate = new Date().toISOString();
                 payload.UpdatedDate = new Date().toISOString();
-
                 saveMedicalDetails(payload, {
                     onSuccess: (_response) => {
                         toast.success('Medical details saved successfully!');
                         setActiveTab('other');
                     },
                     onError: (error: any) => {
-                        console.error('🔍 [MEDICAL SAVE] Form - Save error:', error);
                         toast.error(error.message || 'Failed to save medical details');
                     }
                 });
                 return;
             }
-
             // Other Details Tab: Save via main employee endpoint (fields are part of employee object)
             if (activeTab === 'other') {
                 if (!savedEmployeeId) {
@@ -2409,7 +2205,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     setActiveTab('employee');
                     return;
                 }
-
                 // Validate lastWorkingDay and reasonForLeaving if employeeLeft is true
                 if (data.employeeLeft) {
                     const otherDetailsErrors: string[] = [];
@@ -2419,7 +2214,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     if (!data.reasonForLeaving || data.reasonForLeaving.trim() === '') {
                         otherDetailsErrors.push('Reason for Leaving is required when Employee Left is checked');
                     }
-
                     if (otherDetailsErrors.length > 0) {
                         // Set errors on fields instead of showing toast
                         otherDetailsErrors.forEach((errorMsg) => {
@@ -2435,28 +2229,23 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         return;
                     }
                 }
-
                 // Other Details fields are part of the main employee object, so use the same endpoint
                 const payload = mapFormDataToApiFormat(data) as any;
-
                 // Ensure HRME_Id is set
                 payload.HRME_Id = savedEmployeeId;
                 payload.CreatedDate = new Date().toISOString();
                 payload.UpdatedDate = new Date().toISOString();
-
                 savePersonalDetails(payload, {
                     onSuccess: (_response) => {
                         toast.success('Other details saved successfully!');
                         setActiveTab('payroll');
                     },
                     onError: (error: any) => {
-                        console.error('🔍 [OTHER DETAILS SAVE] Form - Save error:', error);
                         toast.error(error.message || 'Failed to save other details');
                     }
                 });
                 return;
             }
-
             // Other tabs: Need employee to be saved first
             if (!savedEmployeeId) {
                 toast.error('Please save Employee and Address details first');
@@ -2465,11 +2254,9 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                 toast.info(`Saving ${activeTab} tab data... (Not yet implemented)`);
             }
         } catch (_error: any) {
-            console.error('🔍 [SAVE] Submit error:', _error);
             toast.error('An error occurred while submitting the form');
         }
     };
-
     // Prepare options for EmployeeTab and AddressTab (memoized to prevent unnecessary re-renders)
     // Use array lengths in dependencies to prevent recreation when arrays are the same
     const options = useMemo(() => {
@@ -2508,7 +2295,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             documentList: onloadData.documentList || [],
             employeedetailList: onloadData.employeedetailList || []
         };
-
         return opts;
     }, [
         onloadData?.employeeTypedropdownlist?.length,
@@ -2527,7 +2313,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
         onloadData?.coursedropdownlist?.length,
         onloadData?.SpecialisationList?.length
     ]);
-
     if (isLoadingOnload || isLoadingEmployee) {
         return (
             <div className='flex items-center justify-center p-8'>
@@ -2535,44 +2320,31 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             </div>
         );
     }
-
     // Custom submit handler that only validates current tab fields
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        
-        console.log('🔍 [SUBMIT] onFormSubmit called', { activeTab, isEditMode });
-        
         // Get current tab fields
         const currentTabFields = tabFieldMap[activeTab] || [];
-        
         // Only validate current tab fields, not all fields
         if (currentTabFields.length > 0) {
-            console.log('🔍 [SUBMIT] Validating only current tab fields:', currentTabFields);
-            
             // Clear errors from other tabs first to prevent them from blocking submission
             const allTabFields = Object.values(tabFieldMap).flat();
             const otherTabFields = allTabFields.filter(field => !currentTabFields.includes(field));
             otherTabFields.forEach((field) => {
                 clearErrors(field);
             });
-            
             // Validate only current tab fields
             const isValid = await trigger(currentTabFields as any);
-            
             if (!isValid) {
-                console.log('🔴 [SUBMIT] Current tab validation failed');
                 // Wait a bit for errors to be set in form state
                 await new Promise(resolve => setTimeout(resolve, 300));
-                
                 // Get errors from formState directly to ensure we have the latest errors after trigger
                 // Access formState.errors directly instead of destructured errors for latest state
                 const formErrors = formState.errors;
-                
                 // For employee tab, manually validate required fields if trigger didn't catch them
                 if (activeTab === 'employee') {
                     const formValues = getValues();
-                    
                     // Manually check required fields and set errors if missing
                     const requiredFields: Array<{ field: keyof FormFields; message: string }> = [
                         { field: 'firstName', message: 'Name of the Employee is required' },
@@ -2594,7 +2366,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         { field: 'modeOfPayment', message: 'Mode of Payment is required' },
                         { field: 'teachingNonTeaching', message: 'Teaching/Non-Teaching is required' }
                     ];
-                    
                     requiredFields.forEach(({ field, message }) => {
                         const value = formValues[field];
                         if (!value || value === '' || value === '0') {
@@ -2606,7 +2377,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             }
                         }
                     });
-                    
                     // Check mobile details
                     if (!formValues.mobileDetails || formValues.mobileDetails.length === 0) {
                         if (!formState.errors.mobileDetails) {
@@ -2617,11 +2387,9 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         }
                     }
                 }
-                
                 // Get errors for current tab only
                 const currentErrors: Record<string, any> = {};
                 const errorMessages: string[] = [];
-                
                 currentTabFields.forEach((field) => {
                     const fieldError = formState.errors[field as keyof typeof formState.errors];
                     if (fieldError) {
@@ -2632,7 +2400,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         }
                     }
                 });
-                
                 // Also check nested fields for employee tab
                 if (activeTab === 'employee') {
                     if (formState.errors.mobileDetails) {
@@ -2657,20 +2424,14 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         errorMessages.push(bankError);
                     }
                 }
-                
                 // Log all errors for debugging
-                console.log('🔴 [SUBMIT] Validation errors found:', currentErrors);
-                console.log('🔴 [SUBMIT] Error messages:', errorMessages);
-                console.log('🔴 [SUBMIT] Form errors object:', formState.errors);
                 console.log('🔴 [SUBMIT] All form errors keys:', Object.keys(formState.errors));
-                
                 // Show all validation errors - fields are already highlighted via react-hook-form
                 const errorFields = Object.keys(currentErrors);
                 if (errorFields.length > 0) {
                     // Show toast with first error message
                     const firstErrorMsg = errorMessages[0] || 'Please fix the validation errors in the form';
                     toast.error(firstErrorMsg);
-                    
                     // Scroll to first error field to help user see the errors
                     setTimeout(() => {
                         const firstField = errorFields[0];
@@ -2679,7 +2440,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                           document.querySelector(`#${firstField}`) as HTMLElement ||
                                           document.querySelector(`input[id*="${firstField}"]`) as HTMLElement ||
                                           document.querySelector(`select[id*="${firstField}"]`) as HTMLElement;
-                        
                         // For nested fields like mobileDetails[0].mobileNo, try to find the actual input
                         if (!fieldElement && firstField.includes('[')) {
                             const baseField = firstField.split('[')[0];
@@ -2688,7 +2448,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                           document.querySelector(`input[id*="${baseField}"]`) as HTMLElement ||
                                           document.querySelector(`select[id*="${baseField}"]`) as HTMLElement;
                         }
-                        
                         // Try to find by label text if still not found
                         if (!fieldElement) {
                             // Get the field label from the error message or field name
@@ -2711,7 +2470,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                 caste: 'Caste',
                                 modeOfPayment: 'Mode of Payment'
                             };
-                            
                             const labelText = fieldLabels[firstField] || firstField;
                             // Try to find label and then the associated input
                             const labels = Array.from(document.querySelectorAll('label'));
@@ -2719,7 +2477,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                 label.textContent?.includes(labelText) || 
                                 label.getAttribute('for')?.includes(firstField)
                             );
-                            
                             if (matchingLabel) {
                                 const labelFor = matchingLabel.getAttribute('for');
                                 if (labelFor) {
@@ -2730,7 +2487,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                                 }
                             }
                         }
-                        
                         if (fieldElement) {
                             fieldElement.focus();
                             fieldElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2745,24 +2501,19 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     return;
                 } else {
                     // If no errors found but validation failed, show generic message
-                    console.warn('⚠️ [SUBMIT] Validation failed but no errors found in form state');
                     toast.error('Please check the form fields and fix any validation errors');
                     return;
                 }
             }
         }
-        
         // Get form data and proceed with submission
         const formData = getValues();
-        console.log('🔍 [SUBMIT] Validation passed, proceeding with handleTabSubmit');
         try {
             await handleTabSubmit(formData);
         } catch (error: any) {
-            console.error('🔴 [SUBMIT] Error in handleTabSubmit:', error);
             toast.error(error?.message || 'An error occurred while submitting the form');
         }
     };
-    
     // Keep handleSubmit for backward compatibility but don't use it for form submission
     const _onFormSubmit = handleSubmit(
         async (data: FormFields) => {
@@ -2771,29 +2522,21 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             await handleTabSubmit(data);
         },
         (errors) => {
-            console.error('🔴 [SUBMIT] Form validation errors:', errors);
             console.error('🔴 [SUBMIT] Error details:', JSON.stringify(errors, null, 2));
-            console.error('🔴 [SUBMIT] Current tab:', activeTab);
-            
             // Get current tab fields to show ONLY relevant errors for this tab
             const currentTabFields = tabFieldMap[activeTab] || [];
-            console.error('🔴 [SUBMIT] Current tab fields:', currentTabFields);
-            
             // Clear errors from other tabs - only keep errors for current tab
             const allTabFields = Object.values(tabFieldMap).flat();
             const otherTabFields = allTabFields.filter(field => !currentTabFields.includes(field));
-            
             // Clear errors from other tabs
             otherTabFields.forEach((field) => {
                 if (errors[field as keyof typeof errors]) {
                     clearErrors(field);
                 }
             });
-            
             // Find the first error ONLY for the current tab
             let firstError: any = null;
             let firstErrorField = '';
-            
             // Check current tab fields ONLY
             for (const field of currentTabFields) {
                 const fieldError = errors[field as keyof typeof errors];
@@ -2803,7 +2546,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     break;
                 }
             }
-            
             // Also check nested fields for current tab (e.g., mobileDetails for employee tab)
             if (!firstError && activeTab === 'employee') {
                 // Check mobileDetails, emailDetails, bankDetails for employee tab
@@ -2818,18 +2560,14 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                     firstErrorField = 'bankDetails';
                 }
             }
-            
             // If no error found in current tab fields, don't show error from other tabs
             if (!firstError) {
-                console.log('ℹ️ [SUBMIT] No errors found for current tab, ignoring errors from other tabs');
                 // Don't show error if it's from another tab
                 return;
             }
-            
             // Show specific error message
             if (firstError) {
                 let errorMessage = '';
-                
                 // Handle different error structures
                 if (typeof firstError === 'object') {
                     // Check for direct message
@@ -2864,7 +2602,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         errorMessage = `Please check ${firstErrorField}`;
                     }
                 }
-                
                 if (!errorMessage) {
                     // Try to get a meaningful field name
                     const fieldName = firstErrorField
@@ -2873,7 +2610,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                         .trim();
                     errorMessage = `Please fix the error in ${fieldName}`;
                 }
-                
                 // Errors are already set on fields, just scroll to first error
                 setTimeout(() => {
                     const fieldElement = document.querySelector(`[name="${firstErrorField}"]`) as HTMLElement ||
@@ -2886,7 +2622,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
             }
         }
     );
-
     return (
         <div className={className || ''}>
             <form
@@ -2905,7 +2640,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             Payroll
                         </TabsTrigger>
                     </TabsList>
-
                     <TabsContent value='employee' className='mt-4'>
                         <EmployeeTab
                             control={control}
@@ -2925,7 +2659,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
-
                     <TabsContent value='address' className='mt-4'>
                         <AddressTab
                             control={control}
@@ -2941,7 +2674,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
-
                     <TabsContent value='qualification' className='mt-4'>
                         <QualificationTab
                             control={control}
@@ -2957,7 +2689,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
-
                     <TabsContent value='experience' className='mt-4'>
                         <ExperienceTab
                             control={control}
@@ -2970,7 +2701,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
-
                     <TabsContent value='document' className='mt-4'>
                         <UploadDocumentTab
                             control={control}
@@ -2983,7 +2713,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
-
                     <TabsContent value='medical' className='mt-4'>
                         <MedicalRecordTab
                             control={control}
@@ -2995,7 +2724,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
-
                     <TabsContent value='other' className='mt-4'>
                         <OtherDetailsTab
                             control={control}
@@ -3009,7 +2737,6 @@ export default function EmployeeRegisterForm({ selectedRow, onSuccess, className
                             onPreviousTab={handlePreviousTab}
                         />
                     </TabsContent>
-
                     <TabsContent value='payroll' className='mt-4'>
                         {savedEmployeeId && watch('employeeCode') ? (
                             <PayrollTab 

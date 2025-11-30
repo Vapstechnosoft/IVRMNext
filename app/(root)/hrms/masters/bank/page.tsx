@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -10,14 +9,12 @@ import type { ApiSearchparams } from '@/types';
 import type { BankItem } from '@/types/hrms/master-bank';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
-import BankForm from './_components/bank-form';
+import AddBankForm from './_components/add-form';
 import { columns } from './_components/columns';
-
+import UpdateBankForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterBankPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
-
     // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
     // This matches how preadmission handles it
     const searchParams: ApiSearchparams = {
@@ -62,16 +59,13 @@ export default function MasterBankPage(props: { searchParams: SearchParams }) {
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     const { listQuery, refetchAll } = useMasterBank(HRMS_MI_ID, searchParams);
-
     return (
         <FormProvider<BankItem>>
             <MasterBankPageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} refetch={refetchAll} />
         </FormProvider>
     );
 }
-
 function MasterBankPageContent({
     response,
     isLoading,
@@ -85,10 +79,10 @@ function MasterBankPageContent({
 }) {
     const { openAddForm } = useFormContext<BankItem>();
     const tableProps = useDataTableProps(response);
-
     return (
         <div className='min-h-screen'>
-            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex justify-end'>
                     <Button
                         type='button'
@@ -98,7 +92,7 @@ function MasterBankPageContent({
                         Add Bank
                     </Button>
                 </div>
-
+                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
@@ -109,6 +103,7 @@ function MasterBankPageContent({
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading banks...'
                         noDataTitle='No Banks Found'
@@ -116,16 +111,14 @@ function MasterBankPageContent({
                         errorTitle='Error Loading Banks'
                     />
                 </CollapsibleSection>
-
+                {/* Forms */}
                 <FormSections refetch={refetch} />
             </div>
         </div>
     );
 }
-
 function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<BankItem>();
-
     return (
         <>
             {isAddFormOpen && (
@@ -146,7 +139,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <BankForm
+                            <AddBankForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
@@ -156,7 +149,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -174,7 +166,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <BankForm
+                            <UpdateBankForm
                                 selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();

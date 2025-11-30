@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -11,13 +10,11 @@ import { Save, X } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCredit } from './columns';
-
 interface AddLeaveCreditFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-
 const typeOptions = [
     { label: 'VKS', value: 'VKS' },
     { label: 'Permanent', value: 'Permanent' },
@@ -50,18 +47,15 @@ const employeeOptions = [
     { label: 'Balu Prabhakar', value: 'Balu Prabhakar' },
     { label: 'Rizwan Ahmed Kusugal', value: 'Rizwan Ahmed Kusugal' }
 ];
-
 type LeaveTransferFormData = LeaveCredit & {
     employeeNames?: string[];
     leaveCount?: number;
     reason?: string;
 };
-
 export default function AddLeaveCreditForm({ onSuccess, onCancel, className = '' }: AddLeaveCreditFormProps) {
     const { refetchAll } = useLeaveCredit();
     const { mutate: saveCredit, isPending } = useSaveLeaveCredit();
     const [activeTab, setActiveTab] = useState('Leave Credit');
-
     const {
         register,
         handleSubmit,
@@ -86,7 +80,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
             employeeNames: []
         }
     });
-
     const onSubmit: SubmitHandler<LeaveTransferFormData> = async (data) => {
         // Convert employeeNames array to employeeName string (comma-separated or first selected)
         const submitData = {
@@ -96,7 +89,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
         };
         // Remove employeeNames from submit data as it's not part of LeaveCredit interface
         (submitData as any).employeeNames = undefined;
-
         saveCredit(submitData as LeaveCredit, {
             onSuccess: () => {
                 reset();
@@ -105,11 +97,9 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
             }
         });
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
@@ -119,7 +109,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                     <TabsTrigger value='Leave Deduction'>Leave Deduction</TabsTrigger>
                     <TabsTrigger value='Leave CarryForward'>Leave CarryForward</TabsTrigger>
                 </TabsList>
-
                 <TabsContent value='Leave Credit' className='space-y-4'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                         {/* Step 1: Type, Department, Designation - First line */}
@@ -142,7 +131,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='department-multiselect' className='mb-2 block font-medium text-sm'>
                                     Department
@@ -161,7 +149,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='designation-multiselect' className='mb-2 block font-medium text-sm'>
                                     Designation
@@ -181,7 +168,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 />
                             </div>
                         </div>
-
                         {/* Step 2: Leave Year and Leave Name - Second line */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
@@ -209,7 +195,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     </div>
                                 )}
                             />
-
                             <Controller
                                 name='leaveName'
                                 control={control}
@@ -237,7 +222,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 )}
                             />
                         </div>
-
                         {/* Step 3: Employee Name and Leave Count - Dynamically rendered when all three criteria are selected */}
                         {watch('type')?.length > 0 && watch('department')?.length > 0 && watch('designation')?.length > 0 && (
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -259,7 +243,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                         )}
                                     />
                                 </div>
-
                                 <div className='mt-2'>
                                     <InputText
                                         label='Leave Count'
@@ -273,7 +256,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 </div>
                             </div>
                         )}
-
                         <div className='flex justify-end gap-2'>
                             {onCancel && (
                                 <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
@@ -291,7 +273,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                         </div>
                     </form>
                 </TabsContent>
-
                 <TabsContent value='Leave Addition' className='space-y-4'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                         {/* Step 1: Type, Department, Designation - First line */}
@@ -314,7 +295,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='department-multiselect-addition' className='mb-2 block font-medium text-sm'>
                                     Department
@@ -333,7 +313,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='designation-multiselect-addition' className='mb-2 block font-medium text-sm'>
                                     Designation
@@ -353,7 +332,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 />
                             </div>
                         </div>
-
                         {/* Step 2: Leave Year and Leave Name - Second line */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
@@ -383,7 +361,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     </div>
                                 )}
                             />
-
                             <Controller
                                 name='leaveName'
                                 control={control}
@@ -413,7 +390,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 )}
                             />
                         </div>
-
                         {/* Step 3: Employee Name, Leave Count, and Reason - Dynamically rendered when all three criteria are selected */}
                         {watch('type')?.length > 0 && watch('department')?.length > 0 && watch('designation')?.length > 0 && (
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -435,7 +411,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                         )}
                                     />
                                 </div>
-
                                 <div className='mt-2'>
                                     <InputText
                                         label='Leave Count'
@@ -447,7 +422,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                         placeholder='Enter leave count'
                                     />
                                 </div>
-
                                 <div className='md:col-span-2'>
                                     <InputText
                                         label='Reason'
@@ -459,7 +433,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 </div>
                             </div>
                         )}
-
                         <div className='flex justify-end gap-2'>
                             {onCancel && (
                                 <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
@@ -477,7 +450,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                         </div>
                     </form>
                 </TabsContent>
-
                 <TabsContent value='Leave Deduction' className='space-y-4'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                         {/* Step 1: Type, Department, Designation - First line */}
@@ -500,7 +472,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='department-multiselect-deduction' className='mb-2 block font-medium text-sm'>
                                     Department
@@ -519,7 +490,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='designation-multiselect-deduction' className='mb-2 block font-medium text-sm'>
                                     Designation
@@ -539,7 +509,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 />
                             </div>
                         </div>
-
                         {/* Step 2: Leave Year and Leave Name - Second line */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
@@ -569,7 +538,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     </div>
                                 )}
                             />
-
                             <Controller
                                 name='leaveName'
                                 control={control}
@@ -599,7 +567,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 )}
                             />
                         </div>
-
                         {/* Step 3: Employee Name, Leave Count, and Reason - Dynamically rendered when all three criteria are selected */}
                         {watch('type')?.length > 0 && watch('department')?.length > 0 && watch('designation')?.length > 0 && (
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -621,7 +588,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                         )}
                                     />
                                 </div>
-
                                 <div className='mt-2'>
                                     <InputText
                                         label='Leave Count'
@@ -633,7 +599,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                         placeholder='Enter leave count'
                                     />
                                 </div>
-
                                 <div className='md:col-span-2'>
                                     <InputText
                                         label='Reason'
@@ -645,7 +610,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 </div>
                             </div>
                         )}
-
                         <div className='flex justify-end gap-2'>
                             {onCancel && (
                                 <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>
@@ -663,7 +627,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                         </div>
                     </form>
                 </TabsContent>
-
                 <TabsContent value='Leave CarryForward' className='space-y-4'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                         {/* Step 1: Type, Department, Designation - First line */}
@@ -686,7 +649,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='department-multiselect-carryforward' className='mb-2 block font-medium text-sm'>
                                     Department
@@ -705,7 +667,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='designation-multiselect-carryforward' className='mb-2 block font-medium text-sm'>
                                     Designation
@@ -725,7 +686,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 />
                             </div>
                         </div>
-
                         {/* Step 2: Leave Year and Leave Name - Second line */}
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
@@ -755,7 +715,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                     </div>
                                 )}
                             />
-
                             <Controller
                                 name='leaveName'
                                 control={control}
@@ -785,7 +744,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 )}
                             />
                         </div>
-
                         {/* Step 3: Employee Name - Dynamically rendered when all three criteria are selected */}
                         {watch('type')?.length > 0 && watch('department')?.length > 0 && watch('designation')?.length > 0 && (
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -809,7 +767,6 @@ export default function AddLeaveCreditForm({ onSuccess, onCancel, className = ''
                                 </div>
                             </div>
                         )}
-
                         <div className='flex justify-end gap-2'>
                             {onCancel && (
                                 <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>

@@ -1,93 +1,58 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
 import type { EarningsDeductionDetail } from '@/types/hrms/master-earnings-deductions';
-import { ListOrdered, Plus, Save, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { columns, getEditableColumns } from './_components/columns';
-import EarningsDeductionsForm from './_components/earnings-deductions-form';
-
+import AddEarningsDeductionsForm from './_components/add-form';
+import { columns } from './_components/columns';
+import ReorderEarningsDeductionsForm from './_components/reorder-form';
+import UpdateEarningsDeductionsForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterEarningsDeductionsPage(_props: {
     searchParams: SearchParams;
 }) {
     const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterEarningsDeductions(roleId);
-
+    const { listQuery, refetchAll } = useMasterEarningsDeductions(roleId);
     return (
         <FormProvider<EarningsDeductionDetail>>
-            <MasterEarningsDeductionsPageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} />
+            <MasterEarningsDeductionsPageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} refetch={refetchAll} />
         </FormProvider>
     );
 }
-
 function MasterEarningsDeductionsPageContent({
     response,
     isLoading,
-    error
+    error,
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<EarningsDeductionDetail>();
-    const { saveOrderMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
+    const { refetchAll } = useMasterEarningsDeductions(HRMS_MI_ID);
+    const tableProps = useDataTableProps(response);
     // Memoize arrays to prevent unnecessary re-renders
-    // Use earningdetectionList array which contains all records (earnings and deductions)
     const rows: EarningsDeductionDetail[] = useMemo(() => {
-        // Use earningdetectionList which contains all records
         const earningdetectionList = Array.isArray(response?.data?.earningdetectionList) ? response.data.earningdetectionList : [];
-
         return earningdetectionList;
     }, [response?.data?.earningdetectionList]);
     const typeDropdown = useMemo(() => response?.data?.eardettypeDropdown ?? [], [response?.data?.eardettypeDropdown]);
-
-    const [isEditOrderMode, setIsEditOrderMode] = useState(false);
-    const [editedRows, setEditedRows] = useState<EarningsDeductionDetail[]>([]);
     const [filterCategory, setFilterCategory] = useState<string>('all');
-
-    const handleSetOrder = () => {
-        setIsEditOrderMode(true);
-        setEditedRows([...rows]);
-    };
-
-    const handleCancelOrder = () => {
-        setIsEditOrderMode(false);
-        setEditedRows([]);
-    };
-
-    const handleSaveOrder = async () => {
-        try {
-            await saveOrderMutation.mutateAsync(editedRows);
-            toast.success('Order saved successfully');
-            setIsEditOrderMode(false);
-            setEditedRows([]);
-        } catch (_error) {
-            toast.error('Failed to save order');
-        }
-    };
-
-    const handleOrderChange = (rowId: number, newOrder: number) => {
-        setEditedRows((prev) => prev.map((row) => (row.HRMED_Id === rowId ? { ...row, HRMED_Order: newOrder } : row)));
-    };
-
-    const displayColumns = isEditOrderMode ? getEditableColumns(handleOrderChange) : columns;
-
-    // Filter data based on selected category
     const filteredRows = filterCategory === 'all' ? rows : rows.filter((row) => row.HRMED_EarnDedFlag === filterCategory);
-
-    const displayData = isEditOrderMode ? editedRows : filteredRows;
-
+    const filteredTableProps = filterCategory === 'all' 
+        ? tableProps 
+        : { data: filteredRows, totalItems: filteredRows.length };
     return (
         <div className='min-h-screen'>
-            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex justify-between gap-2'>
                     {/* Filter Dropdown */}
                     <div className='flex items-center gap-2'>
@@ -107,61 +72,32 @@ function MasterEarningsDeductionsPageContent({
                             </span>
                         )}
                     </div>
-
                     {/* Action Buttons */}
                     <div className='flex gap-2'>
-                        {isEditOrderMode ? (
-                            <>
-                                <Button
-                                    type='button'
-                                    onClick={handleCancelOrder}
-                                    variant='outline'
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <X className='h-4 w-4' />
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type='button'
-                                    onClick={handleSaveOrder}
-                                    disabled={saveOrderMutation.isPending}
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <Save className='h-4 w-4' />
-                                    {saveOrderMutation.isPending ? 'Saving...' : 'Save Order'}
-                                </Button>
-                            </>
-                        ) : (
-                            <>
-                                <Button
-                                    type='button'
-                                    onClick={handleSetOrder}
-                                    variant='outline'
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <ListOrdered className='h-4 w-4' />
-                                    Set Order
-                                </Button>
-                                <Button
-                                    type='button'
-                                    onClick={openAddForm}
-                                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                    <Plus className='h-4 w-4' />
-                                    Add Earning/Deduction
-                                </Button>
-                            </>
-                        )}
+                        <Button
+                            type='button'
+                            onClick={openAddForm}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                            <Plus className='h-4 w-4' />
+                            Add Earning/Deduction
+                        </Button>
                     </div>
                 </div>
-
+                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='flex justify-end'>
+                        <ReorderEarningsDeductionsForm />
+                    </div>
                     <GenericDataTable<EarningsDeductionDetail>
-                        data={displayData}
-                        totalItems={displayData.length}
-                        columns={displayColumns}
+                        {...filteredTableProps}
+                        columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading earnings/deductions...'
                         noDataTitle='No Earnings/Deductions Found'
@@ -169,17 +105,15 @@ function MasterEarningsDeductionsPageContent({
                         errorTitle='Error Loading Earnings/Deductions'
                     />
                 </CollapsibleSection>
-
-                <FormSections typeDropdown={typeDropdown} />
+                {/* Forms */}
+                <FormSections typeDropdown={typeDropdown} refetch={refetchAll} />
             </div>
         </div>
     );
 }
-
-function FormSections({ typeDropdown }: { typeDropdown: any[] }) {
+function FormSections({ typeDropdown, refetch }: { typeDropdown: any[]; refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<EarningsDeductionDetail>();
-
     return (
         <>
             {isAddFormOpen && (
@@ -200,12 +134,17 @@ function FormSections({ typeDropdown }: { typeDropdown: any[] }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EarningsDeductionsForm typeDropdown={typeDropdown} onSuccess={closeAddForm} />
+                            <AddEarningsDeductionsForm
+                                typeDropdown={typeDropdown}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
-
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -223,7 +162,14 @@ function FormSections({ typeDropdown }: { typeDropdown: any[] }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EarningsDeductionsForm typeDropdown={typeDropdown} selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateEarningsDeductionsForm
+                                typeDropdown={typeDropdown}
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    refetch();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

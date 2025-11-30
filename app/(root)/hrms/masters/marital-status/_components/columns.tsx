@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,7 +8,6 @@ import type { MaritalStatusDetail, MasterMaritalStatusResponse } from '@/types/h
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<MaritalStatusDetail>[] = [
     {
         id: 'slNo',
@@ -34,18 +32,15 @@ export const columns: ColumnDef<MaritalStatusDetail>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
     const { openEditForm } = useFormContext<MasterMaritalStatusResponse>();
     const { toggleMutation } = useMasterMaritalStatus(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: MaritalStatusDetail) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: MaritalStatusDetail, newState: boolean) => {
             try {
@@ -53,7 +48,6 @@ function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
                     IVRMMMS_Id: data.IVRMMMS_Id,
                     IVRMMMS_ActiveFlag: newState
                 });
-
                 // Check the response success status
                 if (response?.success) {
                     toast.success(response.message || `Marital Status ${newState ? 'activated' : 'deactivated'} successfully`);
@@ -71,7 +65,6 @@ function ActionButtonsCell({ rowData }: { rowData: MaritalStatusDetail }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

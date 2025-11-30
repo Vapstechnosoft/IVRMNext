@@ -1,8 +1,6 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-
 /**
  * Employee Monthly Report Onload Request/Response Types
  */
@@ -18,21 +16,18 @@ export interface EmployeeMonthlyReportOnloadRequest {
     loginUserId: number;
     userRole: string;
 }
-
 export interface EmployeeMonthlyReportOnloadResponse {
     types: Array<{
         hrmgT_Id: number;
         hrmgT_EmployeeGroupType: string;
     }>;
 }
-
 export interface EmployeeMonthlyReportGetDataResponse {
     types: Array<{
         hrmgT_Id: number;
         hrmgT_EmployeeGroupType: string;
     }>;
 }
-
 /**
  * Get onload data for employee monthly report
  * This endpoint returns filter dropdowns (types/group types)
@@ -44,7 +39,6 @@ export async function getEmployeeMonthlyReportOnload(
     UserRole = ''
 ): Promise<ApiResponse<EmployeeMonthlyReportOnloadResponse>> {
     const url = '/api/EmployeeMonthlyReportFacade/getdata';
-    
     // Build request body
     const requestBody: EmployeeMonthlyReportOnloadRequest = {
         page: 1,
@@ -58,14 +52,11 @@ export async function getEmployeeMonthlyReportOnload(
         loginUserId: LoginUserId,
         userRole: UserRole
     };
-    
     const response = await api.post<EmployeeMonthlyReportGetDataResponse>('hrmsfrontoffice', url, requestBody);
-    
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "OK", data: { types: [...] }, total: 0, page: 1, page_size: 10 }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const responseData = response.data;
-        
         if (responseData) {
             const data = responseData as any;
             return {
@@ -77,7 +68,6 @@ export async function getEmployeeMonthlyReportOnload(
             };
         }
     }
-    
     // Return empty data if response structure is unexpected
     return {
         success: false,
@@ -87,7 +77,6 @@ export async function getEmployeeMonthlyReportOnload(
         }
     };
 }
-
 /**
  * Get employee monthly report data with pagination, search, and sort
  * TODO: Replace this with the actual search endpoint once provided
@@ -113,7 +102,6 @@ export async function getEmployeeMonthlyReportList(
 ): Promise<ApiResponse<any>> {
     // TODO: Replace this URL with the actual search endpoint
     const url = '/api/EmployeeMonthlyReportFacade/search'; // PLACEHOLDER - update when search endpoint is provided
-    
     // Build request body with pagination, search, sort, and filter params
     const requestBody: any = {
         page: searchParams?.page || 1,
@@ -127,7 +115,6 @@ export async function getEmployeeMonthlyReportList(
         loginUserId: filterParams?.LoginUserId || 0,
         userRole: filterParams?.UserRole || ''
     };
-    
     // Add filter parameters
     if (filterParams?.typeIdList && filterParams.typeIdList.length > 0) {
         requestBody.typeIdList = filterParams.typeIdList;
@@ -153,10 +140,8 @@ export async function getEmployeeMonthlyReportList(
     if (filterParams?.reportOptions && filterParams.reportOptions.length > 0) {
         requestBody.reportOptions = filterParams.reportOptions;
     }
-    
     // TODO: Uncomment and update when search endpoint is available
     // const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-    
     // For now, return empty response until search endpoint is provided
     return {
         success: false,
@@ -169,4 +154,3 @@ export async function getEmployeeMonthlyReportList(
         }
     };
 }
-

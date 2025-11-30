@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -11,19 +10,15 @@ import { useEffect } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import type { ShiftSetting } from './columns';
-
 type FormFields = z.infer<typeof shiftSettingMasterSchema.addOrUpdate>;
-
 interface UpdateShiftSettingMasterFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: ShiftSetting;
 }
-
 export default function UpdateShiftSettingMasterForm({ onSuccess, className = '', selectedRow: row }: UpdateShiftSettingMasterFormProps) {
     const { refetchAll } = useShiftSettingMaster();
     const { mutate: saveShiftSetting, isPending } = useSaveShiftSettingMaster();
-
     const {
         register,
         handleSubmit,
@@ -34,7 +29,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
         resolver: zodResolver(shiftSettingMasterSchema.addOrUpdate),
         mode: 'onChange'
     });
-
     useEffect(() => {
         if (row) {
             reset({
@@ -52,7 +46,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
             });
         }
     }, [row, reset]);
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         saveShiftSetting(
             {
@@ -78,11 +71,9 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
             }
         );
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
@@ -98,7 +89,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-
                     <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='shiftStartTime'>
@@ -112,7 +102,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             />
                             {errors.shiftStartTime && <FormError>{errors.shiftStartTime.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='shiftEndTime'>
                                 Shift End Time <span className='text-red-500'>*</span>
@@ -126,7 +115,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             />
                             {errors.shiftEndTime && <FormError>{errors.shiftEndTime.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='totalWorkingHours'>
                                 Total working hours per shift <span className='text-red-500'>*</span>
@@ -140,7 +128,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             {errors.totalWorkingHours && <FormError>{errors.totalWorkingHours.message}</FormError>}
                         </div>
                     </div>
-
                     <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='lunchStartTime'>
@@ -154,7 +141,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             />
                             {errors.lunchStartTime && <FormError>{errors.lunchStartTime.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='lunchEndTime'>
                                 Lunch End time
@@ -168,7 +154,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             />
                             {errors.lunchEndTime && <FormError>{errors.lunchEndTime.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='lunchHours'>
                                 Lunch Hours
@@ -182,7 +167,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             {errors.lunchHours && <FormError>{errors.lunchHours.message}</FormError>}
                         </div>
                     </div>
-
                     <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='earlyPerShift'>
@@ -196,7 +180,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             />
                             {errors.earlyPerShift && <FormError>{errors.earlyPerShift.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='delayPerShift'>
                                 Delay per shift
@@ -209,7 +192,6 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             />
                             {errors.delayPerShift && <FormError>{errors.delayPerShift.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='halfDayWorkingHours'>
                                 Half day working hours per shift <span className='text-red-500'>*</span>
@@ -223,10 +205,8 @@ export default function UpdateShiftSettingMasterForm({ onSuccess, className = ''
                             {errors.halfDayWorkingHours && <FormError>{errors.halfDayWorkingHours.message}</FormError>}
                         </div>
                     </div>
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -7,7 +6,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RefreshCw, X } from 'lucide-react';
 import { type Control, Controller } from 'react-hook-form';
-
 // Report filters
 export interface ReportFilters {
     groupType: string[]; // multi-select of Group Types (store ids as strings)
@@ -16,7 +14,6 @@ export interface ReportFilters {
     month: string;
     year: string;
 }
-
 interface CumulativeSalaryReportFiltersProps {
     control: Control<ReportFilters>;
     groupTypes: Array<{ HRMGT_Id: number; HRMGT_EmployeeGroupType: string }>;
@@ -27,7 +24,6 @@ interface CumulativeSalaryReportFiltersProps {
     onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
     onCancel: () => void;
 }
-
 export function CumulativeSalaryReportFilters({
     control,
     groupTypes,
@@ -47,7 +43,6 @@ export function CumulativeSalaryReportFilters({
                     const result = onSubmit(e);
                     if (result instanceof Promise) {
                         result.catch((error) => {
-                            console.error('🔴 [CUMULATIVE SALARY] Error in onSubmit:', error);
                         });
                     }
                 }}
@@ -74,7 +69,6 @@ export function CumulativeSalaryReportFilters({
                             )}
                         />
                     </div>
-
                     {/* Department (MultiSelect) */}
                     <div className='space-y-3'>
                         <Label className='font-semibold'>Department</Label>
@@ -96,7 +90,6 @@ export function CumulativeSalaryReportFilters({
                             )}
                         />
                     </div>
-
                     {/* Designation (MultiSelect) */}
                     <div className='space-y-3'>
                         <Label className='font-semibold'>Designation</Label>
@@ -118,7 +111,6 @@ export function CumulativeSalaryReportFilters({
                             )}
                         />
                     </div>
-
                     {/* Month */}
                     <div className='space-y-3'>
                         <Label className='font-semibold'>Month</Label>
@@ -141,7 +133,6 @@ export function CumulativeSalaryReportFilters({
                             )}
                         />
                     </div>
-
                     {/* Year */}
                     <div className='space-y-3'>
                         <Label className='font-semibold'>Year</Label>
@@ -165,7 +156,6 @@ export function CumulativeSalaryReportFilters({
                         />
                     </div>
                 </div>
-
                 {/* Search and Cancel Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105' onClick={(_e) => {}}>

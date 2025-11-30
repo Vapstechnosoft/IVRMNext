@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
@@ -8,16 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { MasterHoliday } from './columns';
-
 interface DeleteMasterHolidayFormProps {
     rowData: MasterHoliday;
     onClose: () => void;
 }
-
 export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
     const { mutate: deleteMasterHoliday, isPending } = useDeleteMasterHoliday();
-
     const {
         register,
         handleSubmit,
@@ -30,18 +26,15 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
             id: Number(rowData.id) || 0
         }
     });
-
     function closeDialog() {
         onClose();
         reset();
     }
-
     const onSubmit: SubmitHandler<{ id: number }> = async () => {
         const idToDelete = Number(rowData.id);
         if (Number.isNaN(idToDelete) || idToDelete === 0) {
             return;
         }
-
         deleteMasterHoliday(idToDelete, {
             onSuccess: () => {
                 refetchAll();
@@ -49,7 +42,6 @@ export default function DeleteMasterHolidayForm({ rowData, onClose }: DeleteMast
             }
         });
     };
-
     return (
         <AdaptiveDialog title='Delete Master Holiday' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>

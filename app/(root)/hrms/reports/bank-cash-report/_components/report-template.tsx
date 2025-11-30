@@ -1,8 +1,6 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Download, Printer, X } from 'lucide-react';
-
 interface BankCashRecord {
     id?: string;
     employeeName: string;
@@ -11,7 +9,6 @@ interface BankCashRecord {
     ifscCode?: string;
     branch?: string;
 }
-
 interface ReportTemplateProps {
     schoolName?: string;
     schoolAddress?: string;
@@ -24,7 +21,6 @@ interface ReportTemplateProps {
     onExport: () => void;
     onCancel: () => void;
 }
-
 export function BankCashReportTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -41,16 +37,13 @@ export function BankCashReportTemplate({
     const formatCurrency = (value: number) => {
         return value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
-
     // Calculate totals
     const totals = {
         totalNetSalary: reportData.reduce((sum, record) => sum + (record.netSalary || 0), 0)
     };
-
     // Format month name to uppercase
     const monthName = month ? month.toUpperCase() : '';
     const yearValue = year || '';
-
     return (
         <div className='mx-auto w-full max-w-[1600px] bg-white p-6 print:p-4'>
             {/* Report Header */}
@@ -64,7 +57,6 @@ export function BankCashReportTemplate({
                     </p>
                 )}
             </div>
-
             {/* Report Table */}
             <div className='mb-6 overflow-x-auto'>
                 <table className='w-full border-collapse border border-gray-300 text-sm'>
@@ -150,7 +142,6 @@ export function BankCashReportTemplate({
                     </tfoot>
                 </table>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
                 <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>

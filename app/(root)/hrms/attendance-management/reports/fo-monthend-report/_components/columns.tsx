@@ -1,10 +1,8 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface FOMonthEndReportRow extends BaseEntity {
     employeeCode: string;
     employeeName: string;
@@ -15,7 +13,6 @@ export interface FOMonthEndReportRow extends BaseEntity {
     timeOut?: string;
     status: string;
 }
-
 export const foMonthEndReportColumns: ColumnDef<FOMonthEndReportRow>[] = [
     {
         id: 'select',

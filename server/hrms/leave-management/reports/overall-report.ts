@@ -1,8 +1,6 @@
 'use server';
-
 import type { OverallReportRow } from '@/app/(root)/hrms/leave-management/reports/overAll-report/_components/columns';
 import type { OverallReportFilters } from '@/app/(root)/hrms/leave-management/reports/overAll-report/_components/filters';
-
 export async function getOverallReport(filters?: OverallReportFilters) {
     // TODO: Implement when API is ready
     // For now, return mock data based on filters
@@ -13,7 +11,6 @@ export async function getOverallReport(filters?: OverallReportFilters) {
             message: 'Data fetched successfully'
         };
     }
-
     // Format dates for display
     const formatDate = (date: Date | undefined, fallback: string) => {
         if (!date) return fallback;
@@ -22,7 +19,6 @@ export async function getOverallReport(filters?: OverallReportFilters) {
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
-
     // Mock data generation based on filters
     const mockData: OverallReportRow[] = [
         {
@@ -40,11 +36,9 @@ export async function getOverallReport(filters?: OverallReportFilters) {
             status: filters.status
         }
     ];
-
     return {
         success: true,
         data: mockData,
         message: 'Data fetched successfully'
     };
 }
-

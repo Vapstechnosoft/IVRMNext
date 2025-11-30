@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import {
@@ -12,62 +11,52 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type EmployeeContribution, employeeContributionColumns } from './_components/columns';
 import { type ContributionReportFilters, EmployeeContributionFilters } from './_components/filters';
-
 export default function EmployeeContributionReportPage() {
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeContributionReportOnload(30, 0);
     const filterMutation = useFilterEmployeeContributionReport();
     const searchMutation = useSearchEmployeeContributionDetails();
-
     // State
     const [contributions, setContributions] = useState<EmployeeContribution[]>([]);
     const [filteredContributions, setFilteredContributions] = useState<EmployeeContribution[]>([]);
     const [showReport, setShowReport] = useState(false);
     const [isFiltering, setIsFiltering] = useState(false);
-
     // Memoize dropdown data from API
     const groupTypes = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).groupTypedropdown || [];
     }, [onloadData?.data]);
-
     const departments = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).departmentdropdown || [];
     }, [onloadData?.data]);
-
     const designations = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).designationdropdown || [];
     }, [onloadData?.data]);
-
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     const earningHeads = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).earningdropdown || [];
     }, [onloadData?.data]);
-
     const deductionHeads = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).detectiondropdown || [];
     }, [onloadData?.data]);
-
     const [filters, setFilters] = useState<ContributionReportFilters>({
         groupType: [] as number[],
         department: [] as number[],
@@ -83,10 +72,8 @@ export default function EmployeeContributionReportPage() {
         selectedEarningHead: 0,
         selectedDeductionHead: 0
     });
-
     // Employee dropdown state - populated from filter API
     const [employees, setEmployees] = useState<any[]>([]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -97,7 +84,6 @@ export default function EmployeeContributionReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Filter contributions based on selected criteria
     useEffect(() => {
         // Filter local contributions if any exist
@@ -105,7 +91,6 @@ export default function EmployeeContributionReportPage() {
             setFilteredContributions(contributions);
         }
     }, [filters, contributions]);
-
     // Fetch employees when Individual is selected and filters are applied
     useEffect(() => {
         // Only fetch employees if Individual is selected and we have date filters
@@ -113,21 +98,17 @@ export default function EmployeeContributionReportPage() {
             setEmployees([]);
             return;
         }
-
         // Check if we have required date filters
         const hasDateFilters =
             (filters.dateType === 'Month' && filters.selectedMonth && filters.selectedYear) ||
             (filters.dateType === 'Between Dates' && filters.fromDate && filters.toDate);
-
         if (!hasDateFilters) {
             setEmployees([]);
             return;
         }
-
         // Find month ID from selected month value
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Id?.toString() === filters.selectedMonth);
         const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || filters.selectedMonth || '';
-
         // Prepare filter request to get employees
         const filterRequest = {
             MI_Id: 30,
@@ -141,7 +122,6 @@ export default function EmployeeContributionReportPage() {
             departmentselected: filters.department.length > 0 ? filters.department : [0],
             groupTypeselected: filters.groupType.length > 0 ? filters.groupType : [0]
         };
-
         filterMutation.mutate(filterRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -167,10 +147,8 @@ export default function EmployeeContributionReportPage() {
         filters.department,
         filters.designation
     ]);
-
     const handleFilterChange = (key: keyof ContributionReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
-
         // Reset dependent filters when parent changes
         if (key === 'groupType') {
             newFilters.department = [];
@@ -178,32 +156,25 @@ export default function EmployeeContributionReportPage() {
         } else if (key === 'department') {
             newFilters.designation = [];
         }
-
         setFilters(newFilters);
     };
-
     const handleSearch = () => {
         if (filters.dateType === 'Month' && (!filters.selectedMonth || !filters.selectedYear)) {
             toast.error('Please select month and year');
             return;
         }
-
         if (filters.dateType === 'Between Dates' && (!filters.fromDate || !filters.toDate)) {
             toast.error('Please select from and to dates');
             return;
         }
-
         if (filters.reportType === 'Individual' && filters.selectedEmployees.length === 0) {
             toast.error('Please select at least one employee');
             return;
         }
-
         setIsFiltering(true);
-
         // Find month ID from selected month value
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Id?.toString() === filters.selectedMonth);
         const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || filters.selectedMonth || '';
-
         // Prepare search request body (using getEmployeedetailsBySelection for detailed data)
         const searchRequestBody = {
             MI_Id: 30,
@@ -221,14 +192,12 @@ export default function EmployeeContributionReportPage() {
             EarningHead: filters.contributionType === 'Earning' && filters.selectedEarningHead > 0 ? filters.selectedEarningHead : 0,
             DeductionHead: filters.contributionType === 'Deduction' && filters.selectedDeductionHead > 0 ? filters.selectedDeductionHead : 0
         };
-
         searchMutation.mutate(searchRequestBody, {
             onSuccess: (response) => {
                 setIsFiltering(false);
                 if (response.success && response.data) {
                     // Extract contribution data from response
                     const contributionData = (response.data as any).employeeContributionDetails;
-
                     if (Array.isArray(contributionData) && contributionData.length > 0) {
                         // Map API response to EmployeeContribution format
                         const mappedContributions: EmployeeContribution[] = contributionData.map((item: any, index: number) => ({
@@ -255,7 +224,6 @@ export default function EmployeeContributionReportPage() {
                             cumulativeContribution: item.cumulativeContribution || 0,
                             createdAt: new Date()
                         }));
-
                         setContributions(mappedContributions);
                         setFilteredContributions(mappedContributions);
                         setShowReport(true);
@@ -284,7 +252,6 @@ export default function EmployeeContributionReportPage() {
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             groupType: [],
@@ -305,16 +272,13 @@ export default function EmployeeContributionReportPage() {
         setShowReport(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Employee contribution report exported');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate totals
     const totals = useMemo(() => {
         return filteredContributions.reduce(
@@ -334,7 +298,6 @@ export default function EmployeeContributionReportPage() {
             }
         );
     }, [filteredContributions]);
-
     // Show error message if API failed
     if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
         return (
@@ -350,7 +313,6 @@ export default function EmployeeContributionReportPage() {
             </div>
         );
     }
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -369,7 +331,6 @@ export default function EmployeeContributionReportPage() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Report Results */}
             {showReport && (
                 <div className='space-y-4'>
@@ -393,7 +354,6 @@ export default function EmployeeContributionReportPage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5'>
                         <div className='rounded-lg border bg-card p-4'>
@@ -417,7 +377,6 @@ export default function EmployeeContributionReportPage() {
                             <div className='font-semibold text-foreground text-lg'>{filteredContributions.length}</div>
                         </div>
                     </div>
-
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoadingOnload || isFiltering}

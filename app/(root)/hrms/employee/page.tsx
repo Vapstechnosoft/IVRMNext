@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -12,30 +11,24 @@ import { use, useMemo, useState } from 'react';
 import { employeeColumns } from './_components/columns';
 import EmployeeRegisterForm from './_components/employee-register-form';
 import ToggleEmployeeForm from './_components/toggle-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function EmployeeRegisterPage(props: {
     searchParams: SearchParams;
 }) {
     // Safely unwrap searchParams - React's use() hook must be called unconditionally
     const _searchParams = use(props.searchParams);
-
     const { data: employeeList, isLoading, error } = useEmployeeRegisterList();
-
     // Transform employee list to match EmployeeListItem type - use useMemo for safety
     const transformedData: EmployeeListItem[] = useMemo(() => {
         if (!employeeList || !Array.isArray(employeeList)) {
             return [];
         }
-
         try {
             return employeeList
                 .map((emp: any, index: number): EmployeeListItem | null => {
                     if (!emp || typeof emp !== 'object') {
                         return null;
                     }
-
                     return {
                         HRME_Id: emp.HRME_Id || emp.hrmE_Id || 0,
                         MI_Id: emp.MI_Id || emp.mI_Id || 0,
@@ -58,18 +51,15 @@ export default function EmployeeRegisterPage(props: {
                 })
                 .filter((item): item is EmployeeListItem => item !== null);
         } catch (transformError) {
-            console.error('Error transforming employee list:', transformError);
             return [];
         }
     }, [employeeList]);
-
     return (
         <FormProvider<EmployeeListItem>>
             <EmployeeRegisterPageContent response={transformedData} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function EmployeeRegisterPageContent({
     response,
     isLoading,
@@ -80,16 +70,13 @@ function EmployeeRegisterPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<EmployeeListItem>();
-
     // Client-side search and pagination
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
-
     // Filter data based on search query
     const filteredData = useMemo(() => {
         if (!searchQuery.trim()) return response;
-
         const query = searchQuery.toLowerCase();
         return response.filter((employee) => {
             const firstName = employee.HRME_EmployeeFirstName?.toLowerCase() || '';
@@ -98,7 +85,6 @@ function EmployeeRegisterPageContent({
             const code = employee.HRME_EmployeeCode?.toLowerCase() || '';
             const email = employee.HRME_EmailId?.toLowerCase() || '';
             const mobile = employee.HRME_MobileNo?.toString() || '';
-
             return (
                 firstName.includes(query) ||
                 middleName.includes(query) ||
@@ -109,23 +95,19 @@ function EmployeeRegisterPageContent({
             );
         });
     }, [response, searchQuery]);
-
     // Paginate filtered data
     const paginatedData = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         return filteredData.slice(startIndex, endIndex);
     }, [filteredData, currentPage]);
-
     // Calculate total pages
     const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
     // Reset to page 1 when search changes
     const handleSearch = (value: string) => {
         setSearchQuery(value);
         setCurrentPage(1);
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -139,7 +121,6 @@ function EmployeeRegisterPageContent({
                         Add Employee
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     title="Employee's Details"
@@ -169,7 +150,6 @@ function EmployeeRegisterPageContent({
                             )}
                         </div>
                     </div>
-
                     {/* Pagination Info */}
                     <div className='mb-2 text-muted-foreground text-sm'>
                         Showing {filteredData.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0} -{' '}
@@ -177,7 +157,6 @@ function EmployeeRegisterPageContent({
                         {searchQuery ? 'filtered' : 'total'} employees
                         {totalPages > 1 && ` (Page ${currentPage} of ${totalPages})`}
                     </div>
-
                     <GenericDataTable<EmployeeListItem>
                         data={paginatedData}
                         totalItems={filteredData.length}
@@ -191,7 +170,6 @@ function EmployeeRegisterPageContent({
                         noDataDescription={searchQuery ? 'Try adjusting your search terms' : 'Get started by creating your first employee'}
                         errorTitle='Error Loading Employees'
                     />
-
                     {/* Custom Pagination Controls */}
                     {totalPages > 1 && (
                         <div className='mt-4 flex items-center justify-between'>
@@ -231,14 +209,12 @@ function EmployeeRegisterPageContent({
                         </div>
                     )}
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -251,7 +227,6 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<EmployeeListItem>();
-
     return (
         <>
             {/* Add Form */}
@@ -278,7 +253,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -302,7 +276,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleEmployeeForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>

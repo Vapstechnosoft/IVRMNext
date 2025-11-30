@@ -1,26 +1,22 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { BaseEntity } from '@/lib/localdb';
 import { Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
 export interface GroupType extends BaseEntity {
     groupType: string;
     groupCode: string;
     order: number;
     isActive: boolean;
 }
-
 export interface Department extends BaseEntity {
     departmentName: string;
     internalTrainingHours: string;
     order: number;
     isActive: boolean;
 }
-
 export interface Designation extends BaseEntity {
     designationName: string;
     basicAmount: string;
@@ -29,7 +25,6 @@ export interface Designation extends BaseEntity {
     order: number;
     isActive: boolean;
 }
-
 export interface Employee extends BaseEntity {
     employeeCode: string;
     employeeName: string;
@@ -45,7 +40,6 @@ export interface Employee extends BaseEntity {
     grossSalary: number;
     netSalary: number;
 }
-
 // Report filters
 export interface SalaryCertificateFilters {
     groupType: string;
@@ -55,7 +49,6 @@ export interface SalaryCertificateFilters {
     year: string;
     selectedEmployee: string;
 }
-
 interface SalaryCertificateFiltersProps {
     filters: SalaryCertificateFilters;
     groupTypes: GroupType[];
@@ -66,7 +59,6 @@ interface SalaryCertificateFiltersProps {
     onGenerate: () => void;
     onCancel: () => void;
 }
-
 export function SalaryCertificateFilters({
     filters,
     groupTypes,
@@ -78,14 +70,11 @@ export function SalaryCertificateFilters({
     onCancel
 }: SalaryCertificateFiltersProps) {
     const [currentYear, setCurrentYear] = useState<number | null>(null);
-
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
     }, []);
-
     const handleInternalFilterChange = (key: keyof SalaryCertificateFilters, value: string) => {
         const newFilters = { ...filters, [key]: value };
-
         // Reset dependent filters when parent changes
         if (key === 'groupType') {
             newFilters.department = 'All';
@@ -97,10 +86,8 @@ export function SalaryCertificateFilters({
         } else if (key === 'designation') {
             newFilters.selectedEmployee = '';
         }
-
         onFilterChange(key, value);
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -129,7 +116,6 @@ export function SalaryCertificateFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Department Filter */}
                     <div className='space-y-2'>
                         <label htmlFor='department-select' className='font-medium text-foreground text-sm'>
@@ -149,7 +135,6 @@ export function SalaryCertificateFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Designation Filter */}
                     <div className='space-y-2'>
                         <label htmlFor='designation-select' className='font-medium text-foreground text-sm'>
@@ -170,7 +155,6 @@ export function SalaryCertificateFilters({
                         </Select>
                     </div>
                 </div>
-
                 {/* Filter Section - Row 2: Month, Year, Employee */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     {/* Month Filter */}
@@ -204,7 +188,6 @@ export function SalaryCertificateFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Year Filter */}
                     <div className='space-y-2'>
                         <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
@@ -227,7 +210,6 @@ export function SalaryCertificateFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Employee Selection */}
                     <div className='space-y-2'>
                         <label htmlFor='employee-select' className='font-medium text-foreground text-sm'>
@@ -249,7 +231,6 @@ export function SalaryCertificateFilters({
                         </Select>
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button onClick={onGenerate}>

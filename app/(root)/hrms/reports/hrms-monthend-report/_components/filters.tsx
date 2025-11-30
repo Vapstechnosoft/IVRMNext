@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -7,13 +6,11 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 export interface FilterOptions {
     groupTypes: Array<{ id: number; groupType: string }>;
     departments: Array<{ id: number; departmentName: string }>;
     designations: Array<{ id: number; designationName: string }>;
 }
-
 export interface MonthEndFilters {
     selectedGroupTypes: string[];
     selectedDepartments: string[];
@@ -22,7 +19,6 @@ export interface MonthEndFilters {
     year: string;
     ieName: string;
 }
-
 interface HRMSMonthEndFiltersProps {
     filters: MonthEndFilters;
     filterOptions: FilterOptions;
@@ -33,7 +29,6 @@ interface HRMSMonthEndFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function HRMSMonthEndFilters({
     filters,
     filterOptions,
@@ -47,7 +42,6 @@ export function HRMSMonthEndFilters({
     const handleSelectChange = (key: keyof MonthEndFilters, value: string) => {
         onFilterChange({ ...filters, [key]: value });
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -84,7 +78,6 @@ export function HRMSMonthEndFilters({
                         />
                     )}
                 </div>
-
                 {/* Department Section */}
                 <div className='space-y-2'>
                     <Label htmlFor='department' className='font-medium text-foreground text-sm'>
@@ -113,7 +106,6 @@ export function HRMSMonthEndFilters({
                         />
                     )}
                 </div>
-
                 {/* Designation Section */}
                 <div className='space-y-2'>
                     <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
@@ -143,7 +135,6 @@ export function HRMSMonthEndFilters({
                     )}
                 </div>
             </div>
-
             {/* Additional Filters */}
             <div className='flex items-center justify-center gap-6 pt-4'>
                 {/* Month Filter */}
@@ -172,7 +163,6 @@ export function HRMSMonthEndFilters({
                         </Select>
                     )}
                 </div>
-
                 {/* Year Filter */}
                 <div className='space-y-2'>
                     <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -199,7 +189,6 @@ export function HRMSMonthEndFilters({
                         </Select>
                     )}
                 </div>
-
                 {/* IE Name Filter */}
                 <div className='space-y-2'>
                     <Label htmlFor='ie-name' className='font-medium text-foreground text-sm'>
@@ -214,7 +203,6 @@ export function HRMSMonthEndFilters({
                     />
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-2 pt-4'>
                 <Button onClick={onSearch}>

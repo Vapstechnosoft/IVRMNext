@@ -1,22 +1,18 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { EmployeeLoanItem } from '@/types/hrms/employee-loan';
 import type { Row } from '@tanstack/react-table';
 import { Edit, MoreHorizontal, Power } from 'lucide-react';
-
 interface ActionsCellProps {
     row: Row<EmployeeLoanItem>;
     onToggleActive: (id: number, currentStatus: boolean) => void;
 }
-
 export function ActionsCell({ row, onToggleActive }: ActionsCellProps) {
     const { openEditForm } = useFormContext<EmployeeLoanItem>();
     const loan = row.original;
     const isActive = loan.HREL_ActiveFlag === true;
-
     return (
         <div className='flex justify-end'>
             <DropdownMenu>

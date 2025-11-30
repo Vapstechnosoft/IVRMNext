@@ -1,5 +1,4 @@
 'use server';
-
 import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
 import type {
@@ -9,12 +8,10 @@ import type {
     EmployeeLoanSaveResponse,
     EmployeeLoanDeleteRequest
 } from '@/types/hrms/employee-loan';
-
 // Helper function to create a complete nested object structure matching API requirements
 function createCompleteRequestBody(baseFields: any): any {
     const now = new Date().toISOString();
     const fields = baseFields as any;
-
     return {
         CreatedDate: now,
         UpdatedDate: now,
@@ -458,7 +455,6 @@ function createCompleteRequestBody(baseFields: any): any {
         HREL_NoofInstallment: (baseFields as any).HREL_NoofInstallment || 0
     };
 }
-
 /**
  * Get onload details for employee loan
  * POST /api/HREmpLoan/onloadgetDetails
@@ -466,14 +462,8 @@ function createCompleteRequestBody(baseFields: any): any {
 export async function getEmployeeLoanList(
     payload: EmployeeLoanOnloadRequest
 ): Promise<ApiResponse<EmployeeLoanOnloadResponse> & { total?: number | null; page?: number | null; page_size?: number | null }> {
-    console.log('🔵 [EMPLOYEE LOAN - BACKEND] getEmployeeLoanList - START');
     console.log('📥 [EMPLOYEE LOAN - BACKEND] Request payload:', JSON.stringify(payload, null, 2));
-    
-    const url = '/api/HREmpLoan/onloadgetDetails';
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API URL:', url);
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API Base: hrms');
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] Method: POST');
-    
+    const url = '/api/HREmpLoanFacade/onloadgetdetails';
     // Prepare request body matching the exact API structure
     const requestBody = {
         page: payload.page ?? 1,
@@ -487,34 +477,13 @@ export async function getEmployeeLoanList(
         LoginUserId: payload.LoginUserId ?? 0,
         UserRole: payload.UserRole ?? ''
     };
-    
     console.log('📤 [EMPLOYEE LOAN - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    console.log('📊 [EMPLOYEE LOAN - BACKEND] Request body summary:', {
-        page: requestBody.page,
-        page_size: requestBody.page_size,
-        MIID: requestBody.MIID,
-        search_query: requestBody.search_query,
-        LoginUserId: requestBody.LoginUserId
-    });
-    
     try {
-        const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
-        
-        console.log('✅ [EMPLOYEE LOAN - BACKEND] API Response received');
-        console.log('📤 [EMPLOYEE LOAN - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            hasTotal: 'total' in response,
-            hasPage: 'page' in response,
-            hasPageSize: 'page_size' in response,
-            responseKeys: Object.keys(response || {})
-        });
-        
-        // The backend returns data wrapped in ApiResponse format with pagination
+        const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody        );
+        // Check if response is already wrapped in ApiResponse format
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped
+            // Already wrapped - extract the data
             const responseData = response.data as unknown as EmployeeLoanOnloadResponse;
-            console.log('✅ [EMPLOYEE LOAN - BACKEND] Response already wrapped, returning as-is');
             console.log('📊 [EMPLOYEE LOAN - BACKEND] Response data summary:', {
                 hasEmploanList: !!responseData?.emploanList,
                 emploanListCount: Array.isArray(responseData?.emploanList) ? responseData.emploanList.length : 0,
@@ -527,7 +496,6 @@ export async function getEmployeeLoanList(
                 hasConfigurationDetails: !!responseData?.configurationDetails,
                 retrunMsg: responseData?.retrunMsg
             });
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Data loaded successfully',
@@ -537,9 +505,32 @@ export async function getEmployeeLoanList(
                 page_size: (response as any).page_size ?? undefined
             };
         }
-        
+        // Check if response directly contains the expected data structure
+        if (response && typeof response === 'object' && 'masterloandropdown' in response) {
+            // Response is the data object directly
+            const responseData = response as unknown as EmployeeLoanOnloadResponse;
+            console.log('📊 [EMPLOYEE LOAN - BACKEND] Direct response data summary:', {
+                hasEmploanList: !!responseData?.emploanList,
+                emploanListCount: Array.isArray(responseData?.emploanList) ? responseData.emploanList.length : 0,
+                hasEmployeeDropdown: !!responseData?.employeedropdown,
+                employeeCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
+                hasMasterLoanDropdown: !!responseData?.masterloandropdown,
+                masterLoanCount: Array.isArray(responseData?.masterloandropdown) ? responseData.masterloandropdown.length : 0,
+                hasModeOfPaymentDropdown: !!responseData?.modeOfPaymentdropdown,
+                modeOfPaymentCount: Array.isArray(responseData?.modeOfPaymentdropdown) ? responseData.modeOfPaymentdropdown.length : 0,
+                hasConfigurationDetails: !!responseData?.configurationDetails,
+                retrunMsg: responseData?.retrunMsg
+            });
+            return {
+                success: true,
+                message: 'Data loaded successfully',
+                data: responseData,
+                total: undefined,
+                page: undefined,
+                page_size: undefined
+            };
+        }
         // Wrap raw response data
-        console.log('⚠️ [EMPLOYEE LOAN - BACKEND] Response not wrapped, wrapping it');
         return {
             success: true,
             message: 'Data loaded successfully',
@@ -549,13 +540,6 @@ export async function getEmployeeLoanList(
             page_size: undefined
         };
     } catch (error: any) {
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error in getEmployeeLoanList:', error);
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error details:', {
-            message: error?.message,
-            stack: error?.stack,
-            response: error?.response
-        });
-        
         return {
             success: false,
             message: error?.message || 'Failed to load employee loan data',
@@ -566,20 +550,13 @@ export async function getEmployeeLoanList(
         };
     }
 }
-
 /**
  * Save/Update employee loan (Facade)
  * POST /api/HREmpLoanFacade
  */
 export async function saveEmployeeLoan(data: EmployeeLoanSaveRequest) {
-    console.log('🔵 [EMPLOYEE LOAN - BACKEND] saveEmployeeLoan - START');
     console.log('📥 [EMPLOYEE LOAN - BACKEND] Request payload:', JSON.stringify(data, null, 2));
-    
     const url = '/api/HREmpLoanFacade';
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API URL:', url);
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API Base: hrms');
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] Method: POST');
-    
     // Prepare request body matching the exact API structure (simplified)
     const requestBody = {
         HREL_Id: data.HREL_Id || 0,
@@ -596,61 +573,32 @@ export async function saveEmployeeLoan(data: EmployeeLoanSaveRequest) {
         HREL_ReferenceNo: Number(data.HREL_ReferenceNo) || 0,
         ASMAY_Id: (data as any).ASMAY_Id || 0
     };
-    
     console.log('📤 [EMPLOYEE LOAN - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    console.log('📊 [EMPLOYEE LOAN - BACKEND] Request body summary:', {
-        HREL_Id: requestBody.HREL_Id,
-        MI_Id: requestBody.MI_Id,
-        HRME_Id: requestBody.HRME_Id,
-        HRMLN_Id: requestBody.HRMLN_Id,
-        HREL_LoanAmount: requestBody.HREL_LoanAmount,
-        ASMAY_Id: requestBody.ASMAY_Id
-    });
-    
     try {
-        const response = await api.post<EmployeeLoanSaveResponse>('hrms', url, requestBody);
-        
-        console.log('✅ [EMPLOYEE LOAN - BACKEND] API Response received');
-        console.log('📤 [EMPLOYEE LOAN - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-        
+        const response = await api.post<EmployeeLoanSaveResponse>('hrms', url, requestBody        );
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as EmployeeLoanOnloadResponse;
-            console.log('✅ [EMPLOYEE LOAN - BACKEND] Response already wrapped, returning as-is');
             console.log('📊 [EMPLOYEE LOAN - BACKEND] Response data summary:', {
                 hasEmploanList: !!responseData?.emploanList,
                 emploanListCount: Array.isArray(responseData?.emploanList) ? responseData.emploanList.length : 0,
                 retrunMsg: responseData?.retrunMsg
             });
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Employee loan saved successfully',
                 data: responseData
             };
         }
-        
         // Wrap raw response data
-        console.log('⚠️ [EMPLOYEE LOAN - BACKEND] Response not wrapped, wrapping it');
         return {
             success: true,
             message: 'Employee loan saved successfully',
             data: response as unknown as EmployeeLoanOnloadResponse
         };
     } catch (error: any) {
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error in saveEmployeeLoan:', error);
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error details:', {
-            message: error?.message,
-            stack: error?.stack,
-            response: error?.response
-        });
-        
         return {
             success: false,
             message: error?.message || 'Failed to save employee loan',
@@ -658,75 +606,43 @@ export async function saveEmployeeLoan(data: EmployeeLoanSaveRequest) {
         };
     }
 }
-
 /**
  * Get employee loan record by ID
  * POST /api/HREmpLoanFacade/getRecordById
  */
 export async function getEmployeeLoanById(hrelId: number) {
-    console.log('🔵 [EMPLOYEE LOAN - BACKEND] getEmployeeLoanById - START');
-    console.log('📥 [EMPLOYEE LOAN - BACKEND] Request ID:', hrelId);
-    
     const url = '/api/HREmpLoanFacade/getRecordById';
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API URL:', url);
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API Base: hrms');
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] Method: POST');
-    
     // Prepare request body matching the exact API structure
     const requestBody = {
         HREL_Id: hrelId || 0
     };
-    
     console.log('📤 [EMPLOYEE LOAN - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    console.log('📊 [EMPLOYEE LOAN - BACKEND] Request body summary:', {
-        HREL_Id: requestBody.HREL_Id
-    });
-    
     try {
-        const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
-        
-        console.log('✅ [EMPLOYEE LOAN - BACKEND] API Response received');
-        console.log('📤 [EMPLOYEE LOAN - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-        
+        const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody        );
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as EmployeeLoanOnloadResponse;
-            console.log('✅ [EMPLOYEE LOAN - BACKEND] Response already wrapped, returning as-is');
             console.log('📊 [EMPLOYEE LOAN - BACKEND] Response data summary:', {
                 hasEmploanList: !!responseData?.emploanList,
                 emploanListCount: Array.isArray(responseData?.emploanList) ? responseData.emploanList.length : 0,
                 HREL_Id: responseData?.HREL_Id,
                 retrunMsg: responseData?.retrunMsg
             });
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Employee loan record retrieved successfully',
                 data: responseData
             };
         }
-        
         // Wrap raw response data
-        console.log('⚠️ [EMPLOYEE LOAN - BACKEND] Response not wrapped, wrapping it');
         return {
             success: true,
             message: 'Employee loan record retrieved successfully',
             data: response as unknown as EmployeeLoanOnloadResponse
         };
     } catch (error: any) {
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error in getEmployeeLoanById:', error);
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error details:', {
-            message: error?.message,
-            stack: error?.stack,
-            response: error?.response
-        });
-        
         return {
             success: false,
             message: error?.message || 'Failed to retrieve employee loan record',
@@ -734,77 +650,45 @@ export async function getEmployeeLoanById(hrelId: number) {
         };
     }
 }
-
 /**
  * Activate/Deactivate employee loan
  * POST /api/HREmpLoanFacade/deactivateRecordById
  */
 export async function activateDeactivateEmployeeLoan(data: EmployeeLoanDeleteRequest) {
-    console.log('🔵 [EMPLOYEE LOAN - BACKEND] activateDeactivateEmployeeLoan - START');
     console.log('📥 [EMPLOYEE LOAN - BACKEND] Request payload:', JSON.stringify(data, null, 2));
-    
     const url = '/api/HREmpLoanFacade/deactivateRecordById';
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API URL:', url);
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API Base: hrms');
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] Method: POST');
-    
     // Prepare request body matching the exact API structure (simplified)
     const requestBody = {
         HREL_Id: data.HREL_Id || 0,
         MI_Id: data.MI_Id || 30
     };
-    
     console.log('📤 [EMPLOYEE LOAN - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    console.log('📊 [EMPLOYEE LOAN - BACKEND] Request body summary:', {
-        HREL_Id: requestBody.HREL_Id,
-        MI_Id: requestBody.MI_Id
-    });
-    
     try {
-        const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
-        
-        console.log('✅ [EMPLOYEE LOAN - BACKEND] API Response received');
-        console.log('📤 [EMPLOYEE LOAN - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-        
+        const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody        );
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as EmployeeLoanOnloadResponse;
-            console.log('✅ [EMPLOYEE LOAN - BACKEND] Response already wrapped, returning as-is');
             console.log('📊 [EMPLOYEE LOAN - BACKEND] Response data summary:', {
                 hasEmploanList: !!responseData?.emploanList,
                 emploanListCount: Array.isArray(responseData?.emploanList) ? responseData.emploanList.length : 0,
                 HREL_Id: responseData?.HREL_Id,
                 retrunMsg: responseData?.retrunMsg
             });
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Employee loan status updated successfully',
                 data: responseData
             };
         }
-        
         // Wrap raw response data
-        console.log('⚠️ [EMPLOYEE LOAN - BACKEND] Response not wrapped, wrapping it');
         return {
             success: true,
             message: 'Employee loan status updated successfully',
             data: response as unknown as EmployeeLoanOnloadResponse
         };
     } catch (error: any) {
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error in activateDeactivateEmployeeLoan:', error);
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error details:', {
-            message: error?.message,
-            stack: error?.stack,
-            response: error?.response
-        });
-        
         return {
             success: false,
             message: error?.message || 'Failed to update employee loan status',
@@ -812,77 +696,44 @@ export async function activateDeactivateEmployeeLoan(data: EmployeeLoanDeleteReq
         };
     }
 }
-
 /**
  * Get employee loan details by employee
  * POST /api/HREmpLoanFacade/getDetailsByEmployee
  */
 export async function getEmployeeLoanByEmployee(employeeId: number, miId: number = 30) {
-    console.log('🔵 [EMPLOYEE LOAN - BACKEND] getEmployeeLoanByEmployee - START');
-    console.log('📥 [EMPLOYEE LOAN - BACKEND] Request payload:', { employeeId, miId });
-    
     const url = '/api/HREmpLoanFacade/getDetailsByEmployee';
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API URL:', url);
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] API Base: hrms');
-    console.log('🌐 [EMPLOYEE LOAN - BACKEND] Method: POST');
-    
     // Prepare request body matching the exact API structure (simplified)
     const requestBody = {
         HRME_Id: employeeId || 0,
         MI_Id: miId || 30
     };
-    
     console.log('📤 [EMPLOYEE LOAN - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    console.log('📊 [EMPLOYEE LOAN - BACKEND] Request body summary:', {
-        HRME_Id: requestBody.HRME_Id,
-        MI_Id: requestBody.MI_Id
-    });
-    
     try {
-        const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody);
-        
-        console.log('✅ [EMPLOYEE LOAN - BACKEND] API Response received');
-        console.log('📤 [EMPLOYEE LOAN - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-        
+        const response = await api.post<EmployeeLoanOnloadResponse>('hrms', url, requestBody        );
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as EmployeeLoanOnloadResponse;
-            console.log('✅ [EMPLOYEE LOAN - BACKEND] Response already wrapped, returning as-is');
             console.log('📊 [EMPLOYEE LOAN - BACKEND] Response data summary:', {
                 hasEmploanList: !!responseData?.emploanList,
                 emploanListCount: Array.isArray(responseData?.emploanList) ? responseData.emploanList.length : 0,
                 HRME_Id: responseData?.HRME_Id,
                 retrunMsg: responseData?.retrunMsg
             });
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Employee loan details retrieved successfully',
                 data: responseData
             };
         }
-        
         // Wrap raw response data
-        console.log('⚠️ [EMPLOYEE LOAN - BACKEND] Response not wrapped, wrapping it');
         return {
             success: true,
             message: 'Employee loan details retrieved successfully',
             data: response as unknown as EmployeeLoanOnloadResponse
         };
     } catch (error: any) {
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error in getEmployeeLoanByEmployee:', error);
-        console.error('❌ [EMPLOYEE LOAN - BACKEND] Error details:', {
-            message: error?.message,
-            stack: error?.stack,
-            response: error?.response
-        });
-        
         return {
             success: false,
             message: error?.message || 'Failed to retrieve employee loan details by employee',

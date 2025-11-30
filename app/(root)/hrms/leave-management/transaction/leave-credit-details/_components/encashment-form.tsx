@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -17,7 +16,6 @@ import {
     type UseFormSetValue,
     type UseFormWatch
 } from 'react-hook-form';
-
 interface EncashmentFormProps {
     control: Control<any>;
     errors: FieldErrors<any>;
@@ -34,7 +32,6 @@ interface EncashmentFormProps {
     onCancel: () => void;
     onPrevious?: () => void;
 }
-
 export function EncashmentForm({
     control,
     errors,
@@ -56,11 +53,9 @@ export function EncashmentForm({
     const minLeaveApplicableEnabled = watch('minLeaveApplicableEnabled') ?? false;
     const encashmentScheduleEnabled = watch('encashmentScheduleEnabled') ?? false;
     const _encashmentScheduleType = watch('encashmentScheduleType') ?? 'Year';
-
     const onSubmitForm = handleSubmit((data) => {
         onSubmit(data);
     });
-
     return (
         <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6'>
             {/* Filters Section - Type, Department, Designation, Grade */}
@@ -86,7 +81,6 @@ export function EncashmentForm({
                     />
                     {errors.type && <FormError>{String(errors.type.message)}</FormError>}
                 </div>
-
                 {/* Department */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>
@@ -108,7 +102,6 @@ export function EncashmentForm({
                     />
                     {errors.department && <FormError>{String(errors.department.message)}</FormError>}
                 </div>
-
                 {/* Designation */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>
@@ -130,7 +123,6 @@ export function EncashmentForm({
                     />
                     {errors.designation && <FormError>{String(errors.designation.message)}</FormError>}
                 </div>
-
                 {/* Grade */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Grade</Label>
@@ -149,7 +141,6 @@ export function EncashmentForm({
                     />
                 </div>
             </div>
-
             {/* Leave Name and Number of Days */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div>
@@ -177,7 +168,6 @@ export function EncashmentForm({
                     />
                     {errors.leaveName && <FormError>{String(errors.leaveName.message)}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='no-of-days-input' className='font-medium text-sm'>
                         Number of Days <span className='text-red-500'>*</span>
@@ -200,7 +190,6 @@ export function EncashmentForm({
                     {errors.noOfDays && <FormError>{String(errors.noOfDays.message)}</FormError>}
                 </div>
             </div>
-
             {/* Min Service Applicable */}
             <div className='space-y-2'>
                 <div className='flex items-center space-x-2'>
@@ -219,7 +208,6 @@ export function EncashmentForm({
                         Min Service Applicable
                     </Label>
                 </div>
-
                 {minServiceApplicableEnabled && (
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div>
@@ -280,7 +268,6 @@ export function EncashmentForm({
                     </div>
                 )}
             </div>
-
             {/* Max Leave Applicable */}
             <div className='space-y-2'>
                 <div className='flex items-center space-x-2'>
@@ -295,7 +282,6 @@ export function EncashmentForm({
                         Max Leave Applicable
                     </Label>
                 </div>
-
                 {maxLeaveApplicableEnabled && (
                     <div>
                         <Controller
@@ -317,7 +303,6 @@ export function EncashmentForm({
                     </div>
                 )}
             </div>
-
             {/* Min Leave Applicable */}
             <div className='space-y-2'>
                 <div className='flex items-center space-x-2'>
@@ -332,7 +317,6 @@ export function EncashmentForm({
                         Min Leave Applicable
                     </Label>
                 </div>
-
                 {minLeaveApplicableEnabled && (
                     <div>
                         <Controller
@@ -354,7 +338,6 @@ export function EncashmentForm({
                     </div>
                 )}
             </div>
-
             {/* Variable / Fixed */}
             <div className='space-y-2'>
                 <Label className='font-medium text-sm'>Variable / Fixed</Label>
@@ -379,7 +362,6 @@ export function EncashmentForm({
                     )}
                 />
             </div>
-
             {/* Encashment Schedule */}
             <div className='space-y-2'>
                 <div className='flex items-center space-x-2'>
@@ -394,7 +376,6 @@ export function EncashmentForm({
                         Encashment Schedule
                     </Label>
                 </div>
-
                 {encashmentScheduleEnabled && (
                     <div className='space-y-4'>
                         <Controller
@@ -417,7 +398,6 @@ export function EncashmentForm({
                                 </RadioGroup>
                             )}
                         />
-
                         <div className='space-y-2'>
                             <Select>
                                 <SelectTrigger>
@@ -463,7 +443,6 @@ export function EncashmentForm({
                     </div>
                 )}
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-center gap-2 border-t pt-4'>
                 {onPrevious && (

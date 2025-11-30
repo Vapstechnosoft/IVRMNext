@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -15,7 +14,6 @@ import { CalendarIcon, Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface SalaryAdvanceForm {
     employeeId: string;
     entryDate: string;
@@ -26,23 +24,19 @@ interface SalaryAdvanceForm {
     modeOfPayment: string;
     referenceNo: number;
 }
-
 interface UpdateFormProps {
     selectedRow: SalaryAdvanceItem | null;
     onloadData: SalaryAdvanceOnloadResponse | undefined;
     onSuccess: () => void;
     className?: string;
 }
-
 export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuccess, className = '' }: UpdateFormProps) {
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
-
     // Memoize arrays to prevent unnecessary re-renders
     const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
     const leaveYears = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
     const months = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
     const modeOfPayments = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
-
     const {
         register,
         handleSubmit,
@@ -64,9 +58,7 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
             referenceNo: 0
         }
     });
-
     const watchedEntryDate = watch('entryDate');
-
     useEffect(() => {
         if (selectedRow) {
             reset({
@@ -81,7 +73,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
             });
         }
     }, [selectedRow, reset]);
-
     // Auto-select year and month based on entry date
     useEffect(() => {
         if (watchedEntryDate) {
@@ -90,13 +81,11 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                 if (!isNaN(entryDate.getTime())) {
                     const year = entryDate.getFullYear();
                     const month = entryDate.getMonth() + 1; // getMonth() returns 0-11, so add 1
-
                     // Find matching year from leaveYears dropdown
                     const matchingYear = leaveYears.find((y) => y.HRMLY_LeaveYear === year.toString() || y.HRMLY_LeaveYear === String(year));
                     if (matchingYear) {
                         setValue('advanceYear', matchingYear.HRMLY_Id.toString());
                     }
-
                     // Find matching month from months dropdown
                     // Try to match by month number (1-12) or by month name
                     const monthNames = [
@@ -104,36 +93,29 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                         'July', 'August', 'September', 'October', 'November', 'December'
                     ];
                     const monthName = monthNames[month - 1];
-
                     const matchingMonth = months.find((m) => {
                         // Try matching by month name (case insensitive)
                         const monthNameMatch = m.IVRM_Month_Name?.toLowerCase() === monthName.toLowerCase() ||
                             m.IVRM_Month_Name?.toLowerCase().includes(monthName.toLowerCase().substring(0, 3));
-                        
                         // Try matching by month number if IVRM_Month_Id matches the month number
                         const monthIdMatch = m.IVRM_Month_Id === month;
-                        
                         return monthNameMatch || monthIdMatch;
                     });
-
                     if (matchingMonth) {
                         setValue('advanceMonth', matchingMonth.IVRM_Month_Id.toString());
                     }
                 }
             } catch (error) {
                 // Silently handle date parsing errors
-                console.error('Error parsing entry date:', error);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watchedEntryDate, leaveYears, months]);
-
     const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
         if (!selectedRow) {
             toast.error('No row selected for update');
             return;
         }
-
         const payload = {
             HRESA_Id: selectedRow.HRESA_Id,
             MI_Id: HRMS_MI_ID,
@@ -150,7 +132,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
             HRESA_ReferenceNo: data.referenceNo,
             roleId: 2
         };
-
         saveAdvance(payload, {
             onSuccess: () => {
                 toast.success('Salary advance updated successfully!');
@@ -161,11 +142,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
             }
         });
     };
-
     const getEmployeeName = (employee: any) => {
         return `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
     };
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -193,7 +172,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                         />
                         {errors.employeeId && <FormError>{errors.employeeId.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <Label>Entry Date *</Label>
                         <Controller
@@ -226,7 +204,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                         />
                         {errors.entryDate && <FormError>{errors.entryDate.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <Label>Advance Year *</Label>
                         <Controller
@@ -250,7 +227,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                         />
                         {errors.advanceYear && <FormError>{errors.advanceYear.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <Label>Advance Month *</Label>
                         <Controller
@@ -274,7 +250,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                         />
                         {errors.advanceMonth && <FormError>{errors.advanceMonth.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <Label>Applied Amount *</Label>
                         <InputText
@@ -291,7 +266,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                             error={errors.appliedAmount?.message}
                         />
                     </div>
-
                     <div className='space-y-2'>
                         <Label>Mode of Payment *</Label>
                         <Controller
@@ -315,7 +289,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                         />
                         {errors.modeOfPayment && <FormError>{errors.modeOfPayment.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <Label>Reference No</Label>
                         <InputText
@@ -326,12 +299,10 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, onloadData, onSuc
                         />
                     </div>
                 </div>
-
                 <div className='space-y-2'>
                     <Label>Remarks</Label>
                     <InputText placeholder='Enter remarks' {...register('remarks')} error={errors.remarks?.message} />
                 </div>
-
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

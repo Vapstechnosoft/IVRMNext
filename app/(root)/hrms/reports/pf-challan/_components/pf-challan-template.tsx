@@ -1,8 +1,6 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Printer, X } from 'lucide-react';
-
 interface PFChallanSummary {
     totalEmployeeShare: number;
     totalEmployerShare: number;
@@ -13,7 +11,6 @@ interface PFChallanSummary {
     account22: number;
     grandTotal: number;
 }
-
 interface PFChallanTemplateProps {
     establishmentName?: string;
     establishmentAddress?: string;
@@ -25,7 +22,6 @@ interface PFChallanTemplateProps {
     onPrint: () => void;
     onCancel: () => void;
 }
-
 export function PFChallanTemplate({
     establishmentName = '',
     establishmentAddress = '',
@@ -41,7 +37,6 @@ export function PFChallanTemplate({
     const formatCurrency = (value: number) => {
         return value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
-
     // Format month number (e.g., "March" -> "03")
     const getMonthNumber = () => {
         if (!month) return '';
@@ -61,10 +56,8 @@ export function PFChallanTemplate({
         };
         return monthMap[month] || '';
     };
-
     const monthNumber = getMonthNumber();
     const yearValue = year || '';
-
     return (
         <div className='mx-auto w-full max-w-[1200px] bg-white p-6 print:p-4'>
             {/* EPFO Header */}
@@ -72,7 +65,6 @@ export function PFChallanTemplate({
                 <h1 className='mb-2 font-bold text-gray-900 text-xl uppercase'>EMPLOYEE'S PROVIDENT FUND ORGANISATION</h1>
                 <p className='font-semibold text-gray-700 text-sm'>(COMBINED CHALLAN FOR A/C NO.1, 2, 10, 21 & 22)</p>
             </div>
-
             {/* Business Details Section */}
             <div className='mb-6 grid grid-cols-3 gap-4 text-sm'>
                 <div>
@@ -100,7 +92,6 @@ export function PFChallanTemplate({
                     <div className='h-8 border border-gray-300 bg-white' />
                 </div>
             </div>
-
             {/* Amount Table */}
             <div className='mb-6 overflow-x-auto'>
                 <table className='w-full border-collapse border border-gray-300 text-xs'>
@@ -231,7 +222,6 @@ export function PFChallanTemplate({
                     </tbody>
                 </table>
             </div>
-
             {/* Mode of Payment Section */}
             <div className='mb-6 grid grid-cols-2 gap-6'>
                 <div>
@@ -286,7 +276,6 @@ export function PFChallanTemplate({
                     </div>
                 </div>
             </div>
-
             {/* Establishment and Depositor Details */}
             <div className='mb-6 space-y-3 text-sm'>
                 <div>
@@ -334,7 +323,6 @@ export function PFChallanTemplate({
                     </div>
                 </div>
             </div>
-
             {/* Instructions Section */}
             <div className='mb-6 rounded-lg border border-gray-300 bg-gray-50 p-4 text-sm'>
                 <h3 className='mb-2 font-semibold text-gray-900'>INSTRUCTIONS TO THE EMPLOYER</h3>
@@ -345,7 +333,6 @@ export function PFChallanTemplate({
                     <li>Pay the dues through local cheque only.</li>
                 </ul>
             </div>
-
             {/* To Be Filled By The Bank Section */}
             <div className='mb-6 rounded-lg border border-gray-300 bg-gray-50 p-4 text-sm'>
                 <h3 className='mb-3 font-semibold text-gray-900'>(TO BE FILLED BY THE BANK)</h3>
@@ -389,7 +376,6 @@ export function PFChallanTemplate({
                     </div>
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
                 <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>

@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,7 +8,6 @@ import type { GenderItem, MasterGenderResponse } from '@/types/hrms/master-gende
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<GenderItem>[] = [
     {
         id: 'slNo',
@@ -34,18 +32,15 @@ export const columns: ColumnDef<GenderItem>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: GenderItem }) {
     const { openEditForm } = useFormContext<MasterGenderResponse>();
     const { toggleMutation } = useMasterGender(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: GenderItem) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: GenderItem, newState: boolean) => {
             try {
@@ -60,7 +55,6 @@ function ActionButtonsCell({ rowData }: { rowData: GenderItem }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

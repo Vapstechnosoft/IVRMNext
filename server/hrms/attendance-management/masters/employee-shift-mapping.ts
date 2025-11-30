@@ -1,5 +1,4 @@
 'use server';
-
 import { createLocalCrud } from '@/lib/localdb';
 import { api, type ApiResponse } from '@/lib/apiService';
 import { getEmployeeOnload } from '@/server/hrms/hrmsConfig/employee';
@@ -10,7 +9,6 @@ import type {
     EmployeeShiftMappingSaveRequest,
     EmployeeShiftMappingSaveResponse
 } from '@/types/hrms/attendance-management/employee-shift-mapping';
-
 export interface EmployeeShiftMapping {
     id: number;
     employeeTypes?: string[];
@@ -47,9 +45,7 @@ export interface EmployeeShiftMapping {
     lunchHours?: string;
     createdAt: Date;
 }
-
 const store = createLocalCrud<EmployeeShiftMapping>('master:employeeShiftMapping');
-
 /**
  * Get shift names from API
  * POST /api/EmployeeShiftMappingFacade/Shiftname
@@ -60,16 +56,8 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
         MI_Id: 30,
         FOMS_Id: fomsId
     };
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
-        console.log('📥 [SERVER] Shift names API response:', {
-            success: response?.success,
-            hasData: !!response?.data,
-            dataType: typeof response?.data
-        });
-        
         // When FOMS_Id > 0, the API returns shift timing details for that specific shift
         // When FOMS_Id = 0, the API returns a list of all shift names
         if (fomsId > 0) {
@@ -78,7 +66,6 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
             // FOMST_IHalfLoginTime, FOMST_IHalfLogoutTime, FOMST_IIHalfLoginTime, 
             // FOMST_IIHalfLogoutTime, FOMST_FDWHrMin, FOMST_HDWHrMin, etc.
             const responseData = response?.data || {};
-            
             // If data is an array, get the first item (should be the selected shift details)
             if (Array.isArray(responseData) && responseData.length > 0) {
                 return {
@@ -99,7 +86,6 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
                     message: response?.message || 'Shift details retrieved successfully'
                 };
             }
-            
             // Fallback: return empty array if structure is unexpected
             return {
                 success: response?.success ?? true,
@@ -107,10 +93,8 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
                 message: response?.message || 'Shift details retrieved successfully'
             };
         }
-        
         // When FOMS_Id = 0, return list of shift names for dropdown
         let shiftNames: Array<{ label: string; value: string; id: number }> = [];
-        
         if (response?.data) {
             // If data is an array
             if (Array.isArray(response.data)) {
@@ -132,28 +116,16 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
                 }
             }
         }
-        
         return {
             success: response?.success ?? true,
             data: shiftNames,
             message: response?.message || 'Shift names retrieved successfully'
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Failed to fetch shift names:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data,
-            fullError: error
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to fetch shift names';
-        
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
             } else if (typeof apiError === 'object' && apiError !== null) {
@@ -174,7 +146,6 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         return {
             success: false,
             data: [],
@@ -182,7 +153,6 @@ export async function getEmployeeShiftMappingShiftNames(fomsId: number = 0) {
         };
     }
 }
-
 /**
  * Get dropdown data for employee shift mapping form
  * Fetches employee types, departments, designations, day types, and shifts from API
@@ -193,19 +163,10 @@ export async function getEmployeeShiftMappingDropdowns() {
     const requestBody = {
         MI_Id: 30
     };
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
-        console.log('📥 [SERVER] Get details API response:', {
-            success: response?.success,
-            hasData: !!response?.data,
-            dataType: typeof response?.data
-        });
-        
         // Extract data from response
         const responseData = response?.data || {};
-        
         // Helper function to remove duplicates based on ID
         const removeDuplicatesById = <T extends { id?: number; value?: string }>(items: T[], getId: (item: T) => string | number): T[] => {
             const seen = new Set<string | number>();
@@ -218,7 +179,6 @@ export async function getEmployeeShiftMappingDropdowns() {
                 return true;
             });
         };
-        
         // Map stf_types to employeeTypes (types) - remove duplicates by HRMGT_Id
         const employeeTypesRaw = (responseData.stf_types || []).map((item: any) => ({
             label: item.HRMGT_EmployeeGroupType || item.label || item.name || '',
@@ -226,7 +186,6 @@ export async function getEmployeeShiftMappingDropdowns() {
             id: item.HRMGT_Id || item.id || 0
         })).filter((item: { label: string; value: string }) => item.label && item.value);
         const employeeTypes = removeDuplicatesById(employeeTypesRaw, (item) => (item.id || item.value || '') as string | number);
-        
         // Map Department_types to departments - remove duplicates by HRMD_Id
         const departmentsRaw = (responseData.Department_types || []).map((item: any) => ({
             label: item.HRMD_DepartmentName || item.label || item.name || '',
@@ -234,7 +193,6 @@ export async function getEmployeeShiftMappingDropdowns() {
             id: item.HRMD_Id || item.id || 0
         })).filter((item: { label: string; value: string }) => item.label && item.value);
         const departments = removeDuplicatesById(departmentsRaw, (item) => (item.id || item.value || '') as string | number);
-        
         // Map Designation_types to designations - remove duplicates by HRMDES_Id
         const designationsRaw = (responseData.Designation_types || []).map((item: any) => ({
             label: item.HRMDES_DesignationName || item.label || item.name || '',
@@ -242,7 +200,6 @@ export async function getEmployeeShiftMappingDropdowns() {
             id: item.HRMDES_Id || item.id || 0
         })).filter((item: { label: string; value: string }) => item.label && item.value);
         const designations = removeDuplicatesById(designationsRaw, (item) => (item.id || item.value || '') as string | number);
-        
         // Map holiday_types to dayTypes - remove duplicates by FOHWDT_Id
         const dayTypesRaw = (responseData.holiday_types || []).map((item: any) => ({
             label: item.FOHTWD_HolidayWDType || item.label || item.name || '',
@@ -250,14 +207,12 @@ export async function getEmployeeShiftMappingDropdowns() {
             id: item.FOHWDT_Id || item.id || 0
         })).filter((item: { label: string; value: string }) => item.label && item.value);
         const dayTypes = removeDuplicatesById(dayTypesRaw, (item) => (item.id || item.value || '') as string | number);
-        
         // Map sfname to shifts
         const shifts = (responseData.sfname || []).map((item: any) => ({
             label: item.FOMS_ShiftName || item.label || item.name || '',
             value: item.FOMS_ShiftName || item.value || item.name || '',
             id: item.FOMS_Id || item.id || 0
         })).filter((item: { label: string; value: string }) => item.label && item.value);
-        
         // Map employeelist to employees (for employee dropdown)
         // Note: employeelist items contain HRME_EmployeeFirstName and may have employee IDs
         const employees = (responseData.employeelist || []).map((item: any) => {
@@ -270,12 +225,10 @@ export async function getEmployeeShiftMappingDropdowns() {
                 id: item.HRME_Id || item.FOEST_Id || 0
             };
         }).filter((item: { label: string; value: string }) => item.label && item.value);
-        
         // Remove duplicates based on value (in case same employee appears multiple times)
         const uniqueEmployees = employees.filter((emp: { label: string; value: string; id: number }, index: number, self: Array<{ label: string; value: string; id: number }>) => 
             index === self.findIndex((e: { label: string; value: string; id: number }) => e.value === emp.value)
         );
-        
         return {
             success: response?.success ?? true,
             data: {
@@ -289,22 +242,11 @@ export async function getEmployeeShiftMappingDropdowns() {
             message: response?.message || 'Dropdown data retrieved successfully'
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Failed to fetch employee shift mapping dropdowns:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data,
-            fullError: error
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to fetch dropdown data';
-        
         // Try to extract error message from API response
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             // Check if response is a string
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
@@ -327,7 +269,6 @@ export async function getEmployeeShiftMappingDropdowns() {
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         return {
             success: false,
             data: {
@@ -342,13 +283,11 @@ export async function getEmployeeShiftMappingDropdowns() {
         };
     }
 }
-
 /**
  * Helper function to convert searchParams from URL (strings) to proper types
  */
 function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
     if (!searchParams) return {};
-    
     // Helper to get first value if array, or the value itself
     const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
         if (value === undefined) return defaultValue;
@@ -356,7 +295,6 @@ function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, s
         if (Array.isArray(value)) return value[0] || defaultValue;
         return value;
     };
-    
     return {
         page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
         page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
@@ -366,7 +304,6 @@ function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, s
         sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
     };
 }
-
 /**
  * Get employee shift mapping edit data from API
  * POST /api/EmployeeShiftMappingFacade/editdetails
@@ -376,26 +313,16 @@ export async function getEmployeeShiftMappingEditData(foestId: number) {
     const requestBody = {
         FOEST_Id: foestId
     };
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
-        console.log('📥 [SERVER] Edit data API response:', {
-            success: response?.success,
-            hasData: !!response?.data,
-            dataType: typeof response?.data
-        });
-        
         // Extract the data structure - similar to getdata response
         const responseData = response?.data || {};
         const editData = responseData?.report_list?.[0] || responseData?.data || responseData || {};
-        
         // Map API response to our interface (similar to getEmployeeShiftMapping mapping)
         const cleanTime = (timeStr: string | null | undefined): string => {
             if (!timeStr) return '';
             return String(timeStr).trim();
         };
-        
         const formatDate = (dateStr: string | null | undefined): string => {
             if (!dateStr) return '';
             try {
@@ -405,7 +332,6 @@ export async function getEmployeeShiftMappingEditData(foestId: number) {
                 return String(dateStr);
             }
         };
-        
         const mappedData: EmployeeShiftMapping = {
             id: editData.FOEST_Id || editData.id || foestId,
             employee: editData.EmployeeName || editData.employee || '',
@@ -439,28 +365,16 @@ export async function getEmployeeShiftMappingEditData(foestId: number) {
             isActive: true,
             createdAt: editData.Date || editData.FOEST_Date ? new Date(editData.Date || editData.FOEST_Date) : new Date()
         };
-        
         return {
             success: response?.success ?? true,
             message: response?.message || 'Employee shift mapping edit data retrieved successfully',
             data: mappedData
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Failed to fetch employee shift mapping edit data:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data,
-            fullError: error
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to fetch employee shift mapping edit data';
-        
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
             } else if (typeof apiError === 'object' && apiError !== null) {
@@ -481,7 +395,6 @@ export async function getEmployeeShiftMappingEditData(foestId: number) {
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         return {
             success: false,
             message: errorMessage,
@@ -489,7 +402,6 @@ export async function getEmployeeShiftMappingEditData(foestId: number) {
         };
     }
 }
-
 /**
  * Get employee shift mapping data from API
  * POST /api/EmployeeShiftMappingFacade/getdata
@@ -497,7 +409,6 @@ export async function getEmployeeShiftMappingEditData(foestId: number) {
 export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
     // Normalize searchParams (convert strings to proper types)
     const normalizedParams = normalizeSearchParams(searchParams);
-    
     const requestBody = {
         page: normalizedParams.page || 1,
         page_size: normalizedParams.page_size || 10,
@@ -510,12 +421,9 @@ export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | R
         LoginUserId: 0,
         UserRole: ''
     };
-
     const url = '/api/EmployeeShiftMappingFacade/getdata';
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
         // API response structure:
         // {
         //   "success": true,
@@ -544,11 +452,9 @@ export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | R
         //   "page": 1,
         //   "page_size": 1
         // }
-        
         // Extract the data structure
         const responseData = response?.data || {};
         const reportList = responseData?.report_list || [];
-        
         // Map API response to our interface
         const mappedData: EmployeeShiftMapping[] = reportList.map((item: any) => {
             // Helper to trim and clean time strings
@@ -556,7 +462,6 @@ export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | R
                 if (!timeStr) return '';
                 return String(timeStr).trim();
             };
-            
             // Helper to format date
             const formatDate = (dateStr: string | null | undefined): string => {
                 if (!dateStr) return '';
@@ -567,7 +472,6 @@ export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | R
                     return String(dateStr);
                 }
             };
-            
             return {
                 id: item.FOEST_Id || item.id || 0,
                 employee: item.EmployeeName || item.employee || '',
@@ -602,14 +506,12 @@ export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | R
                 createdAt: item.Date ? new Date(item.Date) : new Date()
             };
         });
-        
         // Extract pagination info from response
         const responseTotal = typeof response?.total === 'number' ? response.total : mappedData.length;
         const responsePage = typeof response?.page === 'number' ? response.page : (normalizedParams.page || 1);
         const responsePageSize = typeof response?.page_size === 'number' 
             ? response.page_size 
             : (normalizedParams.page_size || 10);
-        
         return {
             success: response?.success ?? true,
             message: response?.message || 'Employee shift mappings retrieved successfully',
@@ -619,22 +521,11 @@ export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | R
             page_size: responsePageSize
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Failed to fetch employee shift mapping data:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data,
-            fullError: error
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to fetch employee shift mapping data';
-        
         // Try to extract error message from API response
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             // Check if response is a string
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
@@ -657,7 +548,6 @@ export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | R
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         // Return error response in expected format
         return {
             success: false,
@@ -669,7 +559,6 @@ export async function getEmployeeShiftMapping(searchParams?: ApiSearchparams | R
         };
     }
 }
-
 export async function addOrUpdateEmployeeShiftMapping(data: {
     id?: number;
     type: string | string[];
@@ -728,7 +617,6 @@ export async function addOrUpdateEmployeeShiftMapping(data: {
                 lunchHours: data.lunchHours
             });
         }
-        
         // Otherwise, fall back to local storage (for backward compatibility during development)
         if (data.id) {
             const updated = store.update(data.id, data);
@@ -758,7 +646,6 @@ export async function addOrUpdateEmployeeShiftMapping(data: {
         };
     }
 }
-
 /**
  * Save employee shift mapping via API
  * POST /api/EmployeeShiftMappingFacade/savedetail
@@ -783,10 +670,8 @@ async function saveEmployeeShiftMappingViaAPI(data: {
     lunchHours?: string;
 }): Promise<ApiResponse<any>> {
     const url = '/api/EmployeeShiftMappingFacade/savedetail';
-    
     // Convert applicableDate to ISO format
     const applicableDateISO = data.applicableDate ? new Date(data.applicableDate).toISOString() : new Date().toISOString();
-    
     // Build request body - using exact API field names (uppercase)
     const requestBody: EmployeeShiftMappingSaveRequest = {
         FOEST_Id: data.id || 0, // 0 for new, or existing ID for update
@@ -808,33 +693,10 @@ async function saveEmployeeShiftMappingViaAPI(data: {
         DayTypeIds: data.dayTypeIds, // Array of day type IDs
         UserId: 0
     };
-    
-    console.log('🔄 [SERVER] Saving employee shift mapping via API');
-    console.log('📤 [SERVER] Request URL:', url);
     console.log('📤 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-    console.log('📤 [SERVER] Request Body Summary:', {
-        FOEST_Id: requestBody.FOEST_Id,
-        MI_Id: requestBody.MI_Id,
-        FOMS_Id: requestBody.FOMS_Id,
-        FOEST_Date: requestBody.FOEST_Date,
-        EmployeeIdsCount: requestBody.EmployeeIds.length,
-        EmployeeIds: requestBody.EmployeeIds,
-        DayTypeIdsCount: requestBody.DayTypeIds.length,
-        DayTypeIds: requestBody.DayTypeIds
-    });
-    
     try {
         const response = await api.post<EmployeeShiftMappingSaveResponse>('hrmsfrontoffice', url, requestBody);
-        
         console.log('📥 [SERVER] Raw API Response:', JSON.stringify(response, null, 2));
-        console.log('📥 [SERVER] Response Analysis:', {
-            hasResponse: !!response,
-            success: response?.success,
-            message: response?.message,
-            hasData: !!response?.data,
-            responseType: typeof response
-        });
-        
         // The API returns: { success: boolean, message: string, data: any | null, total: number | null, page: number | null, page_size: number | null }
         if (response && typeof response === 'object' && 'success' in response) {
             const result = {
@@ -842,33 +704,19 @@ async function saveEmployeeShiftMappingViaAPI(data: {
                 message: response.message || (response.success ? 'Employee shift mapping saved successfully' : 'Failed to save employee shift mapping'),
                 data: response.data || null
             };
-            console.log('✅ [SERVER] Returning result:', result);
             return result;
         }
-        
-        console.log('❌ [SERVER] Unexpected response format');
         return {
             success: false,
             message: 'Unexpected response format from API',
             data: null
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Error saving employee shift mapping via API:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data,
-            fullError: error
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to save employee shift mapping';
-        
         // Try to extract error message from API response
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             // Check if response is a string
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
@@ -891,7 +739,6 @@ async function saveEmployeeShiftMappingViaAPI(data: {
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         return {
             success: false,
             message: errorMessage,
@@ -899,7 +746,6 @@ async function saveEmployeeShiftMappingViaAPI(data: {
         };
     }
 }
-
 /**
  * Get employees based on filters
  * POST /api/EmployeeShiftMappingFacade/get_employee
@@ -916,19 +762,10 @@ export async function getEmployeeShiftMappingEmployees(params: {
         DepartmentIds: params.departmentIds || [0],
         DesignationIds: params.designationIds || [0]
     };
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
-        console.log('📥 [SERVER] Get employees API response:', {
-            success: response?.success,
-            hasData: !!response?.data,
-            dataType: typeof response?.data
-        });
-        
         // Extract employees from response
         let employees: any[] = [];
-        
         if (response?.data) {
             // If data is an array
             if (Array.isArray(response.data)) {
@@ -939,28 +776,16 @@ export async function getEmployeeShiftMappingEmployees(params: {
                 employees = response.data.report_list || response.data.employees || response.data.list || response.data.data || [];
             }
         }
-        
         return {
             success: response?.success ?? true,
             data: employees,
             message: response?.message || 'Employees retrieved successfully'
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Failed to fetch employees:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data,
-            fullError: error
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to fetch employees';
-        
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
             } else if (typeof apiError === 'object' && apiError !== null) {
@@ -981,7 +806,6 @@ export async function getEmployeeShiftMappingEmployees(params: {
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         return {
             success: false,
             data: [],
@@ -989,21 +813,13 @@ export async function getEmployeeShiftMappingEmployees(params: {
         };
     }
 }
-
 export async function deleteEmployeeShiftMapping(id: number) {
     const url = '/api/EmployeeShiftMappingFacade/deletedetails';
     const requestBody = {
         FOEST_Id: id
     };
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
-        console.log('📥 [SERVER] Delete API response:', {
-            success: response?.success,
-            message: response?.message
-        });
-        
         // Check if deletion was successful
         if (response?.success) {
             return {
@@ -1011,7 +827,6 @@ export async function deleteEmployeeShiftMapping(id: number) {
                 message: response?.message || 'Employee shift mapping deleted successfully'
             };
         }
-        
         // If API returned success: false, extract error message
         let errorMessage = 'Failed to delete employee shift mapping';
         if (response?.message) {
@@ -1019,27 +834,15 @@ export async function deleteEmployeeShiftMapping(id: number) {
         } else if (response?.data && typeof response.data === 'string') {
             errorMessage = response.data;
         }
-        
         return {
             success: false,
             message: errorMessage
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Failed to delete employee shift mapping:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data,
-            fullError: error
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to delete employee shift mapping';
-        
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
             } else if (typeof apiError === 'object' && apiError !== null) {
@@ -1060,11 +863,9 @@ export async function deleteEmployeeShiftMapping(id: number) {
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         return {
             success: false,
             message: errorMessage
         };
     }
 }
-

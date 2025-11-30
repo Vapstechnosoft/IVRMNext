@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface JobPosting {
     id: number;
     position: string;
@@ -29,15 +27,12 @@ export interface JobPosting {
         online: boolean;
         technical: boolean;
     };
-
     createdAt: string;
 }
-
 interface JobPostingColumnsProps {
     onEdit: (row: JobPosting) => void;
     onDelete: (row: JobPosting) => void;
 }
-
 export const getJobPostingColumns = ({ onEdit, onDelete }: JobPostingColumnsProps): ColumnDef<JobPosting>[] => [
     {
         id: 'sl',

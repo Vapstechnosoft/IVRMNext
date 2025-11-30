@@ -140,3 +140,9 @@ export interface MasterEarningsDeductionsSaveRequest {
     HRMED_Order?: number;
     perc_OfDTO: PercOfDTO[];
 }
+
+export interface EarningsDeductionSetOrderList {
+    HRMED_Id: number;
+    HRMED_Name: string;
+    HRMED_Order: number;
+}

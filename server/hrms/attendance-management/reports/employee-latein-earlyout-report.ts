@@ -1,13 +1,10 @@
 'use server';
-
 import { createLocalCrud } from '@/lib/localdb';
 import type { LIEORow } from '@/app/(root)/hrms/attendance-management/reports/employee-lateInEarlyOut-report/_components/columns';
 import type { EmployeeLateInEarlyOutReportFilters } from '@/app/(root)/hrms/attendance-management/reports/employee-lateInEarlyOut-report/_components/filters';
-
 export async function getEmployeeLateInEarlyOutReport(filters?: EmployeeLateInEarlyOutReportFilters) {
     const db = createLocalCrud<LIEORow>('attendance:lieo');
     const data = db.list();
-
     if (!filters) {
         return {
             success: true,
@@ -15,7 +12,6 @@ export async function getEmployeeLateInEarlyOutReport(filters?: EmployeeLateInEa
             message: 'Data fetched successfully'
         };
     }
-
     const filtered = data.filter((r) => {
         const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
         const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
@@ -39,22 +35,18 @@ export async function getEmployeeLateInEarlyOutReport(filters?: EmployeeLateInEa
             : true;
         return okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okMode;
     });
-
     return {
         success: true,
         data: filtered,
         message: 'Data fetched successfully'
     };
 }
-
 export async function getEmployeeLateInEarlyOutReportDropdowns() {
     const db = createLocalCrud<LIEORow>('attendance:lieo');
     const data = db.list();
-
     const types = [...new Set(data.map((d) => d.type).filter(Boolean))];
     const departments = [...new Set(data.map((d) => d.department))];
     const designations = [...new Set(data.map((d) => d.designation))];
-
     return {
         success: true,
         data: {
@@ -65,4 +57,3 @@ export async function getEmployeeLateInEarlyOutReportDropdowns() {
         message: 'Dropdown data fetched successfully'
     };
 }
-

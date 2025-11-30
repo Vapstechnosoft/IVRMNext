@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
@@ -31,9 +30,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import FormSections from './_components/form-sections';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function SalaryUpdationPage(_props: { searchParams: SearchParams }) {
     const { listQuery } = useSalaryUpdationList({
         page: 0,
@@ -47,7 +44,6 @@ export default function SalaryUpdationPage(_props: { searchParams: SearchParams 
         LoginUserId: 0, // TODO: Get from auth context
         UserRole: '' // TODO: Get from auth context
     });
-
     return (
         <FormProvider<SalaryUpdationItem>>
             <SalaryUpdationPageContent
@@ -59,7 +55,6 @@ export default function SalaryUpdationPage(_props: { searchParams: SearchParams 
         </FormProvider>
     );
 }
-
 function SalaryUpdationPageContent({
     response,
     isLoading,
@@ -81,7 +76,6 @@ function SalaryUpdationPageContent({
     const { mutate: getEmployeeDetails, isPending: isGettingDetails } = useGetSalaryUpdationEmployeeDetailsBySelection();
     const { mutate: getDepartments, isPending: isGettingDepartments } = useGetSalaryUpdationDepartments();
     const { mutate: getDesignations, isPending: isGettingDesignations } = useGetSalaryUpdationDesignations();
-
     // Safely extract data with proper defaults to prevent hydration mismatches
     // Use useMemo to prevent unnecessary re-renders and infinite loops
     // Support both new format (groupTypedropdown) and legacy format (groupTypedropdownlist)
@@ -104,22 +98,17 @@ function SalaryUpdationPageContent({
         [cascadingDesignations, response?.designationdropdown, response?.designationdropdownlist]
     );
     const _employees = useMemo(() => response?.employeedropdown || [], [response?.employeedropdown]);
-    
     // Get all head dropdowns from response
     const allHeads = useMemo(() => response?.headdropdown || [], [response?.headdropdown]);
     const earningHeadsList = useMemo(() => response?.earningdropdown || [], [response?.earningdropdown]);
     const deductionHeadsList = useMemo(() => response?.detectiondropdown || [], [response?.detectiondropdown]);
-    
     const monthOptions = useMemo(() => response?.monthdropdown || [], [response?.monthdropdown]);
     const leaveYearOptions = useMemo(() => response?.leaveyeardropdown || [], [response?.leaveyeardropdown]);
-
     // Initialize date values client-side only to prevent hydration mismatches
     const [isClient, setIsClient] = useState(false);
-
     useEffect(() => {
         setIsClient(true);
     }, []);
-
     const { control, handleSubmit, reset, watch, register, getValues, setValue } = useForm({
         defaultValues: {
             groupType: [] as string[],
@@ -134,10 +123,8 @@ function SalaryUpdationPageContent({
             addRemove: 'Add'
         }
     });
-
     // Track if form has been initialized to prevent unnecessary resets
     const [isFormInitialized, setIsFormInitialized] = useState(false);
-
     // Initialize form values on client side after hydration
     useEffect(() => {
         if (isClient && !isFormInitialized) {
@@ -147,7 +134,6 @@ function SalaryUpdationPageContent({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isClient, isFormInitialized]);
-
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const _watchedDesignation = watch('designation');
@@ -157,11 +143,9 @@ function SalaryUpdationPageContent({
     const watchedSelectedHead = watch('selectedHead');
     const watchedUpdateValue = watch('updateValue');
     const watchedAddRemove = watch('addRemove');
-
     // Dynamically filter heads based on earning/deduction and amount/percentage selection
     const earningHeads = useMemo(() => {
         let filteredHeads: any[] = [];
-
         // Step 1: Filter by Earning/Deduction selection
         if (watchedEarningDeduction === 'Earning') {
             filteredHeads = [...earningHeadsList];
@@ -171,7 +155,6 @@ function SalaryUpdationPageContent({
             // "All Earning & Deduction" - use headdropdown
             filteredHeads = [...allHeads];
         }
-
         // Step 2: Filter by Amount/Percentage selection
         if (watchedAmountType === 'Amount') {
             filteredHeads = filteredHeads.filter((h: any) => h.HRMED_AmountPercentFlag === 'Amount');
@@ -179,14 +162,11 @@ function SalaryUpdationPageContent({
             filteredHeads = filteredHeads.filter((h: any) => h.HRMED_AmountPercentFlag === 'Percentage');
         }
         // If "All" is selected, don't filter by AmountPercentFlag
-
         return filteredHeads;
     }, [watchedEarningDeduction, watchedAmountType, allHeads, earningHeadsList, deductionHeadsList]);
-
     // Cascading dropdown: Fetch departments when group type changes
     useEffect(() => {
         if (!isClient || !isFormInitialized) return;
-
         if (watchedGroupType && Array.isArray(watchedGroupType) && watchedGroupType.length > 0) {
             const groupTypeIds = watchedGroupType
                 .map((gt: string) => {
@@ -194,7 +174,6 @@ function SalaryUpdationPageContent({
                     return groupType?.HRMGT_Id;
                 })
                 .filter((id): id is number => id !== undefined);
-
             if (groupTypeIds.length > 0) {
                 getDepartments(
                     {
@@ -227,11 +206,9 @@ function SalaryUpdationPageContent({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watchedGroupType, isClient, isFormInitialized]);
-
     // Cascading dropdown: Fetch designations when department changes
     useEffect(() => {
         if (!isClient || !isFormInitialized) return;
-
         if (
             watchedDepartment &&
             Array.isArray(watchedDepartment) &&
@@ -246,14 +223,12 @@ function SalaryUpdationPageContent({
                     return groupType?.HRMGT_Id;
                 })
                 .filter((id): id is number => id !== undefined);
-
             const departmentIds = watchedDepartment
                 .map((dept: string) => {
                     const department = departments.find((d: any) => d.HRMD_DepartmentName === dept);
                     return department?.HRMD_Id;
                 })
                 .filter((id): id is number => id !== undefined);
-
             if (groupTypeIds.length > 0 && departmentIds.length > 0) {
                 getDesignations(
                     {
@@ -282,7 +257,6 @@ function SalaryUpdationPageContent({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watchedDepartment, watchedGroupType, isClient, isFormInitialized]);
-
     // Reset heads when earning/deduction or amount/percentage selection changes
     useEffect(() => {
         if (isClient && isFormInitialized) {
@@ -290,7 +264,6 @@ function SalaryUpdationPageContent({
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watchedEarningDeduction, watchedAmountType, isClient, isFormInitialized]);
-
     const onSubmit = async (formData: any) => {
         try {
             // Map form values to API request format
@@ -303,7 +276,6 @@ function SalaryUpdationPageContent({
                     }
                 });
             }
-
             const departmentIds: number[] = [];
             if (formData.department && Array.isArray(formData.department) && formData.department.length > 0) {
                 formData.department.forEach((dept: string) => {
@@ -313,7 +285,6 @@ function SalaryUpdationPageContent({
                     }
                 });
             }
-
             const designationIds: number[] = [];
             if (formData.designation && Array.isArray(formData.designation) && formData.designation.length > 0) {
                 formData.designation.forEach((desg: string) => {
@@ -323,7 +294,6 @@ function SalaryUpdationPageContent({
                     }
                 });
             }
-
             const headIds: number[] = [];
             if (formData.heads && Array.isArray(formData.heads) && formData.heads.length > 0) {
                 // formData.heads now contains HRMED_Id as strings, convert to numbers
@@ -334,7 +304,6 @@ function SalaryUpdationPageContent({
                     }
                 });
             }
-
             // Call API to filter employees
             filterEmployees(
                 {
@@ -360,53 +329,43 @@ function SalaryUpdationPageContent({
             toast.error(error.message || 'Search failed');
         }
     };
-
     const handleUpdate = () => {
         if (selectedEmployees.length === 0) {
             toast.error('Please select at least one employee');
             return;
         }
-
         // Get current form values
         const formValues = watch();
-
         // Validate required fields
         if (!formValues.selectedHead) {
             toast.error('Please select a head');
             return;
         }
-
         if (!formValues.updateValue) {
             toast.error(`Please enter ${formValues.amountType === 'Amount' ? 'amount' : 'percentage'}`);
             return;
         }
-
         // Get all available heads (not filtered) for finding the selected head
         const allAvailableHeads = [
             ...(response?.headdropdown || []),
             ...(response?.earningdropdown || []),
             ...(response?.detectiondropdown || [])
         ];
-
         const headId = Number.parseInt(formValues.selectedHead, 10);
         if (Number.isNaN(headId) || headId <= 0) {
             toast.error('Invalid head selected');
             return;
         }
-
         const selectedHead = allAvailableHeads.find((h: any) => h.HRMED_Id === headId);
         if (!selectedHead) {
             toast.error('Selected head not found');
             return;
         }
-
         const isEarning = formValues.earningDeduction === 'Earning';
         const amountValue = Number.parseFloat(formValues.updateValue || '0') || 0;
-
         // Build earning and deduction arrays based on form selections
         const earningresult: EarningResultItem[] = [];
         const deductionresult: DeductionResultItem[] = [];
-
         // Create item for each selected employee
         selectedEmployees.forEach((employeeId) => {
             const item = {
@@ -420,14 +379,12 @@ function SalaryUpdationPageContent({
                 HREED_MaxApplicableFlg: true,
                 HREED_ApplicableMaxValue: 0
             };
-
             if (isEarning) {
                 earningresult.push(item as EarningResultItem);
             } else {
                 deductionresult.push(item as DeductionResultItem);
             }
         });
-
         // Call API to save employee details
         getEmployeeDetails(
             {
@@ -455,13 +412,11 @@ function SalaryUpdationPageContent({
             }
         );
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Forms Section */}
                 <FormSections onloadData={response} onSuccess={refetch} />
-
                 {/* Search Form */}
                 <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -479,7 +434,6 @@ function SalaryUpdationPageContent({
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
                                         const allGroupTypeValues = groupTypes.map((gt: any) => gt.HRMGT_EmployeeGroupType);
                                         const isAllSelected = allGroupTypeValues.length > 0 && allGroupTypeValues.every((val: string) => currentValue.includes(val));
-
                                         return (
                                             <MultiSelect
                                                 options={[
@@ -511,7 +465,6 @@ function SalaryUpdationPageContent({
                                     }}
                                 />
                             </div>
-
                             {/* Department */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>
@@ -524,7 +477,6 @@ function SalaryUpdationPageContent({
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
                                         const allDeptValues = departments.map((d: any) => d.HRMD_DepartmentName);
                                         const isAllSelected = allDeptValues.length > 0 && allDeptValues.every((val: string) => currentValue.includes(val));
-
                                         return (
                                             <MultiSelect
                                                 options={[
@@ -554,7 +506,6 @@ function SalaryUpdationPageContent({
                                     }}
                                 />
                             </div>
-
                             {/* Designation */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>
@@ -567,7 +518,6 @@ function SalaryUpdationPageContent({
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
                                         const allDesgValues = designations.map((d: any) => d.HRMDES_DesignationName);
                                         const isAllSelected = allDesgValues.length > 0 && allDesgValues.every((val: string) => currentValue.includes(val));
-
                                         return (
                                             <MultiSelect
                                                 options={[
@@ -598,7 +548,6 @@ function SalaryUpdationPageContent({
                                 />
                             </div>
                         </div>
-
                         {/* Middle Section: Radio Buttons and Head Selection */}
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                             {/* Left Column: Earning/Deduction and Amount/Percentage */}
@@ -640,7 +589,6 @@ function SalaryUpdationPageContent({
                                         )}
                                     />
                                 </div>
-
                                 {/* Amount / Percentage Selection */}
                                 <div className='space-y-3'>
                                     <Label className='font-semibold'>
@@ -679,7 +627,6 @@ function SalaryUpdationPageContent({
                                     />
                                 </div>
                             </div>
-
                             {/* Right Column: Head Selection */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>
@@ -693,7 +640,6 @@ function SalaryUpdationPageContent({
                                         // Use HRMED_Id as value to ensure uniqueness, but display HRMED_Name
                                         const allHeadValues = earningHeads.map((h: any) => h.HRMED_Id?.toString() || '').filter(Boolean);
                                         const isAllSelected = allHeadValues.length > 0 && allHeadValues.every((val: string) => currentValue.includes(val));
-
                                         return (
                                             <MultiSelect
                                                 options={[
@@ -725,7 +671,6 @@ function SalaryUpdationPageContent({
                                 />
                             </div>
                         </div>
-
                         {/* Bottom Row: Action Buttons */}
                         <div className='flex items-end gap-2'>
                             <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105' disabled={isFiltering}>
@@ -760,7 +705,6 @@ function SalaryUpdationPageContent({
                         </div>
                     </form>
                 </CollapsibleSection>
-
                 {hasSearched && (
                     <CollapsibleSection
                         defaultOpen={true}
@@ -772,7 +716,6 @@ function SalaryUpdationPageContent({
                                 {/* Left Panel - Employee Details Form */}
                                 <div className='space-y-4 rounded-lg border p-4'>
                                     <h3 className='text-lg font-semibold'>EMPLOYEE DETAILS</h3>
-                                    
                                     {/* Earning/Deduction Radio Buttons */}
                                     <div className='space-y-2'>
                                         <Label className='font-semibold'>
@@ -806,7 +749,6 @@ function SalaryUpdationPageContent({
                                             )}
                                         />
                                     </div>
-
                                     {/* Amount/Percentage Radio Buttons */}
                                     <div className='space-y-2'>
                                         <Label className='font-semibold'>
@@ -840,7 +782,6 @@ function SalaryUpdationPageContent({
                                             )}
                                         />
                                     </div>
-
                                     {/* Head Dropdown */}
                                     <div className='space-y-2'>
                                         <Label className='font-semibold'>
@@ -858,7 +799,6 @@ function SalaryUpdationPageContent({
                                                     const amountPercentMatch = h.HRMED_AmountPercentFlag === watchedAmountType;
                                                     return earnDedMatch && amountPercentMatch;
                                                 });
-
                                                 return (
                                                     <Select value={field.value} onValueChange={field.onChange}>
                                                         <SelectTrigger className='w-full'>
@@ -882,7 +822,6 @@ function SalaryUpdationPageContent({
                                             }}
                                         />
                                     </div>
-
                                     {/* Amount/Percentage Input */}
                                     {(watchedAmountType === 'Amount' || watchedAmountType === 'Percentage') && (
                                         <div className='space-y-2'>
@@ -898,7 +837,6 @@ function SalaryUpdationPageContent({
                                             />
                                         </div>
                                     )}
-
                                     {/* Add/Remove Radio Buttons */}
                                     <div className='space-y-2'>
                                         <Label className='font-semibold'>
@@ -929,11 +867,9 @@ function SalaryUpdationPageContent({
                                         />
                                     </div>
                                 </div>
-
                                 {/* Right Panel - Employee List */}
                                 <div className='space-y-4'>
                                     <h3 className='text-lg font-semibold'>Employee List</h3>
-                                    
                                     <GenericDataTable<EmployeeDropdown>
                                         data={filteredEmployees}
                                         totalItems={filteredEmployees.length}
@@ -1009,7 +945,6 @@ function SalaryUpdationPageContent({
                                     />
                                 </div>
                             </div>
-
                             {/* Bottom Action Buttons */}
                             <div className='flex justify-end gap-2 border-t pt-4'>
                                 <Button
@@ -1047,7 +982,6 @@ function SalaryUpdationPageContent({
                         </div>
                     </CollapsibleSection>
                 )}
-
                 {!hasSearched && (
                     <div className='flex items-center justify-center rounded-lg bg-muted/50 py-12'>
                         <div className='space-y-2 text-center'>

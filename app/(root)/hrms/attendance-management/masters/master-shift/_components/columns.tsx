@@ -1,11 +1,9 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-
 export interface MasterShift {
     id: number;
     shiftName: string;
@@ -15,7 +13,6 @@ export interface MasterShift {
     specificDay: boolean;
     createdAt: Date;
 }
-
 export const masterShiftColumns: ColumnDef<MasterShift>[] = [
     {
         id: 'sl',
@@ -72,24 +69,20 @@ export const masterShiftColumns: ColumnDef<MasterShift>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: MasterShift }) {
     const { openEditForm, openDeleteForm } = useFormContext<MasterShift>();
-
     const handleEdit = useCallback(
         (data: MasterShift) => {
             openEditForm(data);
         },
         [openEditForm]
     );
-
     const handleDelete = useCallback(
         (data: MasterShift) => {
             openDeleteForm(data);
         },
         [openDeleteForm]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

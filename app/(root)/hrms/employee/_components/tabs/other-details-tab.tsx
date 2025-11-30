@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
 import { Label } from '@/components/ui/extension/field';
@@ -7,11 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { Controller } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
-
 export function OtherDetailsTab({ control, register, errors, isSubmitting, watch, options, onClear, currentTab, onPreviousTab }: any) {
     const stopPension = watch('stopPension');
     const employeeLeft = watch('employeeLeft');
-
     return (
         <div className='space-y-4'>
             <div className='rounded-md border'>
@@ -19,29 +17,23 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                     <h3 className='font-semibold text-base text-gray-900 uppercase'>OTHER DETAILS</h3>
                 </div>
             </div>
-
             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                 <div className='space-y-1.5'>
                     <HRMSInputText
                         label='Biometric Code'
                         id='biometricCode'
-                        placeholder='48'
                         maxLength={50}
                         {...register('biometricCode')}
                         error={errors.biometricCode?.message}
                     />
-
                     <HRMSInputText label='RF card ID' id='rfCardId' maxLength={50} {...register('rfCardId')} error={errors.rfCardId?.message} />
-
                     <HRMSInputText
                         label='MS Teams UserName'
                         id='msTeamsUserName'
-                        placeholder='STCSAdmin'
                         maxLength={100}
                         {...register('msTeamsUserName')}
                         error={errors.msTeamsUserName?.message}
                     />
-
                     <HRMSInputText
                         label='MS Teams Password'
                         id='msTeamsPassword'
@@ -51,7 +43,6 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                         error={errors.msTeamsPassword?.message}
                     />
                 </div>
-
                 <div className='space-y-4'>
                     <div className='space-y-2'>
                         <Label className='mb-2 block'>Options</Label>
@@ -82,7 +73,6 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                             />
                         </div>
                     </div>
-
                     {stopPension && (
                         <Controller
                             name='dateOfStopPension'
@@ -97,7 +87,6 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                             )}
                         />
                     )}
-
                     <Controller
                         name='employeeLeft'
                         control={control}
@@ -112,10 +101,9 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                     />
                 </div>
             </div>
-
             {employeeLeft && (
-                <div className='rounded-lg border bg-muted/50 p-4'>
-                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                <div className='rounded-lg border bg-muted/50 p-4 w-[50%]'>
+                    <div className='space-y-2 md:col-span-2'>
                         <Controller
                             name='lastWorkingDay'
                             control={control}
@@ -128,14 +116,13 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                                 />
                             )}
                         />
-
                         <Controller
                             name='reasonForLeaving'
                             control={control}
                             render={({ field }) => {
                                 const leavingReasons = options?.leavingReasons || [];
                                 return (
-                                    <div className='space-y-2 lg:col-span-2'>
+                                    <div className='space-y-2 md:col-span-2 '>
                                         <Label>Reason for Leaving *</Label>
                                         <Select onValueChange={field.onChange} value={field.value || ''}>
                                             <SelectTrigger className={cn(
@@ -178,7 +165,6 @@ export function OtherDetailsTab({ control, register, errors, isSubmitting, watch
                     </div>
                 </div>
             )}
-
             <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );

@@ -1,7 +1,6 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
@@ -9,15 +8,13 @@ import { useMasterGender } from '@/hooks/hrms/useMasters';
 import type { ApiSearchparams } from '@/types';
 import type { GenderItem } from '@/types/hrms/master-gender';
 import { Plus, X } from 'lucide-react';
-import { use, useMemo } from 'react';
+import { use } from 'react';
+import AddGenderForm from './_components/add-form';
 import { columns } from './_components/columns';
-import GenderForm from './_components/gender-form';
-
+import UpdateGenderForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterGenderPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
-
     // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
     // This matches how preadmission handles it
     const searchParams: ApiSearchparams = {
@@ -62,10 +59,8 @@ export default function MasterGenderPage(props: { searchParams: SearchParams }) 
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     const roleId = HRMS_MI_ID;
     const { listQuery, refetchAll } = useMasterGender(roleId, searchParams);
-
     return (
         <FormProvider<GenderItem>>
             <MasterGenderPageContent
@@ -77,7 +72,6 @@ export default function MasterGenderPage(props: { searchParams: SearchParams }) 
         </FormProvider>
     );
 }
-
 function MasterGenderPageContent({
     response,
     isLoading,
@@ -90,18 +84,11 @@ function MasterGenderPageContent({
     refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<GenderItem>();
-    // Memoize array to prevent unnecessary re-renders
-    // API now returns data as an array directly, or in genderList for backward compatibility
-    const rows: GenderItem[] = useMemo(() => {
-        if (Array.isArray(response?.data)) {
-            return response.data;
-        }
-        return response?.genderList ?? [];
-    }, [response?.data, response?.genderList]);
-
+    const tableProps = useDataTableProps(response);
     return (
         <div className='min-h-screen'>
-            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex justify-end'>
                     <Button
                         type='button'
@@ -111,18 +98,18 @@ function MasterGenderPageContent({
                         Add Gender
                     </Button>
                 </div>
-
+                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<GenderItem>
-                        data={rows}
-                        totalItems={response?.total ?? rows.length}
+                        {...tableProps}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading genders...'
                         noDataTitle='No Genders Found'
@@ -130,17 +117,15 @@ function MasterGenderPageContent({
                         errorTitle='Error Loading Genders'
                     />
                 </CollapsibleSection>
-
+                {/* Forms */}
                 <FormSections refetch={refetch} />
             </div>
         </div>
     );
 }
-
 function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<GenderItem>();
-
     return (
         <>
             {isAddFormOpen && (
@@ -161,7 +146,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GenderForm
+                            <AddGenderForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
@@ -171,7 +156,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -189,7 +173,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GenderForm
+                            <UpdateGenderForm
                                 selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();

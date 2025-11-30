@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
@@ -13,7 +12,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { getSalaryApprovalColumns } from './_components/columns';
-
 interface SearchForm {
     groupType: string[];
     department: string[];
@@ -21,7 +19,6 @@ interface SearchForm {
     salaryMonth: string;
     salaryYear: string;
 }
-
 export default function SalaryApprovalPage() {
     const [employees, setEmployees] = useState<EmployeeDetail[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<EmployeeDetail[]>([]);
@@ -30,7 +27,6 @@ export default function SalaryApprovalPage() {
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
     const [currentSearchData, setCurrentSearchData] = useState<SearchForm | null>(null);
-
     const { handleSubmit, reset, watch, control } = useForm<SearchForm>({
         mode: 'onChange',
         defaultValues: {
@@ -41,11 +37,9 @@ export default function SalaryApprovalPage() {
             salaryYear: new Date().getFullYear().toString()
         }
     });
-
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
-
     const {
         data: onloadData,
         isLoading,
@@ -55,52 +49,42 @@ export default function SalaryApprovalPage() {
     });
     const searchMutation = useSearchSalaryApproval();
     const approveMutation = useApproveSalaries();
-
     // Memoize arrays to prevent unnecessary re-renders
     const monthOptions = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
     const leaveYearOptions = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
     const departmentOptions = useMemo(() => onloadData?.departmentdropdownlist || [], [onloadData?.departmentdropdownlist]);
     const designationOptions = useMemo(() => onloadData?.designationdropdownlist || [], [onloadData?.designationdropdownlist]);
     const groupTypeOptions = useMemo(() => onloadData?.groupTypedropdownlist || [], [onloadData?.groupTypedropdownlist]);
-
     // Memoize filterEmployees to prevent infinite loops
     const filterEmployees = useCallback(() => {
         let filtered = employees;
-
         if (watchedGroupType && watchedGroupType.length > 0) {
             const groupTypeNames = new Set(watchedGroupType);
             filtered = filtered.filter((emp) => groupTypeNames.has(emp.HRMGT_EmployeeGroupType));
         }
-
         if (watchedDepartment && watchedDepartment.length > 0) {
             const departmentNames = new Set(watchedDepartment);
             filtered = filtered.filter((emp) => departmentNames.has(emp.HRMD_DepartmentName));
         }
-
         if (watchedDesignation && watchedDesignation.length > 0) {
             const designationNames = new Set(watchedDesignation);
             filtered = filtered.filter((emp) => designationNames.has(emp.HRMDES_DesignationName));
         }
-
         setFilteredEmployees(filtered);
     }, [watchedGroupType, watchedDepartment, watchedDesignation, employees]);
-
     useEffect(() => {
         if (hasSearched) {
             filterEmployees();
         }
     }, [hasSearched, filterEmployees]);
-
     // Handle API errors gracefully - show toast but don't crash the UI
     useEffect(() => {
         if (onloadError && !isLoading) {
             // Only show error toast once, and make it less intrusive
-            console.warn('⚠️ [SALARY APPROVAL] API Error (handled gracefully):', onloadError);
             // Don't show toast for backend errors - they're expected if the API is down
             // The component will continue to work with empty dropdowns
         }
     }, [onloadError, isLoading]);
-
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
         const payload: SalaryApprovalSearchRequest = {
             MI_Id: 30,
@@ -129,16 +113,13 @@ export default function SalaryApprovalPage() {
                     : [0],
             LogInUserId: 0
         };
-
         searchMutation.mutate(payload, {
             onSuccess: (responseData) => {
                 const employeeList = responseData.ReportData || [];
-
                 setEmployees(employeeList);
                 setFilteredEmployees(employeeList);
                 setHasSearched(true);
                 setCurrentSearchData(data);
-
                 if (data.salaryMonth && data.salaryYear) {
                     // Find month data - assuming monthdropdown has similar structure
                     const monthData = monthOptions.find((m: any) => m.IVRM_Month_Name === data.salaryMonth || m.label === data.salaryMonth);
@@ -147,10 +128,8 @@ export default function SalaryApprovalPage() {
                         const monthIndex = (monthData.IVRM_Month_Id || (monthData as any).value || 1) - 1;
                         const fromDate = new Date(year, monthIndex, 1);
                         const toDate = new Date(year, monthIndex + 1, 0);
-
                         const fromDateStr = `${String(fromDate.getDate()).padStart(2, '0')}/${String(fromDate.getMonth() + 1).padStart(2, '0')}/${fromDate.getFullYear()}`;
                         const toDateStr = `${String(toDate.getDate()).padStart(2, '0')}/${String(toDate.getMonth() + 1).padStart(2, '0')}/${toDate.getFullYear()}`;
-
                         setFromDate(fromDateStr);
                         setToDate(toDateStr);
                     }
@@ -158,15 +137,12 @@ export default function SalaryApprovalPage() {
                 toast.success(`Search completed successfully. Found ${employeeList.length} employees`);
             },
             onError: (error) => {
-                console.error('❌ [SALARY APPROVAL - FRONTEND] onSubmit - onError');
-                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
                 setEmployees([]);
                 setFilteredEmployees([]);
                 setHasSearched(true);
             }
         });
     };
-
     const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
         if (selected) {
             setSelectedEmployees([...selectedEmployees, employeeId]);
@@ -174,7 +150,6 @@ export default function SalaryApprovalPage() {
             setSelectedEmployees(selectedEmployees.filter((id) => id !== employeeId));
         }
     };
-
     const handleSelectAll = (selected: boolean) => {
         if (selected) {
             setSelectedEmployees(filteredEmployees.map((emp) => emp.HRME_Id));
@@ -182,20 +157,15 @@ export default function SalaryApprovalPage() {
             setSelectedEmployees([]);
         }
     };
-
     const handleApprove = async () => {
         if (selectedEmployees.length === 0) {
-            console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No employees selected');
             toast.error('Please select at least one employee to approve');
             return;
         }
-
         if (!currentSearchData) {
-            console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No search data available');
             toast.error('Please perform a search first before approving');
             return;
         }
-
         const payload: SalaryApprovalRequest = {
             MI_Id: 30,
             HRES_Year: currentSearchData.salaryYear,
@@ -204,7 +174,6 @@ export default function SalaryApprovalPage() {
             LogInUserId: 0,
             approvalStatus: 'Approved'
         };
-
         approveMutation.mutate(payload, {
             onSuccess: (data) => {
                 if (data.approvedCount > 0) {
@@ -213,26 +182,19 @@ export default function SalaryApprovalPage() {
                 setSelectedEmployees([]);
             },
             onError: (error) => {
-                console.error('❌ [SALARY APPROVAL - FRONTEND] handleApprove - onError');
-                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
                 toast.error('Failed to approve employees');
             }
         });
     };
-
     const handleReject = async () => {
         if (selectedEmployees.length === 0) {
-            console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No employees selected');
             toast.error('Please select at least one employee to reject');
             return;
         }
-
         if (!currentSearchData) {
-            console.warn('⚠️ [SALARY APPROVAL - FRONTEND] No search data available');
             toast.error('Please perform a search first before rejecting');
             return;
         }
-
         const payload: SalaryApprovalRequest = {
             MI_Id: 30,
             HRES_Year: currentSearchData.salaryYear,
@@ -241,7 +203,6 @@ export default function SalaryApprovalPage() {
             LogInUserId: 0,
             approvalStatus: 'Rejected'
         };
-
         approveMutation.mutate(payload, {
             onSuccess: (data) => {
                 if (data.approvedCount > 0) {
@@ -250,13 +211,10 @@ export default function SalaryApprovalPage() {
                 setSelectedEmployees([]);
             },
             onError: (error) => {
-                console.error('❌ [SALARY APPROVAL - FRONTEND] handleReject - onError');
-                console.error('💥 [SALARY APPROVAL - FRONTEND] Error:', error);
                 toast.error('Failed to reject employees');
             }
         });
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -285,7 +243,6 @@ export default function SalaryApprovalPage() {
                                     )}
                                 />
                             </div>
-
                             {/* Department */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Department</Label>
@@ -307,7 +264,6 @@ export default function SalaryApprovalPage() {
                                     )}
                                 />
                             </div>
-
                             {/* Designation */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Designation</Label>
@@ -329,7 +285,6 @@ export default function SalaryApprovalPage() {
                                     )}
                                 />
                             </div>
-
                             {/* Month */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Month</Label>
@@ -356,7 +311,6 @@ export default function SalaryApprovalPage() {
                                     )}
                                 />
                             </div>
-
                             {/* Year */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Year</Label>
@@ -382,7 +336,6 @@ export default function SalaryApprovalPage() {
                                 />
                             </div>
                         </div>
-
                         {/* Search and Cancel Buttons */}
                         <div className='flex gap-2 pt-4'>
                             <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105'>
@@ -406,7 +359,6 @@ export default function SalaryApprovalPage() {
                         </div>
                     </form>
                 </CollapsibleSection>
-
                 {/* Employee List Table */}
                 {hasSearched && (
                     <CollapsibleSection
@@ -428,7 +380,6 @@ export default function SalaryApprovalPage() {
                         />
                     </CollapsibleSection>
                 )}
-
                 {/* Initial State Message */}
                 {!hasSearched && (
                     <div className='flex items-center justify-center rounded-lg bg-muted/50 py-12'>
@@ -444,7 +395,6 @@ export default function SalaryApprovalPage() {
         </div>
     );
 }
-
 interface SalaryApprovalTableProps {
     employees: EmployeeDetail[];
     isLoading: boolean;
@@ -456,7 +406,6 @@ interface SalaryApprovalTableProps {
     fromDate: string;
     toDate: string;
 }
-
 function SalaryApprovalTable({
     employees,
     isLoading,
@@ -478,9 +427,7 @@ function SalaryApprovalTable({
             page_size: employees.length
         };
     }, [employees]);
-
     const tableProps = useDataTableProps(tableResponse);
-
     // Get columns with selection handlers
     const columns = useMemo(
         () =>
@@ -492,7 +439,6 @@ function SalaryApprovalTable({
             }),
         [employees, selectedEmployees, onEmployeeSelect, onSelectAll]
     );
-
     return (
         <div className='space-y-4'>
             {/* Date Range Display */}
@@ -509,7 +455,6 @@ function SalaryApprovalTable({
                     </div>
                 </div>
             )}
-
             <GenericDataTable<EmployeeDetail>
                 {...tableProps}
                 columns={columns}
@@ -522,7 +467,6 @@ function SalaryApprovalTable({
                 noDataDescription='No employee records match your search criteria'
                 errorTitle='Error Loading Employees'
             />
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-2'>
                 <Button

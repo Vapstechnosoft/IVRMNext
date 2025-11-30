@@ -1,5 +1,4 @@
 'use client';
-
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useEmployeeProfileReportOnload, useFilterEmployeesBySelection, useSearchEmployeeProfileDetails } from '@/hooks/hrms/useReports';
@@ -8,17 +7,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { EmployeeProfileFilters } from './_components/filters';
 import { EmployeeProfileReportTemplate } from './_components/report-template';
-
 export default function EmployeeProfileReportPage() {
     const roleId = HRMS_MI_ID;
     const [showReport, setShowReport] = useState(false);
     const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
-
     // React Query hooks
     const { data: onloadData, isLoading: onloadLoading, error: onloadError } = useEmployeeProfileReportOnload(roleId, 0);
     const filterMutation = useFilterEmployeesBySelection();
     const searchMutation = useSearchEmployeeProfileDetails();
-
     // Memoize arrays to prevent unnecessary re-renders
     // Extract dropdown data from the API response - handle different field name variations
     const groupTypes = useMemo(() => {
@@ -27,21 +23,18 @@ export default function EmployeeProfileReportPage() {
         // Try different possible field names from the API response
         return (data as any).groupTypedropdownlist || (data as any).groupTypedropdown || (data as any).grouplist || [];
     }, [onloadData?.data]);
-
     const departments = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         // Try different possible field names from the API response
         return (data as any).departmentdropdownlist || (data as any).departmentdropdown || (data as any).departmentlist || [];
     }, [onloadData?.data]);
-
     const designations = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         // Try different possible field names from the API response
         return (data as any).designationdropdownlist || (data as any).designationdropdown || (data as any).designationlist || [];
     }, [onloadData?.data]);
-
     // Memoize onload employee dropdown to prevent unnecessary re-renders
     const onloadEmployees = useMemo(() => {
         const data = onloadData?.data;
@@ -62,27 +55,22 @@ export default function EmployeeProfileReportPage() {
         }
         return [];
     }, [onloadData?.data]);
-
     // Initialize with empty array to prevent hydration mismatches
     const [employees, setEmployees] = useState<EmployeeDropdown[]>([]);
-
     // Update employees when onload data is available (client-side only)
     useEffect(() => {
         if (onloadEmployees.length > 0) {
             setEmployees(onloadEmployees);
         }
     }, [onloadEmployees]);
-
     // Filter states (multi-select)
     const [selectedGroupTypes, setSelectedGroupTypes] = useState<number[]>([]);
     const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
     const [selectedDesignations, setSelectedDesignations] = useState<number[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-
     // Employee search
     const [employeeSearchQuery, setEmployeeSearchQuery] = useState('');
     const [filteredEmployees, setFilteredEmployees] = useState<EmployeeDropdown[]>([]);
-
     // Selected employee details (array to support multiple reports)
     const [employeeReports, setEmployeeReports] = useState<
         Array<{
@@ -108,9 +96,7 @@ export default function EmployeeProfileReportPage() {
             ProfilePhoto?: string;
         }>
     >([]);
-
     // No automatic filtering - employees will only load when user clicks "SEARCH EMPLOYEES"
-
     // Hide employee dropdown when filters change (user must search again)
     useEffect(() => {
         if (showEmployeeDropdown) {
@@ -120,7 +106,6 @@ export default function EmployeeProfileReportPage() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedGroupTypes, selectedDepartments, selectedDesignations]);
-
     // Filter employees based on search query
     useEffect(() => {
         const filtered = employees.filter(
@@ -132,16 +117,13 @@ export default function EmployeeProfileReportPage() {
         );
         setFilteredEmployees(filtered);
     }, [employeeSearchQuery, employees]);
-
     // Handle filter search - load employees based on filters
     const handleFilterSearch = () => {
         const hasFilters = selectedGroupTypes.length > 0 || selectedDepartments.length > 0 || selectedDesignations.length > 0;
-
         if (!hasFilters) {
             toast.error('Please select at least one filter (Group Type, Department, or Designation)');
             return;
         }
-
         const request = {
             MI_Id: roleId,
             LogInUserId: 0,
@@ -149,7 +131,6 @@ export default function EmployeeProfileReportPage() {
             hrmD_IdList: selectedDepartments.length > 0 ? selectedDepartments : [0],
             hrmdeS_IdList: selectedDesignations.length > 0 ? selectedDesignations : [0]
         };
-
         filterMutation.mutate(request, {
             onSuccess: (response) => {
                 if (response.success && response.data?.employeedropdown) {
@@ -162,12 +143,10 @@ export default function EmployeeProfileReportPage() {
                 }
             },
             onError: (error) => {
-                console.error('Error filtering employees:', error);
                 toast.error(error.message || 'Failed to load employees. Please check if the API endpoint is available.');
             }
         });
     };
-
     // Handle select all employees
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
@@ -176,11 +155,9 @@ export default function EmployeeProfileReportPage() {
             setSelectedEmployees([]);
         }
     };
-
     // Check if all filtered employees are selected
     const isAllSelected = filteredEmployees.length > 0 && selectedEmployees.length === filteredEmployees.length;
     const isIndeterminate = selectedEmployees.length > 0 && selectedEmployees.length < filteredEmployees.length;
-
     // Handle individual employee selection
     const handleEmployeeToggle = (employeeId: number, checked: boolean) => {
         if (checked) {
@@ -189,21 +166,17 @@ export default function EmployeeProfileReportPage() {
             setSelectedEmployees((prev) => prev.filter((id) => id !== employeeId));
         }
     };
-
     const handleSearch = async () => {
         // Always show report template when search is clicked, even without employees
         setShowReport(true);
-
         if (selectedEmployees.length === 0) {
             toast.warning('Please select at least one employee. Showing empty report template.');
             return;
         }
-
         // Show loading state
         const reports: any[] = [];
         let successCount = 0;
         let errorCount = 0;
-
         // Fetch details for each selected employee
         for (const employeeId of selectedEmployees) {
             const employee = employees.find((emp) => emp.HRME_Id === employeeId);
@@ -212,7 +185,6 @@ export default function EmployeeProfileReportPage() {
                     errorCount++;
                     continue;
                 }
-
                 const request = {
                     MI_Id: roleId,
                     groupTypeIds: selectedGroupTypes,
@@ -221,27 +193,21 @@ export default function EmployeeProfileReportPage() {
                     employeeIds: [employeeId],
                     roleId: roleId
                 };
-
                 const response = await searchMutation.mutateAsync(request);
-
                 if (response.success && response.data) {
                     const employeeData = response.data;
-
                     // Extract currentemployeeDetails from the response if available
                     const currentEmployeeDetails = (employeeData as any).currentemployeeDetails || employeeData;
-
                     // Map the API response fields to our display format
                     // Extract employee details from currentemployeeDetails if available
                     const empDetails = currentEmployeeDetails?.currentemployeeDetails || currentEmployeeDetails;
                     const institutionDetails = (employeeData as any).institutionDetails || currentEmployeeDetails?.institutionDetails;
-
                     // Build institution address from available fields
                     const institutionAddressParts = [];
                     if (institutionDetails?.MI_Address1) institutionAddressParts.push(institutionDetails.MI_Address1);
                     if (institutionDetails?.MI_Address2) institutionAddressParts.push(institutionDetails.MI_Address2);
                     if (institutionDetails?.MI_Address3) institutionAddressParts.push(institutionDetails.MI_Address3);
                     const institutionAddress = institutionAddressParts.length > 0 ? institutionAddressParts.join(', ') : '-';
-
                     const details = {
                         EmployeeCode: empDetails?.HRME_EmployeeCode || employee.HRME_EmployeeCode,
                         EmployeeName: empDetails
@@ -305,7 +271,6 @@ export default function EmployeeProfileReportPage() {
                         FatherName: empDetails?.HRME_FatherName || '-',
                         ProfilePhoto: empDetails?.HRME_Photo || employee.HRME_ProfilePhoto
                     };
-
                     reports.push(details);
                     successCount++;
                 } else {
@@ -313,7 +278,6 @@ export default function EmployeeProfileReportPage() {
                     errorCount++;
                 }
             } catch (error) {
-                console.error(`Error fetching details for employee ${employeeId}:`, error);
                 toast.error(
                     `Error fetching details for employee ${employee?.HRME_EmployeeCode || employeeId}. Please check if the API endpoint is available.`
                 );
@@ -322,7 +286,6 @@ export default function EmployeeProfileReportPage() {
                 setShowReport(true);
             }
         }
-
         if (reports.length > 0) {
             setEmployeeReports(reports);
             setShowReport(true);
@@ -334,7 +297,6 @@ export default function EmployeeProfileReportPage() {
             toast.error('Failed to generate reports for selected employees. Showing empty template.');
         }
     };
-
     const handleCancel = () => {
         setSelectedGroupTypes([]);
         setSelectedDepartments([]);
@@ -345,25 +307,21 @@ export default function EmployeeProfileReportPage() {
         setShowEmployeeDropdown(false);
         setEmployeeReports([]);
     };
-
     const _handleBack = () => {
         setShowReport(false);
         setEmployeeReports([]);
         setSelectedEmployees([]);
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Get employee name
     const getEmployeeName = (employee: EmployeeDropdown) => {
         return `${employee.HRME_EmployeeFirstName} ${
             employee.HRME_EmployeeMiddleName || ''
         } ${employee.HRME_EmployeeLastName || ''}`.trim();
     };
-
     // Handle onload errors
     useEffect(() => {
         if (onloadError) {
@@ -372,7 +330,6 @@ export default function EmployeeProfileReportPage() {
             toast.error(onloadData.message || 'Failed to load filter options');
         }
     }, [onloadError, onloadData]);
-
     // Show error message if onload fails
     if (onloadError || (onloadData && !onloadData.success)) {
         return (
@@ -387,7 +344,6 @@ export default function EmployeeProfileReportPage() {
             </div>
         );
     }
-
     return (
         <div className='space-y-6'>
             {/* Employee Selection Section */}
@@ -415,7 +371,6 @@ export default function EmployeeProfileReportPage() {
                 onCancel={handleCancel}
                 getEmployeeName={getEmployeeName}
             />
-
             {/* Employee Profile Reports Section - Show template even when no data */}
             {showReport && (
                 <div className='space-y-6'>
@@ -436,7 +391,6 @@ export default function EmployeeProfileReportPage() {
                                 addressParts.push(`${report.InstitutionCity} - ${report.InstitutionPincode}.`);
                             }
                             const fullAddress = addressParts.length > 0 ? addressParts.join(', ') : '';
-
                             return (
                                 <CollapsibleSection
                                     key={index}

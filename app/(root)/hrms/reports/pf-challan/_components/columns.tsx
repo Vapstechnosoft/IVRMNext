@@ -1,8 +1,6 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface PFChallanRecord {
     id?: number;
     createdAt?: string;
@@ -20,7 +18,6 @@ export interface PFChallanRecord {
     month: string;
     year: string;
 }
-
 export const pfChallanColumns: ColumnDef<PFChallanRecord>[] = [
     {
         accessorKey: 'id',

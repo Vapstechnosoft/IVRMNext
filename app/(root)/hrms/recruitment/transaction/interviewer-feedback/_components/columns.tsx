@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface InterviewerFeedback {
     id: number;
     candidateName: string;
@@ -13,7 +11,6 @@ export interface InterviewerFeedback {
     rating: string;
     recommendation: string;
 }
-
 export const interviewerFeedbackColumns: ColumnDef<InterviewerFeedback>[] = [
     {
         id: 'serialNumber',

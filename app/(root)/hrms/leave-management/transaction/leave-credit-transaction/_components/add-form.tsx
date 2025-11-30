@@ -1,9 +1,7 @@
 'use client';
-
 import { Save, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-
 import { Button } from '@/components/ui/button';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -17,14 +15,11 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
-
 import type { LeaveCreditTransaction } from './columns';
-
 interface AddLeaveCreditTransactionFormProps {
     onSuccess?: () => void;
     className?: string;
 }
-
 const typeOptions = [
     { label: 'VKS', value: 'VKS' },
     { label: 'Permanent', value: 'Permanent' },
@@ -51,13 +46,11 @@ const designationOptions = [
 ];
 const employeeOptions = ['Steffi Halian', 'Shruthi NA', 'Bindhushree N', 'Chaithra NS', 'Balu Prabhakar'];
 const _leaveNames = ['CL', 'SL', 'PL', 'LWP', 'OD'];
-
 export default function AddLeaveCreditTransactionForm({ onSuccess, className = '' }: AddLeaveCreditTransactionFormProps) {
     const { refetchAll } = useLeaveCreditTransaction();
     const { mutate: saveTransaction, isPending } = useSaveLeaveCreditTransaction();
     const [fromDateOpen, setFromDateOpen] = useState(false);
     const [toDateOpen, setToDateOpen] = useState(false);
-
     const {
         register,
         handleSubmit,
@@ -84,12 +77,10 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
             availed: 0
         }
     });
-
     const fromDate = watch('fromDate');
     const toDate = watch('toDate');
     const totalDays = watch('totalDays');
     const lossOfPayType = watch('lossOfPayType');
-
     // Calculate total days from dates
     useEffect(() => {
         if (fromDate && toDate) {
@@ -106,7 +97,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
             setValue('totalDays', 0);
         }
     }, [fromDate, toDate, setValue]);
-
     // Calculate loss of pay amount based on type and total days
     useEffect(() => {
         if (lossOfPayType && lossOfPayType !== 'none' && totalDays && totalDays > 0) {
@@ -132,7 +122,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
             setValue('lossOfPayAmount', 0);
         }
     }, [lossOfPayType, totalDays, setValue]);
-
     const onSubmit: SubmitHandler<LeaveCreditTransaction> = async (data) => {
         saveTransaction(data, {
             onSuccess: () => {
@@ -142,11 +131,9 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
             }
         });
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
@@ -170,7 +157,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             )}
                         />
                     </div>
-
                     <div>
                         <Label htmlFor='department-multiselect' className='mb-2 block'>
                             Department :
@@ -189,7 +175,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             )}
                         />
                     </div>
-
                     <div>
                         <Label htmlFor='designation-multiselect' className='mb-2 block'>
                             Designation :
@@ -209,7 +194,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                         />
                     </div>
                 </div>
-
                 {/* Leave Year, Employee, From Date, To Date, Total Days - Second Row */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-5'>
                     <Controller
@@ -237,7 +221,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             </div>
                         )}
                     />
-
                     <Controller
                         name='employee'
                         control={control}
@@ -263,7 +246,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             </div>
                         )}
                     />
-
                     <Controller
                         name='fromDate'
                         control={control}
@@ -308,7 +290,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             </div>
                         )}
                     />
-
                     <Controller
                         name='toDate'
                         control={control}
@@ -354,7 +335,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                             </div>
                         )}
                     />
-
                     <div>
                         <Label htmlFor='total-days-input'>
                             Total Days :<span className='text-red-500'>*</span>
@@ -362,7 +342,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                         <Input id='total-days-input' type='number' readOnly value={totalDays || 0} className='bg-muted' />
                     </div>
                 </div>
-
                 {/* Loss of Pay Options and Calculated Field */}
                 <div className='space-y-3'>
                     <Label>Loss Of Pay :</Label>
@@ -409,7 +388,6 @@ export default function AddLeaveCreditTransactionForm({ onSuccess, className = '
                         />
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex justify-center gap-4 pt-4'>
                     <Button type='submit' disabled={isPending || isSubmitting} variant='default'>

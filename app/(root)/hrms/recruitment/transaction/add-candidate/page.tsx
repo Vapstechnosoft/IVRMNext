@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,9 +8,7 @@ import { useSession } from 'next-auth/react';
 import { use, useEffect } from 'react';
 import AddCandidateForm from './_components/add-form';
 import { candidateColumns } from './_components/columns';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function AddCandidatePage(props: {
     searchParams: SearchParams;
 }) {
@@ -19,14 +16,12 @@ export default function AddCandidatePage(props: {
     // Mock data for now - replace with actual API call
     const response = { data: [], totalItems: 0, isLoading: false, error: null };
     const refetchAll = () => {};
-
     return (
         <FormProvider<any>>
             <AddCandidatePageContent response={response} isLoading={false} error={null} refetch={refetchAll} />
         </FormProvider>
     );
 }
-
 function AddCandidatePageContent({
     response,
     isLoading,
@@ -41,13 +36,11 @@ function AddCandidatePageContent({
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(response);
     const session = useSession();
-
     useEffect(() => {
         if (session?.data?.role === undefined) {
             window.location.reload();
         }
     }, [session?.data?.role]);
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -86,14 +79,12 @@ function AddCandidatePageContent({
         </div>
     );
 }
-
 function FormSections({
     refetch
 }: {
     refetch: () => void;
 }) {
     const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext();
-
     return (
         <>
             {/* Add Form */}
@@ -126,7 +117,6 @@ function FormSections({
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && (
                 <div ref={editFormRef}>

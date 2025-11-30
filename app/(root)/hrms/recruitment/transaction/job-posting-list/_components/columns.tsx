@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye, Trash2 } from 'lucide-react';
-
 export interface JobPostingListItem {
     id: number;
     jobTitle: string;
@@ -15,7 +13,6 @@ export interface JobPostingListItem {
     postedDate: string;
     expiryDate: string;
 }
-
 export const jobPostingListColumns: ColumnDef<JobPostingListItem>[] = [
     {
         id: 'serialNumber',

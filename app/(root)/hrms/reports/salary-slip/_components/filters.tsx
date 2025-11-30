@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -11,7 +10,6 @@ import { FileText, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { EmployeeSalarySlipDisplay } from './columns';
 import { getSalarySlipColumns } from './columns';
-
 export interface SalarySlipFilters {
     groupType: number[];
     department: number[];
@@ -26,7 +24,6 @@ export interface SalarySlipFilters {
         bankDetails: boolean;
     };
 }
-
 interface SalarySlipFiltersProps {
     filters: SalarySlipFilters;
     groupTypes: any[];
@@ -47,7 +44,6 @@ interface SalarySlipFiltersProps {
     onGenerateSlip: () => void;
     onCancel: () => void;
 }
-
 export function SalarySlipFilters({
     filters,
     groupTypes,
@@ -69,17 +65,14 @@ export function SalarySlipFilters({
     onCancel
 }: SalarySlipFiltersProps) {
     const [_currentYear, setCurrentYear] = useState<number | null>(null);
-
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
     }, []);
-
     // Hide "Search Columns" button - keep only "View" button
     useEffect(() => {
         const hideSearchColumnsButton = () => {
             const wrapper = document.querySelector('.salary-slip-table-wrapper');
             if (!wrapper) return;
-
             const buttons = wrapper.querySelectorAll('button');
             buttons.forEach((button) => {
                 const buttonText = button.textContent?.trim();
@@ -88,15 +81,12 @@ export function SalarySlipFilters({
                 }
             });
         };
-
         // Run immediately
         hideSearchColumnsButton();
-
         // Use MutationObserver to catch dynamically rendered buttons
         const observer = new MutationObserver(() => {
             hideSearchColumnsButton();
         });
-
         const wrapper = document.querySelector('.salary-slip-table-wrapper');
         if (wrapper) {
             observer.observe(wrapper, {
@@ -104,18 +94,14 @@ export function SalarySlipFilters({
                 subtree: true
             });
         }
-
         // Also run after a delay to catch any buttons that render later
         const timeoutId = setTimeout(hideSearchColumnsButton, 200);
-
         return () => {
             observer.disconnect();
             clearTimeout(timeoutId);
         };
     }, [filteredEmployees, isLoading]);
-
     const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee });
-
     return (
         <CollapsibleSection
             title='Salary Slip Configuration'
@@ -144,7 +130,6 @@ export function SalarySlipFilters({
                         placeholder='Select group types'
                     />
                 </div>
-
                 {/* Department Filter */}
                 <div className='space-y-2'>
                     <Label>Department</Label>
@@ -163,7 +148,6 @@ export function SalarySlipFilters({
                         placeholder='Select departments'
                     />
                 </div>
-
                 {/* Designation Filter */}
                 <div className='space-y-2'>
                     <Label>Designation</Label>
@@ -183,7 +167,6 @@ export function SalarySlipFilters({
                     />
                 </div>
             </div>
-
             {/* Filter Section - Row 2 */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                 {/* Month Filter */}
@@ -222,7 +205,6 @@ export function SalarySlipFilters({
                         </SelectContent>
                     </Select>
                 </div>
-
                 {/* Year Filter */}
                 <div className='mt-3 mb-3 space-y-2'>
                     <label htmlFor='year-select' className='font-medium text-foreground text-sm'>
@@ -253,7 +235,6 @@ export function SalarySlipFilters({
                         </SelectContent>
                     </Select>
                 </div>
-
                 {/* Slip/page Filter */}
                 <div className='mt-3 mb-3 space-y-2'>
                     <Label>Slip/page</Label>
@@ -278,7 +259,6 @@ export function SalarySlipFilters({
                     </Select>
                 </div>
             </div>
-
             {/* Options Section */}
             <div className='grid grid-cols-2 gap-4 md:grid-cols-4'>
                 <div className='mt-3 flex cursor-pointer items-center gap-2 text-sm'>
@@ -314,14 +294,12 @@ export function SalarySlipFilters({
                     <Label htmlFor='bank-details-checkbox'>Bank Details</Label>
                 </div>
             </div>
-
             {/* Employee Table with Search */}
             <div className='space-y-4'>
                 <div className='mt-3 flex items-center justify-between'>
                     <div className='font-medium text-foreground text-sm'>Employee List ({filteredEmployees.length} employees)</div>
                     {selectedCount > 0 && <span className='text-muted-foreground text-sm'>{selectedCount} selected</span>}
                 </div>
-
                 {/* Data Table */}
                 <div className='salary-slip-table-wrapper'>
                     <DataTable
@@ -335,7 +313,6 @@ export function SalarySlipFilters({
                     />
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
                 <Button variant='outline' onClick={onCancel}>

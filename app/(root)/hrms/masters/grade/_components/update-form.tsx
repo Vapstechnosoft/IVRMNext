@@ -1,34 +1,27 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDesignation } from '@/hooks/hrms/useMasters';
-import { designationSchema } from '@/schemas/hrms/employee-category-schemas';
-import type { DesignationDetail } from '@/types/hrms/master-designation';
+import { useMasterGrade } from '@/hooks/hrms/useMasters';
+import { gradeSchema } from '@/schemas/hrms/employee-category-schemas';
+import type { GradeDetail } from '@/types/hrms/master-grade';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
-type FormFields = z.infer<typeof designationSchema.addOrUpdate>;
-
-interface DesignationFormProps {
-    selectedRow?: DesignationDetail;
+type FormFields = z.infer<typeof gradeSchema.addOrUpdate>;
+interface UpdateGradeFormProps {
     onSuccess?: () => void;
     className?: string;
+    selectedRow: GradeDetail;
 }
-
-export default function DesignationForm({ selectedRow, onSuccess, className = '' }: DesignationFormProps) {
+export default function UpdateGradeForm({ onSuccess, className = '', selectedRow: row }: UpdateGradeFormProps) {
     const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterDesignation(roleId);
-    const isEditMode = !!selectedRow;
-
+    const { saveMutation, refetchAll } = useMasterGrade(roleId);
     const {
         register,
         handleSubmit,
@@ -37,79 +30,77 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
         setValue,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
-        resolver: zodResolver(designationSchema.addOrUpdate),
-        mode: 'onChange',
-        defaultValues: {
-            MI_Id: roleId,
-            HRMDES_DesignationName: '',
-            HRMDES_BasicAmount: 0,
-            HRMDES_SanctionedSeats: 0,
-            HRMDES_DisplaySanctionedSeatsFlag: false,
-            HRMDES_Order: 0,
-            HRMDES_ActiveFlag: true
-        }
+        resolver: zodResolver(gradeSchema.addOrUpdate),
+        mode: 'onChange'
     });
-
     useEffect(() => {
-        if (selectedRow) {
+        if (row) {
             reset({
-                HRMDES_Id: selectedRow.HRMDES_Id,
-                MI_Id: selectedRow.MI_Id,
-                HRMDES_DesignationName: selectedRow.HRMDES_DesignationName,
-                HRMDES_BasicAmount: selectedRow.HRMDES_BasicAmount,
-                HRMDES_SanctionedSeats: selectedRow.HRMDES_SanctionedSeats,
-                HRMDES_DisplaySanctionedSeatsFlag: selectedRow.HRMDES_DisplaySanctionedSeatsFlag,
-                HRMDES_Order: selectedRow.HRMDES_Order,
-                HRMDES_ActiveFlag: selectedRow.HRMDES_ActiveFlag
+                HRMG_Id: row.HRMG_Id,
+                MI_Id: row.MI_Id,
+                HRMG_GradeName: row.HRMG_GradeName,
+                HRMG_GradeDisplayName: row.HRMG_GradeDisplayName,
+                HRMG_PayScaleFrom: row.HRMG_PayScaleFrom,
+                HRMG_IncrementOf: row.HRMG_IncrementOf,
+                HRMG_PayScaleTo: row.HRMG_PayScaleTo,
+                HRMG_Order: row.HRMG_Order,
+                HRMG_ActiveFlag: row.HRMG_ActiveFlag
             });
-        } else {
         }
-    }, [selectedRow, reset]);
-
+    }, [row, reset]);
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        // Trim whitespace from text fields
         const sanitizedData = {
             ...data,
-            HRMDES_DesignationName: data.HRMDES_DesignationName?.trim() || ''
+            HRMG_GradeName: data.HRMG_GradeName?.trim() || '',
+            HRMG_GradeDisplayName: data.HRMG_GradeDisplayName?.trim() || ''
         };
-
         try {
             const response = await saveMutation.mutateAsync(sanitizedData);
-
             if (response?.success) {
-                toast.success(response.message || (isEditMode ? 'Designation updated successfully' : 'Designation saved successfully'));
-                if (!isEditMode) reset();
+                toast.success(response.message || 'Grade updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response?.message || (isEditMode ? 'Failed to update designation' : 'Failed to save designation'));
+                toast.error(response?.message || 'Failed to update grade');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
         }
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <input type='hidden' {...register('HRMG_Id')} />
+                <input type='hidden' {...register('MI_Id')} />
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <HRMSInputText
-                            label='Designation Name'
+                            label='Grade Name'
                             required
-                            id='HRMDES_DesignationName'
-                            placeholder='Enter designation name'
+                            id='HRMG_GradeName'
+                            placeholder='Enter grade name'
                             maxLength={50}
-                            {...register('HRMDES_DesignationName')}
-                            error={errors.HRMDES_DesignationName?.message}
+                            {...register('HRMG_GradeName')}
+                            defaultValue={row.HRMG_GradeName}
+                            error={errors.HRMG_GradeName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        <HRMSInputText
+                            label='Grade Display Name'
+                            required
+                            id='HRMG_GradeDisplayName'
+                            placeholder='Enter grade display name'
+                            maxLength={50}
+                            {...register('HRMG_GradeDisplayName')}
+                            defaultValue={row.HRMG_GradeDisplayName}
+                            error={errors.HRMG_GradeDisplayName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <Controller
-                            name='HRMDES_BasicAmount'
+                            name='HRMG_PayScaleFrom'
                             control={control}
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
@@ -131,7 +122,7 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRMDES_BasicAmount', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRMG_PayScaleFrom', numValue, { shouldDirty: true, shouldValidate: true });
                                                 }
                                             }
                                         };
@@ -143,16 +134,17 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
-                                            label='Basic Amount'
-                                            id='HRMDES_BasicAmount'
+                                            label='Pay Scale From'
+                                            id='HRMG_PayScaleFrom'
                                             value={field.value}
+                                            maxDigits={10}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRMDES_BasicAmount', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRMG_PayScaleFrom', numValue, { shouldDirty: true, shouldValidate: true });
                                             }}
                                             onBlur={field.onBlur}
-                                            error={errors.HRMDES_BasicAmount?.message}
+                                            error={errors.HRMG_PayScaleFrom?.message}
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     </div>
@@ -160,7 +152,7 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                             }}
                         />
                         <Controller
-                            name='HRMDES_SanctionedSeats'
+                            name='HRMG_IncrementOf'
                             control={control}
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
@@ -182,10 +174,7 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRMDES_SanctionedSeats', numValue, {
-                                                        shouldDirty: true,
-                                                        shouldValidate: true
-                                                    });
+                                                    setValue('HRMG_IncrementOf', numValue, { shouldDirty: true, shouldValidate: true });
                                                 }
                                             }
                                         };
@@ -197,16 +186,17 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
-                                            label='Sanctioned Seats'
-                                            id='HRMDES_SanctionedSeats'
+                                            label='Increment Of'
+                                            id='HRMG_IncrementOf'
                                             value={field.value}
+                                            maxDigits={3}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRMDES_SanctionedSeats', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRMG_IncrementOf', numValue, { shouldDirty: true, shouldValidate: true });
                                             }}
                                             onBlur={field.onBlur}
-                                            error={errors.HRMDES_SanctionedSeats?.message}
+                                            error={errors.HRMG_IncrementOf?.message}
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     </div>
@@ -214,7 +204,7 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                             }}
                         />
                         <Controller
-                            name='HRMDES_Order'
+                            name='HRMG_PayScaleTo'
                             control={control}
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
@@ -236,7 +226,59 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRMDES_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRMG_PayScaleTo', numValue, { shouldDirty: true, shouldValidate: true });
+                                                }
+                                            }
+                                        };
+                                        inputElement.addEventListener('input', handleInput, { passive: true });
+                                        (inputElement as any).__dirtyHandlerAttached = true;
+                                    };
+                                    attachListener();
+                                };
+                                return (
+                                    <div ref={containerRefCallback}>
+                                        <InputNumber
+                                            label='Pay Scale To'
+                                            id='HRMG_PayScaleTo'
+                                            value={field.value}
+                                            maxDigits={10}
+                                            onChange={(value) => {
+                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                                field.onChange(numValue);
+                                                setValue('HRMG_PayScaleTo', numValue, { shouldDirty: true, shouldValidate: true });
+                                            }}
+                                            onBlur={field.onBlur}
+                                            error={errors.HRMG_PayScaleTo?.message}
+                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+                                );
+                            }}
+                        />
+                        <Controller
+                            name='HRMG_Order'
+                            control={control}
+                            render={({ field }) => {
+                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
+                                    if (!containerElement) return;
+                                    const findInput = () =>
+                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
+                                    const attachListener = () => {
+                                        const inputElement = findInput();
+                                        if (!inputElement) {
+                                            setTimeout(attachListener, 50);
+                                            return;
+                                        }
+                                        if ((inputElement as any).__dirtyHandlerAttached) return;
+                                        const handleInput = (e: Event) => {
+                                            const target = e.target as HTMLInputElement;
+                                            const inputValue = target.value.trim();
+                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
+                                                const numValue = Number(inputValue);
+                                                const currentValue = field.value || 0;
+                                                if (Math.abs(numValue - currentValue) > 0.0001) {
+                                                    field.onChange(numValue);
+                                                    setValue('HRMG_Order', numValue, { shouldDirty: true, shouldValidate: true });
                                                 }
                                             }
                                         };
@@ -249,61 +291,46 @@ export default function DesignationForm({ selectedRow, onSuccess, className = ''
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Order'
-                                            id='HRMDES_Order'
+                                            id='HRMG_Order'
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRMDES_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRMG_Order', numValue, { shouldDirty: true, shouldValidate: true });
                                             }}
                                             onBlur={field.onBlur}
-                                            error={errors.HRMDES_Order?.message}
+                                            error={errors.HRMG_Order?.message}
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     </div>
                                 );
                             }}
                         />
-                        <div className='flex items-center space-x-2'>
-                            <Controller
-                                name='HRMDES_DisplaySanctionedSeatsFlag'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox
-                                        id='HRMDES_DisplaySanctionedSeatsFlag'
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
-                            />
-                            <Label htmlFor='HRMDES_DisplaySanctionedSeatsFlag' className='cursor-pointer'>
-                                Display Sanctioned Seats
-                            </Label>
-                        </div>
                     </div>
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
-                <div className='flex flex-col gap-2 border-t pt-4 sm:flex-row sm:justify-start sm:items-center'>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting || (isEditMode && !isDirty)}
-                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
-                        isLoading={isSubmitting}
-                        loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                        {isEditMode ? 'Update' : 'Save'}
-                    </Button>
+                {/* Action Buttons */}
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
+                        variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
-                        Clear
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        Reset
                     </Button>
-                    {isEditMode && !isDirty && (
-                        <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>
-                    )}
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting || !isDirty}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        isLoading={isSubmitting}
+                        loadingText='Saving...'>
+                        <div className='flex items-center'>
+                            <Save className='mr-2 h-4 w-4' />
+                            Save Grade
+                        </div>
+                    </Button>
+                    {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
                 </div>
             </form>
         </div>

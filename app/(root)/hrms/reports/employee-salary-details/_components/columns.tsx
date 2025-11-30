@@ -1,12 +1,9 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
-
 import type { BaseEntity } from '@/lib/localdb';
-
 export interface MonthlySalaryDetail extends BaseEntity {
     id: number;
     month: string;
@@ -26,7 +23,6 @@ export interface MonthlySalaryDetail extends BaseEntity {
     esiDeduction: number;
     professionalTax: number;
 }
-
 export const getMonthlySalaryDetailColumns = (
     onViewDetails: (monthData: MonthlySalaryDetail) => void
 ): ColumnDef<MonthlySalaryDetail>[] => [

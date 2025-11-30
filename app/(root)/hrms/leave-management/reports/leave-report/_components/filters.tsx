@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -9,7 +8,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
-
 export interface LeaveReportFilters {
     selectedTypes: number[];
     selectedDepartments: number[];
@@ -21,7 +19,6 @@ export interface LeaveReportFilters {
     toDate: string;
     showEmployeeLeaveBalance: boolean;
 }
-
 interface LeaveReportFiltersProps {
     filters: LeaveReportFilters;
     types: Array<{ id: number; name: string }>;
@@ -36,7 +33,6 @@ interface LeaveReportFiltersProps {
     onReport: () => void;
     onCancel: () => void;
 }
-
 export function LeaveReportFilters({
     filters,
     types,
@@ -53,7 +49,6 @@ export function LeaveReportFilters({
 }: LeaveReportFiltersProps) {
     // Hide employee section when Employee Leave Balance is checked
     const showEmployeeSection = !filters.showEmployeeLeaveBalance;
-
     return (
         <CollapsibleSection
             title='LEAVE REPORT'
@@ -91,7 +86,6 @@ export function LeaveReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Department */}
                     <div className='space-y-2'>
                         <Label className='font-medium text-sm'>
@@ -118,7 +112,6 @@ export function LeaveReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Designation */}
                     <div className='space-y-2'>
                         <Label className='font-medium text-sm'>
@@ -146,7 +139,6 @@ export function LeaveReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Employee Section - Hide when Employee Leave Balance is checked */}
                 {showEmployeeSection && (
                     <>
@@ -171,7 +163,6 @@ export function LeaveReportFilters({
                                 </div>
                             </RadioGroup>
                         </div>
-
                         {/* Employee Selection - Only show when Individual is selected */}
                         {filters.isIndividual && (
                             <div className='space-y-2'>
@@ -215,7 +206,6 @@ export function LeaveReportFilters({
                         )}
                     </>
                 )}
-
                 {/* Filter Fields */}
                 <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-3'>
                     <div>
@@ -235,7 +225,6 @@ export function LeaveReportFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='grid grid-cols-1 gap-2 md:col-span-1 md:grid-cols-2'>
                         <div>
                             <Label htmlFor='from-date-input' className='font-medium text-sm'>
@@ -260,7 +249,6 @@ export function LeaveReportFilters({
                             />
                         </div>
                     </div>
-
                     {/* Employee Leave Balance Checkbox */}
                     <div className='flex items-center gap-2 md:col-span-3'>
                         <Checkbox
@@ -272,7 +260,6 @@ export function LeaveReportFilters({
                             Employee Leave Balance
                         </label>
                     </div>
-
                     {/* Action Buttons */}
                     <div className='flex gap-2 md:col-span-3'>
                         <Button onClick={onReport} variant='default'>

@@ -1,12 +1,10 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface LeaveCredit extends BaseEntity {
     leaveYear: string;
     leaveName: string;
@@ -17,12 +15,10 @@ export interface LeaveCredit extends BaseEntity {
     department: string[];
     designation: string[];
 }
-
 interface LeaveCreditColumnsProps {
     onEdit: (row: LeaveCredit) => void;
     onDelete: (id: number) => void;
 }
-
 export const getLeaveCreditColumns = ({ onEdit, onDelete }: LeaveCreditColumnsProps): ColumnDef<LeaveCredit>[] => [
     {
         id: 'select',

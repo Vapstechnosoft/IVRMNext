@@ -1,5 +1,4 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -8,7 +7,6 @@ import { useReligionCategoryMappingCRUD } from '@/hooks/hrms/useMasters';
 import type { ReligionCategoryMappingDetail, ReligionCategoryMappingResponse } from '@/types/hrms/religion-category-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-
 export const religionCategoryMappingColumns: ColumnDef<ReligionCategoryMappingDetail>[] = [
     {
         id: 'slNo',
@@ -64,18 +62,15 @@ export const religionCategoryMappingColumns: ColumnDef<ReligionCategoryMappingDe
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: ReligionCategoryMappingDetail }) {
     const { openEditForm } = useFormContext<ReligionCategoryMappingResponse>();
     const { toggleMutation } = useReligionCategoryMappingCRUD();
-
     const handleEdit = useCallback(
         (data: ReligionCategoryMappingDetail) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: ReligionCategoryMappingDetail, newState: boolean) => {
             try {
@@ -90,7 +85,6 @@ function ActionButtonsCell({ rowData }: { rowData: ReligionCategoryMappingDetail
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

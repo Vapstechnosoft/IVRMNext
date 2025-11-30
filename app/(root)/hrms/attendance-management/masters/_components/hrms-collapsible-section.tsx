@@ -1,12 +1,10 @@
 'use client';
-
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronRight } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
-
 interface HRMSCollapsibleSectionProps {
     title?: string;
     description?: string;
@@ -21,7 +19,6 @@ interface HRMSCollapsibleSectionProps {
     keepContentMounted?: boolean;
     closeButton?: ReactNode;
 }
-
 /**
  * HRMS-specific CollapsibleSection wrapper that adds close button support
  * This component is only for HRMS attendance management masters to avoid affecting other modules
@@ -43,33 +40,27 @@ export function HRMSCollapsibleSection({
 }: HRMSCollapsibleSectionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen);
-
     useEffect(() => {
         if (isOpen && !hasBeenOpened) {
             setHasBeenOpened(true);
         }
     }, [isOpen, hasBeenOpened]);
-
     const handleOpenChange = (open: boolean) => {
         setIsOpen(open);
         onOpenChange?.(open);
     };
-
     const sizeClasses = {
         sm: 'text-sm',
         md: 'text-base',
         lg: 'text-lg'
     };
-
     const variantClasses = {
         default: 'border shadow-sm',
         ghost: 'border-0 shadow-none',
         outline: 'border-2 shadow-none'
     };
-
     // Compact header when no title/description
     const compactHeader = !title && !description ? 'py-2' : 'py-4';
-
     // If no close button, use the standard CollapsibleSection
     if (!closeButton) {
         return (
@@ -88,7 +79,6 @@ export function HRMSCollapsibleSection({
             </CollapsibleSection>
         );
     }
-
     // Custom implementation with close button in header
     return (
         <Collapsible open={isOpen} onOpenChange={handleOpenChange} className={className}>
@@ -115,7 +105,6 @@ export function HRMSCollapsibleSection({
                         </div>
                     </CardHeader>
                 </CollapsibleTrigger>
-
                 <CollapsibleContent
                     className='transition-all duration-200 data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down'
                     forceMount={true}
@@ -126,4 +115,3 @@ export function HRMSCollapsibleSection({
         </Collapsible>
     );
 }
-

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Label } from '@/components/ui/extension/field';
@@ -16,7 +15,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { EmployeeDetailsReportTemplate } from './_components/report-template';
-
 // Employee data structure for reports
 interface Employee {
     id: string;
@@ -41,7 +39,6 @@ interface Employee {
     reasonForLeaving?: string;
     remarks?: string;
 }
-
 // Report filters and settings
 interface EmployeeDetailsFilters {
     selectedHeaders: string[];
@@ -60,23 +57,19 @@ interface EmployeeDetailsFilters {
     selectedDepartments: string[];
     selectedDesignations: string[];
 }
-
 interface HeaderForm {
     selectedHeaders: string[];
 }
-
 export default function EmployeeDetailsReportPage() {
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeDetailsReportOnload(30, 0);
     const filterMutation = useFilterEmployeeDetailsReport();
     const searchMutation = useSearchEmployeeDetailsReport();
-
     // State
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [showReport, setShowReport] = useState(false);
     const [employeeDropdownOptions, setEmployeeDropdownOptions] = useState<any[]>([]);
-
     // Memoize arrays to prevent unnecessary re-renders
     const _months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
     const _leaveYears = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
@@ -84,7 +77,6 @@ export default function EmployeeDetailsReportPage() {
     const designations = useMemo(() => onloadData?.data?.designationdropdown || [], [onloadData?.data?.designationdropdown]);
     const employeeTypes = useMemo(() => onloadData?.data?.employeeTypedropdown || [], [onloadData?.data?.employeeTypedropdown]);
     const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdown || [], [onloadData?.data?.groupTypedropdown]);
-
     const [filters, setFilters] = useState<EmployeeDetailsFilters>({
         selectedHeaders: [], // Start with no headers selected
         format: 'Format 1',
@@ -102,17 +94,14 @@ export default function EmployeeDetailsReportPage() {
         selectedDepartments: [],
         selectedDesignations: []
     });
-
     // Form for header selection
     const { control, watch, reset } = useForm<HeaderForm>({
         defaultValues: {
             selectedHeaders: [] // Start with no headers selected
         }
     });
-
     // Watch form values
     const watchedHeaders = watch('selectedHeaders');
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -123,7 +112,6 @@ export default function EmployeeDetailsReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, onloadData, isLoadingOnload]);
-
     // Available header options
     const availableHeaders = [
         'Employee Code',
@@ -147,7 +135,6 @@ export default function EmployeeDetailsReportPage() {
         'Qualification',
         'Experience'
     ];
-
     // Call filter API when Type is selected to populate employee dropdown
     // Note: The onload endpoint returns employeedropdown as null initially,
     // so we need to call FilterEmployeeDataNew API when a Type is selected
@@ -156,11 +143,9 @@ export default function EmployeeDetailsReportPage() {
         if (filters.reportType !== 'Individual') {
             return;
         }
-
         // Check if onload has employeedropdown (though it's usually null in onload)
         const onloadEmployees = onloadData?.data?.employeedropdown;
         const _onloadEmployeesArray = onloadEmployees && Array.isArray(onloadEmployees) ? onloadEmployees : [];
-
         // When Type is selected and we have all required filters (Format 1 only)
         if (
             filters.format === 'Format 1' &&
@@ -182,7 +167,6 @@ export default function EmployeeDetailsReportPage() {
                 Left: filters.employeeStatus.includes('Left'),
                 Working: filters.employeeStatus.includes('Working')
             };
-
             filterMutation.mutate(filterRequest, {
                 onSuccess: (response) => {
                     if (response.success && response.data) {
@@ -227,7 +211,6 @@ export default function EmployeeDetailsReportPage() {
                 Left: filters.employeeStatus.includes('Left'),
                 Working: filters.employeeStatus.includes('Working')
             };
-
             filterMutation.mutate(filterRequest, {
                 onSuccess: (response) => {
                     if (response.success && response.data) {
@@ -271,7 +254,6 @@ export default function EmployeeDetailsReportPage() {
         filters.dateFilter,
         filters.format
     ]);
-
     // Sync form values with filters state
     useEffect(() => {
         setFilters((prev) => ({
@@ -279,16 +261,13 @@ export default function EmployeeDetailsReportPage() {
             selectedHeaders: watchedHeaders
         }));
     }, [watchedHeaders]);
-
     // Filter employees based on selected criteria
     useEffect(() => {
         let filtered = employees;
-
         // Filter by employee status
         if (filters.employeeStatus.length > 0) {
             filtered = filtered.filter((emp) => filters.employeeStatus.includes(emp.status));
         }
-
         // Filter by date range
         if (filters.fromDate && filters.toDate) {
             filtered = filtered.filter((emp) => {
@@ -306,41 +285,32 @@ export default function EmployeeDetailsReportPage() {
                     default:
                         dateToCheck = emp.dateOfBirth;
                 }
-
                 if (!dateToCheck) return false;
-
                 const checkDate = new Date(dateToCheck);
                 return checkDate >= filters.fromDate! && checkDate <= filters.toDate!;
             });
         }
-
         setFilteredEmployees(filtered);
     }, [filters, employees]);
-
     // Handle employee status change and trigger API automatically
     const handleEmployeeStatusChange = async (status: string, checked: boolean) => {
         const newStatuses = checked ? [...filters.employeeStatus, status] : filters.employeeStatus.filter((s) => s !== status);
-
         // Ensure at least one status is selected
         if (newStatuses.length === 0) {
             toast.error('Please select at least one employee status');
             return;
         }
-
         setFilters((prev) => ({
             ...prev,
             employeeStatus: newStatuses
         }));
-
         // Trigger API call automatically
         await triggerFilterAPI(newStatuses);
     };
-
     // Separate function to trigger the filter API
     const triggerFilterAPI = (statuses: string[] = filters.employeeStatus) => {
         // Prepare request body based on format type
         let filterRequest: any;
-
         if (filters.format === 'Format 1') {
             // Format 1: Simple format
             filterRequest = {
@@ -368,7 +338,6 @@ export default function EmployeeDetailsReportPage() {
                 Working: statuses.includes('Working')
             };
         }
-
         filterMutation.mutate(filterRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -398,7 +367,6 @@ export default function EmployeeDetailsReportPage() {
                             reasonForLeaving: emp.HRME_LeavingReason || '',
                             remarks: emp.HRME_Remarks || ''
                         }));
-
                         setEmployees(filteredEmployees);
                         setShowReport(true);
                         toast.success('Employee status filter applied successfully');
@@ -424,16 +392,13 @@ export default function EmployeeDetailsReportPage() {
             }
         });
     };
-
     const handleSearch = () => {
         // Always show report template when search is clicked, even without headers
         setShowReport(true);
-
         if (filters.selectedHeaders.length === 0) {
             toast.warning('Please select at least one header field to generate the report. Showing empty report template.');
             return;
         }
-
         // Map date filter to DOBJL format
         const dobjlMap: Record<string, string> = {
             'Date of Birth': 'DOB',
@@ -441,10 +406,8 @@ export default function EmployeeDetailsReportPage() {
             'Date of Leaving': 'DOL'
         };
         const dobjl = dobjlMap[filters.dateFilter] || 'DOB';
-
         // Prepare the search request payload based on format type
         let searchRequest: any;
-
         if (filters.format === 'Format 1') {
             // Format 1: Use YYYY-MM-DD date format
             searchRequest = {
@@ -478,7 +441,6 @@ export default function EmployeeDetailsReportPage() {
                 Left: filters.employeeStatus.includes('Left')
             };
         }
-
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -488,7 +450,6 @@ export default function EmployeeDetailsReportPage() {
                         ((Array.isArray(response.data.employeedropdown) && response.data.employeedropdown.length > 0) ||
                             (Array.isArray(response.data.employeeDetails) && response.data.employeeDetails.length > 0) ||
                             (Array.isArray(response.data.masterEmployeeList) && response.data.masterEmployeeList.length > 0));
-
                     if (hasEmployeeData) {
                         // Use the first available data array
                         const dataBlock: any[] =
@@ -499,7 +460,6 @@ export default function EmployeeDetailsReportPage() {
                                   : Array.isArray(response.data.masterEmployeeList) && response.data.masterEmployeeList.length > 0
                                     ? response.data.masterEmployeeList
                                     : [];
-
                         const mappedEmployees: Employee[] = dataBlock.map((emp: any) => ({
                             id: emp.HRME_Id?.toString() || emp.hrmE_Id?.toString() || '',
                             employeeCode: emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || '',
@@ -525,7 +485,6 @@ export default function EmployeeDetailsReportPage() {
                             reasonForLeaving: emp.HRME_LeavingReason || '',
                             remarks: emp.HRME_Remarks || ''
                         }));
-
                         setEmployees(mappedEmployees);
                         setShowReport(true);
                         toast.success(`Found ${mappedEmployees.length} employee records`);
@@ -533,7 +492,6 @@ export default function EmployeeDetailsReportPage() {
                         // No employee data found - but still show the report template
                         setEmployees([]);
                         setShowReport(true);
-
                         const errorMsg = response.data?.retrunMsg || 'No employee data found for the selected criteria';
                         toast.info(errorMsg);
                     }
@@ -555,10 +513,8 @@ export default function EmployeeDetailsReportPage() {
             }
         });
     };
-
     const handleCancel = () => {
         const defaultHeaders: string[] = []; // Reset to no headers selected
-
         setFilters({
             selectedHeaders: defaultHeaders,
             format: 'Format 1',
@@ -576,25 +532,20 @@ export default function EmployeeDetailsReportPage() {
             selectedDepartments: [],
             selectedDesignations: []
         });
-
         // Reset form as well
         reset({
             selectedHeaders: defaultHeaders
         });
-
         setShowReport(false);
         toast.info('Filters reset');
     };
-
     const handleExport = () => {
         toast.success('Employee details exported successfully');
     };
-
     const _handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Get institution details from API response if available
     const institutionDetails = useMemo(() => {
         // Try to get institution details from the API response
@@ -608,7 +559,6 @@ export default function EmployeeDetailsReportPage() {
         }
         return null;
     }, [searchMutation.data, onloadData]);
-
     // Build school name and address
     const schoolName = institutionDetails?.MI_Name || '';
     const schoolAddress = useMemo(() => {
@@ -619,7 +569,6 @@ export default function EmployeeDetailsReportPage() {
         if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
         return addressParts.join(', ');
     }, [institutionDetails]);
-
     // Show error message if onload fails
     if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
         return (
@@ -639,7 +588,6 @@ export default function EmployeeDetailsReportPage() {
             </div>
         );
     }
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -688,7 +636,6 @@ export default function EmployeeDetailsReportPage() {
                                 </label>
                             </div>
                         </div>
-
                         {/* Header Selection */}
                         <div className='space-y-3'>
                             <Label className='font-semibold'>
@@ -712,7 +659,6 @@ export default function EmployeeDetailsReportPage() {
                                 )}
                             />
                         </div>
-
                         {/* Format 1 Specific Sections */}
                         {filters.format === 'Format 1' && (
                             <div className='space-y-6'>
@@ -770,7 +716,6 @@ export default function EmployeeDetailsReportPage() {
                                         </label>
                                     </div>
                                 </div>
-
                                 {/* Date Range */}
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div className='space-y-2'>
@@ -806,7 +751,6 @@ export default function EmployeeDetailsReportPage() {
                                             </PopoverContent>
                                         </Popover>
                                     </div>
-
                                     <div className='space-y-2'>
                                         <Label>
                                             To: <span className='text-red-500'>*</span>
@@ -841,7 +785,6 @@ export default function EmployeeDetailsReportPage() {
                                         </Popover>
                                     </div>
                                 </div>
-
                                 {/* Employee Status */}
                                 <div className='space-y-3'>
                                     <Label>Employee Status</Label>
@@ -866,7 +809,6 @@ export default function EmployeeDetailsReportPage() {
                                         </label>
                                     </div>
                                 </div>
-
                                 {/* Report Type */}
                                 <div className='space-y-3'>
                                     <Label>Report Type</Label>
@@ -905,7 +847,6 @@ export default function EmployeeDetailsReportPage() {
                                         </label>
                                     </div>
                                 </div>
-
                                 {/* Employee Type Selection - Only show when Report Type is Individual */}
                                 {filters.reportType === 'Individual' && (
                                     <div className='space-y-3'>
@@ -950,7 +891,6 @@ export default function EmployeeDetailsReportPage() {
                                         </div>
                                     </div>
                                 )}
-
                                 {/* Type Dropdown - Only show when Employee Type is "Type" and Report Type is "Individual" */}
                                 {filters.reportType === 'Individual' && filters.employeeType === 'Type' && (
                                     <div className='space-y-2'>
@@ -977,7 +917,6 @@ export default function EmployeeDetailsReportPage() {
                                         </Select>
                                     </div>
                                 )}
-
                                 {/* Employee Dropdown - Only show when Employee Type is "Employee" and Report Type is "Individual" */}
                                 {filters.reportType === 'Individual' && filters.employeeType === 'Employee' && (
                                     <div className='space-y-2'>
@@ -1017,7 +956,6 @@ export default function EmployeeDetailsReportPage() {
                                         </Select>
                                     </div>
                                 )}
-
                                 {/* Employee Dropdown - Show when Type is selected to display filtered employees */}
                                 {filters.reportType === 'Individual' && filters.employeeType === 'Type' && filters.selectedEmployeeType && (
                                     <div className='space-y-2'>
@@ -1061,7 +999,6 @@ export default function EmployeeDetailsReportPage() {
                                 )}
                             </div>
                         )}
-
                         {/* Format 2 Specific Sections */}
                         {filters.format === 'Format 2' && (
                             <div className='space-y-6'>
@@ -1088,7 +1025,6 @@ export default function EmployeeDetailsReportPage() {
                                             maxHeight={240}
                                         />
                                     </div>
-
                                     {/* Department Selection */}
                                     <div className='space-y-3'>
                                         <Label className='font-semibold'>
@@ -1111,7 +1047,6 @@ export default function EmployeeDetailsReportPage() {
                                             maxHeight={240}
                                         />
                                     </div>
-
                                     {/* Designation Selection */}
                                     <div className='space-y-3'>
                                         <Label className='font-semibold'>
@@ -1135,7 +1070,6 @@ export default function EmployeeDetailsReportPage() {
                                         />
                                     </div>
                                 </div>
-
                                 {/* Employee Status */}
                                 <div className='space-y-3'>
                                     <Label>Employee Status</Label>
@@ -1162,7 +1096,6 @@ export default function EmployeeDetailsReportPage() {
                                 </div>
                             </div>
                         )}
-
                         {/* Action Buttons */}
                         <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
                             <Button variant='outline' onClick={handleCancel} className='w-fit transition-all duration-200 hover:scale-105'>
@@ -1176,7 +1109,6 @@ export default function EmployeeDetailsReportPage() {
                         </div>
                     </div>
                 </CollapsibleSection>
-
                 {/* Report Results */}
                 {showReport && (
                     <CollapsibleSection

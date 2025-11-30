@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
@@ -7,7 +6,6 @@ import { useApplyLeave, useLeaveHistory } from '@/hooks/hrms/leave-management/us
 import { Check, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { ApplyLeave } from './columns';
-
 interface AddApplyLeaveFormProps {
     onSuccess?: () => void;
     className?: string;
@@ -19,11 +17,9 @@ interface AddApplyLeaveFormProps {
         phone?: string;
     };
 }
-
 export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEmployee }: AddApplyLeaveFormProps) {
     const { refetchAll } = useLeaveHistory();
     const { mutate: applyLeave, isPending } = useApplyLeave();
-
     const {
         register,
         handleSubmit,
@@ -44,9 +40,7 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
             dateReportingBack: ''
         }
     });
-
     const todayISO = new Date().toISOString().slice(0, 10);
-
     const onSubmit: SubmitHandler<ApplyLeave & { contactNumber: string; dateReportingBack: string; file?: FileList }> = async (data) => {
         if (!data.reason?.trim()) {
             return;
@@ -57,7 +51,6 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
         if (!data.dateReportingBack) {
             return;
         }
-
         // Convert to ApplyLeave format
         const leaveData: ApplyLeave = {
             employeeName: data.employeeName,
@@ -69,7 +62,6 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
             numDays: data.numDays || 0,
             reason: data.reason
         };
-
         applyLeave(
             { data: leaveData },
             {
@@ -85,7 +77,6 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
             }
         );
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
@@ -103,7 +94,6 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                         className='w-full'
                     />
                 </div>
-
                 {/* Contact Number While on Leave */}
                 <div className='space-y-2'>
                     <label htmlFor='contact-number-input' className='font-medium text-sm'>
@@ -117,7 +107,6 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                         placeholder='Enter contact number'
                     />
                 </div>
-
                 {/* Date Reporting Back */}
                 <div className='space-y-2'>
                     <label htmlFor='date-reporting-back-input' className='font-medium text-sm'>
@@ -131,7 +120,6 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                         min={todayISO}
                     />
                 </div>
-
                 {/* File Upload */}
                 <div className='space-y-2'>
                     <label htmlFor='leave-document-file' className='font-medium text-sm'>
@@ -151,7 +139,6 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
                         <span className='text-muted-foreground text-sm'>No file chosen</span>
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex justify-end gap-2 pt-4'>
                     <Button

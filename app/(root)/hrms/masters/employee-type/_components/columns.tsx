@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,7 +8,6 @@ import type { EmployeeTypeDetail, MasterEmployeeTypeResponse } from '@/types/hrm
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<EmployeeTypeDetail>[] = [
     {
         id: 'slNo',
@@ -34,18 +32,15 @@ export const columns: ColumnDef<EmployeeTypeDetail>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: EmployeeTypeDetail }) {
     const { openEditForm } = useFormContext<MasterEmployeeTypeResponse>();
     const { toggleMutation } = useMasterEmployeeType(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: EmployeeTypeDetail) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: EmployeeTypeDetail, newState: boolean) => {
             try {
@@ -61,7 +56,6 @@ function ActionButtonsCell({ rowData }: { rowData: EmployeeTypeDetail }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

@@ -1,5 +1,4 @@
-﻿'use client';
-
+'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
@@ -7,20 +6,16 @@ import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Plus, Trash2, Upload } from 'lucide-react';
 import { useFieldArray } from 'react-hook-form';
 import { StandardTabActions } from './standard-tab-actions';
-
 export function UploadDocumentTab({ control, register, errors, isSubmitting, watch, onClear, currentTab, onPreviousTab }: any) {
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'documentList'
     });
-
     const addEmptyRow = () => {
         append({} as any);
     };
-
     // Watch for file changes to display selected file names
     const watchDocuments = watch('documentList');
-
     return (
         <div className='space-y-4'>
             <div className='rounded-md border'>
@@ -34,23 +29,19 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                     </Button>
                 </div>
             </div>
-
             {fields.length === 0 && (
                 <div className='rounded-md border p-6 text-muted-foreground text-sm'>
                     No documents added yet. Click "Add Document" to start.
                 </div>
             )}
-
             <div className='space-y-4'>
                 {fields.map((field, index) => {
                     // Get the selected file for this document
                     const selectedFile = watchDocuments?.[index]?.document?.[0];
                     const fileName = selectedFile?.name;
-
                     // Get the existing document image name from the form data (for edit mode)
                     const existingFileName = watchDocuments?.[index]?.documentImageName;
                     const displayFileName = fileName || existingFileName;
-
                     return (
                         <div key={field.id} className='rounded-lg border bg-card p-4 shadow-sm'>
                             <div className='mb-3 flex items-center justify-between'>
@@ -65,7 +56,6 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                                     </Button>
                                 </div>
                             </div>
-
                             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
                                 <HRMSInputText
                                     label='Document Name *'
@@ -75,7 +65,6 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                                     placeholder='Enter document name'
                                     error={errors.documentList?.[index]?.documentName?.message}
                                 />
-
                                 <HRMSInputText
                                     label='Description *'
                                     id={`documentList.${index}.documentDescription`}
@@ -84,7 +73,6 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                                     placeholder='Enter description'
                                     error={errors.documentList?.[index]?.documentDescription?.message}
                                 />
-
                                 <div className='space-y-2 md:col-span-2'>
                                     <Label>Upload Document</Label>
                                     <div className='flex items-center gap-2'>
@@ -127,11 +115,9 @@ export function UploadDocumentTab({ control, register, errors, isSubmitting, wat
                     );
                 })}
             </div>
-
             <StandardTabActions errors={errors} isSubmitting={isSubmitting} onClear={onClear} currentTab={currentTab} onPreviousTab={onPreviousTab} />
         </div>
     );
 }
-
 // Payroll Tab Component - Dynamic with API Integration
 // Note: PayrollTabProps interface removed as it's not currently used

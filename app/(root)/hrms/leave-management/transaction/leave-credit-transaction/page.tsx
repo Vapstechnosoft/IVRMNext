@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -14,20 +13,16 @@ import { use } from 'react';
 import { toast } from 'sonner';
 import { type LeaveCreditTransaction, getLeaveCreditTransactionColumns } from './_components/columns';
 import { LeaveCreditTransactionForm } from './_components/leave-credit-transaction-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function LeaveCreditTransactionPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useLeaveCreditTransaction();
-
     return (
         <FormProvider<LeaveCreditTransaction>>
             <LeaveCreditTransactionPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function LeaveCreditTransactionPageContent({
     response,
     isLoading,
@@ -40,7 +35,6 @@ function LeaveCreditTransactionPageContent({
     const { openAddForm } = useFormContext<LeaveCreditTransaction>();
     const { openEditForm, openDeleteForm } = useFormContext<LeaveCreditTransaction>();
     const tableProps = useDataTableProps(response);
-
     const columns = getLeaveCreditTransactionColumns({
         onEdit: openEditForm,
         onDelete: (id: number) => {
@@ -50,7 +44,6 @@ function LeaveCreditTransactionPageContent({
             }
         }
     });
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -64,7 +57,6 @@ function LeaveCreditTransactionPageContent({
                         Add Leave Transaction
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -84,14 +76,12 @@ function LeaveCreditTransactionPageContent({
                         errorTitle='Error Loading Leave Transactions'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -107,7 +97,6 @@ function FormSections() {
     const { refetchAll } = useLeaveCreditTransaction();
     const { mutate: saveTransaction } = useSaveLeaveCreditTransaction();
     const { mutate: deleteTransaction } = useDeleteLeaveCreditTransaction();
-
     const handleFormSubmit = (formData: LeaveCreditTransaction) => {
         saveTransaction(formData, {
             onSuccess: () => {
@@ -118,7 +107,6 @@ function FormSections() {
             }
         });
     };
-
     const handleDelete = () => {
         if (selectedRow) {
             deleteTransaction(selectedRow.id, {
@@ -130,7 +118,6 @@ function FormSections() {
             });
         }
     };
-
     return (
         <>
             {/* Add Form */}
@@ -157,7 +144,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -182,7 +168,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && (
                 <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>

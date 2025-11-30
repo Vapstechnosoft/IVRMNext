@@ -1,8 +1,6 @@
 'use client';
-
 import { DateField as BaseDateField } from '@/components/ui/dateField';
 import { useRef, useEffect } from 'react';
-
 interface HRMSDateFieldProps {
     field: any;
     fieldState: any;
@@ -12,15 +10,13 @@ interface HRMSDateFieldProps {
     toDate?: Date;
     disabled?: boolean;
 }
-
 /**
  * HRMS-specific wrapper for DateField that prevents infinite loops
  * by stabilizing the field value reference
  */
-export const HRMSDateField: React.FC<HRMSDateFieldProps> = ({ field, fieldState, label, placeholder, fromDate, toDate, disabled }) => {
+export const HRMSDateField: React.FC<HRMSDateFieldProps> = ({ field, fieldState, label, placeholder, fromDate }) => {
     // Use ref to track the actual value string to prevent infinite loops
     const valueRef = useRef<string | undefined>(field.value);
-    
     // Update ref only when value actually changes (string comparison)
     useEffect(() => {
         const currentValue = field.value ? String(field.value) : '';
@@ -29,13 +25,11 @@ export const HRMSDateField: React.FC<HRMSDateFieldProps> = ({ field, fieldState,
             valueRef.current = field.value;
         }
     }, [field.value]);
-
     // Create a stable field object with the ref value
     const stableField = {
         ...field,
         value: valueRef.current || ''
     };
-
     return (
         <BaseDateField
             field={stableField}
@@ -46,4 +40,3 @@ export const HRMSDateField: React.FC<HRMSDateFieldProps> = ({ field, fieldState,
         />
     );
 };
-

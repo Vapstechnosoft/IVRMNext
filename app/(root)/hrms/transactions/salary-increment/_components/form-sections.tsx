@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -7,15 +6,12 @@ import type { SalaryIncrementOnloadResponse } from '@/types/hrms/salary-incremen
 import { X } from 'lucide-react';
 import AddSalaryIncrementForm from './add-form';
 import UpdateSalaryIncrementForm from './update-form';
-
 interface FormSectionsProps {
     onloadData: SalaryIncrementOnloadResponse | undefined;
     onSuccess: () => void;
 }
-
 export default function FormSections({ onloadData, onSuccess }: FormSectionsProps) {
     const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext();
-
     return (
         <>
             {/* Add Form */}
@@ -48,7 +44,6 @@ export default function FormSections({ onloadData, onSuccess }: FormSectionsProp
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && (
                 <div ref={editFormRef}>

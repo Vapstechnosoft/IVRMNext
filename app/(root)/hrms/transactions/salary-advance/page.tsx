@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -15,22 +14,18 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ActionsCell } from './_components/actions-cell';
 import FormSections from './_components/form-sections';
-
 interface SalaryAdvance extends SalaryAdvanceItem {
     selected?: boolean;
 }
-
 export default function SalaryAdvancePage() {
     const roleId = 2;
     const { data: advanceData, isLoading, refetch } = useSalaryAdvanceList({ roleId });
-
     return (
         <FormProvider<SalaryAdvanceItem>>
             <SalaryAdvancePageContent advanceData={advanceData} isLoading={isLoading} refetch={refetch} />
         </FormProvider>
     );
 }
-
 function SalaryAdvancePageContent({
     advanceData,
     isLoading,
@@ -42,7 +37,6 @@ function SalaryAdvancePageContent({
 }) {
     const { openAddForm } = useFormContext<SalaryAdvanceItem>();
     const [selectedAdvances, setSelectedAdvances] = useState<number[]>([]);
-
     const _salaryAdvances: SalaryAdvance[] = (advanceData?.empadvaList || []).map((advance: any) => ({
         ...advance,
         selected: false
@@ -52,7 +46,6 @@ function SalaryAdvancePageContent({
     const leaveYears = advanceData?.leaveyeardropdown || [];
     const months = advanceData?.monthdropdown || [];
     const _modeOfPayments = advanceData?.modeOfPaymentdropdown || [];
-
     const handleSelectAll = (selected: boolean) => {
         if (selected) {
             setSelectedAdvances(filteredAdvances.map((advance) => advance.HRESA_Id));
@@ -60,7 +53,6 @@ function SalaryAdvancePageContent({
             setSelectedAdvances([]);
         }
     };
-
     const handleAdvanceSelect = (advanceId: number, selected: boolean) => {
         if (selected) {
             setSelectedAdvances((prev) => [...prev, advanceId]);
@@ -68,34 +60,28 @@ function SalaryAdvancePageContent({
             setSelectedAdvances((prev) => prev.filter((id) => id !== advanceId));
         }
     };
-
     const getEmployeeName = (employee: EmployeeDropdown | null | undefined) => {
         if (!employee) return 'N/A';
         return `${employee.HRME_EmployeeFirstName || ''} ${
             employee.HRME_EmployeeMiddleName || ''
         } ${employee.HRME_EmployeeLastName || ''}`.trim() || 'N/A';
     };
-
     const getEmployeeCode = (employeeId: number) => {
         const employee = employees.find((emp: EmployeeDropdown) => emp.HRME_Id === employeeId);
         return employee?.HRME_EmployeeCode || `EMP${employeeId}`;
     };
-
     const getEmployeeNameById = (employeeId: number) => {
         const employee = employees.find((emp: EmployeeDropdown) => emp.HRME_Id === employeeId);
         return getEmployeeName(employee || null);
     };
-
     const getLeaveYearName = (yearId: number) => {
         const year = leaveYears.find((y: LeaveYearDropdown) => y.HRMLY_Id === yearId);
         return year?.HRMLY_LeaveYear || `Year ${yearId}`;
     };
-
     const getMonthName = (monthId: number) => {
         const month = months.find((m: MonthDropdown) => m.IVRM_Month_Id === monthId);
         return month?.IVRM_Month_Name || `Month ${monthId}`;
     };
-
     const SalaryAdvanceTable = ({
         advances,
         isLoading,
@@ -162,11 +148,9 @@ function SalaryAdvancePageContent({
                     // Try to get employee name from MasterEmployee first, then fallback to lookup
                     const masterEmployee = (row.original as any).MasterEmployee as EmployeeDropdown | undefined;
                     const employeeId = row.original.HRME_Id;
-                    
                     if (masterEmployee) {
                         return <div>{getEmployeeName(masterEmployee)}</div>;
                     }
-                    
                     // Fallback to lookup from employeedropdown
                     return <div>{getEmployeeNameById(employeeId)}</div>;
                 },
@@ -226,14 +210,12 @@ function SalaryAdvancePageContent({
                 }
             }
         ];
-
         return (
             <div className='overflow-hidden rounded-lg bg-card'>
                 <DataTable<SalaryAdvance, any> columns={columns} data={advances} totalItems={advances.length} isLoading={isLoading} />
             </div>
         );
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -247,7 +229,6 @@ function SalaryAdvancePageContent({
                         Add Salary Advance
                     </Button>
                 </div>
-
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
@@ -267,7 +248,6 @@ function SalaryAdvancePageContent({
                                 </Button>
                             </div>
                         )}
-
                         <SalaryAdvanceTable
                             advances={filteredAdvances}
                             isLoading={isLoading}
@@ -281,7 +261,6 @@ function SalaryAdvancePageContent({
                         />
                     </div>
                 </CollapsibleSection>
-
                 {/* Forms Section - Moved after table */}
                 <FormSections onloadData={advanceData} onSuccess={refetch} />
             </div>

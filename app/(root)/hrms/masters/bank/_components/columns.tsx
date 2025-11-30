@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,7 +8,6 @@ import type { BankItem, MasterBankResponse } from '@/types/hrms/master-bank';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<BankItem>[] = [
     {
         id: 'slNo',
@@ -53,18 +51,15 @@ export const columns: ColumnDef<BankItem>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
     const { openEditForm } = useFormContext<MasterBankResponse>();
     const { toggleMutation } = useMasterBank(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: BankItem) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: BankItem, newState: boolean) => {
             try {
@@ -73,7 +68,6 @@ function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
                     HRMBD_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
-
                 if (result?.success) {
                     const successMsg = result?.message || `Bank ${newState ? 'activated' : 'deactivated'} successfully`;
                     toast.success(successMsg);
@@ -82,9 +76,6 @@ function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
                     toast.error(errorMsg);
                 }
             } catch (error: any) {
-                console.error('🔴 [BANK TOGGLE] Error:', error);
-                console.error('🔴 [BANK TOGGLE] Error message:', error?.message);
-
                 const errorMsg =
                     error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} bank`;
                 toast.error(errorMsg);
@@ -92,7 +83,6 @@ function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

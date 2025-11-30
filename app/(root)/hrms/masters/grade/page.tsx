@@ -1,24 +1,21 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterGrade } from '@/hooks/hrms/useMasters';
 import type { ApiSearchparams } from '@/types';
 import type { GradeDetail } from '@/types/hrms/master-grade';
-import { ListOrdered, Plus, Save, X } from 'lucide-react';
-import { use, useMemo, useState } from 'react';
-import { toast } from 'sonner';
-import { columns, getEditableColumns } from './_components/columns';
-import GradeForm from './_components/grade-form';
-
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
+import AddGradeForm from './_components/add-form';
+import { columns } from './_components/columns';
+import ReorderGradeForm from './_components/reorder-form';
+import UpdateGradeForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterGradePage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
-
     // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
     // This matches how preadmission handles it
     const searchParams: ApiSearchparams = {
@@ -63,10 +60,8 @@ export default function MasterGradePage(props: { searchParams: SearchParams }) {
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     const roleId = HRMS_MI_ID;
     const { listQuery, refetchAll } = useMasterGrade(roleId, searchParams);
-
     return (
         <FormProvider<GradeDetail>>
             <MasterGradePageContent
@@ -78,7 +73,6 @@ export default function MasterGradePage(props: { searchParams: SearchParams }) {
         </FormProvider>
     );
 }
-
 function MasterGradePageContent({
     response,
     isLoading,
@@ -91,103 +85,35 @@ function MasterGradePageContent({
     refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<GradeDetail>();
-    const { saveOrderMutation } = useMasterGrade(HRMS_MI_ID);
-    // Memoize array to prevent unnecessary re-renders
-    // API now returns data as an array directly, or in gradelList for backward compatibility
-    const rows: GradeDetail[] = useMemo(() => {
-        if (Array.isArray(response?.data)) {
-            return response.data;
-        }
-        return response?.gradelList ?? [];
-    }, [response?.data, response?.gradelList]);
-
-    const [isEditOrderMode, setIsEditOrderMode] = useState(false);
-    const [editedRows, setEditedRows] = useState<GradeDetail[]>([]);
-
-    const handleSetOrder = () => {
-        setIsEditOrderMode(true);
-        setEditedRows([...rows]);
-    };
-
-    const handleCancelOrder = () => {
-        setIsEditOrderMode(false);
-        setEditedRows([]);
-    };
-
-    const handleSaveOrder = async () => {
-        try {
-            await saveOrderMutation.mutateAsync(editedRows);
-            toast.success('Order saved successfully');
-            setIsEditOrderMode(false);
-            setEditedRows([]);
-        } catch (_error) {
-            toast.error('Failed to save order');
-        }
-    };
-
-    const handleOrderChange = (rowId: number, newOrder: number) => {
-        setEditedRows((prev) => prev.map((row) => (row.HRMG_Id === rowId ? { ...row, HRMG_Order: newOrder } : row)));
-    };
-
-    const displayColumns = isEditOrderMode ? getEditableColumns(handleOrderChange) : columns;
-
-    const displayData = isEditOrderMode ? editedRows : rows;
-
+    const tableProps = useDataTableProps(response);
     return (
         <div className='min-h-screen'>
-            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
-                <div className='flex justify-end gap-2'>
-                    {isEditOrderMode ? (
-                        <>
-                            <Button
-                                type='button'
-                                onClick={handleCancelOrder}
-                                variant='outline'
-                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                <X className='h-4 w-4' />
-                                Cancel
-                            </Button>
-                            <Button
-                                type='button'
-                                onClick={handleSaveOrder}
-                                disabled={saveOrderMutation.isPending}
-                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                <Save className='h-4 w-4' />
-                                {saveOrderMutation.isPending ? 'Saving...' : 'Save Order'}
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                type='button'
-                                onClick={handleSetOrder}
-                                variant='outline'
-                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                <ListOrdered className='h-4 w-4' />
-                                Set Order
-                            </Button>
-                            <Button
-                                type='button'
-                                onClick={openAddForm}
-                                className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                <Plus className='h-4 w-4' />
-                                Add Grade
-                            </Button>
-                        </>
-                    )}
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
+                <div className='flex justify-end'>
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                        <Plus className='h-4 w-4' />
+                        Add Grade
+                    </Button>
                 </div>
-
+                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='flex justify-end'>
+                        <ReorderGradeForm />
+                    </div>
                     <GenericDataTable<GradeDetail>
-                        data={displayData}
-                        totalItems={response?.total ?? displayData.length}
-                        columns={displayColumns}
+                        {...tableProps}
+                        columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading grades...'
                         noDataTitle='No Grades Found'
@@ -195,17 +121,15 @@ function MasterGradePageContent({
                         errorTitle='Error Loading Grades'
                     />
                 </CollapsibleSection>
-
+                {/* Forms */}
                 <FormSections refetch={refetch} />
             </div>
         </div>
     );
 }
-
 function FormSections({ refetch }: { refetch: () => void }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<GradeDetail>();
-
     return (
         <>
             {isAddFormOpen && (
@@ -226,7 +150,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GradeForm
+                            <AddGradeForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
@@ -236,7 +160,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -254,7 +177,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GradeForm
+                            <UpdateGradeForm
                                 selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();

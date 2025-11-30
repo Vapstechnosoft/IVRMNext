@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
@@ -15,9 +14,7 @@ import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type EmployeeYearlyReportFilters = z.infer<typeof employeeYearlyReportFilterSchema>;
-
 interface EmployeeYearlyReportFiltersProps {
     filters: EmployeeYearlyReportFilters;
     branches: string[];
@@ -31,7 +28,6 @@ interface EmployeeYearlyReportFiltersProps {
     onExport: () => void;
     onPrint: () => void;
 }
-
 export function EmployeeYearlyReportFilters({
     filters,
     branches,
@@ -55,12 +51,10 @@ export function EmployeeYearlyReportFilters({
         defaultValues: filters,
         mode: 'onChange'
     });
-
     // Watch the allOrIndividual field to reactively show/hide employee dropdown
     // Use watch to get the current form value, which updates immediately when changed
     const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
     const employeeValue = watch('employee') || filters.employee || '';
-
     // Sync form when filters prop changes from parent
     useEffect(() => {
         setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
@@ -82,18 +76,15 @@ export function EmployeeYearlyReportFilters({
         filters.toDate,
         filters.mode?.join(',')
     ]);
-
     const handleFilterChange = (key: keyof EmployeeYearlyReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const onSubmit = (data: EmployeeYearlyReportFilters) => {
         onFilterChange(data);
         onSearch();
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}

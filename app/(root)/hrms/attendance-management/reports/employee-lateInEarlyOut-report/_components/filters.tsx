@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
@@ -15,9 +14,7 @@ import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type EmployeeLateInEarlyOutReportFilters = z.infer<typeof employeeLateInEarlyOutReportFilterSchema>;
-
 interface EmployeeLateInEarlyOutReportFiltersProps {
     filters: EmployeeLateInEarlyOutReportFilters;
     departments: string[];
@@ -31,7 +28,6 @@ interface EmployeeLateInEarlyOutReportFiltersProps {
     onExport: () => void;
     onPrint: () => void;
 }
-
 export function EmployeeLateInEarlyOutReportFilters({
     filters,
     departments,
@@ -47,7 +43,6 @@ export function EmployeeLateInEarlyOutReportFilters({
 }: EmployeeLateInEarlyOutReportFiltersProps) {
     // Debug logging for props
     useEffect(() => {}, [groupTypes, employees, filters]);
-
     const {
         handleSubmit,
         setValue,
@@ -58,12 +53,10 @@ export function EmployeeLateInEarlyOutReportFilters({
         defaultValues: filters,
         mode: 'onChange'
     });
-
     // Watch the allOrIndividual and query fields to reactively show/hide employee dropdown
     // Use watch to get the current form value, which updates immediately when changed
     const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
     const queryValue = watch('query') || filters.query || '';
-
     // Sync form when filters prop changes from parent
     useEffect(() => {
         setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
@@ -85,18 +78,15 @@ export function EmployeeLateInEarlyOutReportFilters({
         filters.toDate,
         filters.mode
     ]);
-
     const handleFilterChange = (key: keyof EmployeeLateInEarlyOutReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const onSubmit = (data: EmployeeLateInEarlyOutReportFilters) => {
         onFilterChange(data);
         onSearch();
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -152,7 +142,6 @@ export function EmployeeLateInEarlyOutReportFilters({
                         />
                         {errors.designation && <FormError>{errors.designation.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='allOrIndividual'>
                             All / Individual <span className='text-red-500'>*</span>
@@ -205,7 +194,6 @@ export function EmployeeLateInEarlyOutReportFilters({
                             {errors.query && <FormError>{errors.query.message}</FormError>}
                         </div>
                     )}
-
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='fromDate'>
                             From Date <span className='text-red-500'>*</span>

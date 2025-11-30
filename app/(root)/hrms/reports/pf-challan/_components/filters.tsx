@@ -1,16 +1,13 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 export interface PFChallanFilters {
     month: string;
     year: string;
 }
-
 interface PFChallanFiltersProps {
     filters: PFChallanFilters;
     months: any[];
@@ -20,7 +17,6 @@ interface PFChallanFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function PFChallanFilters({
     filters,
     months,
@@ -33,7 +29,6 @@ export function PFChallanFilters({
     const handleSelectChange = (key: keyof PFChallanFilters, value: string) => {
         onFilterChange({ ...filters, [key]: value });
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -68,7 +63,6 @@ export function PFChallanFilters({
                         </Select>
                     )}
                 </div>
-
                 {/* Year Filter */}
                 <div className='space-y-2'>
                     <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -96,7 +90,6 @@ export function PFChallanFilters({
                     )}
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-2 pt-4'>
                 <Button onClick={onGenerate}>

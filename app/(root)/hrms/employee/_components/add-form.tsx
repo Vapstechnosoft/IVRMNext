@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -8,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useEmployeeOnload, useSaveEmployee } from '@/hooks/hrms/useEmployee';
 import { zodResolver } from '@hookform/resolvers/zod';
-
 // Safe SelectItem wrapper that prevents empty string values - ABSOLUTE PROTECTION
 const SafeSelectItem = ({ value, children, ...props }: { value: any; children: React.ReactNode; [key: string]: any }) => {
     // ABSOLUTE CHECK: If value is null, undefined, or empty string, don't render
@@ -22,10 +20,8 @@ const SafeSelectItem = ({ value, children, ...props }: { value: any; children: R
         });
         return null;
     }
-
     // Convert to string
     const strValue = String(value);
-
     // ABSOLUTE CHECK: If string is empty or only whitespace, don't render
     if (strValue === '' || strValue.trim() === '' || strValue.length === 0) {
         console.error('🔴 [SafeSelectItem - add-form] EMPTY STRING DETECTED:', {
@@ -39,9 +35,7 @@ const SafeSelectItem = ({ value, children, ...props }: { value: any; children: R
         });
         return null;
     }
-
     const trimmedValue = strValue.trim();
-
     // FINAL ABSOLUTE CHECK: If trimmed is empty, don't render
     if (trimmedValue === '' || trimmedValue.length === 0) {
         console.error('🔴 [SafeSelectItem - add-form] EMPTY TRIMMED VALUE DETECTED:', {
@@ -55,7 +49,6 @@ const SafeSelectItem = ({ value, children, ...props }: { value: any; children: R
         });
         return null;
     }
-
     // FINAL FINAL CHECK: Double-check trimmedValue is not empty before rendering
     if (!trimmedValue || trimmedValue === '' || trimmedValue.length === 0) {
         console.error('🔴 [SafeSelectItem - add-form] FINAL CHECK FAILED - trimmedValue is empty:', {
@@ -67,7 +60,6 @@ const SafeSelectItem = ({ value, children, ...props }: { value: any; children: R
         });
         return null;
     }
-
     // Only render if we have a valid non-empty string
     return (
         <SelectItem {...props} value={trimmedValue}>
@@ -75,7 +67,6 @@ const SafeSelectItem = ({ value, children, ...props }: { value: any; children: R
         </SelectItem>
     );
 };
-
 // Helper function to ensure SelectItem value is never empty string
 const ensureNonEmptyValue = (value: any): string | null => {
     if (value == null) return null;
@@ -87,7 +78,6 @@ import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
-
 const formSchema = z.object({
     HRME_EmployeeFirstName: z.string().min(1, 'First name is required'),
     HRME_EmployeeMiddleName: z.string().optional(),
@@ -113,18 +103,14 @@ const formSchema = z.object({
     HRME_TechNonTeachingFlg: z.boolean().optional(),
     HRME_ActiveFlag: z.boolean().optional()
 });
-
 type FormFields = z.infer<typeof formSchema>;
-
 interface AddEmployeeFormProps {
     onSuccess: () => void;
     className?: string;
 }
-
 export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmployeeFormProps) {
     const { data: onloadData } = useEmployeeOnload();
     const { mutate: saveEmployee, isPending } = useSaveEmployee();
-
     const {
         control,
         register,
@@ -158,7 +144,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             HRME_ActiveFlag: true
         }
     });
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         saveEmployee(
             {
@@ -184,11 +169,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
         );
     };
-
     const handleReset = () => {
         reset();
     };
-
     // Memoize arrays to prevent unnecessary re-renders
     const employeeTypes = useMemo(() => onloadData?.data?.employeeTypedropdownlist || [], [onloadData?.data?.employeeTypedropdownlist]);
     const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdownlist || [], [onloadData?.data?.groupTypedropdownlist]);
@@ -198,7 +181,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const genders = useMemo(() => onloadData?.data?.genderdropdownlist || [], [onloadData?.data?.genderdropdownlist]);
     const maritalStatuses = useMemo(() => onloadData?.data?.maritalStatusdropdownlist || [], [onloadData?.data?.maritalStatusdropdownlist]);
     const religions = useMemo(() => onloadData?.data?.religiondropdownlist || [], [onloadData?.data?.religiondropdownlist]);
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -216,7 +198,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_EmployeeCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* First Name */}
                         <HRMSInputText
                             label='First Name'
@@ -227,7 +208,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_EmployeeFirstName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Middle Name */}
                         <HRMSInputText
                             label='Middle Name'
@@ -237,7 +217,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_EmployeeMiddleName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Last Name */}
                         <HRMSInputText
                             label='Last Name'
@@ -247,7 +226,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_EmployeeLastName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Employee Type */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMET_Id'>
@@ -286,7 +264,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             />
                             {errors.HRMET_Id && <FormError>{errors.HRMET_Id.message}</FormError>}
                         </div>
-
                         {/* Group Type */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMGT_Id'>Group Type</Label>
@@ -323,7 +300,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             />
                             {errors.HRMGT_Id && <FormError>{errors.HRMGT_Id.message}</FormError>}
                         </div>
-
                         {/* Department */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMD_Id'>Department</Label>
@@ -360,7 +336,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             />
                             {errors.HRMD_Id && <FormError>{errors.HRMD_Id.message}</FormError>}
                         </div>
-
                         {/* Designation */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMDES_Id'>Designation</Label>
@@ -397,7 +372,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             />
                             {errors.HRMDES_Id && <FormError>{errors.HRMDES_Id.message}</FormError>}
                         </div>
-
                         {/* Grade */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMG_Id'>Grade</Label>
@@ -436,7 +410,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         </div>
                     </div>
                 </div>
-
                 {/* Personal Details */}
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Personal Details</h3>
@@ -450,7 +423,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_DOB?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Date of Joining */}
                         <HRMSInputText
                             label='Date of Joining'
@@ -460,7 +432,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_DOJ?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Gender */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='IVRMMG_Id'>Gender</Label>
@@ -497,7 +468,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             />
                             {errors.IVRMMG_Id && <FormError>{errors.IVRMMG_Id.message}</FormError>}
                         </div>
-
                         {/* Marital Status */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='IVRMMMS_Id'>Marital Status</Label>
@@ -534,7 +504,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             />
                             {errors.IVRMMMS_Id && <FormError>{errors.IVRMMMS_Id.message}</FormError>}
                         </div>
-
                         {/* Religion */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='ReligionId'>Religion</Label>
@@ -571,7 +540,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             />
                             {errors.ReligionId && <FormError>{errors.ReligionId.message}</FormError>}
                         </div>
-
                         {/* Blood Group */}
                         <HRMSInputText
                             label='Blood Group'
@@ -581,7 +549,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_BloodGroup?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Father Name */}
                         <HRMSInputText
                             label='Father Name'
@@ -591,7 +558,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_FatherName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Mother Name */}
                         <HRMSInputText
                             label='Mother Name'
@@ -603,7 +569,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         />
                     </div>
                 </div>
-
                 {/* Contact Details */}
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Contact Details</h3>
@@ -618,7 +583,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             error={errors.HRME_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Email ID */}
                         <HRMSInputText
                             label='Email ID'
@@ -631,7 +595,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         />
                     </div>
                 </div>
-
                 {/* Flags */}
                 <div className='rounded-lg border p-4'>
                     <h3 className='mb-4 font-semibold text-lg'>Additional Information</h3>
@@ -649,7 +612,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                 PF Applicable
                             </Label>
                         </div>
-
                         {/* ESI Applicable */}
                         <div className='flex items-center space-x-3'>
                             <Controller
@@ -663,7 +625,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                 ESI Applicable
                             </Label>
                         </div>
-
                         {/* Teaching Staff */}
                         <div className='flex items-center space-x-3'>
                             <Controller
@@ -677,7 +638,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                 Teaching Staff
                             </Label>
                         </div>
-
                         {/* Active */}
                         <div className='flex items-center space-x-3'>
                             <Controller
@@ -693,9 +653,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         </div>
                     </div>
                 </div>
-
                 {errors.root && <FormError>{errors.root.message}</FormError>}
-
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

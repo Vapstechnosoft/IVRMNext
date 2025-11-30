@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,7 +8,6 @@ import type { MasterSpecializationResponse, SpecializationItem } from '@/types/h
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<SpecializationItem>[] = [
     {
         id: 'slNo',
@@ -34,18 +32,15 @@ export const columns: ColumnDef<SpecializationItem>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
     const { openEditForm } = useFormContext<MasterSpecializationResponse>();
     const { toggleMutation } = useMasterSpecialization(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: SpecializationItem) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: SpecializationItem, newState: boolean) => {
             try {
@@ -67,7 +62,6 @@ function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

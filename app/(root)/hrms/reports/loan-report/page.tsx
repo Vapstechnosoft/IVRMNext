@@ -7,30 +7,25 @@ import { toast } from 'sonner';
 import type { EmployeeLoanRecord } from './_components/columns';
 import { type LoanFilters, LoanReportFilters } from './_components/filters';
 import { PrintableLoanSheet } from './_components/printable-sheet';
-
 export default function LoanReportPage() {
     const MI_Id = HRMS_MI_ID;
     const roleId = 0;
     const LogInUserId = 0;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload } = useLoanReportOnload(MI_Id, roleId, LogInUserId);
     const filterMutation = useFilterEmployeesForLoanReport();
     const searchMutation = useGetEmployeeLoanDetails();
-
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdown || [], [onloadData?.data?.groupTypedropdown]);
     const departments = useMemo(() => onloadData?.data?.departmentdropdown || [], [onloadData?.data?.departmentdropdown]);
     const designations = useMemo(() => onloadData?.data?.designationdropdown || [], [onloadData?.data?.designationdropdown]);
     const months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
     const years = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
-
     // State
     const [loanRecords, setLoanRecords] = useState<EmployeeLoanRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<EmployeeLoanRecord[]>([]);
     const [employees, setEmployees] = useState<EmployeeDropdown[]>([]);
     const [showReport, setShowReport] = useState(false);
-
     const [filters, setFilters] = useState<LoanFilters>({
         reportScope: 'all',
         selectedGroupTypes: [],
@@ -40,7 +35,6 @@ export default function LoanReportPage() {
         month: '',
         year: ''
     });
-
     // Show error if API fails
     useEffect(() => {
         if (onloadData && !onloadData.success) {
@@ -48,18 +42,15 @@ export default function LoanReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadData]);
-
     // Debug: Log when showReport changes
     useEffect(() => {
         // showReport state tracked for UI updates
     }, [showReport]);
-
     // Filter employees when filters change (for Individual mode)
     useEffect(() => {
         if (filters.reportScope === 'individual') {
             const hasFilters =
                 filters.selectedGroupTypes.length > 0 || filters.selectedDepartments.length > 0 || filters.selectedDesignations.length > 0;
-
             if (hasFilters) {
                 const request = {
                     MI_Id,
@@ -69,7 +60,6 @@ export default function LoanReportPage() {
                     hrmD_IdList: filters.selectedDepartments.length > 0 ? filters.selectedDepartments : [],
                     hrmdeS_IdList: filters.selectedDesignations.length > 0 ? filters.selectedDesignations : []
                 };
-
                 filterMutation.mutate(request, {
                     onSuccess: (response) => {
                         if (response.success && response.data?.employeedropdown) {
@@ -79,7 +69,6 @@ export default function LoanReportPage() {
                         }
                     },
                     onError: (error) => {
-                        console.error('Error filtering employees:', error);
                         setEmployees([]);
                     }
                 });
@@ -92,26 +81,21 @@ export default function LoanReportPage() {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [filters.reportScope, filters.selectedGroupTypes, filters.selectedDepartments, filters.selectedDesignations]);
-
     // Filter records based on selected criteria
     useEffect(() => {
         // Filtering will be done on the backend via API
         setFilteredRecords(loanRecords);
     }, [loanRecords]);
-
     const handleFilterChange = (newFilters: LoanFilters) => {
         setFilters(newFilters);
     };
-
     const handleSearch = () => {
         // Show the sheet template immediately, even without data
         setShowReport(true);
         setLoanRecords([]);
         setFilteredRecords([]);
-
         // Show immediate feedback
         toast.info('Generating report...');
-
         // Validate and show warnings, but don't block
         if (filters.reportScope === 'individual') {
             if (!filters.selectedEmployee) {
@@ -123,16 +107,13 @@ export default function LoanReportPage() {
                 toast.warning('Please select month and year for accurate results');
             }
         }
-
         // Only call API if we have minimum required filters
         const hasMinimumFilters = filters.reportScope === 'individual' ? filters.selectedEmployee : filters.month && filters.year;
-
         if (!hasMinimumFilters) {
             // Show empty sheet template
             toast.info('Showing report template. Please select filters and search again for data.');
             return;
         }
-
         const request = {
             MI_Id,
             roleId,
@@ -142,7 +123,6 @@ export default function LoanReportPage() {
             hrmdeS_IdList: filters.selectedDesignations.length > 0 ? filters.selectedDesignations : [],
             hrmE_Id: filters.reportScope === 'individual' && filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0
         };
-
         searchMutation.mutate(request, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -150,11 +130,9 @@ export default function LoanReportPage() {
                     const employeeLoanDetails = response.data.employeeSalaryslipDetails || [];
                     const loanTotalAmount = response.data.EmploanTotalAmount || [];
                     const responseData = response.data;
-
                     // Transform API response to EmployeeLoanRecord format
                     // The API response structure contains loan data in employeeSalaryslipDetails with Values object
                     const records: EmployeeLoanRecord[] = [];
-
                     // Helper function to extract value from item (handles Values object structure)
                     const getValue = (item: any, key: string, defaultValue: any = 0) => {
                         // Check if item has Values object (API structure)
@@ -164,7 +142,6 @@ export default function LoanReportPage() {
                         // Otherwise check direct properties
                         return item?.[key] ?? defaultValue;
                     };
-
                     // Map employeeSalaryslipDetails if available
                     if (Array.isArray(employeeLoanDetails) && employeeLoanDetails.length > 0) {
                         employeeLoanDetails.forEach((item: any, index: number) => {
@@ -184,7 +161,6 @@ export default function LoanReportPage() {
                             const paidAmount = getValue(item, 'paidAmount') || getValue(item, 'HREL_PaidAmount') || 0;
                             const remainingAmount =
                                 getValue(item, 'HREL_TotalPending') || responseData.HREL_TotalPending || approvedAmount - paidAmount;
-
                             // Determine status based on remaining amount and other factors
                             let status: 'Pending' | 'Approved' | 'Rejected' | 'Active' | 'Completed' | 'Defaulted' = 'Pending';
                             if (remainingAmount === 0 && paidAmount > 0) {
@@ -194,13 +170,11 @@ export default function LoanReportPage() {
                             } else if (loanAmount > 0 && paidAmount === 0) {
                                 status = 'Approved';
                             }
-
                             // Calculate total interest and total payable amount
                             const totalInterest = getValue(item, 'totalInterest') || (loanAmount * interestRate * loanTenure) / (12 * 100);
                             const totalPayableAmount = approvedAmount + totalInterest;
                             const paidEMIs = getValue(item, 'paidEMIs') || Math.floor(paidAmount / (emiAmount || 1));
                             const remainingEMIs = loanTenure - paidEMIs;
-
                             // Get employee details from item, Values, or response top-level
                             const employeeCode =
                                 getValue(item, 'HRME_EmployeeCode') ||
@@ -221,14 +195,12 @@ export default function LoanReportPage() {
                             const designation = getValue(item, 'HRMDES_DesignationName') || getValue(item, 'designation') || 'N/A';
                             const basicSalary = getValue(item, 'HRME_BasicSalary') || getValue(item, 'basicSalary') || 0;
                             const loanToSalaryRatio = basicSalary > 0 ? Math.round((loanAmount / basicSalary) * 100) : 0;
-
                             // Get loan type from item, Values, or response top-level
                             const loanType =
                                 getValue(item, 'HRML_LoanType') ||
                                 getValue(item, 'loanType') ||
                                 responseData.HRML_LoanType ||
                                 'Personal Loan';
-
                             // Get dates
                             const loanApplicationDate =
                                 getValue(item, 'HREL_ApplicationDate') || getValue(item, 'loanApplicationDate') || '';
@@ -238,12 +210,10 @@ export default function LoanReportPage() {
                             const approvedBy = getValue(item, 'HREL_ApprovedBy') || getValue(item, 'approvedBy') || '';
                             const guarantor = getValue(item, 'guarantor') || '';
                             const loanPurpose = getValue(item, 'HREL_Purpose') || getValue(item, 'loanPurpose') || '';
-
                             // Get month and year from item, Values, or response top-level
                             const month = filters.month || getValue(item, 'HRELT_Month') || responseData.HRELT_Month || '';
                             const year =
                                 filters.year || getValue(item, 'HRELT_Year')?.toString() || responseData.HRELT_Year?.toString() || '';
-
                             records.push({
                                 id: Number(getValue(item, 'HREL_Id') || getValue(item, 'HRELT_Id') || index) || index + 1,
                                 employeeCode: employeeCode,
@@ -285,7 +255,6 @@ export default function LoanReportPage() {
                             });
                         });
                     }
-
                     // If no records from employeeSalaryslipDetails, try EmploanTotalAmount
                     if (records.length === 0 && Array.isArray(loanTotalAmount) && loanTotalAmount.length > 0) {
                         loanTotalAmount.forEach((item: any, index: number) => {
@@ -300,7 +269,6 @@ export default function LoanReportPage() {
                             const employeeCode = getValue(item, 'HRME_EmployeeCode') || responseData.hrme_employeecode || '';
                             const employeeName =
                                 getValue(item, 'HRME_EmployeeFirstName') || responseData.hrmE_EmployeeFirstName || employeeCode;
-
                             if (loanAmount > 0) {
                                 records.push({
                                     id: index + 1000000, // Use a large number to avoid conflicts
@@ -344,11 +312,9 @@ export default function LoanReportPage() {
                             }
                         });
                     }
-
                     // Always update records and show report (sheet is already shown)
                     setLoanRecords(records);
                     setFilteredRecords(records);
-
                     if (records.length > 0) {
                         toast.success(`Employee Loan Report generated successfully. Found ${records.length} loan record(s).`);
                     } else {
@@ -360,13 +326,11 @@ export default function LoanReportPage() {
                 }
             },
             onError: (error) => {
-                console.error('Error generating loan report:', error);
                 // Keep the sheet visible even on error
                 toast.error(error.message || 'Failed to generate loan report. Showing empty report template.');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             reportScope: 'all',
@@ -383,18 +347,14 @@ export default function LoanReportPage() {
         setShowReport(false);
         toast.info('Filters cleared');
     };
-
     const isLoading = isLoadingOnload || filterMutation.isPending || searchMutation.isPending;
-
     const handleExport = () => {
         // TODO: Implement Excel export functionality
         toast.success('Employee Loan Report exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
     };
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -411,7 +371,6 @@ export default function LoanReportPage() {
                 onSearch={handleSearch}
                 onCancel={handleCancel}
             />
-
             {/* Report Results - Printable Sheet */}
             {showReport && (
                 <div className='mt-4'>

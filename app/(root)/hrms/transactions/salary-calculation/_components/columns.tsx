@@ -1,12 +1,9 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
-
 export interface Employee extends EmployeeDropdown {
     calculationStatus: 'Not Calculated' | 'Calculated' | 'Recalculated';
     calculatedDate?: string;
@@ -15,14 +12,12 @@ export interface Employee extends EmployeeDropdown {
     deductions?: number;
     netSalary?: number;
 }
-
 interface SalaryCalculationColumnsProps {
     employees: Employee[];
     selectedEmployees: number[];
     onEmployeeSelect: (employeeId: number, selected: boolean) => void;
     onSelectAll: (selected: boolean) => void;
 }
-
 export function getSalaryCalculationColumns({
     employees,
     selectedEmployees,

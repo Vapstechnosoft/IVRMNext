@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -12,20 +11,16 @@ import AddMasterDriverShiftForm from './_components/add-form';
 import { type DriverShift, driverShiftColumns } from './_components/columns';
 import DeleteMasterDriverShiftForm from './_components/delete-form';
 import UpdateMasterDriverShiftForm from './_components/update-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterDriverShiftPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterDriverShift();
-
     return (
         <FormProvider<DriverShift>>
             <MasterDriverShiftPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function MasterDriverShiftPageContent({
     response,
     isLoading,
@@ -37,7 +32,6 @@ function MasterDriverShiftPageContent({
 }) {
     const { openAddForm } = useFormContext<DriverShift>();
     const tableProps = useDataTableProps(response);
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -52,7 +46,6 @@ function MasterDriverShiftPageContent({
                         Add Driver Shift
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -73,14 +66,12 @@ function MasterDriverShiftPageContent({
                         errorTitle='Error Loading Driver Shifts'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -93,7 +84,6 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<DriverShift>();
-
     return (
         <>
             {/* Add Form */}
@@ -119,7 +109,6 @@ function FormSections() {
                     </HRMSCollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -143,7 +132,6 @@ function FormSections() {
                     </HRMSCollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && <DeleteMasterDriverShiftForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>

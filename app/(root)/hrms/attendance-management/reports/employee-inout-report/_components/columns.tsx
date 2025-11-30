@@ -1,10 +1,8 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface InOutRow extends BaseEntity {
     branch: string;
     type: string;
@@ -16,7 +14,6 @@ export interface InOutRow extends BaseEntity {
     timeIn?: string;
     timeOut?: string;
 }
-
 export const employeeInOutReportColumns: ColumnDef<InOutRow>[] = [
     {
         id: 'select',

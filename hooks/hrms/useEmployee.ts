@@ -1,11 +1,9 @@
 'use client';
-
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { deleteEmployee, getEmployeeById, getEmployeeOnload, saveEmployee } from '@/server/hrms/hrmsConfig/employee';
 import type { EmployeeSaveRequest } from '@/types/hrms/employee';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-
 /**
  * Hook to fetch employee onload data (dropdowns)
  */
@@ -22,7 +20,6 @@ export function useEmployeeOnload() {
         staleTime: 1000 * 60 * 5 // 5 minutes
     });
 }
-
 /**
  * Hook to fetch employee by ID
  */
@@ -34,13 +31,11 @@ export function useEmployeeById(id: number | null) {
         staleTime: 1000 * 60 * 5 // 5 minutes
     });
 }
-
 /**
  * Hook to create or update employee
  */
 export function useSaveEmployee() {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: EmployeeSaveRequest) => saveEmployee(data),
         onSuccess: (response) => {
@@ -58,13 +53,11 @@ export function useSaveEmployee() {
         }
     });
 }
-
 /**
  * Hook to delete employee
  */
 export function useDeleteEmployee() {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (id: number) => deleteEmployee(id),
         onSuccess: (response) => {

@@ -1,5 +1,4 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
@@ -9,7 +8,6 @@ import type { MasterLoanDetail, MasterLoanResponse } from '@/types/hrms/master-l
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<MasterLoanDetail>[] = [
     {
         id: 'slNo',
@@ -38,18 +36,15 @@ export const columns: ColumnDef<MasterLoanDetail>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
     const { openEditForm } = useFormContext<MasterLoanResponse>();
     const { toggleMutation } = useMasterLoan(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: MasterLoanDetail) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: MasterLoanDetail, newState: boolean) => {
             try {
@@ -58,7 +53,6 @@ function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
                     HRMLN_ActiveFlag: newState,
                     MI_Id: HRMS_MI_ID
                 });
-
                 // Check the response success status
                 if (response?.success) {
                     // Show the actual message from the API response
@@ -77,7 +71,6 @@ function ActionButtonsCell({ rowData }: { rowData: MasterLoanDetail }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

@@ -1,5 +1,4 @@
 'use client';
-
 export type Resignation = {
     id: string;
     hrManagerName: string;

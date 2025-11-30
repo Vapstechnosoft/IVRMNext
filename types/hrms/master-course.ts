@@ -34,3 +34,9 @@ export interface MasterCourseInput {
     HRMC_DefaultQualFag: boolean;
     HRMC_SpecialisationFlag: boolean;
 }
+
+export interface CourseSetOrderList {
+    HRMC_Id: number;
+    HRMC_QulaificationName: string;
+    HRMC_Order: number;
+}

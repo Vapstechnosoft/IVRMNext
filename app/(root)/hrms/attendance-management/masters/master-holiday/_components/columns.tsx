@@ -1,12 +1,10 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-
 export interface MasterHoliday {
     id: number;
     createdAt: Date;
@@ -19,7 +17,6 @@ export interface MasterHoliday {
     toDate: string;
     isActive: boolean;
 }
-
 export const masterHolidayColumns: ColumnDef<MasterHoliday>[] = [
     {
         id: 'serialNumber',
@@ -92,17 +89,14 @@ export const masterHolidayColumns: ColumnDef<MasterHoliday>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: MasterHoliday }) {
     const { openDeleteForm } = useFormContext<MasterHoliday>();
-
     const handleDelete = useCallback(
         (data: MasterHoliday) => {
             openDeleteForm(data);
         },
         [openDeleteForm]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

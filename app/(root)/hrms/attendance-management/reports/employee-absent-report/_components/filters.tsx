@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
@@ -14,9 +13,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type EmployeeAbsentReportFilters = z.infer<typeof employeeAbsentReportFilterSchema>;
-
 interface EmployeeAbsentReportFiltersProps {
     filters: EmployeeAbsentReportFilters;
     types: string[];
@@ -29,7 +26,6 @@ interface EmployeeAbsentReportFiltersProps {
     onExport: () => void;
     onPrint: () => void;
 }
-
 export function EmployeeAbsentReportFilters({
     filters,
     types,
@@ -51,22 +47,18 @@ export function EmployeeAbsentReportFilters({
         defaultValues: filters,
         mode: 'onChange'
     });
-
     const handleFilterChange = (key: keyof EmployeeAbsentReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const onSubmit = (data: EmployeeAbsentReportFilters) => {
         onFilterChange(data);
         onSearch();
     };
-
     const typeOptions = types.map((t) => ({ label: t, value: t }));
     const departmentOptions = departments.map((d) => ({ label: d, value: d }));
     const designationOptions = designations.map((d) => ({ label: d, value: d }));
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -89,7 +81,6 @@ export function EmployeeAbsentReportFilters({
                         />
                         {errors.type && <FormError>{errors.type.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-4'>
                         <label className='font-medium text-sm' htmlFor='department'>
                             Department <span className='text-red-500'>*</span>
@@ -104,7 +95,6 @@ export function EmployeeAbsentReportFilters({
                         />
                         {errors.department && <FormError>{errors.department.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-4'>
                         <label className='font-medium text-sm' htmlFor='designation'>
                             Designation <span className='text-red-500'>*</span>
@@ -119,7 +109,6 @@ export function EmployeeAbsentReportFilters({
                         />
                         {errors.designation && <FormError>{errors.designation.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='fromDate'>
                             From Date <span className='text-red-500'>*</span>
@@ -154,7 +143,6 @@ export function EmployeeAbsentReportFilters({
                         </Popover>
                         {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='toDate'>
                             To Date <span className='text-red-500'>*</span>
@@ -190,7 +178,6 @@ export function EmployeeAbsentReportFilters({
                         </Popover>
                         {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='allOrIndividual'>
                             All / Individual <span className='text-red-500'>*</span>
@@ -228,7 +215,6 @@ export function EmployeeAbsentReportFilters({
                             {errors.employee && <FormError>{errors.employee.message}</FormError>}
                         </div>
                     )}
-
                     <div className='flex items-end gap-2 md:col-span-12'>
                         <Button type='submit' variant='default'>
                             <RefreshCw className='mr-2 h-4 w-4' /> REPORT

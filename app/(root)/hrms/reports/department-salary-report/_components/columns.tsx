@@ -1,8 +1,6 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 // Department Salary Report data structure
 export interface DepartmentSalaryRecord {
     id?: string;
@@ -31,7 +29,6 @@ export interface DepartmentSalaryRecord {
     month: string;
     year: string;
 }
-
 // Department Summary
 export interface DepartmentSummary {
     department: string;
@@ -44,7 +41,6 @@ export interface DepartmentSummary {
     highestSalary: number;
     lowestSalary: number;
 }
-
 // Table columns for main salary records
 export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
     {
@@ -124,7 +120,6 @@ export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
         enableHiding: true
     }
 ];
-
 // Department summary columns
 export const departmentSummaryColumns: ColumnDef<DepartmentSummary>[] = [
     {

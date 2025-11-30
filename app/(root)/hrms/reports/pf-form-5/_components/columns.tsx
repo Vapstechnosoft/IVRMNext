@@ -1,9 +1,7 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface Form5Record {
     id?: number;
     createdAt?: string;
@@ -27,7 +25,6 @@ export interface Form5Record {
     month: string;
     year: string;
 }
-
 export const form5Columns: ColumnDef<Form5Record>[] = [
     {
         accessorKey: 'serialNo',

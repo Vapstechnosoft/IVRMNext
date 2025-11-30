@@ -1,9 +1,7 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Printer, User, X } from 'lucide-react';
-
 interface EmployeeProfileData {
     EmployeeCode: string;
     EmployeeName: string;
@@ -26,7 +24,6 @@ interface EmployeeProfileData {
     FatherName: string;
     ProfilePhoto?: string;
 }
-
 interface ReportTemplateProps {
     schoolName?: string;
     schoolAddress?: string;
@@ -35,7 +32,6 @@ interface ReportTemplateProps {
     onPrint: () => void;
     onCancel: () => void;
 }
-
 export function EmployeeProfileReportTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -55,13 +51,11 @@ export function EmployeeProfileReportTemplate({
             return '-';
         }
     };
-
     // Format contact details
     const formatContactDetails = (contacts: string[]): string => {
         if (!contacts || contacts.length === 0) return '-';
         return contacts.filter((c) => c && c.trim() !== '').join(', ');
     };
-
     return (
         <div className='mx-auto w-full max-w-[1000px] bg-white p-6 print:p-4'>
             {/* Report Header */}
@@ -70,7 +64,6 @@ export function EmployeeProfileReportTemplate({
                 {schoolAddress && <div className='text-gray-600 text-sm'>{schoolAddress}</div>}
                 <p className='mt-2 font-semibold text-gray-800'>EMPLOYEE PROFILE REPORT</p>
             </div>
-
             {/* Employee Details */}
             {isLoading ? (
                 <div className='py-12 text-center text-gray-500'>Loading employee profile...</div>
@@ -149,7 +142,6 @@ export function EmployeeProfileReportTemplate({
                             </div>
                         </div>
                     </div>
-
                     {/* Photo Section - Right Column */}
                     <div className='flex flex-col items-center justify-start space-y-4'>
                         <div className='flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100'>
@@ -238,7 +230,6 @@ export function EmployeeProfileReportTemplate({
                             </div>
                         </div>
                     </div>
-
                     {/* Photo Section - Right Column */}
                     <div className='flex flex-col items-center justify-start space-y-4'>
                         <div className='flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100'>
@@ -248,7 +239,6 @@ export function EmployeeProfileReportTemplate({
                     </div>
                 </div>
             )}
-
             {/* Action Buttons */}
             <div className='mt-6 flex justify-end gap-3 border-gray-300 border-t pt-4 print:hidden'>
                 <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>

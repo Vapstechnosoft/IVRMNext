@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -9,15 +8,12 @@ import { RefreshCw, Save } from 'lucide-react';
 import React from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type ShiftSettingForm = z.infer<typeof shiftSettingMasterSchema.addOrUpdate>;
-
 interface ShiftSettingFormProps {
     editingShiftSetting: ShiftSettingForm | null;
     onSubmit: (data: ShiftSettingForm) => void;
     onCancel: () => void;
 }
-
 export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: ShiftSettingFormProps) {
     const {
         register,
@@ -42,7 +38,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
             shiftName: ''
         }
     });
-
     // Update form when editingShiftSetting changes
     React.useEffect(() => {
         if (editingShiftSetting) {
@@ -63,11 +58,9 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
             });
         }
     }, [editingShiftSetting, reset]);
-
     const handleFormSubmit: SubmitHandler<ShiftSettingForm> = (data) => {
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='max-w-full space-y-6'>
             {/* Primary Information Section */}
@@ -84,7 +77,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
                     />
                 </div>
-
                 {/* Second Row - Shift Start Time, Shift End Time, Total working hours per shift */}
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                     <div className='space-y-2'>
@@ -99,7 +91,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         />
                         {errors.shiftStartTime && <FormError>{errors.shiftStartTime.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='shiftEndTime'>
                             Shift End Time <span className='text-red-500'>*</span>
@@ -113,7 +104,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         />
                         {errors.shiftEndTime && <FormError>{errors.shiftEndTime.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='totalWorkingHours'>
                             Total working hours per shift <span className='text-red-500'>*</span>
@@ -127,7 +117,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         {errors.totalWorkingHours && <FormError>{errors.totalWorkingHours.message}</FormError>}
                     </div>
                 </div>
-
                 {/* Third Row - Lunch start time, Lunch End time, Lunch Hours */}
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                     <div className='space-y-2'>
@@ -142,7 +131,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         />
                         {errors.lunchStartTime && <FormError>{errors.lunchStartTime.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='lunchEndTime'>
                             Lunch End time <span className='text-red-500'>*</span>
@@ -156,7 +144,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         />
                         {errors.lunchEndTime && <FormError>{errors.lunchEndTime.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='lunchHours'>
                             Lunch Hours <span className='text-red-500'>*</span>
@@ -170,7 +157,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         {errors.lunchHours && <FormError>{errors.lunchHours.message}</FormError>}
                     </div>
                 </div>
-
                 {/* Fourth Row - Early per shift, Delay per shift, Half day working hours per shift */}
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
                     <div className='space-y-2'>
@@ -185,7 +171,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         />
                         {errors.earlyPerShift && <FormError>{errors.earlyPerShift.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='delayPerShift'>
                             Delay per shift <span className='text-red-500'>*</span>
@@ -198,7 +183,6 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         />
                         {errors.delayPerShift && <FormError>{errors.delayPerShift.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='halfDayWorkingHours'>
                             Half day working hours per shift <span className='text-red-500'>*</span>
@@ -212,11 +196,9 @@ export function ShiftSettingForm({ editingShiftSetting, onSubmit, onCancel }: Sh
                         {errors.halfDayWorkingHours && <FormError>{errors.halfDayWorkingHours.message}</FormError>}
                     </div>
                 </div>
-
                 {/* Root Error */}
                 {errors.root && <FormError>{errors.root.message}</FormError>}
             </div>
-
             {/* Action Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                 <Button

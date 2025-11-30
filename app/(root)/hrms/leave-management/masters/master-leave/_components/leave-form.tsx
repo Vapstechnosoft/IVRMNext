@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -9,16 +8,13 @@ import { X } from 'lucide-react';
 import { useMemo } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
-
 interface LeaveFormProps {
     editingLeave: MasterLeave | null;
     onSubmit: (data: MasterLeave) => void;
     onCancel: () => void;
 }
-
 export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) {
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useMasterLeaveDropdowns();
-
     // Extract leave type options from API
     const leaveTypeOptions = useMemo(() => {
         if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
@@ -26,7 +22,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
         }
         return dropdownData.data.leaveTypes;
     }, [dropdownData]);
-
     const {
         register,
         handleSubmit,
@@ -45,11 +40,9 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
             isActive: true
         }
     });
-
     const handleFormSubmit: SubmitHandler<MasterLeave> = (data) => {
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-4'>
             <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
@@ -65,7 +58,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     />
                     {errors.leaveName && <p className='mt-1 text-red-500 text-xs'>{errors.leaveName.message}</p>}
                 </div>
-
                 <div>
                     <label htmlFor='leave-code-input' className='font-medium text-sm'>
                         Leave Code *
@@ -78,7 +70,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     />
                     {errors.leaveCode && <p className='mt-1 text-red-500 text-xs'>{errors.leaveCode.message}</p>}
                 </div>
-
                 <div>
                     <label htmlFor='leave-type-select' className='font-medium text-sm'>
                         Leave Type *
@@ -106,7 +97,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     </Select>
                     {errors.leaveType && <p className='mt-1 text-red-500 text-xs'>{errors.leaveType.message}</p>}
                 </div>
-
                 <div className='md:col-span-3'>
                     <label htmlFor='leave-details-textarea' className='font-medium text-sm'>
                         Leave Details
@@ -120,7 +110,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     />
                 </div>
             </div>
-
             <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                 <div className='flex items-center space-x-2'>
                     <Checkbox
@@ -132,7 +121,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                         Leave Credit
                     </label>
                 </div>
-
                 <div className='flex items-center space-x-2'>
                     <Checkbox
                         id='lateDeduct'
@@ -143,7 +131,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                         Late Deduct
                     </label>
                 </div>
-
                 <div>
                     <label htmlFor='leave-order-input' className='font-medium text-sm'>
                         Leave Order
@@ -156,7 +143,6 @@ export function LeaveForm({ editingLeave, onSubmit, onCancel }: LeaveFormProps) 
                     />
                 </div>
             </div>
-
             <div className='flex gap-2'>
                 <Button type='submit' variant='default'>
                     {editingLeave ? 'Update' : 'Save'}

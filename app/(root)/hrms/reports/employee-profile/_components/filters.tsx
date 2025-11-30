@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -7,7 +6,6 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
 import { Search, X } from 'lucide-react';
-
 interface EmployeeProfileFiltersProps {
     groupTypes: Array<{ HRMGT_Id: number; HRMGT_EmployeeGroupType: string }>;
     departments: Array<{ HRMD_Id: number; HRMD_DepartmentName: string }>;
@@ -32,7 +30,6 @@ interface EmployeeProfileFiltersProps {
     onCancel: () => void;
     getEmployeeName: (employee: EmployeeDropdown) => string;
 }
-
 export function EmployeeProfileFilters({
     groupTypes,
     departments,
@@ -79,7 +76,6 @@ export function EmployeeProfileFilters({
                             placeholder='Select group types'
                         />
                     </div>
-
                     {/* Department Filter */}
                     <div className='space-y-2'>
                         <span className='font-medium text-foreground text-sm'>Department</span>
@@ -93,7 +89,6 @@ export function EmployeeProfileFilters({
                             placeholder='Select departments'
                         />
                     </div>
-
                     {/* Designation Filter */}
                     <div className='space-y-2'>
                         <span className='font-medium text-foreground text-sm'>Designation</span>
@@ -108,7 +103,6 @@ export function EmployeeProfileFilters({
                         />
                     </div>
                 </div>
-
                 {/* Filter Search Button */}
                 <div className='flex gap-2'>
                     <Button onClick={onFilterSearch} className='w-fit transition-all duration-200 hover:scale-105'>
@@ -120,7 +114,6 @@ export function EmployeeProfileFilters({
                         CLEAR
                     </Button>
                 </div>
-
                 {/* Employee Selection - Only show after filter search */}
                 {showEmployeeDropdown && (
                     <div className='space-y-2'>
@@ -173,7 +166,6 @@ export function EmployeeProfileFilters({
                         </div>
                     </div>
                 )}
-
                 {/* Action Buttons - Only show when employees are selected */}
                 {showEmployeeDropdown && selectedEmployees.length > 0 && (
                     <div className='flex gap-2'>

@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface HRMSEmployee {
     id: number;
     candidateName: string;
@@ -23,15 +21,12 @@ export interface HRMSEmployee {
     status: 'Active' | 'Inactive' | 'Pending';
     addedDate: string;
     updatedDate?: string;
-
     createdAt: string;
 }
-
 interface HRMSEmployeeColumnsProps {
     onEdit: (row: HRMSEmployee) => void;
     onDelete: (row: HRMSEmployee) => void;
 }
-
 export const getHRMSEmployeeColumns = ({ onEdit, onDelete }: HRMSEmployeeColumnsProps): ColumnDef<HRMSEmployee>[] => [
     {
         id: 'sl',

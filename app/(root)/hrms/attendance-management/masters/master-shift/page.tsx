@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
@@ -11,20 +10,16 @@ import AddMasterShiftForm from './_components/add-form';
 import { type MasterShift, masterShiftColumns } from './_components/columns';
 import DeleteMasterShiftForm from './_components/delete-form';
 import UpdateMasterShiftForm from './_components/update-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterShiftPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useMasterShift();
-
     return (
         <FormProvider<MasterShift>>
             <MasterShiftPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function MasterShiftPageContent({
     response,
     isLoading,
@@ -36,7 +31,6 @@ function MasterShiftPageContent({
 }) {
     const { openAddForm } = useFormContext<MasterShift>();
     const tableProps = useDataTableProps(response);
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -50,7 +44,6 @@ function MasterShiftPageContent({
                         Add Master Shift
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <HRMSCollapsibleSection
                     defaultOpen={true}
@@ -71,14 +64,12 @@ function MasterShiftPageContent({
                         errorTitle='Error Loading Shifts'
                     />
                 </HRMSCollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -91,7 +82,6 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<MasterShift>();
-
     return (
         <>
             {/* Add Form */}
@@ -117,7 +107,6 @@ function FormSections() {
                     </HRMSCollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -141,7 +130,6 @@ function FormSections() {
                     </HRMSCollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && <DeleteMasterShiftForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>

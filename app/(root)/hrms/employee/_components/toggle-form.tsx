@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
@@ -7,16 +6,13 @@ import { useToggleEmployeeRegister } from '@/hooks/hrms/useEmployeeRegister';
 import type { EmployeeListItem } from '@/types/hrms/employee';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface ToggleEmployeeFormProps {
     rowData: EmployeeListItem;
     onClose: () => void;
 }
-
 export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeFormProps) {
     const { mutate: toggleEmployee, isPending } = useToggleEmployeeRegister();
     const isActive = rowData.HRME_ActiveFlag;
-
     const {
         register,
         handleSubmit,
@@ -27,12 +23,10 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
             HRME_Id: rowData.HRME_Id
         }
     });
-
     function closeDialog() {
         onClose();
         reset();
     }
-
     const onSubmit: SubmitHandler<any> = async (_data) => {
         try {
             toggleEmployee(
@@ -53,10 +47,8 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
             toast.error(error.message || 'An error occurred');
         }
     };
-
     const employeeName =
         `${rowData.HRME_EmployeeFirstName} ${rowData.HRME_EmployeeMiddleName || ''} ${rowData.HRME_EmployeeLastName || ''}`.trim();
-
     return (
         <AdaptiveDialog title='Toggle Employee Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>

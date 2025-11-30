@@ -1,141 +1,84 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGrade } from '@/hooks/hrms/useMasters';
-import { gradeSchema } from '@/schemas/hrms/employee-category-schemas';
-import type { GradeDetail } from '@/types/hrms/master-grade';
+import { useMasterDesignation } from '@/hooks/hrms/useMasters';
+import { designationSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
-type FormFields = z.infer<typeof gradeSchema.addOrUpdate>;
-
-interface GradeFormProps {
-    selectedRow?: GradeDetail;
+type FormFields = z.infer<typeof designationSchema.addOrUpdate>;
+interface AddDesignationFormProps {
     onSuccess?: () => void;
     className?: string;
 }
-
-export default function GradeForm({ selectedRow, onSuccess, className = '' }: GradeFormProps) {
+export default function AddDesignationForm({ onSuccess, className = '' }: AddDesignationFormProps) {
     const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterGrade(roleId);
-    const isEditMode = !!selectedRow;
-
+    const { saveMutation, refetchAll } = useMasterDesignation(roleId);
     const {
         register,
         handleSubmit,
         reset,
         control,
-        watch,
         setValue,
-        formState: { errors, isSubmitting, isDirty }
+        formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(gradeSchema.addOrUpdate),
+        resolver: zodResolver(designationSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            HRMG_Id: 0,
             MI_Id: roleId,
-            HRMG_GradeName: '',
-            HRMG_GradeDisplayName: '',
-            HRMG_PayScaleFrom: 0,
-            HRMG_IncrementOf: 0,
-            HRMG_PayScaleTo: 0,
-            HRMG_Order: 0,
-            HRMG_ActiveFlag: true
+            HRMDES_DesignationName: '',
+            HRMDES_BasicAmount: 0,
+            HRMDES_SanctionedSeats: 0,
+            HRMDES_DisplaySanctionedSeatsFlag: false,
+            HRMDES_Order: 0,
+            HRMDES_ActiveFlag: true
         }
     });
-
-    // Debug form state
-    const _formValues = watch();
-
-    useEffect(() => {
-        if (selectedRow) {
-            reset({
-                HRMG_Id: selectedRow.HRMG_Id,
-                MI_Id: selectedRow.MI_Id,
-                HRMG_GradeName: selectedRow.HRMG_GradeName,
-                HRMG_GradeDisplayName: selectedRow.HRMG_GradeDisplayName,
-                HRMG_PayScaleFrom: selectedRow.HRMG_PayScaleFrom,
-                HRMG_IncrementOf: selectedRow.HRMG_IncrementOf,
-                HRMG_PayScaleTo: selectedRow.HRMG_PayScaleTo,
-                HRMG_Order: selectedRow.HRMG_Order,
-                HRMG_ActiveFlag: selectedRow.HRMG_ActiveFlag
-            });
-        } else {
-        }
-    }, [selectedRow, reset]);
-
-    const handleFormSubmit = (_e?: React.FormEvent) => {};
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        // Trim whitespace from text fields
         const sanitizedData = {
             ...data,
-            HRMG_GradeName: data.HRMG_GradeName?.trim() || '',
-            HRMG_GradeDisplayName: data.HRMG_GradeDisplayName?.trim() || ''
+            HRMDES_DesignationName: data.HRMDES_DesignationName?.trim() || ''
         };
-
         try {
             const response = await saveMutation.mutateAsync(sanitizedData);
-
             if (response?.success) {
-                toast.success(response.message || (isEditMode ? 'Grade updated successfully' : 'Grade saved successfully'));
-                if (!isEditMode) reset();
+                toast.success(response.message || 'Designation saved successfully');
+                reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response?.message || (isEditMode ? 'Failed to update grade' : 'Failed to save grade'));
+                toast.error(response?.message || 'Failed to save designation');
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
         }
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={className}>
-            <form
-                onSubmit={(e) => {
-                    handleFormSubmit(e);
-                    handleSubmit(onSubmit)(e);
-                }}
-                className='space-y-6'>
-                <input type='hidden' {...register('HRMG_Id')} />
-                <input type='hidden' {...register('MI_Id')} />
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <HRMSInputText
-                            label='Grade Name'
+                            label='Designation Name'
                             required
-                            id='HRMG_GradeName'
-                            placeholder='Enter grade name'
+                            id='HRMDES_DesignationName'
+                            placeholder='Enter designation name'
                             maxLength={50}
-                            {...register('HRMG_GradeName')}
-                            error={errors.HRMG_GradeName?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
-                        <HRMSInputText
-                            label='Grade Display Name'
-                            required
-                            id='HRMG_GradeDisplayName'
-                            placeholder='Enter grade display name'
-                            maxLength={50}
-                            {...register('HRMG_GradeDisplayName')}
-                            error={errors.HRMG_GradeDisplayName?.message}
+                            {...register('HRMDES_DesignationName')}
+                            error={errors.HRMDES_DesignationName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <Controller
-                            name='HRMG_PayScaleFrom'
+                            name='HRMDES_BasicAmount'
                             control={control}
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
@@ -157,7 +100,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRMG_PayScaleFrom', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRMDES_BasicAmount', numValue, { shouldDirty: true, shouldValidate: true });
                                                 }
                                             }
                                         };
@@ -169,16 +112,17 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
-                                            label='Pay Scale From'
-                                            id='HRMG_PayScaleFrom'
+                                            label='Basic Amount'
+                                            id='HRMDES_BasicAmount'
                                             value={field.value}
+                                            maxDigits={10}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRMG_PayScaleFrom', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRMDES_BasicAmount', numValue, { shouldDirty: true, shouldValidate: true });
                                             }}
                                             onBlur={field.onBlur}
-                                            error={errors.HRMG_PayScaleFrom?.message}
+                                            error={errors.HRMDES_BasicAmount?.message}
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     </div>
@@ -186,7 +130,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                             }}
                         />
                         <Controller
-                            name='HRMG_IncrementOf'
+                            name='HRMDES_SanctionedSeats'
                             control={control}
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
@@ -208,7 +152,10 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRMG_IncrementOf', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRMDES_SanctionedSeats', numValue, {
+                                                        shouldDirty: true,
+                                                        shouldValidate: true
+                                                    });
                                                 }
                                             }
                                         };
@@ -220,16 +167,17 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                 return (
                                     <div ref={containerRefCallback}>
                                         <InputNumber
-                                            label='Increment Of'
-                                            id='HRMG_IncrementOf'
+                                            label='Sanctioned Seats'
+                                            id='HRMDES_SanctionedSeats'
                                             value={field.value}
+                                            maxDigits={3}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRMG_IncrementOf', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRMDES_SanctionedSeats', numValue, { shouldDirty: true, shouldValidate: true });
                                             }}
                                             onBlur={field.onBlur}
-                                            error={errors.HRMG_IncrementOf?.message}
+                                            error={errors.HRMDES_SanctionedSeats?.message}
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     </div>
@@ -237,7 +185,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                             }}
                         />
                         <Controller
-                            name='HRMG_PayScaleTo'
+                            name='HRMDES_Order'
                             control={control}
                             render={({ field }) => {
                                 const containerRefCallback = (containerElement: HTMLDivElement | null) => {
@@ -259,58 +207,7 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                                 const currentValue = field.value || 0;
                                                 if (Math.abs(numValue - currentValue) > 0.0001) {
                                                     field.onChange(numValue);
-                                                    setValue('HRMG_PayScaleTo', numValue, { shouldDirty: true, shouldValidate: true });
-                                                }
-                                            }
-                                        };
-                                        inputElement.addEventListener('input', handleInput, { passive: true });
-                                        (inputElement as any).__dirtyHandlerAttached = true;
-                                    };
-                                    attachListener();
-                                };
-                                return (
-                                    <div ref={containerRefCallback}>
-                                        <InputNumber
-                                            label='Pay Scale To'
-                                            id='HRMG_PayScaleTo'
-                                            value={field.value}
-                                            onChange={(value) => {
-                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
-                                                field.onChange(numValue);
-                                                setValue('HRMG_PayScaleTo', numValue, { shouldDirty: true, shouldValidate: true });
-                                            }}
-                                            onBlur={field.onBlur}
-                                            error={errors.HRMG_PayScaleTo?.message}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-                                    </div>
-                                );
-                            }}
-                        />
-                        <Controller
-                            name='HRMG_Order'
-                            control={control}
-                            render={({ field }) => {
-                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
-                                    if (!containerElement) return;
-                                    const findInput = () =>
-                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
-                                    const attachListener = () => {
-                                        const inputElement = findInput();
-                                        if (!inputElement) {
-                                            setTimeout(attachListener, 50);
-                                            return;
-                                        }
-                                        if ((inputElement as any).__dirtyHandlerAttached) return;
-                                        const handleInput = (e: Event) => {
-                                            const target = e.target as HTMLInputElement;
-                                            const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
-                                                const numValue = Number(inputValue);
-                                                const currentValue = field.value || 0;
-                                                if (Math.abs(numValue - currentValue) > 0.0001) {
-                                                    field.onChange(numValue);
-                                                    setValue('HRMG_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                                    setValue('HRMDES_Order', numValue, { shouldDirty: true, shouldValidate: true });
                                                 }
                                             }
                                         };
@@ -323,41 +220,60 @@ export default function GradeForm({ selectedRow, onSuccess, className = '' }: Gr
                                     <div ref={containerRefCallback}>
                                         <InputNumber
                                             label='Order'
-                                            id='HRMG_Order'
+                                            id='HRMDES_Order'
                                             value={field.value}
                                             onChange={(value) => {
                                                 const numValue = value !== null && value !== undefined ? Number(value) : 0;
                                                 field.onChange(numValue);
-                                                setValue('HRMG_Order', numValue, { shouldDirty: true, shouldValidate: true });
+                                                setValue('HRMDES_Order', numValue, { shouldDirty: true, shouldValidate: true });
                                             }}
                                             onBlur={field.onBlur}
-                                            error={errors.HRMG_Order?.message}
+                                            error={errors.HRMDES_Order?.message}
                                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                                         />
                                     </div>
                                 );
                             }}
                         />
+                        <div className='flex items-center space-x-2'>
+                            <Controller
+                                name='HRMDES_DisplaySanctionedSeatsFlag'
+                                control={control}
+                                render={({ field }) => (
+                                    <Checkbox
+                                        id='HRMDES_DisplaySanctionedSeatsFlag'
+                                        checked={field.value}
+                                        onCheckedChange={field.onChange}
+                                    />
+                                )}
+                            />
+                            <Label htmlFor='HRMDES_DisplaySanctionedSeatsFlag' className='cursor-pointer'>
+                                Display Sanctioned Seats
+                            </Label>
+                        </div>
                     </div>
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
+                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='submit'
-                        disabled={isSubmitting || (isEditMode && !isDirty)}
-                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-primary text-primary-foreground hover:opacity-90'
-                        isLoading={isSubmitting}
-                        loadingText={isEditMode ? 'Updating...' : 'Saving...'}>
-                        {isEditMode ? 'Update' : 'Save'}
-                    </Button>
-                    <Button
                         type='button'
+                        variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='h-8 w-auto rounded-md px-4 py-1.5 text-sm bg-secondary text-secondary-foreground hover:opacity-90'>
-                        Clear
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        Reset
+                    </Button>
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        isLoading={isSubmitting}
+                        loadingText='Saving...'>
+                        <div className='flex items-center'>
+                            <Save className='mr-2 h-4 w-4' />
+                            Save Designation
+                        </div>
                     </Button>
                 </div>
             </form>

@@ -1,16 +1,13 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterDesignation } from '@/hooks/hrms/useMasters';
 import type { DesignationDetail, MasterDesignationResponse } from '@/types/hrms/master-designation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 import { toast } from 'sonner';
-
 export const columns: ColumnDef<DesignationDetail>[] = [
     {
         id: 'slNo',
@@ -51,18 +48,15 @@ export const columns: ColumnDef<DesignationDetail>[] = [
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
     const { openEditForm } = useFormContext<MasterDesignationResponse>();
     const { toggleMutation } = useMasterDesignation(HRMS_MI_ID);
-
     const handleEdit = useCallback(
         (data: DesignationDetail) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
-
     const handleToggle = useCallback(
         async (data: DesignationDetail, newState: boolean) => {
             try {
@@ -70,10 +64,8 @@ function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
                     HRMDES_Id: data.HRMDES_Id,
                     HRMDES_ActiveFlag: newState
                 });
-
                 // Check if the record is mapped/in use
                 const retrunMsg = (result as any)?.retrunMsg || '';
-
                 if (retrunMsg === 'Mapped') {
                     toast.error('Cannot deactivate - Designation is currently assigned/in use');
                 } else {
@@ -85,7 +77,6 @@ function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
         },
         [toggleMutation]
     );
-
     return (
         <ActionButtons
             rowData={rowData}
@@ -95,46 +86,4 @@ function ActionButtonsCell({ rowData }: { rowData: DesignationDetail }) {
             toggleConditionKey='HRMDES_ActiveFlag'
         />
     );
-}
-
-export function getEditableColumns(onOrderChange: (rowId: number, newOrder: number) => void): ColumnDef<DesignationDetail>[] {
-    return [
-        {
-            id: 'slNo',
-            header: () => <div className='text-center font-medium'>Sl No</div>,
-            cell: ({ row, table }) => {
-                const pageIndex = table.getState().pagination.pageIndex;
-                const pageSize = table.getState().pagination.pageSize;
-                const continuousIndex = pageIndex * pageSize + row.index + 1;
-                return <div className='text-center'>{continuousIndex}</div>;
-            },
-            enableSorting: false,
-            size: 60
-        },
-        {
-            accessorKey: 'HRMDES_DesignationName',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' className='whitespace-nowrap' />
-        },
-        {
-            accessorKey: 'HRMDES_BasicAmount',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Amount' className='whitespace-nowrap' />
-        },
-        {
-            accessorKey: 'HRMDES_SanctionedSeats',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Sanctioned Seats' className='whitespace-nowrap' />
-        },
-        {
-            accessorKey: 'HRMDES_Order',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
-            cell: ({ row }) => (
-                <Input
-                    type='number'
-                    value={row.original.HRMDES_Order ?? 0}
-                    onChange={(e) => onOrderChange(row.original.HRMDES_Id, Number.parseInt(e.target.value) || 0)}
-                    className='w-20'
-                    min='0'
-                />
-            )
-        }
-    ];
 }
