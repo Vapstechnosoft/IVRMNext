@@ -15,7 +15,7 @@ import {
 } from '@/hooks/fees/useTrasactions';
 
 import { feeTransactionWaivedOffSchema } from '@/schemas/fees/trasactions';
-import { getGroupList, getHeadList, getStudentdetails, saveFeeWivedOff, uploadDocument } from '@/server/fees/trasactions/waived_off';
+import { getEditGroupList, getHeadList, getStudentdetails, saveFeeWivedOff, uploadDocument } from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
 import type {
     feeTransactionWaivedOffGrid,
@@ -101,8 +101,6 @@ export default function UpdateFeeTransactionWaiveOffForm({
     } | null>(null);
     const [preSelectedInstallmentIds, setPreSelectedInstallmentIds] = useState<string[]>([]);
 
-    const [tablePropsData, setTablePropsData] = useState<any>(null);
-
     useEffect(() => {
         if (!selectedRow) return;
         setAcademicYear(selectedRow.asmaY_Id);
@@ -174,7 +172,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
             setGroupListLoading(true);
             setGroupListError(null);
 
-            const res = await getGroupList(Number(asmay_Id), Number(amst_Id), refundableType);
+            const res = await getEditGroupList(Number(asmay_Id), Number(amst_Id), selectedRow.fmG_Id);
             setGroupList(res.data ?? []);
         } catch (error) {
             console.error('Error fetching student class mapping', error);

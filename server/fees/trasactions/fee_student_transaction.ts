@@ -21,3 +21,8 @@ export async function getFeeStudentTransactionDetails(asmaY_Id: number, searchPa
     // Make POST request
     return await api.post<Ifeetransaction[]>('fees', url, data);
 }
+
+export async function searchStudentName() {
+    const url = '';
+    return api.get('fees', url);
+}

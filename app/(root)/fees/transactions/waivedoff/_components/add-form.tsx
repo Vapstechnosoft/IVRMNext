@@ -272,6 +272,12 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
             toast.error('Please Select a Atleast one Head!!');
             return;
         }
+        const invalidRows = selectedHead.filter((row) => !row.waivedOff || Number(row.waivedOff) <= 0);
+
+        if (invalidRows.length > 0) {
+            toast.error('Waived Off Amount must be greater than 0!!');
+            return;
+        }
         try {
             const formattedHeadList = selectedHead.map((row: feeTransactionWaivedOffHead) => ({
                 fmG_Id: row.fmG_Id,

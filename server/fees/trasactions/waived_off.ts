@@ -57,10 +57,20 @@ export async function getGroupList(asmay_Id: number, amst_Id: number, filterradi
     return await api.get<feeTransactionWaivedOffGroup[]>('fees', url);
 }
 
+export async function getEditGroupList(asmay_Id: number, amst_Id: number, FMG_Id: number) {
+    const url = `/FeeWaivedOff/fee-Wavied-edit-fill-grp?asmay_id=${asmay_Id}&AMST_Id=${amst_Id}&FMG_Id=${FMG_Id}`;
+    return await api.get<feeTransactionWaivedOffGroup[]>('fees', url);
+}
+
 export async function getHeadList(asmay_Id: number, amst_Id: number, filterradio: string, fineWaivedOff: number, groupIds: any) {
     const url = `/FeeWaivedOff/gethead?asmay_id=${asmay_Id}&amst_id=${amst_Id}&filterradiobuttonvalue=${filterradio}&finewaiveoff=${fineWaivedOff}`;
     return await api.post<feeTransactionWaivedOffHead[]>('fees', url, groupIds);
 }
+
+// export async function getEditHeadList(asmay_Id: number, amst_Id: number,FMG_Id: number, FMH_Id: number,FTI_Id:number, FMA_Id: number ) {
+//     const url = `/FeeWaivedOff/fee-Wavied-edit-fill-head?asmay_id=${asmay_Id}&AMST_Id=${amst_Id}&FMG_Id=${FMG_Id}&FMH_Id=${FMH_Id}&FTI_Id=${FTI_Id}&FMA_Id=${FMA_Id}`;
+//     return await api.get<feeTransactionWaivedOffHead[]>('fees', url);
+// }
 
 export async function saveFeeWivedOff(payload: any) {
     const url = '/FeeWaivedOff/savedata';
