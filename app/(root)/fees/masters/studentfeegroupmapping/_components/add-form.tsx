@@ -918,7 +918,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                             noDataDescription='Get started by creating your first Student Class Mapping'
                             errorTitle='Error Student Class Mapping'
                             onSearchQueryChange={handleApiParmasChange}
-                            showSearch={true}
+                            showSearch={false}
                             searchQuery=''
                             showPagination={true}
                             currentApiParams={apisearchParams_}
