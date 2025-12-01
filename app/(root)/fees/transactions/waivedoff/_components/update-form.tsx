@@ -15,7 +15,13 @@ import {
 } from '@/hooks/fees/useTrasactions';
 
 import { feeTransactionWaivedOffSchema } from '@/schemas/fees/trasactions';
-import { getEditGroupList, getHeadList, getStudentdetails, saveFeeWivedOff, uploadDocument } from '@/server/fees/trasactions/waived_off';
+import {
+    getEditGroupList,
+    getEditHeadList,
+    getStudentdetails,
+    saveFeeWivedOff,
+    uploadDocument
+} from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
 import type {
     feeTransactionWaivedOffGrid,
@@ -90,7 +96,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
     const [isViewing, setIsViewing] = useState(false);
     const [selectedHead, setSelectedHead] = useState<any[]>([]);
     const [apisearchParams_, setApisearchParams_] = useState<ApiSearchparams>({});
-    const [tableProps, setTableProps] = useState<any>(null);
+    //const [tableProps, setTableProps] = useState<any>(null);
     const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
     const [headListLoading, setHeadListLoading] = useState(false);
     const [headListError, setHeadListError] = useState<any>(null);
@@ -100,6 +106,15 @@ export default function UpdateFeeTransactionWaiveOffForm({
         isUploading: boolean;
     } | null>(null);
     const [preSelectedInstallmentIds, setPreSelectedInstallmentIds] = useState<string[]>([]);
+    const tableConfig = useMemo(() => {
+        return {
+            data: headList,
+            total: headList.length,
+            page: 1,
+            pageSize: headList.length
+        };
+    }, [headList]);
+    const tableProps = useDataTableProps(tableConfig);
 
     useEffect(() => {
         if (!selectedRow) return;
@@ -207,9 +222,14 @@ export default function UpdateFeeTransactionWaiveOffForm({
             setHeadListLoading(true);
             setHeadListError(null);
 
-            const res = await getHeadList(Number(asmay_Id), Number(amst_Id), refundableType, fineWaiveOff === true ? 1 : 0, {
-                groupIds: selectedGroups
-            });
+            const res = await getEditHeadList(
+                Number(asmay_Id),
+                Number(amst_Id),
+                selectedRow.fmG_Id,
+                selectedRow.fmH_Id,
+                selectedRow.ftI_Id,
+                selectedRow.fmA_Id
+            );
             const updatedHeadList =
                 res.data?.map((item) => {
                     if (item.fmH_Id === selectedRow?.fmH_Id && item.ftI_Id === selectedRow?.ftI_Id) {
@@ -221,10 +241,16 @@ export default function UpdateFeeTransactionWaiveOffForm({
                     return item;
                 }) ?? [];
             console.log('updatedheadlist', updatedHeadList, res.data);
-
+            const preselectedIds = updatedHeadList.reduce<string[]>((acc, s, ind) => {
+                if (s.fmH_Id === selectedRow.fmH_Id && s.ftI_Id === selectedRow.ftI_Id) {
+                    acc.push(ind.toString());
+                }
+                return acc;
+            }, []);
+            setPreSelectedInstallmentIds(preselectedIds);
             setHeadList(updatedHeadList ?? []);
-            res.data = updatedHeadList;
-            setTableProps(useDataTableProps(res ?? []));
+            //res.data = updatedHeadList;
+            //setTableProps(useDataTableProps(res ?? []));
         } catch (error) {
             console.error('Error fetching student class mapping', error);
             setHeadListError(error);
@@ -243,16 +269,16 @@ export default function UpdateFeeTransactionWaiveOffForm({
     }, [asmay_Id, asmcl_Id, asms_Id]);
 
     //--------------------Bind Head List---------------------------
-    useEffect(() => {
-        if (!selectedRow || headList.length === 0) return;
-        const preselectedIds = headList.reduce<string[]>((acc, s, ind) => {
-            if (s.fmH_Id === selectedRow.fmH_Id && s.ftI_Id === selectedRow.ftI_Id) {
-                acc.push(ind.toString());
-            }
-            return acc;
-        }, []);
-        setPreSelectedInstallmentIds(preselectedIds);
-    }, [selectedRow, headList]);
+    // useEffect(() => {
+    //     if (!selectedRow || headList.length === 0) return;
+    //     const preselectedIds = headList.reduce<string[]>((acc, s, ind) => {
+    //         if (s.fmH_Id === selectedRow.fmH_Id && s.ftI_Id === selectedRow.ftI_Id) {
+    //             acc.push(ind.toString());
+    //         }
+    //         return acc;
+    //     }, []);
+    //     setPreSelectedInstallmentIds(preselectedIds);
+    // }, [selectedRow, headList]);
 
     useEffect(() => {
         if (!selectedRow) return;
@@ -368,8 +394,8 @@ export default function UpdateFeeTransactionWaiveOffForm({
                 finewaiveoff: fineWaiveOff === true ? 1 : 0,
                 fswO_WaivedOffRemarks: data.remarks || '',
                 completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
-                filepath: uploadedLogo?.documentName || '',
-                filename: uploadedLogo?.document_Path || '',
+                filepath: uploadedLogo?.document_Path || '',
+                filename: uploadedLogo?.documentName || '',
                 headlist: formattedHeadList
             };
 
@@ -879,7 +905,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                 searchQuery=''
                                 showPagination={false}
                                 currentApiParams={apisearchParams_}
-                                enableRowSelection={true}
+                                // enableRowSelection={true}
                             />
                         </CollapsibleSection>
                     </div>
