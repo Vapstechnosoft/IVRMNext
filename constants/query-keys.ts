@@ -319,5 +319,12 @@ export const HRMS_QUERY_KEYS = {
     LEAVE_BALANCE: 'leave_leave_balance',
     LEAVE_HISTORY: 'leave_leave_history',
     APPLY_LEAVE: 'leave_apply_leave',
-    LEAVE_APPROVAL: 'leave_leave_approval'
+    LEAVE_APPROVAL: 'leave_leave_approval',
+
+    // Master drop down
+    MASTER_GROUP_TYPES: 'hrms_master_group_type',
+    MASTER_DEAPARTMENTS: 'hrms_master_departments',
+    MASTER_DESIGNATIONS: 'hrms_master_designation',
+    MASTER_MONTHS: 'hrms_master_months',
+    MASTER_YEARS: 'hrms_master_years'
 };

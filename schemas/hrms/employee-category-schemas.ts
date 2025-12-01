@@ -35,10 +35,7 @@ export const groupTypeSchema = {
             .min(1, 'Code is required')
             .max(20, 'Code must not exceed 20 characters')
             .regex(/^[a-zA-Z0-9]+$/, 'Code must be alphanumeric'),
-        HRMGT_Order: z
-            .number()
-            .min(0, 'Order must be a positive number')
-            .max(9999999999, 'Order must not exceed 10 digits'),
+        HRMGT_Order: z.number().min(0, 'Order must be a positive number').max(9999999999, 'Order must not exceed 10 digits'),
         HRMGT_ActiveFlag: z.boolean().default(true)
     })
 };
@@ -55,11 +52,7 @@ export const departmentSchema = {
             .min(1, 'Department name is required')
             .max(50, 'Department name must not exceed 50 characters')
             .regex(/^[a-zA-Z\s]+$/, 'Department name must contain only alphabets'),
-        HRMD_Order: z
-            .number()
-            .min(0, 'Order must be a positive number')
-            .max(9999, 'Order must not exceed 4 digits')
-            .optional(),
+        HRMD_Order: z.number().min(0, 'Order must be a positive number').max(9999, 'Order must not exceed 4 digits').optional(),
         HRMD_InternalTrainingMinimumHrs: z
             .number()
             .min(0, 'Training hours must be a positive number')
@@ -90,11 +83,7 @@ export const designationSchema = {
             .min(0, 'Sanctioned seats must be a positive number')
             .max(999, 'Sanctioned seats must not exceed 3 digits'),
         HRMDES_DisplaySanctionedSeatsFlag: z.boolean().default(false),
-        HRMDES_Order: z
-            .number()
-            .min(0, 'Order must be a positive number')
-            .max(9999, 'Order must not exceed 4 digits')
-            .optional(),
+        HRMDES_Order: z.number().min(0, 'Order must be a positive number').max(9999, 'Order must not exceed 4 digits').optional(),
         HRMDES_ActiveFlag: z.boolean().default(true)
     })
 };
@@ -121,20 +110,13 @@ export const gradeSchema = {
                 .number()
                 .min(0, 'Pay scale from must be a positive number')
                 .max(9999999999.99, 'Pay scale from must not exceed 10 digits including decimals'),
-            HRMG_IncrementOf: z
-                .number()
-                .min(0, 'Increment must be a positive number')
-                .max(999, 'Increment must not exceed 3 digits'),
+            HRMG_IncrementOf: z.number().min(0, 'Increment must be a positive number').max(999, 'Increment must not exceed 3 digits'),
             HRMG_PayScaleTo: z
                 .number()
                 .min(0, 'Pay scale to must be a positive number')
                 .max(9999999999.99, 'Pay scale to must not exceed 10 digits including decimals'),
             HRMG_PayScaleRange: z.string().optional(),
-            HRMG_Order: z
-                .number()
-                .min(0, 'Order must be a positive number')
-                .max(9999, 'Order must not exceed 4 digits')
-                .optional(),
+            HRMG_Order: z.number().min(0, 'Order must be a positive number').max(9999, 'Order must not exceed 4 digits').optional(),
             HRMG_ActiveFlag: z.boolean().default(true)
         })
         .refine((data) => data.HRMG_PayScaleTo >= data.HRMG_PayScaleFrom, {
@@ -142,3 +124,13 @@ export const gradeSchema = {
             path: ['HRMG_PayScaleTo']
         })
 };
+
+export const departmentSalaryReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'At least one group type is required'),
+    department: z.array(z.string()).min(1, 'At least one department is required'),
+    designation: z.array(z.string()).min(1, 'At least one designation is required'),
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required')
+});
+
+export type DepartmentSalaryReportFormFields = z.infer<typeof departmentSalaryReportSchema>;

@@ -5,15 +5,10 @@
  * All report-related hooks consolidated in one file
  */
 
-import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { getFOMonthEndReportData } from '@/server/hrms/attendance-management/reports/fo-monthend-report';
-import { getLeaveReport, getLeaveReportDepartments, getLeaveReportData, getPeriodLeaveReport, getPeriodLeaveReportDepartments, getPeriodLeaveReportDesignation, getPeriodLeaveReportEmployees, getPeriodLeaveReportData, getLeaveReportYearwise } from '@/server/hrms/leave-management/reports/leave-report';
 import { getEmployeeAdvanceReportOnload, searchEmployeeAdvanceReport } from '@/server/hrms/hrmsConfig/reports/advance-report';
-import {
-    filterEmployeeOfferAndExperienceData,
-    getEmployeeDetailsBySelection
-} from '@/server/hrms/hrmsConfig/reports/employee-offer-and-experience-report';
 import { getBankCashReportOnload, searchBankCashReport } from '@/server/hrms/hrmsConfig/reports/bank-cash-report';
 import { getCumulativeSalaryReportOnload, searchCumulativeSalaryReport } from '@/server/hrms/hrmsConfig/reports/cumulative-salary-report';
 import {
@@ -30,6 +25,10 @@ import { getEmployeeInOutReportOnload } from '@/server/hrms/hrmsConfig/reports/e
 import { getEmployeeLateInEarlyOutReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-latein-earlyout-report';
 import { getEmployeeLogReportList, getEmployeeLogReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import { getEmployeeMonthlyReportList, getEmployeeMonthlyReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
+import {
+    filterEmployeeOfferAndExperienceData,
+    getEmployeeDetailsBySelection
+} from '@/server/hrms/hrmsConfig/reports/employee-offer-and-experience-report';
 import {
     filterEmployeesBySelection,
     getEmployeeProfileReportOnload,
@@ -63,12 +62,19 @@ import {
     searchPFForm10Report
 } from '@/server/hrms/hrmsConfig/reports/pf-form-10-report';
 import { filterEmployeesByYearMonth, generateSalarySlip, getSalarySlipOnload } from '@/server/hrms/hrmsConfig/reports/salary-slip-report';
+import {
+    getLeaveReport,
+    getLeaveReportData,
+    getLeaveReportDepartments,
+    getLeaveReportYearwise,
+    getPeriodLeaveReportData,
+    getPeriodLeaveReportDepartments,
+    getPeriodLeaveReportDesignation,
+    getPeriodLeaveReportEmployees
+} from '@/server/hrms/leave-management/reports/leave-report';
+import { getMasterDepartments, getMasterDesignations, getMasterGroupTypes, getMasterMonths, getMasterYears } from '@/server/hrms/master';
 import type { ApiSearchparams } from '@/types';
 import type { EmployeeAdvanceReportSearchRequest } from '@/types/hrms/reports/advance-report';
-import type {
-    EmployeeOfferAndExperienceReportFilterRequest,
-    EmployeeOfferAndExperienceReportSearchRequest
-} from '@/types/hrms/reports/employee-offer-and-experience-report';
 import type { BankCashReportSearchRequest } from '@/types/hrms/reports/bank-cash-report';
 import type { CumulativeSalaryReportSearchRequest } from '@/types/hrms/reports/cumulative-salary-report';
 import type {
@@ -76,6 +82,10 @@ import type {
     EmployeeContributionReportSearchRequest
 } from '@/types/hrms/reports/employee-contribution-report';
 import type { EmployeeDetailsReportFilterRequest, EmployeeDetailsReportSearchRequest } from '@/types/hrms/reports/employee-details-report';
+import type {
+    EmployeeOfferAndExperienceReportFilterRequest,
+    EmployeeOfferAndExperienceReportSearchRequest
+} from '@/types/hrms/reports/employee-offer-and-experience-report';
 import type { EmployeeProfileReportFilterRequest, EmployeeProfileReportSearchRequest } from '@/types/hrms/reports/employee-profile-report';
 import type { EmployeeStrengthReportSearchRequest } from '@/types/hrms/reports/employee-strength-report';
 import type { ESIReportSearchRequest } from '@/types/hrms/reports/esi-report';
@@ -751,13 +761,7 @@ export function useEmployeeInOutReportList(
     };
 }
 
-export function useEmployeeInOutReportDepartments(
-    MI_Id = 30,
-    UserId = 0,
-    IVRMRT_Id = 0,
-    multipletype = '',
-    enabled = true
-) {
+export function useEmployeeInOutReportDepartments(MI_Id = 30, UserId = 0, IVRMRT_Id = 0, multipletype = '', enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_DEPARTMENTS, MI_Id, UserId, IVRMRT_Id, multipletype],
         queryFn: async () => {
@@ -769,11 +773,7 @@ export function useEmployeeInOutReportDepartments(
     });
 }
 
-export function useEmployeeInOutReportDesignations(
-    MI_Id = 30,
-    multipledep = '',
-    enabled = true
-) {
+export function useEmployeeInOutReportDesignations(MI_Id = 30, multipledep = '', enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_DESIGNATIONS, MI_Id, multipledep],
         queryFn: async () => {
@@ -785,13 +785,7 @@ export function useEmployeeInOutReportDesignations(
     });
 }
 
-export function useEmployeeInOutReportEmployees(
-    MI_Id = 30,
-    multipledes = '',
-    multipledep = '',
-    multipletype = '',
-    enabled = true
-) {
+export function useEmployeeInOutReportEmployees(MI_Id = 30, multipledes = '', multipledep = '', multipletype = '', enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_EMPLOYEES, MI_Id, multipledes, multipledep, multipletype],
         queryFn: async () => {
@@ -1190,7 +1184,7 @@ export function useGetEmployeeDetailsBySelection() {
  * Hook to fetch leave report data
  * POST /api/LeaveReportWrapperFacade/GetLeaveReport
  */
-export function useLeaveReport(request?: { MI_Id?: number }, enabled: boolean = true) {
+export function useLeaveReport(request?: { MI_Id?: number }, enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, request?.MI_Id],
         queryFn: async () => {
@@ -1205,10 +1199,10 @@ export function useLeaveReport(request?: { MI_Id?: number }, enabled: boolean = 
 
                 // Extract leave report list from API response
                 const data = response.data;
-                
+
                 // Map GridviewDetails, leaveReportList, reportList, or leaveList to reportList
                 let reportList: any[] = [];
-                
+
                 if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     reportList = data.GridviewDetails;
                 } else if (data.leaveReportList && Array.isArray(data.leaveReportList)) {
@@ -1225,7 +1219,10 @@ export function useLeaveReport(request?: { MI_Id?: number }, enabled: boolean = 
                 const mappedReportList = reportList.map((item: any, index: number) => ({
                     slNo: index + 1,
                     employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    employeeName:
+                        `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                        item.employeeName ||
+                        '',
                     leaveName: item.HRML_LeaveName || item.leaveName || '',
                     fromDate: item.HRELAP_FromDate || item.fromDate || '',
                     toDate: item.HRELAP_ToDate || item.toDate || '',
@@ -1255,7 +1252,7 @@ export function useLeaveReport(request?: { MI_Id?: number }, enabled: boolean = 
  * Hook to fetch departments for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetDepartments
  */
-export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) {
+export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'period-departments', request?.MI_Id, request?.emptypes],
         queryFn: async () => {
@@ -1271,19 +1268,23 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
 
                 // Extract and map department options from API response
                 const data = response.data;
-                
+
                 // Map DepartmentTempDto to departmentOptions
-                const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
-                    label: item.HRMD_DepartmentName || item.label || '',
-                    value: String(item.HRMD_Id || item.value || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value);
+                const departmentOptions = (data.DepartmentTempDto || [])
+                    .map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || '',
+                        value: String(item.HRMD_Id || item.value || '')
+                    }))
+                    .filter((item: { label: string; value: string }) => item.label && item.value);
 
                 // Also check other possible locations
                 if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
-                    const mapped = data.departmentdropdownlist.map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || item.name || '',
-                        value: String(item.HRMD_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.departmentdropdownlist
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         departmentOptions.push(...mapped);
                     }
@@ -1302,20 +1303,24 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
 
                 // Check departmentList or departments as fallback
                 if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
-                    const mapped = data.departmentList.map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || item.name || '',
-                        value: String(item.HRMD_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.departmentList
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         departmentOptions.push(...mapped);
                     }
                 }
 
                 if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
-                    const mapped = data.departments.map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || item.name || '',
-                        value: String(item.HRMD_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.departments
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         departmentOptions.push(...mapped);
                     }
@@ -1342,7 +1347,7 @@ export function usePeriodLeaveReportDepartments(request?: { MI_Id?: number; empt
  * Hook to fetch designations for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetDesignation
  */
-export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) {
+export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'period-designations', request?.MI_Id, request?.emptypes],
         queryFn: async () => {
@@ -1358,19 +1363,23 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
 
                 // Extract and map designation options from API response
                 const data = response.data;
-                
+
                 // Map DesignationTempDto to designationOptions
-                const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
-                    label: item.HRMDES_DesignationName || item.label || '',
-                    value: String(item.HRMDES_Id || item.value || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value);
+                const designationOptions = (data.DesignationTempDto || [])
+                    .map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || '',
+                        value: String(item.HRMDES_Id || item.value || '')
+                    }))
+                    .filter((item: { label: string; value: string }) => item.label && item.value);
 
                 // Also check other possible locations
                 if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
-                    const mapped = data.designationdropdownlist.map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || item.name || '',
-                        value: String(item.HRMDES_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.designationdropdownlist
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         designationOptions.push(...mapped);
                     }
@@ -1389,20 +1398,24 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
 
                 // Check designationList or designations as fallback
                 if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
-                    const mapped = data.designationList.map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || item.name || '',
-                        value: String(item.HRMDES_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.designationList
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         designationOptions.push(...mapped);
                     }
                 }
 
                 if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
-                    const mapped = data.designations.map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || item.name || '',
-                        value: String(item.HRMDES_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.designations
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         designationOptions.push(...mapped);
                     }
@@ -1429,7 +1442,7 @@ export function usePeriodLeaveReportDesignation(request?: { MI_Id?: number; empt
  * Hook to fetch employees for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetEmployees
  */
-export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[] }, enabled: boolean = true) {
+export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[] }, enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'period-employees', request?.MI_Id, request?.emptypes, request?.empdept],
         queryFn: async () => {
@@ -1446,10 +1459,10 @@ export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptyp
 
                 // Extract employee list from API response
                 const data = response.data;
-                
+
                 // Map GridviewDetails, employeeList, employees, or employeelist to employeeList
                 let employeeList: any[] = [];
-                
+
                 if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     employeeList = data.GridviewDetails;
                 } else if (data.employeeList && Array.isArray(data.employeeList)) {
@@ -1463,17 +1476,25 @@ export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptyp
                 }
 
                 // Map to employee format for dropdowns
-                const employeeOptions = employeeList.map((item: any) => ({
-                    id: item.HRME_Id || item.id || 0,
-                    employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
-                    departmentId: item.HRMD_Id || item.departmentId || 0,
-                    departmentName: item.HRMD_DepartmentName || item.departmentName || '',
-                    designationId: item.HRMDES_Id || item.designationId || 0,
-                    designationName: item.HRMDES_DesignationName || item.designationName || '',
-                    label: `${item.HRME_EmployeeCode || ''} - ${`${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim()}`.trim() || item.label || '',
-                    value: String(item.HRME_Id || item.value || item.id || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value);
+                const employeeOptions = employeeList
+                    .map((item: any) => ({
+                        id: item.HRME_Id || item.id || 0,
+                        employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                        employeeName:
+                            `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                            item.employeeName ||
+                            '',
+                        departmentId: item.HRMD_Id || item.departmentId || 0,
+                        departmentName: item.HRMD_DepartmentName || item.departmentName || '',
+                        designationId: item.HRMDES_Id || item.designationId || 0,
+                        designationName: item.HRMDES_DesignationName || item.designationName || '',
+                        label:
+                            `${item.HRME_EmployeeCode || ''} - ${`${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim()}`.trim() ||
+                            item.label ||
+                            '',
+                        value: String(item.HRME_Id || item.value || item.id || '')
+                    }))
+                    .filter((item: { label: string; value: string }) => item.label && item.value);
 
                 return {
                     success: true,
@@ -1482,7 +1503,10 @@ export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptyp
                         employeeList: employeeList.map((item: any) => ({
                             id: item.HRME_Id || item.id || 0,
                             employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                            employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                            employeeName:
+                                `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                item.employeeName ||
+                                '',
                             departmentId: item.HRMD_Id || item.departmentId || 0,
                             departmentName: item.HRMD_DepartmentName || item.departmentName || '',
                             designationId: item.HRMDES_Id || item.designationId || 0,
@@ -1505,7 +1529,7 @@ export function usePeriodLeaveReportEmployees(request?: { MI_Id?: number; emptyp
  * Hook to fetch departments for leave report
  * POST /api/LeaveReportWrapperFacade/GetDepartments
  */
-export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) {
+export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'departments', request?.MI_Id, request?.emptypes],
         queryFn: async () => {
@@ -1521,19 +1545,23 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
 
                 // Extract and map department options from API response
                 const data = response.data;
-                
+
                 // Map DepartmentTempDto to departmentOptions
-                const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
-                    label: item.HRMD_DepartmentName || item.label || '',
-                    value: String(item.HRMD_Id || item.value || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value);
+                const departmentOptions = (data.DepartmentTempDto || [])
+                    .map((item: any) => ({
+                        label: item.HRMD_DepartmentName || item.label || '',
+                        value: String(item.HRMD_Id || item.value || '')
+                    }))
+                    .filter((item: { label: string; value: string }) => item.label && item.value);
 
                 // Also check other possible locations
                 if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
-                    const mapped = data.departmentdropdownlist.map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || item.name || '',
-                        value: String(item.HRMD_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.departmentdropdownlist
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         departmentOptions.push(...mapped);
                     }
@@ -1552,20 +1580,24 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
 
                 // Check departmentList or departments as fallback
                 if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
-                    const mapped = data.departmentList.map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || item.name || '',
-                        value: String(item.HRMD_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.departmentList
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         departmentOptions.push(...mapped);
                     }
                 }
 
                 if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
-                    const mapped = data.departments.map((item: any) => ({
-                        label: item.HRMD_DepartmentName || item.label || item.name || '',
-                        value: String(item.HRMD_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.departments
+                        .map((item: any) => ({
+                            label: item.HRMD_DepartmentName || item.label || item.name || '',
+                            value: String(item.HRMD_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         departmentOptions.push(...mapped);
                     }
@@ -1592,7 +1624,7 @@ export function useLeaveReportDepartments(request?: { MI_Id?: number; emptypes?:
  * Hook to fetch designations for leave report
  * POST /api/LeaveReportWrapperFacade/GetDesignation
  */
-export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) {
+export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?: any[] }, enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'designations', request?.MI_Id, request?.emptypes],
         queryFn: async () => {
@@ -1608,19 +1640,23 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
 
                 // Extract and map designation options from API response
                 const data = response.data;
-                
+
                 // Map DesignationTempDto to designationOptions
-                const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
-                    label: item.HRMDES_DesignationName || item.label || '',
-                    value: String(item.HRMDES_Id || item.value || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value);
+                const designationOptions = (data.DesignationTempDto || [])
+                    .map((item: any) => ({
+                        label: item.HRMDES_DesignationName || item.label || '',
+                        value: String(item.HRMDES_Id || item.value || '')
+                    }))
+                    .filter((item: { label: string; value: string }) => item.label && item.value);
 
                 // Also check other possible locations
                 if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
-                    const mapped = data.designationdropdownlist.map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || item.name || '',
-                        value: String(item.HRMDES_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.designationdropdownlist
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         designationOptions.push(...mapped);
                     }
@@ -1639,20 +1675,24 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
 
                 // Check designationList or designations as fallback
                 if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
-                    const mapped = data.designationList.map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || item.name || '',
-                        value: String(item.HRMDES_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.designationList
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         designationOptions.push(...mapped);
                     }
                 }
 
                 if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
-                    const mapped = data.designations.map((item: any) => ({
-                        label: item.HRMDES_DesignationName || item.label || item.name || '',
-                        value: String(item.HRMDES_Id || item.value || item.id || '')
-                    })).filter((item: { label: string; value: string }) => item.label && item.value);
+                    const mapped = data.designations
+                        .map((item: any) => ({
+                            label: item.HRMDES_DesignationName || item.label || item.name || '',
+                            value: String(item.HRMDES_Id || item.value || item.id || '')
+                        }))
+                        .filter((item: { label: string; value: string }) => item.label && item.value);
                     if (mapped.length > 0) {
                         designationOptions.push(...mapped);
                     }
@@ -1679,7 +1719,7 @@ export function useLeaveReportDesignation(request?: { MI_Id?: number; emptypes?:
  * Hook to fetch employees for leave report
  * POST /api/LeaveReportWrapperFacade/GetEmployees
  */
-export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[] }, enabled: boolean = true) {
+export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[] }, enabled = true) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'employees', request?.MI_Id, request?.emptypes, request?.empdept],
         queryFn: async () => {
@@ -1696,10 +1736,10 @@ export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: a
 
                 // Extract employee list from API response
                 const data = response.data;
-                
+
                 // Map GridviewDetails, employeeList, employees, or employeelist to employeeList
                 let employeeList: any[] = [];
-                
+
                 if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     employeeList = data.GridviewDetails;
                 } else if (data.employeeList && Array.isArray(data.employeeList)) {
@@ -1713,17 +1753,25 @@ export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: a
                 }
 
                 // Map to employee format for dropdowns
-                const employeeOptions = employeeList.map((item: any) => ({
-                    id: item.HRME_Id || item.id || 0,
-                    employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
-                    departmentId: item.HRMD_Id || item.departmentId || 0,
-                    departmentName: item.HRMD_DepartmentName || item.departmentName || '',
-                    designationId: item.HRMDES_Id || item.designationId || 0,
-                    designationName: item.HRMDES_DesignationName || item.designationName || '',
-                    label: `${item.HRME_EmployeeCode || ''} - ${`${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim()}`.trim() || item.label || '',
-                    value: String(item.HRME_Id || item.value || item.id || '')
-                })).filter((item: { label: string; value: string }) => item.label && item.value);
+                const employeeOptions = employeeList
+                    .map((item: any) => ({
+                        id: item.HRME_Id || item.id || 0,
+                        employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
+                        employeeName:
+                            `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                            item.employeeName ||
+                            '',
+                        departmentId: item.HRMD_Id || item.departmentId || 0,
+                        departmentName: item.HRMD_DepartmentName || item.departmentName || '',
+                        designationId: item.HRMDES_Id || item.designationId || 0,
+                        designationName: item.HRMDES_DesignationName || item.designationName || '',
+                        label:
+                            `${item.HRME_EmployeeCode || ''} - ${`${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim()}`.trim() ||
+                            item.label ||
+                            '',
+                        value: String(item.HRME_Id || item.value || item.id || '')
+                    }))
+                    .filter((item: { label: string; value: string }) => item.label && item.value);
 
                 return {
                     success: true,
@@ -1732,7 +1780,10 @@ export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: a
                         employeeList: employeeList.map((item: any) => ({
                             id: item.HRME_Id || item.id || 0,
                             employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                            employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                            employeeName:
+                                `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                                item.employeeName ||
+                                '',
                             departmentId: item.HRMD_Id || item.departmentId || 0,
                             departmentName: item.HRMD_DepartmentName || item.departmentName || '',
                             designationId: item.HRMDES_Id || item.designationId || 0,
@@ -1755,16 +1806,19 @@ export function useLeaveReportEmployees(request?: { MI_Id?: number; emptypes?: a
  * Hook to fetch leave report data with filters
  * POST /api/LeaveReportWrapperFacade/GetReport
  */
-export function useLeaveReportData(request?: { 
-    MI_Id?: number; 
-    selectedLeave?: string; 
-    selectedEmployee?: string; 
-    HRELTD_FromDate?: string; 
-    HRELT_ToDate?: string; 
-    Edit_flag?: boolean; 
-    selectedreport?: number[]; 
-    UserId?: number;
-}, enabled: boolean = true) {
+export function useLeaveReportData(
+    request?: {
+        MI_Id?: number;
+        selectedLeave?: string;
+        selectedEmployee?: string;
+        HRELTD_FromDate?: string;
+        HRELT_ToDate?: string;
+        Edit_flag?: boolean;
+        selectedreport?: number[];
+        UserId?: number;
+    },
+    enabled = true
+) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'report-data', request],
         queryFn: async () => {
@@ -1786,10 +1840,10 @@ export function useLeaveReportData(request?: {
 
                 // Extract report list from API response
                 const data = response.data;
-                
+
                 // Map GridviewDetails, reportList, leaveReportList, or reportData to reportList
                 let reportList: any[] = [];
-                
+
                 if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     reportList = data.GridviewDetails;
                 } else if (data.reportList && Array.isArray(data.reportList)) {
@@ -1806,7 +1860,10 @@ export function useLeaveReportData(request?: {
                 const mappedReportList = reportList.map((item: any, index: number) => ({
                     slNo: index + 1,
                     employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    employeeName:
+                        `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                        item.employeeName ||
+                        '',
                     leaveName: item.HRML_LeaveName || item.leaveName || '',
                     fromDate: item.HRELAP_FromDate || item.HRELTD_FromDate || item.fromDate || '',
                     toDate: item.HRELAP_ToDate || item.HRELT_ToDate || item.toDate || '',
@@ -1836,16 +1893,19 @@ export function useLeaveReportData(request?: {
  * Hook to fetch period leave report data with filters
  * POST /api/LeaveReportWrapperFacade/PeriodGetReport
  */
-export function usePeriodLeaveReportData(request?: { 
-    MI_Id?: number; 
-    selectedLeave?: string; 
-    selectedEmployee?: string; 
-    HRELTD_FromDate?: string; 
-    HRELT_ToDate?: string; 
-    Edit_flag?: boolean; 
-    selectedreport?: number[]; 
-    UserId?: number;
-}, enabled: boolean = true) {
+export function usePeriodLeaveReportData(
+    request?: {
+        MI_Id?: number;
+        selectedLeave?: string;
+        selectedEmployee?: string;
+        HRELTD_FromDate?: string;
+        HRELT_ToDate?: string;
+        Edit_flag?: boolean;
+        selectedreport?: number[];
+        UserId?: number;
+    },
+    enabled = true
+) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'period-report-data', request],
         queryFn: async () => {
@@ -1867,10 +1927,10 @@ export function usePeriodLeaveReportData(request?: {
 
                 // Extract period report list from API response
                 const data = response.data;
-                
+
                 // Map GridviewDetails, periodReportList, leavePeriodReportList, or reportData to reportList
                 let reportList: any[] = [];
-                
+
                 if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     reportList = data.GridviewDetails;
                 } else if (data.periodReportList && Array.isArray(data.periodReportList)) {
@@ -1887,7 +1947,10 @@ export function usePeriodLeaveReportData(request?: {
                 const mappedReportList = reportList.map((item: any, index: number) => ({
                     slNo: index + 1,
                     employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    employeeName:
+                        `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                        item.employeeName ||
+                        '',
                     leaveName: item.HRML_LeaveName || item.leaveName || '',
                     period: item.period || item.periodName || '',
                     openingBalance: item.HRELS_OBLeaves || item.openingBalance || 0,
@@ -1921,17 +1984,20 @@ export function usePeriodLeaveReportData(request?: {
  * Hook to fetch yearwise leave report data with filters
  * POST /api/LeaveReportWrapperFacade/GetReportYearwise
  */
-export function useLeaveReportYearwise(request?: { 
-    MI_Id?: number; 
-    selectedLeave?: string; 
-    selectedEmployee?: string; 
-    HRELTD_FromDate?: string; 
-    HRELT_ToDate?: string; 
-    Edit_flag?: boolean; 
-    selectedreport?: number[]; 
-    UserId?: number;
-    valreturn?: string;
-}, enabled: boolean = true) {
+export function useLeaveReportYearwise(
+    request?: {
+        MI_Id?: number;
+        selectedLeave?: string;
+        selectedEmployee?: string;
+        HRELTD_FromDate?: string;
+        HRELT_ToDate?: string;
+        Edit_flag?: boolean;
+        selectedreport?: number[];
+        UserId?: number;
+        valreturn?: string;
+    },
+    enabled = true
+) {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.LEAVE_REPORT, 'yearwise-report', request],
         queryFn: async () => {
@@ -1954,10 +2020,10 @@ export function useLeaveReportYearwise(request?: {
 
                 // Extract yearwise report list from API response
                 const data = response.data;
-                
+
                 // Map GridviewDetails, yearwiseReportList, leaveYearwiseReportList, or reportData to reportList
                 let reportList: any[] = [];
-                
+
                 if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                     reportList = data.GridviewDetails;
                 } else if (data.yearwiseReportList && Array.isArray(data.yearwiseReportList)) {
@@ -1974,7 +2040,10 @@ export function useLeaveReportYearwise(request?: {
                 const mappedReportList = reportList.map((item: any, index: number) => ({
                     slNo: index + 1,
                     employeeCode: item.HRME_EmployeeCode || item.employeeCode || '',
-                    employeeName: `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() || item.employeeName || '',
+                    employeeName:
+                        `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
+                        item.employeeName ||
+                        '',
                     leaveName: item.HRML_LeaveName || item.leaveName || '',
                     year: item.year || item.yearName || '',
                     openingBalance: item.HRELS_OBLeaves || item.openingBalance || 0,
@@ -2005,3 +2074,90 @@ export function useLeaveReportYearwise(request?: {
         staleTime: 0 // Don't cache as this is filter-dependent
     });
 }
+
+//Master dropdown
+
+export const useMasterGroupTypes = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPES],
+            queryFn: async () => getMasterGroupTypes(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPES]
+            });
+        }
+    };
+};
+
+export const useMasterDepartments = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_DEAPARTMENTS],
+            queryFn: async () => getMasterDepartments(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_DEAPARTMENTS]
+            });
+        }
+    };
+};
+
+export const useMasterDesignations = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATIONS],
+            queryFn: async () => getMasterDesignations(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATIONS]
+            });
+        }
+    };
+};
+
+export const useMasterMonths = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_MONTHS],
+            queryFn: async () => getMasterMonths(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_MONTHS]
+            });
+        }
+    };
+};
+
+export const useMasterYears = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_YEARS],
+            queryFn: async () => getMasterYears(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_YEARS]
+            });
+        }
+    };
+};
