@@ -153,7 +153,7 @@ export default function EmployeeOfferLetterPage() {
         return [
             {
                 employeeCode: 'EMP001',
-                employeeName: 'chandrakala j k',
+                employeeName: 'Vidyashree P',
                 employeeFirstName: 'chandrakala',
                 employeeMiddleName: 'j',
                 employeeLastName: 'k',
@@ -165,16 +165,60 @@ export default function EmployeeOfferLetterPage() {
                 dateOfJoining: '2021-05-01',
                 employmentType: 'Permanent',
                 gender: 'Female'
+            },
+            {
+                employeeCode: 'EMP002',
+                employeeName: 'John Doe',
+                employeeFirstName: 'John',
+                employeeMiddleName: undefined,
+                employeeLastName: 'Doe',
+                groupTypeId: 1,
+                departmentId: 2,
+                designationId: 3,
+                departmentName: 'JUNIOR SCHOOL',
+                designationName: 'Assistant Teacher',
+                dateOfJoining: '2023-03-15',
+                employmentType: 'Permanent',
+                gender: 'Male'
+            },
+            {
+                employeeCode: 'EMP003',
+                employeeName: 'Anita Sharma',
+                employeeFirstName: 'Anita',
+                employeeMiddleName: undefined,
+                employeeLastName: 'Sharma',
+                groupTypeId: 1,
+                departmentId: 3,
+                designationId: 4,
+                departmentName: 'SENIOR SCHOOL',
+                designationName: 'Vice Principal',
+                dateOfJoining: '2019-08-01',
+                employmentType: 'Permanent',
+                gender: 'Female'
+            },
+            {
+                employeeCode: 'EMP004',
+                employeeName: 'Ramesh Kumar',
+                employeeFirstName: 'Ramesh',
+                employeeMiddleName: undefined,
+                employeeLastName: 'Kumar',
+                groupTypeId: 2,
+                departmentId: 4,
+                designationId: 1,
+                departmentName: 'OFFICE STAFF',
+                designationName: 'Senior yoga teacher',
+                dateOfJoining: '2020-11-20',
+                employmentType: 'Probationary',
+                gender: 'Male'
             }
         ];
     };
 
     // Filter employees using API when filters change
     useEffect(() => {
-        // Only call API if we have at least one filter selected
+        // If no filters selected, keep the local/mock employees in the dropdown
         if (!filters.type && !filters.department && !filters.designation) {
-            setFilteredEmployees([]);
-            setEmployees([]);
+            setFilteredEmployees(employees);
             return;
         }
 
@@ -238,7 +282,7 @@ export default function EmployeeOfferLetterPage() {
                 setFilteredEmployees([]);
             }
         });
-    }, [filters.type, filters.department, filters.designation, groupTypes, departments, designations]);
+    }, [filters.type, filters.department, filters.designation, groupTypes, departments, designations, employees]);
 
     const handleFilterChange = (key: keyof OfferLetterFilters, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
@@ -339,15 +383,58 @@ export default function EmployeeOfferLetterPage() {
     };
 
     const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
+        // Validate required filters
+        if (!filters.selectedEmployee) {
+            toast.error('Please select an employee');
+            return;
+        }
+
+        if (!filters.type || !filters.department || !filters.designation) {
+            toast.error('Please select Type, Department, and Designation');
+            return;
+        }
+
+        // Try to find selected employee from either the API-loaded `employees` or the
+        // `filteredEmployees` (which backs the dropdown). This ensures the report can
+        // be generated from what the user picked in the dropdown even before SEARCH.
+        const selEmp =
+            employees.find((emp) => emp.id.toString() === filters.selectedEmployee) ||
+            filteredEmployees.find((emp) => emp.id.toString() === filters.selectedEmployee) ||
+            null;
+
+        if (!selEmp) {
+            toast.error('Selected employee not found. Try selecting from the dropdown or click SEARCH');
+            return;
+        }
+
+        // Show report then open print dialog after a short delay so the report can render
+        setShowReport(true);
+        setTimeout(() => {
+            window.print();
+            toast.success('Print dialog opened');
+        }, 120);
     };
 
     // Get selected employee details
     const selectedEmployeeDetails = useMemo(() => {
         if (!filters.selectedEmployee) return null;
-        return employees.find((emp) => emp.id.toString() === filters.selectedEmployee) || null;
-    }, [filters.selectedEmployee, employees]);
+
+        const found =
+            filteredEmployees.find((emp) => emp.id.toString() === filters.selectedEmployee) ||
+            employees.find((emp) => emp.id.toString() === filters.selectedEmployee) ||
+            null;
+
+        if (!found) return null;
+
+        // Override designation/department shown in the report with the currently
+        // selected dropdown values so the printed report matches what the user selected
+        // (even if the underlying employee record has a different value).
+        return {
+            ...found,
+            designationName: filters.designation || found.designationName,
+            departmentName: filters.department || found.departmentName
+        } as Employee;
+    }, [filters.selectedEmployee, employees, filteredEmployees, filters.designation, filters.department]);
 
     // Format employee name with title (Mr/Ms)
     const getEmployeeNameWithTitle = (employee: Employee | null) => {
@@ -379,7 +466,7 @@ export default function EmployeeOfferLetterPage() {
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    className='printable-report shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='space-y-6'>
                         {/* Experience Certificate */}
                         {filters.reportType === 'Experience Certificate' && (
