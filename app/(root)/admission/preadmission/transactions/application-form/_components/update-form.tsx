@@ -688,7 +688,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             if (response && (response.success === true || response.status === 200)) {
                 toast.success('Successfully Updated Student Application ');
                 reset();
-                refetchDropdowns();
                 handleReset();
                 onSuccess?.();
             } else {
@@ -699,6 +698,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             console.error('Submit error:', error);
             toast.error(error.message || 'Failed to submit form');
         }
+        refetchDropdowns();
     };
 
     const handleReset = () => {

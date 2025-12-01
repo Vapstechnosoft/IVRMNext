@@ -17,7 +17,16 @@ export const loginSchema = z.object({
         .refine((value) => value.trim() === value, {
             message: 'Username cannot have leading or trailing spaces'
         }),
-    password: createStringSchema('Password', 6, 50)
+    password: z
+        .string({ message: 'Password is required' })
+        .min(8, { message: `Minimum ${8} characters required for Password` })
+        .max(15, { message: `Maximum ${15} characters allowed for Password` })
+        .regex(/^\S+$/, {
+            message: 'Password cannot contain whitespace'
+        })
+        .refine((value) => value.trim() === value, {
+            message: 'Password cannot have leading or trailing spaces'
+        })
 });
 
 export const masterClassSchema = {

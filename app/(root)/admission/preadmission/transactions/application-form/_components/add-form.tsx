@@ -530,7 +530,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
             if (response.success) {
                 reset();
-                refetchDropdowns();
                 handleReset();
                 onSuccess?.();
             } else {
@@ -539,6 +538,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         } catch (error: any) {
             toast.error(error.message);
         }
+
+        refetchDropdowns();
     };
 
     const handleReset = () => {
