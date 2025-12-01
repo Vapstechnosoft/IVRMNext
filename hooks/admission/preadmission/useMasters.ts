@@ -93,7 +93,6 @@ export const useMasterClassCategory = (searchParams?: ApiSearchparams) => {
 
 export const useAcademicYearDropdown = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
@@ -110,7 +109,6 @@ export const useAcademicYearDropdown = () => {
 
 export const useMasterCategoryDropdown = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN],
@@ -127,7 +125,6 @@ export const useMasterCategoryDropdown = () => {
 
 export const useMasterClassDropdown = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_DROPDOWN],
@@ -234,7 +231,8 @@ export const useMasterCasteCategoryDropdown = () => {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY_DROPDOWN],
             queryFn: async () => getMasterCasteCategoryDropdown(),
-            staleTime: 0
+            staleTime: 0,
+            refetchInterval: 5000
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

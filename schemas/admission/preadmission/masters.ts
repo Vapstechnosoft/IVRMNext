@@ -2,6 +2,7 @@ import {
     createAlphanumericSchema,
     createOptionalAlphaNumericSchemaNotOptional,
     createOptionalStringSchema,
+    createRequiredAlphaNumericWithSpaceSchema,
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaNotAllowNumbersOnly,
@@ -108,7 +109,7 @@ export const masterClassCategorySchema = {
         asmcC_Id: z.number().int({ message: 'ASMCC_ID is required' }).optional(),
         asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
         amC_Id: z.number().int({ message: 'Category is required' }),
-        class_ids: z.array(z.string()).nonempty('Please select at least one class')
+        class_ids: z.array(z.string()).min(1, 'Please select at least one class')
     }),
     delete: z.object({
         asmcC_Id: deleteIdSchema('asmcC_Id')
@@ -202,7 +203,7 @@ export const masterDocumentSchema = {
     addOrUpdate: z.object({
         amsmD_Id: z.number().int({ message: 'AMSMD_ID is required' }).optional(),
         amsmD_DocumentName: createStringOnlySchema('Document Name', 1, 100),
-        amsmD_Description: createOptionalAlphaNumericSchemaNotOptional('Description', 1, 1000),
+        amsmD_Description: createRequiredAlphaNumericWithSpaceSchema('Description', 1, 1000),
         amsmD_FLAG: z.number().int({ message: 'Mandatory Flag is required' })
     }),
     delete: z.object({
@@ -214,7 +215,7 @@ export const masterReferenceSchema = {
     addOrUpdate: z.object({
         pamR_Id: z.number().int({ message: 'PAMR_Id is required' }).optional(),
         pamR_ReferenceName: createStringOnlySchema('Reference Name', 1, 50),
-        pamR_ReferenceDesc: createStringOnlySchema('Description', 1, 500)
+        pamR_ReferenceDesc: createRequiredAlphaNumericWithSpaceSchema('Description', 1, 500)
     }),
     delete: z.object({
         pamR_Id: deleteIdSchema('pamR_Id')
@@ -225,7 +226,7 @@ export const masterSourceSchema = {
     addOrUpdate: z.object({
         pamS_Id: z.number().int({ message: 'PAMS_ID is required' }).optional(),
         pamS_SourceName: createStringOnlySchema('Source Name', 1, 50),
-        pamS_SourceDesc: createStringOnlySchema('Description', 1, 500)
+        pamS_SourceDesc: createRequiredAlphaNumericWithSpaceSchema('Description', 1, 500)
     }),
     delete: z.object({
         pamS_Id: deleteIdSchema('pamS_Id')

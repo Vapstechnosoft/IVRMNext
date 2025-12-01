@@ -50,6 +50,43 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
     });
 
     useEffect(() => {
+        if (!initialData) return;
+        reset(initialData);
+        if (initialData?.asmaY_Id !== undefined && initialData?.asmaY_Id !== null) {
+            setValue('asmaY_Id', Number(initialData.asmaY_Id), { shouldValidate: true });
+        }
+        setEnquiryApplicable(Boolean(initialData.ispaC_EnquiryApplFlag));
+        setOralTestApplicable(Boolean(initialData.ispaC_OralTestApplFlag));
+        setOralMarksEntry(Boolean(initialData.ispaC_OralMarksFlag));
+    }, [initialData?.ispaC_Id, reset]);
+
+    useEffect(() => {
+        if (!academicYear?.data || academicYear.data.length === 0) return;
+
+        let targetId: number | undefined | null;
+        if (initialData?.asmaY_Id !== undefined && initialData?.asmaY_Id !== null && Number(initialData.asmaY_Id) > 0) {
+            targetId = Number(initialData.asmaY_Id);
+        }
+
+        if (targetId !== undefined && targetId !== null) {
+            const exists = academicYear.data.some((y) => y.asmaY_Id === Number(targetId));
+            if (exists) {
+                setValue('asmaY_Id', Number(targetId), { shouldValidate: true });
+            }
+        }
+    }, [academicYear?.data, initialData?.asmaY_Id, setValue]);
+
+    useEffect(() => {
+        if (!masterCategory?.data || masterCategory.data.length === 0) return;
+
+        if (initialData?.amC_Id !== undefined && initialData?.amC_Id !== null) {
+            const exists = masterCategory.data.some((c) => c.amC_Id === initialData.amC_Id);
+            if (exists) {
+                setValue('amC_Id', initialData.amC_Id, { shouldValidate: true });
+            }
+        }
+    }, [masterCategory?.data, initialData?.amC_Id, setValue]);
+    useEffect(() => {
         if (Object.keys(errors).length > 0) {
             Object.keys(errors).forEach(() => {
                 // This is to checking generic key in errors object
@@ -160,12 +197,9 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                 onSuccess?.();
             } else {
                 const errorMsg = response?.message ?? 'Update failed - no response message';
-                console.error('❌ Update failed:', errorMsg);
                 toast.error(errorMsg);
             }
         } catch (err: any) {
-            console.error('❌ Exception caught:', err);
-            console.error('❌ Error stack:', err.stack);
             toast.error(err.message ?? 'Error updating configuration');
         }
     };
@@ -194,7 +228,10 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                 name='asmaY_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ''}>
+                                    <Select
+                                        key={`${field.value ?? 'empty'}-${academicYear?.data?.length ?? 0}`}
+                                        onValueChange={(v) => field.onChange(Number(v))}
+                                        value={field.value !== undefined && field.value !== null ? field.value.toString() : ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
@@ -204,11 +241,23 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                                     Loading...
                                                 </SelectItem>
                                             ) : (
-                                                academicYear?.data?.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
-                                                        {y.asmaY_Year}
-                                                    </SelectItem>
-                                                ))
+                                                <>
+                                                    {academicYear?.data?.map((y) => (
+                                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                                            {y.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))}
+                                                    {/* Fallback: if initialData has an asmaY_Id not present in options, render it so Select shows the value */}
+                                                    {initialData?.asmaY_Id !== undefined &&
+                                                        initialData?.asmaY_Id !== null &&
+                                                        !academicYear?.data?.some((yy) => yy.asmaY_Id === Number(initialData.asmaY_Id)) && (
+                                                            <SelectItem
+                                                                value={initialData.asmaY_Id.toString()}
+                                                                key={`fallback-${initialData.asmaY_Id}`}>
+                                                                {(initialData as any).academic_year ?? `Year ${initialData.asmaY_Id}`}
+                                                            </SelectItem>
+                                                        )}
+                                                </>
                                             )}
                                         </SelectContent>
                                     </Select>
@@ -227,9 +276,9 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                        key={field.value || 'empty'}
+                                        key={field.value ?? 'empty'}
                                         onValueChange={(v) => field.onChange(Number(v))}
-                                        value={field.value?.toString() || ''}>
+                                        value={field.value !== undefined && field.value !== null ? field.value.toString() : ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
@@ -374,7 +423,7 @@ export default function UpdateMasterConfiguration({ initialData, onSuccess, clas
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            key={field.value || 'empty'}
+                                            key={`${field.value ?? 'empty'}-${masterCategory?.data?.length ?? 0}`}
                                             onValueChange={(v) => field.onChange(Number(v))}
                                             value={field.value !== undefined && field.value !== null ? field.value.toString() : '0'}>
                                             <SelectTrigger className='w-full'>
@@ -531,7 +580,7 @@ function NumberField({
                     <Input
                         type='number'
                         {...field}
-                        value={value ? value.toString() : ''}
+                        value={value !== undefined && value !== null ? value.toString() : ''}
                         onChange={(e) => {
                             const val = e.target.value === '' ? 0 : Number(e.target.value);
                             onChange(Math.max(0, val));
