@@ -49,6 +49,17 @@ export function createOptionalNumberOnlyStringSchema(field: string, min: number,
         .or(z.literal('')); // empty allowed
 }
 
+export function createNumberOnlyStringSchema(field: string, min: number, max: number) {
+    return z
+        .string()
+        .regex(/^\d+$/, { message: `${field} must contain only numbers` }) // at least 1 digit
+        .min(min, { message: `${field} must have at least ${min} digits` })
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .refine((value) => value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        });
+}
+
 export function createOptionalStringSchemaNotAllowNumbersOnly(field: string, min: number, max: number) {
     return (
         z
