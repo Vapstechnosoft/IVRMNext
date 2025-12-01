@@ -1,556 +1,639 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMonthEndReportOnload, useSearchMonthEndReport } from '@/hooks/hrms/useReports';
-import { Building, Calculator, Download, Printer, TrendingUp, UserCheck, Users } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Printer, RefreshCw, Search, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
-import { type MonthEndRecord as MonthEndRecordColumn, monthEndReportColumns } from './_components/columns';
-import { type FilterOptions, HRMSMonthEndFilters, type MonthEndFilters } from './_components/filters';
+import { z } from 'zod';
 
-// Month End Report data structure
-interface MonthEndRecord {
-    id?: string;
-    employeeCode: string;
-    employeeName: string;
-    groupType: string;
-    department: string;
-    designation: string;
-    basicSalary: number;
-    allowances: number;
-    grossSalary: number;
-    pfContribution: number;
-    esiContribution: number;
-    incomeTax: number;
-    otherDeductions: number;
-    totalDeductions: number;
-    netSalary: number;
-    workingDays: number;
-    presentDays: number;
-    absentDays: number;
-    leavesTaken: number;
-    overtime: number;
-    status: 'Active' | 'On Leave' | 'Absent' | 'Resigned';
-    month: string;
-    year: string;
-    ieName: string;
-}
+const monthEndReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'At least one group type is required'),
+    department: z.array(z.string()).min(1, 'At least one department is required'),
+    designation: z.array(z.string()).min(1, 'At least one designation is required'),
+    ieName: z.string().min(1, 'IE Name is required'),
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required')
+});
 
-// Month End Summary
-interface MonthEndSummary {
-    totalEmployees: number;
-    activeEmployees: number;
-    onLeaveEmployees: number;
-    absentEmployees: number;
-    totalBasicSalary: number;
-    totalGrossSalary: number;
-    totalDeductions: number;
-    totalNetSalary: number;
-    averageNetSalary: number;
-}
+type FormFields = z.infer<typeof monthEndReportSchema>;
+
+const mockMonthEndData = {
+    reportData: [
+        {
+            slNo: 1,
+            description: 'Total Students',
+            count: 1250,
+            sms: 1200,
+            email: 1180,
+            missingDetails: {
+                photo: 45,
+                emailId: 70,
+                contactNumber: 25
+            }
+        },
+        {
+            slNo: 2,
+            description: 'Total Staff',
+            count: 85,
+            sms: 85,
+            email: 82,
+            missingDetails: {
+                photo: 3,
+                emailId: 3,
+                contactNumber: 0
+            }
+        },
+        {
+            slNo: 3,
+            description: 'New Admissions',
+            count: 45,
+            sms: 45,
+            email: 40,
+            missingDetails: {
+                photo: 12,
+                emailId: 5,
+                contactNumber: 8
+            }
+        },
+        {
+            slNo: 4,
+            description: 'Attendance Records',
+            count: 2850,
+            sms: 2850,
+            email: 2800,
+            missingDetails: {
+                photo: 0,
+                emailId: 50,
+                contactNumber: 15
+            }
+        },
+        {
+            slNo: 5,
+            description: 'Fee Payments',
+            count: 980,
+            sms: 950,
+            email: 920,
+            missingDetails: {
+                photo: 0,
+                emailId: 60,
+                contactNumber: 30
+            }
+        }
+    ]
+};
 
 export default function HRMSMonthEndReportPage() {
-    const roleId = HRMS_MI_ID;
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any>(null);
+    const printRef = useRef<HTMLDivElement>(null);
 
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useMonthEndReportOnload(roleId);
-    const searchMutation = useSearchMonthEndReport();
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
 
-    // State
-    const [monthEndRecords, setMonthEndRecords] = useState<MonthEndRecord[]>([]);
-    const [filteredRecords, setFilteredRecords] = useState<MonthEndRecord[]>([]);
-    const [showReport, setShowReport] = useState(false);
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
 
-    const [filters, setFilters] = useState<MonthEndFilters>({
-        selectedGroupTypes: [],
-        selectedDepartments: [],
-        selectedDesignations: [],
-        month: '',
-        year: '',
-        ieName: ''
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
+
+    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
+
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
+
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DeaparmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const MonthsOptions =
+        masterMonths?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        watch,
+        formState: { errors }
+    } = useForm<FormFields>({
+        resolver: zodResolver(monthEndReportSchema),
+        defaultValues: {
+            groupType: [],
+            department: [],
+            designation: [],
+            ieName: '',
+            month: '',
+            year: ''
+        },
+        mode: 'onChange'
     });
 
-    // Memoize dropdown data from API
-    const months = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).monthdropdown || [];
-    }, [onloadData?.data]);
+    const selectedMonth = watch('month');
+    const selectedYear = watch('year');
+    const ieName = watch('ieName');
 
-    const years = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).leaveyeardropdown || [];
-    }, [onloadData?.data]);
-
-    const groupTypes = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).groupTypedropdown || [];
-    }, [onloadData?.data]);
-
-    const departments = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).departmentdropdown || [];
-    }, [onloadData?.data]);
-
-    const designations = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).designationdropdown || [];
-    }, [onloadData?.data]);
-
-    // Get institution details from API
-    const institutionDetails = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return null;
-        return (data as any).institutionDetails || null;
-    }, [onloadData?.data]);
-
-    // Filter options for filters component
-    const filterOptions: FilterOptions = useMemo(() => {
-        return {
-            groupTypes: groupTypes
-                .filter((gt: any) => gt.hrmgT_Id && gt.HRMGT_GroupTypeName)
-                .map((gt: any) => ({
-                    id: gt.hrmgT_Id,
-                    groupType: gt.HRMGT_GroupTypeName
-                })),
-            departments: departments
-                .filter((dept: any) => dept.hrmD_Id && dept.HRMD_DepartmentName)
-                .map((dept: any) => ({
-                    id: dept.hrmD_Id,
-                    departmentName: dept.HRMD_DepartmentName
-                })),
-            designations: designations
-                .filter((desg: any) => desg.hrmdeS_Id && desg.HRMDES_DesignationName)
-                .map((desg: any) => ({
-                    id: desg.hrmdeS_Id,
-                    designationName: desg.HRMDES_DesignationName
-                }))
-        };
-    }, [groupTypes, departments, designations]);
-
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load month end report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [onloadError, isLoadingOnload, onloadData]);
-
-    // Filter records based on selected filters
-    useEffect(() => {
-        let filtered = monthEndRecords;
-
-        // Filter by group types
-        if (filters.selectedGroupTypes.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedGroupTypes.includes(record.groupType));
-        }
-
-        // Filter by departments
-        if (filters.selectedDepartments.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDepartments.includes(record.department));
-        }
-
-        // Filter by designations
-        if (filters.selectedDesignations.length > 0) {
-            filtered = filtered.filter((record) => filters.selectedDesignations.includes(record.designation));
-        }
-
-        // Filter by month
-        if (filters.month) {
-            filtered = filtered.filter((record) => record.month === filters.month);
-        }
-
-        // Filter by year
-        if (filters.year) {
-            filtered = filtered.filter((record) => record.year === filters.year);
-        }
-
-        // Filter by IE Name
-        if (filters.ieName) {
-            filtered = filtered.filter(
-                (record) =>
-                    record.ieName.toLowerCase().includes(filters.ieName.toLowerCase()) ||
-                    record.employeeName.toLowerCase().includes(filters.ieName.toLowerCase())
-            );
-        }
-
-        setFilteredRecords(filtered);
-    }, [filters, monthEndRecords]);
-
-    const handleFilterChange = (newFilters: MonthEndFilters) => {
-        setFilters(newFilters);
+    const getMonthName = (monthValue: string) => {
+        return MonthsOptions.find((m: any) => m.value === monthValue)?.label || '';
     };
 
-    const handleSearch = () => {
-        if (!filters.month || !filters.year) {
-            toast.error('Please select both month and year');
-            return;
+    const onSearch = async (data: FormFields) => {
+        setIsSearching(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            setReportData({
+                ...mockMonthEndData,
+                ieName: data.ieName,
+                month: getMonthName(data.month),
+                year: data.year,
+                date: new Date().toLocaleDateString('en-IN'),
+                designation: 'Implementation Engineer'
+            });
+            toast.success('Report generated successfully!');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
+        } finally {
+            setIsSearching(false);
         }
-
-        // Find month name from selected month
-        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
-        const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
-
-        // Find selected group type IDs
-        const selectedGroupTypeIds = filters.selectedGroupTypes
-            .map((name) => {
-                const groupType = groupTypes.find((gt: any) => gt.HRMGT_GroupTypeName === name);
-                return groupType?.hrmgT_Id;
-            })
-            .filter((id): id is number => id !== undefined);
-
-        // Find selected department IDs
-        const selectedDepartmentIds = filters.selectedDepartments
-            .map((name) => {
-                const dept = departments.find((d: any) => d.HRMD_DepartmentName === name);
-                return dept?.hrmD_Id;
-            })
-            .filter((id): id is number => id !== undefined);
-
-        // Find selected designation IDs
-        const selectedDesignationIds = filters.selectedDesignations
-            .map((name) => {
-                const desg = designations.find((d: any) => d.HRMDES_DesignationName === name);
-                return desg?.hrmdeS_Id;
-            })
-            .filter((id): id is number => id !== undefined);
-
-        // Prepare search request
-        const searchRequest = {
-            MI_Id: roleId,
-            retrunMsg: '',
-            roleId: 0,
-            HRES_Year: filters.year,
-            HRES_Month: monthName,
-            monthdropdown: [],
-            leaveyeardropdown: [],
-            employeeDetails: [],
-            groupTypeIdList: selectedGroupTypeIds.length > 0 ? selectedGroupTypeIds : [],
-            hrmD_IdList: selectedDepartmentIds.length > 0 ? selectedDepartmentIds : [],
-            hrmdeS_IdList: selectedDesignationIds.length > 0 ? selectedDesignationIds : [],
-            empid: []
-        };
-
-        // Call search API to get month end report data
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Extract employee details from response
-                    const employeeData = response.data.employeeDetails || [];
-
-                    if (Array.isArray(employeeData) && employeeData.length > 0) {
-                        // Map API response to MonthEndRecord format
-                        const mappedRecords: MonthEndRecord[] = employeeData.map((item: any, index: number) => {
-                            const basicSalary = item.basicamount || item.basicSalary || item.HRESD_Amount || 0;
-                            const allowances = item.allowances || item.DAamount || item.Othersamount || 0;
-                            const grossSalary = item.empGrossSal || item.grossSalary || basicSalary + allowances;
-                            const pfContribution = item.HRES_EPF || item.pfContribution || 0;
-                            const esiContribution = item.esiContribution || 0;
-                            const incomeTax = item.incomeTax || item.professionaltaxamount || 0;
-                            const otherDeductions = item.otherDeductions || 0;
-                            const totalDeductions = pfContribution + esiContribution + incomeTax + otherDeductions;
-                            const netSalary = item.netsalary || item.netSalary || grossSalary - totalDeductions;
-
-                            // Determine status
-                            let status: 'Active' | 'On Leave' | 'Absent' | 'Resigned' = 'Active';
-                            if (item.HRME_DOL || item.dateOfLeaving) {
-                                status = 'Resigned';
-                            } else if (item.status) {
-                                status = item.status;
-                            }
-
-                            return {
-                                id: `monthend-${item.HRME_Id || item.HRES_Id || index}`,
-                                employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
-                                employeeName:
-                                    `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim() ||
-                                    item.EmployeeName ||
-                                    '',
-                                groupType: item.groupTypeName || item.HRMGT_GroupTypeName || 'N/A',
-                                department: item.departmentName || item.HRMD_DepartmentName || 'N/A',
-                                designation: item.DesignationName || item.HRMDES_DesignationName || 'N/A',
-                                basicSalary: Math.round(basicSalary),
-                                allowances: Math.round(allowances),
-                                grossSalary: Math.round(grossSalary),
-                                pfContribution: Math.round(pfContribution),
-                                esiContribution: Math.round(esiContribution),
-                                incomeTax: Math.round(incomeTax),
-                                otherDeductions: Math.round(otherDeductions),
-                                totalDeductions: Math.round(totalDeductions),
-                                netSalary: Math.round(netSalary),
-                                workingDays: item.HRES_WorkingDays || item.workingDays || 0,
-                                presentDays: item.presentDays || item.HRES_WorkingDays || 0,
-                                absentDays: item.absentDays || 0,
-                                leavesTaken: item.leavesTaken || 0,
-                                overtime: item.overtime || 0,
-                                status: status,
-                                month: filters.month,
-                                year: filters.year,
-                                ieName: filters.ieName || 'HR Department'
-                            };
-                        });
-
-                        setMonthEndRecords(mappedRecords);
-                        setShowReport(true);
-                        toast.success('Month End Report generated successfully');
-                    } else {
-                        // No data returned
-                        setMonthEndRecords([]);
-                        setShowReport(true);
-                        toast.warning('Month End Report generated but no data found for selected period');
-                    }
-                } else {
-                    toast.error(response.message || 'Failed to generate Month End Report');
-                }
-            },
-            onError: (error: Error) => {
-                console.error('Error searching month end report:', error);
-                toast.error(error.message || 'Failed to generate Month End Report');
-            }
-        });
     };
 
-    const handleCancel = () => {
-        setFilters({
-            selectedGroupTypes: [],
-            selectedDepartments: [],
-            selectedDesignations: [],
+    const handleReset = () => {
+        reset({
+            groupType: [],
+            department: [],
+            designation: [],
+            ieName: '',
             month: '',
-            year: '',
-            ieName: ''
+            year: ''
         });
-        setMonthEndRecords([]);
-        setFilteredRecords([]);
-        setShowReport(false);
-        toast.info('Filters cleared');
-    };
-
-    const handleExport = () => {
-        toast.success('Month End Report exported successfully');
+        setReportData(null);
+        toast.info('Form has been reset');
     };
 
     const handlePrint = () => {
         window.print();
-        toast.success('Print dialog opened');
     };
 
-    // Calculate Month End summary
-    const monthEndSummary: MonthEndSummary = useMemo(() => {
-        const activeEmployees = filteredRecords.filter((record) => record.status === 'Active').length;
-        const onLeaveEmployees = filteredRecords.filter((record) => record.status === 'On Leave').length;
-        const absentEmployees = filteredRecords.filter((record) => record.status === 'Absent').length;
+    const chartData = reportData?.reportData.map((item: any) => ({
+        name: item.description,
+        Count: item.count,
+        SMS: item.sms,
+        Email: item.email
+    }));
 
-        const summary = filteredRecords.reduce(
-            (acc, record) => ({
-                totalEmployees: filteredRecords.length,
-                activeEmployees: activeEmployees,
-                onLeaveEmployees: onLeaveEmployees,
-                absentEmployees: absentEmployees,
-                totalBasicSalary: acc.totalBasicSalary + record.basicSalary,
-                totalGrossSalary: acc.totalGrossSalary + record.grossSalary,
-                totalDeductions: acc.totalDeductions + record.totalDeductions,
-                totalNetSalary: acc.totalNetSalary + record.netSalary,
-                averageNetSalary: 0 // Will be calculated after
+    const getTotals = () => {
+        if (!reportData) return null;
+        return reportData.reportData.reduce(
+            (acc: any, curr: any) => ({
+                count: acc.count + curr.count,
+                sms: acc.sms + curr.sms,
+                email: acc.email + curr.email,
+                photo: acc.photo + curr.missingDetails.photo,
+                emailId: acc.emailId + curr.missingDetails.emailId,
+                contactNumber: acc.contactNumber + curr.missingDetails.contactNumber
             }),
-            {
-                totalEmployees: 0,
-                activeEmployees: 0,
-                onLeaveEmployees: 0,
-                absentEmployees: 0,
-                totalBasicSalary: 0,
-                totalGrossSalary: 0,
-                totalDeductions: 0,
-                totalNetSalary: 0,
-                averageNetSalary: 0
-            }
+            { count: 0, sms: 0, email: 0, photo: 0, emailId: 0, contactNumber: 0 }
         );
+    };
 
-        summary.averageNetSalary = filteredRecords.length > 0 ? Math.round(summary.totalNetSalary / filteredRecords.length) : 0;
-
-        return summary;
-    }, [filteredRecords]);
+    const totals = getTotals();
 
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <HRMSMonthEndFilters
-                filters={filters}
-                filterOptions={filterOptions}
-                months={months}
-                years={years}
-                onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-                isLoading={isLoadingOnload}
-            />
+        <div className='min-h-screen p-8'>
+            <style>
+                {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #printable-report, #printable-report * {
+              visibility: visible;
+            }
+            #printable-report {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}
+            </style>
 
-            {/* Report Results */}
-            {showReport && (
-                <div className='space-y-4'>
-                    {/* Report Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>
-                                Month End Report - {filters.month} {filters.year}
-                            </h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Total Employees: {filteredRecords.length} | Active: {monthEndSummary.activeEmployees} | Total Net Salary: ₹
-                                {monthEndSummary.totalNetSalary.toLocaleString()}
-                            </p>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='Month End Report'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='no-print slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            <div className='space-y-2'>
+                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                    Group Type: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterGroupTypesLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : groupTypeOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No group types available</div>
+                                ) : masterGroupTypesError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='groupType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={groupTypeOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Group Types'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                    Department: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDepartmentsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DeaparmentsOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No departments available</div>
+                                ) : masterDepartmentsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='department'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DeaparmentsOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Departments'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                    Designation: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDesignationsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DesignationOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No designations available</div>
+                                ) : masterDesignationsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='designation'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DesignationOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Designations'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
                         </div>
-                        <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                Export
+
+                        <div className='flex justify-center'>
+                            <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='month' className='font-medium text-sm text-white-900'>
+                                        Month: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='month'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Month' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {masterMonthsLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterMonthsError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        MonthsOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.month && <FormError>{errors.month.message}</FormError>}
+                                </div>
+
+                                <div className='space-y-2'>
+                                    <Label htmlFor='year' className='font-medium text-sm text-white-900'>
+                                        Year: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='year'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Year' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {masterYearsLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterYearsError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        YearsOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.year && <FormError>{errors.year.message}</FormError>}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='flex justify-center'>
+                            <div className='w-full max-w-md space-y-2'>
+                                <Label htmlFor='ie-name' className='font-medium text-sm text-white-900'>
+                                    IE Name: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='ieName'
+                                    control={control}
+                                    render={({ field }) => <Input {...field} id='ie-name' placeholder='Enter IE Name' className='w-full' />}
+                                />
+                                {errors.ieName && <FormError>{errors.ieName.message}</FormError>}
+                            </div>
+                        </div>
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
                             </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
+                </CollapsibleSection>
 
-                    {/* Summary Cards */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='flex items-center gap-1 text-muted-foreground text-sm'>
-                                    <Users className='h-3 w-3' />
-                                    Total Employees
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>{monthEndSummary.totalEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='flex items-center gap-1 text-muted-foreground text-sm'>
-                                    <UserCheck className='h-3 w-3' />
-                                    Active Employees
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>{monthEndSummary.activeEmployees}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='flex items-center gap-1 text-muted-foreground text-sm'>
-                                    <TrendingUp className='h-3 w-3' />
-                                    Total Gross Salary
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-blue-600 text-lg'>
-                                    ₹{monthEndSummary.totalGrossSalary.toLocaleString()}
+                {reportData && (
+                    <div id='printable-report' ref={printRef}>
+                        <CollapsibleSection
+                            title='Month End Report'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                            <div className='space-y-6 p-6'>
+                                <div className='space-y-4 text-center'>
+                                    <div className='mb-4 flex justify-center'>
+                                        <div className='flex h-20 w-20 items-center justify-center rounded-full bg-gray-200'>
+                                            <span className='text-gray-500 text-xs'>Logo</span>
+                                        </div>
+                                    </div>
+                                    <h1 className='font-bold text-2xl'>
+                                        HRMS Month End Report of {reportData.month} - {reportData.year}
+                                    </h1>
+                                    <h2 className='font-semibold text-xl uppercase'>{reportData.month} MONTH REPORT</h2>
                                 </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Net Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-orange-600'>
-                                    ₹{monthEndSummary.totalNetSalary.toLocaleString()}
+
+                                <div className='mt-8 overflow-x-auto rounded-lg border'>
+                                    <table className='w-full border-collapse'>
+                                        <thead>
+                                            <tr className='bg-white'>
+                                                <th className='w-40 border px-4 py-3 text-left font-semibold'>Name:</th>
+                                                <td className='border px-4 py-3' colSpan={7}>
+                                                    {reportData.ieName}
+                                                </td>
+                                            </tr>
+                                            <tr className='bg-white'>
+                                                <th className='w-40 border px-4 py-3 text-left font-semibold'>Date:</th>
+                                                <td className='border px-4 py-3' colSpan={7}>
+                                                    {reportData.date}
+                                                </td>
+                                            </tr>
+                                            <tr className='bg-white'>
+                                                <th className='w-40 border px-4 py-3 text-left font-semibold'>Designation:</th>
+                                                <td className='border px-4 py-3' colSpan={7}>
+                                                    {reportData.designation}
+                                                </td>
+                                            </tr>
+                                            <tr className='bg-white'>
+                                                <th className='w-40 border px-4 py-3 text-left font-semibold'>Module Name:</th>
+                                                <td className='border px-4 py-3' colSpan={7}>
+                                                    HRMS
+                                                </td>
+                                            </tr>
+
+                                            <tr className='border-b-2 bg-white'>
+                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                    SI.No
+                                                </th>
+                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                    Description
+                                                </th>
+                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                    Count
+                                                </th>
+                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                    SMS
+                                                </th>
+                                                <th className='border px-4 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                    Email
+                                                </th>
+                                                <th className='border bg-gray-50 px-4 py-2 text-center font-semibold text-sm' colSpan={3}>
+                                                    Missing Details
+                                                </th>
+                                            </tr>
+                                            <tr className='border-b-2 bg-gray-50'>
+                                                <th className='border px-4 py-2 text-center font-medium text-xs'>Photo</th>
+                                                <th className='border px-4 py-2 text-center font-medium text-xs'>Email-ID</th>
+                                                <th className='border px-4 py-2 text-center font-medium text-xs'>Contact Number</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {reportData.reportData.map((row: any, index: number) => (
+                                                <tr key={index} className='hover:bg-gray-50'>
+                                                    <td className='border px-4 py-2 text-center text-sm'>{row.slNo}</td>
+                                                    <td className='border px-4 py-2 text-left text-sm'>{row.description}</td>
+                                                    <td className='border px-4 py-2 text-center text-sm'>{row.count}</td>
+                                                    <td className='border px-4 py-2 text-center text-sm'>{row.sms}</td>
+                                                    <td className='border px-4 py-2 text-center text-sm'>{row.email}</td>
+                                                    <td className='border px-4 py-2 text-center text-sm'>{row.missingDetails.photo}</td>
+                                                    <td className='border px-4 py-2 text-center text-sm'>{row.missingDetails.emailId}</td>
+                                                    <td className='border px-4 py-2 text-center text-sm'>
+                                                        {row.missingDetails.contactNumber}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                            {totals && (
+                                                <tr className='border-t-2 bg-white font-bold'>
+                                                    <td className='border px-4 py-3 text-center text-sm' colSpan={2}>
+                                                        Total
+                                                    </td>
+                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.count}</td>
+                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.sms}</td>
+                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.email}</td>
+                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.photo}</td>
+                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.emailId}</td>
+                                                    <td className='border px-4 py-3 text-center text-sm'>{totals.contactNumber}</td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </CardContent>
-                        </Card>
+
+                                <div className='mt-8'>
+                                    <h3 className='mb-4 text-center font-semibold text-lg'>Report Analytics</h3>
+                                    <ResponsiveContainer width='100%' height={400}>
+                                        <BarChart data={chartData}>
+                                            <CartesianGrid strokeDasharray='3 3' />
+                                            <XAxis dataKey='name' angle={-45} textAnchor='end' height={100} />
+                                            <YAxis />
+                                            <Tooltip />
+                                            <Legend />
+                                            <Bar dataKey='Count' fill='#8884d8' />
+                                            <Bar dataKey='SMS' fill='#82ca9d' />
+                                            <Bar dataKey='Email' fill='#ffc658' />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                <div className='mt-12 grid grid-cols-3 gap-8 border-t pt-8'>
+                                    <div className='text-center'>
+                                        <div className='mb-2 h-20 border-gray-300 border-b-2' />
+                                        <p className='font-semibold'>Implementation Engineer</p>
+                                    </div>
+                                    <div className='text-center'>
+                                        <div className='mb-2 h-20 border-gray-300 border-b-2' />
+                                        <p className='font-semibold'>End User Signature</p>
+                                    </div>
+                                    <div className='text-center'>
+                                        <div className='mb-2 h-20 border-gray-300 border-b-2' />
+                                        <p className='font-semibold'>Nodal Officer With Seal</p>
+                                    </div>
+                                </div>
+
+                                <div className='no-print flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                                    <Button
+                                        onClick={handlePrint}
+                                        className='order-1 w-fit gap-2 transition-all duration-200 hover:scale-105 sm:order-2'>
+                                        <Printer className='h-4 w-4' />
+                                        Print
+                                    </Button>
+                                    <Button
+                                        variant='outline'
+                                        onClick={() => setReportData(null)}
+                                        className='order-2 w-fit gap-2 transition-all duration-200 hover:scale-105 sm:order-1'>
+                                        <X className='h-4 w-4' />
+                                        Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                        </CollapsibleSection>
                     </div>
-
-                    {/* Detailed Summary */}
-                    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className='flex items-center gap-2 text-sm'>
-                                    <Calculator className='h-4 w-4' />
-                                    Salary Summary
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className='space-y-3'>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Total Basic Salary:</span>
-                                    <span className='font-semibold'>₹{monthEndSummary.totalBasicSalary.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Total Gross Salary:</span>
-                                    <span className='font-semibold'>₹{monthEndSummary.totalGrossSalary.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Total Deductions:</span>
-                                    <span className='font-semibold text-red-600'>₹{monthEndSummary.totalDeductions.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Total Net Salary:</span>
-                                    <span className='font-semibold text-green-600'>₹{monthEndSummary.totalNetSalary.toLocaleString()}</span>
-                                </div>
-                                <div className='flex justify-between border-t pt-2'>
-                                    <span className='text-sm'>Average Net Salary:</span>
-                                    <span className='font-semibold text-blue-600'>
-                                        ₹{monthEndSummary.averageNetSalary.toLocaleString()}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className='flex items-center gap-2 text-sm'>
-                                    <Building className='h-4 w-4' />
-                                    Employee Status
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className='space-y-3'>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Active Employees:</span>
-                                    <span className='font-semibold text-green-600'>{monthEndSummary.activeEmployees}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>On Leave:</span>
-                                    <span className='font-semibold text-yellow-600'>{monthEndSummary.onLeaveEmployees}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Absent:</span>
-                                    <span className='font-semibold text-red-600'>{monthEndSummary.absentEmployees}</span>
-                                </div>
-                                <div className='flex justify-between border-t pt-2'>
-                                    <span className='text-sm'>Report Period:</span>
-                                    <span className='font-semibold'>
-                                        {filters.month} {filters.year}
-                                    </span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Generated By:</span>
-                                    <span className='font-semibold'>{filters.ieName || 'HR Department'}</span>
-                                </div>
-                                <div className='flex justify-between'>
-                                    <span className='text-sm'>Organization:</span>
-                                    <span className='font-semibold'>{institutionDetails?.MI_Name || 'N/A'}</span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Data Table */}
-                    <DataTable
-                        isLoading={isLoadingOnload}
-                        columns={monthEndReportColumns}
-                        data={filteredRecords as unknown as MonthEndRecordColumn[]}
-                        totalItems={filteredRecords.length}
-                        showViewOptions={true}
-                        columnPinning={{ left: ['id'] }}
-                    />
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 }

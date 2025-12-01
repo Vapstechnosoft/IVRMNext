@@ -1,434 +1,842 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import {
-    useEmployeeContributionReportOnload,
-    useFilterEmployeeContributionReport,
-    useSearchEmployeeContributionDetails
-} from '@/hooks/hrms/useReports';
-import { Download, Printer } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
+import { cn } from '@/lib/utils';
+import { type ReportFormFields, ReportSchema } from '@/schemas/hrms/employee-category-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type EmployeeContribution, employeeContributionColumns } from './_components/columns';
-import { type ContributionReportFilters, EmployeeContributionFilters } from './_components/filters';
+import Footer from '../footer/footer';
 
-export default function EmployeeContributionReportPage() {
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeContributionReportOnload(30, 0);
-    const filterMutation = useFilterEmployeeContributionReport();
-    const searchMutation = useSearchEmployeeContributionDetails();
+const EarningHeadOptions = [
+    { value: 'basic', label: 'Basic Salary' },
+    { value: 'hra', label: 'HRA' },
+    { value: 'da', label: 'Dearness Allowance' },
+    { value: 'ta', label: 'Transport Allowance' },
+    { value: 'bonus', label: 'Bonus' }
+];
 
-    // State
-    const [contributions, setContributions] = useState<EmployeeContribution[]>([]);
-    const [filteredContributions, setFilteredContributions] = useState<EmployeeContribution[]>([]);
-    const [showReport, setShowReport] = useState(false);
-    const [isFiltering, setIsFiltering] = useState(false);
+const DeductionHeadOptions = [
+    { value: 'pf', label: 'Provident Fund' },
+    { value: 'esi', label: 'ESI' },
+    { value: 'tds', label: 'TDS' },
+    { value: 'loan', label: 'Loan Deduction' },
+    { value: 'advance', label: 'Advance Deduction' }
+];
 
-    // Memoize dropdown data from API
-    const groupTypes = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).groupTypedropdown || [];
-    }, [onloadData?.data]);
+const EmployeeOptions = [
+    { value: 'emp1', label: 'ANNAPOORNESHWARI DODDAMANE C K' },
+    { value: 'emp2', label: 'ABHISHEK C' },
+    { value: 'emp3', label: 'ANURADHA SE' },
+    { value: 'emp4', label: 'ANUSHA T' },
+    { value: 'emp5', label: 'ARCHANA N G' }
+];
 
-    const departments = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).departmentdropdown || [];
-    }, [onloadData?.data]);
+const mockReportData = [
+    {
+        employeeCode: 'VVS014',
+        employeeName: 'ANNAPOORNESHWARI DODDAMANE C K',
+        department: 'Teaching',
+        designationName: 'Asst. Teacher',
+        basicPay: 8000.0,
+        hra: 2400.0,
+        da: 1600.0,
+        otherAllowance: 1000.0
+    },
+    {
+        employeeCode: 'VVS074',
+        employeeName: 'ABHISHEK C',
+        department: 'Teaching',
+        designationName: 'Asst. Teacher',
+        basicPay: 10000.0,
+        hra: 3000.0,
+        da: 2000.0,
+        otherAllowance: 1000.0
+    },
+    {
+        employeeCode: 'VVS101',
+        employeeName: 'ANURADHA SE',
+        department: 'Teaching',
+        designationName: 'Asst. Teacher',
+        basicPay: 11500.0,
+        hra: 3450.0,
+        da: 2300.0,
+        otherAllowance: 1191.0
+    },
+    {
+        employeeCode: 'VVS015',
+        employeeName: 'ANUSHA T',
+        department: 'Teaching',
+        designationName: 'Asst. Teacher',
+        basicPay: 8500.0,
+        hra: 2550.0,
+        da: 1700.0,
+        otherAllowance: 750.0
+    },
+    {
+        employeeCode: 'VVS102',
+        employeeName: 'ARCHANA N G',
+        department: 'Teaching',
+        designationName: 'Asst. Teacher',
+        basicPay: 7500.0,
+        hra: 2250.0,
+        da: 1500.0,
+        otherAllowance: 740.0
+    },
+    {
+        employeeCode: '139',
+        employeeName: 'Dr SWAMY K N',
+        department: 'Administration',
+        designationName: 'ACADEMIC ADMINISTRATOR',
+        basicPay: 35000.0,
+        hra: 10500.0,
+        da: 7000.0,
+        otherAllowance: 2500.0
+    },
+    {
+        employeeCode: 'VVS009',
+        employeeName: 'PRUTHVISHA S M',
+        department: 'Administration',
+        designationName: 'Chairman',
+        basicPay: 50000.0,
+        hra: 15000.0,
+        da: 10000.0,
+        otherAllowance: 5000.0
+    }
+];
 
-    const designations = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).designationdropdown || [];
-    }, [onloadData?.data]);
+export default function EarningsDeductionsReport() {
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any[]>([]);
 
-    const months = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).monthdropdown || [];
-    }, [onloadData?.data]);
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
 
-    const years = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).leaveyeardropdown || [];
-    }, [onloadData?.data]);
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
 
-    const earningHeads = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).earningdropdown || [];
-    }, [onloadData?.data]);
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
 
-    const deductionHeads = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).detectiondropdown || [];
-    }, [onloadData?.data]);
+    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
 
-    const [filters, setFilters] = useState<ContributionReportFilters>({
-        groupType: [] as number[],
-        department: [] as number[],
-        designation: [] as number[],
-        contributionType: 'Earning',
-        dateType: 'Month',
-        selectedMonth: '',
-        selectedYear: '',
-        fromDate: null,
-        toDate: null,
-        reportType: 'All',
-        selectedEmployees: [] as number[],
-        selectedEarningHead: 0,
-        selectedDeductionHead: 0
-    });
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
 
-    // Employee dropdown state - populated from filter API
-    const [employees, setEmployees] = useState<any[]>([]);
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load employee contribution report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [onloadError, isLoadingOnload, onloadData]);
+    const DeaparmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-    // Filter contributions based on selected criteria
-    useEffect(() => {
-        // Filter local contributions if any exist
-        if (contributions.length > 0) {
-            setFilteredContributions(contributions);
-        }
-    }, [filters, contributions]);
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-    // Fetch employees when Individual is selected and filters are applied
-    useEffect(() => {
-        // Only fetch employees if Individual is selected and we have date filters
-        if (filters.reportType !== 'Individual') {
-            setEmployees([]);
-            return;
-        }
+    const MonthsOptions =
+        masterMonths?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-        // Check if we have required date filters
-        const hasDateFilters =
-            (filters.dateType === 'Month' && filters.selectedMonth && filters.selectedYear) ||
-            (filters.dateType === 'Between Dates' && filters.fromDate && filters.toDate);
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-        if (!hasDateFilters) {
-            setEmployees([]);
-            return;
-        }
-
-        // Find month ID from selected month value
-        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Id?.toString() === filters.selectedMonth);
-        const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || filters.selectedMonth || '';
-
-        // Prepare filter request to get employees
-        const filterRequest = {
-            MI_Id: 30,
-            FormatType: 'Individual',
-            MonthBetweenDates: filters.dateType === 'Month' ? 'Month' : 'Between Dates',
-            hreS_Month: filters.dateType === 'Month' ? monthId : '',
-            hreS_Year: filters.dateType === 'Month' ? filters.selectedYear : '',
-            FromDate: filters.dateType === 'Between Dates' && filters.fromDate ? filters.fromDate.toISOString() : '',
-            ToDate: filters.dateType === 'Between Dates' && filters.toDate ? filters.toDate.toISOString() : '',
-            designationselected: filters.designation.length > 0 ? filters.designation : [0],
-            departmentselected: filters.department.length > 0 ? filters.department : [0],
-            groupTypeselected: filters.groupType.length > 0 ? filters.groupType : [0]
-        };
-
-        filterMutation.mutate(filterRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    const employeeList = (response.data as any).employeedropdown || [];
-                    setEmployees(Array.isArray(employeeList) ? employeeList : []);
-                } else {
-                    setEmployees([]);
-                }
-            },
-            onError: () => {
-                setEmployees([]);
-            }
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        filters.reportType,
-        filters.dateType,
-        filters.selectedMonth,
-        filters.selectedYear,
-        filters.fromDate,
-        filters.toDate,
-        filters.groupType,
-        filters.department,
-        filters.designation
-    ]);
-
-    const handleFilterChange = (key: keyof ContributionReportFilters, value: any) => {
-        const newFilters = { ...filters, [key]: value };
-
-        // Reset dependent filters when parent changes
-        if (key === 'groupType') {
-            newFilters.department = [];
-            newFilters.designation = [];
-        } else if (key === 'department') {
-            newFilters.designation = [];
-        }
-
-        setFilters(newFilters);
-    };
-
-    const handleSearch = () => {
-        if (filters.dateType === 'Month' && (!filters.selectedMonth || !filters.selectedYear)) {
-            toast.error('Please select month and year');
-            return;
-        }
-
-        if (filters.dateType === 'Between Dates' && (!filters.fromDate || !filters.toDate)) {
-            toast.error('Please select from and to dates');
-            return;
-        }
-
-        if (filters.reportType === 'Individual' && filters.selectedEmployees.length === 0) {
-            toast.error('Please select at least one employee');
-            return;
-        }
-
-        setIsFiltering(true);
-
-        // Find month ID from selected month value
-        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Id?.toString() === filters.selectedMonth);
-        const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || filters.selectedMonth || '';
-
-        // Prepare search request body (using getEmployeedetailsBySelection for detailed data)
-        const searchRequestBody = {
-            MI_Id: 30,
-            designationselected: filters.designation.length > 0 ? filters.designation : [0],
-            departmentselected: filters.department.length > 0 ? filters.department : [0],
-            groupTypeselected: filters.groupType.length > 0 ? filters.groupType : [0],
-            MonthBetweenDates: filters.dateType === 'Month' ? 'Month' : 'Between Dates',
-            hreS_Month: filters.dateType === 'Month' ? monthId : '',
-            hreS_Year: filters.dateType === 'Month' ? filters.selectedYear : '',
-            FromDate: filters.dateType === 'Between Dates' && filters.fromDate ? filters.fromDate.toISOString() : '',
-            ToDate: filters.dateType === 'Between Dates' && filters.toDate ? filters.toDate.toISOString() : '',
-            FormatType: filters.reportType || 'All',
-            HRME_Id: filters.reportType === 'Individual' && filters.selectedEmployees.length > 0 ? filters.selectedEmployees[0] : 0, // Use first selected employee for Individual, 0 for All
-            EarningDeduction: filters.contributionType,
-            EarningHead: filters.contributionType === 'Earning' && filters.selectedEarningHead > 0 ? filters.selectedEarningHead : 0,
-            DeductionHead: filters.contributionType === 'Deduction' && filters.selectedDeductionHead > 0 ? filters.selectedDeductionHead : 0
-        };
-
-        searchMutation.mutate(searchRequestBody, {
-            onSuccess: (response) => {
-                setIsFiltering(false);
-                if (response.success && response.data) {
-                    // Extract contribution data from response
-                    const contributionData = (response.data as any).employeeContributionDetails;
-
-                    if (Array.isArray(contributionData) && contributionData.length > 0) {
-                        // Map API response to EmployeeContribution format
-                        const mappedContributions: EmployeeContribution[] = contributionData.map((item: any, index: number) => ({
-                            id: item.HRME_Id || index + 1,
-                            employeeCode: item.EmployeeCode || item.HRME_EmployeeCode || '',
-                            employeeName:
-                                `${item.HRME_EmployeeFirstName || ''} ${item.HRME_EmployeeMiddleName || ''} ${item.HRME_EmployeeLastName || ''}`.trim(),
-                            groupTypeId: item.HRMGT_Id || 0,
-                            departmentId: item.HRMD_Id || 0,
-                            designationId: item.HRMDES_Id || 0,
-                            departmentName: item.departmentName || '',
-                            designationName: item.designationName || '',
-                            contributionType: filters.contributionType,
-                            contributionHead: item.EarningHead || item.DeductionHead || '',
-                            monthlyAmount: item.GrossSalary || item.selectedHeadAmount || 0,
-                            contributionDate:
-                                item.hreS_Month && item.hreS_Year
-                                    ? `${item.hreS_Month}-${item.hreS_Year}`
-                                    : new Date().toISOString().split('T')[0],
-                            pfContribution: item.pfContribution || 0,
-                            esiContribution: item.esiContribution || 0,
-                            professionalTax: item.professionalTax || 0,
-                            totalContribution: (item.pfContribution || 0) + (item.esiContribution || 0) + (item.professionalTax || 0),
-                            cumulativeContribution: item.cumulativeContribution || 0,
-                            createdAt: new Date()
-                        }));
-
-                        setContributions(mappedContributions);
-                        setFilteredContributions(mappedContributions);
-                        setShowReport(true);
-                        toast.success('Employee contribution report generated successfully');
-                    } else {
-                        setContributions([]);
-                        setFilteredContributions([]);
-                        setShowReport(true);
-                        toast.info('No contribution data found for the selected filters');
-                    }
-                } else {
-                    const errorMsg =
-                        response.message ||
-                        'Failed to search employee contribution details. Please check if the search API endpoint is available.';
-                    toast.error(errorMsg);
-                    setShowReport(false);
-                }
-            },
-            onError: (error: any) => {
-                setIsFiltering(false);
-                const errorMsg =
-                    error?.message ||
-                    'Failed to search employee contribution details. Please check if the search API endpoint is available.';
-                toast.error(errorMsg);
-                setShowReport(false);
-            }
-        });
-    };
-
-    const handleCancel = () => {
-        setFilters({
+    const {
+        control,
+        handleSubmit,
+        watch,
+        reset,
+        formState: { errors }
+    } = useForm<ReportFormFields>({
+        resolver: zodResolver(ReportSchema),
+        defaultValues: {
             groupType: [],
             department: [],
             designation: [],
-            contributionType: 'Earning',
-            dateType: 'Month',
-            selectedMonth: '',
-            selectedYear: '',
-            fromDate: null,
-            toDate: null,
-            reportType: 'All',
-            selectedEmployees: [],
-            selectedEarningHead: 0,
-            selectedDeductionHead: 0
+            reportType: 'Earning',
+            dateType: 'month',
+            employeeType: 'all',
+            month: '',
+            year: '',
+            fromDate: '',
+            toDate: '',
+            employee: '',
+            earningHead: '',
+            deductionHead: ''
+        },
+        mode: 'onChange'
+    });
+
+    const reportType = watch('reportType');
+    const dateType = watch('dateType');
+    const employeeType = watch('employeeType');
+
+    const onSearch = async (data: ReportFormFields) => {
+        setIsSearching(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            toast.success('Report generated successfully!');
+            setReportData(mockReportData);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleReset = () => {
+        reset({
+            groupType: [],
+            department: [],
+            designation: [],
+            reportType: 'Earning',
+            dateType: 'month',
+            employeeType: 'all',
+            month: '',
+            year: '',
+            fromDate: '',
+            toDate: '',
+            employee: '',
+            earningHead: '',
+            deductionHead: ''
         });
-        setEmployees([]);
-        setShowReport(false);
-        toast.info('Filters cleared');
+        setReportData([]);
+        toast.info('Form has been reset');
     };
 
-    const handleExport = () => {
-        toast.success('Employee contribution report exported');
+    const calculateTotal = () => {
+        return reportData.reduce((sum, emp) => sum + (emp.basicPay || 0) + (emp.hra || 0) + (emp.da || 0) + (emp.otherAllowance || 0), 0);
     };
 
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
+    const calculateBasicPayTotal = () => {
+        return reportData.reduce((sum, emp) => sum + (emp.basicPay || 0), 0);
     };
 
-    // Calculate totals
-    const totals = useMemo(() => {
-        return filteredContributions.reduce(
-            (acc, contribution) => ({
-                pfContribution: acc.pfContribution + contribution.pfContribution,
-                esiContribution: acc.esiContribution + contribution.esiContribution,
-                professionalTax: acc.professionalTax + contribution.professionalTax,
-                totalContribution: acc.totalContribution + contribution.totalContribution,
-                cumulativeContribution: acc.cumulativeContribution + contribution.cumulativeContribution
-            }),
-            {
-                pfContribution: 0,
-                esiContribution: 0,
-                professionalTax: 0,
-                totalContribution: 0,
-                cumulativeContribution: 0
-            }
-        );
-    }, [filteredContributions]);
+    const calculateHRATotal = () => {
+        return reportData.reduce((sum, emp) => sum + (emp.hra || 0), 0);
+    };
 
-    // Show error message if API failed
-    if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-        return (
-            <div className='flex items-center justify-center rounded-lg border border-red-200 bg-red-50 p-8'>
-                <div className='text-center'>
-                    <h3 className='font-semibold text-lg text-red-800'>Failed to Load Data</h3>
-                    <p className='mt-2 text-red-600'>
-                        {onloadError?.message ||
-                            onloadData?.message ||
-                            'Failed to load employee contribution report data. Please check if the API endpoint is available.'}
-                    </p>
-                </div>
-            </div>
-        );
-    }
+    const calculateDATotal = () => {
+        return reportData.reduce((sum, emp) => sum + (emp.da || 0), 0);
+    };
+
+    const calculateOtherAllowanceTotal = () => {
+        return reportData.reduce((sum, emp) => sum + (emp.otherAllowance || 0), 0);
+    };
 
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <EmployeeContributionFilters
-                filters={filters}
-                groupTypes={groupTypes}
-                departments={departments}
-                designations={designations}
-                months={months}
-                years={years}
-                employees={employees}
-                earningHeads={earningHeads}
-                deductionHeads={deductionHeads}
-                onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-                isLoading={isLoadingOnload}
-            />
+        <div className='min-h-screen p-8'>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='Employee Contribution Report'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            <div className='space-y-2'>
+                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                    Group Type: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterGroupTypesLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : groupTypeOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No group types available</div>
+                                ) : masterGroupTypesError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='groupType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={groupTypeOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Group Types'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
 
-            {/* Report Results */}
-            {showReport && (
-                <div className='space-y-4'>
-                    {/* Report Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>
-                                Employee Contribution Report - {filters.contributionType}
-                            </h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Total Records: {filteredContributions.length} contributions | Date Range:{' '}
-                                {filters.dateType === 'Month' ? `${filters.selectedMonth} ${filters.selectedYear}` : 'Custom Range'}
-                            </p>
+                            <div className='space-y-2'>
+                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                    Department: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDepartmentsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DeaparmentsOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No departments available</div>
+                                ) : masterDepartmentsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='department'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DeaparmentsOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Departments'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                    Designation: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDesignationsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DesignationOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No designations available</div>
+                                ) : masterDesignationsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='designation'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DesignationOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Designations'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
                         </div>
-                        <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                Export
+
+                        <div className='flex items-center justify-center space-y-2'>
+                            <Controller
+                                name='reportType'
+                                control={control}
+                                render={({ field }) => (
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className='flex items-center gap-6'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Earning' id='earning' />
+                                            <Label htmlFor='earning' className='cursor-pointer font-normal'>
+                                                Earning <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Deduction' id='deduction' />
+                                            <Label htmlFor='deduction' className='cursor-pointer font-normal'>
+                                                Deduction <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
+
+                        {reportType === 'Earning' && (
+                            <div className='flex w-full justify-center gap-3'>
+                                <Label htmlFor='earningHead' className='mt-2 font-medium text-sm text-white-900'>
+                                    Earning Head: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='earningHead'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='w-[300px]'>
+                                                <SelectValue placeholder='Select Earning Head' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {EarningHeadOptions.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.earningHead && <FormError>{errors.earningHead.message}</FormError>}
+                            </div>
+                        )}
+
+                        {reportType === 'Deduction' && (
+                            <div className='flex w-full justify-center gap-3'>
+                                <Label htmlFor='deductionHead' className='mt-2 font-medium text-sm text-white-900'>
+                                    Deduction Head: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='deductionHead'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='w-[300px]'>
+                                                <SelectValue placeholder='Select Deduction Head' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {DeductionHeadOptions.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.deductionHead && <FormError>{errors.deductionHead.message}</FormError>}
+                            </div>
+                        )}
+
+                        <div className='flex items-center justify-center space-y-2'>
+                            <Controller
+                                name='dateType'
+                                control={control}
+                                render={({ field }) => (
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className='flex items-center gap-6'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='month' id='month' />
+                                            <Label htmlFor='month' className='cursor-pointer font-normal'>
+                                                Month <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='betweenDates' id='betweenDates' />
+                                            <Label htmlFor='betweenDates' className='cursor-pointer font-normal'>
+                                                Between Dates <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
+
+                        {dateType === 'month' && (
+                            <div className='flex justify-center'>
+                                <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='month' className='font-medium text-sm text-white-900'>
+                                            Month: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='month'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Month' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masterMonthsLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : masterMonthsError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading data
+                                                            </SelectItem>
+                                                        ) : (
+                                                            MonthsOptions?.map((opt: any) => (
+                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                    {opt.label}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.month && <FormError>{errors.month.message}</FormError>}
+                                    </div>
+
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='year' className='font-medium text-sm text-white-900'>
+                                            Year: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='year'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masterYearsLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : masterYearsError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading data
+                                                            </SelectItem>
+                                                        ) : (
+                                                            YearsOptions?.map((opt: any) => (
+                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                    {opt.label}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.year && <FormError>{errors.year.message}</FormError>}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {dateType === 'betweenDates' && (
+                            <div className='flex justify-center'>
+                                <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
+                                    {/* From Date */}
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='fromDate' className='font-medium text-sm text-white-900'>
+                                            From Date: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='fromDate'
+                                            control={control}
+                                            render={({ field }) => {
+                                                const selectedDate = field.value ? new Date(field.value) : undefined;
+
+                                                return (
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !selectedDate && 'text-muted-foreground',
+                                                                    errors.fromDate && 'border-red-500'
+                                                                )}
+                                                                type='button'>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                            <DatePickerWithYear
+                                                                mode='single'
+                                                                selected={selectedDate}
+                                                                onDayClick={(day) => {
+                                                                    if (day) {
+                                                                        const dateStr = format(day, 'yyyy-MM-dd');
+                                                                        field.onChange(dateStr);
+                                                                    }
+                                                                }}
+                                                                initialFocus
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                );
+                                            }}
+                                        />
+                                        {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
+                                    </div>
+
+                                    {/* To Date */}
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='toDate' className='font-medium text-sm text-white-900'>
+                                            To Date: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='toDate'
+                                            control={control}
+                                            render={({ field }) => {
+                                                const selectedDate = field.value ? new Date(field.value) : undefined;
+                                                const toDateValue = watch('toDate');
+                                                const minDate = toDateValue ? new Date(toDateValue) : undefined;
+                                                if (minDate) {
+                                                    minDate.setHours(0, 0, 0, 0);
+                                                }
+
+                                                return (
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !selectedDate && 'text-muted-foreground',
+                                                                    errors.toDate && 'border-red-500'
+                                                                )}
+                                                                type='button'>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {selectedDate ? format(selectedDate, 'dd-MM-yyyy') : 'Enter date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                            <DatePickerWithYear
+                                                                mode='single'
+                                                                selected={selectedDate}
+                                                                onDayClick={(day) => {
+                                                                    if (day) {
+                                                                        const dateStr = format(day, 'yyyy-MM-dd');
+                                                                        field.onChange(dateStr);
+                                                                    }
+                                                                }}
+                                                                fromDate={minDate}
+                                                                initialFocus
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                );
+                                            }}
+                                        />
+                                        {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div className='flex items-center justify-center space-y-2'>
+                            <Controller
+                                name='employeeType'
+                                control={control}
+                                render={({ field }) => (
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className='flex items-center gap-6'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='all' id='all' />
+                                            <Label htmlFor='all' className='cursor-pointer font-normal'>
+                                                All <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='individual' id='individual' />
+                                            <Label htmlFor='individual' className='cursor-pointer font-normal'>
+                                                Individual <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                        </div>
+
+                        {employeeType === 'individual' && (
+                            <div className='flex w-full justify-center gap-3'>
+                                <Label htmlFor='employee' className='mt-2 font-medium text-sm text-white-900'>
+                                    Employee: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='employee'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='w-[300px]'>
+                                                <SelectValue placeholder='Select Employee' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {EmployeeOptions.map((opt) => (
+                                                    <SelectItem key={opt.value} value={opt.value}>
+                                                        {opt.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.employee && <FormError>{errors.employee.message}</FormError>}
+                            </div>
+                        )}
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
                             </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
                             </Button>
                         </div>
                     </div>
+                </CollapsibleSection>
 
-                    {/* Summary Cards */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5'>
-                        <div className='rounded-lg border bg-card p-4'>
-                            <div className='text-muted-foreground text-sm'>Total PF</div>
-                            <div className='font-semibold text-foreground text-lg'>₹{totals.pfContribution.toLocaleString()}</div>
-                        </div>
-                        <div className='rounded-lg border bg-card p-4'>
-                            <div className='text-muted-foreground text-sm'>Total ESI</div>
-                            <div className='font-semibold text-foreground text-lg'>₹{totals.esiContribution.toLocaleString()}</div>
-                        </div>
-                        <div className='rounded-lg border bg-card p-4'>
-                            <div className='text-muted-foreground text-sm'>Professional Tax</div>
-                            <div className='font-semibold text-foreground text-lg'>₹{totals.professionalTax.toLocaleString()}</div>
-                        </div>
-                        <div className='rounded-lg border bg-card p-4'>
-                            <div className='text-muted-foreground text-sm'>Total Contribution</div>
-                            <div className='font-semibold text-green-600 text-lg'>₹{totals.totalContribution.toLocaleString()}</div>
-                        </div>
-                        <div className='rounded-lg border bg-card p-4'>
-                            <div className='text-muted-foreground text-sm'>Employees</div>
-                            <div className='font-semibold text-foreground text-lg'>{filteredContributions.length}</div>
-                        </div>
-                    </div>
+                {reportData.length > 0 && (
+                    <CollapsibleSection
+                        title='Employee Contribution Report'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='mt-2'>
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-white-300 border-b-2 bg-white-100'>
+                                            <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>S.No</th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Employee Code
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Employee Name
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Department
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Designation
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>
+                                                BASIC PAY
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>HRA</th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>DA</th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>
+                                                OTHER ALLOWANCE
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.map((employee, index) => (
+                                            <tr key={index} className='hover:bg-white-50'>
+                                                <td className='border border-white-300 px-4 py-2 text-center text-sm'>{index + 1}</td>
+                                                <td className='border border-white-300 px-4 py-2 text-left text-sm'>
+                                                    {employee.employeeCode}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-left font-medium text-sm'>
+                                                    {employee.employeeName}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-left text-sm'>
+                                                    {employee.department}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-left text-sm'>
+                                                    {employee.designationName}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                    ₹
+                                                    {employee.basicPay.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                    ₹
+                                                    {employee.hra.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                    ₹
+                                                    {employee.da.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                    ₹
+                                                    {employee.otherAllowance.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                            </tr>
+                                        ))}
 
-                    {/* Data Table */}
-                    <DataTable
-                        isLoading={isLoadingOnload || isFiltering}
-                        columns={employeeContributionColumns}
-                        data={filteredContributions}
-                        totalItems={filteredContributions.length}
-                        showViewOptions={true}
-                        columnPinning={{ left: ['id'] }}
-                    />
-                </div>
-            )}
+                                        <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
+                                            <td colSpan={5} className='border border-white-300 px-4 py-3 text-left text-sm'>
+                                                Total
+                                            </td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {calculateBasicPayTotal().toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {calculateHRATotal().toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {calculateDATotal().toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {calculateOtherAllowanceTotal().toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
+                <Footer />
+            </div>
         </div>
     );
 }

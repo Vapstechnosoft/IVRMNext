@@ -1,273 +1,609 @@
 'use client';
 
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useBankCashReportOnload, useSearchBankCashReport } from '@/hooks/hrms/useReports';
-import { useEffect, useMemo, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
+import { BankCashReportSchema, type BankCashReportSchemaFormFields } from '@/schemas/hrms/employee-category-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCw, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { BankCashReportFilters, type BankCashReportFilters as BankCashReportFiltersType } from './_components/filters';
-import { BankCashReportTemplate } from './_components/report-template';
+import type { z } from 'zod';
 
-// Simplified Bank Cash Record for template
-interface BankCashRecord {
-    id?: string;
-    employeeName: string;
-    netSalary: number;
-    accountNumber?: string;
-    ifscCode?: string;
-    branch?: string;
-}
+type FormFields = z.infer<typeof BankCashReportSchema>;
+
+const mockApiResponse = {
+    employeeDetails: [
+        {
+            employeeCode: 'VVSA11',
+            employeeName: 'KIRAN   KUMAR',
+            netSalary: 12500.0,
+            bankAccountNumber: '1234567890',
+            ifscCode: 'SBIN0001234',
+            branch: 'MG Road Branch'
+        },
+        {
+            employeeCode: 'VVS049',
+            employeeName: 'PALLAVI   C',
+            netSalary: 9000.0,
+            bankAccountNumber: '9876543210',
+            ifscCode: 'HDFC0002345',
+            branch: 'Jayanagar Branch'
+        },
+        {
+            employeeCode: 'VVSA18',
+            employeeName: 'RAFIQ  ',
+            netSalary: 12000.0,
+            bankAccountNumber: '5555666677',
+            ifscCode: 'ICIC0003456',
+            branch: 'Indiranagar Branch'
+        },
+        {
+            employeeCode: 'VVS047',
+            employeeName: 'NATARAJA  ',
+            netSalary: 9090.0,
+            bankAccountNumber: '1111222233',
+            ifscCode: 'SBIN0004567',
+            branch: 'Koramangala Branch'
+        },
+        {
+            employeeCode: 'VVS052',
+            employeeName: 'BHAVYA  B  R  ',
+            netSalary: 8000.0,
+            bankAccountNumber: '4444555566',
+            ifscCode: 'HDFC0005678',
+            branch: 'Whitefield Branch'
+        },
+        {
+            employeeCode: 'VVS051',
+            employeeName: 'JAMES CHANDAN  ',
+            netSalary: 9900.0,
+            bankAccountNumber: '7777888899',
+            ifscCode: 'ICIC0006789',
+            branch: 'Electronic City Branch'
+        },
+        {
+            employeeCode: 'VVSA01',
+            employeeName: 'BASANNA  H E  ',
+            netSalary: 11000.0,
+            bankAccountNumber: '2222333344',
+            ifscCode: 'SBIN0007890',
+            branch: 'Malleshwaram Branch'
+        },
+        {
+            employeeCode: 'VVSA14',
+            employeeName: 'MANJUNATH   SP  ',
+            netSalary: 7500.0,
+            bankAccountNumber: '6666777788',
+            ifscCode: 'HDFC0008901',
+            branch: 'Banashankari Branch'
+        },
+        {
+            employeeCode: 'VVSA09',
+            employeeName: 'KAMALAMMA  ',
+            netSalary: 8000.0,
+            bankAccountNumber: '9999000011',
+            ifscCode: 'ICIC0009012',
+            branch: 'Rajajinagar Branch'
+        },
+        {
+            employeeCode: 'VVSA05',
+            employeeName: 'BORAIAH  A P  ',
+            netSalary: 8500.0,
+            bankAccountNumber: '3333444455',
+            ifscCode: 'SBIN0010123',
+            branch: 'JP Nagar Branch'
+        },
+        {
+            employeeCode: 'VVSA24',
+            employeeName: 'PARAMESHWARAPPA  B S  ',
+            netSalary: 15000.0,
+            bankAccountNumber: '8888999900',
+            ifscCode: 'HDFC0011234',
+            branch: 'HSR Layout Branch'
+        },
+        {
+            employeeCode: 'VVSA08',
+            employeeName: 'JAGADEESHA  ',
+            netSalary: 10000.0,
+            bankAccountNumber: '5555444433',
+            ifscCode: 'ICIC0012345',
+            branch: 'BTM Layout Branch'
+        },
+        {
+            employeeCode: 'VVSA10',
+            employeeName: 'KARIYANNA  ',
+            netSalary: 8000.0,
+            bankAccountNumber: '1111000099',
+            ifscCode: 'SBIN0013456',
+            branch: 'Yelahanka Branch'
+        },
+        {
+            employeeCode: 'VVSA23',
+            employeeName: 'SUNANDAMMA  ',
+            netSalary: 8000.0,
+            bankAccountNumber: '7777666655',
+            ifscCode: 'HDFC0014567',
+            branch: 'Hebbal Branch'
+        },
+        {
+            employeeCode: 'VVSA07',
+            employeeName: 'GOVINDARAJU  ',
+            netSalary: 8000.0,
+            bankAccountNumber: '4444333322',
+            ifscCode: 'ICIC0015678',
+            branch: 'Marathahalli Branch'
+        },
+        {
+            employeeCode: 'VVSA03',
+            employeeName: 'BHEEMANNA  ',
+            netSalary: 9000.0,
+            bankAccountNumber: '2222111100',
+            ifscCode: 'SBIN0016789',
+            branch: 'Bellandur Branch'
+        },
+        {
+            employeeCode: 'VVSA26',
+            employeeName: 'VISHALA  B K  ',
+            netSalary: 6500.0,
+            bankAccountNumber: '9999888877',
+            ifscCode: 'HDFC0017890',
+            branch: 'Sarjapur Branch'
+        },
+        {
+            employeeCode: 'VVS054',
+            employeeName: 'SURYA LAKSHMI  V  S  ',
+            netSalary: 7484.0,
+            bankAccountNumber: '6666555544',
+            ifscCode: 'ICIC0018901',
+            branch: 'Domlur Branch'
+        },
+        {
+            employeeCode: 'VVSA32',
+            employeeName: 'KAVANA  ',
+            netSalary: 6500.0,
+            bankAccountNumber: '3333222211',
+            ifscCode: 'SBIN0019012',
+            branch: 'Richmond Town Branch'
+        }
+    ]
+};
 
 export default function BankCashReportPage() {
-    const roleId = HRMS_MI_ID;
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any[]>([]);
+    const [selectedPaymentType, setSelectedPaymentType] = useState<string>('Bank');
 
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useBankCashReportOnload(roleId, 0);
-    const searchMutation = useSearchBankCashReport();
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
 
-    // State
-    const [bankCashRecords, setBankCashRecords] = useState<BankCashRecord[]>([]);
-    const [filteredRecords, setFilteredRecords] = useState<BankCashRecord[]>([]);
-    const [showReport, setShowReport] = useState(false);
-    const [schoolName, setSchoolName] = useState<string>('');
-    const [schoolAddress, setSchoolAddress] = useState<string>('');
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
 
-    const [filters, setFilters] = useState<BankCashReportFiltersType>({
-        selectedTypes: [],
-        selectedDepartments: [],
-        selectedDesignations: [],
-        paymentMode: 'Bank',
-        month: '',
-        year: ''
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
+
+    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
+
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
+
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DeaparmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const MonthsOptions =
+        masterMonths?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(BankCashReportSchema),
+        defaultValues: {
+            groupType: [],
+            department: [],
+            designation: [],
+            month: '',
+            year: '',
+            bankCash: 'Bank'
+        },
+        mode: 'onChange'
     });
 
-    // Memoize dropdown data from API
-    const groupTypes = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).groupTypedropdown || [];
-    }, [onloadData?.data]);
+    const onSearch = async (data: BankCashReportSchemaFormFields) => {
+        setIsSearching(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const departments = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).departmentdropdown || [];
-    }, [onloadData?.data]);
-
-    const designations = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).designationdropdown || [];
-    }, [onloadData?.data]);
-
-    const months = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).monthdropdown || [];
-    }, [onloadData?.data]);
-
-    const years = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).leaveyeardropdown || [];
-    }, [onloadData?.data]);
-
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load bank cash report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
+            setSelectedPaymentType(data.bankCash);
+            toast.success('Report generated successfully!');
+            setReportData(mockApiResponse.employeeDetails);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
+        } finally {
+            setIsSearching(false);
         }
-    }, [onloadError, isLoadingOnload, onloadData]);
-
-    // Map API data to component format
-    const mappedGroupTypes = useMemo(() => {
-        return groupTypes.map((gt: any) => ({
-            id: gt.HRMGT_Id,
-            groupType: gt.HRMGT_EmployeeGroupType || gt.HRMGT_Code || '',
-            groupCode: gt.HRMGT_Code || '',
-            order: gt.HRMGT_Order || 0,
-            isActive: gt.HRMGT_ActiveFlag !== false
-        }));
-    }, [groupTypes]);
-
-    const mappedDepartments = useMemo(() => {
-        return departments.map((dept: any) => ({
-            id: dept.HRMD_Id,
-            departmentName: dept.HRMD_DepartmentName || '',
-            internalTrainingHours: dept.HRMD_InternalTrainingMinimumHrs?.toString() || '0',
-            order: dept.HRMD_Order || 0,
-            isActive: dept.HRMD_ActiveFlag !== false
-        }));
-    }, [departments]);
-
-    const mappedDesignations = useMemo(() => {
-        return designations.map((desig: any) => ({
-            id: desig.HRMDES_Id,
-            designationName: desig.HRMDES_DesignationName || '',
-            basicAmount: desig.HRMDES_BasicAmount?.toString() || '0',
-            sanctionedSeats: desig.HRMDES_SanctionedSeats?.toString() || '0',
-            displaySanctionedSeats: desig.HRMDES_DisplaySanctionedSeatsFlag || false,
-            order: desig.HRMDES_Order || 0,
-            isActive: desig.HRMDES_ActiveFlag !== false
-        }));
-    }, [designations]);
-
-    // Filter records based on selected criteria
-    useEffect(() => {
-        // For now, show all records as filtering is done on the API side
-        setFilteredRecords(bankCashRecords);
-    }, [bankCashRecords]);
-
-    const handleFilterChange = (newFilters: BankCashReportFiltersType) => {
-        setFilters(newFilters);
     };
 
-    const handleSearch = () => {
-        // Always show report template when search is clicked, even without data or on errors
-        setShowReport(true);
-
-        if (!filters.month || !filters.year) {
-            toast.error('Please select month and year');
-            return;
-        }
-
-        // Find month ID from selected month name
-        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
-        const monthId = selectedMonthObj?.IVRM_Month_Id || 0;
-
-        // Find year ID from selected year
-        const selectedYearObj = years.find((y: any) => y.HRMLY_LeaveYear === filters.year);
-        const yearId = selectedYearObj?.HRMLY_Id || 0;
-
-        // Prepare search request
-        const searchRequest = {
-            MI_Id: roleId,
-            HRES_Year: yearId,
-            HRES_Month: monthId,
-            BankCash: filters.paymentMode,
-            departmentselected: filters.selectedDepartments.length > 0 ? filters.selectedDepartments.map((id) => Number.parseInt(id)) : [],
-            groupTypeselected: filters.selectedTypes.length > 0 ? filters.selectedTypes.map((id) => Number.parseInt(id)) : []
-        };
-
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Extract institution details from API response
-                    const institutionDetails = (response.data as any).institutionDetails || onloadData?.data?.institutionDetails;
-                    if (institutionDetails) {
-                        setSchoolName(institutionDetails.MI_Name || '');
-                        const addressParts = [];
-                        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-                        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-                        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-                        if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
-                        setSchoolAddress(addressParts.join(', ') || '');
-                    }
-
-                    // Map API response to BankCashRecord format (simplified for template)
-                    const employeeDetails = response.data.employeeDetails || [];
-                    const mappedRecords: BankCashRecord[] = employeeDetails.map((emp: any, index: number) => ({
-                        id: `emp-${index}`,
-                        employeeName: emp.EmployeeName || emp.HRME_EmployeeFirstName || emp.employeeName || '',
-                        netSalary: emp.NetSalary || emp.netSalary || 0,
-                        // Bank-specific fields (only when payment mode is Bank)
-                        accountNumber:
-                            filters.paymentMode === 'Bank'
-                                ? emp.BankAcNumber || emp.HRME_BankAccountNo || emp.accountNumber || ''
-                                : undefined,
-                        ifscCode: filters.paymentMode === 'Bank' ? emp.HRMBD_IFSCCode || emp.IFSCCode || emp.ifscCode || '' : undefined,
-                        branch: filters.paymentMode === 'Bank' ? emp.HRMBD_BranchName || emp.BranchName || emp.branch || '' : undefined
-                    }));
-
-                    setBankCashRecords(mappedRecords);
-                    toast.success('Bank/Cash Report generated successfully');
-                } else {
-                    toast.error(response.message || 'Failed to generate bank cash report');
-                }
-            },
-            onError: (error: Error) => {
-                console.error('Error searching bank cash report:', error);
-                toast.error(error.message || 'Failed to generate bank cash report');
-            }
-        });
-    };
-
-    const handleCancel = () => {
-        setFilters({
-            selectedTypes: [],
-            selectedDepartments: [],
-            selectedDesignations: [],
-            paymentMode: 'Bank',
+    const handleReset = () => {
+        reset({
+            groupType: [],
+            department: [],
+            designation: [],
             month: '',
-            year: ''
+            year: '',
+            bankCash: 'Bank'
         });
-        setBankCashRecords([]);
-        setFilteredRecords([]);
-        setShowReport(false);
-        setSchoolName('');
-        setSchoolAddress('');
-        toast.info('Filters cleared');
+        setReportData([]);
+        setSelectedPaymentType('Bank');
+        toast.info('Form has been reset');
     };
 
-    const handleExport = () => {
-        toast.success('Bank/Cash Report exported successfully');
+    const calculateTotal = () => {
+        if (reportData.length === 0) return 0;
+        return reportData.reduce((sum, emp) => sum + (emp.netSalary || 0), 0);
     };
 
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-
-    // Extract institution details from onload data if available
-    useEffect(() => {
-        if (onloadData?.data) {
-            const institutionDetails = (onloadData.data as any).institutionDetails;
-            if (institutionDetails) {
-                setSchoolName(institutionDetails.MI_Name || '');
-                const addressParts = [];
-                if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-                if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-                if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-                if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
-                setSchoolAddress(addressParts.join(', ') || '');
-            }
-        }
-    }, [onloadData]);
+    const totalNetSalary = calculateTotal();
 
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <BankCashReportFilters
-                filters={filters}
-                groupTypes={mappedGroupTypes}
-                departments={mappedDepartments}
-                designations={mappedDesignations}
-                months={months}
-                years={years}
-                onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-                isLoading={isLoadingOnload}
-            />
+        <div className='min-h-screen p-8'>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='Bank / Cash Report'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            <div className='space-y-2'>
+                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                    Group Type: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterGroupTypesLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : groupTypeOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No group types available</div>
+                                ) : masterGroupTypesError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='groupType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={groupTypeOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Group Types'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
 
-            {/* Report Results */}
-            {showReport && (
-                <BankCashReportTemplate
-                    schoolName={schoolName}
-                    schoolAddress={schoolAddress}
-                    month={filters.month}
-                    year={filters.year}
-                    paymentMode={filters.paymentMode}
-                    reportData={filteredRecords}
-                    isLoading={searchMutation.isPending}
-                    onPrint={handlePrint}
-                    onExport={handleExport}
-                    onCancel={handleCancel}
-                />
-            )}
+                            <div className='space-y-2'>
+                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                    Department: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDepartmentsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DeaparmentsOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No departments available</div>
+                                ) : masterDepartmentsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='department'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DeaparmentsOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Departments'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                    Designation: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDesignationsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DesignationOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No designations available</div>
+                                ) : masterDesignationsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='designation'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DesignationOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Designations'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className='flex items-center justify-center space-y-2'>
+                            <Controller
+                                name='bankCash'
+                                control={control}
+                                render={({ field }) => (
+                                    <RadioGroup onValueChange={field.onChange} value={field.value} className='flex items-center gap-6'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Bank' id='bank' />
+                                            <Label htmlFor='bank' className='cursor-pointer font-normal'>
+                                                Bank <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Cash' id='cash' />
+                                            <Label htmlFor='cash' className='cursor-pointer font-normal'>
+                                                Cash <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='Cheque' id='cheque' />
+                                            <Label htmlFor='cheque' className='cursor-pointer font-normal'>
+                                                Cheque <span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
+                            {errors.bankCash && <FormError>{errors.bankCash.message}</FormError>}
+                        </div>
+
+                        <div className='flex justify-center'>
+                            <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='month' className='font-medium text-sm text-white-900'>
+                                        Month: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='month'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Month' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {masterMonthsLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterMonthsError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        MonthsOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.month && <FormError>{errors.month.message}</FormError>}
+                                </div>
+
+                                <div className='space-y-2'>
+                                    <Label htmlFor='year' className='font-medium text-sm text-white-900'>
+                                        Year: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='year'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Year' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {masterYearsLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterYearsError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        YearsOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.year && <FormError>{errors.year.message}</FormError>}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching || isSubmitting}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching || isSubmitting}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </CollapsibleSection>
+
+                {reportData.length > 0 && (
+                    <CollapsibleSection
+                        title='Bank / Cash Report'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='mt-2 space-x-4'>
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-white-300 border-b-2 bg-white-100'>
+                                            <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>S.No</th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Employee Name
+                                            </th>
+                                            {selectedPaymentType === 'Bank' && (
+                                                <>
+                                                    <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                        Bank A/C Number
+                                                    </th>
+                                                    <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                        IFSC Code
+                                                    </th>
+                                                    <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                        Branch
+                                                    </th>
+                                                </>
+                                            )}
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>
+                                                Net Salary
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.map((employee, index) => (
+                                            <tr key={index} className='hover:bg-white-50'>
+                                                <td className='border border-white-300 px-4 py-2 text-center text-sm'>{index + 1}</td>
+                                                <td className='border border-white-300 px-4 py-2 text-left font-medium text-sm'>
+                                                    {employee.employeeName}
+                                                </td>
+                                                {selectedPaymentType === 'Bank' && (
+                                                    <>
+                                                        <td className='border border-white-300 px-4 py-2 text-left text-sm'>
+                                                            {employee.bankAccountNumber}
+                                                        </td>
+                                                        <td className='border border-white-300 px-4 py-2 text-left text-sm'>
+                                                            {employee.ifscCode}
+                                                        </td>
+                                                        <td className='border border-white-300 px-4 py-2 text-left text-sm'>
+                                                            {employee.branch}
+                                                        </td>
+                                                    </>
+                                                )}
+                                                <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                    ₹
+                                                    {employee.netSalary.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                            </tr>
+                                        ))}
+
+                                        <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
+                                            <td
+                                                colSpan={selectedPaymentType === 'Bank' ? 5 : 2}
+                                                className='border border-white-300 px-4 py-3 text-left text-sm'>
+                                                Total
+                                            </td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {totalNetSalary.toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
+            </div>
         </div>
     );
 }
