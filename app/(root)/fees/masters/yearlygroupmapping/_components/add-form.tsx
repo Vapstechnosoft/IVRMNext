@@ -133,22 +133,22 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
     }, [academicYear, feeGroup, refetchAll]);
 
     const headInstallmentColumns: ColumnDef<IHeadInstallment>[] = [
-        {
-            id: 'select',
-            header: ({ table }) => (
-                <Checkbox
-                    checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    aria-label='Select all'
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-            ),
-            enableSorting: false,
-            enableHiding: false,
-            size: 24
-        },
+        // {
+        //     id: 'select',
+        //     header: ({ table }) => (
+        //         <Checkbox
+        //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+        //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        //             aria-label='Select all'
+        //         />
+        //     ),
+        //     cell: ({ row }) => (
+        //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+        //     ),
+        //     enableSorting: false,
+        //     enableHiding: false,
+        //     size: 24
+        // },
         {
             accessorKey: 'id',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,

@@ -11,6 +11,7 @@ import AddMasterModeOfPaymentForm from './_components/add-form';
 import { paymentgatewaydetailsColumns } from './_components/columns';
 import TogglepaymentgatewaydetailsForm from './_components/toggle-form';
 import UpdatepaymentGatewaydetailsForm from './_components/update-form';
+import DeletePaymentGatewayForm from './_components/delete-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -80,10 +81,12 @@ function FormSections() {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
+        closeDeleteForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterPaymentGatewayList>();
@@ -138,6 +141,8 @@ function FormSections() {
             )}
 
             {isToggleFormOpen && selectedRow && <TogglepaymentgatewaydetailsForm rowData={selectedRow} onClose={closeToggleForm} />}
+
+            {/* {isDeleteFormOpen && selectedRow && <DeletePaymentGatewayForm rowData={selectedRow} onClose={closeDeleteForm} />} */}
         </>
     );
 }

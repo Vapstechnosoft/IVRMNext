@@ -88,7 +88,7 @@ export const paymentgatewaydetailsColumns: ColumnDef<IMasterPaymentGatewayList>[
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterPaymentGatewayList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterPaymentGatewayList>();
+    const { openEditForm, openToggleForm,openDeleteForm } = useFormContext<IMasterPaymentGatewayList>();
 
     const handleEdit = useCallback(
         (data: IMasterPaymentGatewayList) => {
@@ -104,6 +104,14 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterPaymentGatewayList }) 
         [openToggleForm]
     );
 
+
+    const handleDelete = useCallback(
+        (data: IMasterPaymentGatewayList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
     const convertedRowData = {
         ...rowData,
         fpgD_PGActiveFlag: rowData.fpgD_PGActiveFlag === '1' // true if '1', false if '0'
@@ -117,6 +125,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterPaymentGatewayList }) 
             onEdit={handleEdit}
             onToggle={handleToggle}
             toggleConditionKey='fpgD_PGActiveFlag'
+            onDelete={handleDelete}
         />
     );
 }
