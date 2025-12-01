@@ -67,10 +67,10 @@ export async function getHeadList(asmay_Id: number, amst_Id: number, filterradio
     return await api.post<feeTransactionWaivedOffHead[]>('fees', url, groupIds);
 }
 
-// export async function getEditHeadList(asmay_Id: number, amst_Id: number,FMG_Id: number, FMH_Id: number,FTI_Id:number, FMA_Id: number ) {
-//     const url = `/FeeWaivedOff/fee-Wavied-edit-fill-head?asmay_id=${asmay_Id}&AMST_Id=${amst_Id}&FMG_Id=${FMG_Id}&FMH_Id=${FMH_Id}&FTI_Id=${FTI_Id}&FMA_Id=${FMA_Id}`;
-//     return await api.get<feeTransactionWaivedOffHead[]>('fees', url);
-// }
+export async function getEditHeadList(asmay_Id: number, amst_Id: number, FMG_Id: number, FMH_Id: number, FTI_Id: number, FMA_Id: number) {
+    const url = `/FeeWaivedOff/fee-Wavied-edit-fill-head?asmay_id=${asmay_Id}&AMST_Id=${amst_Id}&FMG_Id=${FMG_Id}&FMH_Id=${FMH_Id}&FTI_Id=${FTI_Id}&FMA_Id=${FMA_Id}`;
+    return await api.get<feeTransactionWaivedOffHead[]>('fees', url);
+}
 
 export async function saveFeeWivedOff(payload: any) {
     const url = '/FeeWaivedOff/savedata';

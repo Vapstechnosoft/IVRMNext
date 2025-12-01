@@ -299,8 +299,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 finewaiveoff: fineWaiveOff === true ? 1 : 0,
                 fswO_WaivedOffRemarks: data.remarks || '',
                 completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
-                filepath: uploadedLogo?.documentName || '',
-                filename: uploadedLogo?.document_Path || '',
+                filepath: uploadedLogo?.document_Path || '',
+                filename: uploadedLogo?.documentName || '',
                 headlist: formattedHeadList
             };
 
