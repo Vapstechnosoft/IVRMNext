@@ -10,7 +10,9 @@ import { useFeeOpeningBalanceList, useFeeOpeningPDAList, useopeningacademicyerdr
 import { Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import AddFeeOpeningBalanceForm from './_components/add-form';
-import { type OpeningBalanceRow, openingBalanceColumns } from './_components/columns';
+
+import type { OpeningBalanceRow } from '@/types/fees/transactions/transactions';
+import { openingBalanceColumns } from './_components/columns';
 import DeleteOpeningBalanceForm from './_components/delete-form';
 
 interface ApiResponse<T> {
@@ -30,7 +32,7 @@ export default function FeeOpeningBalancePage(props: { searchParams: SearchParam
     const [activeTab, setActiveTab] = useState<'Fee' | 'PDA'>('Fee');
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
     const { data: feeResponse, isLoading: feeLoading, refetch: refetchFee } = useFeeOpeningBalanceList(selectedAsmayId || 0, searchParams);
-    const { data: pdaResponse, isLoading: pdaLoading, refetch: refetchPDA } = useFeeOpeningPDAList(selectedAsmayId || 0, {});
+    const { data: pdaResponse, isLoading: pdaLoading, refetch: refetchPDA } = useFeeOpeningPDAList(selectedAsmayId || 0, searchParams);
     const feeData: OpeningBalanceRow[] = (feeResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
     const pdaData: OpeningBalanceRow[] = (pdaResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
     const isLoading = activeTab === 'Fee' ? feeLoading : pdaLoading;
@@ -146,29 +148,28 @@ function PageContent({
                             </p>
                         </div>
                     ) : (
+                        // <GenericDataTable<OpeningBalanceRow>
+                        //     {...tableProps}
+                        //     data={tableData}
+                        //     columns={openingBalanceColumns}
+                        //     isLoading={isLoading}
+                        //     columnPinning={{ right: ['actions'] }}
+                        //     loadingMessage={`Loading ${activeTab} Opening Balances...`}
+                        //     noDataTitle={`No ${activeTab} Opening Balance Records Found`}
+                        //     noDataDescription='No records exist for the selected academic year.'
+
+                        // />
                         <GenericDataTable<OpeningBalanceRow>
                             {...tableProps}
                             data={tableData}
                             columns={openingBalanceColumns}
                             isLoading={isLoading}
+                            //error={error}
                             columnPinning={{ right: ['actions'] }}
                             loadingMessage={`Loading ${activeTab} Opening Balances...`}
                             noDataTitle={`No ${activeTab} Opening Balance Records Found`}
-                            noDataDescription='No records exist for the selected academic year.'
+                            noDataDescription='Get started by creating your first master class'
                             totalItems={tableData.length}
-
-                            //  {...tableProps}
-                            //     data={tableData}
-                            //                         columns={openingBalanceColumns}
-                            //                         isLoading={isLoading}
-                            //                           isLoading={isLoading}
-                            //                         error={error}
-                            //                         columnPinning={{ right: ['actions'] }}
-                            //                          loadingMessage={`Loading ${activeTab} Opening Balances...`}
-                            //                         loadingMessage='Loading Opening Balances...'
-                            //                         noDataTitle={`No ${activeTab} Opening Balance Records Found`}
-                            //                          noDataDescription='No records exist for the selected academic year'
-                            //                         errorTitle='Error Loading Opening Balances'
                         />
                     )}
                 </CollapsibleSection>

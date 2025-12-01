@@ -460,6 +460,7 @@ export interface feeTransactionWaivedOffGrid {
     fswO_FineFlg: number;
     fswO_FullFineWaiveOffFlg: number;
     ftI_Id: number;
+    fmA_Id: number;
 }
 export interface feeTransactionWaivedOffStudentDetails {
     amsT_RegistrationNo: number;
@@ -577,3 +578,19 @@ export interface IFeeOpeningBalanceList {
 
     fmC_Id?: number;
 }
+
+export type OpeningBalanceRow = {
+    amsT_FirstName?: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
+    asmcL_ClassName?: string;
+    asmC_SectionName?: string;
+    fmoB_Student_Due?: number;
+    fmoB_Institution_Due?: number;
+    fmoB_EntryDate?: string;
+    asmay_id?: number;
+    fmC_Id?: number;
+    amst_Id?: number;
+    fmoB_Id?: number;
+    [key: string]: any;
+};

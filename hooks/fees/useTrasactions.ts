@@ -497,7 +497,7 @@ export const useFeeOpeningPDAList = (asmaY_Id: number, searchParams?: ApiSearchp
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_OPENING_PDA_LIST, asmaY_Id, searchParams ?? {}],
-            queryFn: async () => getOpeningPDAList(asmaY_Id),
+            queryFn: async () => getOpeningPDAList(asmaY_Id, searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
