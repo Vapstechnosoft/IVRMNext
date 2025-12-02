@@ -7,6 +7,7 @@ import { useMasterPaymentgatewaydetails } from '@/hooks/fees/useMasters';
 import { useFeeAmountEntry } from '@/hooks/fees/useTrasactions';
 import { paymentgatewaydetailsSchema } from '@/schemas/fees/masters';
 import { amountEntrySchema } from '@/schemas/fees/trasactions';
+import { deletepaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
 import { deleteAmountEntry, togglepaymentgatewaydetails } from '@/server/fees/trasactions/feeAmountEntry';
 import { IMasterPaymentGatewayList } from '@/types/fees/masters/masters';
 import type { IFeeAmountEntryList } from '@/types/fees/transactions/transactions';
@@ -43,7 +44,7 @@ export default function DeletePaymentGatewayForm({ rowData, onClose }: DeletePay
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-              const response = await togglepaymentgatewaydetails(30, Number(rowData.fpgD_Id));
+              const response = await deletepaymentgatewaydetails(Number(rowData.fpgD_Id));
             if (response?.success) {
                 toast.success(response.message);
                 refetchAll();
@@ -52,7 +53,7 @@ export default function DeletePaymentGatewayForm({ rowData, onClose }: DeletePay
                 toast.error(response?.message);
             }
         } catch (error: any) {
-            toast.error(error.message ?? 'Failed to delete');
+            toast.error(error.message);
         }
     };
 

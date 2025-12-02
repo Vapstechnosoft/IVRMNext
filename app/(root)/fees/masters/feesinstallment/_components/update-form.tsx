@@ -278,7 +278,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     <Label htmlFor='fmI_Name'>
                         Master Installment Name <span className='text-red-500'>*</span>
                     </Label>
-                    {/* <Controller
+                    <Controller
                         name='fmI_Name'
                         control={control}
                         render={({ field }) => (
@@ -291,8 +291,8 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                                 disabled
                             />
                         )}
-                    /> */}
-                    <Controller
+                    />
+                    {/* <Controller
                         name='fmI_Name'
                         control={control}
                         render={({ field }) => (
@@ -308,7 +308,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                                 disabled
                             />
                         )}
-                    />
+                    /> */}
 
                     {errors.fmI_Name && <FormError>{errors.fmI_Name.message}</FormError>}
                 </div>

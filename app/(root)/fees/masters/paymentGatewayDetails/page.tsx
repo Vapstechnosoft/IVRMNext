@@ -142,7 +142,7 @@ function FormSections() {
 
             {isToggleFormOpen && selectedRow && <TogglepaymentgatewaydetailsForm rowData={selectedRow} onClose={closeToggleForm} />}
 
-            {/* {isDeleteFormOpen && selectedRow && <DeletePaymentGatewayForm rowData={selectedRow} onClose={closeDeleteForm} />} */}
+            {isDeleteFormOpen && selectedRow && <DeletePaymentGatewayForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

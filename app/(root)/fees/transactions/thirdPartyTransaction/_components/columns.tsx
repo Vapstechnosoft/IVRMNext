@@ -98,6 +98,14 @@ export const feethirdpartytrasactionColumns: ColumnDef<IFeeThirdPartyTransaction
     },
 
     {
+        accessorKey: 'fyP_DD_Cheque_No',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Cheque No' />,
+        cell: ({ row }) => <div>{row.getValue('fyP_DD_Cheque_No')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+
+    {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         accessorFn: (row: any) => row,

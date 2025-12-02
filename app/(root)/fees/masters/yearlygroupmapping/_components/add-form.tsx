@@ -46,6 +46,8 @@ interface ApiSearchparams {
 
 export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingFormProps) {
     const { data: academicYearOptions } = useAcademicYearDropdown();
+
+    const [showClearButton, setShowClearButton] = useState(false);
     const { data: feeGroupResponse } = useMasterFeeGroupDropdown() as {
         data?: {
             success?: boolean;
@@ -286,38 +288,74 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
         }
     ];
 
+    // const addRow = () => {
+    //     const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
+    //     const newHeadInstallments = [
+    //         ...headInstallments,
+    //         {
+    //             id: nextId,
+    //             fmH_Id: '',
+    //             fmI_Id: '',
+    //             fineApplicable: false,
+    //             active: false,
+    //             commonAmount: false
+    //         }
+    //     ];
+    //     setHeadInstallments(newHeadInstallments);
+    //     setValue('headInstallments', newHeadInstallments);
+    // };
+
     const addRow = () => {
-        const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
-        const newHeadInstallments = [
-            ...headInstallments,
-            {
-                id: nextId,
-                fmH_Id: '',
-                fmI_Id: '',
-                fineApplicable: false,
-                active: false,
-                commonAmount: false
-            }
-        ];
-        setHeadInstallments(newHeadInstallments);
-        setValue('headInstallments', newHeadInstallments);
-    };
+    const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
+
+    const newHeadInstallments = [
+        ...headInstallments,
+        {
+            id: nextId,
+            fmH_Id: '',
+            fmI_Id: '',
+            fineApplicable: false,
+            active: false,
+            commonAmount: false
+        }
+    ];
+
+    setHeadInstallments(newHeadInstallments);
+    setValue('headInstallments', newHeadInstallments);
+
+    // show Clear button after first add
+    setShowClearButton(true);
+};
+
+
+    // const clearRows = () => {
+    //     const defaultHeadInstallments = [
+    //         {
+    //             id: 1,
+    //             fmH_Id: '',
+    //             fmI_Id: '',
+    //             fineApplicable: false,
+    //             active: false,
+    //             commonAmount: false
+    //         }
+    //     ];
+    //     setHeadInstallments(defaultHeadInstallments);
+    //     setValue('headInstallments', defaultHeadInstallments);
+    //     reset();
+    // };
+
 
     const clearRows = () => {
-        const defaultHeadInstallments = [
-            {
-                id: 1,
-                fmH_Id: '',
-                fmI_Id: '',
-                fineApplicable: false,
-                active: false,
-                commonAmount: false
-            }
-        ];
-        setHeadInstallments(defaultHeadInstallments);
-        setValue('headInstallments', defaultHeadInstallments);
-        reset();
-    };
+    if (headInstallments.length > 1) {
+        const newList = headInstallments.slice(0, -1); // remove last row
+        setHeadInstallments(newList);
+        setValue('headInstallments', newList);
+
+        if (newList.length === 1) {
+            setShowClearButton(false); // hide Clear button again
+        }
+    }
+};
 
     const saveRows: SubmitHandler<FormFields> = async (data) => {
         const payload = {
@@ -451,9 +489,15 @@ export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingF
                                 disabled={isSubmitting}>
                                 {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>
-                            <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
+                            {/* <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
                                 Clear
-                            </Button>
+                            </Button> */}
+                            
+    {showClearButton && (
+        <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
+            Remove
+        </Button>
+    )}
                         </div>
                     </CardContent>
                 </Card>

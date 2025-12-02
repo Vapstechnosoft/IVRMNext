@@ -121,7 +121,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterPaymentGatewayList }) 
         <ActionButtons
             // rowData={rowData}
             rowData={convertedRowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
             toggleConditionKey='fpgD_PGActiveFlag'

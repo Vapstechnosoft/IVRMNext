@@ -788,3 +788,16 @@ export interface IFeeHeadsListSetOrder {
     fmH_PDAFlag: boolean;
     fmH_RefundFlag: boolean;
 }
+
+
+export interface IMasterFeeClassCategoryList {
+    fmcC_Id: number;
+    fmcC_ClassCategoryName: string;
+}
+ 
+ 
+ 
+export interface IMasterFeeBusAreaList {
+    trmA_Id: number;
+    trmA_AreaName: string;
+}

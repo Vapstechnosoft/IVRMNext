@@ -158,7 +158,10 @@ export const FEES_QUERY_KEYS = {
     FEE_SPECIAL_FEE_HEAD_DROPDOWN: 'fee_special_fee_head_dropdown',
     FEE_OPENING_BALANCE_LIST: 'fee_opening_balance_list',
     FEE_OPENING_PDA_LIST: 'fee_opening_pda_list',
-    FEE_OPENING_REFUNDABLE: 'fee_opening_refundable'
+    FEE_OPENING_REFUNDABLE: 'fee_opening_refundable',
+    FEE_GROUPGROUPING_GROUPDROPDOWN: 'fee_groupgrouping_groupdropdown',
+    STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN: 'student_fee_group_mapping_bus_area_dropdown'
+ 
 };
 
 export const EXAM_QUERY_KEYS = {
