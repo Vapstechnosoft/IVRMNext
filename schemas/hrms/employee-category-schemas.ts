@@ -135,6 +135,7 @@ export const departmentSalaryReportSchema = z.object({
 
 export type DepartmentSalaryReportFormFields = z.infer<typeof departmentSalaryReportSchema>;
 
+
 // Schema for Employee Strength report (same fields as department salary report)
 export const EmployeeStrengthReportSchema = z.object({
     // Selection fields present on the UI - month/year are not used on this page
@@ -155,3 +156,169 @@ export const PFForm5FormReportSchema = z.object({
 });
 
 export type PFForm5FormFields = z.infer<typeof PFForm5FormReportSchema>;
+
+export const BankCashReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'At least one group type is required'),
+    department: z.array(z.string()).min(1, 'At least one department is required'),
+    designation: z.array(z.string()).min(1, 'At least one designation is required'),
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required'),
+    bankCash: z.enum(['Bank', 'Cash', 'Cheque'], {
+        required_error: 'Payment method is required'
+    })
+});
+
+export type BankCashReportSchemaFormFields = z.infer<typeof BankCashReportSchema>;
+
+export const SalaryCertificateSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'At least one group type is required'),
+    department: z.array(z.string()).min(1, 'At least one department is required'),
+    designation: z.array(z.string()).min(1, 'At least one designation is required'),
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required'),
+    employee: z.string().min(1, 'Employee is required')
+});
+
+export type FormFields = z.infer<typeof SalaryCertificateSchema>;
+
+export const LoanReportSchema = z
+    .object({
+        groupType: z.array(z.string()).min(1, 'At least one group type is required'),
+        department: z.array(z.string()).min(1, 'At least one department is required'),
+        designation: z.array(z.string()).min(1, 'At least one designation is required'),
+        reportType: z.enum(['All', 'Individual'], {
+            required_error: 'Report type is required'
+        }),
+        month: z.string().optional(),
+        year: z.string().optional(),
+        employee: z.string().optional()
+    })
+    .refine(
+        (data) => {
+            if (data.reportType === 'All') {
+                return data.month;
+            }
+            return true;
+        },
+        {
+            message: 'Month are required for All',
+            path: ['month']
+        }
+    )
+    .refine(
+        (data) => {
+            if (data.reportType === 'All') {
+                return data.year;
+            }
+            return true;
+        },
+        {
+            message: 'Year are required for All',
+            path: ['year']
+        }
+    )
+    .refine(
+        (data) => {
+            if (data.reportType === 'Individual') {
+                return data.employee;
+            }
+            return true;
+        },
+        {
+            message: 'Employee is required for Individual',
+            path: ['employee']
+        }
+    );
+
+export type LoanReportFormFields = z.infer<typeof LoanReportSchema>;
+
+export const ReportSchema = z
+    .object({
+        groupType: z.array(z.string()).min(1, 'Group Type is required'),
+        department: z.array(z.string()).min(1, 'Department is required'),
+        designation: z.array(z.string()).min(1, 'Designation is required'),
+        reportType: z.enum(['Earning', 'Deduction']),
+        earningHead: z.string().optional(),
+        deductionHead: z.string().optional(),
+        dateType: z.enum(['month', 'betweenDates']),
+        month: z.string().optional(),
+        year: z.string().optional(),
+        fromDate: z.string().optional(),
+        toDate: z.string().optional(),
+        employeeType: z.enum(['all', 'individual']),
+        employee: z.string().optional()
+    })
+    .superRefine((data, ctx) => {
+        if (data.reportType === 'Earning' && !data.earningHead) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Earning Head is required when Report Type is Earning',
+                path: ['earningHead']
+            });
+        }
+
+        if (data.reportType === 'Deduction' && !data.deductionHead) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Deduction Head is required when Report Type is Deduction',
+                path: ['deductionHead']
+            });
+        }
+
+        if (data.dateType === 'month') {
+            if (!data.month) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Month is required when Date Type is Month',
+                    path: ['month']
+                });
+            }
+            if (!data.year) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Year is required when Date Type is Month',
+                    path: ['year']
+                });
+            }
+        }
+
+        if (data.dateType === 'betweenDates') {
+            if (!data.fromDate) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'From Date is required when Date Type is Between Dates',
+                    path: ['fromDate']
+                });
+            }
+            if (!data.toDate) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'To Date is required when Date Type is Between Dates',
+                    path: ['toDate']
+                });
+            }
+
+            if (data.fromDate && data.toDate) {
+                const from = new Date(data.fromDate);
+                const to = new Date(data.toDate);
+                if (to < from) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'To Date must be after From Date',
+                        path: ['toDate']
+                    });
+                }
+            }
+        }
+
+        if (data.employeeType === 'individual' && !data.employee) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Employee is required when Employee Type is Individual',
+                path: ['employee']
+            });
+        }
+    });
+
+export type ReportFormFields = z.infer<typeof ReportSchema>;
+
