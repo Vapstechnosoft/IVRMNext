@@ -135,6 +135,28 @@ export const departmentSalaryReportSchema = z.object({
 
 export type DepartmentSalaryReportFormFields = z.infer<typeof departmentSalaryReportSchema>;
 
+
+// Schema for Employee Strength report (same fields as department salary report)
+export const EmployeeStrengthReportSchema = z.object({
+    // Selection fields present on the UI - month/year are not used on this page
+    groupType: z.array(z.string()).min(1, 'At least one group type is required'),
+    department: z.array(z.string()).min(1, 'At least one department is required'),
+    designation: z.array(z.string()).min(1, 'At least one designation is required'),
+    all_employees: z.boolean().optional(),
+    department_wise: z.boolean().optional(),
+    left_employee: z.boolean().optional(),
+    fromDate: z.string().optional(),
+    toDate: z.string().optional()
+});
+
+export type EmployeeStrengthReportFormFields = z.infer<typeof EmployeeStrengthReportSchema>;
+export const PFForm5FormReportSchema = z.object({
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required')
+});
+
+export type PFForm5FormFields = z.infer<typeof PFForm5FormReportSchema>;
+
 export const BankCashReportSchema = z.object({
     groupType: z.array(z.string()).min(1, 'At least one group type is required'),
     department: z.array(z.string()).min(1, 'At least one department is required'),
@@ -299,3 +321,4 @@ export const ReportSchema = z
     });
 
 export type ReportFormFields = z.infer<typeof ReportSchema>;
+

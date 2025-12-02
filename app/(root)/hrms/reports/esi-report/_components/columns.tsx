@@ -1,33 +1,52 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 
-export interface ESIRecord {
-    id?: number;
-    createdAt?: string;
+// Department Salary Report data structure
+export interface DepartmentSalaryRecord {
+    id?: string;
     employeeCode: string;
     employeeName: string;
-    groupTypeId: number;
-    departmentId: number;
-    designationId: number;
-    departmentName: string;
-    designationName: string;
-    esiNumber: string;
+    groupType: string;
+    department: string;
+    designation: string;
+    basicSalary: number;
+    allowances: number;
     grossSalary: number;
-    esiEligibleSalary: number;
-    employeeESI: number;
-    employerESI: number;
-    totalESI: number;
-    month: string;
-    year: string;
+    pfContribution: number;
+    esiContribution: number;
+    incomeTax: number;
+    professionalTax: number;
+    otherDeductions: number;
+    totalDeductions: number;
+    netSalary: number;
+    overtimeAmount: number;
+    bonusAmount: number;
+    incrementAmount: number;
     workingDays: number;
     presentDays: number;
-    esiStatus: 'Active' | 'Inactive' | 'Exempted';
+    absentDays: number;
+    leavesTaken: number;
+    month: string;
+    year: string;
 }
 
-export const esiReportColumns: ColumnDef<ESIRecord>[] = [
+// Department Summary
+export interface DepartmentSummary {
+    department: string;
+    totalEmployees: number;
+    totalBasicSalary: number;
+    totalGrossSalary: number;
+    totalDeductions: number;
+    totalNetSalary: number;
+    averageNetSalary: number;
+    highestSalary: number;
+    lowestSalary: number;
+}
+
+// Table columns for main salary records
+export const departmentSalaryColumns: ColumnDef<DepartmentSalaryRecord>[] = [
     {
         accessorKey: 'id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
@@ -56,23 +75,23 @@ export const esiReportColumns: ColumnDef<ESIRecord>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'departmentName',
+        accessorKey: 'department',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
-        cell: ({ row }) => <div>{row.getValue('departmentName')}</div>,
+        cell: ({ row }) => <div className='font-medium text-sm'>{row.getValue('department')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'designationName',
+        accessorKey: 'designation',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-        cell: ({ row }) => <div>{row.getValue('designationName')}</div>,
+        cell: ({ row }) => <div className='text-sm'>{row.getValue('designation')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'esiNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='ESI Number' />,
-        cell: ({ row }) => <div className='font-mono'>{row.getValue('esiNumber')}</div>,
+        accessorKey: 'basicSalary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Basic Salary' />,
+        cell: ({ row }) => <div>₹{(row.getValue('basicSalary') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -84,52 +103,78 @@ export const esiReportColumns: ColumnDef<ESIRecord>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'esiEligibleSalary',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='ESI Eligible Salary' />,
-        cell: ({ row }) => <div>₹{(row.getValue('esiEligibleSalary') as number).toLocaleString()}</div>,
+        accessorKey: 'totalDeductions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Deductions' />,
+        cell: ({ row }) => <div className='text-red-600'>₹{(row.getValue('totalDeductions') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'employeeESI',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee ESI (0.75%)' />,
-        cell: ({ row }) => <div>₹{(row.getValue('employeeESI') as number).toLocaleString()}</div>,
+        accessorKey: 'netSalary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
+        cell: ({ row }) => <div className='font-semibold text-green-600'>₹{(row.getValue('netSalary') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'employerESI',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employer ESI (3.25%)' />,
-        cell: ({ row }) => <div>₹{(row.getValue('employerESI') as number).toLocaleString()}</div>,
+        accessorKey: 'presentDays',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Present Days' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('presentDays')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    }
+];
+
+// Department summary columns
+export const departmentSummaryColumns: ColumnDef<DepartmentSummary>[] = [
+    {
+        accessorKey: 'department',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Department' />,
+        cell: ({ row }) => <div className='font-semibold'>{row.getValue('department')}</div>,
+        enableSorting: true,
+        enableHiding: false
+    },
+    {
+        accessorKey: 'totalEmployees',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Employees' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('totalEmployees')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'totalESI',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total ESI' />,
-        cell: ({ row }) => <div className='font-semibold'>₹{(row.getValue('totalESI') as number).toLocaleString()}</div>,
+        accessorKey: 'totalBasicSalary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Basic Salary' />,
+        cell: ({ row }) => <div>₹{(row.getValue('totalBasicSalary') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'esiStatus',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='ESI Status' />,
-        cell: ({ row }) => {
-            const status = row.getValue('esiStatus') as string;
-            return (
-                <span
-                    className={cn(
-                        'rounded-full px-2 py-1 font-medium text-xs',
-                        status === 'Active'
-                            ? 'bg-green-100 text-green-800'
-                            : status === 'Inactive'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-gray-100 text-gray-800'
-                    )}>
-                    {status}
-                </span>
-            );
-        },
+        accessorKey: 'totalNetSalary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Net Salary' />,
+        cell: ({ row }) => (
+            <div className='font-semibold text-green-600'>₹{(row.getValue('totalNetSalary') as number).toLocaleString()}</div>
+        ),
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'averageNetSalary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Average Net Salary' />,
+        cell: ({ row }) => <div>₹{(row.getValue('averageNetSalary') as number).toLocaleString()}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'highestSalary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Highest Salary' />,
+        cell: ({ row }) => <div className='text-blue-600'>₹{(row.getValue('highestSalary') as number).toLocaleString()}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'lowestSalary',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Lowest Salary' />,
+        cell: ({ row }) => <div className='text-orange-600'>₹{(row.getValue('lowestSalary') as number).toLocaleString()}</div>,
         enableSorting: true,
         enableHiding: true
     }

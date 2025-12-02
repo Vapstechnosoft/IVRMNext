@@ -1,429 +1,775 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useESIReportOnload, useSearchESIReport } from '@/hooks/hrms/useReports';
-import { Download, Printer } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
+import { type DepartmentSalaryReportFormFields, departmentSalaryReportSchema } from '@/schemas/hrms/employee-category-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCw, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { type ESIRecord as ESIRecordColumn, esiReportColumns } from './_components/columns';
-import { type ESIReportFilters as ESIFilters, ESIReportFilters } from './_components/filters';
+import type { z } from 'zod';
 
-// ESI report data structure
-interface ESIRecord {
-    id?: string;
-    employeeCode: string;
-    employeeName: string;
-    groupTypeId: number;
-    departmentId: number;
-    designationId: number;
-    departmentName: string;
-    designationName: string;
-    esiNumber: string;
-    grossSalary: number;
-    esiEligibleSalary: number;
-    employeeESI: number;
-    employerESI: number;
-    totalESI: number;
-    month: string;
-    year: string;
-    workingDays: number;
-    presentDays: number;
-    esiStatus: 'Active' | 'Inactive' | 'Exempted';
-}
+type FormFields = z.infer<typeof departmentSalaryReportSchema>;
 
-export default function ESIReportPage() {
-    const roleId = HRMS_MI_ID;
+const mockApiResponse = {
+    employeeSalaryslipDetails: [
+        {
+            hrmD_Id: 80,
+            hrmD_code: 'EMP001',
+            hrmD_Name: 'John Doe',
+            hrmD_DepartmentName: 'Teaching',
+            hrmD_WorkingDays: 22,
+            hrmD_Lop: 0,
 
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useESIReportOnload(roleId, 0);
-    const searchMutation = useSearchESIReport();
+            earningresult: [
+                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 428658.0 },
+                { hrmeD_Name: 'HRA', hresD_Amount: 85731.0 },
+                { hrmeD_Name: 'DA', hresD_Amount: 171463.0 },
+                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 138489.0 }
+            ],
+            deductionresult: [
+                { hrmeD_Name: 'PF CONT', hresD_Amount: 41869.0 },
+                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 139.0 },
+                { hrmeD_Name: 'PT', hresD_Amount: 1200.0 },
+                { hrmeD_Name: 'TDS', hresD_Amount: 13500.0 }
+            ],
+            grossEarning: 824341.0,
+            grossDeduction: 56708.0
+        },
+        {
+            hrmD_Id: 84,
+            hrmD_code: 'EMP002',
+            hrmD_Name: 'John Smith',
+            hrmD_DepartmentName: 'Non Teaching',
+            hrmD_WorkingDays: 31,
+            hrmD_Lop: 5,
+            earningresult: [
+                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 69242.0 },
+                { hrmeD_Name: 'HRA', hresD_Amount: 13848.0 },
+                { hrmeD_Name: 'DA', hresD_Amount: 27697.0 },
+                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 22371.0 }
+            ],
+            deductionresult: [
+                { hrmeD_Name: 'PF CONT', hresD_Amount: 3329.0 },
+                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 222.0 },
+                { hrmeD_Name: 'PT', hresD_Amount: 200.0 },
+                { hrmeD_Name: 'TDS', hresD_Amount: 8000.0 }
+            ],
+            grossEarning: 133158.0,
+            grossDeduction: 11751.0
+        },
+        {
+            hrmD_Id: 517,
+            hrmD_code: 'EMP003',
+            hrmD_Name: 'Chaitra',
+            hrmD_DepartmentName: 'STATE',
+            hrmD_WorkingDays: 30,
+            hrmD_Lop: 0,
+            earningresult: [
+                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'HRA', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'DA', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 0.0 }
+            ],
+            deductionresult: [
+                { hrmeD_Name: 'PF CONT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'PT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'TDS', hresD_Amount: 0.0 }
+            ],
+            grossEarning: 0.0,
+            grossDeduction: 0.0
+        },
+        {
+            hrmD_Id: 518,
+            hrmD_code: 'EMP004',
+            hrmD_Name: 'Harshita',
+            hrmD_DepartmentName: 'ICSE',
+            hrmD_WorkingDays: 28,
+            hrmD_Lop: 2,
+            earningresult: [
+                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'HRA', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'DA', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 0.0 }
+            ],
+            deductionresult: [
+                { hrmeD_Name: 'PF CONT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'PT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'TDS', hresD_Amount: 0.0 }
+            ],
+            grossEarning: 0.0,
+            grossDeduction: 0.0
+        },
+        {
+            hrmD_Id: 519,
+            hrmD_code: 'EMP005',
+            hrmD_Name: 'Ashwini',
+            hrmD_DepartmentName: 'assistant',
+            hrmD_WorkingDays: 26,
+            hrmD_Lop: 4,
+            earningresult: [
+                { hrmeD_Name: 'BASIC PAY', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'HRA', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'DA', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'OTHER ALLOWANCE', hresD_Amount: 0.0 }
+            ],
+            deductionresult: [
+                { hrmeD_Name: 'PF CONT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'ESIC CONT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'PT', hresD_Amount: 0.0 },
+                { hrmeD_Name: 'TDS', hresD_Amount: 0.0 }
+            ],
+            grossEarning: 0.0,
+            grossDeduction: 0.0
+        }
+    ]
+};
 
-    // State
-    const [esiRecords, setESIRecords] = useState<ESIRecord[]>([]);
-    const [filteredRecords, setFilteredRecords] = useState<ESIRecord[]>([]);
-    const [showReport, setShowReport] = useState(false);
+export default function DepartmentSalaryReportPage() {
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any[]>([]);
 
-    const [filters, setFilters] = useState<ESIFilters>({
-        groupType: 'All',
-        department: 'All',
-        designation: 'All',
-        month: '',
-        year: ''
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
+
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
+
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
+
+    const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMasterMonths();
+
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
+
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DeaparmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const MonthsOptions =
+        masterMonths?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(departmentSalaryReportSchema),
+        defaultValues: {
+            groupType: [],
+            department: [],
+            designation: [],
+            month: '',
+            year: ''
+        },
+        mode: 'onChange'
     });
 
-    // Memoize dropdown data from API
-    const groupTypes = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).groupTypedropdown || [];
-    }, [onloadData?.data]);
+    const onSearch = async (data: DepartmentSalaryReportFormFields) => {
+        setIsSearching(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const departments = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).departmentdropdown || [];
-    }, [onloadData?.data]);
-
-    const designations = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).designationdropdown || [];
-    }, [onloadData?.data]);
-
-    const months = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).monthdropdown || [];
-    }, [onloadData?.data]);
-
-    const years = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        return (data as any).leaveyeardropdown || [];
-    }, [onloadData?.data]);
-
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load ESI report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
+            toast.success('Report generated successfully!');
+            setReportData(mockApiResponse.employeeSalaryslipDetails);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
+        } finally {
+            setIsSearching(false);
         }
-    }, [onloadError, isLoadingOnload, onloadData]);
-
-    // Map API data to component format
-    const mappedGroupTypes = useMemo(() => {
-        return groupTypes.map((gt: any) => ({
-            id: gt.HRMGT_Id,
-            groupType: gt.HRMGT_EmployeeGroupType || gt.HRMGT_Code || '',
-            groupCode: gt.HRMGT_Code || '',
-            order: gt.HRMGT_Order || 0,
-            isActive: gt.HRMGT_ActiveFlag !== false
-        }));
-    }, [groupTypes]);
-
-    const mappedDepartments = useMemo(() => {
-        return departments.map((dept: any) => ({
-            id: dept.HRMD_Id,
-            departmentName: dept.HRMD_DepartmentName || '',
-            internalTrainingHours: dept.HRMD_InternalTrainingMinimumHrs?.toString() || '0',
-            order: dept.HRMD_Order || 0,
-            isActive: dept.HRMD_ActiveFlag !== false
-        }));
-    }, [departments]);
-
-    const mappedDesignations = useMemo(() => {
-        return designations.map((desig: any) => ({
-            id: desig.HRMDES_Id,
-            designationName: desig.HRMDES_DesignationName || '',
-            basicAmount: desig.HRMDES_BasicAmount?.toString() || '0',
-            sanctionedSeats: desig.HRMDES_SanctionedSeats?.toString() || '0',
-            displaySanctionedSeats: desig.HRMDES_DisplaySanctionedSeatsFlag || false,
-            order: desig.HRMDES_Order || 0,
-            isActive: desig.HRMDES_ActiveFlag !== false
-        }));
-    }, [designations]);
-
-    // Cascading filter logic
-    const availableDepartments = useMemo(() => {
-        if (filters.groupType === 'All') return mappedDepartments;
-        // In a real app, departments would be filtered by groupType relationship
-        return mappedDepartments;
-    }, [filters.groupType, mappedDepartments]);
-
-    const availableDesignations = useMemo(() => {
-        if (filters.department === 'All') return mappedDesignations;
-        // In a real app, designations would be filtered by department relationship
-        return mappedDesignations;
-    }, [filters.department, mappedDesignations]);
-
-    // Filter ESI records based on selected criteria
-    useEffect(() => {
-        let filtered = esiRecords;
-
-        if (filters.groupType !== 'All') {
-            const selectedGroupType = mappedGroupTypes.find((g: any) => g.groupType === filters.groupType);
-            if (selectedGroupType) {
-                filtered = filtered.filter((record) => record.groupTypeId === selectedGroupType.id);
-            }
-        }
-
-        if (filters.department !== 'All') {
-            const selectedDepartment = mappedDepartments.find((d: any) => d.departmentName === filters.department);
-            if (selectedDepartment) {
-                filtered = filtered.filter((record) => record.departmentId === selectedDepartment.id);
-            }
-        }
-
-        if (filters.designation !== 'All') {
-            const selectedDesignation = mappedDesignations.find((d: any) => d.designationName === filters.designation);
-            if (selectedDesignation) {
-                filtered = filtered.filter((record) => record.designationId === selectedDesignation.id);
-            }
-        }
-
-        if (filters.month) {
-            filtered = filtered.filter((record) => record.month === filters.month);
-        }
-
-        if (filters.year) {
-            filtered = filtered.filter((record) => record.year === filters.year);
-        }
-
-        setFilteredRecords(filtered);
-    }, [filters, esiRecords, mappedGroupTypes, mappedDepartments, mappedDesignations]);
-
-    const handleFilterChange = (newFilters: ESIFilters) => {
-        setFilters(newFilters);
     };
 
-    const handleSearch = () => {
-        if (!filters.month || !filters.year) {
-            toast.error('Please select month and year');
-            return;
-        }
-
-        // Find month ID from selected month name
-        const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
-        const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || '';
-
-        // Prepare search request
-        const searchRequest = {
-            MI_Id: roleId,
-            groupTypeselected:
-                filters.groupType !== 'All' && mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)
-                    ? [mappedGroupTypes.find((g: any) => g.groupType === filters.groupType)!.id]
-                    : [],
-            departmentselected:
-                filters.department !== 'All' && mappedDepartments.find((d: any) => d.departmentName === filters.department)
-                    ? [mappedDepartments.find((d: any) => d.departmentName === filters.department)!.id]
-                    : [],
-            designationselected:
-                filters.designation !== 'All' && mappedDesignations.find((d: any) => d.designationName === filters.designation)
-                    ? [mappedDesignations.find((d: any) => d.designationName === filters.designation)!.id]
-                    : [],
-            HRES_Year: filters.year || '',
-            HRES_Month: monthId || ''
-        };
-
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Map API response to ESIRecord format
-                    const employeeDetails = response.data.employeeDetails || [];
-                    const mappedRecords: ESIRecord[] = employeeDetails.map((emp: any, index: number) => ({
-                        id: `emp-${index}`,
-                        employeeCode: emp.HRME_EmployeeCode || emp.employeeCode || '',
-                        employeeName: emp.EmployeeName || emp.employeeName || '',
-                        groupTypeId: emp.HRMGT_Id || emp.groupTypeId || 0,
-                        departmentId: emp.HRMD_Id || emp.departmentId || 0,
-                        designationId: emp.HRMDES_Id || emp.designationId || 0,
-                        departmentName: emp.HRMD_DepartmentName || emp.departmentName || '',
-                        designationName: emp.HRMDES_DesignationName || emp.designationName || '',
-                        esiNumber: emp.HRME_ESIAccNo || emp.esiNumber || '',
-                        grossSalary: emp.basicAmount || emp.grossSalary || 0,
-                        esiEligibleSalary: emp.esiEligibleSalary || (emp.basicAmount > 21000 ? 21000 : emp.basicAmount) || 0,
-                        employeeESI: emp.EmployeeContibution || emp.employeeESI || 0,
-                        employerESI: emp.EmployerContibution || emp.employerESI || 0,
-                        totalESI: emp.totalAmount || emp.totalESI || 0,
-                        month: filters.month,
-                        year: filters.year,
-                        workingDays: emp.HRES_WorkingDays || emp.workingDays || 0,
-                        presentDays: emp.presentDays || 0,
-                        esiStatus: emp.HRME_ESIAccNo ? 'Active' : ('Inactive' as 'Active' | 'Inactive' | 'Exempted')
-                    }));
-
-                    setESIRecords(mappedRecords);
-                    setShowReport(true);
-                    toast.success('ESI report generated successfully');
-                } else {
-                    toast.error(response.message || 'Failed to generate ESI report');
-                }
-            },
-            onError: (error: Error) => {
-                console.error('Error searching ESI report:', error);
-                toast.error(error.message || 'Failed to generate ESI report');
-            }
-        });
-    };
-
-    const handleCancel = () => {
-        setFilters({
-            groupType: 'All',
-            department: 'All',
-            designation: 'All',
+    const handleReset = () => {
+        reset({
+            groupType: [],
+            department: [],
+            designation: [],
             month: '',
             year: ''
         });
-        setESIRecords([]);
-        setFilteredRecords([]);
-        setShowReport(false);
-        toast.info('Filters cleared');
+        setReportData([]);
+        toast.info('Form has been reset');
     };
 
-    const handleExport = () => {
-        toast.success('ESI report exported successfully');
+    // Calculate totals
+    const calculateTotals = () => {
+        if (reportData.length === 0) return null;
+
+        const totals = {
+            basicPay: 0,
+            hra: 0,
+            da: 0,
+            otherAllowance: 0,
+            grossEarning: 0,
+            pfCont: 0,
+            esicCont: 0,
+            pt: 0,
+            tds: 0,
+            grossDeduction: 0,
+            netSalary: 0
+        };
+
+        reportData.forEach((dept) => {
+            dept.earningresult.forEach((earning: any) => {
+                if (earning.hrmeD_Name === 'BASIC PAY') totals.basicPay += earning.hresD_Amount;
+                if (earning.hrmeD_Name === 'HRA') totals.hra += earning.hresD_Amount;
+                if (earning.hrmeD_Name === 'DA') totals.da += earning.hresD_Amount;
+                if (earning.hrmeD_Name === 'OTHER ALLOWANCE') totals.otherAllowance += earning.hresD_Amount;
+            });
+
+            dept.deductionresult.forEach((deduction: any) => {
+                if (deduction.hrmeD_Name === 'PF CONT') totals.pfCont += deduction.hresD_Amount;
+                if (deduction.hrmeD_Name === 'ESIC CONT') totals.esicCont += deduction.hresD_Amount;
+                if (deduction.hrmeD_Name === 'PT') totals.pt += deduction.hresD_Amount;
+                if (deduction.hrmeD_Name === 'TDS') totals.tds += deduction.hresD_Amount;
+            });
+
+            totals.grossEarning += dept.grossEarning;
+            totals.grossDeduction += dept.grossDeduction;
+        });
+
+        totals.netSalary = totals.grossEarning - totals.grossDeduction;
+
+        return totals;
     };
 
-    const handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-
-    // Calculate ESI totals
-    const esiTotals = useMemo(() => {
-        return filteredRecords.reduce(
-            (acc, record) => ({
-                grossSalary: acc.grossSalary + record.grossSalary,
-                esiEligibleSalary: acc.esiEligibleSalary + record.esiEligibleSalary,
-                employeeESI: acc.employeeESI + record.employeeESI,
-                employerESI: acc.employerESI + record.employerESI,
-                totalESI: acc.totalESI + record.totalESI
-            }),
-            {
-                grossSalary: 0,
-                esiEligibleSalary: 0,
-                employeeESI: 0,
-                employerESI: 0,
-                totalESI: 0
-            }
-        );
-    }, [filteredRecords]);
+    const totals = calculateTotals();
 
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <ESIReportFilters
-                filters={filters}
-                groupTypes={mappedGroupTypes}
-                availableDepartments={availableDepartments}
-                availableDesignations={availableDesignations}
-                months={months}
-                years={years}
-                onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-                isLoading={isLoadingOnload}
-            />
+        <div className='min-h-screen p-8'>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='ESI Report'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            <div className='space-y-2'>
+                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                    Group Type: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterGroupTypesLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : groupTypeOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No group types available</div>
+                                ) : masterGroupTypesError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='groupType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={groupTypeOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Group Types'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
 
-            {/* Report Results */}
-            {showReport && (
-                <div className='space-y-4'>
-                    {/* Report Header */}
-                    <div className='flex items-center justify-between rounded-lg border bg-card p-4'>
-                        <div>
-                            <h3 className='font-semibold text-foreground text-lg'>
-                                ESI Report - {filters.month} {filters.year}
-                            </h3>
-                            <p className='text-muted-foreground text-sm'>
-                                Total Records: {filteredRecords.length} employees | ESI Eligible:{' '}
-                                {filteredRecords.filter((r) => r.esiStatus === 'Active').length}
-                            </p>
+                            <div className='space-y-2'>
+                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                    Department: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDepartmentsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DeaparmentsOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No departments available</div>
+                                ) : masterDepartmentsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='department'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DeaparmentsOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Departments'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+
+                            <div className='space-y-2'>
+                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                    Designation: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDesignationsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : DesignationOptions.length === 0 ? (
+                                    <div className='text-sm text-white-500'>No designations available</div>
+                                ) : masterDesignationsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='designation'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DesignationOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Designations'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
                         </div>
-                        <div className='flex gap-2'>
-                            <Button variant='outline' onClick={handleExport} prefix={<Download className='size-4' />}>
-                                Export
+
+                        <div className='flex justify-center'>
+                            <div className='grid w-full max-w-2xl grid-cols-1 gap-6 md:grid-cols-2'>
+                                <div className='space-y-2'>
+                                    <Label htmlFor='month' className='font-medium text-sm text-white-900'>
+                                        Month: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='month'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Month' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {masterMonthsLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterMonthsError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        MonthsOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.month && <FormError>{errors.month.message}</FormError>}
+                                </div>
+
+                                <div className='space-y-2'>
+                                    <Label htmlFor='year' className='font-medium text-sm text-white-900'>
+                                        Year: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='year'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder='Select Year' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {masterYearsLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterYearsError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        YearsOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.year && <FormError>{errors.year.message}</FormError>}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching || isSubmitting}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
                             </Button>
-                            <Button variant='outline' onClick={handlePrint} prefix={<Printer className='size-4' />}>
-                                Print
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching || isSubmitting}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
                             </Button>
                         </div>
                     </div>
+                </CollapsibleSection>
 
-                    {/* ESI Summary Cards */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Gross Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>₹{esiTotals.grossSalary.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>ESI Eligible Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>₹{esiTotals.esiEligibleSalary.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Employee ESI (0.75%)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-blue-600 text-lg'>₹{esiTotals.employeeESI.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Employer ESI (3.25%)</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-orange-600'>₹{esiTotals.employerESI.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total ESI</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>₹{esiTotals.totalESI.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                {reportData.length > 0 && (
+                    <CollapsibleSection
+                        title='ESI Report'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='mt-2 space-x-4'>
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-white-300 border-b-2 bg-white-100'>
+                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                S.No
+                                            </th>
+                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                Employee Code
+                                            </th>
+                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                Employee Name
+                                            </th>
+                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                Department
+                                            </th>
+                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                Working Days
+                                            </th>
+                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm' rowSpan={2}>
+                                                LOP
+                                            </th>
+                                            <th
+                                                className='border border-white-300 bg-white-50 px-3 py-2 text-center font-semibold text-sm'
+                                                colSpan={4}>
+                                                Earnings
+                                            </th>
+                                            <th
+                                                className='border border-white-300 bg-white-100 px-3 py-3 text-center font-semibold text-sm'
+                                                rowSpan={2}>
+                                                Gross Earning
+                                            </th>
+                                            <th
+                                                className='border border-white-300 bg-white-50 px-3 py-2 text-center font-semibold text-sm'
+                                                colSpan={4}>
+                                                Deductions
+                                            </th>
+                                            <th
+                                                className='border border-white-300 bg-white-100 px-3 py-3 text-center font-semibold text-sm'
+                                                rowSpan={2}>
+                                                Gross Deduction
+                                            </th>
+                                            <th
+                                                className='border border-white-300 bg-white-100 px-3 py-3 text-center font-semibold text-sm'
+                                                rowSpan={2}>
+                                                Net Salary
+                                            </th>
+                                        </tr>
+                                        <tr className='border-white-300 border-b-2 bg-white-50'>
+                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
+                                                Basic Pay
+                                            </th>
+                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
+                                                HRA
+                                            </th>
+                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
+                                                DA
+                                            </th>
+                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
+                                                Other Allowance
+                                            </th>
+                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
+                                                PF Cont
+                                            </th>
+                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
+                                                ESIC Cont
+                                            </th>
+                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
+                                                PT
+                                            </th>
+                                            <th className='border border-white-300 bg-white-50 px-3 py-2 text-center font-medium text-xs'>
+                                                TDS
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.map((dept, index) => {
+                                            const basicPay =
+                                                dept.earningresult.find((e: any) => e.hrmeD_Name === 'BASIC PAY')?.hresD_Amount || 0;
+                                            const hra = dept.earningresult.find((e: any) => e.hrmeD_Name === 'HRA')?.hresD_Amount || 0;
+                                            const da = dept.earningresult.find((e: any) => e.hrmeD_Name === 'DA')?.hresD_Amount || 0;
+                                            const otherAllowance =
+                                                dept.earningresult.find((e: any) => e.hrmeD_Name === 'OTHER ALLOWANCE')?.hresD_Amount || 0;
 
-                    {/* ESI Status Summary */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Active ESI Members</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>
-                                    {filteredRecords.filter((r) => r.esiStatus === 'Active').length}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Inactive Members</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-red-600'>
-                                    {filteredRecords.filter((r) => r.esiStatus === 'Inactive').length}
-                                </div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Exempted Members</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-gray-600 text-lg'>
-                                    {filteredRecords.filter((r) => r.esiStatus === 'Exempted').length}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
+                                            const pfCont =
+                                                dept.deductionresult.find((d: any) => d.hrmeD_Name === 'PF CONT')?.hresD_Amount || 0;
+                                            const esicCont =
+                                                dept.deductionresult.find((d: any) => d.hrmeD_Name === 'ESIC CONT')?.hresD_Amount || 0;
+                                            const pt = dept.deductionresult.find((d: any) => d.hrmeD_Name === 'PT')?.hresD_Amount || 0;
+                                            const tds = dept.deductionresult.find((d: any) => d.hrmeD_Name === 'TDS')?.hresD_Amount || 0;
 
-                    {/* Data Table */}
-                    <DataTable
-                        isLoading={isLoadingOnload}
-                        columns={esiReportColumns}
-                        data={filteredRecords as unknown as ESIRecordColumn[]}
-                        totalItems={filteredRecords.length}
-                        showViewOptions={true}
-                        columnPinning={{ left: ['id'] }}
-                    />
-                </div>
-            )}
+                                            const netSalary = dept.grossEarning - dept.grossDeduction;
+
+                                            return (
+                                                <tr key={index} className='hover:bg-white-50'>
+                                                    <td className='border border-white-300 px-3 py-2 text-center text-sm'>{index + 1}</td>
+                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
+                                                        {dept.hrmD_code}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
+                                                        {dept.hrmD_Name}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
+                                                        {dept.hrmD_DepartmentName}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
+                                                        {dept.hrmD_WorkingDays}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-left font-medium text-sm'>
+                                                        {dept.hrmD_Lop}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
+                                                        ₹
+                                                        {basicPay.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
+                                                        ₹
+                                                        {hra.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
+                                                        ₹
+                                                        {da.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
+                                                        ₹
+                                                        {otherAllowance.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 bg-white-50 px-3 py-2 text-right font-semibold text-sm'>
+                                                        ₹
+                                                        {dept.grossEarning.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
+                                                        ₹
+                                                        {pfCont.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
+                                                        ₹
+                                                        {esicCont.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
+                                                        ₹
+                                                        {pt.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 px-3 py-2 text-right text-sm'>
+                                                        ₹
+                                                        {tds.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 bg-white-50 px-3 py-2 text-right font-semibold text-sm'>
+                                                        ₹
+                                                        {dept.grossDeduction.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                    <td className='border border-white-300 bg-white-50 px-3 py-2 text-right font-semibold text-sm'>
+                                                        ₹
+                                                        {netSalary.toLocaleString('en-IN', {
+                                                            minimumFractionDigits: 2,
+                                                            maximumFractionDigits: 2
+                                                        })}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+
+                                        {totals && (
+                                            <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
+                                                <td className='border border-white-300 px-3 py-3 text-left text-sm' colSpan={6}>
+                                                    Total
+                                                </td>
+                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
+                                                    ₹
+                                                    {totals.basicPay.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
+                                                    ₹
+                                                    {totals.hra.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
+                                                    ₹
+                                                    {totals.da.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
+                                                    ₹
+                                                    {totals.otherAllowance.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 bg-white-50 px-3 py-3 text-right font-semibold text-sm'>
+                                                    ₹
+                                                    {totals.grossEarning.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
+                                                    ₹
+                                                    {totals.pfCont.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
+                                                    ₹
+                                                    {totals.esicCont.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
+                                                    ₹
+                                                    {totals.pt.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 px-3 py-3 text-right text-sm'>
+                                                    ₹
+                                                    {totals.tds.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 bg-white-50 px-3 py-3 text-right font-semibold text-sm'>
+                                                    ₹
+                                                    {totals.grossDeduction.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                                <td className='border border-white-300 bg-white-50 px-3 py-3 text-right font-semibold text-sm'>
+                                                    ₹
+                                                    {totals.netSalary.toLocaleString('en-IN', {
+                                                        minimumFractionDigits: 2,
+                                                        maximumFractionDigits: 2
+                                                    })}
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
+            </div>
         </div>
     );
 }
