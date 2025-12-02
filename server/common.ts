@@ -663,6 +663,29 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Fee Transaction'
                                         // }
                                     ]
+                                },
+                                {
+                                    id: 2001,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 10011,
+                                            name: 'Fee Defaulter report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feedefaulterreport',
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Fee Defaulter Report'
+                                        },
+                                        {
+                                            id: 10012,
+                                            name: 'Daily Fee Collection Report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/dailyfeecollectionreport',
+                                            title: 'Daily Fee Collection Report',
+                                            description: 'Manage Daily Fee Collection Report Details'
+                                        }
+                                    ]
                                 }
                             ]
                         }

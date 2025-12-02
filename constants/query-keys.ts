@@ -169,8 +169,17 @@ export const FEES_QUERY_KEYS = {
     FEE_OPENING_PDA_LIST: 'fee_opening_pda_list',
     FEE_OPENING_REFUNDABLE: 'fee_opening_refundable',
     FEE_GROUPGROUPING_GROUPDROPDOWN: 'fee_groupgrouping_groupdropdown',
-    STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN: 'student_fee_group_mapping_bus_area_dropdown'
- 
+    STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN: 'student_fee_group_mapping_bus_area_dropdown',
+
+    FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
+    FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
+    FEE_TERM_DEFAULTER: 'fee_term_defaulter_report',
+    FEE_BUS_ROUTES_DEFAULTER: 'fee_bus_routes_defaulter_report',
+    FEE_CUSTOM_GROUP_DEFAULTER: 'fee_custom_group_defaulter_report',
+    FEE_CLASS_LIST_DEFAULTER: 'fee_class_list_defaulter_report',
+    FEE_SECTION_LIST_DEFAULTER: 'fee_section_list_defaulter_report',
+    FEE_REPORT_GROUP_DROPDOWN: 'fee_report_group_dropdown',
+    FEE_REPORT_HEAD_DROPDOWN: 'fee_report_head_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
