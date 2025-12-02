@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useMasterFeeGroupDropdown } from '@/hooks/fees/useMasters';
+import { useGroupGroupingGroupDropdowndta } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { masterGroupsGroupingSchema } from '@/schemas/fees/masters';
 import { addOrUpdateGroupGrouping } from '@/server/fees/masters/groupsgrouping';
@@ -45,10 +45,12 @@ interface AddMasterGroupGroupingProps {
 export default function AddMasterGroupGrouping({ onSuccess, className = '' }: AddMasterGroupGroupingProps) {
     const [search, setSearch] = useState('');
 
-    const { data: response, isLoading } = useMasterFeeGroupDropdown() as {
+    const { data: response, isLoading } = useGroupGroupingGroupDropdowndta() as {
         data: { success: boolean; message: string; data: FeeGroup[] } | undefined;
         isLoading: boolean;
     };
+
+    console.log('response', response);
 
     // Extract feeGroups from nested response and ensure it's always an array
     const feeGroups = Array.isArray(response?.data) ? response.data : [];
