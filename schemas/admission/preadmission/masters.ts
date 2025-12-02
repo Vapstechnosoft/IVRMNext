@@ -127,28 +127,17 @@ export const masterClassCategorySchema = {
 
 export const masterClassHeldSchema = {
     add: z.object({
-        asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        asmaY_Id: z.number().int().min(1, { message: 'Academic Year is required' }),
         classCategory: z.string().min(1, { message: 'Class is required' }),
         section: z.string().min(1, { message: 'Section is required' }),
         classHeldData: z
             .array(
                 z.object({
-                    month: z.string().min(1, { message: 'Month is required' }),
-                    classHeld: z.number().int().min(0, { message: 'Class held must be 0 or greater' })
-                })
-            )
-            .nonempty({ message: 'Please select at least one month' })
-    }),
-    update: z.object({
-        id: z.number().int({ message: 'ID is required' }),
-        asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
-        classCategory: z.string().min(1, { message: 'Class is required' }),
-        section: z.string().min(1, { message: 'Section is required' }),
-        classHeldData: z
-            .array(
-                z.object({
-                    month: z.string().min(1, { message: 'Month is required' }),
-                    classHeld: z.number().int().min(0, { message: 'Class held must be 0 or greater' })
+                    ivrM_Month_Id: z.number().int(),
+                    ivrM_Month_Name: z.string().min(1, { message: 'Month name is required' }),
+                    is_Active: z.boolean(),
+                    ivrM_Month_Max_Days: z.number().int(),
+                    ascH_ClassHeld: z.number().int().min(0, { message: 'Class held must be 0 or greater' })
                 })
             )
             .nonempty({ message: 'Please select at least one month' })

@@ -20,28 +20,33 @@ export const masterChangeClassSchema = {
 
 export const masterUpdateRollNumberSchema = z.object({
     asmaY_Id: z.number().int().min(1, { message: 'Academic Year is required' }),
-    classCategory: z.string().min(1, { message: 'Class is required' }),
-    section: z.string().min(1, { message: 'Section is required' }),
+    asmcL_Id: z.number().int().min(1, { message: 'Class is required' }),
+    asmS_Id: z.number().int().min(1, { message: 'Section is required' }),
     students: z
         .array(
             z.object({
-                studentId: z.number(),
-                rollNo: z.string().min(1, { message: 'Roll number is required' })
+                asysT_Id: z.number(),
+                amsT_Id: z.number(),
+                student_name: z.string(),
+                new_roll_no: z.number().int().min(1, { message: 'Roll number is required' })
             })
         )
         .min(1, { message: 'At least one student is required' })
 });
 
-export const masterDeleteSectionSchema = z.object({
+export const masterDeleteStudentSectionSchema = z.object({
     asmaY_Id: z.number().int().min(1, { message: 'Academic Year is required' }),
     classCategory: z.string().min(1, { message: 'Class is required' }),
     section: z.string().min(1, { message: 'Section is required' }),
     students: z
         .array(
             z.object({
-                studentId: z.number()
+                asysT_Id: z.number(),
+                amsT_Id: z.number(),
+                student_name: z.string()
             })
         )
+        .min(1, { message: 'Please select at least one student' })
         .optional()
         .default([])
 });

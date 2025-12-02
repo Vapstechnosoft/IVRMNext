@@ -26,7 +26,16 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS_TEACHER_EMPLOYEE: 'master_class_teacher_employee',
     MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping',
     MASTER_CLASS_SET_ORDER: 'master_class_set_order',
-    MASTER_SECTION_SET_ORDER: 'master_section_set_order'
+    MASTER_SECTION_SET_ORDER: 'master_section_set_order',
+    MASTER_CLASS_HELD: 'master_class_held',
+    MASTER_MONTH_DROPDOWN_LIST: 'master_month_dropdown_list',
+    MASTER_STUDENTS: 'master_students',
+    MASTER_CHANGE_SECTION_TABLE: 'master_change_section_table',
+    MASTER_STUDENT_LIST: 'master_student_list',
+    MASTER_STUDENT_ROLES: 'master_student_roles',
+    MASTER_YEAR_LOSS_SECTION: 'master_year_loss_section',
+    MASTER_CHANGE_CLASS_STUDENTS: 'master_change_class_students',
+    MASTER_CHANGE_CLASS_STUDENT_DETAILS: 'master_change_class_student_details'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

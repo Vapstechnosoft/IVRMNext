@@ -56,6 +56,10 @@ export interface IAcademicYearDropDown {
     asmaY_Id: number;
     asmaY_Year: string;
     asmaY_Order: number;
+    asmaY_From_Date: string;
+    asmaY_To_Date: string;
+    asmaY_PreAdm_F_Date: string;
+    asmaY_PreAdm_T_Date: string;
 }
 export interface IMasterCategoryDropDown {
     amC_Id: number;
