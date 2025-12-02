@@ -57,6 +57,7 @@ import {
 import { getFeeSpecialHeadDropdown, getfeespeecialheadList } from '@/server/fees/masters/specialfeehead';
 import {
     getAdmClassCategorydropdown,
+    getFeeBusAreadropdown,
     getFeeBusRoutingdropdown,
     getFeeCasteCategorydropdown,
     getFeeClassCategorydropdown,
@@ -69,12 +70,7 @@ import {
 } from '@/server/fees/masters/student_fee_group_mapping';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-
-/*************  ✨ Windsurf Command ⭐  *************/
- * Hook to fetch fee heads
- * @param {ApiSearchparams} searchParams - search parameters
- * @returns {object} - object containing the query and refetchAll functions
-/*******  69583189-9579-40d6-8a9a-0976bb5537d7  *******/ export const useMasterFeehead = (searchParams?: ApiSearchparams) => {
+export const useMasterFeehead = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
@@ -1282,9 +1278,6 @@ export const feeSpecialHeadDROPDOWN = () => {
     };
 };
 
-
-
-
 export const useGroupGroupingGroupDropdowndta = () => {
     const queryClient = useQueryClient();
 
@@ -1302,10 +1295,9 @@ export const useGroupGroupingGroupDropdowndta = () => {
     };
 };
 
-
 export const useStudentFeeBusAreaDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
- 
+
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN],
