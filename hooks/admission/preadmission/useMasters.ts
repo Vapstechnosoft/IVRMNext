@@ -1,4 +1,5 @@
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { getMasterStudentList } from '@/server/admission/preadmission/masters/active_deactive_student';
 import { getMasterCaste, getMasterCasteCategoryDropdown } from '@/server/admission/preadmission/masters/caste';
 import { getMasterCasteCategory, getMasterCasteCategoryCodeDropdown } from '@/server/admission/preadmission/masters/caste_category';
 import { getMasterCategory } from '@/server/admission/preadmission/masters/category';
@@ -455,6 +456,28 @@ export const useMasterMonthDropDownList = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_MONTH_DROPDOWN_LIST]
+            });
+        }
+    };
+};
+export const useMasterStudentList = (amst_sol?: string, asmay_id?: number, asmcl_id?: number, asms_id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ACTIVE_DEACTIVE_STUDENTS, amst_sol ?? {}, asmay_id ?? {}, asmcl_id ?? {}, asms_id ?? {}],
+            queryFn: async () => {
+                if (!amst_sol || !asmay_id || asmay_id <= 0 || !asmcl_id || asmcl_id <= 0 || !asms_id || asms_id <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getMasterStudentList(amst_sol, asmay_id, asmcl_id, asms_id);
+            },
+            enabled: Boolean(amst_sol && asmay_id && asmay_id > 0 && asmcl_id && asmcl_id > 0 && asms_id && asms_id > 0),
+            staleTime: 0
+        }),
+        refetchAll: (amst_solArg?: string, year?: number, clazz?: number, section?: number) => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ACTIVE_DEACTIVE_STUDENTS, amst_solArg ?? {}, year ?? {}, clazz ?? {}, section ?? {}]
             });
         }
     };

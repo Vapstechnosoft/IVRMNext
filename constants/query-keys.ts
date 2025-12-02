@@ -35,7 +35,8 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_STUDENT_ROLES: 'master_student_roles',
     MASTER_YEAR_LOSS_SECTION: 'master_year_loss_section',
     MASTER_CHANGE_CLASS_STUDENTS: 'master_change_class_students',
-    MASTER_CHANGE_CLASS_STUDENT_DETAILS: 'master_change_class_student_details'
+    MASTER_CHANGE_CLASS_STUDENT_DETAILS: 'master_change_class_student_details',
+    ACTIVE_DEACTIVE_STUDENTS: 'active_deactive_students'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
