@@ -19,16 +19,12 @@ export default function FeeTransactionPage(props: { searchParams: SearchParams }
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
 
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
-
-    const asmaY_Id = academicYearData?.data && academicYearData.data.length > 0 ? academicYearData.data[0].asmaY_Id : 0;
     //const { data: response, isLoading, error } = useFeeTransactionList(asmaY_Id, searchParams);
     const { data: response, isLoading, error } = useFeeTransactionList(selectedAsmayId ?? 0, searchParams);
 
     useEffect(() => {
         if (!loadingYears && academicYearData?.data && academicYearData.data.length > 0) {
             const firstId = academicYearData.data[0].asmaY_Id;
-
-            // Only set once on initial load
             setSelectedAsmayId((prev) => prev ?? firstId);
         }
     }, [loadingYears, academicYearData]);

@@ -4,8 +4,10 @@ import type { ApiSearchparams } from '@/types';
 import type {
     IMasterAdmClassCategoryMappingList,
     IMasterClassYearlyList,
+    IMasterFeeBusAreaList,
     IMasterFeeBusRoutingMappingList,
     IMasterFeeCasteCategoryMappingList,
+    IMasterFeeClassCategoryList,
     IMasterFeeClassDropDownList,
     IMasterFeeGroupList,
     IMasterFeeHeadList,
@@ -38,8 +40,8 @@ export async function getAdmClassCategorydropdown() {
 }
 
 export async function getFeeClassCategorydropdown() {
-    const url = '/StudentFeeGroupMappingFacade/getAdmissionCategories';
-    return await api.get<IMasterAdmClassCategoryMappingList[]>('fees', url);
+    const url = '/StudentFeeGroupMappingFacade/get-fee-class-category';
+    return await api.get<IMasterFeeClassCategoryList[]>('fees', url);
 }
 
 export async function getclassdropdown() {
@@ -53,12 +55,17 @@ export async function getSectionropdown() {
 }
 
 export async function getFeeBusRoutingdropdown() {
-    const url = 'StudentFeeGroupMappingFacade/getBusRoutes';
+    const url = '/StudentFeeGroupMappingFacade/getBusRoutes';
     return await api.get<IMasterFeeBusRoutingMappingList[]>('fees', url);
 }
 
+export async function getFeeBusAreadropdown() {
+    const url = '/StudentFeeGroupMappingFacade/get-bus-arealist';
+    return await api.get<IMasterFeeBusAreaList[]>('fees', url);
+}
+
 export async function getFeeCasteCategorydropdown() {
-    const url = 'StudentFeeGroupMappingFacade/getCasteList';
+    const url = '/StudentFeeGroupMappingFacade/getCasteList';
     return await api.get<IMasterFeeCasteCategoryMappingList[]>('fees', url);
 }
 
