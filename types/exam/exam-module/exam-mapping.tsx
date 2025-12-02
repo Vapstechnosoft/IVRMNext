@@ -420,3 +420,16 @@ export interface IPromotionRemarksGrid {
     remarks?: string;      // Remarks for the student
 }
 
+export interface IPromotionSetting {
+    id: number;
+    asmaY_Id: number;
+    emcA_CategoryName?: string;
+    emgR_GradeName?: string;
+    promotion_type: string;
+    pass_to_individual: boolean;
+    pass_to_overall: boolean;
+    best_applicable: boolean;
+    best_off: number;
+}
+
+

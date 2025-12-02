@@ -30,13 +30,16 @@ interface UpdateLifeSkillAreaMappingProps {
 export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: UpdateLifeSkillAreaMappingProps) {
     const orgId = 30;
     const { refetchAll } = useMasterLifeSkillAreaMapping();
-
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [lifeSkills, setLifeSkills] = useState<ILifeSkill[]>([]);
     const [lifeSkillAreas, setLifeSkillAreas] = useState<ILifeSkillArea[]>([]);
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
 
-    const { data: academicYearData, error: academicYearError } = useAcademicYearDropdown();
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
+    const academicYears = academicYear?.data ? academicYear.data : [];
     const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkills();
     const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillArea();
     const { data: masterGradeData, error: masterGradeError } = useMasterGrade();
@@ -51,13 +54,6 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
 
     // Load dropdown data
     useEffect(() => {
-        // Academic Year
-        if (academicYearData?.data) {
-            const years = Array.isArray(academicYearData.data) ? academicYearData.data : [academicYearData.data];
-            setAcademicYears(years);
-        }
-        if (academicYearError) toast.error('Failed to load Academic Years');
-
         // Life Skills
         if (lifeSkillData?.data) {
             const skills = Array.isArray(lifeSkillData.data) ? lifeSkillData.data : [lifeSkillData.data];
@@ -79,7 +75,6 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
         }
         if (masterGradeError) toast.error('Failed to load Grades');
     }, [
-        academicYearData,
         lifeSkillData,
         lifeSkillAreaData,
         masterGradeData,
@@ -184,11 +179,21 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
                                             <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicYears.map((y) => (
-                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                    {y.asmaY_Year}
+                                            {academicYearLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Academic Year...
                                                 </SelectItem>
-                                            ))}
+                                            ) : academicYearError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading Academic Year
+                                                </SelectItem>
+                                            ) : (
+                                                academicYear?.data?.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

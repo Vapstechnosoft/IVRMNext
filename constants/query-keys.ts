@@ -209,7 +209,9 @@ export const EXAM_QUERY_KEYS = {
     EXAM_STANDARD: 'exam-standared',
 
     EXAM_HALL_TICKET_GENERATED_DATA: 'exam-hall-ticket-generated-data',
-    EXAM_HALL_TICKET_STUDENT_LIST: 'exam-hall-ticket-student-list'
+    EXAM_HALL_TICKET_STUDENT_LIST: 'exam-hall-ticket-student-list',
+
+    PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid',
 };
 
 export const HRMS_QUERY_KEYS = {

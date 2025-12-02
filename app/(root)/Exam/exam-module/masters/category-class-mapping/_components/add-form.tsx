@@ -29,14 +29,15 @@ interface AddCategoryClassFormProps {
 }
 
 export default function AddCategoryClassForm({ onSuccess, initialData }: AddCategoryClassFormProps) {
-    const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [classes, setClasses] = useState<IClass[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
     const tableRef = useRef<HTMLDivElement>(null);
-
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     // local list that holds added mappings (rows)
+    const academicYears = academicYear?.data ? academicYear.data : [];
+
     const [mappingList, setMappingList] = useState<
         {
             asmaY_Id: number;
@@ -50,7 +51,6 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     >([]);
     const [editIndex, setEditIndex] = useState<number | null>(null);
 
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const { refetchAll } = useMasterCategoryClassMapping();
 
     const {
@@ -75,23 +75,6 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const watchedYear = watch('asmaY_Id');
     const watchedClass = watch('asmcL_Id');
     const watchedCategory = watch('emcA_Id');
-
-    // ---------- Academic Years ----------
-    useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-    }, [academicData, academicError]);
 
     // ---------- Fetch categories & classes ----------
     useEffect(() => {
@@ -307,11 +290,21 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                 </SelectTrigger>
 
                                 <SelectContent>
-                                    {academicYears.map((year) => (
-                                        <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                            {year.asmaY_Year}
+                                    {academicYearLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading Academic Year...
                                         </SelectItem>
-                                    ))}
+                                    ) : academicYearError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading Academic Year
+                                        </SelectItem>
+                                    ) : (
+                                        academicYear?.data?.map((item) => (
+                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                {item.asmaY_Year}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         )}
@@ -476,7 +469,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                                     {
                                                         // academicYears stores ids as string in formatted list
                                                         academicYears.find((y) => String(y.asmaY_Id) === String(m.asmaY_Id))?.asmaY_Year ||
-                                                            String(m.asmaY_Id)
+                                                        String(m.asmaY_Id)
                                                     }
                                                 </td>
                                                 <td className='border p-2 text-center'>

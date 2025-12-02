@@ -24,15 +24,10 @@ type FormFields = z.infer<typeof lifeSkillAreaMappingSchema.addOrUpdate>;
 export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () => void }) {
     const orgId = 30;
     const { refetchAll } = useMasterLifeSkillAreaMapping();
-
-    //  Dropdown States
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const { data: academicYear, error: academicYearError, isLoading: academicYearLoading } = useAcademicYearDropdown();
     const [lifeSkills, setLifeSkills] = useState<ILifeSkill[]>([]);
     const [lifeSkillAreas, setLifeSkillAreas] = useState<ILifeSkillArea[]>([]);
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
-
-    //  API Hooks
-    const { data: academicYearData, error: academicYearError } = useAcademicYearDropdown();
     const { data: lifeSkillData, error: lifeSkillError } = useMasterLifeSkills();
     const { data: lifeSkillAreaData, error: areaError } = useMasterLifeSkillArea();
     const { data: masterGradeData, error: masterGradeError } = useMasterGrade();
@@ -73,12 +68,6 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
     const mappingArray = useFieldArray({ control, name: 'mappingDTO' });
 
     useEffect(() => {
-        // Academic Year
-        if (academicYearData?.data) {
-            const years = Array.isArray(academicYearData.data) ? academicYearData.data : [academicYearData.data];
-            setAcademicYears(years);
-        }
-        if (academicYearError) toast.error('Failed to load Academic Years');
 
         // Life Skills
         if (lifeSkillData?.data) {
@@ -101,7 +90,6 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
         }
         if (masterGradeError) toast.error('Failed to load Grades');
     }, [
-        academicYearData,
         lifeSkillData,
         lifeSkillAreaData,
         masterGradeData,
@@ -174,11 +162,21 @@ export default function AddLifeSkillAreaMapping({ onSuccess }: { onSuccess?: () 
                                                     <SelectValue placeholder='Select Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {academicYears.map((y) => (
-                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                            {y.asmaY_Year}
+                                                    {academicYearLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading Academic Year...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : academicYearError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading Academic Year
+                                                        </SelectItem>
+                                                    ) : (
+                                                        academicYear?.data?.map((item) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

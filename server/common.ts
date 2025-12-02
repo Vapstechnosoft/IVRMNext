@@ -778,6 +778,22 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/exam-hall-ticket-generation',
                                             title: 'Hall Ticket Generation',
                                             description: 'Manage Hall Ticket Generation Details'
+                                        },
+                                        {
+                                            id: 63,
+                                            name: 'Student Subject Mapping',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/student-subject-mapping',
+                                            title: 'Student Subject Mapping',
+                                            description: 'Manage Student Subject Mapping Details'
+                                        },
+                                        {
+                                            id: 64,
+                                            name: 'Promotion Setting',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/promotion-setting',
+                                            title: 'Promotion Setting',
+                                            description: 'Manage Promotion Setting Details'
                                         }
                                     ]
                                 },

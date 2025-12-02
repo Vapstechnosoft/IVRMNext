@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -40,7 +39,6 @@ interface Props {
 
 export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     const { data: academicData } = useAcademicYearDropdown();
-
     const {
         control,
         handleSubmit,
@@ -111,7 +109,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
             setCategories([]);
             return;
         }
-
         const fetchCategories = async () => {
             try {
                 const res = await getCategoryDropDownByYearList(asmaY_Id);
@@ -121,7 +118,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                 setCategories([]);
             }
         };
-
         fetchCategories();
     }, [asmaY_Id, type]);
 
@@ -132,23 +128,19 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
             setClasses([]);
             return;
         }
-
         const fetchData = async () => {
             try {
                 const categoryId = emcA_Id === 'All' ? 'All' : emcA_Id;
-
                 const [groupRes, classRes] = await Promise.all([
                     getSubjectGroupDropDownByYearCategoryList(asmaY_Id, categoryId),
                     type === 'csw' ? getClassDropDownByYearCategoryList(asmaY_Id, categoryId) : Promise.resolve([])
                 ]);
-
                 setGroups(Array.isArray(groupRes) ? groupRes : []);
                 setClasses(Array.isArray(classRes) ? classRes : []);
             } catch {
                 toast.error('Failed to load groups or classes');
             }
         };
-
         fetchData();
     }, [asmaY_Id, emcA_Id, type]);
 
@@ -158,7 +150,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
             setSubjects([]);
             return;
         }
-
         const fetchSubjects = async () => {
             try {
                 const categoryId = emcA_Id === 'All' ? 'All' : emcA_Id;
@@ -168,7 +159,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                 toast.error('Failed to load subjects');
             }
         };
-
         fetchSubjects();
     }, [asmaY_Id, emcA_Id, emG_Id, type]);
 
@@ -178,7 +168,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
             setSections([]);
             return;
         }
-
         const fetchSections = async () => {
             try {
                 const res = await getSectionDropDownByYearCategoryClassList(asmaY_Id, Number(emcA_Id), asmcL_Id);
@@ -187,7 +176,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                 toast.error('Failed to load sections');
             }
         };
-
         fetchSections();
     }, [asmaY_Id, emcA_Id, asmcL_Id, type]);
 
@@ -207,7 +195,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                 ASMCL_Id: 0,
                 ASMS_Id: 0
             };
-
             if (data.Type !== 'All') {
                 if (data.emcA_Id === 'All') {
                     payload.EMCA_Id = 0; // backend treats 0 as All
@@ -215,17 +202,14 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                     payload.EMCA_Id = data.emcA_Id;
                 }
             }
-
             if (data.Type === 'subj') {
                 payload.EMG_Id = data.emG_Id;
                 payload.ISMS_Id = data.ismS_Id;
             }
-
             if (data.Type === 'csw') {
                 payload.ASMCL_Id = data.asmcL_Id;
                 payload.ASMS_Id = data.asmS_Id || 0;
             }
-
             console.info('Final Payload →', payload); // Debug
             onSuccess?.(payload);
         } catch (err: any) {
@@ -278,7 +262,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                     )}
                                 />
                             </div>
-
                             {/* Additional Options */}
                             <div className='rounded-lg bg-muted/50 p-6'>
                                 <Label>Additional Options</Label>
@@ -304,7 +287,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                 </div>
                             </div>
                         </div>
-
                         {/* Right Column - Filters */}
                         <div className='space-y-6'>
                             {/* Academic Year */}
@@ -336,7 +318,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                 )}
                             />
 
-                            {/* Category */}
+                            {/* Category - ONLY CHANGE HERE */}
                             {(type === 'Indi' || type === 'subj' || type === 'csw') && (
                                 <Controller
                                     name='emcA_Id'
@@ -367,7 +349,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                     )}
                                 />
                             )}
-
                             {/* Subject Group & Subject */}
                             {type === 'subj' && (
                                 <>
@@ -398,7 +379,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                             </div>
                                         )}
                                     />
-
                                     <Controller
                                         name='ismS_Id'
                                         control={control}
@@ -428,7 +408,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                     />
                                 </>
                             )}
-
                             {/* Class & Section */}
                             {type === 'csw' && (
                                 <>
@@ -459,7 +438,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                             </div>
                                         )}
                                     />
-
                                     <Controller
                                         name='asmS_Id'
                                         control={control}
@@ -491,9 +469,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                             )}
                         </div>
                     </div>
-
                     <hr className='my-8' />
-
                     <div className='flex justify-center gap-4'>
                         <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Generating Report...' : 'Generate Report'}

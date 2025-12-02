@@ -60,7 +60,6 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
 
     // local state: exam-term rows shown in table (from details API + newly added)
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
@@ -86,32 +85,15 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
     const [entryRoundOff, setEntryRoundOff] = useState<boolean>(false);
     const [entryConversion, setEntryConversion] = useState<boolean>(false);
     const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
+    const academicYears = academicYear?.data ? academicYear.data : [];
 
     // lock top-level when there is at least one added row (same behavior)
     const topLocked = addedRows.length > 0;
-
-    // fetch academic years on mount
-    useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-            return;
-        }
-
-        if (!academicData?.data || !Array.isArray(academicData.data)) {
-            setAcademicYears([]);
-            return;
-        }
-
-        const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-            asmaY_Id: item.asmaY_Id ?? 0,
-            asmaY_Year: item.asmaY_Year ?? '',
-            asmaY_Order: item.asmaY_Order ?? 0
-        }));
-
-        setAcademicYears(formattedYears);
-    }, [academicData, academicError, rowData]);
 
     // Set academic year value when both academicYears and rowData are available
     useEffect(() => {
@@ -466,11 +448,21 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {academicYears.map((y) => (
-                                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                            {y.asmaY_Year}
+                                                    {academicYearLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading Academic Year...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : academicYearError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading Academic Year
+                                                        </SelectItem>
+                                                    ) : (
+                                                        academicYear?.data?.map((item) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
