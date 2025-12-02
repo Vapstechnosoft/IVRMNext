@@ -1,16 +1,21 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Checkbox } from '@/components/ui/checkbox';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
+import { useMasterChangeSectionTable, useMasterUpdateStudentRoles } from '@/hooks/admission/preadmission/useSection';
+import { useAdmissionClassDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { masterUpdateRollNumberSchema } from '@/schemas/admission/preadmission/section';
+import { updateRollNumbers } from '@/server/admission/preadmission/section/sections';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -19,29 +24,35 @@ import { masterUpdateRollNumberColumns } from './_components/columns';
 type FormFields = z.infer<typeof masterUpdateRollNumberSchema>;
 
 interface Student {
-    studentId: number;
-    siNo: number;
-    studentName: string;
-    className: string;
-    section: string;
-    admNo: string;
-    presentRollNo: string;
-    rollNo: string;
-    gender: string;
-    addCode: string;
+    asysT_Id: number;
+    student_id: number;
+    student_name: string;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmS_Id: number;
+    asmC_SectionName: string;
+    amaY_RollNo: number;
+    amsT_AdmNo: string;
+    new_roll_no?: number;
 }
 
-interface DropdownOption {
-    value: string;
-    label: string;
-}
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterUpdateRollNumberPage() {
-    const [academicYear, setAcademicYear] = useState<number | null>(null);
-    const [classId, setClassId] = useState<string>('');
-    const [sectionId, setSectionId] = useState<string>('');
+export default function MasterUpdateRollNumberPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+    const [academicYearId, setAcademicYearId] = useState<number>(0);
+    const [classId, setClassId] = useState<number>(0);
+    const [sectionId, setSectionId] = useState<number>(0);
     const [showTable, setShowTable] = useState(false);
     const [students, setStudents] = useState<Student[]>([]);
+    const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
+    const [selectAll, setSelectAll] = useState(false);
+
+    const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
+
+    const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useAdmissionClassDropdown();
 
     const {
         control,
@@ -53,203 +64,174 @@ export default function MasterUpdateRollNumberPage() {
         resolver: zodResolver(masterUpdateRollNumberSchema),
         defaultValues: {
             asmaY_Id: 0,
-            classCategory: '',
-            section: '',
+            asmcL_Id: 0,
+            asmS_Id: 0,
             students: []
         },
         mode: 'onChange'
     });
 
-    // Mock data
-    const academicYearData = {
-        data: [
-            { asmaY_Id: 1, asmaY_Year: '2024-2025' },
-            { asmaY_Id: 2, asmaY_Year: '2025-2026' }
-        ]
-    };
+    const { data: SectionData, isLoading: SectionLoading, isError: SectionError } = useMasterSectionHeld(classId);
 
-    const masterClass = {
-        data: [
-            { asmcL_ID: 1, asmcL_ClassName: 'Class 1', addCode: 'C1' },
-            { asmcL_ID: 2, asmcL_ClassName: 'Class 2', addCode: 'C2' },
-            { asmcL_ID: 3, asmcL_ClassName: 'Class 3', addCode: 'C3' }
-        ]
-    };
+    const {
+        data: UpdateStudentRolesData,
+        isLoading: UpdateStudentRolesLoading,
+        isError: UpdateStudentRolesError,
+        refetch: refetchStudents
+    } = useMasterUpdateStudentRoles(academicYearId, classId, sectionId);
 
-    const sectionOptions: DropdownOption[] = [
-        { value: 'A', label: 'A' },
-        { value: 'B', label: 'B' },
-        { value: 'C', label: 'C' },
-        { value: 'D', label: 'D' }
-    ];
+    const {
+        data: StudentsData,
+        isLoading: StudentsLoading,
+        isError: StudentsError
+    } = useMasterChangeSectionTable(searchParams, academicYearId, classId, sectionId);
 
-    const mockStudentData: Student[] = [
-        {
-            studentId: 1,
-            siNo: 1,
-            studentName: 'John Doe',
-            className: 'Class 1',
-            section: 'A',
-            admNo: 'ADM001',
-            presentRollNo: '001',
-            rollNo: '001',
-            gender: 'Male',
-            addCode: 'C1'
-        },
-        {
-            studentId: 2,
-            siNo: 2,
-            studentName: 'Jane Smith',
-            className: 'Class 1',
-            section: 'A',
-            admNo: 'ADM002',
-            presentRollNo: '002',
-            rollNo: '002',
-            gender: 'Female',
-            addCode: 'C1'
-        },
-        {
-            studentId: 3,
-            siNo: 3,
-            studentName: 'Mike Johnson',
-            className: 'Class 1',
-            section: 'A',
-            admNo: 'ADM003',
-            presentRollNo: '003',
-            rollNo: '003',
-            gender: 'Male',
-            addCode: 'C1'
-        },
-        {
-            studentId: 4,
-            siNo: 4,
-            studentName: 'Sarah Williams',
-            className: 'Class 1',
-            section: 'A',
-            admNo: 'ADM004',
-            presentRollNo: '004',
-            rollNo: '004',
-            gender: 'Female',
-            addCode: 'C1'
-        }
-    ];
-
-    const [classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
+    const tableProps = useDataTableProps(StudentsData);
 
     useEffect(() => {
-        if (masterClass?.data && Array.isArray(masterClass.data)) {
-            const opts = masterClass.data.map((c: any) => ({
-                value: c.asmcL_ID.toString(),
-                label: c.asmcL_ClassName
+        if (UpdateStudentRolesData?.data && Array.isArray(UpdateStudentRolesData.data)) {
+            const studentsWithNewRollNo = UpdateStudentRolesData.data.map((student: Student) => ({
+                ...student,
+                new_roll_no: student.amaY_RollNo
             }));
-            setClassCategoryOptions(opts);
-        } else {
-            setClassCategoryOptions([]);
+            setStudents(studentsWithNewRollNo);
+            setShowTable(true);
         }
-    }, []);
+    }, [UpdateStudentRolesData]);
 
     useEffect(() => {
-        const studentData = students.map((student) => ({
-            studentId: student.studentId,
-            rollNo: student.rollNo
-        }));
-        setValue('students', studentData, { shouldValidate: true });
-    }, [students, setValue]);
+        if (students.length > 0) {
+            const studentData = students
+                .filter((student) => selectedStudents.has(student.asysT_Id))
+                .map((student) => ({
+                    asysT_Id: student.asysT_Id,
+                    amsT_Id: student.student_id,
+                    student_name: student.student_name,
+                    new_roll_no: student.new_roll_no || student.amaY_RollNo
+                }));
+            setValue('students', studentData, { shouldValidate: true });
+        }
+    }, [students, selectedStudents, setValue]);
 
     const handleAcademicYearChange = (value: string) => {
         const numValue = Number(value);
-        setAcademicYear(numValue);
+        setAcademicYearId(numValue);
         setValue('asmaY_Id', numValue);
 
-        setClassId('');
-        setSectionId('');
         setShowTable(false);
-        setValue('classCategory', '');
-        setValue('section', '');
+        setClassId(0);
+        setSectionId(0);
+        setValue('asmcL_Id', 0);
+        setValue('asmS_Id', 0);
         setStudents([]);
+        setSelectedStudents(new Set());
+        setSelectAll(false);
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        setSelectAll(checked);
+        if (checked) {
+            const allIds = new Set(students.map((s: Student) => s.asysT_Id));
+            setSelectedStudents(allIds);
+        } else {
+            setSelectedStudents(new Set());
+        }
+    };
+
+    const handleSelectStudent = (asysT_Id: number, checked: boolean) => {
+        const newSelected = new Set(selectedStudents);
+        if (checked) {
+            newSelected.add(asysT_Id);
+        } else {
+            newSelected.delete(asysT_Id);
+        }
+        setSelectedStudents(newSelected);
+        setSelectAll(newSelected.size === students.length);
     };
 
     const handleClassChange = (value: string) => {
-        setClassId(value);
-        setValue('classCategory', value);
+        const numValue = Number(value);
+        setClassId(numValue);
+        setValue('asmcL_Id', numValue);
 
-        setSectionId('');
+        setSectionId(0);
         setShowTable(false);
-        setValue('section', '');
+        setValue('asmS_Id', 0);
         setStudents([]);
+        setSelectedStudents(new Set());
+        setSelectAll(false);
     };
 
     const handleSectionChange = (value: string) => {
-        setSectionId(value);
-        setValue('section', value);
+        const numValue = Number(value);
+        setSectionId(numValue);
+        setValue('asmS_Id', numValue);
 
-        const selectedClass = masterClass.data.find((c) => c.asmcL_ID.toString() === classId);
-
-        const studentsWithClassData = mockStudentData.map((student) => ({
-            ...student,
-            className: selectedClass?.asmcL_ClassName || student.className,
-            section: value,
-            addCode: selectedClass?.addCode || student.addCode
-        }));
-
-        setStudents(studentsWithClassData);
-        setShowTable(true);
+        // Refetch students data
+        if (academicYearId && classId && numValue) {
+            refetchStudents();
+        }
     };
 
     const handleRollNumberChange = (index: number, value: string) => {
+        const numValue = Number.parseInt(value) || 0;
         setStudents((prev) => {
             const newData = [...prev];
-            newData[index] = { ...newData[index], rollNo: value };
+            newData[index] = { ...newData[index], new_roll_no: numValue };
             return newData;
         });
     };
 
     const onSubmit = async (data: FormFields) => {
+        if (selectedStudents.size === 0) {
+            toast.error('Please select at least one student');
+            return;
+        }
+
         try {
-            const selectedClass = masterClass.data.find((c) => c.asmcL_ID.toString() === classId);
+            const studentsRollUpdate = Array.from(selectedStudents).map((asysT_Id) => {
+                const student = students.find((s: any) => s.asysT_Id === asysT_Id);
+                return {
+                    asysT_Id: asysT_Id,
+                    amsT_Id: student?.student_id || 0,
+                    student_name: student?.student_name || '',
+                    new_roll_no: student?.new_roll_no || 0
+                };
+            });
 
             const payload = {
-                academicYear: data.asmaY_Id,
-                classId: data.classCategory,
-                className: selectedClass?.asmcL_ClassName,
-                addCode: selectedClass?.addCode,
-                section: data.section,
-                students: data.students.map((student) => {
-                    const studentDetail = students.find((s) => s.studentId === student.studentId);
-                    return {
-                        studentId: student.studentId,
-                        studentName: studentDetail?.studentName,
-                        admNo: studentDetail?.admNo,
-                        presentRollNo: studentDetail?.presentRollNo,
-                        newRollNo: student.rollNo,
-                        gender: studentDetail?.gender
-                    };
-                })
+                asmaY_Id: data.asmaY_Id,
+                asmcL_Id: data.asmcL_Id,
+                asmS_Id: data.asmS_Id,
+                students: studentsRollUpdate
             };
 
-            console.log('Payload:', payload);
-
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            toast.success('Roll numbers updated successfully!');
-            handleReset();
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to update roll numbers');
+            const response = await updateRollNumbers(payload);
+            if (response.success) {
+                toast.success(response.message || 'Roll numbers updated successfully!');
+                handleReset();
+            } else {
+                toast.error(response.message);
+            }
+        } catch (_error: any) {
+            toast.error('An error occurred while updating roll numbers');
         }
     };
 
     const handleReset = () => {
         reset({
             asmaY_Id: 0,
-            classCategory: '',
-            section: '',
+            asmcL_Id: 0,
+            asmS_Id: 0,
             students: []
         });
-        setAcademicYear(null);
-        setClassId('');
-        setSectionId('');
+        setAcademicYearId(0);
+        setClassId(0);
+        setSectionId(0);
         setShowTable(false);
         setStudents([]);
+        setSelectedStudents(new Set());
+        setSelectAll(false);
     };
 
     const handleFormSubmit = (e: React.FormEvent) => {
@@ -285,11 +267,17 @@ export default function MasterUpdateRollNumberPage() {
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {academicYearData?.data?.map((item: any) => (
-                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                            {item.asmaY_Year}
+                                                    {ayLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : (
+                                                        academicYear?.data?.map((item) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -298,59 +286,85 @@ export default function MasterUpdateRollNumberPage() {
                                 </div>
 
                                 <div className='group flex flex-col gap-1.5'>
-                                    <Label htmlFor='classCategory'>
+                                    <Label htmlFor='asmcL_Id'>
                                         Class <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
-                                        name='classCategory'
+                                        name='asmcL_Id'
                                         control={control}
                                         render={({ field }) => (
-                                            <Select onValueChange={handleClassChange} value={field.value} disabled={!academicYear}>
+                                            <Select
+                                                onValueChange={handleClassChange}
+                                                value={field.value > 0 ? field.value.toString() : ''}
+                                                disabled={!academicYearId}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {classCategoryOptions.map((opt) => (
-                                                        <SelectItem key={opt.value} value={opt.value}>
-                                                            {opt.label}
+                                                    {preadmissionClassLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : preadmissionClassError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading
+                                                        </SelectItem>
+                                                    ) : (
+                                                        masterClass?.data?.map((item) => (
+                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                {item.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
                                     />
-                                    {errors.classCategory && <FormError>{errors.classCategory.message}</FormError>}
+                                    {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
                                 </div>
 
                                 <div className='group flex flex-col gap-1.5'>
-                                    <Label htmlFor='section'>
+                                    <Label htmlFor='asmS_Id'>
                                         Section <span className='text-red-500'>*</span>
                                     </Label>
                                     <Controller
-                                        name='section'
+                                        name='asmS_Id'
                                         control={control}
                                         render={({ field }) => (
-                                            <Select onValueChange={handleSectionChange} value={field.value} disabled={!classId}>
+                                            <Select
+                                                onValueChange={handleSectionChange}
+                                                value={field.value > 0 ? field.value.toString() : ''}
+                                                disabled={!classId}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {sectionOptions.map((opt) => (
-                                                        <SelectItem key={opt.value} value={opt.value}>
-                                                            {opt.label}
+                                                    {SectionLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : SectionError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading
+                                                        </SelectItem>
+                                                    ) : (
+                                                        SectionData?.data?.map((opt: any) => (
+                                                            <SelectItem key={opt.asmS_Id} value={opt.asmS_Id.toString()}>
+                                                                {opt.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
                                     />
-                                    {errors.section && <FormError>{errors.section.message}</FormError>}
+                                    {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                                 </div>
                             </div>
                         </div>
                     </CollapsibleSection>
 
-                    {showTable && (
+                    {showTable && students.length > 0 && (
                         <>
                             <CollapsibleSection
                                 title='Student List'
@@ -360,89 +374,125 @@ export default function MasterUpdateRollNumberPage() {
                                 size='lg'
                                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                                 <div className='space-y-4'>
-                                    <div className='overflow-x-auto rounded-lg border'>
-                                        <table className='w-full'>
-                                            <thead className='border-b'>
-                                                <tr>
-                                                    <th className='p-3 text-left font-semibold'>SI. No</th>
-                                                    <th className='p-3 text-left font-semibold'>Student Name</th>
-                                                    <th className='p-3 text-left font-semibold'>Class</th>
-                                                    <th className='p-3 text-left font-semibold'>Section</th>
-                                                    <th className='p-3 text-left font-semibold'>Adm. No</th>
-                                                    <th className='p-3 text-left font-semibold'>Present Roll No</th>
-                                                    <th className='p-3 text-left font-semibold'>
-                                                        Roll No <span className='text-red-500'>*</span>
-                                                    </th>
-                                                    <th className='p-3 text-left font-semibold'>Gender</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className='divide-y'>
-                                                {students.map((student, index) => (
-                                                    <tr key={student.studentId} className='hover:bg-gray-50'>
-                                                        <td className='p-3'>{student.siNo}</td>
-                                                        <td className='p-3 font-medium'>{student.studentName}</td>
-                                                        <td className='p-3'>{student.className}</td>
-                                                        <td className='p-3'>{student.section}</td>
-                                                        <td className='p-3'>{student.admNo}</td>
-                                                        <td className='p-3'>{student.presentRollNo}</td>
-                                                        <td className='p-3'>
-                                                            <Input
-                                                                type='text'
-                                                                value={student.rollNo}
-                                                                onChange={(e) => handleRollNumberChange(index, e.target.value)}
-                                                                className='w-24'
-                                                                placeholder='Roll No'
-                                                            />
-                                                        </td>
-                                                        <td className='p-3'>{student.gender}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    {errors.students && <FormError>{errors.students.message}</FormError>}
-
-                                    {/* Action Buttons */}
-                                    <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            onClick={handleReset}
-                                            disabled={isSubmitting}
-                                            className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                            Reset
-                                        </Button>
-                                        <Button
-                                            onClick={handleFormSubmit}
-                                            disabled={isSubmitting}
-                                            className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
-                                            <div className='flex items-center'>
-                                                <Save className='mr-2 h-4 w-4' />
-                                                {isSubmitting ? 'Saving...' : 'Save'}
+                                    {UpdateStudentRolesLoading ? (
+                                        <div className='flex items-center justify-center p-8'>
+                                            <p className='text-gray-500'>Loading students...</p>
+                                        </div>
+                                    ) : UpdateStudentRolesError ? (
+                                        <div className='flex items-center justify-center p-8'>
+                                            <p className='text-red-500'>Error loading students</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className='overflow-x-auto rounded-lg border'>
+                                                <table className='w-full'>
+                                                    <thead className='border-b bg-gray-50'>
+                                                        <tr>
+                                                            <th className='p-3 text-left font-semibold text-sm'>SI. No</th>
+                                                            <th className='w-12 p-3 text-left font-semibold'>
+                                                                <Checkbox
+                                                                    checked={selectAll}
+                                                                    onCheckedChange={handleSelectAll}
+                                                                    className='h-4 w-4 cursor-pointer rounded border-gray-300'
+                                                                />
+                                                            </th>
+                                                            <th className='p-3 text-left font-semibold text-sm'>Student Name</th>
+                                                            <th className='p-3 text-left font-semibold text-sm'>Class</th>
+                                                            <th className='p-3 text-left font-semibold text-sm'>Section</th>
+                                                            <th className='p-3 text-left font-semibold text-sm'>Adm. No</th>
+                                                            <th className='p-3 text-left font-semibold text-sm'>Present Roll No</th>
+                                                            <th className='p-3 text-left font-semibold text-sm'>
+                                                                Roll No <span className='text-red-500'>*</span>
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className='divide-y'>
+                                                        {students.map((student, index) => {
+                                                            const isSelected = selectedStudents.has(student.asysT_Id);
+                                                            return (
+                                                                <tr
+                                                                    key={student.asysT_Id}
+                                                                    className={`transition-colors ${
+                                                                        isSelected ? 'bg-gray-50' : 'hover:bg-gray-50'
+                                                                    }`}>
+                                                                    <td className='p-3 text-sm'>{index + 1}</td>
+                                                                    <td className='p-3'>
+                                                                        <Checkbox
+                                                                            checked={isSelected}
+                                                                            onCheckedChange={(checked) =>
+                                                                                handleSelectStudent(student.asysT_Id, checked as boolean)
+                                                                            }
+                                                                            className='h-4 w-4 cursor-pointer rounded border-gray-300'
+                                                                        />
+                                                                    </td>
+                                                                    <td className='p-3 font-medium text-sm'>{student.student_name}</td>
+                                                                    <td className='p-3 text-sm'>{student.asmcL_ClassName}</td>
+                                                                    <td className='p-3 text-sm'>{student.asmC_SectionName}</td>
+                                                                    <td className='p-3 text-sm'>{student.amsT_AdmNo}</td>
+                                                                    <td className='p-3 text-sm'>{student.amaY_RollNo}</td>
+                                                                    <td className='p-3'>
+                                                                        <Input
+                                                                            type='number'
+                                                                            value={student.new_roll_no || ''}
+                                                                            onChange={(e) => handleRollNumberChange(index, e.target.value)}
+                                                                            disabled={!isSelected}
+                                                                            className='w-24'
+                                                                            placeholder='Roll No'
+                                                                            min='1'
+                                                                        />
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
                                             </div>
-                                        </Button>
-                                    </div>
+
+                                            {errors.students && <FormError>{errors.students.message}</FormError>}
+
+                                            {/* Action Buttons */}
+                                            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    onClick={handleReset}
+                                                    disabled={isSubmitting}
+                                                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                                    Reset
+                                                </Button>
+                                                <Button
+                                                    onClick={handleFormSubmit}
+                                                    disabled={isSubmitting || selectedStudents.size === 0}
+                                                    className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                                    <div className='flex items-center'>
+                                                        <Save className='mr-2 h-4 w-4' />
+                                                        {isSubmitting ? 'Saving...' : 'Save'}
+                                                    </div>
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </CollapsibleSection>
+
                             <CollapsibleSection
-                                title='Student List'
-                                description='Update roll numbers for selected students'
+                                title='Student Data Table'
+                                description='View and manage student data'
                                 defaultOpen={true}
                                 variant='default'
                                 size='lg'
                                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                                 <div className='space-y-4'>
                                     <GenericDataTable<Student>
-                                        data={students}
-                                        columns={masterUpdateRollNumberColumns}
-                                        isLoading={false}
-                                        error={null}
+                                        {...tableProps}
+                                        columns={masterUpdateRollNumberColumns as any}
+                                        isLoading={StudentsLoading}
+                                        error={StudentsError as any}
                                         showViewOptions={false}
-                                        columnPinning={{ left: ['siNo'], right: ['rollNo'] }}
-                                        loadingMessage='Loading students...'
+                                        columnPinning={{ right: ['actions'] }}
+                                        loadingMessage='Loading Students...'
                                         noDataTitle='No Students Found'
-                                        noDataDescription='No students found for the selected class and section'
+                                        noDataDescription='Select a section to view students'
                                         errorTitle='Error Loading Students'
                                     />
                                 </div>

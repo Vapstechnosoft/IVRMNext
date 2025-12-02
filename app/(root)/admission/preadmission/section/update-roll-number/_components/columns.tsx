@@ -2,62 +2,53 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 
-interface Student {
-    studentId: number;
-    siNo: number;
-    studentName: string;
-    className: string;
-    section: string;
-    admNo: string;
-    presentRollNo: string;
-    rollNo: string;
-    gender: string;
-    addCode: string;
+export interface Student {
+    student_id: number;
+    roll_no: number;
+    student_name: string;
+    class_name: string;
+    section_name: string;
+    admission_no: string;
 }
 
 export const masterUpdateRollNumberColumns: ColumnDef<Student>[] = [
     {
-        accessorKey: 'siNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SI. No' className='w-full pl-6' />,
-        cell: ({ row }) => {
-            return <div className='w-full pl-6'>{row.original.siNo}</div>;
+        accessorKey: 'student_id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
         enableSorting: true,
         enableHiding: false
     },
     {
-        accessorKey: 'studentName',
+        accessorKey: 'student_name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('studentName')}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('student_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'className',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        cell: ({ row }) => <div>{row.getValue('className')}</div>,
+        accessorKey: 'class_name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        cell: ({ row }) => <div>{row.getValue('class_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'section',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        cell: ({ row }) => <div>{row.getValue('section')}</div>,
+        accessorKey: 'section_name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
+        cell: ({ row }) => <div>{row.getValue('section_name')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'admNo',
+        accessorKey: 'admission_no',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Adm. No' />,
-        cell: ({ row }) => <div>{row.getValue('admNo')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-
-    {
-        accessorKey: 'rollNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' />,
-        cell: ({ row }) => <div>{row.getValue('rollNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('admission_no')}</div>,
         enableSorting: true,
         enableHiding: true
     }

@@ -2,15 +2,19 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
+import { useMasterChangeSectionTable, useMasterNewSectionStudents } from '@/hooks/admission/preadmission/useSection';
+import { useAdmissionClassDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { masterNewSectionSchema } from '@/schemas/admission/preadmission/section';
+import { addOrUpdateMasterNewSection } from '@/server/admission/preadmission/section/sections';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ArrowRight, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowLeft, ArrowRight, RefreshCw, Save } from 'lucide-react';
+import { use, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -19,18 +23,21 @@ import { masterNewSectionColumns } from './_components/columns';
 type FormFields = z.infer<typeof masterNewSectionSchema>;
 
 interface Student {
-    studentId: number;
+    student_id: number | null;
     siNo: number;
-    studentName: string;
-    admNo: string;
+    student_name: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amsT_AdmNo: string | null;
 }
 
-interface DropdownOption {
-    value: string;
-    label: string;
-}
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function MasterNewSectionPage() {
+export default function MasterNewSectionPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+
     const [leftStudents, setLeftStudents] = useState<Student[]>([]);
     const [rightStudents, setRightStudents] = useState<Student[]>([]);
     const [leftSelectedStudents, setLeftSelectedStudents] = useState<Set<number>>(new Set());
@@ -39,12 +46,17 @@ export default function MasterNewSectionPage() {
     const [rightSelectAll, setRightSelectAll] = useState(false);
     const [showTables, setShowTables] = useState(false);
 
+    const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
+
+    const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useAdmissionClassDropdown();
+
     const {
         control,
         handleSubmit,
         reset,
         setValue,
         watch,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterNewSectionSchema),
@@ -63,53 +75,21 @@ export default function MasterNewSectionPage() {
     const rightClass = watch('rightClass');
     const rightSection = watch('rightSection');
 
-    const academicYearData = [
-        { asmaY_Id: 1, asmaY_Year: '2024-2025' },
-        { asmaY_Id: 2, asmaY_Year: '2025-2026' }
-    ];
+    const { data: rightSectionData, isLoading: rightSectionLoading, isError: rightSectionError } = useMasterSectionHeld(Number(rightClass));
 
-    const masterClass = [
-        { asmcL_ID: 1, asmcL_ClassName: 'Class 1' },
-        { asmcL_ID: 2, asmcL_ClassName: 'Class 2' },
-        { asmcL_ID: 3, asmcL_ClassName: 'Class 3' }
-    ];
+    const {
+        data: leftStudentsData,
+        isLoading: leftStudentsLoading,
+        isError: leftStudentsError
+    } = useMasterNewSectionStudents(Number(leftAcademicYear), Number(leftClassAdmitted));
 
-    const sectionOptions: DropdownOption[] = [
-        { value: 'A', label: 'A' },
-        { value: 'B', label: 'B' },
-        { value: 'C', label: 'C' },
-        { value: 'D', label: 'D' }
-    ];
+    const {
+        data: rightStudentsData,
+        isLoading: rightStudentsLoading,
+        isError: rightStudentsError
+    } = useMasterChangeSectionTable(searchParams, Number(leftAcademicYear), Number(rightClass), Number(rightSection));
 
-    const mockLeftStudentData: Student[] = [
-        { studentId: 1, siNo: 1, studentName: 'John Doe', admNo: 'ADM001' },
-        { studentId: 2, siNo: 2, studentName: 'Jane Smith', admNo: 'ADM002' },
-        { studentId: 3, siNo: 3, studentName: 'Mike Johnson', admNo: 'ADM003' },
-        { studentId: 4, siNo: 4, studentName: 'Sarah Williams', admNo: 'ADM004' },
-        { studentId: 5, siNo: 5, studentName: 'David Brown', admNo: 'ADM005' },
-        { studentId: 6, siNo: 6, studentName: 'Emily Davis', admNo: 'ADM006' }
-    ];
-
-    const mockRightStudentData: Record<string, Student[]> = {
-        A: [
-            { studentId: 101, siNo: 1, studentName: 'Alice Cooper', admNo: 'ADM101' },
-            { studentId: 102, siNo: 2, studentName: 'Bob Martin', admNo: 'ADM102' }
-        ],
-        B: [
-            {
-                studentId: 103,
-                siNo: 1,
-                studentName: 'Charlie Wilson',
-                admNo: 'ADM103'
-            }
-        ],
-        C: [],
-        D: [
-            { studentId: 104, siNo: 1, studentName: 'Diana Ross', admNo: 'ADM104' },
-            { studentId: 105, siNo: 2, studentName: 'Edward King', admNo: 'ADM105' },
-            { studentId: 106, siNo: 3, studentName: 'Fiona Apple', admNo: 'ADM106' }
-        ]
-    };
+    const tableProps = useDataTableProps(rightStudentsData);
 
     const recalculateSiNo = (students: Student[]): Student[] => {
         return students.map((student, index) => ({
@@ -119,14 +99,22 @@ export default function MasterNewSectionPage() {
     };
 
     useEffect(() => {
-        if (leftAcademicYear > 0 && leftClassAdmitted) {
-            setLeftStudents(recalculateSiNo(mockLeftStudentData));
+        if (leftAcademicYear > 0 && leftClassAdmitted && leftStudentsData?.data) {
+            const studentsWithSiNo = leftStudentsData.data.map((student: any, index: number) => ({
+                student_id: student.student_id ?? 0,
+                siNo: index + 1,
+                student_name: student.student_name || '',
+                amsT_MiddleName: student.amsT_MiddleName || '',
+                amsT_LastName: student.amsT_LastName || '',
+                amsT_AdmNo: student.amsT_AdmNo || ''
+            }));
+            setLeftStudents(studentsWithSiNo);
         } else {
             setLeftStudents([]);
         }
         setLeftSelectedStudents(new Set());
         setLeftSelectAll(false);
-    }, [leftAcademicYear, leftClassAdmitted]);
+    }, [leftAcademicYear, leftClassAdmitted, leftStudentsData]);
 
     useEffect(() => {
         const leftReady = leftAcademicYear > 0 && leftClassAdmitted;
@@ -141,8 +129,7 @@ export default function MasterNewSectionPage() {
 
     useEffect(() => {
         if (rightSection && rightClass && leftAcademicYear > 0) {
-            const sectionStudents = mockRightStudentData[rightSection] || [];
-            setRightStudents(recalculateSiNo(sectionStudents));
+            setRightStudents([]);
         } else {
             setRightStudents([]);
         }
@@ -168,6 +155,7 @@ export default function MasterNewSectionPage() {
         setLeftStudents([]);
         setRightStudents([]);
         setShowTables(false);
+        clearErrors('leftAcademicYear');
     };
 
     const handleLeftClassChange = (value: string) => {
@@ -177,6 +165,7 @@ export default function MasterNewSectionPage() {
         setRightStudents([]);
         setRightSelectedStudents(new Set());
         setRightSelectAll(false);
+        clearErrors(['leftClassAdmitted', 'rightClass']);
     };
 
     const handleRightClassChange = (value: string) => {
@@ -185,33 +174,37 @@ export default function MasterNewSectionPage() {
         setRightStudents([]);
         setRightSelectedStudents(new Set());
         setRightSelectAll(false);
+        clearErrors('rightSection');
     };
 
     const handleRightSectionChange = (value: string) => {
         setValue('rightSection', value);
+        clearErrors('rightSection');
     };
 
-    const handleLeftSelectAll = (checked: boolean) => {
-        setLeftSelectAll(checked);
-        if (checked) {
-            setLeftSelectedStudents(new Set(leftStudents.map((s) => s.studentId)));
+    const handleLeftSelectAll = (checked: boolean | string) => {
+        const isChecked = checked === true;
+        setLeftSelectAll(isChecked);
+        if (isChecked) {
+            setLeftSelectedStudents(new Set(leftStudents.map((s) => s.student_id ?? 0)));
         } else {
             setLeftSelectedStudents(new Set());
         }
     };
 
-    const handleRightSelectAll = (checked: boolean) => {
-        setRightSelectAll(checked);
-        if (checked) {
-            setRightSelectedStudents(new Set(rightStudents.map((s) => s.studentId)));
+    const handleRightSelectAll = (checked: boolean | string) => {
+        const isChecked = checked === true;
+        setRightSelectAll(isChecked);
+        if (isChecked) {
+            setRightSelectedStudents(new Set(rightStudents.map((s) => s.student_id ?? 0)));
         } else {
             setRightSelectedStudents(new Set());
         }
     };
 
-    const handleLeftSelectStudent = (studentId: number, checked: boolean) => {
+    const handleLeftSelectStudent = (studentId: number, checked: boolean | string) => {
         const newSelected = new Set(leftSelectedStudents);
-        if (checked) {
+        if (checked === true) {
             newSelected.add(studentId);
         } else {
             newSelected.delete(studentId);
@@ -219,9 +212,9 @@ export default function MasterNewSectionPage() {
         setLeftSelectedStudents(newSelected);
     };
 
-    const handleRightSelectStudent = (studentId: number, checked: boolean) => {
+    const handleRightSelectStudent = (studentId: number, checked: boolean | string) => {
         const newSelected = new Set(rightSelectedStudents);
-        if (checked) {
+        if (checked === true) {
             newSelected.add(studentId);
         } else {
             newSelected.delete(studentId);
@@ -235,8 +228,8 @@ export default function MasterNewSectionPage() {
             return;
         }
 
-        const studentsToMove = leftStudents.filter((s) => leftSelectedStudents.has(s.studentId));
-        const remainingLeft = leftStudents.filter((s) => !leftSelectedStudents.has(s.studentId));
+        const studentsToMove = leftStudents.filter((s) => leftSelectedStudents.has(s.student_id ?? 0));
+        const remainingLeft = leftStudents.filter((s) => !leftSelectedStudents.has(s.student_id ?? 0));
 
         setLeftStudents(recalculateSiNo(remainingLeft));
         setRightStudents(recalculateSiNo([...rightStudents, ...studentsToMove]));
@@ -251,8 +244,8 @@ export default function MasterNewSectionPage() {
             return;
         }
 
-        const studentsToMove = rightStudents.filter((s) => rightSelectedStudents.has(s.studentId));
-        const remainingRight = rightStudents.filter((s) => !rightSelectedStudents.has(s.studentId));
+        const studentsToMove = rightStudents.filter((s) => rightSelectedStudents.has(s.student_id ?? 0));
+        const remainingRight = rightStudents.filter((s) => !rightSelectedStudents.has(s.student_id ?? 0));
 
         setLeftStudents(recalculateSiNo([...leftStudents, ...studentsToMove]));
         setRightStudents(recalculateSiNo(remainingRight));
@@ -263,21 +256,31 @@ export default function MasterNewSectionPage() {
 
     const onSubmit = async (data: FormFields) => {
         try {
+            if (rightStudents.length === 0) {
+                toast.error('Please move at least one student to the destination section');
+                return;
+            }
+
             const payload = {
-                leftAcademicYear: data.leftAcademicYear,
-                leftClassAdmitted: data.leftClassAdmitted,
-                rightAcademicYear: data.rightAcademicYear,
-                rightClass: data.rightClass,
-                rightSection: data.rightSection,
-                leftStudents: leftStudents,
-                rightStudents: rightStudents
+                asmaY_Id: data.leftAcademicYear,
+                asmcL_Id: Number(data.rightClass),
+                asmS_Id: Number(data.rightSection),
+                students: rightStudents.map((student) => ({
+                    amsT_Id: student.student_id ?? 0
+                }))
             };
 
-            console.log('Payload:', payload);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            toast.success('Section transfer completed successfully!');
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to transfer students');
+            const response = await addOrUpdateMasterNewSection(payload);
+            if (response.success) {
+                toast.success(response.message || 'Section transfer completed successfully!');
+                reset();
+            } else {
+                toast.error(response.message);
+            }
+
+            handleReset();
+        } catch (_error: any) {
+            // Igonre
         }
     };
 
@@ -299,12 +302,12 @@ export default function MasterNewSectionPage() {
     };
 
     const getAcademicYearDisplay = (id: number) => {
-        const year = academicYearData.find((y) => y.asmaY_Id === id);
+        const year = academicYear?.data?.find((y) => y.asmaY_Id === id);
         return year?.asmaY_Year || '';
     };
 
     const getClassDisplay = (id: string) => {
-        const cls = masterClass.find((c) => c.asmcL_ID.toString() === id);
+        const cls = masterClass?.data?.find((c) => c.asmcL_Id.toString() === id);
         return cls?.asmcL_ClassName || '';
     };
 
@@ -337,11 +340,17 @@ export default function MasterNewSectionPage() {
                                                         <SelectValue placeholder='Select Academic Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicYearData.map((item) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
+                                                        {ayLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : (
+                                                            academicYear?.data?.map((item) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -365,11 +374,21 @@ export default function MasterNewSectionPage() {
                                                         <SelectValue placeholder='Select Class' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {masterClass.map((item) => (
-                                                            <SelectItem key={item.asmcL_ID} value={item.asmcL_ID.toString()}>
-                                                                {item.asmcL_ClassName}
+                                                        {preadmissionClassLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : preadmissionClassError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading
+                                                            </SelectItem>
+                                                        ) : (
+                                                            masterClass?.data?.map((item) => (
+                                                                <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                    {item.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -432,11 +451,21 @@ export default function MasterNewSectionPage() {
                                                         </SelectTrigger>
                                                         {!leftClassAdmitted && (
                                                             <SelectContent>
-                                                                {masterClass.map((item) => (
-                                                                    <SelectItem key={item.asmcL_ID} value={item.asmcL_ID.toString()}>
-                                                                        {item.asmcL_ClassName}
+                                                                {preadmissionClassLoading ? (
+                                                                    <SelectItem value='loading' disabled>
+                                                                        Loading...
                                                                     </SelectItem>
-                                                                ))}
+                                                                ) : preadmissionClassError ? (
+                                                                    <SelectItem value='error' disabled>
+                                                                        Error loading
+                                                                    </SelectItem>
+                                                                ) : (
+                                                                    masterClass?.data?.map((item) => (
+                                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                            {item.asmcL_ClassName}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                )}
                                                             </SelectContent>
                                                         )}
                                                     </Select>
@@ -461,11 +490,21 @@ export default function MasterNewSectionPage() {
                                                             <SelectValue placeholder='Select Section' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {sectionOptions.map((opt) => (
-                                                                <SelectItem key={opt.value} value={opt.value}>
-                                                                    {opt.label}
+                                                            {rightSectionLoading ? (
+                                                                <SelectItem value='loading' disabled>
+                                                                    Loading...
                                                                 </SelectItem>
-                                                            ))}
+                                                            ) : rightSectionError ? (
+                                                                <SelectItem value='error' disabled>
+                                                                    Error loading
+                                                                </SelectItem>
+                                                            ) : (
+                                                                rightSectionData?.data?.map((opt: any) => (
+                                                                    <SelectItem key={opt.asmS_Id} value={opt.asmS_Id.toString()}>
+                                                                        {opt.asmC_SectionName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                 )}
@@ -479,178 +518,184 @@ export default function MasterNewSectionPage() {
                     </div>
                 </CollapsibleSection>
 
+                <CollapsibleSection
+                    title='Allot Students To Section'
+                    description='Select and transfer students between sections'
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='space-y-4'>
+                        <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_auto_1fr]'>
+                            <div className='space-y-2'>
+                                <div className='overflow-x-auto rounded-lg border bg-white'>
+                                    <table className='w-full'>
+                                        <thead className='border-b bg-gray-50'>
+                                            <tr>
+                                                <th className='p-3 text-left font-semibold text-sm'>SI. No</th>
+                                                <th className='w-12 p-3 text-left font-semibold text-sm'>
+                                                    <Checkbox
+                                                        checked={leftSelectAll}
+                                                        onCheckedChange={handleLeftSelectAll}
+                                                        disabled={leftStudents.length === 0}
+                                                        className='h-4 w-4 cursor-pointer rounded border-gray-300'
+                                                    />
+                                                </th>
+                                                <th className='p-3 text-left font-semibold text-sm'>Student Name</th>
+                                                <th className='p-3 text-left font-semibold text-sm'>Adm. No</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className='divide-y'>
+                                            {leftStudentsLoading ? (
+                                                <tr>
+                                                    <td colSpan={4} className='p-8 text-center text-gray-500'>
+                                                        <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                                                            <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
+                                                            <p className='text-muted-foreground text-sm'>Loading students...</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ) : leftStudentsError ? (
+                                                <tr>
+                                                    <td colSpan={4} className='p-8 text-center text-red-500'>
+                                                        Error loading students
+                                                    </td>
+                                                </tr>
+                                            ) : leftStudents.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={4} className='p-8 text-center text-gray-500'>
+                                                        No students available
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                leftStudents.map((student) => (
+                                                    <tr key={student.student_id ?? 0} className='hover:bg-gray-50'>
+                                                        <td className='p-3 text-sm'>{student.siNo}</td>
+                                                        <td className='p-3'>
+                                                            <Checkbox
+                                                                checked={leftSelectedStudents.has(student.student_id ?? 0)}
+                                                                onCheckedChange={(checked) =>
+                                                                    handleLeftSelectStudent(student.student_id ?? 0, checked)
+                                                                }
+                                                                className='h-4 w-4 cursor-pointer rounded border-gray-300'
+                                                            />
+                                                        </td>
+                                                        <td className='p-3 font-medium text-sm'>{student.student_name}</td>
+                                                        <td className='p-3 text-sm'>{student.amsT_AdmNo || 'N/A'}</td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* Transfer Buttons */}
+                            <div className='flex flex-col items-center justify-center gap-2 py-8'>
+                                <Button
+                                    type='button'
+                                    onClick={moveToRight}
+                                    disabled={leftSelectedStudents.size === 0}
+                                    className='w-full lg:w-auto'
+                                    variant='outline'>
+                                    <ArrowRight className='h-4 w-4' />
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={moveToLeft}
+                                    disabled={rightSelectedStudents.size === 0}
+                                    className='w-full lg:w-auto'
+                                    variant='outline'>
+                                    <ArrowLeft className='h-4 w-4' />
+                                </Button>
+                            </div>
+
+                            <div className='space-y-2'>
+                                <div className='overflow-x-auto rounded-lg border bg-white'>
+                                    <table className='w-full'>
+                                        <thead className='border-b bg-gray-50'>
+                                            <tr>
+                                                <th className='p-3 text-left font-semibold text-sm'>SI. No</th>
+                                                <th className='w-12 p-3 text-left font-semibold text-sm'>
+                                                    <Checkbox
+                                                        checked={rightSelectAll}
+                                                        onCheckedChange={handleRightSelectAll}
+                                                        disabled={rightStudents.length === 0}
+                                                        className='h-4 w-4 cursor-pointer rounded border-gray-300'
+                                                    />
+                                                </th>
+                                                <th className='p-3 text-left font-semibold text-sm'>Student Name</th>
+                                                <th className='p-3 text-left font-semibold text-sm'>Adm. No</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className='divide-y'>
+                                            {rightStudents.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={4} className='p-8 text-center text-gray-500'>
+                                                        No students in this section
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                rightStudents.map((student) => (
+                                                    <tr key={student.student_id ?? 0} className='hover:bg-gray-50'>
+                                                        <td className='p-3 text-sm'>{student.siNo}</td>
+                                                        <td className='p-3'>
+                                                            <Checkbox
+                                                                checked={rightSelectedStudents.has(student.student_id ?? 0)}
+                                                                onCheckedChange={(checked) =>
+                                                                    handleRightSelectStudent(student.student_id ?? 0, checked)
+                                                                }
+                                                                className='h-4 w-4 cursor-pointer rounded border-gray-300'
+                                                            />
+                                                        </td>
+                                                        <td className='p-3 font-medium text-sm'>{student.student_name}</td>
+                                                        <td className='p-3 text-sm'>{student.amsT_AdmNo || 'N/A'}</td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSubmitting}
+                                className='w-fit transition-all duration-200 hover:scale-105'>
+                                Reset
+                            </Button>
+                            <Button onClick={handleSubmit(onSubmit)} className='w-fit transition-all duration-200 hover:scale-105'>
+                                <div className='flex items-center'>
+                                    <Save className='mr-2 h-4 w-4' />
+                                    {isSubmitting ? 'Saving...' : 'Save'}
+                                </div>
+                            </Button>
+                        </div>
+                    </div>
+                </CollapsibleSection>
                 {showTables && (
-                    <>
-                        <CollapsibleSection
-                            title='Allot Students To Section'
-                            description='Select and transfer students between sections'
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <div className='space-y-4'>
-                                <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-[1fr_auto_1fr]'>
-                                    <div className='space-y-2'>
-                                        <div className='overflow-x-auto rounded-lg border bg-white'>
-                                            <table className='w-full'>
-                                                <thead className='border-b bg-gray-50'>
-                                                    <tr>
-                                                        <th className='p-3 text-left font-semibold text-sm'>SI. No</th>
-                                                        <th className='w-12 p-3 text-left font-semibold text-sm'>
-                                                            <Checkbox
-                                                                checked={leftSelectAll}
-                                                                onCheckedChange={handleLeftSelectAll}
-                                                                disabled={leftStudents.length === 0}
-                                                                className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                            />
-                                                        </th>
-                                                        <th className='p-3 text-left font-semibold text-sm'>Student Name</th>
-                                                        <th className='p-3 text-left font-semibold text-sm'>Adm. No</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className='divide-y'>
-                                                    {leftStudents.length === 0 ? (
-                                                        <tr>
-                                                            <td colSpan={4} className='p-8 text-center text-gray-500'>
-                                                                No students available
-                                                            </td>
-                                                        </tr>
-                                                    ) : (
-                                                        leftStudents.map((student) => (
-                                                            <tr key={student.studentId} className='hover:bg-gray-50'>
-                                                                <td className='p-3 text-sm'>{student.siNo}</td>
-                                                                <td className='p-3'>
-                                                                    <Checkbox
-                                                                        checked={leftSelectedStudents.has(student.studentId)}
-                                                                        onCheckedChange={(checked) =>
-                                                                            handleLeftSelectStudent(student.studentId, checked as boolean)
-                                                                        }
-                                                                        className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                                    />
-                                                                </td>
-                                                                <td className='p-3 font-medium text-sm'>{student.studentName}</td>
-                                                                <td className='p-3 text-sm'>{student.admNo}</td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-
-                                    {/* Transfer Buttons */}
-                                    <div className='flex flex-col items-center justify-center gap-2 py-8'>
-                                        <Button
-                                            type='button'
-                                            onClick={moveToRight}
-                                            disabled={leftSelectedStudents.size === 0}
-                                            className='w-full lg:w-auto'
-                                            variant='outline'>
-                                            <ArrowRight className='h-4 w-4' />
-                                        </Button>
-                                        <Button
-                                            type='button'
-                                            onClick={moveToLeft}
-                                            disabled={rightSelectedStudents.size === 0}
-                                            className='w-full lg:w-auto'
-                                            variant='outline'>
-                                            <ArrowLeft className='h-4 w-4' />
-                                        </Button>
-                                    </div>
-
-                                    <div className='space-y-2'>
-                                        <div className='overflow-x-auto rounded-lg border bg-white'>
-                                            <table className='w-full'>
-                                                <thead className='border-b bg-gray-50'>
-                                                    <tr>
-                                                        <th className='p-3 text-left font-semibold text-sm'>SI. No</th>
-                                                        <th className='w-12 p-3 text-left font-semibold text-sm'>
-                                                            <Checkbox
-                                                                checked={rightSelectAll}
-                                                                onCheckedChange={handleRightSelectAll}
-                                                                disabled={rightStudents.length === 0}
-                                                                className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                            />
-                                                        </th>
-                                                        <th className='p-3 text-left font-semibold text-sm'>Student Name</th>
-                                                        <th className='p-3 text-left font-semibold text-sm'>Adm. No</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className='divide-y'>
-                                                    {rightStudents.length === 0 ? (
-                                                        <tr>
-                                                            <td colSpan={4} className='p-8 text-center text-gray-500'>
-                                                                No students in this section
-                                                            </td>
-                                                        </tr>
-                                                    ) : (
-                                                        rightStudents.map((student) => (
-                                                            <tr key={student.studentId} className='hover:bg-gray-50'>
-                                                                <td className='p-3 text-sm'>{student.siNo}</td>
-                                                                <td className='p-3'>
-                                                                    <Checkbox
-                                                                        checked={rightSelectedStudents.has(student.studentId)}
-                                                                        onCheckedChange={(checked) =>
-                                                                            handleRightSelectStudent(student.studentId, checked as boolean)
-                                                                        }
-                                                                        className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                                    />
-                                                                </td>
-                                                                <td className='p-3 font-medium text-sm'>{student.studentName}</td>
-                                                                <td className='p-3 text-sm'>{student.admNo}</td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                                    <Button
-                                        type='button'
-                                        variant='outline'
-                                        onClick={handleReset}
-                                        disabled={isSubmitting}
-                                        className='w-fit transition-all duration-200 hover:scale-105'>
-                                        Reset
-                                    </Button>
-                                    <Button
-                                        onClick={handleSubmit(onSubmit)}
-                                        disabled={isSubmitting}
-                                        className='w-fit transition-all duration-200 hover:scale-105'>
-                                        <div className='flex items-center'>
-                                            <Save className='mr-2 h-4 w-4' />
-                                            {isSubmitting ? 'Saving...' : 'Save'}
-                                        </div>
-                                    </Button>
-                                </div>
-                            </div>
-                        </CollapsibleSection>
-
-                        <CollapsibleSection
-                            title='Section Allotted Student List'
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <div className='space-y-4'>
-                                <GenericDataTable<Student>
-                                    data={rightStudents}
-                                    columns={masterNewSectionColumns}
-                                    isLoading={false}
-                                    error={null}
-                                    showViewOptions={false}
-                                    columnPinning={{ left: ['siNo'], right: ['rollNo'] }}
-                                    loadingMessage='Loading students...'
-                                    noDataTitle='No Students Found'
-                                    noDataDescription='No students found for the selected class and section'
-                                    errorTitle='Error Loading Students'
-                                />
-                            </div>
-                        </CollapsibleSection>
-                    </>
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable<any>
+                            {...tableProps}
+                            columns={masterNewSectionColumns as any}
+                            isLoading={rightStudentsLoading}
+                            error={rightStudentsError as any}
+                            showViewOptions={false}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading Students...'
+                            noDataTitle='No Students Found'
+                            noDataDescription='Select a section to view students'
+                            errorTitle='Error Loading Students'
+                        />
+                    </CollapsibleSection>
                 )}
             </div>
         </div>

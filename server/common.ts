@@ -273,11 +273,35 @@ export async function getUserAccessibleModules() {
                                 //       title: "Student Count Report",
                                 //       description: "Student Count Report",
                                 //     },
+                                //     {
+                                //       id: 22,
+                                //       name: "Admission Register",
+                                //       icon: "Settings",
+                                //       url: "/admission/preadmission/reports/admission-register",
+                                //       title: "Admission Register",
+                                //       description: "Admission Register",
+                                //     },
+                                //     {
+                                //       id: 23,
+                                //       name: "Total Strength",
+                                //       icon: "Settings",
+                                //       url: "/admission/preadmission/reports/total-strength",
+                                //       title: "Total Strength",
+                                //       description: "Total Strength",
+                                //     },
+                                //     {
+                                //       id: 24,
+                                //       name: "Student Search",
+                                //       icon: "Settings",
+                                //       url: "/admission/preadmission/reports/student-search",
+                                //       title: "Student Search",
+                                //       description: "Student Search",
+                                //     },
                                 //   ],
                                 // },
                                 {
                                     id: 4,
-                                    name: 'Section',
+                                    name: 'Section Allotment',
                                     icon: 'Settings',
                                     pages: [
                                         {
@@ -298,11 +322,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 23,
-                                            name: 'Delete Section',
+                                            name: 'Delete Student Section',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/section/delete-section',
-                                            title: 'Delete Section',
-                                            description: 'Delete Section'
+                                            url: '/admission/preadmission/section/delete-student-section',
+                                            title: 'Delete Student Section',
+                                            description: 'Delete Student Section'
                                         },
                                         {
                                             id: 24,

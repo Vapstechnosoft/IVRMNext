@@ -7,48 +7,58 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown, useMasterMonthDropDownList, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
+import { useAdmissionClassDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { masterClassHeldSchema } from '@/schemas/admission/preadmission/masters';
+import { addOrUpdateMasterClassHeld } from '@/server/admission/preadmission/masters/class_held';
+import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterClassHeldSchema.add>;
 
-interface DropdownOption {
-    value: string;
-    label: string;
+interface MonthData {
+    ivrM_Month_Id: number;
+    ivrM_Month_Name: string;
+    ivrM_Month_Max_Days: number;
 }
 
 interface ClassHeldRow {
-    month: string;
-    classHeld: string;
+    ivrM_Month_Id: number;
+    ivrM_Month_Name: string;
+    ivrM_Month_Max_Days: number;
+    ascH_ClassHeld: string;
     selected: boolean;
+    is_Active: boolean;
+    displayName: string;
+    year: number;
 }
 
 export default function MasterClassHeldPage() {
-    const [academicYear, setAcademicYear] = useState<number | null>(null);
     const [classId, setClassId] = useState<number | null>(null);
     const [sectionId, setSectionId] = useState<string>('');
     const [showTable, setShowTable] = useState(false);
     const [selectAll, setSelectAll] = useState(false);
-    const [classHeldData, setClassHeldData] = useState<ClassHeldRow[]>([
-        { month: 'May-2025', classHeld: '', selected: false },
-        { month: 'June-2025', classHeld: '', selected: false },
-        { month: 'July-2025', classHeld: '', selected: false },
-        { month: 'August-2025', classHeld: '', selected: false },
-        { month: 'September-2025', classHeld: '', selected: false },
-        { month: 'October-2025', classHeld: '', selected: false },
-        { month: 'November-2025', classHeld: '', selected: false },
-        { month: 'December-2025', classHeld: '', selected: false },
-        { month: 'January-2026', classHeld: '', selected: false },
-        { month: 'February-2026', classHeld: '', selected: false },
-        { month: 'March-2026', classHeld: '', selected: false },
-        { month: 'April-2026', classHeld: '', selected: false }
-    ]);
+    const [classHeldData, setClassHeldData] = useState<ClassHeldRow[]>([]);
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState<IAcademicYearDropDown | null>(null);
 
+    const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
+    const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useAdmissionClassDropdown();
+    const {
+        data: masterSection,
+        isLoading: preadmissionSectionLoading,
+        isError: preadmissionSectionError
+    } = useMasterSectionHeld(Number(classId));
+    const {
+        data: masterMonthDropDown,
+        isLoading: preadmissionMonthLoading,
+        isError: preadmissionMonthError
+    } = useMasterMonthDropDownList();
+    console.log('sectionId', sectionId);
     const {
         control,
         handleSubmit,
@@ -66,62 +76,72 @@ export default function MasterClassHeldPage() {
         mode: 'onChange'
     });
 
-    // Mock data - replace with actual hooks
-    const academicYearData = {
-        data: [
-            { asmaY_Id: 1, asmaY_Year: '2024-2025' },
-            { asmaY_Id: 2, asmaY_Year: '2025-2026' }
-        ]
-    };
-
-    const masterClass = {
-        data: [
-            { asmcL_ID: 1, asmcL_ClassName: 'Class 1' },
-            { asmcL_ID: 2, asmcL_ClassName: 'Class 2' },
-            { asmcL_ID: 3, asmcL_ClassName: 'Class 3' }
-        ]
-    };
-
-    const sectionOptions: DropdownOption[] = [
-        { value: 'A', label: 'A' },
-        { value: 'B', label: 'B' },
-        { value: 'C', label: 'C' },
-        { value: 'D', label: 'D' },
-        { value: 'E', label: 'E' },
-        { value: 'F', label: 'F' }
-    ];
-
-    const [classCategoryOptions, setClassCategoryOptions] = useState<DropdownOption[]>([]);
-
-    useEffect(() => {
-        if (masterClass?.data && Array.isArray(masterClass.data)) {
-            const opts = masterClass.data.map((c: any) => ({
-                value: c.asmcL_ID.toString(),
-                label: c.asmcL_ClassName
-            }));
-            setClassCategoryOptions(opts);
-        } else {
-            setClassCategoryOptions([]);
+    const filteredMonths = useMemo(() => {
+        if (!masterMonthDropDown?.data || !Array.isArray(masterMonthDropDown.data) || !selectedAcademicYear) {
+            return [];
         }
-    }, []);
+
+        const fromDate = new Date(selectedAcademicYear.asmaY_From_Date);
+        const toDate = new Date(selectedAcademicYear.asmaY_To_Date);
+
+        const result: ClassHeldRow[] = [];
+        const currentDate = new Date(fromDate);
+
+        while (currentDate <= toDate) {
+            const monthNum = currentDate.getMonth() + 1;
+            const year = currentDate.getFullYear();
+
+            const monthData = masterMonthDropDown.data.find((m: MonthData) => m.ivrM_Month_Id === monthNum);
+
+            if (monthData) {
+                const monthShortName = monthData.ivrM_Month_Name;
+                const displayName = `${monthShortName}-${year}`;
+
+                result.push({
+                    ivrM_Month_Id: monthData.ivrM_Month_Id,
+                    ivrM_Month_Name: monthData.ivrM_Month_Name,
+                    ivrM_Month_Max_Days: monthData.ivrM_Month_Max_Days,
+                    ascH_ClassHeld: '',
+                    selected: false,
+                    is_Active: true,
+                    displayName: displayName,
+                    year: year
+                });
+            }
+
+            currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+
+        return result;
+    }, [masterMonthDropDown, selectedAcademicYear]);
 
     useEffect(() => {
-        if (academicYear && classId && sectionId) {
+        if (filteredMonths.length > 0) {
+            setClassHeldData(filteredMonths);
+        } else {
+            setClassHeldData([]);
+        }
+    }, [filteredMonths]);
+
+    useEffect(() => {
+        if (selectedAcademicYear && classId && sectionId) {
             setShowTable(true);
         } else {
             setShowTable(false);
         }
-    }, [academicYear, classId, sectionId]);
+    }, [selectedAcademicYear, classId, sectionId]);
 
-    // Update form value when classHeldData changes
     useEffect(() => {
         const selectedRows = classHeldData
             .filter((row) => row.selected)
             .map((row) => ({
-                month: row.month,
-                classHeld: Number.parseInt(row.classHeld) || 0
+                ivrM_Month_Id: row.ivrM_Month_Id,
+                ivrM_Month_Name: row.ivrM_Month_Name,
+                is_Active: row.is_Active,
+                ivrM_Month_Max_Days: row.ivrM_Month_Max_Days,
+                ascH_ClassHeld: Number.parseInt(row.ascH_ClassHeld) || 0
             }));
-        setValue('classHeldData', selectedRows, { shouldValidate: true });
+        setValue('classHeldData', selectedRows as any, { shouldValidate: true });
     }, [classHeldData, setValue]);
 
     const handleSelectAll = (checked: boolean) => {
@@ -130,7 +150,7 @@ export default function MasterClassHeldPage() {
             prev.map((row) => ({
                 ...row,
                 selected: checked,
-                classHeld: checked ? '0' : ''
+                ascH_ClassHeld: checked ? '0' : ''
             }))
         );
     };
@@ -141,50 +161,83 @@ export default function MasterClassHeldPage() {
             newData[index] = {
                 ...newData[index],
                 selected: checked,
-                classHeld: checked ? '0' : ''
+                ascH_ClassHeld: checked ? '0' : ''
             };
             return newData;
         });
 
-        // Update selectAll state
         const allSelected = classHeldData.every((row, i) => (i === index ? checked : row.selected));
         setSelectAll(allSelected);
     };
 
     const handleClassHeldChange = (index: number, value: string) => {
+        if (value === '') {
+            setClassHeldData((prev) => {
+                const newData = [...prev];
+                newData[index] = { ...newData[index], ascH_ClassHeld: '' };
+                return newData;
+            });
+            return;
+        }
+
+        const numValue = Number.parseInt(value) || 0;
+        const maxDays = classHeldData[index].ivrM_Month_Max_Days;
+
+        if (numValue > maxDays) {
+            toast.error(`Class held cannot exceed ${maxDays} days for ${classHeldData[index].displayName}`);
+            return;
+        }
+
+        if (numValue < 0) {
+            toast.error('Class held cannot be negative');
+            return;
+        }
+
         setClassHeldData((prev) => {
             const newData = [...prev];
-            newData[index] = { ...newData[index], classHeld: value };
+            newData[index] = { ...newData[index], ascH_ClassHeld: value };
             return newData;
         });
     };
 
     const onSubmit = async (data: FormFields) => {
         try {
-            // Replace with actual API call
+            const invalidRows = classHeldData.filter(
+                (row) =>
+                    row.selected &&
+                    (Number.parseInt(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days ||
+                        Number.parseInt(row.ascH_ClassHeld) < 0 ||
+                        row.ascH_ClassHeld === '')
+            );
+
+            if (invalidRows.length > 0) {
+                toast.error('Please enter valid class held values for all selected months');
+                return;
+            }
+
             const payload = {
-                academicYear: data.asmaY_Id,
-                classId: data.classCategory,
-                section: data.section,
-                classHeldData: data.classHeldData
+                asmaY_Id: data.asmaY_Id,
+                asmcL_Id: Number(data.classCategory),
+                asmS_Id: Number(data.section),
+                class_helds: data.classHeldData.map((item: any) => ({
+                    ivrM_Month_Id: item.ivrM_Month_Id,
+                    ivrM_Month_Name: item.ivrM_Month_Name,
+                    is_Active: item.is_Active,
+                    ivrM_Month_Max_Days: item.ivrM_Month_Max_Days,
+                    ascH_ClassHeld: item.ascH_ClassHeld
+                }))
             };
 
-            console.log('Payload:', payload);
+            const response = await addOrUpdateMasterClassHeld(payload);
 
-            // Simulate API call
-            // const response = await addMasterClassHeld(payload);
-
-            // if (response.success) {
-            //   toast.success(response.message);
-            //   handleReset();
-            // } else {
-            //   toast.error(response.message);
-            // }
-
-            toast.success('Class held data saved successfully!');
-            handleReset();
+            if (response.success) {
+                toast.success(response.message);
+                handleReset();
+            } else {
+                toast.error(response.message);
+            }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to save class held data');
+            toast.error(error?.message || 'Failed to save class held data');
         }
     };
 
@@ -195,24 +248,28 @@ export default function MasterClassHeldPage() {
             section: '',
             classHeldData: []
         });
-        setAcademicYear(null);
         setClassId(null);
         setSectionId('');
         setShowTable(false);
         setSelectAll(false);
-        setClassHeldData((prev) => prev.map((row) => ({ ...row, selected: false, classHeld: '' })));
+        setSelectedAcademicYear(null);
+        setClassHeldData([]);
     };
 
     const handleTableReset = () => {
         setSelectAll(false);
-        setClassHeldData((prev) => prev.map((row) => ({ ...row, selected: false, classHeld: '' })));
+        setClassHeldData((prev) => prev.map((row) => ({ ...row, selected: false, ascH_ClassHeld: '' })));
+    };
+
+    const handleFormSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        handleSubmit(onSubmit)(e);
     };
 
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
-                <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-                    {/* Master Class Held Section */}
+                <div className='space-y-4'>
                     <CollapsibleSection
                         title='Master Class Held'
                         description='Manage class held information for academic year'
@@ -235,7 +292,10 @@ export default function MasterClassHeldPage() {
                                                 onValueChange={(value) => {
                                                     const numValue = Number(value);
                                                     field.onChange(numValue);
-                                                    setAcademicYear(numValue);
+
+                                                    const selectedYear = academicYear?.data?.find((item) => item.asmaY_Id === numValue);
+                                                    setSelectedAcademicYear(selectedYear || null);
+
                                                     setClassId(null);
                                                     setSectionId('');
                                                     setValue('classCategory', '');
@@ -246,11 +306,17 @@ export default function MasterClassHeldPage() {
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {academicYearData?.data?.map((item: any) => (
-                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                            {item.asmaY_Year}
+                                                    {ayLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : (
+                                                        academicYear?.data?.map((item) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -275,19 +341,23 @@ export default function MasterClassHeldPage() {
                                                     setValue('section', '');
                                                 }}
                                                 value={field.value}
-                                                disabled={!academicYear}>
+                                                disabled={!selectedAcademicYear}>
                                                 <SelectTrigger className='w-full'>
                                                     <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {classCategoryOptions.length === 0 ? (
-                                                        <SelectItem value='no-data' disabled>
-                                                            No classes available
+                                                    {preadmissionClassLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : preadmissionClassError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading
                                                         </SelectItem>
                                                     ) : (
-                                                        classCategoryOptions.map((opt) => (
-                                                            <SelectItem key={opt.value} value={opt.value}>
-                                                                {opt.label}
+                                                        masterClass?.data?.map((item) => (
+                                                            <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                {item.asmcL_ClassName}
                                                             </SelectItem>
                                                         ))
                                                     )}
@@ -318,11 +388,21 @@ export default function MasterClassHeldPage() {
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {sectionOptions.map((opt) => (
-                                                        <SelectItem key={opt.value} value={opt.value}>
-                                                            {opt.label}
+                                                    {preadmissionSectionLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : preadmissionSectionError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading
+                                                        </SelectItem>
+                                                    ) : (
+                                                        masterSection?.data?.map((opt: any) => (
+                                                            <SelectItem key={opt.asmS_Id} value={opt.asmS_Id.toString()}>
+                                                                {opt.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}
@@ -342,40 +422,63 @@ export default function MasterClassHeldPage() {
                             size='lg'
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                             <div className='space-y-6'>
-                                <div className='overflow-x-auto rounded-lg border'>
-                                    <div className='grid grid-cols-3 gap-4 border-b p-3 font-medium'>
-                                        <div className='flex items-center justify-center gap-2'>
-                                            <Checkbox checked={selectAll} onCheckedChange={handleSelectAll} />
-                                            <span>Select All</span>
-                                        </div>
-                                        <div className='flex items-center justify-center'>Month</div>
-                                        <div className='flex items-center justify-center'>Class Held</div>
+                                {preadmissionMonthLoading ? (
+                                    <div className='flex items-center justify-center p-8'>
+                                        <p>Loading months...</p>
                                     </div>
-                                    <div className='divide-y'>
-                                        {classHeldData.map((row, index) => (
-                                            <div key={index} className='grid grid-cols-3 gap-4 p-2 hover:bg-muted/50'>
-                                                <div className='flex items-center justify-center'>
-                                                    <Checkbox
-                                                        checked={row.selected}
-                                                        onCheckedChange={(checked) => handleRowSelect(index, checked as boolean)}
-                                                    />
-                                                </div>
-                                                <div className='flex items-center justify-center font-medium'>{row.month}</div>
-                                                <div className='flex items-center'>
-                                                    <Input
-                                                        type='number'
-                                                        min='0'
-                                                        placeholder='0'
-                                                        value={row.classHeld}
-                                                        onChange={(e) => handleClassHeldChange(index, e.target.value)}
-                                                        disabled={!row.selected}
-                                                        className='w-full'
-                                                    />
-                                                </div>
+                                ) : preadmissionMonthError ? (
+                                    <div className='flex items-center justify-center p-8 text-red-500'>
+                                        <p>Error loading months</p>
+                                    </div>
+                                ) : classHeldData.length === 0 ? (
+                                    <div className='flex items-center justify-center p-8 text-gray-500'>
+                                        <p>No months available for the selected academic year period</p>
+                                    </div>
+                                ) : (
+                                    <div className='overflow-x-auto rounded-lg border'>
+                                        <div className='grid grid-cols-3 gap-4 border-b bg-muted/50 p-3 font-medium'>
+                                            <div className='flex items-center justify-center gap-2'>
+                                                <Checkbox checked={selectAll} onCheckedChange={handleSelectAll} />
+                                                <span>Select All</span>
                                             </div>
-                                        ))}
+                                            <div className='flex items-center justify-center'>Month</div>
+                                            <div className='flex items-center justify-center'>Class Held</div>
+                                        </div>
+                                        <div className='divide-y'>
+                                            {classHeldData.map((row, index) => (
+                                                <div
+                                                    key={`${row.ivrM_Month_Id}-${row.year}-${index}`}
+                                                    className='grid grid-cols-3 gap-4 p-2 hover:bg-muted/50'>
+                                                    <div className='flex items-center justify-center'>
+                                                        <Checkbox
+                                                            checked={row.selected}
+                                                            onCheckedChange={(checked) => handleRowSelect(index, checked as boolean)}
+                                                        />
+                                                    </div>
+                                                    <div className='flex items-center justify-center font-medium'>{row.displayName}</div>
+                                                    <div className='flex items-center'>
+                                                        <Input
+                                                            type='number'
+                                                            min='0'
+                                                            max={row.ivrM_Month_Max_Days}
+                                                            placeholder={`Max ${row.ivrM_Month_Max_Days}`}
+                                                            value={row.ascH_ClassHeld}
+                                                            onChange={(e) => handleClassHeldChange(index, e.target.value)}
+                                                            disabled={!row.selected}
+                                                            className={`w-full ${
+                                                                row.selected &&
+                                                                row.ascH_ClassHeld !== '' &&
+                                                                Number.parseInt(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days
+                                                                    ? 'border-red-500'
+                                                                    : ''
+                                                            }`}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
 
                                 {errors.classHeldData && <FormError>{errors.classHeldData.message}</FormError>}
 
@@ -391,8 +494,9 @@ export default function MasterClassHeldPage() {
                                         Reset
                                     </Button>
                                     <Button
-                                        type='submit'
-                                        disabled={isSubmitting}
+                                        type='button'
+                                        onClick={handleFormSubmit}
+                                        disabled={isSubmitting || classHeldData.length === 0}
                                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                                         <div className='flex items-center'>
                                             <Save className='mr-2 h-4 w-4' />
@@ -403,7 +507,7 @@ export default function MasterClassHeldPage() {
                             </div>
                         </CollapsibleSection>
                     )}
-                </form>
+                </div>
             </div>
         </div>
     );

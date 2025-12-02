@@ -1,4 +1,5 @@
-import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { ADMISSION_QUERY_KEYS, PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { getAdmissionClassDropdown } from '@/server/admission/preadmission/section/sections';
 import {
     getCasteDropdown,
     getCountryDropdown,
@@ -371,6 +372,23 @@ export const useStudentApplicationForm = (pasr_id: number) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_APPLICATION_FORM]
+            });
+        }
+    };
+};
+
+export const useAdmissionClassDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_DROPDOWN],
+            queryFn: async () => getAdmissionClassDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_DROPDOWN]
             });
         }
     };
