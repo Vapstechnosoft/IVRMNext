@@ -57,7 +57,10 @@ export async function getOpeningRefundable(asmaY_Id: number, filterrefund: strin
     return await api.get<IFeeOpeningRefundable[]>('fees', url);
 }
 export async function getOpeningBalanceList(asmaY_Id: number, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fmoB_Institution_Due,fmoB_Student_Due,asmcL_ClassName,fullName');
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'fmoB_Institution_Due,fmoB_Student_Due,asmcL_ClassName,amsT_FirstName,amsT_MiddleName,amsT_LastName'
+    );
     const url = `FeeOpeningBalance/opening-balance-list/${asmaY_Id}?${urlParams}`;
     return await api.get<IFeeOpeningBalanceList[]>('fees', url);
 }

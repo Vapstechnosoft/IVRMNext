@@ -1,20 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeeOpeningBalanceList, useFeeOpeningPDAList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import AddFeeOpeningBalanceForm from './_components/add-form';
-import ToggleMasterFeesConfigForm from './_components/toggle-form';
-
 import { type OpeningBalanceRow, openingBalanceColumns } from './_components/columns';
-
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DeleteOpeningBalanceForm from './_components/delete-form';
 
 interface ApiResponse<T> {
@@ -25,21 +21,18 @@ interface ApiResponse<T> {
     page?: number;
     page_size?: number;
 }
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
 export default function FeeOpeningBalancePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState<'Fee' | 'PDA'>('Fee');
-
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
     const { data: feeResponse, isLoading: feeLoading, refetch: refetchFee } = useFeeOpeningBalanceList(selectedAsmayId || 0, searchParams);
-
     const { data: pdaResponse, isLoading: pdaLoading, refetch: refetchPDA } = useFeeOpeningPDAList(selectedAsmayId || 0, {});
-
     const feeData: OpeningBalanceRow[] = (feeResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
-
     const pdaData: OpeningBalanceRow[] = (pdaResponse as ApiResponse<OpeningBalanceRow[]>)?.data ?? [];
-
     const isLoading = activeTab === 'Fee' ? feeLoading : pdaLoading;
     const tableData: OpeningBalanceRow[] = activeTab === 'Fee' ? feeData : pdaData;
 
@@ -84,9 +77,11 @@ function PageContent({
     setActiveTab: (tab: 'Fee' | 'PDA') => void;
     tableData: OpeningBalanceRow[];
     isLoading: boolean;
+
     refetchAll: () => void;
 }) {
     const { openAddForm } = useFormContext<OpeningBalanceRow>();
+    const tableProps = useDataTableProps(tableData);
 
     return (
         <div className='min-h-screen bg-gray-50'>
@@ -96,6 +91,7 @@ function PageContent({
                         <Label className='whitespace-nowrap text-right'>
                             Academic Year <span className='text-red-500'>*</span>
                         </Label>
+
                         <Select
                             value={selectedAsmayId?.toString() || ''}
                             onValueChange={(v) => setSelectedAsmayId(v ? Number(v) : null)}
@@ -103,6 +99,7 @@ function PageContent({
                             <SelectTrigger className='w-64'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
+
                             <SelectContent>
                                 {academicYearData?.data?.map((item: any) => (
                                     <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
@@ -124,6 +121,7 @@ function PageContent({
                                     onChange={() => setActiveTab(val)}
                                     className='h-6 w-6 text-blue-600 accent-blue-600'
                                 />
+
                                 <span className='font-semibold text-lg'>{val}</span>
                             </label>
                         ))}
@@ -142,12 +140,14 @@ function PageContent({
                     {!selectedAsmayId ? (
                         <div className='py-24 text-center'>
                             <p className='font-semibold text-2xl text-muted-foreground'>Please select an Academic Year</p>
+
                             <p className='mt-3 text-lg text-muted-foreground'>
                                 to view {activeTab === 'Fee' ? 'Fee' : 'PDA'} opening balance records
                             </p>
                         </div>
                     ) : (
                         <GenericDataTable<OpeningBalanceRow>
+                            {...tableProps}
                             data={tableData}
                             columns={openingBalanceColumns}
                             isLoading={isLoading}
@@ -155,6 +155,20 @@ function PageContent({
                             loadingMessage={`Loading ${activeTab} Opening Balances...`}
                             noDataTitle={`No ${activeTab} Opening Balance Records Found`}
                             noDataDescription='No records exist for the selected academic year.'
+                            totalItems={tableData.length}
+
+                            //  {...tableProps}
+                            //     data={tableData}
+                            //                         columns={openingBalanceColumns}
+                            //                         isLoading={isLoading}
+                            //                           isLoading={isLoading}
+                            //                         error={error}
+                            //                         columnPinning={{ right: ['actions'] }}
+                            //                          loadingMessage={`Loading ${activeTab} Opening Balances...`}
+                            //                         loadingMessage='Loading Opening Balances...'
+                            //                         noDataTitle={`No ${activeTab} Opening Balance Records Found`}
+                            //                          noDataDescription='No records exist for the selected academic year'
+                            //                         errorTitle='Error Loading Opening Balances'
                         />
                     )}
                 </CollapsibleSection>
@@ -193,6 +207,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                             <AddFeeOpeningBalanceForm
                                 onSuccess={() => {
                                     closeAddForm();
+
                                     refetch();
                                 }}
                             />
@@ -201,23 +216,15 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 </div>
             )}
 
-            {isToggleFormOpen && selectedRow && (
-                <ToggleMasterFeesConfigForm
-                    rowData={selectedRow as any}
-                    onClose={() => {
-                        closeToggleForm();
-                        refetch();
-                    }}
-                />
-            )}
-
             {/* DELETE FORM — Works perfectly, no UI change */}
+
             {isDeleteFormOpen && selectedRow && (
                 <DeleteOpeningBalanceForm
                     rowData={selectedRow}
                     onClose={closeDeleteForm}
                     onSuccess={() => {
                         closeDeleteForm();
+
                         refetch();
                     }}
                 />

@@ -20,6 +20,10 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterClassSchema.addOrUpdate>;
 
+interface yearlyGroupMappingFormProps {
+    onSuccess?: () => void;
+}
+
 interface IHeadInstallment {
     id: number;
     fmH_Id: string;
@@ -40,7 +44,7 @@ interface ApiSearchparams {
     [key: string]: any;
 }
 
-export default function YearlyFeeGroupMapping() {
+export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingFormProps) {
     const { data: academicYearOptions } = useAcademicYearDropdown();
     const { data: feeGroupResponse } = useMasterFeeGroupDropdown() as {
         data?: {
@@ -335,9 +339,12 @@ export default function YearlyFeeGroupMapping() {
             const res = await addMasterYearlyGroupMapping(payload);
             const ok = res && (res.success === undefined || res.success === true);
             if (ok) {
-                toast.success(res?.message || 'Saved successfully! Refer Groupwise Auto Receipt');
+                toast.success(res?.message);
                 clearRows();
                 try {
+                    reset();
+                    onSuccess?.();
+
                     await refetchAll();
                 } catch (fetchErr) {
                     console.error('Error fetching table after save:', fetchErr);

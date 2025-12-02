@@ -86,6 +86,11 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
     const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
     const [headListLoading, setHeadListLoading] = useState(false);
     const [headListError, setHeadListError] = useState<any>(null);
+    const [uploadedLogo, setUploadedLogo] = useState<{
+        document_Path: string;
+        documentName: string;
+        isUploading: boolean;
+    } | null>(null);
 
     const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
     useEffect(() => {
@@ -193,7 +198,7 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         setPhotoFile(f);
         setPhotoPreview(URL.createObjectURL(f));
 
-        await handleUploadPhoto(f);
+        await handleLogoUpload(f);
     };
 
     const handleSelectHead = (selectedRows: feeTransactionWaivedOffHead[]) => {
@@ -216,28 +221,51 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
         });
     }, [fineWaiveOff]);
 
-    const handleUploadPhoto = async (file: File) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
+    const handleLogoUpload = async (file: File) => {
         try {
-            const res = await uploadDocument(formData);
-
-            if (res.success) {
-                toast.success('Photo uploaded!');
-                setValue('uploadedPhotoPath', res.data as string, {
-                    shouldValidate: true
-                });
-            } else {
-                toast.error(res.message || 'Upload failed');
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
             }
-        } catch (err) {
-            console.error(err);
-            toast.error('Error uploading photo');
+
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error('File size should not exceed 2MB');
+                return;
+            }
+
+            setUploadedLogo({
+                document_Path: '',
+                documentName: file.name,
+                isUploading: true
+            });
+
+            const formData = new FormData();
+            formData.forEach((v, k) => console.log(k, v));
+            formData.append('file', file);
+            formData.append('FileName', file.name);
+            formData.append('ContentType', file.type);
+            formData.append('subContainerName', 'fees_waivedoff_document');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setUploadedLogo({
+                    document_Path: response.data,
+                    documentName: file.name,
+                    isUploading: false
+                });
+
+                toast.success('Photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setUploadedLogo(null);
+            toast.error(`Failed to upload : ${errorMessage}`);
         }
     };
-
-    const photoPath = watch('uploadedPhotoPath');
 
     const onSubmit = async (data: FormFields) => {
         if (selectedHead.length < 1) {
@@ -265,8 +293,8 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                 finewaiveoff: fineWaiveOff === true ? 1 : 0,
                 fswO_WaivedOffRemarks: data.remarks || '',
                 completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
-                filepath: photoPath || '',
-                filename: photoFile || '',
+                filepath: uploadedLogo?.documentName || '',
+                filename: uploadedLogo?.document_Path || '',
                 headlist: formattedHeadList
             };
 

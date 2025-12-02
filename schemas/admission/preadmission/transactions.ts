@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import {
-    createAlphanumericSchema,
     createAlphanumericSchemaPanCard,
     createEmailSchema,
     createOptionalAlphaNumericSchema,
@@ -122,8 +121,8 @@ export const studentApplicationFormSchema = {
         pasR_MotherSurname: createStringOnlyOptionalSchema('Mother Surname', 1, 100),
         pasR_MotherEducation: createStringOnlyOptionalSchema('Mother Education', 1, 100),
         // pasR_MotherOccupation: createOptionalStringSchema('Mother Occupation', 1, 100),
-        pasR_MotherPanno: createAlphanumericSchema('Mother PAN Number', 1, 10, true),
-        pasR_MotherDesignation: createOptionalStringSchema('Mother Designation', 1, 100),
+        pasR_MotherPanno: createAlphanumericSchemaPanCard('Mother PAN Number', true),
+        pasR_MotherDesignation: createStringOnlyOptionalSchema('Mother Designation', 1, 100),
         pasR_MotherOfficeAddr: createOptionalStringSchema('Mother Office Address', 1, 100),
         pasR_MotherMobleNo: z
             .string()
@@ -148,7 +147,7 @@ export const studentApplicationFormSchema = {
                     verrejstatus: z.string().optional(),
                     pasrS_Id: z.number().int().optional(),
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
-                    pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),
+                    pasrS_SiblingsClass: createOptionalAlphaNumericSchema('Sibling Class', 1, 100),
                     pasrS_SiblingsAdmissionNo: createOptionalNumberOnlyStringSchema('Sibling Admission No', 1, 50),
                     pasrS_SiblingsSection: createStringOnlyOptionalSchema('Sibling Section', 1, 50)
                 })
@@ -339,7 +338,7 @@ export const studentApplicationFormUpdateSchema = {
                     verrejstatus: z.string().optional(),
                     pasrS_Id: z.number().int().optional(),
                     pasrS_SiblingsName: createStringOnlyOptionalSchema('Sibling Name', 1, 100),
-                    pasrS_SiblingsClass: createStringOnlyOptionalSchema('Sibling Class', 1, 100),
+                    pasrS_SiblingsClass: createOptionalAlphaNumericSchema('Sibling Class', 1, 100),
                     pasrS_SiblingsAdmissionNo: createOptionalNumberOnlyStringSchema('Sibling Admission No', 1, 50),
                     pasrS_SiblingsSection: createStringOnlyOptionalSchema('Sibling Section', 1, 50)
                 })

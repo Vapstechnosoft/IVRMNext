@@ -73,7 +73,6 @@ export default function UpdateFeeTransactionWaiveOffForm({
     const [studentWise, setstudentWise] = useState<number | null>(null);
     const [remarks, setRemarks] = useState<string>('');
     const [grouplist, setgrouplist] = useState<string[]>([]);
-    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [refundableType, setRefundableType] = useState<string>('Refundable');
     const [fineWaiveOff, setFineWaiveOff] = useState<boolean>(false);
     const [completeFineWaiveOff, setCompleteFineWaiveOff] = useState<boolean>(false);
@@ -89,12 +88,20 @@ export default function UpdateFeeTransactionWaiveOffForm({
     const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [isViewing, setIsViewing] = useState(false);
-    const [selectedHead, setSelectedHead] = useState<feeTransactionWaivedOffHead[]>([]);
+    const [selectedHead, setSelectedHead] = useState<any[]>([]);
     const [apisearchParams_, setApisearchParams_] = useState<ApiSearchparams>({});
     const [tableProps, setTableProps] = useState<any>(null);
     const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
     const [headListLoading, setHeadListLoading] = useState(false);
     const [headListError, setHeadListError] = useState<any>(null);
+    const [uploadedLogo, setUploadedLogo] = useState<{
+        document_Path: string;
+        documentName: string;
+        isUploading: boolean;
+    } | null>(null);
+    const [preSelectedInstallmentIds, setPreSelectedInstallmentIds] = useState<string[]>([]);
+
+    const [tablePropsData, setTablePropsData] = useState<any>(null);
 
     useEffect(() => {
         if (!selectedRow) return;
@@ -114,14 +121,6 @@ export default function UpdateFeeTransactionWaiveOffForm({
     }, [selectedRow, reset]);
 
     const { data: academicYears, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
-    useEffect(() => {
-        if (academicYears) {
-            if (academicYears?.data && Array.isArray(academicYears.data)) {
-                const firstId = academicYears.data[0].asmaY_Id;
-                setValue('academicYear', firstId || 0);
-            }
-        }
-    }, [academicYears, reset]);
 
     const { data: classdata, isLoading: classloading, error: classerror } = useClassdropdowndatafee();
 
@@ -132,7 +131,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
     const asms_Id = watch('section');
     const amst_Id = watch('student');
 
-    //Student List
+    //--------------------Student List---------------------
     const fetchStudentDetails = async () => {
         if (!asmay_Id) return;
         if (!asmcl_Id) return;
@@ -156,11 +155,10 @@ export default function UpdateFeeTransactionWaiveOffForm({
         fetchStudentDetails();
     }, [asmay_Id, asmcl_Id, asms_Id]);
 
+    //---------------------Bind Student Data-------------------------
     useEffect(() => {
         if (!selectedRow) return;
         if (studentDetails.length === 0) return;
-
-        // Check if current student's ID appears in the dropdown list
         const exists = studentDetails.some((s) => s.amsT_Id === selectedRow.amsT_Id);
 
         if (exists) {
@@ -168,7 +166,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
         }
     }, [studentDetails, selectedRow, setValue]);
 
-    //Group List
+    //---------------------------------Group List-------------------
     const fetcthGroupList = async () => {
         if (!asmay_Id) return;
         if (!amst_Id) return;
@@ -192,6 +190,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
         fetcthGroupList();
     }, [asmay_Id, amst_Id, refundableType]);
 
+    //----------------------Bind Group List-------------------------
     useEffect(() => {
         if (!selectedRow) return;
         if (groupList.length === 0) return;
@@ -201,7 +200,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
         }
     }, [groupList, selectedRow]);
 
-    //Head List
+    //-----------------------------Head List---------------------
     const fetcthHeadList = async () => {
         if (!asmay_Id) return;
         if (!amst_Id) return;
@@ -213,7 +212,20 @@ export default function UpdateFeeTransactionWaiveOffForm({
             const res = await getHeadList(Number(asmay_Id), Number(amst_Id), refundableType, fineWaiveOff === true ? 1 : 0, {
                 groupIds: selectedGroups
             });
-            setHeadList(res.data ?? []);
+            const updatedHeadList =
+                res.data?.map((item) => {
+                    if (item.fmH_Id === selectedRow?.fmH_Id && item.ftI_Id === selectedRow?.ftI_Id) {
+                        return {
+                            ...item,
+                            waivedOff: selectedRow.fswO_WaivedOffAmount ?? 0
+                        };
+                    }
+                    return item;
+                }) ?? [];
+            console.log('updatedheadlist', updatedHeadList, res.data);
+
+            setHeadList(updatedHeadList ?? []);
+            res.data = updatedHeadList;
             setTableProps(useDataTableProps(res ?? []));
         } catch (error) {
             console.error('Error fetching student class mapping', error);
@@ -232,20 +244,31 @@ export default function UpdateFeeTransactionWaiveOffForm({
         setSelectedGroups([]);
     }, [asmay_Id, asmcl_Id, asms_Id]);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const f = e.target.files?.[0];
+    //--------------------Bind Head List---------------------------
+    useEffect(() => {
+        if (!selectedRow || headList.length === 0) return;
+        const preselectedIds = headList.reduce<string[]>((acc, s, ind) => {
+            if (s.fmH_Id === selectedRow.fmH_Id && s.ftI_Id === selectedRow.ftI_Id) {
+                acc.push(ind.toString());
+            }
+            return acc;
+        }, []);
+        setPreSelectedInstallmentIds(preselectedIds);
+    }, [selectedRow, headList]);
 
-        if (!f) return;
-
-        setPhotoFile(f);
-        setPhotoPreview(URL.createObjectURL(f));
-
-        await handleUploadPhoto(f);
-    };
-
-    const handleSelectHead = (selectedRows: feeTransactionWaivedOffHead[]) => {
-        setSelectedHead(selectedRows);
-    };
+    useEffect(() => {
+        if (!selectedRow) return;
+        if (selectedRow.fswO_FineFlg === 1) {
+            fineWaiveOff === true;
+        } else {
+            fineWaiveOff === false;
+        }
+        if (selectedRow.fswO_FullFineWaiveOffFlg === 1) {
+            completeFineWaiveOff === true;
+        } else {
+            completeFineWaiveOff === false;
+        }
+    }, [selectedRow]);
 
     const handleApiParmasChange = (apiparmas: ApiSearchparams) => {
         setApisearchParams_((prev) => {
@@ -263,28 +286,63 @@ export default function UpdateFeeTransactionWaiveOffForm({
         });
     }, [fineWaiveOff]);
 
-    const handleUploadPhoto = async (file: File) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
+    //---------------------Upload Image----------------------------
+    const handleLogoUpload = async (file: File) => {
         try {
-            const res = await uploadDocument(formData);
-
-            if (res.success) {
-                toast.success('Photo uploaded!');
-                setValue('uploadedPhotoPath', res.data as string, {
-                    shouldValidate: true
-                });
-            } else {
-                toast.error(res.message || 'Upload failed');
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                toast.error('Only PNG, JPG, and JPEG formats are allowed');
+                return;
             }
-        } catch (err) {
-            console.error(err);
-            toast.error('Error uploading photo');
+
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error('File size should not exceed 2MB');
+                return;
+            }
+
+            setUploadedLogo({
+                document_Path: '',
+                documentName: file.name,
+                isUploading: true
+            });
+
+            const formData = new FormData();
+            formData.forEach((v, k) => console.log(k, v));
+            formData.append('file', file);
+            formData.append('FileName', file.name);
+            formData.append('ContentType', file.type);
+            formData.append('subContainerName', 'fees_waivedoff_document');
+
+            const response = await uploadDocument(formData);
+
+            if (response.success && response.data) {
+                setUploadedLogo({
+                    document_Path: response.data,
+                    documentName: file.name,
+                    isUploading: false
+                });
+
+                toast.success('Photo uploaded successfully');
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (error: any) {
+            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
+            setUploadedLogo(null);
+            toast.error(`Failed to upload : ${errorMessage}`);
         }
     };
 
-    const photoPath = watch('uploadedPhotoPath');
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const f = e.target.files?.[0];
+
+        if (!f) return;
+
+        setPhotoFile(f);
+        setPhotoPreview(URL.createObjectURL(f));
+
+        await handleLogoUpload(f);
+    };
 
     const onSubmit = async (data: FormFields) => {
         if (selectedHead.length < 1) {
@@ -305,27 +363,27 @@ export default function UpdateFeeTransactionWaiveOffForm({
                 return d.toISOString().split('T')[0];
             }
             const payload = {
-                fswO_Id: 0,
+                fswO_Id: selectedRow.fswO_Id,
                 amsT_Id: amst_Id,
                 asmaY_Id: asmay_Id,
                 fswO_Date: formatDateToYMD(data.date),
                 finewaiveoff: fineWaiveOff === true ? 1 : 0,
                 fswO_WaivedOffRemarks: data.remarks || '',
                 completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
-                filepath: photoPath || '',
-                filename: photoFile || '',
+                filepath: uploadedLogo?.documentName || '',
+                filename: uploadedLogo?.document_Path || '',
                 headlist: formattedHeadList
             };
 
             const response = await saveFeeWivedOff(payload);
 
             if (response?.success) {
-                toast.success(response.message || 'Saved successfully');
+                toast.success(response.message || 'Updated successfully');
                 handleReset();
                 onSuccess?.();
                 refetchAll();
             } else {
-                toast.error(response?.message || 'Save failed');
+                toast.error(response?.message || 'Update failed');
             }
         } catch (err: any) {
             console.error('API Error:', err);
@@ -339,7 +397,6 @@ export default function UpdateFeeTransactionWaiveOffForm({
         setclassWise(null);
         setsectionWise(null);
         setstudentWise(null);
-        setSelectedDate(undefined);
         setRefundableType('Refundable');
         setFineWaiveOff(false);
         setCompleteFineWaiveOff(false);
@@ -540,28 +597,13 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            //   key={field.value || "empty"}
-                                            //   onValueChange={(val) => {
-                                            //     const id = Number(val);
-                                            //     field.onChange(id);
-                                            //     setstudentWise(id);
-                                            //   }}
-                                            //   value={
-                                            //     typeof field.value === "number" ||
-                                            //     typeof field.value === "string"
-                                            //       ? String(field.value)
-                                            //       : ""
-                                            //   }
-
                                             key={field.value}
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            //   onValueChange={(val) => field.onChange(Number(val))}
                                             onValueChange={(val) => {
                                                 const id = Number(val);
                                                 field.onChange(id);
                                                 setstudentWise(id);
-                                            }}
-                                        >
+                                            }}>
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select student --' />
                                             </SelectTrigger>
@@ -813,7 +855,20 @@ export default function UpdateFeeTransactionWaiveOffForm({
                             <GenericDataTable
                                 {...tableProps}
                                 columns={feeHeads}
-                                onRowSelectionChange={handleSelectHead}
+                                onRowSelectionChange={(selectedRows: feeTransactionWaivedOffHead[]) => {
+                                    console.log('selectedRows', selectedRows);
+                                    const selectedRowIds = selectedRows.map((r) => String(r.ftI_Id));
+                                    const selected = headList.filter((s, index) => {
+                                        const isSelected = selectedRowIds.includes(s.ftI_Id.toString());
+                                        return isSelected;
+                                    });
+
+                                    setSelectedHead(selected);
+                                    setPreSelectedInstallmentIds(preSelectedInstallmentIds);
+
+                                    setSelectedHead(selected);
+                                }}
+                                defaultSelectedRowIds={preSelectedInstallmentIds}
                                 isLoading={headListLoading}
                                 error={headListError}
                                 columnPinning={{ right: ['actions'] }}
@@ -826,6 +881,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                 searchQuery=''
                                 showPagination={false}
                                 currentApiParams={apisearchParams_}
+                                enableRowSelection={true}
                             />
                         </CollapsibleSection>
                     </div>

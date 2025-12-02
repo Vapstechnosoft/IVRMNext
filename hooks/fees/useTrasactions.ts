@@ -464,7 +464,7 @@ export const useFeeTransactionWaivedOffGrid = (searchParams?: ApiSearchparams) =
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_TRANSACTION_WAIVED_OFF_grid, searchParams ?? {}],
-            queryFn: async () => feeTransactionWaivedOff(),
+            queryFn: async () => feeTransactionWaivedOff(searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
