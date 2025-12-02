@@ -18,3 +18,49 @@ export const masterStudentCountReportSchema = {
         asmay_id: deleteIdSchema('asmay_id')
     })
 };
+
+export const admissionReportSchema = z.object({
+    academicYear: z.number().min(1, 'Academic year is required'),
+    status: z.string().min(1, 'Status is required'),
+    selectedClasses: z.array(z.string()).min(1, 'Please select at least one class'),
+    selectedFields: z.array(z.string()).min(1, 'Please select at least one field')
+});
+
+export const TotalStrengthSchema = z
+    .object({
+        reportType: z.enum(['All', 'Individual']),
+        status: z.string().min(1, 'Status is required'),
+        withTc: z.boolean().optional(),
+        withDeactive: z.boolean().optional(),
+        academicYear: z.number().min(1, 'Academic year is required'),
+        class: z.string().optional(),
+        section: z.string().optional()
+    })
+    .refine(
+        (data) => {
+            if (data.reportType === 'Individual') {
+                return !!data.class && !!data.section;
+            }
+            return true;
+        },
+        {
+            message: 'Class and Section are required for Individual report',
+            path: ['class']
+        }
+    );
+
+export const studentSearchSchema = z.object({
+    status: z.enum(['all', 'studying', 'left'], {
+        required_error: 'Please select student status'
+    }),
+    criteria: z
+        .array(
+            z.object({
+                field: z.string().min(1, 'Field is required'),
+                operator: z.string().min(1, 'Operator is required'),
+                value: z.string().min(1, 'Value is required'),
+                condition: z.string().optional()
+            })
+        )
+        .min(1, 'At least one search criteria is required')
+});

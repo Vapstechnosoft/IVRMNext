@@ -39,12 +39,14 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     const { refetchAll } = useYearlyCategorySubjectMapping();
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { errors, isSubmitting } = formState;
-
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [subjectGroups, setSubjectGroups] = useState<{ emG_Id: number; emG_GroupName: string }[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
     const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
     useEffect(() => {
         reset({
@@ -60,21 +62,6 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     }, [reset, rowData]);
 
     useEffect(() => {
-        // Academic Years
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-
         if (subjectGroupError) {
             toast.error(subjectGroupError.message || 'Error fetching subject groups');
             setSubjectGroups([]);
@@ -83,7 +70,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         } else {
             setSubjectGroups([]);
         }
-    }, [academicData, academicError, subjectGroupList, subjectGroupError]);
+    }, [subjectGroupList, subjectGroupError]);
 
     // Watch selected Academic Year
     const selectedYearId = useWatch({
@@ -189,11 +176,21 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

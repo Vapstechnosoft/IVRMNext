@@ -45,26 +45,23 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
     today.setHours(0, 0, 0, 0);
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
 
     // Fetch academic years on mount
     useEffect(() => {
         // Academic Years
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
+        if (academicYearError) {
+            toast.error(academicYearError.message || 'Error fetching academic years');
+        } else if (academicYear?.data && Array.isArray(academicYear.data)) {
             setValue('asmaY_Id', methods.watch('asmaY_Id') || 0);
         } else {
             setAcademicYears([]);
         }
-    }, [academicData, academicError, setValue, methods.watch('asmaY_Id')]);
+    }, [academicYear, academicYearError, setValue, methods.watch('asmaY_Id')]);
     // Watch selected Academic Year
     const selectedYearId = useWatch({
         control,
@@ -143,11 +140,21 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

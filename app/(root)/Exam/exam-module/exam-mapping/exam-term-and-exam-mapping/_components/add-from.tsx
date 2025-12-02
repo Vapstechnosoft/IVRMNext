@@ -50,7 +50,6 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     const { isSubmitting, errors } = formState;
 
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
@@ -73,27 +72,15 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     const [entryRoundOff, setEntryRoundOff] = useState<boolean>(false);
     const [entryConversion, setEntryConversion] = useState<boolean>(false);
     const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const topLocked = addedRows.length > 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    useEffect(() => {
-        // Academic Years
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id,
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-    }, [academicData, academicError]);
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
 
     useEffect(() => {
         if (!asmaY_Id || topLocked) return;
@@ -343,11 +330,21 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             </SelectTrigger>
 
                                             <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
 

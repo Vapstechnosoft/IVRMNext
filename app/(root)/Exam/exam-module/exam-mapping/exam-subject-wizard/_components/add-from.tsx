@@ -73,7 +73,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const { errors, isSubmitting } = formState;
 
     // dropdown states
-    const [academicYears, setAcademicYears] = useState<IAcademicYearDropDown[]>([]);
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ EME_Id: number; EME_ExamName: string; checked?: boolean }[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
@@ -91,8 +90,11 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [subExamModalState, setSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectModalState, setSubSubjectModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
-
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
     const { data: gradeData, error: gradeError } = useMasterGrade();
     const { data: response } = useExamSubjectWizardDetails(30, rowData?.eycE_Id ? rowData?.eycE_Id : 0);
     const { refetchAll } = useExamSubjectWizard();
@@ -105,20 +107,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
     // populate controlled dropdowns on mount / when data arrives
     useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-
         if (gradeError) {
             toast.error(gradeError.message || 'Error fetching grades');
             setGradeList([]);
@@ -135,12 +123,11 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         } else {
             setGradeList([]);
         }
-    }, [academicData, academicError, gradeData, gradeError]);
+    }, [gradeData, gradeError]);
 
     // when rowData (edit) is provided, populate top-level fields
     useEffect(() => {
         if (!rowData) return;
-        console.log('rowData', rowData);
 
         setValue('EYCE_Id', rowData.eycE_Id || 0);
         setValue('ASMAY_Id', rowData.asmaY_Id ?? undefined);
@@ -163,7 +150,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             try {
                 const { data: cats } = await getCategoryDropDowByExamYearCategoryList(30, Number(watchYear));
                 setCategories(Array.isArray(cats) ? cats : []);
-                console.log('🟡 [HOOK] fetchRelated categories:', cats);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
                 setCategories([]);
@@ -183,10 +169,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 const mappedExams = Array.isArray(ex)
                     ? ex.map((e: any) => ({
-                          EME_Id: e.emE_Id ?? e.EME_Id,
-                          EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
-                          checked: rowData?.emE_Id === (e.emE_Id ?? e.EME_Id)
-                      }))
+                        EME_Id: e.emE_Id ?? e.EME_Id,
+                        EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
+                        checked: rowData?.emE_Id === (e.emE_Id ?? e.EME_Id)
+                    }))
                     : [];
 
                 // If rowData exists, merge it into mappedExams
@@ -271,26 +257,26 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
-                          ISMS_Id: s.ismS_Id ?? s.ISMS_Id,
-                          ISMS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName,
-                          EYCES_MaxMarks: s.EYCES_MaxMarks ?? 0,
-                          EYCES_MinMarks: s.EYCES_MinMarks ?? 0,
-                          EYCES_MarksEntryMax: s.EYCES_MarksEntryMax ?? 0,
-                          EMGR_Id: watchGrade ?? s.EMGR_Id ?? undefined,
-                          EYCES_Id: s.eyceS_Id ?? s.EYCES_Id,
-                          EYCES_SubExamFlg: false,
-                          EYCES_SubSubjectFlg: false,
-                          EYCES_ActiveFlg: true,
-                          EYCES_MarksGradeEntryFlg: 'M',
-                          EYCES_MarksDisplayFlg: s.eyceS_MarksDisplayFlg ?? false,
-                          EYCES_GradeDisplayFlg: s.eyceS_GradeDisplayFlg ?? false,
-                          EYCES_AplResultFlg: s.eyceS_AplResultFlg ?? false,
-                          subExamConfig: s.subExamConfig ?? [],
-                          EYCES_SubjectOrder: s.eyceS_SubjectOrder ?? 0,
-                          subSubjectConfig: s.subSubjectConfig ?? [],
-                          subSubjectSubExamConfig: s.subSubjectSubExamConfig ?? [],
-                          Exam_Subject_PT_GradeList: []
-                      }))
+                        ISMS_Id: s.ismS_Id ?? s.ISMS_Id,
+                        ISMS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName,
+                        EYCES_MaxMarks: s.EYCES_MaxMarks ?? 0,
+                        EYCES_MinMarks: s.EYCES_MinMarks ?? 0,
+                        EYCES_MarksEntryMax: s.EYCES_MarksEntryMax ?? 0,
+                        EMGR_Id: watchGrade ?? s.EMGR_Id ?? undefined,
+                        EYCES_Id: s.eyceS_Id ?? s.EYCES_Id,
+                        EYCES_SubExamFlg: false,
+                        EYCES_SubSubjectFlg: false,
+                        EYCES_ActiveFlg: true,
+                        EYCES_MarksGradeEntryFlg: 'M',
+                        EYCES_MarksDisplayFlg: s.eyceS_MarksDisplayFlg ?? false,
+                        EYCES_GradeDisplayFlg: s.eyceS_GradeDisplayFlg ?? false,
+                        EYCES_AplResultFlg: s.eyceS_AplResultFlg ?? false,
+                        subExamConfig: s.subExamConfig ?? [],
+                        EYCES_SubjectOrder: s.eyceS_SubjectOrder ?? 0,
+                        subSubjectConfig: s.subSubjectConfig ?? [],
+                        subSubjectSubExamConfig: s.subSubjectSubExamConfig ?? [],
+                        Exam_Subject_PT_GradeList: []
+                    }))
                     : [];
 
                 setSubjects(formattedSubjects);
@@ -345,7 +331,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                 const { data: mappedList } = await getSubSubjectsMappedList(30, updated.EYCES_Id);
                                 if (mappedList?.length) {
                                     updated.subSubjectConfig = mappedList.map(mapToSubSubjectConfig);
-                                    console.log(updated.subSubjectConfig);
                                 }
                             }
 
@@ -407,7 +392,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             const safeList = Array.isArray(list) ? list : [];
 
             const configList = Array.isArray(subject.subExamConfig) ? subject.subExamConfig : [];
-            console.log(' [HOOK] onOpenSubExamModal configList:', configList);
 
             // Merge logic
             const updatedList = safeList.map((item: any) => {
@@ -423,7 +407,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     checkedvalue: true
                 };
             });
-            console.log(' [HOOK] onOpenSubExamModal updatedList:', updatedList);
             setSubExamModalState({
                 open: true,
                 subject: {
@@ -774,11 +757,21 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

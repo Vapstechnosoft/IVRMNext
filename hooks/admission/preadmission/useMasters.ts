@@ -10,6 +10,7 @@ import {
     getMasterClassDropdown,
     getMasterSectionDropdown
 } from '@/server/admission/preadmission/masters/class_category';
+import { getMasterMonthDropDownList, getMasterSectionHeld } from '@/server/admission/preadmission/masters/class_held';
 import { getEmployeeDrowpDown, getMasterClassTeacher, getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
 import { getMasterDocument } from '@/server/admission/preadmission/masters/document';
 import { getMasterReference } from '@/server/admission/preadmission/masters/reference';
@@ -93,7 +94,6 @@ export const useMasterClassCategory = (searchParams?: ApiSearchparams) => {
 
 export const useAcademicYearDropdown = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
@@ -110,7 +110,6 @@ export const useAcademicYearDropdown = () => {
 
 export const useMasterCategoryDropdown = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CATEGORY_DROPDOWN],
@@ -127,7 +126,6 @@ export const useMasterCategoryDropdown = () => {
 
 export const useMasterClassDropdown = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_DROPDOWN],
@@ -234,7 +232,8 @@ export const useMasterCasteCategoryDropdown = () => {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.MASTER_CASTE_CATEGORY_DROPDOWN],
             queryFn: async () => getMasterCasteCategoryDropdown(),
-            staleTime: 0
+            staleTime: 0,
+            refetchInterval: 5000
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -416,6 +415,46 @@ export const useSectionSetOrder = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_SECTION_SET_ORDER]
+            });
+        }
+    };
+};
+
+export const useMasterSectionHeld = (asmcl_id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_HELD, asmcl_id ?? {}],
+            queryFn: async () => {
+                if (!asmcl_id || Number(asmcl_id) <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getMasterSectionHeld(Number(asmcl_id));
+            },
+            enabled: Boolean(asmcl_id && Number(asmcl_id) > 0),
+            staleTime: 0
+        }),
+        refetchAll: (id?: number) => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_HELD, id ?? {}]
+            });
+        }
+    };
+};
+
+export const useMasterMonthDropDownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_MONTH_DROPDOWN_LIST],
+            queryFn: async () => getMasterMonthDropDownList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_MONTH_DROPDOWN_LIST]
             });
         }
     };

@@ -49,7 +49,6 @@ export default function HallTicketGenerationForm({
     const { isSubmitting } = formState;
 
     // Dropdown data
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
@@ -59,7 +58,11 @@ export default function HallTicketGenerationForm({
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
 
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
 
     // Watchers
     const selectedYear = useWatch({ control, name: 'asmaY_Id' });
@@ -69,21 +72,20 @@ export default function HallTicketGenerationForm({
 
     // Load Academic Years + Auto-select current (first)
     useEffect(() => {
-        if (academicError) {
+        if (academicYearError) {
             toast.error('Failed to load academic years');
             return;
         }
-        if (academicData?.data) {
-            const years = academicData.data.map((i: any) => ({
+        if (academicYear?.data) {
+            const years = academicYear.data.map((i: any) => ({
                 asmaY_Id: i.asmaY_Id,
                 asmaY_Year: i.asmaY_Year
             }));
-            setAcademicYears(years);
             if (years.length > 0 && !selectedYear) {
                 setValue('asmaY_Id', years[0].asmaY_Id);
             }
         }
-    }, [academicData, academicError, setValue, selectedYear]);
+    }, [academicYear, academicYearError, setValue, selectedYear]);
 
     // ---------- Load Classes ----------
     useEffect(() => {
@@ -176,14 +178,21 @@ export default function HallTicketGenerationForm({
                                                     <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {loadingAcademic ? 'Loading...' :
-                                                        academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                {y.asmaY_Year}
+                                                    {academicYearLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading Academic Year...
+                                                        </SelectItem>
+                                                    ) : academicYearError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading Academic Year
+                                                        </SelectItem>
+                                                    ) : (
+                                                        academicYear?.data?.map((item) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
                                                             </SelectItem>
                                                         ))
-                                                    }
-
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

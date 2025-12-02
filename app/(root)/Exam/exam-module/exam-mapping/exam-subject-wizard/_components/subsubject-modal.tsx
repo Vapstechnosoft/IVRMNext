@@ -86,7 +86,6 @@ export default function SubSubjectModal({
             eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
             eycessS_SubSubjectOrder: l.emsS_Order
         }));
-        console.log('subsubject list', list);
         reset({ subsubject_list: list });
     }, [subject, reset]);
 

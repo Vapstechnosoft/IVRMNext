@@ -46,23 +46,12 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
     const { control, handleSubmit, reset, setValue, formState, getValues } = methods;
     const { isSubmitting, errors } = formState;
 
-    // watch top-level values
-    const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
-    const ecacT_Id = useWatch({ control, name: 'ecacT_Id' });
-    const ecactA_Id = useWatch({ control, name: 'ecactA_Id' });
-    const ecactAAM_Id = useWatch({ control, name: 'ecactAAM_Id' });
-    const emgR_Id = useWatch({ control, name: 'emgR_Id' });
-    const ecactaM_IndicatorDescription = useWatch({ control, name: 'ecactaM_IndicatorDescription' });
 
-    // entry-level editor states (same as Add)
-    const [entryExamId, setEntryExamId] = useState<number>(0);
-    const [entryMarksFlag, setEntryMarksFlag] = useState<'M' | 'P'>('M');
-    const [entryValue, setEntryValue] = useState<number | ''>('');
-    const [entryRoundOff, setEntryRoundOff] = useState<boolean>(false);
-    const [entryConversion, setEntryConversion] = useState<boolean>(false);
-    const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
-
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
     const [grades, setGrades] = useState<{ emgR_Id: number; emgR_GradeName: string }[]>([]);
     const [activity, setActivity] = useState<{ ecacT_Id: number; ecacT_SkillName: string }[]>([]);
     const [activityArea, setActivityArea] = useState<{ ecactA_Id: number; ecactA_SkillArea: string }[]>([]);
@@ -72,21 +61,7 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
     const { data: areaData, isLoading: loadingArea, error: activityAreaError } = useCoScholasticActivityAreaDropDown();
     const { data: activityData, isLoading: loadingActivity, error: activityError } = useCoScholasticActivityDropDown();
 
-    // Academic Years
-    useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears = academicData.data.map((item: any) => ({
-                asmaY_Id: Number(item?.asmaY_Id) || 0,
-                asmaY_Year: item?.asmaY_Year || ''
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-    }, [academicData, academicError]);
+
 
     // Grades
     useEffect(() => {
@@ -138,7 +113,7 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
     // --- FIXED: Proper reset trigger ---
     useEffect(() => {
         // Run only if dropdowns have loaded
-        const allDropdownsLoaded = academicYears.length > 0 && grades.length > 0 && activity.length > 0 && activityArea.length > 0;
+        const allDropdownsLoaded = academicYear?.data ? academicYear.data.length : 0 > 0 && grades.length > 0 && activity.length > 0 && activityArea.length > 0;
 
         if (rowData && allDropdownsLoaded) {
             reset({
@@ -152,7 +127,7 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
                 ecactaM_ActiveFlag: rowData.ecactaM_ActiveFlag ?? true
             });
         }
-    }, [rowData, academicYears.length, grades.length, activity.length, activityArea.length, reset]);
+    }, [rowData, academicYear?.data ? academicYear.data.length : 0, grades.length, activity.length, activityArea.length, reset]);
 
     useEffect(() => {
         if (rowData) {
@@ -244,11 +219,21 @@ export default function UpdateCoScholasticActivityAreaMapping({ rowData, onSucce
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicYears?.map((y) => (
-                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                    {y.asmaY_Year}
+                                            {academicYearLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Academic Year...
                                                 </SelectItem>
-                                            ))}
+                                            ) : academicYearError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading Academic Year
+                                                </SelectItem>
+                                            ) : (
+                                                academicYear?.data?.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

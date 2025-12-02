@@ -49,6 +49,17 @@ export function createOptionalNumberOnlyStringSchema(field: string, min: number,
         .or(z.literal('')); // empty allowed
 }
 
+export function createNumberOnlyStringSchema(field: string, min: number, max: number) {
+    return z
+        .string()
+        .regex(/^\d+$/, { message: `${field} must contain only numbers` }) // at least 1 digit
+        .min(min, { message: `${field} must have at least ${min} digits` })
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .refine((value) => value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        });
+}
+
 export function createOptionalStringSchemaNotAllowNumbersOnly(field: string, min: number, max: number) {
     return (
         z
@@ -308,4 +319,33 @@ export function createOptionalAlphaNumericSchemaNotOptional(field: string, min: 
 
 export function isAlphabetsOnly(text: string): boolean {
     return /^[a-zA-Z\s]*$/.test(text);
+}
+
+export function createRequiredAlphaNumericWithSpaceSchema(field: string, min: number, max: number) {
+    return (
+        z
+            .string()
+            .min(min, { message: `${field} must have at least ${min} characters` })
+            .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+
+            // Allow letters, numbers, and spaces
+            .regex(/^[A-Za-z0-9 ]+$/, {
+                message: `${field} can contain only letters, numbers, and spaces`
+            })
+
+            // No leading or trailing spaces
+            .refine((value) => value.trim() === value, {
+                message: `${field} cannot have leading or trailing spaces`
+            })
+
+            // Must contain at least one alphabet
+            .refine((value) => /[A-Za-z]/.test(value), {
+                message: `${field} must contain at least one letter`
+            })
+
+            // Must not be only numbers
+            .refine((value) => !/^[0-9]+$/.test(value), {
+                message: `${field} cannot contain only numbers`
+            })
+    );
 }

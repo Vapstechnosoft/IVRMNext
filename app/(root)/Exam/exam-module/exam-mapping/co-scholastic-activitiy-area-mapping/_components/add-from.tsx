@@ -28,13 +28,15 @@ export default function AddCoScholasticActivityAreaMapping({
 }: CoScholasticActivityAreaMappingFormProps) {
     const orgId = 30;
     const { refetchAll } = useCoScholasticActivityAreaMapping();
-
-    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [grades, setGrades] = useState<{ emgR_Id: number; emgR_GradeName: string }[]>([]);
     const [activity, setActivity] = useState<{ ecacT_Id: number; ecacT_SkillName: string }[]>([]);
     const [activityArea, setActivityArea] = useState<{ ecactA_Id: number; ecactA_SkillArea: string }[]>([]);
 
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
     const { data: gradesData, isLoading: loadingGrades, error: gradesError } = useMasterGrade();
     const { data: areaData, isLoading: loadingArea, error: activityAreaError } = useCoScholasticActivityAreaDropDown();
     const { data: activityData, isLoading: loadingActivity, error: activityError } = useCoScholasticActivityDropDown();
@@ -53,21 +55,7 @@ export default function AddCoScholasticActivityAreaMapping({
             ecactaM_ActiveFlag: true
         }
     });
-    // Academic Years
-    useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears = academicData.data.map((item: any) => ({
-                asmaY_Id: Number(item?.asmaY_Id) || 0,
-                asmaY_Year: item?.asmaY_Year || ''
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-    }, [academicData, academicError]);
+
 
     // Grades
     useEffect(() => {
@@ -177,11 +165,21 @@ export default function AddCoScholasticActivityAreaMapping({
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {academicYears?.map((y) => (
-                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                    {y.asmaY_Year}
+                                            {academicYearLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Academic Year...
                                                 </SelectItem>
-                                            ))}
+                                            ) : academicYearError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading Academic Year
+                                                </SelectItem>
+                                            ) : (
+                                                academicYear?.data?.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
