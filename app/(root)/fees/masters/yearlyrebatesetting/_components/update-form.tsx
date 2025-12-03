@@ -32,6 +32,8 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
 
     const [isInitializing, setIsInitializing] = useState(false);
     const { data: academicYearOptions, isLoading: isAcademicYearLoading } = useAcademicYearDropdown();
+
+    console.log('academicYearOptions:', academicYearOptions);
     const queryClient = useQueryClient();
 
     console.log('selectedRow in update form:', selectedRow);
@@ -154,7 +156,7 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
             const miIdFromRow = selectedRow.mI_Id ?? (selectedRow as any).mI_ID ?? (selectedRow as any).mi_id ?? 30;
 
             const payload = {
-                fyrebseT_Id: selectedRow.fyrebseT_Id || Number(data.fyrebseT_Id),
+                fyrebseT_Id: Number(selectedRow.fyrebseT_Id),
                 mI_Id: Number(miIdFromRow),
                 asmaY_Id,
                 fyrebseT_RebateTypeFlg: data.fyrebseT_RebateTypeFlg,
@@ -163,6 +165,7 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
                 fyrebseT_ActiveId: selectedRow.fyrebseT_ActiveId ?? true
             };
 
+            console.log('🔵 [DEBUG] Input Data:', payload);
             const response = await addOrUpdateMasterYearlyRebateSettingsFacade(payload);
 
             if (response?.success) {

@@ -14,7 +14,7 @@ import { masterClassCategorySchema } from '@/schemas/admission/preadmission/mast
 import { addMasterClassCategory } from '@/server/admission/preadmission/masters/class_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -50,6 +50,8 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
         control,
         handleSubmit,
         reset,
+        clearErrors,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterClassCategorySchema.add),
@@ -57,13 +59,34 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
     });
 
     function OnReset() {
-        reset();
+        reset({
+            asmaY_Id: undefined,
+            amC_Id: undefined,
+            class_ids: []
+        });
+
         setSelectedClassItems([]);
+
+        setValue('class_ids', []);
+
+        setTimeout(() => {
+            clearErrors();
+        }, 0);
+
         refetchAll();
+        // also trigger immediate refetch of dropdowns when reset/add completed
         refetchAcademicYear();
         refetchMasterCategory();
         refetchMasterClass();
     }
+
+    // When the Add/Edit form mounts, ensure dropdowns are freshly fetched
+    useEffect(() => {
+        // call the hooks' refetchAll functions to refresh dropdown data when form opens
+        refetchAcademicYear?.();
+        refetchMasterCategory?.();
+        refetchMasterClass?.();
+    }, []);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {

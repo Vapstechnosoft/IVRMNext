@@ -69,7 +69,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
     const { control, handleSubmit, setValue, watch, reset } = methods;
 
-    const [academicYears, setAcademicYears] = useState<IAcademicYearDropDown[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
@@ -85,8 +84,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
     const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
     const asmS_Id = useWatch({ control, name: 'asmS_Id' });
     const emE_Id = useWatch({ control, name: 'emE_Id' });
-
-    const { data: academicData, error: academicError } = useAcademicYearDropdown();
     const { refetchAll } = useExamWiseRemarksDataGrid();
     useEffect(() => {
         if (!rowData) return;
@@ -104,22 +101,10 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         );
     }, [rowData, classes, sections, exams]);
 
-    useEffect(() => {
-        // Academic Years
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id,
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-    }, [academicData, academicError]);
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError } = useAcademicYearDropdown();
 
     // ---------- Load Classes ----------
     useEffect(() => {
@@ -184,7 +169,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                 return acc;
             }, []);
 
-            console.log('preSelectedStudentIds', preSelectedStudentIds);
             setPreSelectedStudentIds(preSelectedStudentIds);
             setStudents(studentList);
             setTableProps(
@@ -226,7 +210,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                     }))
             };
 
-            console.log(payload);
             const res = await addOrUpdateExamStudentRemarks(payload);
             if (res?.success) {
                 toast.success(res.message || 'Remarks saved successfully');
@@ -269,11 +252,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
             return updated;
         });
     };
-    useEffect(() => {
-        if (Object.keys(methods.formState.errors).length > 0) {
-            console.log('❌ Form Validation Errors:', methods.formState.errors);
-        }
-    }, [methods.formState.errors]);
 
     // Pass to columns
     const columns = ExamWiseStudentRemarksColumns(updateStudent);
@@ -300,11 +278,21 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                         </SelectTrigger>
 
                                         <SelectContent>
-                                            {academicYears.map((y) => (
-                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                    {y.asmaY_Year}
+                                            {academicYearLoading ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading Academic Year...
                                                 </SelectItem>
-                                            ))}
+                                            ) : academicYearError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Error loading Academic Year
+                                                </SelectItem>
+                                            ) : (
+                                                academicYear?.data?.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -414,8 +402,6 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
                                 columns={columns}
                                 isLoading={isLoading}
                                 onRowSelectionChange={(selectedRows: IExamWiseStudentRemarksStudent[]) => {
-                                    console.log('selectedRows', selectedRows);
-                                    console.log('students', students);
                                     const selectedRowIds = selectedRows.map((r) => String(r.amsT_Id));
                                     const selected = students.filter((s, index) => {
                                         const isSelected = selectedRowIds.includes(s.amsT_Id.toString());

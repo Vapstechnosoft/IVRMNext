@@ -15,6 +15,19 @@ export const examLoginPrivilegesSchema = {
 
             asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select a Class' }),
 
+            /**
+             * ✔ Added support for multi-select classList
+             * Used when teacher-mapped classes need to be selected automatically.
+             */
+            classList: z
+                .array(
+                    z.object({
+                        asmcL_Id: z.number(),
+                        asmcL_ClassName: z.string().optional()
+                    })
+                )
+                .optional(),
+
             // Multi selections
             sectionList: z
                 .array(
@@ -95,6 +108,7 @@ export const examLoginPrivilegesSchema = {
         elp_Id: z.number({ required_error: 'elp_Id is required' })
     })
 };
+
 
 const parseDate = (val: unknown) => {
     if (typeof val === 'string' && val.trim() !== '') {
@@ -701,3 +715,27 @@ export const examMarksProcessConditionSchema = {
             }
         )
 };
+
+
+export const hallTicketGenerationSchema = z.object({
+    mI_Id: z.number().int().positive(),
+    asmaY_Id: z.number().int().positive(),
+    asmcL_Id: z.number().int().positive(),
+    classList: z.array(z.object({ asmcL_Id: z.number().int().positive() })).min(1, 'At least one class is required'),
+    sectionList: z.array(z.object({ asmS_Id: z.number().int().positive() })).min(1, 'At least one section is required'),
+    emE_Id: z.number().int().positive(),
+    prefixNo: z.string().optional(),
+    startingNo: z.string().regex(/^\d+$/, 'Starting No. must be a number').min(1, 'Starting No. is required'),
+    increment: z.string().regex(/^\d+$/, 'Increment must be a number').min(1, 'Increment is required'),
+    prefixNoFlag: z.enum(['Y', 'N']),
+}).superRefine((data, ctx) => {
+    if (data.prefixNoFlag === 'Y') {
+        if (!data.prefixNo || data.prefixNo.trim() === '') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Prefix No. is required when PrefixNo is Yes',
+                path: ['prefixNo'],
+            });
+        }
+    }
+});

@@ -17,6 +17,8 @@ import {
     getExamTermAndExamMapping,
     getExamTermAndExamMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
+import { getHallTicketGeneratedList, getHallTicketStudentList } from '@/server/exam/exam-module/exam-mapping/hallTicket-generation';
+import { getPromotionalSettings } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import type { ApiSearchparams } from '@/types';
@@ -268,6 +270,61 @@ export const useExamMarksProcessCondition = (searchParams?: ApiSearchparams) => 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.EXAM_MARKS_PROCESS_CONDITION]
+            });
+        }
+    };
+};
+
+
+export const useHallTicketGeneratedList = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EXAM_HALL_TICKET_GENERATED_DATA, searchParams ?? {}],
+            queryFn: async () => getHallTicketGeneratedList(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EXAM_HALL_TICKET_GENERATED_DATA]
+            });
+        }
+    };
+};
+
+export const usegetHallTicketStudentList = (params: any, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EXAM_HALL_TICKET_STUDENT_LIST, searchParams ?? {}],
+            queryFn: async () => getHallTicketStudentList(params),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EXAM_HALL_TICKET_STUDENT_LIST]
+            });
+        }
+    };
+};
+
+export const usePromotionalSetting = (params: any, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_GRID, searchParams ?? {}],
+            queryFn: async () => getPromotionalSettings(params),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_GRID]
             });
         }
     };

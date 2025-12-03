@@ -26,7 +26,16 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS_TEACHER_EMPLOYEE: 'master_class_teacher_employee',
     MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping',
     MASTER_CLASS_SET_ORDER: 'master_class_set_order',
-    MASTER_SECTION_SET_ORDER: 'master_section_set_order'
+    MASTER_SECTION_SET_ORDER: 'master_section_set_order',
+    MASTER_CLASS_HELD: 'master_class_held',
+    MASTER_MONTH_DROPDOWN_LIST: 'master_month_dropdown_list',
+    MASTER_STUDENTS: 'master_students',
+    MASTER_CHANGE_SECTION_TABLE: 'master_change_section_table',
+    MASTER_STUDENT_LIST: 'master_student_list',
+    MASTER_STUDENT_ROLES: 'master_student_roles',
+    MASTER_YEAR_LOSS_SECTION: 'master_year_loss_section',
+    MASTER_CHANGE_CLASS_STUDENTS: 'master_change_class_students',
+    MASTER_CHANGE_CLASS_STUDENT_DETAILS: 'master_change_class_student_details'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -98,6 +107,14 @@ export const FEES_QUERY_KEYS = {
     FEES_PRIVILEGE_LIST: 'fees_privilege_list',
     FEE_WAVIED_OFF: 'fee_waived_off',
     FEE_OPENING_BALANCE: 'fee_opening_balance',
+    FEE_OPENING_ACADEMIC_YEAR_DROPDOWN: 'fee_opening_academic_year_dropdown',
+    FEE_OPENING_CATEGORY_DROPDOWN: 'fee_opening_category_dropdown',
+    FEE_OPENING_CLASS_DROPDOWN: 'fee_opening_class_dropdown',
+    FEE_OPENING_SECTION_DROPDOWN: 'fee_opening_section_dropdown',
+    FEE_OPENING_HEAD_DROPDOWN: 'fee_opening_head_dropdown',
+    FEE_OPENING_GROUP_DROPDOWN: 'fee_opening_group_dropdown',
+    FEE_OPENING_INSTALLMENT_DROPDOWN: 'fee_opening_installment_dropdown',
+
     GROUPS_DROPDOWN: 'groups_dropdown',
     ROLES_DROPDOWN: 'roles_dropdown',
     FEE_THIRDPARTY_TRASACTION: 'fee_thirdparty_transaction',
@@ -144,12 +161,32 @@ export const FEES_QUERY_KEYS = {
     FEE_OTHER_STUDENT: 'fee_other_student',
     FEE_CLASSDROPDOWN_DETAILS: 'fee_classdropdown_details',
     FEE_SECTIONDROPDOWN_DETAILS: 'fee_sectiondropdown_details',
-    FEE_INSATALLMENT_DROP_DOWN: 'fee_installment_drop_down'
+    FEE_INSATALLMENT_DROP_DOWN: 'fee_installment_drop_down',
+    FEE_TRANSACTION_WAIVED_OFF_grid: 'fee_transaction_waived_off_grid',
+    FEE_SPECIAL_FEE_HEAD: 'fee_special_fee_head',
+    FEE_SPECIAL_FEE_HEAD_DROPDOWN: 'fee_special_fee_head_dropdown',
+    FEE_OPENING_BALANCE_LIST: 'fee_opening_balance_list',
+    FEE_OPENING_PDA_LIST: 'fee_opening_pda_list',
+    FEE_OPENING_REFUNDABLE: 'fee_opening_refundable',
+    FEE_GROUPGROUPING_GROUPDROPDOWN: 'fee_groupgrouping_groupdropdown',
+    STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN: 'student_fee_group_mapping_bus_area_dropdown',
+
+    FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
+    FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
+    FEE_TERM_DEFAULTER: 'fee_term_defaulter_report',
+    FEE_BUS_ROUTES_DEFAULTER: 'fee_bus_routes_defaulter_report',
+    FEE_CUSTOM_GROUP_DEFAULTER: 'fee_custom_group_defaulter_report',
+    FEE_CLASS_LIST_DEFAULTER: 'fee_class_list_defaulter_report',
+    FEE_SECTION_LIST_DEFAULTER: 'fee_section_list_defaulter_report',
+    FEE_REPORT_GROUP_DROPDOWN: 'fee_report_group_dropdown',
+    FEE_REPORT_HEAD_DROPDOWN: 'fee_report_head_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
     MASTER_SUBJECT: 'master_subject',
+    MASTER_SUBJECT_DROPDOWN_LIST: 'master_subject_dropdown_list',
     MASTER_SUB_SUBJECT_EX: 'master_sub_subject-ex',
+    MASTER_SUB_SUBJECT_EX_DROPDOWN_LIST: 'master_sub_subject-ex_dropdown_list',
     MASTER_EXAM: 'master-exam',
     MASTER_EXAM_PAPER: 'master-exam-paper',
     MASTER_SUB_EXAM: 'master-sub-exam',
@@ -190,7 +227,12 @@ export const EXAM_QUERY_KEYS = {
     EXAM_MARKS_PROCESS_CONDITION: 'exam-marks-process-condition',
     EXAM_WISE_REMARKS_DATA_GRID: 'exam-wise-remarks-data-grid',
 
-    EXAM_STANDARD: 'exam-standared'
+    EXAM_STANDARD: 'exam-standared',
+
+    EXAM_HALL_TICKET_GENERATED_DATA: 'exam-hall-ticket-generated-data',
+    EXAM_HALL_TICKET_STUDENT_LIST: 'exam-hall-ticket-student-list',
+
+    PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid'
 };
 
 export const HRMS_QUERY_KEYS = {

@@ -45,6 +45,14 @@ export const feePreAdmissionTransactionEntryColumns: ColumnDef<IFeePreAdmissionT
         enableHiding: true
     },
     {
+        accessorKey: 'classname',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        cell: ({ row }) => <div>{row.getValue('classname')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+
+    {
         accessorKey: 'studentRegNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Reg No' />,
         cell: ({ row }) => <div>{row.getValue('studentRegNo')}</div>,

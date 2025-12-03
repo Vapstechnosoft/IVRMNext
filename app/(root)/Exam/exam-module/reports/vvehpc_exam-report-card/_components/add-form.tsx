@@ -143,9 +143,6 @@ export default function ProgressCardReportForm({
         })();
     }, [selectedYear, selectedClass, selectedSection, setValue]);
 
-    // Generate current date in ISO format
-    const getCurrentDateTime = () => new Date().toISOString();
-
     const onSubmit = async (data: FormFields) => {
         if (!hasStudentsSelected) {
             toast.error('Please select at least one student');
@@ -153,21 +150,16 @@ export default function ProgressCardReportForm({
         }
 
         const currentDateTime = new Date().toISOString();
-
-        // EXACT PAYLOAD REQUIRED BY BACKEND — NO EXTRA FIELDS
         const payload: any = {
-            mI_Id: 30, // or data.mI_Id if dynamic
+            mI_Id: 30,
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
-            amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','), // must be string
+            amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             fromDate: currentDateTime,
             toDate: currentDateTime
-            // DO NOT include: applicableFlag, nonApplicableFlag, page_size, etc.
         };
-        console.log('Sending payload:', payload); // Add this to verify!
-
         onSuccess?.(payload);
     };
     const handleAllStudents = (checked: boolean) => {

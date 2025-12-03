@@ -137,6 +137,29 @@ export default function UpdateMasterGroupForm({ onSuccess, selectedRow: row }: U
                             error={errors.fmG_GroupName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+                        {/* <InputText
+                            label='Fee Group'
+                            required
+                            id='fmG_GroupName'
+                            {...register('fmG_GroupName', {
+                                required: 'Fee Group is required'
+                            })}
+                            onKeyDown={(e) => {
+                                const allowed = /^[A-Za-z\s]$/;
+
+                                // Allow navigation keys
+                                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                    return;
+                                }
+
+                                // Block characters that are not letters/spaces
+                                if (!allowed.test(e.key)) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            error={errors.fmG_GroupName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        /> */}
                         <div className='group flex flex-col gap-1.5'>
                             <InputTextarea
                                 label='Remarks'

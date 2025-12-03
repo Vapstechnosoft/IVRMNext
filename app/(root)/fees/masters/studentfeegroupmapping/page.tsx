@@ -120,7 +120,7 @@ function MasterStudentFeeGroupMapping({
 function FormSections() {
     const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
         useFormContext<IMasterStudentFeeGroupMappingList>();
-    const { isOrderDetailsOpen } = useFormContext<IMasterStudentClassMappingList>();
+    const { isOrderDetailsOpen, closeOrderDetails } = useFormContext<IMasterStudentClassMappingList>();
     return (
         <>
             {/* Add Form */}
@@ -143,13 +143,13 @@ function FormSections() {
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
 
-                            <AddMasterStudentFeeGroupMapping />
+                            <AddMasterStudentFeeGroupMapping onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
-            {isOrderDetailsOpen && <MasterViewDetail />}
+            {isOrderDetailsOpen && <MasterViewDetail onSuccess={closeOrderDetails} />}
 
             {isDeleteFormOpen && selectedRow && (
                 <DeleteStudentFeeGroupMappingForm
@@ -163,8 +163,10 @@ function FormSections() {
         </>
     );
 }
-
-function MasterViewDetail() {
+interface MasterViewDetailProps {
+    onSuccess?: () => void;
+}
+function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
     const { isOrderDetailsOpen, closeOrderDetails, selectedRow } = useFormContext<any>();
 
     const [loading, setLoading] = useState(false);
@@ -183,7 +185,7 @@ function MasterViewDetail() {
             setLoading(true);
             try {
                 const groups = await getStudentFeeSummaryById(
-                    231,
+                    selectedRow.academicYearId,
                     // 16035
                     selectedRow.studentId
                 );
@@ -218,8 +220,8 @@ function MasterViewDetail() {
             });
 
             return {
-                // mI_Id: 30,
-                //  asmaY_Id: 231,
+                mI_Id: 30,
+                asmaY_Id: selectedRow.academicYearId,
                 amsT_Id: selectedRow.studentId,
                 // userId: 21602,
                 mappings
@@ -232,6 +234,7 @@ function MasterViewDetail() {
             if (response?.success) {
                 toast.success(response.message || 'Updated successfully');
                 // handleReset();
+                onSuccess?.();
             } else {
                 toast.error(response?.message || 'Update failed');
             }

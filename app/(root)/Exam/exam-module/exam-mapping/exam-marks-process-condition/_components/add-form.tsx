@@ -42,32 +42,15 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { isSubmitting } = formState;
 
-    // Academic years (from your existing hook)
-    const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
-    const [academicYears, setAcademicYears] = useState<IAcademicYearDropDown[]>([]);
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
 
     // categories and exams
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
-
-    // map academicData
-    useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Failed to load academic years');
-            setAcademicYears([]);
-            return;
-        }
-        if (!academicData?.data || !Array.isArray(academicData.data)) {
-            setAcademicYears([]);
-            return;
-        }
-        const formatted: IAcademicYearDropDown[] = academicData.data.map((it: any) => ({
-            asmaY_Id: Number(it.asmaY_Id),
-            asmaY_Year: it.asmaY_Year || '',
-            asmaY_Order: it.asmaY_Order ?? 0
-        }));
-        setAcademicYears(formatted);
-    }, [academicData, academicError]);
 
     // When academic year changes -> load categories
     const selectedYearId = useWatch({ control, name: 'asmaY_Id' });
@@ -172,11 +155,21 @@ export default function AddExamMarksProcessCondition({ onSuccess }: { onSuccess?
                                                 <SelectValue placeholder='--Select--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                                {academicYearLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading Academic Year...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYearError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading Academic Year
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYear?.data?.map((item) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

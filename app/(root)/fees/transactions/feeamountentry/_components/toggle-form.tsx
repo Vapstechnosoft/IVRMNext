@@ -54,7 +54,7 @@ export default function ToggleMasterAmountEntryForm({ rowData, onClose }: Toggle
     };
 
     return (
-        <AdaptiveDialog title='Delete Fee Group Grouping' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Delete Fee Amount Entry' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('fmA_Id')} defaultValue={rowData.fmA_Id} />

@@ -62,7 +62,7 @@ export async function getPreadmissionStudentTrasactionData(
     termgrpflag: string
 ): Promise<IFeePreAdmissionTransactionDetails[]> {
     // const url = '/FeePreadmission/feedashboard?pasR_Id=1625&Grp_Term_flg=T&filterinitialdata=Preadmission&terms_groups=61';
-    const url = `/FeePreadmission/feedashboard?pasR_Id=${studentId}&Grp_Term_flg=T&filterinitialdata=${admissionType}&${termIds.map((id) => `terms_groups=${id}`).join('')}`;
+    const url = `/FeePreadmission/feedashboard?pasR_Id=${studentId}&Grp_Term_flg=T&filterinitialdata=${admissionType}&${termIds.map((id) => `terms_groups=${id}`).join('&')}`;
 
     console.info('Constructed URL:', url);
     console.info('Requesting preadmission transaction details:', { baseUrlKey: 'fees', url });

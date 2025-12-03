@@ -175,7 +175,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                         <Label htmlFor='fmI_Name'>
                             Master Installment Name <span className='text-red-500'>*</span>
                         </Label>
-                        {/* <Controller
+                        <Controller
                             name='fmI_Name'
                             control={control}
                             render={({ field }) => (
@@ -187,8 +187,8 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                                     onChange={field.onChange}
                                 />
                             )}
-                        /> */}
-                        <Controller
+                        />
+                        {/* <Controller
                             name='fmI_Name'
                             control={control}
                             render={({ field }) => (
@@ -204,7 +204,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                                     }}
                                 />
                             )}
-                        />
+                        /> */}
 
                         {errors.fmI_Name && <FormError>{errors.fmI_Name.message}</FormError>}
                     </div>

@@ -48,7 +48,8 @@ export const thirdPartyTransactionSchema = {
             paymentMode: z.enum(['B', 'C', 'R', 'S']),
             bankId: z.number().optional(),
             chequeDate: z.string().optional(),
-            chequeNo: z.string().optional(),
+            // chequeNo: z.string().optional(),
+            chequeNo: z.string().min(13, 'Cheque Number is required').max(19, 'Cheque Number is too long'),
             bankName: z.string().optional()
         })
         .superRefine((data, ctx) => {
@@ -131,35 +132,51 @@ export const feeOpeningBalanceSchema = {
     })
 };
 
+// export const feeTransactionWaivedOffSchema = {
+//     addOrUpdate: z
+//         .object({
+//             mi_id: z.number().int().nonnegative(),
+
+//             academicYear: z.number().min(1, 'Academic year is required'),
+//             class: z.number().min(1, 'Class is required'),
+//             section: z.number().min(1, 'Section is required'),
+
+//              class: z.string().nullable().optional(),
+//              section: z.string().nullable().optional(),
+//             student: z.number().min(1, 'student is required'),
+
+//             feeHead: z.string().nullable().optional(),
+//             feeGroup: z.string().nullable().optional(),
+
+//             feeInstallments: z.array(z.string()).optional(),
+
+//             date: z
+//                 .string()
+//                 .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (yyyy-MM-dd)')
+//                 .optional(),
+
+//             refundableType: z.enum(['Refundable', 'NonRefundable']),
+//             activeType: z.enum(['FineWaiveOff', 'CompleteFineWaiveOff']),
+//             mremarks: z.string().nullable().optional(),
+//             nameFormat: z.enum(['NameReg.No', 'Reg.NoName'])
+//         })
+//         .passthrough(),
+//     delete: z.object({
+//         fmC_Id: deleteIdSchema('fmC_Id')
+//     })
+// };
+
 export const feeTransactionWaivedOffSchema = {
-    addOrUpdate: z
-        .object({
-            mi_id: z.number().int().nonnegative(),
+    addOrUpdate: z.object({
+        academicYear: z.number({ message: 'Academic year is required' }),
+        class: z.number({ message: 'Class is required.' }),
+        section: z.number({ message: 'Section is required.' }),
+        student: z.number({ message: 'Student Name is required.' }),
+        remarks: z.string().min(1, 'Remarks are required.'),
+        date: z.date({ required_error: 'Date is required' }),
+        uploadedPhotoPath: z.string().optional()
+    }),
 
-            academicYear: z.number().min(1, 'Academic year is required'),
-            class: z.number().min(1, 'Class is required'),
-            section: z.number().min(1, 'Section is required'),
-
-            // class: z.string().nullable().optional(),
-            // section: z.string().nullable().optional(),
-            student: z.string().nullable().optional(),
-
-            feeHead: z.string().nullable().optional(),
-            feeGroup: z.string().nullable().optional(),
-
-            feeInstallments: z.array(z.string()).optional(),
-
-            date: z
-                .string()
-                .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (yyyy-MM-dd)')
-                .optional(),
-
-            refundableType: z.enum(['Refundable', 'NonRefundable']),
-            activeType: z.enum(['FineWaiveOff', 'CompleteFineWaiveOff']),
-            mremarks: z.string().nullable().optional(),
-            nameFormat: z.enum(['NameReg.No', 'Reg.NoName'])
-        })
-        .passthrough(),
     delete: z.object({
         fmC_Id: deleteIdSchema('fmC_Id')
     })
@@ -204,6 +221,8 @@ export const feesStudentTransactionSchema = {
 
             // Payment mode (Single / Multiple)
             payModeType: z.enum(['Single', 'Multiple']),
+             date: z.date({ required_error: 'Date is required' }),
+            bankName: z.string().optional(),
 
             // Payment rows (at least one must be filled)
             paymentRows: z

@@ -41,7 +41,7 @@ import { getMasterTermsPeriod } from '@/server/fees/masters/fee_terms_period';
 import { getInstallmentDropDown, getfeeInstallmentDueDateList } from '@/server/fees/masters/feeinstallmentduedate';
 import { getMasterFeeYearlyRebateSettinFacade } from '@/server/fees/masters/feeyearlyrebatesettingfacade';
 import { getFineSlab } from '@/server/fees/masters/fineSlab';
-import { getFeeGroup, getFeeGroupGrouping } from '@/server/fees/masters/groupsgrouping';
+import { getFeeGroup, getFeeGroupGrouping, groupgroupingdropdowndata } from '@/server/fees/masters/groupsgrouping';
 import { getMasterGroup } from '@/server/fees/masters/master_group';
 import { getMasterConcessionDetails, getconcessioncategorydropdown } from '@/server/fees/masters/masterconcessiondetails';
 import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
@@ -54,14 +54,15 @@ import {
     getOnlinePaymentHeadGroupInstallment,
     getSubMerchantDropDownList
 } from '@/server/fees/masters/online_payment_head_group';
+import { getFeeSpecialHeadDropdown, getfeespeecialheadList } from '@/server/fees/masters/specialfeehead';
 import {
     getAdmClassCategorydropdown,
+    getFeeBusAreadropdown,
     getFeeBusRoutingdropdown,
     getFeeCasteCategorydropdown,
     getFeeClassCategorydropdown,
     getSectionropdown,
     getStudentClassMapping,
-    getStudentFeeGeoupHeadMapping,
     getStudentFeeGroupList,
     getStudentFeeGroupMapping,
     getStudentFeeGroupMappingAcademicYearDropdown,
@@ -69,7 +70,6 @@ import {
 } from '@/server/fees/masters/student_fee_group_mapping';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-
 export const useMasterFeehead = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -1029,18 +1029,35 @@ export const useStudentFeeGroupMapping = (searchParams?: ApiSearchparams) => {
     };
 };
 
-export const useFeeSyudentGroupHeadMapping = () => {
+// export const useFeeSyudentGroupHeadMapping = () => {
+//     const queryClient = useQueryClient();
+
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_HEAD_MAPPING],
+//             queryFn: async () => getStudentFeeGeoupHeadMapping(),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_HEAD_MAPPING]
+//             });
+//         }
+//     };
+// };
+
+export const useStudentFeeGroupList = (academicYear: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_HEAD_MAPPING],
-            queryFn: async () => getStudentFeeGeoupHeadMapping(),
+            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_HEAD],
+            queryFn: async () => getStudentFeeGroupList(academicYear),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_HEAD_MAPPING]
+                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_HEAD]
             });
         }
     };
@@ -1063,14 +1080,15 @@ export const useMasterStudentFeeGrouMappingAcademic = () => {
     };
 };
 
-export const useStudentFeeGroupAdmiClassCategoryDropDown = () => {
+export const useStudentFeeGroupAdmiClassCategoryDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_ADM_CLASS_CATEGORY],
             queryFn: async () => getAdmClassCategorydropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1079,15 +1097,15 @@ export const useStudentFeeGroupAdmiClassCategoryDropDown = () => {
         }
     };
 };
-
-export const useStudentFeeGroupFeeClassCategoryDropDown = () => {
+export const useStudentFeeGroupFeeClassCategoryDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_FEECLASS_CATEGORY_DROPDOWN],
             queryFn: async () => getFeeClassCategorydropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1097,14 +1115,15 @@ export const useStudentFeeGroupFeeClassCategoryDropDown = () => {
     };
 };
 
-export const useStudentFeeBusRoutingDropDown = () => {
+export const useStudentFeeBusRoutingDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_BUS_ROUTING_DROPDOWN],
             queryFn: async () => getFeeBusRoutingdropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1114,14 +1133,15 @@ export const useStudentFeeBusRoutingDropDown = () => {
     };
 };
 
-export const useStudentFeeCasteRoutingDropDown = () => {
+export const useStudentFeeCasteRoutingDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_CASTE_CATEGORY_DROPDOWN],
             queryFn: async () => getFeeCasteCategorydropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1131,13 +1151,20 @@ export const useStudentFeeCasteRoutingDropDown = () => {
     };
 };
 
-export const useStudentClassMapping = (academicyear: number, searchParams?: ApiSearchparams) => {
+export const useStudentClassMapping = (
+    academicyear: number,
+    classId: number,
+    sectionId: number,
+    admCategoryId: number,
+    radioFilter: string,
+    searchParams?: ApiSearchparams
+) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.STUDENT_CLASS_MAPPING, searchParams ?? {}],
-            queryFn: async () => getStudentClassMapping(academicyear, searchParams),
+            queryFn: async () => getStudentClassMapping(academicyear, classId, sectionId, admCategoryId, radioFilter, searchParams),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -1148,14 +1175,15 @@ export const useStudentClassMapping = (academicyear: number, searchParams?: ApiS
     };
 };
 
-export const useStudentClassDropDown = () => {
+export const useStudentClassDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_CLASS_DROP_DOWN],
             queryFn: async () => getclassdropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1164,15 +1192,15 @@ export const useStudentClassDropDown = () => {
         }
     };
 };
-
-export const useStudentSectionDropDown = () => {
+export const useStudentSectionDropDown = (enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_SECTION_DROP_DOWN],
             queryFn: async () => getSectionropdown(),
-            staleTime: 0
+            staleTime: 0,
+            enabled
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1182,22 +1210,22 @@ export const useStudentSectionDropDown = () => {
     };
 };
 
-export const useStudentFeeGroupList = () => {
-    const queryClient = useQueryClient();
+// export const useStudentFeeGroupList = () => {
+//     const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_HEAD],
-            queryFn: async () => getStudentFeeGroupList(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_HEAD]
-            });
-        }
-    };
-};
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_HEAD],
+//             queryFn: async () => getStudentFeeGroupList(),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_HEAD]
+//             });
+//         }
+//     };
+// };
 
 export const useFeeOtherStudent = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -1211,6 +1239,75 @@ export const useFeeOtherStudent = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_OTHER_STUDENT]
+            });
+        }
+    };
+};
+
+export const useSpecialFeeHead = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_SPECIAL_FEE_HEAD, searchParams ?? {}],
+            queryFn: async () => getfeespeecialheadList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_SPECIAL_FEE_HEAD]
+            });
+        }
+    };
+};
+
+export const feeSpecialHeadDROPDOWN = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_SPECIAL_FEE_HEAD_DROPDOWN],
+            queryFn: async () => getFeeSpecialHeadDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_SPECIAL_FEE_HEAD_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useGroupGroupingGroupDropdowndta = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_GROUPGROUPING_GROUPDROPDOWN],
+            queryFn: async () => groupgroupingdropdowndata(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_GROUPGROUPING_GROUPDROPDOWN]
+            });
+        }
+    };
+};
+
+export const useStudentFeeBusAreaDropDown = (enabled = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN],
+            queryFn: async () => getFeeBusAreadropdown(),
+            staleTime: 0,
+            enabled
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN]
             });
         }
     };

@@ -11,16 +11,17 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-t
 import {
     useMasterStudentFeeGrouMappingAcademic,
     useStudentClassDropDown,
+    useStudentFeeBusAreaDropDown,
     useStudentFeeBusRoutingDropDown,
     useStudentFeeCasteRoutingDropDown,
     useStudentFeeGroupAdmiClassCategoryDropDown,
     useStudentFeeGroupFeeClassCategoryDropDown,
-    useStudentFeeGroupList,
     useStudentSectionDropDown
 } from '@/hooks/fees/useMasters';
 import { masterStudentFeeGroupMappingSchema } from '@/schemas/fees/masters';
 import {
     getStudentClassMapping,
+    getStudentFeeGroupList,
     getStudentFeeHeadList,
     getStudentFeeInstallmentList,
     getStudentFeeSave
@@ -41,14 +42,16 @@ import type { z } from 'zod';
 import { masterFeeStudentClassMapping } from './student-list-columns';
 
 type FormFields = z.infer<typeof masterStudentFeeGroupMappingSchema.addOrUpdate>;
-
-export default function StudentFeeGroupMappingFilter() {
+interface AddStudentFeeGroupMappingFilter {
+    onSuccess?: () => void;
+}
+export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFilter) {
     const [filterType, setFilterType] = useState<string>('alldata');
     const [classWise, setClassWise] = useState(false);
     const [areaWise, setAreaWise] = useState(false);
     const [academicYear, setAcademicYear] = useState(0);
     const [feeClassCategory, setFeeClassCategory] = useState<string>('');
-    const [classCategory, setAdmClassCategory] = useState<string>('');
+    const [admClassCategory, setAdmClassCategory] = useState<string>('');
     const [feeBusRouting, setFeeBusRouting] = useState<string>('');
     const [feeCasteCategory, setFeeCasteCategory] = useState<string>('');
     const [studentClass, setStudentClass] = useState<string>('');
@@ -60,6 +63,9 @@ export default function StudentFeeGroupMappingFilter() {
     const [masterStudentClassMapping, setMasterStudentClassMapping] = useState<any[]>([]);
     const [masterStudentClassMappingLoading, setMasterStudentClassMappingLoading] = useState(false);
     const [masterStudentClassMappingError, setMasterStudentClassMappingError] = useState<any>(null);
+    const [masterFeeStudentGroupList, setMasterFeeStudentGroupList] = useState<any[]>([]);
+    const [masterFeeStudentGroupListLoading, setMasterFeeStudentGroupListLoading] = useState(false);
+    const [masterFeeStudentGroupListError, setMasterFeeStudentGroupListError] = useState<any>(null);
 
     // tableProps stored in state
     const [tableProps, setTableProps] = useState<any>(null);
@@ -70,10 +76,12 @@ export default function StudentFeeGroupMappingFilter() {
     const [heads, setHeads] = useState<Record<number, IMasterFeeHeadList[]>>({});
     const [installment, setInstallment] = useState<Record<number, Record<number, IMasterFeeInstallmentList[]>>>({});
     const [selectedStudents, setSelectedStudents] = useState<IMasterStudentClassMappingList[]>([]);
+
     const {
         control,
         handleSubmit,
         reset,
+        setValue,
         watch,
         getValues,
         formState: { errors, isSubmitting }
@@ -81,61 +89,66 @@ export default function StudentFeeGroupMappingFilter() {
         resolver: zodResolver(masterStudentFeeGroupMappingSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            asmaY_Id: 231
+            //  asmaY_Id:academicYear,
+            asmaY_Id: 231,
+            mI_Id: '30',
+            institutionName: 'vidya_vikas_vidya_samste'
         }
     });
+
+    //-------------Academic Year---------------
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
 
-    const {
-        data: masterfeeClassCategory,
-        isLoading: masterfeeClassCategoryLoading,
-        error: masterfeeClassCategoryError
-    } = useStudentFeeGroupFeeClassCategoryDropDown();
-
-    const {
-        data: masterAdmissionClassCategory,
-        isLoading: masterAdmissionClassLoading,
-        error: masterAdmissionClassError
-    } = useStudentFeeGroupAdmiClassCategoryDropDown();
-
-    const {
-        data: masterFeeBusRouting,
-        isLoading: masterFeeBusRoutingLoading,
-        error: masterFeeBusRoutingError
-    } = useStudentFeeBusRoutingDropDown();
-
-    const {
-        data: masterFeeCasteCategory,
-        isLoading: masterFeeCasteCategoryLoading,
-        error: masterFeeCasteCategoryError
-    } = useStudentFeeCasteRoutingDropDown();
-
-    const {
-        data: masterStudentFeeclassData,
-        isLoading: masterStudentFeeclassDataLoading,
-        error: masterStudentFeeclassDataError
-    } = useStudentClassDropDown();
-
-    const {
-        data: masterStudentFeeSectionData,
-        isLoading: masterStudentFeeSectionDataLoading,
-        error: masterStudentFeeSectionDataError
-    } = useStudentSectionDropDown();
+    useEffect(() => {
+        if (academicYearData) {
+            if (academicYearData?.data && Array.isArray(academicYearData.data)) {
+                const firstId = academicYearData.data[0].asmaY_Id;
+                setValue('asmaY_Id', firstId);
+                setAcademicYear(firstId);
+            }
+        }
+    }, [academicYearData, reset]);
 
     const asmaY_Id = watch('asmaY_Id');
-    useEffect(() => {
-        fetchStudentClassMapping();
-    }, [academicYear, apisearchParams_]);
+    const classId = watch('class');
+    const sectionId = watch('section');
+    const areaId = watch('area');
+    const admCategoryId =
+        filterType === 'FCC'
+            ? watch('feeClassCategory')
+            : filterType === 'AC'
+              ? watch('classCategory')
+              : filterType === 'BR'
+                ? watch('busRouting')
+                : filterType === 'CCAT'
+                  ? watch('casteCategory')
+                  : 0;
 
+    const toSafeNumber = (val: string | number | null | undefined) => {
+        const num = Number(val);
+        return Number.isNaN(num) ? 0 : num;
+    };
+
+    //------------Student Group Details----------------
     const fetchStudentClassMapping = async () => {
+        if (!asmaY_Id) return;
+
         try {
             setMasterStudentClassMappingLoading(true);
             setMasterStudentClassMappingError(null);
 
-            const res = await getStudentClassMapping(asmaY_Id, apisearchParams_);
+            const res = await getStudentClassMapping(
+                asmaY_Id,
+                toSafeNumber(classId),
+                toSafeNumber(sectionId),
+                toSafeNumber(admCategoryId),
+                filterType,
+                apisearchParams_
+            );
+
             const saferes = Array.isArray(res) ? res : [];
             setMasterStudentClassMapping(saferes);
-            setTableProps(useDataTableProps(res || []));
+            setTableProps(useDataTableProps(res ?? []));
         } catch (error) {
             console.error('Error fetching student class mapping', error);
             setMasterStudentClassMappingError(error);
@@ -143,6 +156,78 @@ export default function StudentFeeGroupMappingFilter() {
             setMasterStudentClassMappingLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchStudentClassMapping();
+    }, [asmaY_Id, classId, sectionId, admCategoryId, areaId, filterType, apisearchParams_]);
+
+    useEffect(() => {
+        fetchStudentClassMapping();
+    }, [academicYear, classId, sectionId, admCategoryId, areaId, filterType, apisearchParams_]);
+
+    //--------------------Student Group List----------------------
+    const loadStudentFeeGroupList = async () => {
+        if (!asmaY_Id) return;
+        try {
+            setMasterFeeStudentGroupListLoading(true);
+            setMasterFeeStudentGroupListError(null);
+
+            const res = await getStudentFeeGroupList(asmaY_Id);
+            setMasterFeeStudentGroupList(res.data ?? []);
+        } catch (error) {
+            console.error('Error fetching student class mapping', error);
+            setMasterFeeStudentGroupListError(error);
+        } finally {
+            setMasterFeeStudentGroupListLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadStudentFeeGroupList();
+    }, [academicYear]);
+
+    const {
+        data: masterfeeClassCategory,
+        isLoading: masterfeeClassCategoryLoading,
+        error: masterfeeClassCategoryError
+    } = useStudentFeeGroupFeeClassCategoryDropDown(filterType === 'FCC');
+
+    const {
+        data: masterAdmissionClassCategory,
+        isLoading: masterAdmissionClassLoading,
+        error: masterAdmissionClassError
+    } = useStudentFeeGroupAdmiClassCategoryDropDown(filterType === 'AC');
+
+    const {
+        data: masterFeeBusRouting,
+        isLoading: masterFeeBusRoutingLoading,
+        error: masterFeeBusRoutingError
+    } = useStudentFeeBusRoutingDropDown(filterType === 'BR');
+
+    const {
+        data: masterFeeCasteCategory,
+        isLoading: masterFeeCasteCategoryLoading,
+        error: masterFeeCasteCategoryError
+    } = useStudentFeeCasteRoutingDropDown(filterType === 'CCAT');
+
+    const {
+        data: masterFeeBusAreaData,
+        isLoading: masterFeeBusAreaDataLoading,
+        error: masterFeeBusAreaDataError
+    } = useStudentFeeBusAreaDropDown(areaWise);
+
+    const {
+        data: masterStudentFeeclassData,
+        isLoading: masterStudentFeeclassDataLoading,
+        error: masterStudentFeeclassDataError
+    } = useStudentClassDropDown(classWise);
+
+    const {
+        data: masterStudentFeeSectionData,
+        isLoading: masterStudentFeeSectionDataLoading,
+        error: masterStudentFeeSectionDataError
+    } = useStudentSectionDropDown(classWise);
+
     const handleApiParmasChange = (apiparmas: ApiSearchparams) => {
         setApisearchParams_((prev) => {
             if (JSON.stringify(prev) === JSON.stringify(apiparmas)) return prev;
@@ -151,22 +236,9 @@ export default function StudentFeeGroupMappingFilter() {
     };
 
     useEffect(() => {
-        // console.log(masterStudentClassMapping);
-    }, [masterStudentClassMapping]);
-
-    const {
-        data: masterFeeStudentGroupList,
-        isLoading: masterFeeStudentGroupListLoading,
-        error: masterFeeStudentGroupListError
-    } = useStudentFeeGroupList();
-
-    useEffect(() => {
-        console.log(masterFeeStudentGroupList);
-    }, [masterFeeStudentGroupList]);
-
-    useEffect(() => {
         setClassWise(false);
         setAreaWise(false);
+        reset();
     }, [filterType]);
 
     const handleFilterChange = (value: string) => {
@@ -180,9 +252,12 @@ export default function StudentFeeGroupMappingFilter() {
 
     const toggleGroup = async (id: number) => {
         if (!heads[id]) {
-            const { data: response } = await getStudentFeeHeadList({
-                groupIds: [id]
-            });
+            const { data: response } = await getStudentFeeHeadList(
+                {
+                    groupIds: [id]
+                },
+                asmaY_Id
+            );
             setHeads((prev) => ({ ...prev, [id]: response ?? [] }));
         }
         setCollapsedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -193,10 +268,13 @@ export default function StudentFeeGroupMappingFilter() {
             setInstallment((prev) => ({ ...prev, [groupId]: {} }));
         }
         if (!installment[groupId]?.[headId]) {
-            const { data: response } = await getStudentFeeInstallmentList({
-                groupIds: [groupId],
-                headIds: [headId]
-            });
+            const { data: response } = await getStudentFeeInstallmentList(
+                {
+                    groupIds: [groupId],
+                    headIds: [headId]
+                },
+                asmaY_Id
+            );
             setInstallment((prev) => ({
                 ...prev,
                 [groupId]: {
@@ -219,15 +297,13 @@ export default function StudentFeeGroupMappingFilter() {
         const groupId = grp.fmG_Id;
         if (!groupId) return;
 
-        // Load heads
         let groupHeads = heads[groupId];
         if (!groupHeads) {
-            const { data } = await getStudentFeeHeadList({ groupIds: [groupId] });
+            const { data } = await getStudentFeeHeadList({ groupIds: [groupId] }, asmaY_Id);
             groupHeads = data || [];
             setHeads((prev) => ({ ...prev, [groupId]: groupHeads }));
         }
 
-        // Load all installments
         const updatedInstallments: Record<number, any[]> = {};
         const allInstKeys: string[] = [];
         const allHeadKeys: string[] = [];
@@ -238,10 +314,13 @@ export default function StudentFeeGroupMappingFilter() {
 
             let instList = installment[groupId]?.[headId];
             if (!instList) {
-                const { data } = await getStudentFeeInstallmentList({
-                    groupIds: [groupId],
-                    headIds: [headId]
-                });
+                const { data } = await getStudentFeeInstallmentList(
+                    {
+                        groupIds: [groupId],
+                        headIds: [headId]
+                    },
+                    asmaY_Id
+                );
                 instList = data || [];
             }
             updatedInstallments[headId] = instList;
@@ -256,7 +335,6 @@ export default function StudentFeeGroupMappingFilter() {
             [groupId]: { ...(prev[groupId] || {}), ...updatedInstallments }
         }));
 
-        // Update selection
         if (checked) {
             setSelectedGroups((p) => [...new Set([...p, groupId])]);
             setSelectedHeads((p) => [...new Set([...p, ...allHeadKeys])]);
@@ -273,10 +351,13 @@ export default function StudentFeeGroupMappingFilter() {
 
         let instList = installment[groupId]?.[headId];
         if (!instList) {
-            const { data } = await getStudentFeeInstallmentList({
-                groupIds: [groupId],
-                headIds: [headId]
-            });
+            const { data } = await getStudentFeeInstallmentList(
+                {
+                    groupIds: [groupId],
+                    headIds: [headId]
+                },
+                asmaY_Id
+            );
             instList = data || [];
             setInstallment((prev) => ({
                 ...prev,
@@ -291,10 +372,7 @@ export default function StudentFeeGroupMappingFilter() {
                 ? [...new Set([...prev, ...instKeys])]
                 : prev.filter((k) => !instKeys.some((key) => prev.includes(key)));
 
-            // Update head
             setSelectedHeads((p) => (checked ? [...new Set([...p, headKey])] : p.filter((k) => k !== headKey)));
-
-            // Update group - check if ANY installment in group is selected
             const hasAnyInGroup = Object.values(installment[groupId] || {})
                 .flat()
                 .some((i) => newSelected.includes(makeInstKey(groupId, i.fmH_Id, i.ftI_Id)));
@@ -335,6 +413,7 @@ export default function StudentFeeGroupMappingFilter() {
     const handleSelectStudent = (selectedRows: IMasterStudentClassMappingList[]) => {
         setSelectedStudents(selectedRows);
     };
+    //-------------Submit-------------------------------
     const onSubmit = async () => {
         if (selectedStudents.length < 1) {
             toast.error('Please select at least one student!!');
@@ -346,7 +425,6 @@ export default function StudentFeeGroupMappingFilter() {
             return;
         }
 
-        // BUILD THE PAYLOAD OBJECT (not a function!)
         const buildPayload = () => {
             const feeGroupsMap = new Map<number, Map<number, number[]>>();
 
@@ -370,34 +448,30 @@ export default function StudentFeeGroupMappingFilter() {
                 fmG_Id,
                 feeHeads: Array.from(headsMap.entries()).map(([fmH_Id, ftI_Ids]) => ({
                     fmH_Id,
-                    ftI_Ids: [...new Set(ftI_Ids)] // remove duplicates
+                    ftI_Ids: [...new Set(ftI_Ids)]
                 }))
             }));
 
             const studentMappings = selectedStudents.map((student: any) => ({
-                amsT_Id: student.studentId || student.amsT_Id, // adjust key as needed
+                amsT_Id: student.studentId || student.amsT_Id,
                 feeGroups: commonFeeGroups
             }));
 
             return {
-                mI_Id: Number(getValues('mI_Id')) || 30,
-                asmaY_Id: academicYear,
-                userId: 1001,
+                mI_Id: Number(getValues('mI_Id')),
+                asmaY_Id: asmaY_Id,
+                // userId: 1001,
                 studentMappings
             };
         };
-
-        // CALL THE FUNCTION TO GET THE ACTUAL OBJECT
         const payload = buildPayload();
-
-        console.log('Final Payload →', JSON.stringify(payload, null, 2));
-
         try {
-            const res = await getStudentFeeSave(payload); // ← Now it's an object!
+            const res = await getStudentFeeSave(payload);
 
             if (res?.success) {
                 toast.success(res.message || 'Saved successfully');
                 handleReset();
+                onSuccess?.();
             } else {
                 toast.error(res?.message || 'Save failed');
             }
@@ -420,6 +494,10 @@ export default function StudentFeeGroupMappingFilter() {
         setStudentClass('');
         setSection('');
         setArea('');
+        setSelectedGroups([]);
+        setSelectedHeads([]);
+        setSelectedInstallments([]);
+        setSelectedStudents([]);
     };
 
     return (
@@ -521,10 +599,10 @@ export default function StudentFeeGroupMappingFilter() {
                     </div>
                     {filterType === 'FCC' && (
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='classCategory'>Fee Class Category</Label>
+                            <Label htmlFor='feeClassCategory'>Fee Class Category</Label>
 
                             <Controller
-                                name='classCategory'
+                                name='feeClassCategory'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
@@ -548,8 +626,8 @@ export default function StudentFeeGroupMappingFilter() {
                                                 </SelectItem>
                                             ) : (
                                                 masterfeeClassCategory?.data?.map((item: any) => (
-                                                    <SelectItem key={item.amC_Id} value={item.amC_Id.toString()}>
-                                                        {item.categoryName}
+                                                    <SelectItem key={item.fmcC_Id} value={item.fmcC_Id.toString()}>
+                                                        {item.fmcC_ClassCategoryName}
                                                     </SelectItem>
                                                 ))
                                             )}
@@ -558,7 +636,7 @@ export default function StudentFeeGroupMappingFilter() {
                                 )}
                             />
 
-                            {errors.classCategory && <FormError>{errors.classCategory.message}</FormError>}
+                            {errors.feeClassCategory && <FormError>{errors.feeClassCategory.message}</FormError>}
                         </div>
                     )}
                     {filterType === 'AC' && (
@@ -575,7 +653,8 @@ export default function StudentFeeGroupMappingFilter() {
                                             setAdmClassCategory(v);
                                         }}
                                         value={field.value}
-                                        disabled={!academicYear}>
+                                        // disabled={!academicYear}
+                                    >
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select classCategory' />
                                         </SelectTrigger>
@@ -617,7 +696,8 @@ export default function StudentFeeGroupMappingFilter() {
                                             setFeeBusRouting(v);
                                         }}
                                         value={field.value}
-                                        disabled={!academicYear}>
+                                        // disabled={!academicYear}
+                                    >
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Route' />
                                         </SelectTrigger>
@@ -697,10 +777,11 @@ export default function StudentFeeGroupMappingFilter() {
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(v) => {
-                                            field.onChange(v);
+                                            const selectedClass = Number(v);
+                                            field.onChange(selectedClass);
                                             setStudentClass(v);
                                         }}
-                                        value={field.value}>
+                                        value={field.value?.toString() ?? ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
@@ -739,10 +820,11 @@ export default function StudentFeeGroupMappingFilter() {
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(v) => {
-                                            field.onChange(v);
+                                            const selectedsection = Number(v);
+                                            field.onChange(selectedsection);
                                             setSection(v);
                                         }}
-                                        value={field.value}>
+                                        value={field.value?.toString() ?? ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
@@ -790,18 +872,18 @@ export default function StudentFeeGroupMappingFilter() {
                                         </SelectTrigger>
 
                                         <SelectContent>
-                                            {masterfeeClassCategoryLoading ? (
+                                            {masterFeeBusAreaDataError ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading...
                                                 </SelectItem>
-                                            ) : masterfeeClassCategoryError ? (
+                                            ) : masterFeeBusAreaDataLoading ? (
                                                 <SelectItem value='error' disabled>
                                                     Error
                                                 </SelectItem>
                                             ) : (
-                                                masterfeeClassCategory?.data?.map((item: any) => (
-                                                    <SelectItem key={item.amC_Id} value={item.amC_Id.toString()}>
-                                                        {item.categoryName}
+                                                masterFeeBusAreaData?.data?.map((item: any) => (
+                                                    <SelectItem key={item.trmA_Id} value={item.trmA_Id.toString()}>
+                                                        {item.trmA_AreaName}
                                                     </SelectItem>
                                                 ))
                                             )}
@@ -832,7 +914,7 @@ export default function StudentFeeGroupMappingFilter() {
                             noDataDescription='Get started by creating your first Student Class Mapping'
                             errorTitle='Error Student Class Mapping'
                             onSearchQueryChange={handleApiParmasChange}
-                            showSearch={true}
+                            showSearch={false}
                             searchQuery=''
                             showPagination={true}
                             currentApiParams={apisearchParams_}
@@ -865,8 +947,12 @@ export default function StudentFeeGroupMappingFilter() {
                                     <li className='py-8 text-center'>
                                         <p className='font-medium text-red-600'>Failed to load Student Groups</p>
                                     </li>
+                                ) : masterFeeStudentGroupList.length === 0 ? (
+                                    <li className='py-6 text-center text-sm'>
+                                        <p className='font-medium text-red-600'>No results found.</p>
+                                    </li>
                                 ) : (
-                                    masterFeeStudentGroupList?.data?.map((grp) => {
+                                    masterFeeStudentGroupList?.map((grp) => {
                                         const groupId = grp.fmG_Id;
 
                                         return (

@@ -57,36 +57,22 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
     const { control, handleSubmit, reset, setValue, trigger, formState } = methods;
     const { isSubmitting } = formState;
     const { refetchAll } = useExamSubjectGroupMapping();
-
-    const [academicYears, setAcademicYears] = useState<IAcademicYearDropDown[]>([]);
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [subjects, setSubjects] = useState<IESubject[]>([]);
     const [detail, setDetail] = useState<IExamSubjectGroupingDetails | null>(null);
 
-    const { data: academicData, error: academicError } = useAcademicYearDropdown();
+    const {
+        data: academicYear,
+        isLoading: academicYearLoading,
+        error: academicYearError,
+    } = useAcademicYearDropdown();
 
     const esG_ExamPromotionFlag = useWatch({ control, name: 'esG_ExamPromotionFlag' });
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const emcA_Id = useWatch({ control, name: 'emcA_Id' });
     const emE_Id = useWatch({ control, name: 'emE_Id' });
 
-    // Step 1: Load Academic Years
-    useEffect(() => {
-        if (academicError) {
-            toast.error(academicError.message || 'Error fetching academic years');
-            setAcademicYears([]);
-        } else if (academicData?.data && Array.isArray(academicData.data)) {
-            const formattedYears: IAcademicYearDropDown[] = academicData.data.map((item: any) => ({
-                asmaY_Id: item.asmaY_Id?.toString() ?? '',
-                asmaY_Year: item.asmaY_Year ?? '',
-                asmaY_Order: item.asmaY_Order ?? 0
-            }));
-            setAcademicYears(formattedYears);
-        } else {
-            setAcademicYears([]);
-        }
-    }, [academicData, academicError]);
 
     // Step 2: Load Mapping Details + Pre-fill
     useEffect(() => {
@@ -254,11 +240,21 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                                         <SelectValue placeholder='Select Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
-                                                                {y.asmaY_Year}
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Academic Year...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : academicYearError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading Academic Year
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYear?.data?.map((item) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -415,11 +411,21 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                                         <SelectValue placeholder='Select Year' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {academicYears.map((y) => (
-                                                            <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
-                                                                {y.asmaY_Year}
+                                                        {academicYearLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading Academic Year...
                                                             </SelectItem>
-                                                        ))}
+                                                        ) : academicYearError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading Academic Year
+                                                            </SelectItem>
+                                                        ) : (
+                                                            academicYear?.data?.map((item) => (
+                                                                <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                    {item.asmaY_Year}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
                                                     </SelectContent>
                                                 </Select>
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

@@ -23,13 +23,14 @@ export async function addOrUpdateConcessionCategoryGroupHeadMapping(data: any) {
     return await api.post<any>('fees', url, data);
 }
 
-export async function toggleConcessionCategoryGroupHeadMapping(mi_id: number, fmaccG_Id: number, fmccid: number) {
-    const url = `/FeeMasterConcession/ToggleFeeMasterCategoryGroupHeadMapping/${fmaccG_Id}?FMCC_Id=${fmccid}&mi_Id=30`;
+export async function toggleConcessionCategoryGroupHeadMapping(fmaccG_Id: number) {
+    const url = `/FeeMasterConcession/ToggleFeeMasterCategoryGroupHeadMapping/${fmaccG_Id}`;
     return await api.put('fees', url);
 }
 
 export async function getconcessioncategorydropdown() {
-    const url = 'FeeConcessionFacade/getfeeconcessioncategories/30';
+    //const url = 'FeeConcessionFacade/getfeeconcessioncategories/30';
+    const url = 'FeeMasterConcession/concession_dropdown_list';
     return await api.get<IConcessionCategoryDropdownList[]>('fees', url);
 }
 
@@ -45,6 +46,9 @@ export async function getcategoryheadsdropdown(groupId: number) {
 }
 
 export async function getcategorydropdowndropdown() {
-    const url = '/FeeMasterConcession/groupheadmapping_category_dropdown_list';
+    // const url = '/FeeMasterConcession/groupheadmapping_category_dropdown_list';
+
+    const url = '/FeeMasterConcession/concession_dropdown_list';
+
     return await api.get<IConcessionCategoryDropdownList[]>('fees', url);
 }

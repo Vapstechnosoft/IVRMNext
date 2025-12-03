@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createStringSchema, deleteIdSchema } from '../validationSchemas';
+import { createOptionalStringSchema, createStringOnlySchema, createStringSchema, deleteIdSchema } from '../validationSchemas';
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),
     password: createStringSchema('Password', 6, 50)
@@ -139,8 +139,8 @@ export const masterClassCategorySchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().optional(),
 
-        fmcC_ClassCategoryName: createStringSchema('Class Category Name', 1, 100),
-        fmcC_ClassCategoryCode: createStringSchema('Class Category Code', 1, 20),
+        fmcC_ClassCategoryName: createStringOnlySchema('Class Category Name', 3, 100),
+        fmcC_ClassCategoryCode: createStringOnlySchema('Class Category Code', 3, 20),
 
         mI_Id: z.number().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
@@ -198,8 +198,10 @@ export const masterClassYearlyCategorySchema = {
 
 export const masterGroupsGroupingSchema = {
     addOrUpdate: z.object({
-        fmgG_GroupName: z.string().min(1, { message: 'Group Name is required' }),
-        fmgG_GroupCode: z.string().min(1, { message: 'Group Code is required' }),
+        //fmgG_GroupName: z.string().min(1, { message: 'Group Name is required' }),
+        fmgG_GroupName: createStringOnlySchema('Group Name', 1, 60),
+        fmgG_GroupCode: createStringOnlySchema('Group Code', 1, 60),
+        //fmgG_GroupCode: z.string().min(1, { message: 'Group Code is required' }),
         selectedFeeGroupIds: z.array(z.number()).min(1, { message: 'Please select at least one fee group' })
     }),
     delete: z.object({
@@ -208,7 +210,7 @@ export const masterGroupsGroupingSchema = {
 };
 export const masterInstallmentSchema = {
     addOrUpdate: z.object({
-        fmI_Name: createStringSchema('Master Installment Name', 1, 100),
+        fmI_Name: createStringOnlySchema('Master Installment Name', 1, 100),
         fmI_Installment_Type: createStringSchema('Installment Type', 1, 30),
         fmI_No_Of_Installments: z.number().optional(),
         installments: z
@@ -228,7 +230,9 @@ export const masterInstallmentSchema = {
 export const masterGroupSchema = {
     addOrUpdate: z.object({
         fmG_Id: z.number().int().optional(),
-        fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
+        //fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
+        //fmG_GroupName: z.string().min(1, { message: 'Fee Group is required' }).max(200),
+        fmG_GroupName: createStringOnlySchema('Fee Group', 3, 200),
         fmG_Remarks: z.string().min(1, { message: 'Remarks is required' }).max(500),
         transportHostelType: z.preprocess((val) => {
             if (typeof val === 'string' && val.trim() === '') return undefined;
@@ -700,11 +704,12 @@ export const masterStudentFeeGroupMappingSchema = {
         mI_Id: z.string().min(1, { message: 'Institution is required' }),
         institutionName: z.string().min(1, { message: 'Institution Name is required' }),
         asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        feeClassCategory: z.string().optional(),
         classCategory: z.string().optional(),
         busRouting: z.string().optional(),
         casteCategory: z.string().optional(),
-        class: z.string().optional(),
-        section: z.string().optional(),
+        class: z.number().optional(),
+        section: z.number().optional(),
         area: z.string().optional()
     }),
     delete: z.object({
@@ -722,5 +727,15 @@ export const masterFeeOtherStudentSchema = {
     }),
     delete: z.object({
         fopM_Id: deleteIdSchema('fopM_Id')
+    })
+};
+
+export const specialFeeHeadSchema = {
+    addOrUpdate: z.object({
+        heads: z.array(z.string()).nonempty('Please select at least one Head'),
+        fmsfH_Name: z.string().min(1, { message: 'Special Fee Head Name is required' })
+    }),
+    delete: z.object({
+        fmsfhfH_Id: deleteIdSchema('fmsfhfH_Id')
     })
 };

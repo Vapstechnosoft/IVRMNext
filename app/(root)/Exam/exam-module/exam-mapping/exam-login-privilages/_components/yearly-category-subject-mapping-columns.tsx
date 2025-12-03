@@ -1,13 +1,16 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IYearlyCategorySubjectMappingViewDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useCallback } from 'react';
 
 export const YearlyCategorySubjectMappingViewDetailsColumns: ColumnDef<IYearlyCategorySubjectMappingViewDetails>[] = [
     {
         accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL No' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
@@ -17,17 +20,51 @@ export const YearlyCategorySubjectMappingViewDetailsColumns: ColumnDef<IYearlyCa
         enableHiding: true
     },
     {
-        accessorKey: 'ismS_SubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
-        cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>,
-        enableHiding: false,
+        accessorKey: 'className',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        cell: ({ row }) => <div>{row.getValue('className')}</div>,
         enableSorting: true
     },
     {
-        accessorKey: 'ismS_SubjectCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Code' />,
-        cell: ({ row }) => <div>{row.getValue('ismS_SubjectCode')}</div>,
-        enableHiding: false,
+        accessorKey: 'sectionName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
+        cell: ({ row }) => <div>{row.getValue('sectionName')}</div>,
         enableSorting: true
+    },
+    {
+        accessorKey: 'subjectName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
+        cell: ({ row }) => <div>{row.getValue('subjectName')}</div>,
+        enableSorting: true
+    },
+    {
+        accessorKey: 'subSubjectName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SubSubject Name' />,
+        cell: ({ row }) => <div>{row.getValue('subSubjectName')}</div>,
+        enableSorting: true
+    },
+    {
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
+        accessorFn: (row) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: IYearlyCategorySubjectMappingViewDetails }) {
+    const { openToggleForm } = useFormContext<IYearlyCategorySubjectMappingViewDetails>();
+
+    const handleToggle = useCallback(() => openToggleForm(rowData), [openToggleForm, rowData]);
+
+    return (
+        <div className='flex justify-center gap-2'>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: false, delete: false, toggle: true }}
+                toggleConditionKey='isActive' // replace with your actual boolean field
+                onToggle={handleToggle}
+            />
+        </div>
+    );
+}

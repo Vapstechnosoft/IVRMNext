@@ -20,6 +20,10 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterClassSchema.addOrUpdate>;
 
+interface yearlyGroupMappingFormProps {
+    onSuccess?: () => void;
+}
+
 interface IHeadInstallment {
     id: number;
     fmH_Id: string;
@@ -40,8 +44,10 @@ interface ApiSearchparams {
     [key: string]: any;
 }
 
-export default function YearlyFeeGroupMapping() {
+export default function YearlyFeeGroupMapping({ onSuccess }: yearlyGroupMappingFormProps) {
     const { data: academicYearOptions } = useAcademicYearDropdown();
+
+    const [showClearButton, setShowClearButton] = useState(false);
     const { data: feeGroupResponse } = useMasterFeeGroupDropdown() as {
         data?: {
             success?: boolean;
@@ -129,22 +135,22 @@ export default function YearlyFeeGroupMapping() {
     }, [academicYear, feeGroup, refetchAll]);
 
     const headInstallmentColumns: ColumnDef<IHeadInstallment>[] = [
-        {
-            id: 'select',
-            header: ({ table }) => (
-                <Checkbox
-                    checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    aria-label='Select all'
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-            ),
-            enableSorting: false,
-            enableHiding: false,
-            size: 24
-        },
+        // {
+        //     id: 'select',
+        //     header: ({ table }) => (
+        //         <Checkbox
+        //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+        //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        //             aria-label='Select all'
+        //         />
+        //     ),
+        //     cell: ({ row }) => (
+        //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+        //     ),
+        //     enableSorting: false,
+        //     enableHiding: false,
+        //     size: 24
+        // },
         {
             accessorKey: 'id',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
@@ -282,38 +288,74 @@ export default function YearlyFeeGroupMapping() {
         }
     ];
 
+    // const addRow = () => {
+    //     const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
+    //     const newHeadInstallments = [
+    //         ...headInstallments,
+    //         {
+    //             id: nextId,
+    //             fmH_Id: '',
+    //             fmI_Id: '',
+    //             fineApplicable: false,
+    //             active: false,
+    //             commonAmount: false
+    //         }
+    //     ];
+    //     setHeadInstallments(newHeadInstallments);
+    //     setValue('headInstallments', newHeadInstallments);
+    // };
+
     const addRow = () => {
-        const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
-        const newHeadInstallments = [
-            ...headInstallments,
-            {
-                id: nextId,
-                fmH_Id: '',
-                fmI_Id: '',
-                fineApplicable: false,
-                active: false,
-                commonAmount: false
-            }
-        ];
-        setHeadInstallments(newHeadInstallments);
-        setValue('headInstallments', newHeadInstallments);
-    };
+    const nextId = headInstallments.length ? Math.max(...headInstallments.map((h) => h.id)) + 1 : 1;
+
+    const newHeadInstallments = [
+        ...headInstallments,
+        {
+            id: nextId,
+            fmH_Id: '',
+            fmI_Id: '',
+            fineApplicable: false,
+            active: false,
+            commonAmount: false
+        }
+    ];
+
+    setHeadInstallments(newHeadInstallments);
+    setValue('headInstallments', newHeadInstallments);
+
+    // show Clear button after first add
+    setShowClearButton(true);
+};
+
+
+    // const clearRows = () => {
+    //     const defaultHeadInstallments = [
+    //         {
+    //             id: 1,
+    //             fmH_Id: '',
+    //             fmI_Id: '',
+    //             fineApplicable: false,
+    //             active: false,
+    //             commonAmount: false
+    //         }
+    //     ];
+    //     setHeadInstallments(defaultHeadInstallments);
+    //     setValue('headInstallments', defaultHeadInstallments);
+    //     reset();
+    // };
+
 
     const clearRows = () => {
-        const defaultHeadInstallments = [
-            {
-                id: 1,
-                fmH_Id: '',
-                fmI_Id: '',
-                fineApplicable: false,
-                active: false,
-                commonAmount: false
-            }
-        ];
-        setHeadInstallments(defaultHeadInstallments);
-        setValue('headInstallments', defaultHeadInstallments);
-        reset();
-    };
+    if (headInstallments.length > 1) {
+        const newList = headInstallments.slice(0, -1); // remove last row
+        setHeadInstallments(newList);
+        setValue('headInstallments', newList);
+
+        if (newList.length === 1) {
+            setShowClearButton(false); // hide Clear button again
+        }
+    }
+};
 
     const saveRows: SubmitHandler<FormFields> = async (data) => {
         const payload = {
@@ -335,9 +377,12 @@ export default function YearlyFeeGroupMapping() {
             const res = await addMasterYearlyGroupMapping(payload);
             const ok = res && (res.success === undefined || res.success === true);
             if (ok) {
-                toast.success(res?.message || 'Saved successfully! Refer Groupwise Auto Receipt');
+                toast.success(res?.message);
                 clearRows();
                 try {
+                    reset();
+                    onSuccess?.();
+
                     await refetchAll();
                 } catch (fetchErr) {
                     console.error('Error fetching table after save:', fetchErr);
@@ -444,9 +489,15 @@ export default function YearlyFeeGroupMapping() {
                                 disabled={isSubmitting}>
                                 {isSubmitting ? 'Saving...' : 'Save'}
                             </Button>
-                            <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
+                            {/* <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
                                 Clear
-                            </Button>
+                            </Button> */}
+                            
+    {showClearButton && (
+        <Button className='w-24' variant='danger' size='sm' onClick={clearRows} type='button'>
+            Remove
+        </Button>
+    )}
                         </div>
                     </CardContent>
                 </Card>

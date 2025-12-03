@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCommonPinningStyles } from '@/lib/data-table.config';
 import type { ApiSearchparams } from '@/types';
@@ -39,7 +38,6 @@ interface DataTableProps<TData, TValue> {
     defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     currentApiParams?: ApiSearchparams;
-
 }
 
 export interface DataTableRef {
@@ -51,7 +49,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         columns,
         data,
         totalItems,
-        pageSizeOptions = [10, 20, 30, 40, 50],
+        pageSizeOptions = [10, 20, 30, 40, 50, 60],
         isLoading,
         showExportOptions = false,
         showViewOptions = true,
@@ -85,7 +83,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
     useEffect(() => {
         if (!Array.isArray(defaultSelectedRowIds)) return;
 
-        setRowSelection(prev => {
+        setRowSelection((prev) => {
             const updated = { ...prev };
 
             // Update OR add
@@ -98,8 +96,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
             if (onRowSelectionChange) {
                 const selectedRows = table
                     .getFilteredRowModel()
-                    .rows
-                    .filter((r) => updated[r.id])
+                    .rows.filter((r) => updated[r.id])
                     .map((r) => r.original);
 
                 onRowSelectionChange(selectedRows);
@@ -250,11 +247,11 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                     <TableBody>
                                         {table.getRowModel().rows?.length ? (
                                             table.getRowModel().rows.map((row) => (
-                                                <TableRow key={row.id} data-state={row.getIsSelected()} className='border-b'>
+                                                <TableRow key={row.id} data-state={row.getIsSelected()} className='border-b last:border-b'>
                                                     {row.getVisibleCells().map((cell) => (
                                                         <TableCell
                                                             key={cell.id}
-                                                            className='whitespace-nowrap'
+                                                            className='whitespace-nowrap border-b'
                                                             style={{
                                                                 ...getCommonPinningStyles({
                                                                     column: cell.column
@@ -300,15 +297,15 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                     <div className='flex-1 whitespace-nowrap text-muted-foreground text-sm'>
                                         {totalItems > 0
                                             ? `Showing ${paginationState.pageIndex * paginationState.pageSize + 1} to ${Math.min(
-                                                (paginationState.pageIndex + 1) * paginationState.pageSize,
-                                                totalItems
-                                            )} of ${totalItems} entries`
+                                                  (paginationState.pageIndex + 1) * paginationState.pageSize,
+                                                  totalItems
+                                              )} of ${totalItems} entries`
                                             : 'No entries found'}
                                     </div>
                                 )}
 
                                 {/* Rows per page */}
-                                <div className='flex items-center space-x-2'>
+                                {/* <div className='flex items-center space-x-2'>
                                     <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
                                     <Select
                                         value={`${paginationState.pageSize}`}
@@ -325,7 +322,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
+                                </div> */}
 
                                 {/* Controls */}
                                 <div className='flex items-center space-x-2'>
