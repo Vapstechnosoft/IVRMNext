@@ -167,6 +167,7 @@ interface MasterViewDetailProps {
     onSuccess?: () => void;
 }
 function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
+    const { refetchAll } = useStudentFeeGroupMapping();
     const { isOrderDetailsOpen, closeOrderDetails, selectedRow } = useFormContext<any>();
 
     const [loading, setLoading] = useState(false);
@@ -234,6 +235,7 @@ function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
             if (response?.success) {
                 toast.success(response.message || 'Updated successfully');
                 // handleReset();
+                await refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response?.message || 'Update failed');
