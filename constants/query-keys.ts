@@ -179,7 +179,10 @@ export const FEES_QUERY_KEYS = {
     FEE_CLASS_LIST_DEFAULTER: 'fee_class_list_defaulter_report',
     FEE_SECTION_LIST_DEFAULTER: 'fee_section_list_defaulter_report',
     FEE_REPORT_GROUP_DROPDOWN: 'fee_report_group_dropdown',
-    FEE_REPORT_HEAD_DROPDOWN: 'fee_report_head_dropdown'
+    FEE_REPORT_HEAD_DROPDOWN: 'fee_report_head_dropdown',
+    FEES_REPORT_INSTLLMENT_DROPDOWN_YEARLYREPORT: 'fees_report_instllment_dropdown_yearlyreport',
+    FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN: 'fee_concession_academic_year_dropdown',
+    FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {

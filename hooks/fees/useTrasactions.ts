@@ -523,3 +523,37 @@ export const useFeeOpeningRefundable = (asmaY_Id: number, filterrefund: string, 
         }
     };
 };
+
+export const useconcessionacademicyerdropdowndatafee = (miid: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getConcessionAcademicDropdownData(miid),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionTermDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_TERM_DROPDOWN, mi_id, searchParams ?? {}],
+            queryFn: async () => getConcessionTermDropdownData(mi_id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_TERM_DROPDOWN]
+            });
+        }
+    };
+};

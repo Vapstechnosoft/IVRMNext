@@ -594,3 +594,25 @@ export type OpeningBalanceRow = {
     fmoB_Id?: number;
     [key: string]: any;
 };
+
+export interface IfeeConcession {
+    fmcC_Id: number;
+    fmcC_ClassCategoryName: string;
+    fmH_Id: number;
+}
+
+export interface FeeConcessionTermDropdown {
+    fmT_Id: number;
+    fmT_Name: string;
+    fmT_Order: number;
+    isChecked: boolean;
+    asmaY_Id: number;
+}
+
+export interface IFeeConcessionAcademicyearDropDownList {
+    miid: number;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmaY_Order: number;
+    is_Active: boolean;
+}

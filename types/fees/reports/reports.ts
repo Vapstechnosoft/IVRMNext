@@ -70,3 +70,19 @@ export interface IDailyFeeCollectionData {
     listName: string;
     list: any[]; // dynamic per report type
 }
+
+export interface IFeeInstallmentDropdownList {
+    // fmI_Id: number;
+    // fmI_Name: string;
+    //  fmI_Id: number;
+    // fmI_Name: string;
+
+    fmI_Id: number;
+    mI_Id: number;
+    fmI_Name: string;
+    fmI_No_Of_Installments: number;
+    fmI_Installment_Type: string;
+    fmI_ActiceFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
+}
