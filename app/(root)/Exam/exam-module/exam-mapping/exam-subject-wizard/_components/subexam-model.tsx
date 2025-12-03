@@ -45,7 +45,7 @@ interface FormData {
 interface SubExamModalProps {
     open: boolean;
     subject?: any;
-    onClose: () => void;
+    onClose: (subjectId: number) => void;
     onSave: (subjectId: number, selectedList: any[]) => void;
     schema: z.ZodType<any>;
     gradeList: IMasterGrade[];
@@ -61,7 +61,8 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         mode: 'onTouched'
     });
 
-    const { control, reset, getValues, watch } = methods;
+    const { control, reset, getValues, setValue, formState, setError, clearErrors, watch } = methods;
+    const { errors } = formState;
     const { fields, replace } = useFieldArray({
         control,
         name: 'subexam_list'
@@ -142,12 +143,174 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
 
     if (!subject) return null;
 
+    const parentMaxMarks = Number(subject.EYCES_MaxMarks ?? 0);
+
+    // ----------------------------------
+    // Manual Validation Functions
+    // ----------------------------------
+
+    // Validate a single row
+    const validateRowManually = (row: SubExamItem) => {
+        const rowErrs: Record<string, string> = {};
+
+        const max = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
+        const min = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
+        const entry =
+            row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
+
+        // 1) Sub-exam marks cannot exceed parent max
+        if (max !== undefined && max > parentMaxMarks) {
+            rowErrs.eycessS_MaxMarks = `Max marks cannot exceed parent subject max (${parentMaxMarks})`;
+        }
+        if (min !== undefined && min > parentMaxMarks) {
+            rowErrs.eycessS_MinMarks = `Min marks cannot exceed parent subject max (${parentMaxMarks})`;
+        }
+        if (entry !== undefined && entry > parentMaxMarks) {
+            rowErrs.eycessS_MarksEntryMax = `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`;
+        }
+
+        // 2) Min <= Max
+        if (min !== undefined && max !== undefined && min > max) {
+            rowErrs.eycessS_MinMarks = 'Min marks cannot be greater than Max marks';
+            rowErrs.eycessS_MaxMarks = 'Max marks cannot be less than Min marks';
+        }
+
+        // 3) MarksEntry <= Max
+        if (entry !== undefined && max !== undefined && entry > max) {
+            rowErrs.eycessS_MarksEntryMax = 'Marks entry max cannot be greater than Max marks';
+        }
+
+        return rowErrs;
+    };
+
+    // Validate all rows before save
+    const validateAllBeforeSave = (): boolean => {
+        const all = getValues('subexam_list') ?? [];
+        let hasError = false;
+
+        clearErrors();
+
+        all.forEach((row: SubExamItem, idx: number) => {
+            const rowErrs = validateRowManually(row);
+
+            // If the row is checked, ensure required fields are present
+            if (row.checkedvalue) {
+                const maxVal = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
+                const minVal = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
+                const entryVal =
+                    row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
+                const gradeVal = row.emgR_Id;
+
+                if (maxVal === undefined || maxVal === null) {
+                    rowErrs.eycessS_MaxMarks = 'Max marks is required';
+                }
+                if (minVal === undefined || minVal === null) {
+                    rowErrs.eycessS_MinMarks = 'Min marks is required';
+                }
+                if (entryVal === undefined || entryVal === null) {
+                    rowErrs.eycessS_MarksEntryMax = 'Marks entry max is required';
+                }
+                if (gradeVal === undefined || gradeVal === null || gradeVal === '') {
+                    rowErrs.emgR_Id = 'Grade is required';
+                }
+            }
+
+            // Apply errors to react-hook-form
+            Object.keys(rowErrs).forEach((field) => {
+                hasError = true;
+                setError(`subexam_list.${idx}.${field}` as any, {
+                    type: 'manual',
+                    message: rowErrs[field]
+                });
+            });
+        });
+
+        return !hasError;
+    };
+
+    // Real-time validation handlers
+    const handleMaxChange = (idx: number, rawVal: string) => {
+        const val = rawVal === '' ? '' : Number(rawVal);
+        updateRowValue(idx, 'eycessS_MaxMarks', val);
+
+        if (val !== '' && Number(val) > parentMaxMarks) {
+            setError(`subexam_list.${idx}.eycessS_MaxMarks` as any, {
+                type: 'manual',
+                message: `Max marks cannot exceed parent subject max (${parentMaxMarks})`
+            });
+        } else {
+            clearErrors(`subexam_list.${idx}.eycessS_MaxMarks`);
+            clearErrors(`subexam_list.${idx}.eycessS_MinMarks`);
+            clearErrors(`subexam_list.${idx}.eycessS_MarksEntryMax`);
+        }
+    };
+
+    const handleMinChange = (idx: number, rawVal: string) => {
+        const val = rawVal === '' ? '' : Number(rawVal);
+        updateRowValue(idx, 'eycessS_MinMarks', val);
+
+        if (val !== '' && Number(val) > parentMaxMarks) {
+            setError(`subexam_list.${idx}.eycessS_MinMarks` as any, {
+                type: 'manual',
+                message: `Min marks cannot exceed parent subject max (${parentMaxMarks})`
+            });
+        } else {
+            clearErrors(`subexam_list.${idx}.eycessS_MinMarks`);
+        }
+
+        // Check min <= max
+        const row = getValues('subexam_list')[idx];
+        const maxVal = row?.eycessS_MaxMarks === '' ? undefined : Number(row?.eycessS_MaxMarks);
+        if (val !== '' && maxVal !== undefined && Number(val) > Number(maxVal)) {
+            setError(`subexam_list.${idx}.eycessS_MinMarks` as any, {
+                type: 'manual',
+                message: 'Min marks cannot be greater than Max marks'
+            });
+            setError(`subexam_list.${idx}.eycessS_MaxMarks` as any, {
+                type: 'manual',
+                message: 'Max marks cannot be less than Min marks'
+            });
+        } else {
+            if (maxVal !== undefined) clearErrors(`subexam_list.${idx}.eycessS_MaxMarks`);
+        }
+    };
+
+    const handleEntryChange = (idx: number, rawVal: string) => {
+        const val = rawVal === '' ? '' : Number(rawVal);
+        updateRowValue(idx, 'eycessS_MarksEntryMax', val);
+
+        if (val !== '' && Number(val) > parentMaxMarks) {
+            setError(`subexam_list.${idx}.eycessS_MarksEntryMax` as any, {
+                type: 'manual',
+                message: `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`
+            });
+        } else {
+            const row = getValues('subexam_list')[idx];
+            const maxVal = row?.eycessS_MaxMarks === '' ? undefined : Number(row?.eycessS_MaxMarks);
+            if (maxVal !== undefined && val !== '' && Number(val) > Number(maxVal)) {
+                setError(`subexam_list.${idx}.eycessS_MarksEntryMax` as any, {
+                    type: 'manual',
+                    message: 'Marks entry max cannot be greater than Max marks'
+                });
+            } else {
+                clearErrors(`subexam_list.${idx}.eycessS_MarksEntryMax`);
+            }
+        }
+    };
+
     // ----------------------------------
     // Save Handler
     // ----------------------------------
     const handleSave = () => {
         const values = getValues();
         const selected = values.subexam_list.filter((r) => r.checkedvalue);
+
+        // Run manual validations
+        const ok = validateAllBeforeSave();
+        if (!ok) {
+            toast.error('Please fix validation errors before saving.');
+            return;
+        }
 
         if (selected.length === 0) {
             toast.error('Select at least one sub-exam before saving.');
@@ -182,9 +345,8 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
         }));
 
         onSave(subject.ISMS_Id, formatted);
-
-        onClose();
     };
+
     const renderSkeletonTable = () => (
         <div className='w-full rounded-md'>
             <table className='w-full table-auto border-collapse border border-gray-200'>
@@ -202,16 +364,18 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             </table>
         </div>
     );
+
     const updateRowValue = (idx: number, field: keyof SubExamItem, value: any) => {
         const list = getValues('subexam_list').map((r, i) => (i === idx ? { ...r, [field]: value } : r));
-        methods.setValue('subexam_list', list, { shouldDirty: true, shouldValidate: true });
+        setValue('subexam_list', list, { shouldDirty: true, shouldValidate: true });
+        clearErrors(`subexam_list.${idx}.${String(field)}` as any);
     };
 
     // ----------------------------------
     // Table UI
     // ----------------------------------
     return (
-        <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
+        <Dialog open={open} onOpenChange={(val) => !val && onClose(subject.ISMS_Id)}>
             <DialogContent className='max-h-[80vh] w-full min-w-[80vw] overflow-x-auto overflow-y-auto pt-0 sm:overflow-x-hidden'>
                 <DialogHeader className='sticky top-0 bg-white pt-4'>
                     <DialogTitle>{`Map Sub-Exam — ${subject.ISMS_SubjectName}`}</DialogTitle>
@@ -228,13 +392,13 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                     <th className='border p-2'>Sub-Exam</th>
                                     <th className='border p-2'>Max Marks</th>
                                     <th className='border p-2'>Min Marks</th>
+                                    <th className='border p-2'>Marks Entry Max</th>
                                     <th className='border p-2'>Grade</th>
                                     <th className='border p-2'>Exempted</th>
                                     <th className='border p-2'>Exempt %</th>
                                     <th className='border p-2'>Marks Flag</th>
                                     <th className='border p-2'>Grades Flag</th>
                                     <th className='border p-2'>Apl Result</th>
-                                    <th className='border p-2'>Marks Entry Max</th>
                                 </tr>
                             </thead>
 
@@ -247,7 +411,6 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                     </tr>
                                 )}
 
-                                {/* ✅ No records found */}
                                 {subject?.list?.length === 0 && (
                                     <tr>
                                         <td colSpan={12} className='py-6 text-center text-muted-foreground text-sm'>
@@ -271,6 +434,12 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                         onCheckedChange={(v) => {
                                                             field.onChange(!!v);
                                                             updateRowValue(idx, 'checkedvalue', !!v);
+                                                            clearErrors([
+                                                                `subexam_list.${idx}.eycessS_MaxMarks`,
+                                                                `subexam_list.${idx}.eycessS_MinMarks`,
+                                                                `subexam_list.${idx}.eycessS_MarksEntryMax`,
+                                                                `subexam_list.${idx}.emgR_Id`
+                                                            ] as any);
                                                         }}
                                                     />
                                                 )}
@@ -286,15 +455,35 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                 name={`subexam_list.${idx}.eycessS_MaxMarks`}
                                                 render={({ field }) => (
                                                     <Input
+                                                        type='text'
                                                         {...field}
                                                         value={field.value ?? ''}
                                                         onChange={(e) => {
-                                                            if (/^\d*$/.test(e.target.value)) field.onChange(e.target.value);
+                                                            const raw = e.target.value.replace(/\D/g, '');
+                                                            handleMaxChange(idx, raw === '' ? '' : raw);
+                                                        }}
+                                                        onBlur={() => {
+                                                            const rowVal = getValues('subexam_list')[idx];
+                                                            const rowErrs = validateRowManually(rowVal);
+                                                            clearErrors(`subexam_list.${idx}.eycessS_MaxMarks` as any);
+                                                            if (rowErrs.eycessS_MaxMarks) {
+                                                                setError(`subexam_list.${idx}.eycessS_MaxMarks` as any, {
+                                                                    type: 'manual',
+                                                                    message: rowErrs.eycessS_MaxMarks
+                                                                });
+                                                            }
                                                         }}
                                                         className='text-center'
+                                                        placeholder='Enter Max Marks'
+                                                        inputMode='numeric'
                                                     />
                                                 )}
                                             />
+                                            {errors.subexam_list?.[idx]?.eycessS_MaxMarks && (
+                                                <p className='mt-1 text-[11px] text-red-500'>
+                                                    {String(errors.subexam_list[idx].eycessS_MaxMarks?.message)}
+                                                </p>
+                                            )}
                                         </td>
 
                                         {/* Min Marks */}
@@ -304,15 +493,73 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                 name={`subexam_list.${idx}.eycessS_MinMarks`}
                                                 render={({ field }) => (
                                                     <Input
+                                                        type='text'
                                                         {...field}
                                                         value={field.value ?? ''}
                                                         onChange={(e) => {
-                                                            if (/^\d*$/.test(e.target.value)) field.onChange(e.target.value);
+                                                            const raw = e.target.value.replace(/\D/g, '');
+                                                            handleMinChange(idx, raw === '' ? '' : raw);
+                                                        }}
+                                                        onBlur={() => {
+                                                            const rowVal = getValues('subexam_list')[idx];
+                                                            const rowErrs = validateRowManually(rowVal);
+                                                            clearErrors(`subexam_list.${idx}.eycessS_MinMarks` as any);
+                                                            if (rowErrs.eycessS_MinMarks) {
+                                                                setError(`subexam_list.${idx}.eycessS_MinMarks` as any, {
+                                                                    type: 'manual',
+                                                                    message: rowErrs.eycessS_MinMarks
+                                                                });
+                                                            }
                                                         }}
                                                         className='text-center'
+                                                        placeholder='Enter Min Marks'
+                                                        inputMode='numeric'
                                                     />
                                                 )}
                                             />
+                                            {errors.subexam_list?.[idx]?.eycessS_MinMarks && (
+                                                <p className='mt-1 text-[11px] text-red-500'>
+                                                    {String(errors.subexam_list[idx].eycessS_MinMarks?.message)}
+                                                </p>
+                                            )}
+                                        </td>
+
+                                        {/* Marks Entry Max */}
+                                        <td className='w-28 border p-2'>
+                                            <Controller
+                                                control={control}
+                                                name={`subexam_list.${idx}.eycessS_MarksEntryMax`}
+                                                render={({ field }) => (
+                                                    <Input
+                                                        type='text'
+                                                        {...field}
+                                                        value={field.value ?? ''}
+                                                        onChange={(e) => {
+                                                            const raw = e.target.value.replace(/\D/g, '');
+                                                            handleEntryChange(idx, raw === '' ? '' : raw);
+                                                        }}
+                                                        onBlur={() => {
+                                                            const rowVal = getValues('subexam_list')[idx];
+                                                            const rowErrs = validateRowManually(rowVal);
+                                                            clearErrors(`subexam_list.${idx}.eycessS_MarksEntryMax` as any);
+                                                            if (rowErrs.eycessS_MarksEntryMax) {
+                                                                setError(`subexam_list.${idx}.eycessS_MarksEntryMax` as any, {
+                                                                    type: 'manual',
+                                                                    message: rowErrs.eycessS_MarksEntryMax
+                                                                });
+                                                            }
+                                                        }}
+                                                        className='text-center'
+                                                        placeholder='Enter Max Entry'
+                                                        inputMode='numeric'
+                                                    />
+                                                )}
+                                            />
+                                            {errors.subexam_list?.[idx]?.eycessS_MarksEntryMax && (
+                                                <p className='mt-1 text-[11px] text-red-500'>
+                                                    {String(errors.subexam_list[idx].eycessS_MarksEntryMax?.message)}
+                                                </p>
+                                            )}
                                         </td>
 
                                         {/* Grade */}
@@ -323,7 +570,11 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                 render={({ field }) => (
                                                     <Select
                                                         value={field.value?.toString() ?? ''}
-                                                        onValueChange={(val) => field.onChange(val)}>
+                                                        onValueChange={(val) => {
+                                                            field.onChange(val);
+                                                            updateRowValue(idx, 'emgR_Id', val);
+                                                            clearErrors(`subexam_list.${idx}.emgR_Id` as any);
+                                                        }}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Grade' />
                                                         </SelectTrigger>
@@ -337,6 +588,11 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                     </Select>
                                                 )}
                                             />
+                                            {errors.subexam_list?.[idx]?.emgR_Id && (
+                                                <p className='mt-1 text-[11px] text-red-500'>
+                                                    {String(errors.subexam_list[idx].emgR_Id?.message)}
+                                                </p>
+                                            )}
                                         </td>
 
                                         {/* Exempted */}
@@ -345,7 +601,14 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                 control={control}
                                                 name={`subexam_list.${idx}.eycessS_ExemptedFlg`}
                                                 render={({ field }) => (
-                                                    <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
+                                                    <Checkbox
+                                                        checked={!!field.value}
+                                                        onCheckedChange={(v) => {
+                                                            field.onChange(!!v);
+                                                            updateRowValue(idx, 'eycessS_ExemptedFlg', !!v);
+                                                            if (!v) updateRowValue(idx, 'eycessS_ExemptedPer', '');
+                                                        }}
+                                                    />
                                                 )}
                                             />
                                         </td>
@@ -364,6 +627,8 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                             if (/^\d*$/.test(e.target.value)) field.onChange(e.target.value);
                                                         }}
                                                         className='text-center'
+                                                        placeholder='%'
+                                                        inputMode='numeric'
                                                     />
                                                 )}
                                             />
@@ -401,24 +666,6 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                 )}
                                             />
                                         </td>
-
-                                        {/* Marks Entry Max */}
-                                        <td className='w-28 border p-2'>
-                                            <Controller
-                                                control={control}
-                                                name={`subexam_list.${idx}.eycessS_MarksEntryMax`}
-                                                render={({ field }) => (
-                                                    <Input
-                                                        {...field}
-                                                        value={field.value ?? ''}
-                                                        onChange={(e) => {
-                                                            if (/^\d*$/.test(e.target.value)) field.onChange(e.target.value);
-                                                        }}
-                                                        className='text-center'
-                                                    />
-                                                )}
-                                            />
-                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -427,7 +674,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
 
                     {/* Footer Buttons */}
                     <div className='z-10 mt-4 flex w-fit justify-end gap-2 border-t bg-white p-2'>
-                        <Button type='button' variant='ghost' onClick={onClose}>
+                        <Button type='button' variant='ghost' onClick={() => onClose(subject.ISMS_Id)}>
                             Cancel
                         </Button>
                         <Button type='button' variant='secondary' onClick={handleSetOrder}>
