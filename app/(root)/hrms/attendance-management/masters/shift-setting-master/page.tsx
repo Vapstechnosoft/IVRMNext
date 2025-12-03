@@ -2,13 +2,13 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
 import type { ApiSearchparams } from '@/types';
 import type { ShiftSettingMasterReportListItem } from '@/types/hrms/attendance-management/shift-setting-master';
 import { Plus, X } from 'lucide-react';
 import { use, useMemo } from 'react';
+import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import AddShiftSettingMasterForm from './_components/add-form';
 import { type ShiftSetting, shiftSettingColumns } from './_components/columns';
 import DeleteShiftSettingMasterForm from './_components/delete-form';

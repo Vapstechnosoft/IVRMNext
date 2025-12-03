@@ -1,131 +1,146 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { Input } from '@/components/ui/input';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { useMasterProfessionalTax } from '@/hooks/hrms/useMasters';
-import { PROFESSIONAL_TAX_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import type { MasterProfessionalTaxInput, ProfessionalTaxDetail } from '@/types/hrms/master-professional-tax';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterProfessionalTax } from '@/server/hrms/hrmsConfig/master/professional-tax';
+import type { IMasterProfessionalTaxList } from '@/types/hrms/hrms-config/master';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.professionalTax.update>;
+
 interface UpdateProfessionalTaxFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: ProfessionalTaxDetail;
+    selectedRow: IMasterProfessionalTaxList;
 }
+
 export default function UpdateProfessionalTaxForm({ onSuccess, className = '', selectedRow: row }: UpdateProfessionalTaxFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterProfessionalTax(roleId);
+    const { refetchAll } = useMasterProfessionalTax();
+
     const {
-        control,
         handleSubmit,
+        control,
         reset,
         formState: { errors, isSubmitting, isDirty }
-    } = useForm<MasterProfessionalTaxInput>({
+    } = useForm<FormFields>({
+        resolver: zodResolver(hrmsMasterSchemas.professionalTax.update),
         mode: 'onChange'
     });
+
     useEffect(() => {
         if (row) {
             reset({
-                HRMPT_Id: row.HRMPT_Id,
-                MI_Id: row.MI_Id,
-                HRMPT_SalaryFrom: row.HRMPT_SalaryFrom,
-                HRMPT_SalaryTo: row.HRMPT_SalaryTo,
-                HRMPT_PTax: row.HRMPT_PTax,
-                HRMPT_ActiveFlag: row.HRMPT_ActiveFlag
+                hrmpT_Id: row.hrmpT_Id,
+                hrmpT_SalaryFrom: row.hrmpT_SalaryFrom,
+                hrmpT_SalaryTo: row.hrmpT_SalaryTo,
+                hrmpT_PTax: row.hrmpT_PTax
             });
         }
     }, [row, reset]);
-    const onSubmit = async (data: MasterProfessionalTaxInput) => {
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const res = await saveMutation.mutateAsync(data);
-            if (res?.success) {
-                toast.success(res?.message || 'Professional tax updated successfully');
+            const payload = {
+                hrmpT_Id: data.hrmpT_Id,
+                hrmpT_SalaryFrom: data.hrmpT_SalaryFrom || 0,
+                hrmpT_SalaryTo: data.hrmpT_SalaryTo || 0,
+                hrmpT_PTax: data.hrmpT_PTax || 0
+            };
+            const response = await addOrUpdateMasterProfessionalTax(payload);
+
+            if (response?.success) {
+                toast.success(response?.message || 'Professional tax updated successfully');
                 refetchAll();
-                if (onSuccess) {
-                    onSuccess();
-                }
+                onSuccess?.();
             } else {
-                toast.error(res?.message || 'Failed to update professional tax');
+                toast.error(response?.message || 'Failed to update professional tax');
             }
         } catch (error: any) {
-            const errorMsg = error?.message || 'Failed to update professional tax';
-            toast.error(errorMsg);
+            toast.error(error?.message || 'Failed to update professional tax');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
         <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMPT_SalaryFrom'>
-                            Salary From <span className='text-destructive'>*</span>
-                        </Label>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <Controller
-                            name='HRMPT_SalaryFrom'
+                            name='hrmpT_SalaryFrom'
                             control={control}
-                            rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_AmountFrom}
                             render={({ field }) => (
-                                <Input
-                                    type='number'
-                                    id='HRMPT_SalaryFrom'
+                                <InputNumber
+                                    label='Salary From'
+                                    required
+                                    id='hrmpT_SalaryFrom'
                                     value={field.value}
-                                    onChange={field.onChange}
-                                    aria-invalid={errors.HRMPT_SalaryFrom ? true : undefined}
-                                    data-error={errors.HRMPT_SalaryFrom ? 'true' : undefined}
+                                    maxDigits={10}
+                                    onChange={(value) => {
+                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmpT_SalaryFrom?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             )}
                         />
-                        {errors.HRMPT_SalaryFrom && <FormError>{errors.HRMPT_SalaryFrom.message}</FormError>}
-                    </div>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMPT_SalaryTo'>
-                            Salary To <span className='text-destructive'>*</span>
-                        </Label>
+
                         <Controller
-                            name='HRMPT_SalaryTo'
+                            name='hrmpT_SalaryTo'
                             control={control}
-                            rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_AmountTo}
                             render={({ field }) => (
-                                <Input
-                                    type='number'
-                                    id='HRMPT_SalaryTo'
+                                <InputNumber
+                                    label='Salary To'
+                                    required
+                                    id='hrmpT_SalaryTo'
                                     value={field.value}
-                                    onChange={field.onChange}
-                                    aria-invalid={errors.HRMPT_SalaryTo ? true : undefined}
-                                    data-error={errors.HRMPT_SalaryTo ? 'true' : undefined}
+                                    maxDigits={10}
+                                    onChange={(value) => {
+                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmpT_SalaryTo?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             )}
                         />
-                        {errors.HRMPT_SalaryTo && <FormError>{errors.HRMPT_SalaryTo.message}</FormError>}
-                    </div>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMPT_PTax'>
-                            Professional Tax Amount <span className='text-destructive'>*</span>
-                        </Label>
+
                         <Controller
-                            name='HRMPT_PTax'
+                            name='hrmpT_PTax'
                             control={control}
-                            rules={PROFESSIONAL_TAX_VALIDATION.HRMPT_ProfessionalTax}
                             render={({ field }) => (
-                                <Input
-                                    type='number'
-                                    id='HRMPT_PTax'
+                                <InputNumber
+                                    label='Professional Tax Amount'
+                                    required
+                                    id='hrmpT_PTax'
                                     value={field.value}
-                                    onChange={field.onChange}
-                                    aria-invalid={errors.HRMPT_PTax ? true : undefined}
-                                    data-error={errors.HRMPT_PTax ? 'true' : undefined}
+                                    maxDigits={10}
+                                    onChange={(value) => {
+                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmpT_PTax?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
                             )}
                         />
-                        {errors.HRMPT_PTax && <FormError>{errors.HRMPT_PTax.message}</FormError>}
                     </div>
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

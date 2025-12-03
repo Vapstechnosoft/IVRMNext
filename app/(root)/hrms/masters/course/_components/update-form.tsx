@@ -1,140 +1,162 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError } from '@/components/ui/extension/field';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputText } from '@/components/ui/extension/input-text';
+import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
-import { COURSE_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import type { CourseDetail, MasterCourseInput } from '@/types/hrms/master-course';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterCourse } from '@/server/hrms/hrmsConfig/master/course';
+import type { IMasterCourseList } from '@/types/hrms/hrms-config/master';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.course.update>;
+
 interface UpdateCourseFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: CourseDetail;
+    selectedRow: IMasterCourseList;
 }
+
 export default function UpdateCourseForm({ onSuccess, className = '', selectedRow: row }: UpdateCourseFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterCourse(roleId);
+    const { refetchAll } = useMasterCourse();
+
     const {
         register,
         handleSubmit,
         control,
         reset,
         formState: { errors, isSubmitting, isDirty }
-    } = useForm<MasterCourseInput>({
+    } = useForm<FormFields>({
+        resolver: zodResolver(hrmsMasterSchemas.course.update),
         mode: 'onChange'
     });
+
     useEffect(() => {
         if (row) {
             reset({
-                HRMC_Id: row.HRMC_Id,
-                MI_Id: row.MI_Id,
-                HRMC_QulaificationName: row.HRMC_QulaificationName,
-                HRMC_QualificationDesc: row.HRMC_QualificationDesc,
-                HRMC_Order: row.HRMC_Order,
-                HRMC_ActiveFlag: row.HRMC_ActiveFlag,
-                HRMC_DefaultQualFag: row.HRMC_DefaultQualFag,
-                HRMC_SpecialisationFlag: row.HRMC_SpecialisationFlag
+                hrmC_Id: row.hrmC_Id,
+                hrmC_QulaificationName: row.hrmC_QulaificationName,
+                hrmC_QualificationDesc: row.hrmC_QualificationDesc,
+                hrmC_Order: row.hrmC_Order,
+                hrmC_DefaultQualFag: row.hrmC_DefaultQualFag,
+                hrmC_SpecialisationFlag: row.hrmC_SpecialisationFlag
             });
         }
     }, [row, reset]);
-    const onSubmit = async (data: MasterCourseInput) => {
-        const sanitizedData: MasterCourseInput = {
-            ...data,
-            HRMC_QulaificationName: data.HRMC_QulaificationName?.trim() || '',
-            HRMC_QualificationDesc: data.HRMC_QualificationDesc?.trim() || ''
-        };
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const res = await saveMutation.mutateAsync(sanitizedData);
-            if (res?.success) {
-                toast.success(res?.message || 'Course updated successfully');
+            const payload = {
+                hrmC_Id: data.hrmC_Id,
+                hrmC_QulaificationName: data.hrmC_QulaificationName?.trim() || '',
+                hrmC_QualificationDesc: data.hrmC_QualificationDesc?.trim() || '',
+                hrmC_Order: data.hrmC_Order || 0,
+                hrmC_DefaultQualFag: data.hrmC_DefaultQualFag,
+                hrmC_SpecialisationFlag: data.hrmC_SpecialisationFlag
+            };
+            const response = await addOrUpdateMasterCourse(payload);
+
+            if (response?.success) {
+                toast.success(response?.message || 'Course updated successfully');
                 refetchAll();
-                if (onSuccess) {
-                    onSuccess();
-                }
+                onSuccess?.();
             } else {
-                toast.error(res?.message || 'Failed to update course');
+                toast.error(response?.message || 'Failed to update course');
             }
         } catch (error: any) {
-            const errorMsg =
-                error?.response?.data?.message ||
-                error?.message ||
-                error?.data?.message ||
-                'Failed to update course';
-            toast.error(errorMsg);
+            toast.error(error?.message || 'Failed to update course');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
-        <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <input type='hidden' {...register('HRMC_Id', { valueAsNumber: true })} />
-                    <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMC_QulaificationName'>
-                            Qualification Name <span className='text-destructive'>*</span>
-                        </Label>
-                        <Input
-                            id='HRMC_QulaificationName'
+        <div className={`${className}`}>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <input type='hidden' {...register('hrmC_Id', { valueAsNumber: true })} />
+                        <InputText
+                            label='Qualification Name'
+                            required
+                            id='hrmC_QulaificationName'
                             placeholder='Enter qualification name'
-                            maxLength={COURSE_VALIDATION.HRMC_QualificationName.maxLength?.value}
-                            aria-invalid={errors.HRMC_QulaificationName ? true : undefined}
-                            data-error={errors.HRMC_QulaificationName ? 'true' : undefined}
-                            defaultValue={row.HRMC_QulaificationName}
-                            {...register('HRMC_QulaificationName', COURSE_VALIDATION.HRMC_QualificationName)}
+                            maxLength={100}
+                            defaultValue={row.hrmC_QulaificationName}
+                            {...register('hrmC_QulaificationName')}
+                            error={errors.hrmC_QulaificationName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        {errors.HRMC_QulaificationName && <FormError>{errors.HRMC_QulaificationName.message}</FormError>}
-                    </div>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMC_QualificationDesc'>
-                            Description <span className='text-destructive'>*</span>
-                        </Label>
-                        <Input
-                            id='HRMC_QualificationDesc'
+
+                        <InputTextarea
+                            label='Description'
+                            required
+                            id='hrmC_QualificationDesc'
                             placeholder='Enter description'
-                            maxLength={COURSE_VALIDATION.HRMC_QualificationDescription.maxLength?.value}
-                            aria-invalid={errors.HRMC_QualificationDesc ? true : undefined}
-                            data-error={errors.HRMC_QualificationDesc ? 'true' : undefined}
-                            defaultValue={row.HRMC_QualificationDesc}
-                            {...register('HRMC_QualificationDesc', COURSE_VALIDATION.HRMC_QualificationDescription)}
+                            maxLength={150}
+                            defaultValue={row.hrmC_QualificationDesc}
+                            {...register('hrmC_QualificationDesc')}
+                            error={errors.hrmC_QualificationDesc?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            minHeight={20}
                         />
-                        {errors.HRMC_QualificationDesc && <FormError>{errors.HRMC_QualificationDesc.message}</FormError>}
-                    </div>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMC_Order'>Order</Label>
-                        <Input id='HRMC_Order' type='number' placeholder='Enter order' {...register('HRMC_Order', { valueAsNumber: true })} />
-                    </div>
-                    <div className='flex items-center gap-4 pt-7'>
-                        <div className='flex items-center gap-2'>
-                            <Controller
-                                name='HRMC_DefaultQualFag'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='default-qualification-checkbox' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
-                            />
-                            <Label htmlFor='default-qualification-checkbox'>Default Qualification</Label>
-                        </div>
-                        <div className='flex items-center gap-2'>
-                            <Controller
-                                name='HRMC_SpecialisationFlag'
-                                control={control}
-                                render={({ field }) => (
-                                    <Checkbox id='has-specialization-checkbox' checked={field.value} onCheckedChange={field.onChange} />
-                                )}
-                            />
-                            <Label htmlFor='has-specialization-checkbox'>Has Specialization</Label>
+
+                        <InputText
+                            label='Order'
+                            id='hrmC_Order'
+                            type='number'
+                            placeholder='Enter order'
+                            defaultValue={row.hrmC_Order}
+                            {...register('hrmC_Order', { valueAsNumber: true })}
+                            error={errors.hrmC_Order?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+
+                        <div className='flex items-center gap-4 pt-7'>
+                            <div className='flex items-center gap-2'>
+                                <Controller
+                                    name='hrmC_DefaultQualFag'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Checkbox
+                                            id='default-qualification-checkbox'
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    )}
+                                />
+                                <label
+                                    htmlFor='default-qualification-checkbox'
+                                    className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                    Default Qualification
+                                </label>
+                            </div>
+                            <div className='flex items-center gap-2'>
+                                <Controller
+                                    name='hrmC_SpecialisationFlag'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Checkbox id='has-specialization-checkbox' checked={field.value} onCheckedChange={field.onChange} />
+                                    )}
+                                />
+                                <label
+                                    htmlFor='has-specialization-checkbox'
+                                    className='font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                    Has Specialization
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

@@ -2,13 +2,10 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterProfessionalTax } from '@/hooks/hrms/useMasters';
-import type { MasterProfessionalTaxResponse, ProfessionalTaxDetail } from '@/types/hrms/master-professional-tax';
+import type { IMasterProfessionalTaxList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
-export const columns: ColumnDef<ProfessionalTaxDetail>[] = [
+export const columns: ColumnDef<IMasterProfessionalTaxList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
@@ -22,15 +19,15 @@ export const columns: ColumnDef<ProfessionalTaxDetail>[] = [
         size: 60
     },
     {
-        accessorKey: 'HRMPT_SalaryFrom',
+        accessorKey: 'hrmpT_SalaryFrom',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Salary From' />
     },
     {
-        accessorKey: 'HRMPT_SalaryTo',
+        accessorKey: 'hrmpT_SalaryTo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Salary To' />
     },
     {
-        accessorKey: 'HRMPT_PTax',
+        accessorKey: 'hrmpT_PTax',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Professional Tax' />
     },
     {
@@ -40,36 +37,30 @@ export const columns: ColumnDef<ProfessionalTaxDetail>[] = [
         enableSorting: false
     }
 ];
-function ActionButtonsCell({ rowData }: { rowData: ProfessionalTaxDetail }) {
-    const { openEditForm } = useFormContext<MasterProfessionalTaxResponse>();
-    const { toggleMutation } = useMasterProfessionalTax(HRMS_MI_ID);
+function ActionButtonsCell({ rowData }: { rowData: IMasterProfessionalTaxList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterProfessionalTaxList>();
+
     const handleEdit = useCallback(
-        (data: ProfessionalTaxDetail) => {
+        (data: IMasterProfessionalTaxList) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
+
     const handleToggle = useCallback(
-        async (data: ProfessionalTaxDetail, newState: boolean) => {
-            try {
-                await toggleMutation.mutateAsync({
-                    HRMPT_Id: data.HRMPT_Id,
-                    HRMPT_ActiveFlag: newState
-                });
-                toast.success(`Professional Tax ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} professional tax`);
-            }
+        (data: IMasterProfessionalTaxList) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
+
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='HRMPT_ActiveFlag'
+            toggleConditionKey='hrmpT_ActiveFlag'
         />
     );
 }

@@ -69,7 +69,7 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
             // Format the address from the response
             const address = data.display_name || `${latitude}, ${longitude}`;
             return address;
-        } catch (error) {
+        } catch (_error) {
             // Fallback to coordinates if reverse geocoding fails
             return `${latitude}, ${longitude}`;
         }
@@ -87,7 +87,7 @@ export function GPSAttendanceForm({ onSubmit, onCancel }: GPSAttendanceFormProps
                     const address = await reverseGeocode(latitude, longitude);
                     setValue('location', address);
                     toast.success('Location captured successfully');
-                } catch (error) {
+                } catch (_error) {
                     toast.error('Failed to retrieve address. Using coordinates instead.');
                     const { latitude, longitude } = position.coords;
                     setValue('location', `${latitude}, ${longitude}`);

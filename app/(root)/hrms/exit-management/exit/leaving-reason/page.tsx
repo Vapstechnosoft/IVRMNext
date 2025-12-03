@@ -5,7 +5,6 @@
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -16,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Eye, Plus, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 type LeavingReason = {
     id: string;

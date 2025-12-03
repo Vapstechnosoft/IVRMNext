@@ -1,7 +1,7 @@
 'use client';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
@@ -17,7 +17,12 @@ interface UpdateEarningsDeductionsFormProps {
     selectedRow: EarningsDeductionDetail;
     typeDropdown?: any[];
 }
-export default function UpdateEarningsDeductionsForm({ onSuccess, className = '', selectedRow: row, typeDropdown = [] }: UpdateEarningsDeductionsFormProps) {
+export default function UpdateEarningsDeductionsForm({
+    onSuccess,
+    className = '',
+    selectedRow: row,
+    typeDropdown = []
+}: UpdateEarningsDeductionsFormProps) {
     const roleId = HRMS_MI_ID;
     const { saveMutation, refetchAll } = useMasterEarningsDeductions(roleId);
     const {
@@ -74,10 +79,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
             }
         } catch (error: any) {
             const errorMsg =
-                error?.response?.data?.message ||
-                error?.message ||
-                error?.data?.message ||
-                'Failed to update earning/deduction';
+                error?.response?.data?.message || error?.message || error?.data?.message || 'Failed to update earning/deduction';
             toast.error(errorMsg);
         }
     };
@@ -222,7 +224,13 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                         {errors.HRMED_Order && <FormError>{errors.HRMED_Order.message}</FormError>}
                     </div>
                     <div className='group flex items-center gap-2'>
-                        <Input type='checkbox' id='HRMED_ReviseFlg' className='h-4 w-4' defaultChecked={row.HRMED_ReviseFlg} {...register('HRMED_ReviseFlg')} />
+                        <Input
+                            type='checkbox'
+                            id='HRMED_ReviseFlg'
+                            className='h-4 w-4'
+                            defaultChecked={row.HRMED_ReviseFlg}
+                            {...register('HRMED_ReviseFlg')}
+                        />
                         <Label htmlFor='HRMED_ReviseFlg' className='cursor-pointer'>
                             Revise
                         </Label>

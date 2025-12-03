@@ -42,8 +42,7 @@ export function CumulativeSalaryReportFilters({
                     // It will handle preventDefault internally
                     const result = onSubmit(e);
                     if (result instanceof Promise) {
-                        result.catch((error) => {
-                        });
+                        result.catch((_error) => {});
                     }
                 }}
                 className='space-y-6'>

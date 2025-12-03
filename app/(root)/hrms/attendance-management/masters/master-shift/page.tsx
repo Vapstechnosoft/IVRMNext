@@ -1,11 +1,11 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterShift } from '@/hooks/hrms/attendance-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
+import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import AddMasterShiftForm from './_components/add-form';
 import { type MasterShift, masterShiftColumns } from './_components/columns';
 import DeleteMasterShiftForm from './_components/delete-form';

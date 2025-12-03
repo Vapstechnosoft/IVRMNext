@@ -277,7 +277,7 @@ export default function EmployeeProfileReportPage() {
                     toast.error(`Failed to fetch details for employee ${employee?.HRME_EmployeeCode || employeeId}`);
                     errorCount++;
                 }
-            } catch (error) {
+            } catch (_error) {
                 toast.error(
                     `Error fetching details for employee ${employee?.HRME_EmployeeCode || employeeId}. Please check if the API endpoint is available.`
                 );

@@ -68,7 +68,7 @@ export default function LoanReportPage() {
                             setEmployees([]);
                         }
                     },
-                    onError: (error) => {
+                    onError: (_error) => {
                         setEmployees([]);
                     }
                 });

@@ -1,6 +1,6 @@
 'use client';
 import { DateField as BaseDateField } from '@/components/ui/dateField';
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 interface HRMSDateFieldProps {
     field: any;
     fieldState: any;
@@ -30,13 +30,5 @@ export const HRMSDateField: React.FC<HRMSDateFieldProps> = ({ field, fieldState,
         ...field,
         value: valueRef.current || ''
     };
-    return (
-        <BaseDateField
-            field={stableField}
-            fieldState={fieldState}
-            label={label}
-            placeholder={placeholder}
-            fromDate={fromDate}
-        />
-    );
+    return <BaseDateField field={stableField} fieldState={fieldState} label={label} placeholder={placeholder} fromDate={fromDate} />;
 };

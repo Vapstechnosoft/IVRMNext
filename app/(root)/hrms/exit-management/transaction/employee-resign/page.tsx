@@ -5,7 +5,6 @@
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
 'use client';
-import { useState } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, FileText, UserMinus } from 'lucide-react';
+import { useState } from 'react';
 // import { Alert, AlertDescription } from '@/components/ui/alert'; // Component not found
 import { useForm } from 'react-hook-form';
 type ResignationFormData = {

@@ -2,8 +2,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { ColumnDef } from '@tanstack/react-table';
 import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
+import type { ColumnDef } from '@tanstack/react-table';
 export interface Employee extends EmployeeDropdown {
     calculationStatus: 'Not Calculated' | 'Calculated' | 'Recalculated';
     calculatedDate?: string;

@@ -143,7 +143,7 @@ export default function HRAuthorisationPage() {
             ];
             setAuthorisations(mockData);
             toast.success(`Loaded ${mockData.length} HR authorisations`);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to load HR authorisations');
             setAuthorisations([]);
         } finally {

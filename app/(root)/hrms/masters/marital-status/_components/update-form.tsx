@@ -1,83 +1,92 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterMaritalStatus } from '@/hooks/hrms/useMasters';
-import { MARITAL_STATUS_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import type { MaritalStatusDetail, MasterMaritalStatusInput } from '@/types/hrms/master-marital-status';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterMaritalStatus } from '@/server/hrms/hrmsConfig/master/marital-status';
+import type { IMasterMaritalStatusList } from '@/types/hrms/hrms-config/master';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.maritalStatus.update>;
+
 interface UpdateMaritalStatusFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: MaritalStatusDetail;
+    selectedRow: IMasterMaritalStatusList;
 }
+
 export default function UpdateMaritalStatusForm({ onSuccess, className = '', selectedRow: row }: UpdateMaritalStatusFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterMaritalStatus(roleId);
+    const { refetchAll } = useMasterMaritalStatus();
+
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting, isDirty }
-    } = useForm<MasterMaritalStatusInput>({
+    } = useForm<FormFields>({
+        resolver: zodResolver(hrmsMasterSchemas.maritalStatus.update),
         mode: 'onChange'
     });
+
     useEffect(() => {
         if (row) {
             reset({
-                IVRMMMS_Id: row.IVRMMMS_Id,
-                MI_Id: row.MI_Id,
-                IVRMMMS_MaritalStatus: row.IVRMMMS_MaritalStatus,
-                IVRMMMS_ActiveFlag: row.IVRMMMS_ActiveFlag
+                ivrmmmS_Id: row.ivrmmmS_Id,
+                ivrmmmS_MaritalStatus: row.ivrmmmS_MaritalStatus
             });
         }
     }, [row, reset]);
-    const onSubmit = async (data: MasterMaritalStatusInput) => {
-        const sanitizedData: MasterMaritalStatusInput = {
-            ...data,
-            IVRMMMS_MaritalStatus: data.IVRMMMS_MaritalStatus?.trim() || ''
-        };
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const res = await saveMutation.mutateAsync(sanitizedData);
-            if (res?.success) {
-                toast.success(res?.message || 'Marital status updated successfully');
+            const payload = {
+                ivrmmmS_Id: data.ivrmmmS_Id,
+                ivrmmmS_MaritalStatus: data.ivrmmmS_MaritalStatus?.trim() || ''
+            };
+            const response = await addOrUpdateMasterMaritalStatus(payload);
+
+            if (response?.success) {
+                toast.success(response?.message || 'Marital status updated successfully');
                 refetchAll();
-                if (onSuccess) {
-                    onSuccess();
-                }
+                onSuccess?.();
             } else {
-                toast.error(res?.message || 'Failed to update marital status');
+                toast.error(response?.message || 'Failed to update marital status');
             }
         } catch (error: any) {
-            const errorMsg = error?.message || 'Failed to update marital status';
-            toast.error(errorMsg);
+            toast.error(error?.message || 'Failed to update marital status');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
         <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='IVRMMMS_MaritalStatus'>
-                            Marital Status <span className='text-destructive'>*</span>
-                        </Label>
-                        <HRMSInputText
-                            id='IVRMMMS_MaritalStatus'
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <input type='hidden' {...register('ivrmmmS_Id', { valueAsNumber: true })} />
+                        <InputText
+                            label='Marital Status'
+                            required
+                            id='ivrmmmS_MaritalStatus'
                             placeholder='Enter marital status'
-                            maxLength={MARITAL_STATUS_VALIDATION.HRMMS_MaritalStatus.maxLength?.value}
-                            error={errors.IVRMMMS_MaritalStatus?.message}
-                            defaultValue={row.IVRMMMS_MaritalStatus}
-                            {...register('IVRMMMS_MaritalStatus', MARITAL_STATUS_VALIDATION.HRMMS_MaritalStatus)}
+                            maxLength={50}
+                            defaultValue={row.ivrmmmS_MaritalStatus}
+                            {...register('ivrmmmS_MaritalStatus')}
+                            error={errors.ivrmmmS_MaritalStatus?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

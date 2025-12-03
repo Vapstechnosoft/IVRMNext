@@ -1,14 +1,13 @@
 'use client';
+
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGrade } from '@/hooks/hrms/useMasters';
-import type { GradeDetail, MasterGradeResponse } from '@/types/hrms/master-grade';
+import type { IMasterGradeList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
-export const columns: ColumnDef<GradeDetail>[] = [
+
+export const columns: ColumnDef<IMasterGradeList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
@@ -22,34 +21,34 @@ export const columns: ColumnDef<GradeDetail>[] = [
         size: 60
     },
     {
-        accessorKey: 'HRMG_GradeName',
+        accessorKey: 'hrmG_GradeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Name' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMG_GradeDisplayName',
+        accessorKey: 'hrmG_GradeDisplayName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Grade Display Name' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMG_PayScaleFrom',
+        accessorKey: 'hrmG_PayScaleFrom',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale From' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMG_IncrementOf',
+        accessorKey: 'hrmG_IncrementOf',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Increment Of' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMG_PayScaleTo',
+        accessorKey: 'hrmG_PayScaleTo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale To' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMG_PayScaleRange',
+        accessorKey: 'hrmG_PayScaleRange',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Pay Scale Range' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMG_Order',
+        accessorKey: 'hrmG_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
         cell: ({ row }) => {
-            const orderValue = row.original.HRMG_Order;
+            const orderValue = row.original.hrmG_Order;
             return <div>{orderValue ?? '-'}</div>;
         }
     },
@@ -60,44 +59,31 @@ export const columns: ColumnDef<GradeDetail>[] = [
         enableSorting: false
     }
 ];
-function ActionButtonsCell({ rowData }: { rowData: GradeDetail }) {
-    const { openEditForm } = useFormContext<MasterGradeResponse>();
-    const { toggleMutation } = useMasterGrade(HRMS_MI_ID);
+
+function ActionButtonsCell({ rowData }: { rowData: IMasterGradeList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterGradeList>();
+
     const handleEdit = useCallback(
-        (data: GradeDetail) => {
+        (data: IMasterGradeList) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
+
     const handleToggle = useCallback(
-        async (data: GradeDetail, newState: boolean) => {
-            try {
-                const result = await toggleMutation.mutateAsync({
-                    HRMG_Id: data.HRMG_Id,
-                    HRMG_ActiveFlag: newState
-                });
-                // Check if grade is mapped/in use
-                if (result && typeof result === 'object' && 'retrunMsg' in result) {
-                    const retrunMsg = (result as any).retrunMsg;
-                    if (retrunMsg === 'Mapped') {
-                        toast.error('Cannot deactivate - Grade is currently assigned/in use');
-                        return;
-                    }
-                }
-                toast.success(`Grade ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error: any) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} grade`);
-            }
+        (data: IMasterGradeList) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
+
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='HRMG_ActiveFlag'
+            toggleConditionKey='hrmG_ActiveFlag'
         />
     );
 }

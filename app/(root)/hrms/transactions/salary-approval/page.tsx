@@ -136,7 +136,7 @@ export default function SalaryApprovalPage() {
                 }
                 toast.success(`Search completed successfully. Found ${employeeList.length} employees`);
             },
-            onError: (error) => {
+            onError: (_error) => {
                 setEmployees([]);
                 setFilteredEmployees([]);
                 setHasSearched(true);
@@ -181,7 +181,7 @@ export default function SalaryApprovalPage() {
                 }
                 setSelectedEmployees([]);
             },
-            onError: (error) => {
+            onError: (_error) => {
                 toast.error('Failed to approve employees');
             }
         });
@@ -210,7 +210,7 @@ export default function SalaryApprovalPage() {
                 }
                 setSelectedEmployees([]);
             },
-            onError: (error) => {
+            onError: (_error) => {
                 toast.error('Failed to reject employees');
             }
         });

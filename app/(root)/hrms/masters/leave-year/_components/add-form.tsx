@@ -1,24 +1,28 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { DateField } from '@/components/ui/dateField';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
-import { Input } from '@/components/ui/input';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
-import { LEAVE_YEAR_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import type { MasterLeaveYearInput } from '@/types/hrms/master-leave-year';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.leaveYear.add>;
+
 interface AddLeaveYearFormProps {
     onSuccess?: () => void;
     className?: string;
 }
+
 export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeaveYearFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterLeaveYear(roleId);
+    const { refetchAll } = useMasterLeaveYear();
+
     const {
         register,
         handleSubmit,
@@ -27,144 +31,103 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
         setValue,
         trigger,
         formState: { errors, isSubmitting }
-    } = useForm<MasterLeaveYearInput>({
-        mode: 'onChange',
-        defaultValues: {
-            MI_Id: roleId,
-            HRMLY_LeaveYear: '',
-            HRMLY_FromDate: '',
-            HRMLY_ToDate: '',
-            HRMLY_ActiveFlag: true,
-            HRMLY_LeaveYearOrder: undefined
-        }
+    } = useForm<FormFields>({
+        resolver: zodResolver(hrmsMasterSchemas.leaveYear.add),
+        mode: 'onChange'
     });
+
     const fromDate = useWatch({
         control,
-        name: 'HRMLY_FromDate'
+        name: 'hrmlY_FromDate'
     });
+
     const toDate = useWatch({
         control,
-        name: 'HRMLY_ToDate'
+        name: 'hrmlY_ToDate'
     });
+
     useEffect(() => {
         if (fromDate) {
-            trigger('HRMLY_ToDate');
-            if (toDate) {
-                const from = new Date(fromDate);
-                from.setHours(0, 0, 0, 0);
-                const to = new Date(toDate);
-                to.setHours(0, 0, 0, 0);
-                if (to <= from) {
-                    setValue('HRMLY_ToDate', '', { shouldValidate: true });
-                }
-            }
+            trigger('hrmlY_ToDate');
         }
-    }, [fromDate, toDate, trigger, setValue]);
+    }, [fromDate, trigger]);
+
     useEffect(() => {
         if (toDate) {
-            trigger('HRMLY_FromDate');
+            trigger('hrmlY_FromDate');
         }
     }, [toDate, trigger]);
-    const onSubmit = async (data: MasterLeaveYearInput) => {
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const res = await saveMutation.mutateAsync(data);
-            if (res?.success) {
-                toast.success(res?.message || 'Leave Year added successfully');
+            const payload = {
+                hrmlY_Id: 0,
+                hrmlY_LeaveYear: data.hrmlY_LeaveYear?.trim() || '',
+                hrmlY_FromDate: data.hrmlY_FromDate,
+                hrmlY_ToDate: data.hrmlY_ToDate
+            };
+            const response = await addOrUpdateMasterLeaveYear(payload);
+
+            if (response?.success) {
+                toast.success(response?.message || 'Leave Year saved successfully');
                 reset();
                 refetchAll();
-                if (onSuccess) {
-                    onSuccess();
-                }
+                onSuccess?.();
             } else {
-                toast.error(res?.message || 'Failed to add leave year');
+                toast.error(response?.message || 'Failed to save leave year');
             }
         } catch (error: any) {
-            const errorMsg = error?.message || 'Failed to add leave year';
-            toast.error(errorMsg);
+            toast.error(error?.message || 'Failed to save leave year');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
         <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMLY_LeaveYear'>
-                            Leave Year <span className='text-destructive'>*</span>
-                        </Label>
-                        <HRMSInputText
-                            id='HRMLY_LeaveYear'
-                            placeholder='2025'
-                            maxLength={4}
-                            error={errors.HRMLY_LeaveYear?.message}
-                            {...register('HRMLY_LeaveYear', LEAVE_YEAR_VALIDATION.HRMLY_LeaveYear)}
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='space-y-4'>
+                    <InputText
+                        label='Leave Year'
+                        required
+                        id='hrmlY_LeaveYear'
+                        placeholder='2025'
+                        maxLength={4}
+                        {...register('hrmlY_LeaveYear')}
+                        error={errors.hrmlY_LeaveYear?.message}
+                        className='transition-colors focus:ring-2 focus:ring-primary/20'
+                    />
+
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <Controller
+                            name='hrmlY_FromDate'
+                            control={control}
+                            render={({ field, fieldState }) => (
+                                <DateField field={field} fieldState={fieldState} label='From Date' placeholder='Pick from date' />
+                            )}
+                        />
+
+                        <Controller
+                            name='hrmlY_ToDate'
+                            control={control}
+                            render={({ field, fieldState }) => {
+                                const fromDateObj = fromDate ? new Date(fromDate) : undefined;
+                                return (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='To Date'
+                                        placeholder='Pick to date'
+                                        fromDate={fromDateObj}
+                                    />
+                                );
+                            }}
                         />
                     </div>
-                    <Controller
-                        name='HRMLY_FromDate'
-                        control={control}
-                        rules={{
-                            required: 'From Date is required',
-                            validate: (value) => {
-                                if (!value) return true;
-                                if (!toDate) return true;
-                                const from = new Date(value);
-                                from.setHours(0, 0, 0, 0);
-                                const to = new Date(toDate);
-                                to.setHours(0, 0, 0, 0);
-                                if (from >= to) {
-                                    return 'From Date must be less than To Date';
-                                }
-                                return true;
-                            }
-                        }}
-                        render={({ field, fieldState }) => (
-                            <DateField
-                                field={field}
-                                fieldState={fieldState}
-                                label='From Date'
-                                placeholder='Pick from date'
-                            />
-                        )}
-                    />
-                    <Controller
-                        name='HRMLY_ToDate'
-                        control={control}
-                        rules={{
-                            required: 'To Date is required',
-                            validate: (value) => {
-                                if (!value) return true;
-                                if (!fromDate) return true;
-                                const from = new Date(fromDate);
-                                from.setHours(0, 0, 0, 0);
-                                const to = new Date(value);
-                                to.setHours(0, 0, 0, 0);
-                                if (to <= from) {
-                                    return 'To Date must be greater than From Date';
-                                }
-                                return true;
-                            }
-                        }}
-                        render={({ field, fieldState }) => {
-                            const fromDateObj = fromDate ? new Date(fromDate) : undefined;
-                            return (
-                                <DateField
-                                    field={field}
-                                    fieldState={fieldState}
-                                    label='To Date'
-                                    placeholder='Pick to date'
-                                    fromDate={fromDateObj}
-                                />
-                            );
-                        }}
-                    />
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMLY_LeaveYearOrder'>Order</Label>
-                        <Input type='number' id='HRMLY_LeaveYearOrder' {...register('HRMLY_LeaveYearOrder', { valueAsNumber: true })} />
-                    </div>
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

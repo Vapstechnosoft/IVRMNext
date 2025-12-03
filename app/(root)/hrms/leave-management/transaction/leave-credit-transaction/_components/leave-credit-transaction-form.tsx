@@ -112,8 +112,7 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     const days = differenceInDays(to, from) + 1; // +1 to include both start and end dates
                     setValue('totalDays', days, { shouldValidate: true });
                 }
-            } catch (error) {
-            }
+            } catch (_error) {}
         } else {
             setValue('totalDays', 0);
         }

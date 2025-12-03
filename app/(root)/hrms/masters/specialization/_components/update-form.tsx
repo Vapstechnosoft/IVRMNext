@@ -1,84 +1,90 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterSpecialization } from '@/hooks/hrms/useMasters';
-import { SPECIALIZATION_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import type { MasterSpecializationInput, SpecializationItem } from '@/types/hrms/master-specialization';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterSpecialization } from '@/server/hrms/hrmsConfig/master/specialization';
+import type { IMasterSpecializationList } from '@/types/hrms/hrms-config/master';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.specialization.update>;
+
 interface UpdateSpecializationFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: SpecializationItem;
+    selectedRow: IMasterSpecializationList;
 }
+
 export default function UpdateSpecializationForm({ onSuccess, className = '', selectedRow: row }: UpdateSpecializationFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterSpecialization(roleId);
+    const { refetchAll } = useMasterSpecialization();
+
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting, isDirty }
-    } = useForm<MasterSpecializationInput>({
+    } = useForm<FormFields>({
+        resolver: zodResolver(hrmsMasterSchemas.specialization.update),
         mode: 'onChange'
     });
+
     useEffect(() => {
         if (row) {
             reset({
-                HRMSPL_Id: row.HRMSPL_Id,
-                MI_Id: row.MI_Id,
-                HRMSPL_SpecialisationName: row.HRMSPL_SpecialisationName,
-                HRMSPL_ActiveFlg: row.HRMSPL_ActiveFlg
+                hrmspL_Id: row.hrmspL_Id,
+                hrmspL_SpecialisationName: row.hrmspL_SpecialisationName
             });
         }
     }, [row, reset]);
-    const onSubmit = async (data: MasterSpecializationInput) => {
-        const sanitizedData: MasterSpecializationInput = {
-            ...data,
-            HRMSPL_SpecialisationName: data.HRMSPL_SpecialisationName?.trim() || ''
-        };
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const res = await saveMutation.mutateAsync(sanitizedData);
-            if (res?.success) {
-                toast.success(res?.message || 'Specialization updated successfully');
+            const payload = {
+                hrmspL_Id: data.hrmspL_Id,
+                hrmspL_SpecialisationName: data.hrmspL_SpecialisationName?.trim() || ''
+            };
+            const response = await addOrUpdateMasterSpecialization(payload);
+
+            if (response?.success) {
+                toast.success(response?.message || 'Specialization updated successfully');
                 refetchAll();
-                if (onSuccess) onSuccess();
+                onSuccess?.();
             } else {
-                toast.error(res?.message || 'Failed to update specialization');
+                toast.error(response?.message || 'Failed to update specialization');
             }
         } catch (error: any) {
-            const errorMessage =
-                error?.response?.data?.message ||
-                error?.message ||
-                'Failed to update specialization';
-            toast.error(errorMessage);
+            toast.error(error?.message || 'Failed to update specialization');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
         <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMSPL_SpecialisationName'>
-                            Specialization Name <span className='text-destructive'>*</span>
-                        </Label>
-                        <HRMSInputText
-                            id='HRMSPL_SpecialisationName'
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <InputText
+                            label='Specialization Name'
+                            required
+                            id='hrmspL_SpecialisationName'
                             placeholder='Enter specialization name'
-                            maxLength={SPECIALIZATION_VALIDATION.HRMSPL_SpecialisationName.maxLength?.value || 10}
-                            error={errors.HRMSPL_SpecialisationName?.message}
-                            defaultValue={row.HRMSPL_SpecialisationName}
-                            {...register('HRMSPL_SpecialisationName', SPECIALIZATION_VALIDATION.HRMSPL_SpecialisationName)}
+                            maxLength={50}
+                            {...register('hrmspL_SpecialisationName')}
+                            error={errors.hrmspL_SpecialisationName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

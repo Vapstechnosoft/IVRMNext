@@ -5,14 +5,20 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import {
-    useEmployeeRegisterById,
-    useEmployeeSalaryDetails,
-    useSaveEmployeeArrear,
-    useSaveEmployeeDeduction,
-    useSaveEmployeeEarning
+    useEmployeeById
+    // TODO: Migrate payroll-specific hooks when endpoints are refactored
+    // useEmployeeSalaryDetails,
+    // useSaveEmployeeArrear,
+    // useSaveEmployeeDeduction,
+    // useSaveEmployeeEarning
 } from '@/hooks/hrms/useEmployeeRegister';
-import type { EmployeeSalaryDetailItem, SaveEarningDetailsRequest, SaveDeductionDetailsRequest, SaveArrearDetailsRequest } from '@/types/hrms/employee-register';
-import { useEffect, useMemo, useState } from 'react';
+import type {
+    EmployeeSalaryDetailItem,
+    SaveArrearDetailsRequest,
+    SaveDeductionDetailsRequest,
+    SaveEarningDetailsRequest
+} from '@/types/hrms/employee-register';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 interface PayrollTabProps {
     employeeId: number | null;
@@ -29,12 +35,24 @@ type EditablePayrollItem = EmployeeSalaryDetailItem & {
     localApplicablePercentage?: string; // % Applicable
     localMaxAmount?: number;
 };
-export function PayrollTab({ employeeId, employeeCode, grossList = [], earningList = [], detectionList = [], arrearList = [], onSuccess }: PayrollTabProps) {
-    const { data: salaryDetails, isLoading, refetch } = useEmployeeSalaryDetails(employeeId, employeeCode);
-    const { data: employeeData } = useEmployeeRegisterById(employeeId);
-    const saveEarningMutation = useSaveEmployeeEarning();
-    const saveDeductionMutation = useSaveEmployeeDeduction();
-    const saveArrearMutation = useSaveEmployeeArrear();
+export function PayrollTab({
+    employeeId,
+    employeeCode,
+    grossList = [],
+    earningList = [],
+    detectionList = [],
+    arrearList = [],
+    onSuccess
+}: PayrollTabProps) {
+    // TODO: Migrate to new hooks when payroll endpoints are refactored
+    const salaryDetails: any[] = []; // useEmployeeSalaryDetails(employeeId, employeeCode);
+    const isLoading = false;
+    const refetch = () => {};
+    const { data: employeeData } = useEmployeeById(employeeId);
+    // TODO: Create payroll-specific save hooks when endpoints are migrated
+    const saveEarningMutation: any = { mutateAsync: async () => ({ success: false, message: 'Not migrated yet' }), isPending: false };
+    const saveDeductionMutation: any = { mutateAsync: async () => ({ success: false, message: 'Not migrated yet' }), isPending: false };
+    const saveArrearMutation: any = { mutateAsync: async () => ({ success: false, message: 'Not migrated yet' }), isPending: false };
     // Local state for editable items
     const [earnings, setEarnings] = useState<EditablePayrollItem[]>([]);
     const [deductions, setDeductions] = useState<EditablePayrollItem[]>([]);
@@ -44,13 +62,16 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
         if (earnDedFlag === 'Earning') {
             const found = earningList.find((item: any) => item.HRMED_Id === hrmdId);
             return found?.HRMED_Name || '';
-        } else if (earnDedFlag === 'Deduction') {
+        }
+        if (earnDedFlag === 'Deduction') {
             const found = detectionList.find((item: any) => item.HRMED_Id === hrmdId);
             return found?.HRMED_Name || '';
-        } else if (earnDedFlag === 'Arrear') {
+        }
+        if (earnDedFlag === 'Arrear') {
             const found = arrearList.find((item: any) => item.HRMED_Id === hrmdId);
             return found?.HRMED_Name || '';
-        } else if (earnDedFlag === 'Gross') {
+        }
+        if (earnDedFlag === 'Gross') {
             const found = grossList.find((item: any) => item.HRMED_Id === hrmdId);
             return found?.HRMED_Name || '';
         }
@@ -61,13 +82,16 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
         if (earnDedFlag === 'Earning') {
             const found = earningList.find((item: any) => item.HRMED_Id === hrmdId);
             return found?.HRMED_AmountPercentFlag || 'Amount';
-        } else if (earnDedFlag === 'Deduction') {
+        }
+        if (earnDedFlag === 'Deduction') {
             const found = detectionList.find((item: any) => item.HRMED_Id === hrmdId);
             return found?.HRMED_AmountPercentFlag || 'Amount';
-        } else if (earnDedFlag === 'Arrear') {
+        }
+        if (earnDedFlag === 'Arrear') {
             const found = arrearList.find((item: any) => item.HRMED_Id === hrmdId);
             return found?.HRMED_AmountPercentFlag || 'Amount';
-        } else if (earnDedFlag === 'Gross') {
+        }
+        if (earnDedFlag === 'Gross') {
             const found = grossList.find((item: any) => item.HRMED_Id === hrmdId);
             return found?.HRMED_AmountPercentFlag || 'Amount';
         }
@@ -85,8 +109,8 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                 // Get AmountPercentFlag from lists if not present in salary details
                 // Handle empty string, null, undefined, and whitespace
                 const rawFlag = item.HRMED_AmountPercentFlag;
-                const amountPercentFlag = (rawFlag && rawFlag.toString().trim()) 
-                    ? rawFlag.toString().trim() 
+                const amountPercentFlag = rawFlag?.toString().trim()
+                    ? rawFlag.toString().trim()
                     : getAmountPercentFlagFromLists(item.HRMED_Id, item.HRMED_EarnDedFlag);
                 // Preserve all original fields from API response, especially HREED_ActiveFlag
                 const editableItem: EditablePayrollItem = {
@@ -114,7 +138,11 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
         }
     }, [salaryDetails, earningList, detectionList, arrearList]);
     // Helper function to calculate totals with specific arrays (client-side calculation)
-    const calculateTotalsWithArrays = (earningsArray: EditablePayrollItem[], deductionsArray: EditablePayrollItem[], arrearsArray: EditablePayrollItem[]) => {
+    const calculateTotalsWithArrays = (
+        earningsArray: EditablePayrollItem[],
+        deductionsArray: EditablePayrollItem[],
+        arrearsArray: EditablePayrollItem[]
+    ) => {
         // Client-side calculation: Calculate totals from active items
         // Use max amount if > 0, otherwise use amount
         const totalEarning = earningsArray
@@ -175,10 +203,9 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                 const result = decPart ? `${intPart}.${decPart}` : intPart;
                 const numValue = Number.parseFloat(result);
                 return Number.isNaN(numValue) ? 0 : Math.max(0, numValue);
-            } else {
-                const numValue = Number.parseFloat(truncatedDigits);
-                return Number.isNaN(numValue) ? 0 : Math.max(0, numValue);
             }
+            const numValue = Number.parseFloat(truncatedDigits);
+            return Number.isNaN(numValue) ? 0 : Math.max(0, numValue);
         }
         const numValue = Number.parseFloat(cleanValue);
         if (Number.isNaN(numValue)) return 0;
@@ -332,9 +359,6 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                     };
                 })
             };
-            // Log payloads for debugging
-            console.log('🔍 [PAYROLL SAVE] Deductions payload:', JSON.stringify(deductionsPayload, null, 2));
-            console.log('🔍 [PAYROLL SAVE] Arrears payload:', JSON.stringify(arrearsPayload, null, 2));
             // Call all three endpoints
             const promises: Array<{ type: string; promise: Promise<any> }> = [];
             if (earningsPayload.EmployeeEarningDeductionArrear.length > 0) {
@@ -360,9 +384,7 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                 return;
             }
             // Execute all promises and track results
-            const results = await Promise.all(
-                promises.map((p) => p.promise.then((result) => ({ type: p.type, result })))
-            );
+            const results = await Promise.all(promises.map((p) => p.promise.then((result) => ({ type: p.type, result }))));
             // Verify all API calls returned success: true
             const allSuccessful = results.every((item) => item.result?.success === true);
             const failedResults = results.filter((item) => item.result?.success !== true);
@@ -404,10 +426,10 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Earnings</TableHead>
-                                <TableHead className='w-24 text-right whitespace-nowrap'>Actual %</TableHead>
-                                <TableHead className='w-24 text-right whitespace-nowrap'>%&nbsp;Applicable</TableHead>
-                                <TableHead className='w-32 text-center whitespace-nowrap'>Amount</TableHead>
-                                <TableHead className='w-32 text-center whitespace-nowrap'>Max&nbsp;Amount</TableHead>
+                                <TableHead className='w-24 whitespace-nowrap text-right'>Actual %</TableHead>
+                                <TableHead className='w-24 whitespace-nowrap text-right'>%&nbsp;Applicable</TableHead>
+                                <TableHead className='w-32 whitespace-nowrap text-center'>Amount</TableHead>
+                                <TableHead className='w-32 whitespace-nowrap text-center'>Max&nbsp;Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -423,9 +445,7 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                                 earnings.map((item, index) => {
                                     // Normalize the AmountPercentFlag value - handle null, undefined, empty string, and case variations
                                     const rawFlag = item.HRMED_AmountPercentFlag;
-                                    const normalizedFlag = rawFlag 
-                                        ? String(rawFlag).trim().toLowerCase() 
-                                        : 'amount';
+                                    const normalizedFlag = rawFlag ? String(rawFlag).trim().toLowerCase() : 'amount';
                                     const isAmountType = normalizedFlag === 'amount';
                                     const isPercentageType = normalizedFlag === 'percentage';
                                     return (
@@ -452,7 +472,12 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                                                 <Input
                                                     type='number'
                                                     className='h-8 w-20 text-right'
-                                                    value={item.localApplicablePercentage ?? item.HREED_ApplicablePercentage ?? item.HREED_Percentage ?? '0'}
+                                                    value={
+                                                        item.localApplicablePercentage ??
+                                                        item.HREED_ApplicablePercentage ??
+                                                        item.HREED_Percentage ??
+                                                        '0'
+                                                    }
                                                     onChange={(e) => updateEarning(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
@@ -526,10 +551,10 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Deductions</TableHead>
-                                <TableHead className='w-24 text-right whitespace-nowrap'>Actual %</TableHead>
-                                <TableHead className='w-24 text-right whitespace-nowrap'>%&nbsp;Applicable</TableHead>
-                                <TableHead className='w-32 text-center whitespace-nowrap'>Amount</TableHead>
-                                <TableHead className='w-32 text-center whitespace-nowrap'>Max&nbsp;Amount</TableHead>
+                                <TableHead className='w-24 whitespace-nowrap text-right'>Actual %</TableHead>
+                                <TableHead className='w-24 whitespace-nowrap text-right'>%&nbsp;Applicable</TableHead>
+                                <TableHead className='w-32 whitespace-nowrap text-center'>Amount</TableHead>
+                                <TableHead className='w-32 whitespace-nowrap text-center'>Max&nbsp;Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -545,9 +570,7 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                                 deductions.map((item, index) => {
                                     // Normalize the AmountPercentFlag value - handle null, undefined, empty string, and case variations
                                     const rawFlag = item.HRMED_AmountPercentFlag;
-                                    const normalizedFlag = rawFlag 
-                                        ? String(rawFlag).trim().toLowerCase() 
-                                        : 'amount';
+                                    const normalizedFlag = rawFlag ? String(rawFlag).trim().toLowerCase() : 'amount';
                                     const isAmountType = normalizedFlag === 'amount';
                                     const isPercentageType = normalizedFlag === 'percentage';
                                     return (
@@ -574,7 +597,12 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                                                 <Input
                                                     type='number'
                                                     className='h-8 w-20 text-right'
-                                                    value={item.localApplicablePercentage ?? item.HREED_ApplicablePercentage ?? item.HREED_Percentage ?? '0'}
+                                                    value={
+                                                        item.localApplicablePercentage ??
+                                                        item.HREED_ApplicablePercentage ??
+                                                        item.HREED_Percentage ??
+                                                        '0'
+                                                    }
                                                     onChange={(e) => updateDeduction(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
@@ -648,9 +676,9 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                             <TableRow>
                                 <TableHead className='w-16'>Serial NO.</TableHead>
                                 <TableHead>Arrear Head</TableHead>
-                                <TableHead className='w-24 text-right whitespace-nowrap'>Actual %</TableHead>
-                                <TableHead className='w-24 text-right whitespace-nowrap'>%&nbsp;Applicable</TableHead>
-                                <TableHead className='w-32 text-center whitespace-nowrap'>Amount</TableHead>
+                                <TableHead className='w-24 whitespace-nowrap text-right'>Actual %</TableHead>
+                                <TableHead className='w-24 whitespace-nowrap text-right'>%&nbsp;Applicable</TableHead>
+                                <TableHead className='w-32 whitespace-nowrap text-center'>Amount</TableHead>
                                 <TableHead>Details</TableHead>
                                 <TableHead className='w-16'>Action</TableHead>
                             </TableRow>
@@ -686,7 +714,12 @@ export function PayrollTab({ employeeId, employeeCode, grossList = [], earningLi
                                             <Input
                                                 type='number'
                                                 className='h-8 w-20 text-right'
-                                                value={item.localApplicablePercentage ?? item.HREED_ApplicablePercentage ?? item.HREED_Percentage ?? '0'}
+                                                value={
+                                                    item.localApplicablePercentage ??
+                                                    item.HREED_ApplicablePercentage ??
+                                                    item.HREED_Percentage ??
+                                                    '0'
+                                                }
                                                 onChange={(e) => updateArrear(index, 'localApplicablePercentage', e.target.value)}
                                                 onBlur={(e) => {
                                                     const validated = validatePercentage(e.target.value);

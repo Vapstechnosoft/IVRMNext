@@ -13,7 +13,7 @@ import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-m
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -30,8 +30,6 @@ interface AddMasterHolidayFormProps {
 export default function AddMasterHolidayForm({ onSuccess, className = '', dropdownData }: AddMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
     const { mutate: saveMasterHoliday, isPending } = useSaveMasterHoliday();
-    // Debug: Log dropdown data structure
-    React.useEffect(() => {}, [dropdownData]);
     // Extract dropdown data from API response
     // API field names are uppercase: HRMLY_LeaveYear, HRMD_DepartmentName, FOHTWD_HolidayWDType, FOMD_DayCode, FOMD_DayName
     const calendarYears = useMemo(() => {
@@ -195,7 +193,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             reset();
                             refetchAll();
                             onSuccess?.();
-                        } else {
                         }
                     },
                     onError: (error) => {

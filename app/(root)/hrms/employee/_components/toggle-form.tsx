@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useToggleEmployeeRegister } from '@/hooks/hrms/useEmployeeRegister';
+import { useToggleEmployee } from '@/hooks/hrms/useEmployeeRegister';
 import type { EmployeeListItem } from '@/types/hrms/employee';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -11,7 +11,7 @@ interface ToggleEmployeeFormProps {
     onClose: () => void;
 }
 export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeFormProps) {
-    const { mutate: toggleEmployee, isPending } = useToggleEmployeeRegister();
+    const { mutate: toggleEmployee, isPending } = useToggleEmployee();
     const isActive = rowData.HRME_ActiveFlag;
     const {
         register,
@@ -29,20 +29,14 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
     }
     const onSubmit: SubmitHandler<any> = async (_data) => {
         try {
-            toggleEmployee(
-                {
-                    employeeId: rowData.HRME_Id,
-                    activeFlag: !isActive
+            toggleEmployee(rowData.HRME_Id, {
+                onSuccess: () => {
+                    closeDialog();
                 },
-                {
-                    onSuccess: () => {
-                        closeDialog();
-                    },
-                    onError: (error: any) => {
-                        toast.error(error.message || 'Failed to update employee status');
-                    }
+                onError: (error: any) => {
+                    toast.error(error.message || 'Failed to update employee status');
                 }
-            );
+            });
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
         }

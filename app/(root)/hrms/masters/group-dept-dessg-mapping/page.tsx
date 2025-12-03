@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddGroupDeptDessgMappingForm from './_components/add-form';
 import { groupDeptDessgMappingColumns } from './_components/columns';
+import ToggleGroupDeptDessgMappingForm from './_components/toggle-form';
 import UpdateGroupDeptDessgMappingForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function GroupDeptDessgMappingPage(props: { searchParams: SearchParams }) {
@@ -117,8 +118,17 @@ function GroupDeptDessgMappingPageContent({
     );
 }
 function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<GroupDeptDessgMappingDetail>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<GroupDeptDessgMappingDetail>();
     return (
         <>
             {isAddFormOpen && (
@@ -177,6 +187,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleGroupDeptDessgMappingForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

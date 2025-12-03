@@ -2,11 +2,11 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterDriverShift } from '@/hooks/hrms/attendance-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
+import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import AddMasterDriverShiftForm from './_components/add-form';
 import { type DriverShift, driverShiftColumns } from './_components/columns';
 import DeleteMasterDriverShiftForm from './_components/delete-form';

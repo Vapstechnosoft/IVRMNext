@@ -2,13 +2,10 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterBank } from '@/hooks/hrms/useMasters';
-import type { BankItem, MasterBankResponse } from '@/types/hrms/master-bank';
+import type { IMasterBankList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
-export const columns: ColumnDef<BankItem>[] = [
+export const columns: ColumnDef<IMasterBankList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
@@ -22,26 +19,26 @@ export const columns: ColumnDef<BankItem>[] = [
         size: 60
     },
     {
-        accessorKey: 'HRMBD_BankName',
+        accessorKey: 'hrmbD_BankName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Bank Name' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMBD_BranchName',
+        accessorKey: 'hrmbD_BranchName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Branch Name' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMBD_BankAccountNo',
+        accessorKey: 'hrmbD_BankAccountNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Account No' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMBD_IFSCCode',
+        accessorKey: 'hrmbD_IFSCCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='IFSC Code' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMBD_BankAddress',
+        accessorKey: 'hrmbD_BankAddress',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Address' className='whitespace-nowrap' />,
         cell: ({ row }) => (
-            <div className='max-w-[200px] overflow-hidden truncate text-ellipsis'>{row.getValue('HRMBD_BankAddress') || 'N/A'}</div>
+            <div className='max-w-[200px] overflow-hidden truncate text-ellipsis'>{row.getValue('hrmbD_BankAddress') || 'N/A'}</div>
         )
     },
     {
@@ -51,45 +48,30 @@ export const columns: ColumnDef<BankItem>[] = [
         enableSorting: false
     }
 ];
-function ActionButtonsCell({ rowData }: { rowData: BankItem }) {
-    const { openEditForm } = useFormContext<MasterBankResponse>();
-    const { toggleMutation } = useMasterBank(HRMS_MI_ID);
+function ActionButtonsCell({ rowData }: { rowData: IMasterBankList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterBankList>();
+
     const handleEdit = useCallback(
-        (data: BankItem) => {
+        (data: IMasterBankList) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
+
     const handleToggle = useCallback(
-        async (data: BankItem, newState: boolean) => {
-            try {
-                const result = await toggleMutation.mutateAsync({
-                    HRMBD_Id: data.HRMBD_Id,
-                    HRMBD_ActiveFlag: newState,
-                    MI_Id: HRMS_MI_ID
-                });
-                if (result?.success) {
-                    const successMsg = result?.message || `Bank ${newState ? 'activated' : 'deactivated'} successfully`;
-                    toast.success(successMsg);
-                } else {
-                    const errorMsg = result?.message || `Failed to ${newState ? 'activate' : 'deactivate'} bank`;
-                    toast.error(errorMsg);
-                }
-            } catch (error: any) {
-                const errorMsg =
-                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} bank`;
-                toast.error(errorMsg);
-            }
+        (data: IMasterBankList) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
+
     return (
         <ActionButtons
             rowData={rowData}
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='HRMBD_ActiveFlag'
+            toggleConditionKey='hrmbD_ActiveFlag'
         />
     );
 }

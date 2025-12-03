@@ -5,7 +5,6 @@
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,6 +14,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 type ChecklistItem = {
     id: string;

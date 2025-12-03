@@ -31,7 +31,7 @@ export const salaryIncrementColumns: ColumnDef<SalaryIncrementGridItem>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Increment Date' />,
         cell: ({ row }) => {
             const date = row.original.HREIC_IncrementDate;
-            if (!date) return <div className='text-center pr-4'>-</div>;
+            if (!date) return <div className='pr-4 text-center'>-</div>;
             try {
                 const dateObj = typeof date === 'string' ? new Date(date) : date;
                 return <div>{dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>;
@@ -57,7 +57,7 @@ export const salaryIncrementColumns: ColumnDef<SalaryIncrementGridItem>[] = [
         cell: ({ row }) => {
             const amount = row.original.PreviousAmount || 0;
             return (
-                <div className='text-center pr-4'>
+                <div className='pr-4 text-center'>
                     <span className='font-medium'>₹{Number(amount).toFixed(2)}</span>
                 </div>
             );
@@ -74,7 +74,7 @@ export const salaryIncrementColumns: ColumnDef<SalaryIncrementGridItem>[] = [
         cell: ({ row }) => {
             const amount = row.original.Amount ?? 0;
             return (
-                <div className='text-center pr-4'>
+                <div className='pr-4 text-center'>
                     <span className='font-medium'>₹{Number(amount).toFixed(2)}</span>
                 </div>
             );

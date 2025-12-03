@@ -2,7 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
@@ -25,7 +25,7 @@ import type {
     EmployeeDropdown,
     SalaryUpdationItem
 } from '@/types/hrms/salary-updation';
-import { Plus, RefreshCw, X } from 'lucide-react';
+import { RefreshCw, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -102,8 +102,8 @@ function SalaryUpdationPageContent({
     const allHeads = useMemo(() => response?.headdropdown || [], [response?.headdropdown]);
     const earningHeadsList = useMemo(() => response?.earningdropdown || [], [response?.earningdropdown]);
     const deductionHeadsList = useMemo(() => response?.detectiondropdown || [], [response?.detectiondropdown]);
-    const monthOptions = useMemo(() => response?.monthdropdown || [], [response?.monthdropdown]);
-    const leaveYearOptions = useMemo(() => response?.leaveyeardropdown || [], [response?.leaveyeardropdown]);
+    const _monthOptions = useMemo(() => response?.monthdropdown || [], [response?.monthdropdown]);
+    const _leaveYearOptions = useMemo(() => response?.leaveyeardropdown || [], [response?.leaveyeardropdown]);
     // Initialize date values client-side only to prevent hydration mismatches
     const [isClient, setIsClient] = useState(false);
     useEffect(() => {
@@ -142,7 +142,7 @@ function SalaryUpdationPageContent({
     const watchedAmountType = watch('amountType');
     const watchedSelectedHead = watch('selectedHead');
     const watchedUpdateValue = watch('updateValue');
-    const watchedAddRemove = watch('addRemove');
+    const _watchedAddRemove = watch('addRemove');
     // Dynamically filter heads based on earning/deduction and amount/percentage selection
     const earningHeads = useMemo(() => {
         let filteredHeads: any[] = [];
@@ -433,7 +433,9 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => {
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
                                         const allGroupTypeValues = groupTypes.map((gt: any) => gt.HRMGT_EmployeeGroupType);
-                                        const isAllSelected = allGroupTypeValues.length > 0 && allGroupTypeValues.every((val: string) => currentValue.includes(val));
+                                        const isAllSelected =
+                                            allGroupTypeValues.length > 0 &&
+                                            allGroupTypeValues.every((val: string) => currentValue.includes(val));
                                         return (
                                             <MultiSelect
                                                 options={[
@@ -476,7 +478,8 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => {
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
                                         const allDeptValues = departments.map((d: any) => d.HRMD_DepartmentName);
-                                        const isAllSelected = allDeptValues.length > 0 && allDeptValues.every((val: string) => currentValue.includes(val));
+                                        const isAllSelected =
+                                            allDeptValues.length > 0 && allDeptValues.every((val: string) => currentValue.includes(val));
                                         return (
                                             <MultiSelect
                                                 options={[
@@ -517,7 +520,8 @@ function SalaryUpdationPageContent({
                                     render={({ field }) => {
                                         const currentValue = Array.isArray(field.value) ? field.value : [];
                                         const allDesgValues = designations.map((d: any) => d.HRMDES_DesignationName);
-                                        const isAllSelected = allDesgValues.length > 0 && allDesgValues.every((val: string) => currentValue.includes(val));
+                                        const isAllSelected =
+                                            allDesgValues.length > 0 && allDesgValues.every((val: string) => currentValue.includes(val));
                                         return (
                                             <MultiSelect
                                                 options={[
@@ -639,7 +643,8 @@ function SalaryUpdationPageContent({
                                         const currentValue = Array.isArray(field.value) ? field.value.map((v) => String(v)) : [];
                                         // Use HRMED_Id as value to ensure uniqueness, but display HRMED_Name
                                         const allHeadValues = earningHeads.map((h: any) => h.HRMED_Id?.toString() || '').filter(Boolean);
-                                        const isAllSelected = allHeadValues.length > 0 && allHeadValues.every((val: string) => currentValue.includes(val));
+                                        const isAllSelected =
+                                            allHeadValues.length > 0 && allHeadValues.every((val: string) => currentValue.includes(val));
                                         return (
                                             <MultiSelect
                                                 options={[
@@ -715,7 +720,7 @@ function SalaryUpdationPageContent({
                             <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                                 {/* Left Panel - Employee Details Form */}
                                 <div className='space-y-4 rounded-lg border p-4'>
-                                    <h3 className='text-lg font-semibold'>EMPLOYEE DETAILS</h3>
+                                    <h3 className='font-semibold text-lg'>EMPLOYEE DETAILS</h3>
                                     {/* Earning/Deduction Radio Buttons */}
                                     <div className='space-y-2'>
                                         <Label className='font-semibold'>
@@ -726,7 +731,7 @@ function SalaryUpdationPageContent({
                                             control={control}
                                             render={({ field }) => (
                                                 <RadioGroup
-                                                    value={field.value === 'All Earning & Deduction' ? 'Earning' : (field.value || 'Earning')}
+                                                    value={field.value === 'All Earning & Deduction' ? 'Earning' : field.value || 'Earning'}
                                                     onValueChange={(value) => {
                                                         field.onChange(value);
                                                         setValue('selectedHead', '');
@@ -826,7 +831,8 @@ function SalaryUpdationPageContent({
                                     {(watchedAmountType === 'Amount' || watchedAmountType === 'Percentage') && (
                                         <div className='space-y-2'>
                                             <Label className='font-semibold'>
-                                                {watchedAmountType === 'Amount' ? 'Amount' : 'Percentage'}:<span className='text-destructive'>*</span>
+                                                {watchedAmountType === 'Amount' ? 'Amount' : 'Percentage'}:
+                                                <span className='text-destructive'>*</span>
                                             </Label>
                                             <InputText
                                                 type='number'
@@ -869,7 +875,7 @@ function SalaryUpdationPageContent({
                                 </div>
                                 {/* Right Panel - Employee List */}
                                 <div className='space-y-4'>
-                                    <h3 className='text-lg font-semibold'>Employee List</h3>
+                                    <h3 className='font-semibold text-lg'>Employee List</h3>
                                     <GenericDataTable<EmployeeDropdown>
                                         data={filteredEmployees}
                                         totalItems={filteredEmployees.length}
@@ -878,7 +884,10 @@ function SalaryUpdationPageContent({
                                                 id: 'select',
                                                 header: () => (
                                                     <Checkbox
-                                                        checked={filteredEmployees.length > 0 && selectedEmployees.length === filteredEmployees.length}
+                                                        checked={
+                                                            filteredEmployees.length > 0 &&
+                                                            selectedEmployees.length === filteredEmployees.length
+                                                        }
                                                         onCheckedChange={(checked) => {
                                                             if (checked) {
                                                                 setSelectedEmployees(filteredEmployees.map((emp) => emp.HRME_Id));
@@ -896,7 +905,9 @@ function SalaryUpdationPageContent({
                                                             if (checked) {
                                                                 setSelectedEmployees((prev) => [...prev, row.original.HRME_Id]);
                                                             } else {
-                                                                setSelectedEmployees((prev) => prev.filter((id) => id !== row.original.HRME_Id));
+                                                                setSelectedEmployees((prev) =>
+                                                                    prev.filter((id) => id !== row.original.HRME_Id)
+                                                                );
                                                             }
                                                         }}
                                                         aria-label='Select row'
@@ -950,7 +961,9 @@ function SalaryUpdationPageContent({
                                 <Button
                                     onClick={handleUpdate}
                                     className='w-fit bg-blue-600 transition-all duration-200 hover:scale-105 hover:bg-blue-700'
-                                    disabled={isGettingDetails || selectedEmployees.length === 0 || !watchedSelectedHead || !watchedUpdateValue}>
+                                    disabled={
+                                        isGettingDetails || selectedEmployees.length === 0 || !watchedSelectedHead || !watchedUpdateValue
+                                    }>
                                     <RefreshCw className={`mr-2 h-4 w-4 ${isGettingDetails ? 'animate-spin' : ''}`} />
                                     {isGettingDetails ? 'SAVING...' : 'SAVE'}
                                 </Button>

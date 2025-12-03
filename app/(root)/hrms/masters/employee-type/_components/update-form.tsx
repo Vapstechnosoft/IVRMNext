@@ -1,98 +1,90 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
-import { employeeTypeSchema } from '@/schemas/hrms/employee-category-schemas';
-import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterEmployeeType } from '@/server/hrms/hrmsConfig/master/employee-type';
+import type { IMasterEmployeeTypeList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof employeeTypeSchema.addOrUpdate>;
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.employeeType.update>;
+
 interface UpdateEmployeeTypeFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: EmployeeTypeDetail;
+    selectedRow: IMasterEmployeeTypeList;
 }
+
 export default function UpdateEmployeeTypeForm({ onSuccess, className = '', selectedRow: row }: UpdateEmployeeTypeFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterEmployeeType(roleId);
+    const { refetchAll } = useMasterEmployeeType();
+
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
-        resolver: zodResolver(employeeTypeSchema.addOrUpdate),
+        resolver: zodResolver(hrmsMasterSchemas.employeeType.update),
         mode: 'onChange'
     });
+
     useEffect(() => {
         if (row) {
             reset({
-                HRMET_Id: row.HRMET_Id,
-                MI_Id: row.MI_Id,
-                HRMET_EmployeeType: row.HRMET_EmployeeType,
-                HRMET_ActiveFlag: row.HRMET_ActiveFlag
+                hrmeT_Id: row.hrmeT_Id,
+                hrmeT_EmployeeType: row.hrmeT_EmployeeType
             });
         }
     }, [row, reset]);
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        // Trim whitespace from text fields
-        const sanitizedData = {
-            ...data,
-            HRMET_EmployeeType: data.HRMET_EmployeeType?.trim() || ''
-        };
         try {
-            const response = await saveMutation.mutateAsync(sanitizedData);
+            const payload = {
+                hrmeT_Id: data.hrmeT_Id,
+                hrmeT_EmployeeType: data.hrmeT_EmployeeType?.trim() || ''
+            };
+            const response = await addOrUpdateMasterEmployeeType(payload);
+
             if (response?.success) {
-                toast.success(response.message || 'Employee type updated successfully');
+                toast.success(response?.message || 'Employee type updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response?.message || 'Failed to update employee type');
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error?.message || 'Failed to update employee type');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        <HRMSInputText
+                        <InputText
                             label='Employee Type'
                             required
-                            id='HRMET_EmployeeType'
+                            id='hrmeT_EmployeeType'
                             placeholder='Enter employee type'
                             maxLength={50}
-                            onKeyDown={(e) => {
-                                // Only allow letters, spaces, and control keys
-                                const controlKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-                                if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
-                                    return; // Allow control keys
-                                }
-                                // Allow letters (a-z, A-Z) and spaces
-                                const allowedPattern = /^[a-zA-Z\s]$/;
-                                if (!allowedPattern.test(e.key)) {
-                                    e.preventDefault(); // Block numbers and special characters
-                                }
-                            }}
-                            {...register('HRMET_EmployeeType')}
-                            defaultValue={row.HRMET_EmployeeType}
-                            error={errors.HRMET_EmployeeType?.message}
+                            {...register('hrmeT_EmployeeType')}
+                            error={errors.hrmeT_EmployeeType?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

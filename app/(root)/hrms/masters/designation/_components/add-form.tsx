@@ -1,54 +1,56 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterDesignation } from '@/hooks/hrms/useMasters';
-import { designationSchema } from '@/schemas/hrms/employee-category-schemas';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterDesignation } from '@/server/hrms/hrmsConfig/master/designation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof designationSchema.addOrUpdate>;
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.designation.add>;
+
 interface AddDesignationFormProps {
     onSuccess?: () => void;
     className?: string;
 }
+
 export default function AddDesignationForm({ onSuccess, className = '' }: AddDesignationFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterDesignation(roleId);
+    const { refetchAll } = useMasterDesignation();
+
     const {
         register,
         handleSubmit,
-        reset,
         control,
-        setValue,
+        reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(designationSchema.addOrUpdate),
+        resolver: zodResolver(hrmsMasterSchemas.designation.add),
         mode: 'onChange',
         defaultValues: {
-            MI_Id: roleId,
-            HRMDES_DesignationName: '',
-            HRMDES_BasicAmount: 0,
-            HRMDES_SanctionedSeats: 0,
-            HRMDES_DisplaySanctionedSeatsFlag: false,
-            HRMDES_Order: 0,
-            HRMDES_ActiveFlag: true
+            hrmdeS_Order: 0
         }
     });
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        const sanitizedData = {
-            ...data,
-            HRMDES_DesignationName: data.HRMDES_DesignationName?.trim() || ''
-        };
         try {
-            const response = await saveMutation.mutateAsync(sanitizedData);
+            const payload = {
+                hrmdeS_Id: 0,
+                hrmdeS_DesignationName: data.hrmdeS_DesignationName?.trim() || '',
+                hrmdeS_BasicAmount: data.hrmdeS_BasicAmount || 0,
+                hrmdeS_SanctionedSeats: data.hrmdeS_SanctionedSeats || 0,
+                hrmdeS_DisplaySanctionedSeatsFlag: data.hrmdeS_DisplaySanctionedSeatsFlag || false,
+                hrmdeS_Order: data.hrmdeS_Order || 0
+            };
+            const response = await addOrUpdateMasterDesignation(payload);
+
             if (response?.success) {
-                toast.success(response.message || 'Designation saved successfully');
+                toast.success(response?.message || 'Designation saved successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
@@ -56,204 +58,108 @@ export default function AddDesignationForm({ onSuccess, className = '' }: AddDes
                 toast.error(response?.message || 'Failed to save designation');
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error?.message || 'Failed to save designation');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
-        <div className={className}>
+        <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <HRMSInputText
+                        <InputText
                             label='Designation Name'
                             required
-                            id='HRMDES_DesignationName'
+                            id='hrmdeS_DesignationName'
                             placeholder='Enter designation name'
                             maxLength={50}
-                            {...register('HRMDES_DesignationName')}
-                            error={errors.HRMDES_DesignationName?.message}
+                            {...register('hrmdeS_DesignationName')}
+                            error={errors.hrmdeS_DesignationName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+
                         <Controller
-                            name='HRMDES_BasicAmount'
+                            name='hrmdeS_BasicAmount'
                             control={control}
-                            render={({ field }) => {
-                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
-                                    if (!containerElement) return;
-                                    const findInput = () =>
-                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
-                                    const attachListener = () => {
-                                        const inputElement = findInput();
-                                        if (!inputElement) {
-                                            setTimeout(attachListener, 50);
-                                            return;
-                                        }
-                                        if ((inputElement as any).__dirtyHandlerAttached) return;
-                                        const handleInput = (e: Event) => {
-                                            const target = e.target as HTMLInputElement;
-                                            const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
-                                                const numValue = Number(inputValue);
-                                                const currentValue = field.value || 0;
-                                                if (Math.abs(numValue - currentValue) > 0.0001) {
-                                                    field.onChange(numValue);
-                                                    setValue('HRMDES_BasicAmount', numValue, { shouldDirty: true, shouldValidate: true });
-                                                }
-                                            }
-                                        };
-                                        inputElement.addEventListener('input', handleInput, { passive: true });
-                                        (inputElement as any).__dirtyHandlerAttached = true;
-                                    };
-                                    attachListener();
-                                };
-                                return (
-                                    <div ref={containerRefCallback}>
-                                        <InputNumber
-                                            label='Basic Amount'
-                                            id='HRMDES_BasicAmount'
-                                            value={field.value}
-                                            maxDigits={10}
-                                            onChange={(value) => {
-                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
-                                                field.onChange(numValue);
-                                                setValue('HRMDES_BasicAmount', numValue, { shouldDirty: true, shouldValidate: true });
-                                            }}
-                                            onBlur={field.onBlur}
-                                            error={errors.HRMDES_BasicAmount?.message}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-                                    </div>
-                                );
-                            }}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Basic Amount'
+                                    id='hrmdeS_BasicAmount'
+                                    value={field.value}
+                                    maxDigits={10}
+                                    onChange={(value) => {
+                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmdeS_BasicAmount?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
+
                         <Controller
-                            name='HRMDES_SanctionedSeats'
+                            name='hrmdeS_SanctionedSeats'
                             control={control}
-                            render={({ field }) => {
-                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
-                                    if (!containerElement) return;
-                                    const findInput = () =>
-                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
-                                    const attachListener = () => {
-                                        const inputElement = findInput();
-                                        if (!inputElement) {
-                                            setTimeout(attachListener, 50);
-                                            return;
-                                        }
-                                        if ((inputElement as any).__dirtyHandlerAttached) return;
-                                        const handleInput = (e: Event) => {
-                                            const target = e.target as HTMLInputElement;
-                                            const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
-                                                const numValue = Number(inputValue);
-                                                const currentValue = field.value || 0;
-                                                if (Math.abs(numValue - currentValue) > 0.0001) {
-                                                    field.onChange(numValue);
-                                                    setValue('HRMDES_SanctionedSeats', numValue, {
-                                                        shouldDirty: true,
-                                                        shouldValidate: true
-                                                    });
-                                                }
-                                            }
-                                        };
-                                        inputElement.addEventListener('input', handleInput, { passive: true });
-                                        (inputElement as any).__dirtyHandlerAttached = true;
-                                    };
-                                    attachListener();
-                                };
-                                return (
-                                    <div ref={containerRefCallback}>
-                                        <InputNumber
-                                            label='Sanctioned Seats'
-                                            id='HRMDES_SanctionedSeats'
-                                            value={field.value}
-                                            maxDigits={3}
-                                            onChange={(value) => {
-                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
-                                                field.onChange(numValue);
-                                                setValue('HRMDES_SanctionedSeats', numValue, { shouldDirty: true, shouldValidate: true });
-                                            }}
-                                            onBlur={field.onBlur}
-                                            error={errors.HRMDES_SanctionedSeats?.message}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-                                    </div>
-                                );
-                            }}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Sanctioned Seats'
+                                    id='hrmdeS_SanctionedSeats'
+                                    value={field.value}
+                                    maxDigits={3}
+                                    onChange={(value) => {
+                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmdeS_SanctionedSeats?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
+
                         <Controller
-                            name='HRMDES_Order'
+                            name='hrmdeS_Order'
                             control={control}
-                            render={({ field }) => {
-                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
-                                    if (!containerElement) return;
-                                    const findInput = () =>
-                                        containerElement.querySelector('input[type="text"], input[type="number"]') as HTMLInputElement;
-                                    const attachListener = () => {
-                                        const inputElement = findInput();
-                                        if (!inputElement) {
-                                            setTimeout(attachListener, 50);
-                                            return;
-                                        }
-                                        if ((inputElement as any).__dirtyHandlerAttached) return;
-                                        const handleInput = (e: Event) => {
-                                            const target = e.target as HTMLInputElement;
-                                            const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
-                                                const numValue = Number(inputValue);
-                                                const currentValue = field.value || 0;
-                                                if (Math.abs(numValue - currentValue) > 0.0001) {
-                                                    field.onChange(numValue);
-                                                    setValue('HRMDES_Order', numValue, { shouldDirty: true, shouldValidate: true });
-                                                }
-                                            }
-                                        };
-                                        inputElement.addEventListener('input', handleInput, { passive: true });
-                                        (inputElement as any).__dirtyHandlerAttached = true;
-                                    };
-                                    attachListener();
-                                };
-                                return (
-                                    <div ref={containerRefCallback}>
-                                        <InputNumber
-                                            label='Order'
-                                            id='HRMDES_Order'
-                                            value={field.value}
-                                            onChange={(value) => {
-                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
-                                                field.onChange(numValue);
-                                                setValue('HRMDES_Order', numValue, { shouldDirty: true, shouldValidate: true });
-                                            }}
-                                            onBlur={field.onBlur}
-                                            error={errors.HRMDES_Order?.message}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-                                    </div>
-                                );
-                            }}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Order'
+                                    id='hrmdeS_Order'
+                                    value={field.value}
+                                    onChange={(value) => {
+                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmdeS_Order?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
-                        <div className='flex items-center space-x-2'>
+
+                        <div className='flex items-center gap-2'>
                             <Controller
-                                name='HRMDES_DisplaySanctionedSeatsFlag'
+                                name='hrmdeS_DisplaySanctionedSeatsFlag'
                                 control={control}
                                 render={({ field }) => (
                                     <Checkbox
-                                        id='HRMDES_DisplaySanctionedSeatsFlag'
+                                        id='hrmdeS_DisplaySanctionedSeatsFlag'
                                         checked={field.value}
                                         onCheckedChange={field.onChange}
                                     />
                                 )}
                             />
-                            <Label htmlFor='HRMDES_DisplaySanctionedSeatsFlag' className='cursor-pointer'>
+                            <label htmlFor='hrmdeS_DisplaySanctionedSeatsFlag' className='cursor-pointer font-medium text-sm leading-none'>
                                 Display Sanctioned Seats
-                            </Label>
+                            </label>
                         </div>
                     </div>
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

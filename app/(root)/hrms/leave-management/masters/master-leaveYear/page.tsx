@@ -17,7 +17,7 @@ export default function MasterLeaveYearPage() {
         try {
             const result = leaveYearDB.list();
             setData(result);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to load leave years');
         }
     };
@@ -50,7 +50,7 @@ export default function MasterLeaveYearPage() {
             }
             loadData();
             handleFormClose();
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to save leave year');
         }
     };
@@ -71,7 +71,7 @@ export default function MasterLeaveYearPage() {
                 leaveYearDB.remove(id);
                 toast.success('Leave year deleted successfully');
                 loadData();
-            } catch (error) {
+            } catch (_error) {
                 toast.error('Failed to delete leave year');
             }
         }

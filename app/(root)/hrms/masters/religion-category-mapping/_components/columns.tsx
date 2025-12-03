@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { useReligionCategoryMappingCRUD } from '@/hooks/hrms/useMasters';
 import type { ReligionCategoryMappingDetail, ReligionCategoryMappingResponse } from '@/types/hrms/religion-category-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
@@ -63,28 +62,22 @@ export const religionCategoryMappingColumns: ColumnDef<ReligionCategoryMappingDe
     }
 ];
 function ActionButtonsCell({ rowData }: { rowData: ReligionCategoryMappingDetail }) {
-    const { openEditForm } = useFormContext<ReligionCategoryMappingResponse>();
-    const { toggleMutation } = useReligionCategoryMappingCRUD();
+    const { openEditForm, openToggleForm } = useFormContext<ReligionCategoryMappingResponse>();
+
     const handleEdit = useCallback(
         (data: ReligionCategoryMappingDetail) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
+
     const handleToggle = useCallback(
-        async (data: ReligionCategoryMappingDetail, newState: boolean) => {
-            try {
-                await toggleMutation.mutateAsync({
-                    ...data,
-                    IRCC_ActiveFlg: newState
-                });
-                // Toast is handled in the mutation's onSuccess/onError
-            } catch (_error) {
-                // Error toast is handled in the mutation's onError
-            }
+        (data: ReligionCategoryMappingDetail) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
+
     return (
         <ActionButtons
             rowData={rowData}

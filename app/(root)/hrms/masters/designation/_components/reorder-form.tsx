@@ -1,60 +1,71 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterDesignation } from '@/hooks/hrms/useMasters';
+import { useDesignationSetOrder } from '@/hooks/hrms/useMasters';
 import { getDesignationSetOrder, updateDesignationSetorder } from '@/server/hrms/hrmsConfig/master/designation';
-import type { DesignationSetOrderList } from '@/types/hrms/master-designation';
+import type { IMasterDesignationSetOrderList } from '@/types/hrms/hrms-config/master';
 import { GitCompareArrows, GripVertical } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+
 export default function ReorderDesignationForm() {
-    const { refetchAll } = useMasterDesignation(HRMS_MI_ID);
+    const { refetchAll } = useDesignationSetOrder();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [orderedItems, setOrderedItems] = useState<DesignationSetOrderList[]>([]);
+    const [orderedItems, setOrderedItems] = useState<IMasterDesignationSetOrderList[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+
     const handleOpenDialog = async () => {
         try {
-            const orderResponse = await getDesignationSetOrder(HRMS_MI_ID);
-            setOrderedItems(orderResponse?.data ?? []);
+            const orderResponse = await getDesignationSetOrder();
+            setOrderedItems(Array.isArray(orderResponse) ? orderResponse : []);
             setIsDialogOpen(true);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to load designations for reordering');
         }
     };
+
     const handleDragStart = (index: number) => {
         setDraggedIndex(index);
     };
+
     const handleDragOver = (e: React.DragEvent, index: number) => {
         e.preventDefault();
+
         if (draggedIndex === null || draggedIndex === index) return;
+
         const newItems = [...orderedItems];
         const draggedItem = newItems[draggedIndex];
         newItems.splice(draggedIndex, 1);
         newItems.splice(index, 0, draggedItem);
+
         setOrderedItems(newItems);
         setDraggedIndex(index);
     };
+
     const handleDragEnd = () => {
         setDraggedIndex(null);
     };
+
     const onSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
         setIsSaving(true);
         try {
             const payload = orderedItems.map((item, index) => ({
-                id: item.HRMDES_Id,
+                id: item.hrmdeS_Id,
                 order: index + 1
             }));
+
             const response = await updateDesignationSetorder(payload as any);
-            if (response?.success || (response as any)?.retrunMsg === 'Order') {
-                toast.success('Order saved successfully');
+
+            if (response?.success) {
+                toast.success(response?.message || 'Order saved successfully');
                 setIsDialogOpen(false);
                 refetchAll();
             } else {
-                toast.error((response as any)?.message || 'Failed to save order');
+                toast.error(response?.message || 'Failed to save order');
             }
         } catch (error: any) {
             toast.error(error?.message ?? 'An error occurred');
@@ -62,6 +73,7 @@ export default function ReorderDesignationForm() {
             setIsSaving(false);
         }
     };
+
     return (
         <>
             <Button type='button' onClick={handleOpenDialog} className='w-fit transition-all duration-200 hover:scale-90'>
@@ -75,7 +87,7 @@ export default function ReorderDesignationForm() {
                             <div className='my-6 max-h-96 space-y-3 overflow-y-auto'>
                                 {orderedItems.map((item, index) => (
                                     <div
-                                        key={`${item.HRMDES_Id}-${index}`}
+                                        key={`${item.hrmdeS_Id}-${index}`}
                                         draggable
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
@@ -84,7 +96,7 @@ export default function ReorderDesignationForm() {
                                             draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
                                         }`}>
                                         <GripVertical className='size-4' />
-                                        <div className='flex-1 font-medium text-sm'>{item.HRMDES_DesignationName}</div>
+                                        <div className='flex-1 font-medium text-sm'>{item.hrmdeS_DesignationName}</div>
                                     </div>
                                 ))}
                             </div>

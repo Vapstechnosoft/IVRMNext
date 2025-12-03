@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddReligionCategoryMappingForm from './_components/add-form';
 import { religionCategoryMappingColumns } from './_components/columns';
+import ToggleReligionCategoryMappingForm from './_components/toggle-form';
 import UpdateReligionCategoryMappingForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function ReligionCategoryMappingPage(props: { searchParams: SearchParams }) {
@@ -117,8 +118,17 @@ function ReligionCategoryMappingPageContent({
     );
 }
 function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<ReligionCategoryMappingDetail>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<ReligionCategoryMappingDetail>();
     return (
         <>
             {isAddFormOpen && (
@@ -177,6 +187,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleReligionCategoryMappingForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

@@ -1,99 +1,47 @@
 'use server';
-import { api } from '@/lib/apiService';
+
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type {
-    DepartmentDetail,
-    MasterDepartmentInput,
-    MasterDepartmentResponse,
-    OnloadGetDepartmentDetailsRequest,
-    SaveDepartmentRequest
-} from '@/types/hrms/master-department';
-/**
- * Helper function to convert searchParams from URL (strings) to proper types
- */
-function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
-    if (!searchParams) return {};
-    // Helper to get first value if array, or the value itself
-    const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
-        if (value === undefined) return defaultValue;
-        if (typeof value === 'number') return value;
-        if (Array.isArray(value)) return value[0] || defaultValue;
-        return value;
-    };
-    return {
-        page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
-        page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
-        search_query: (getValue(searchParams.search_query, '') as string) || '',
-        search_column: (getValue(searchParams.search_column, '') as string) || '',
-        sort_column: (getValue(searchParams.sort_column, '') as string) || '',
-        sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
-    };
+import type { IMasterDepartmentList, IMasterDepartmentSetOrderList } from '@/types/hrms/hrms-config/master';
+
+export async function getMasterDepartment(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'hrmD_DepartmentName');
+    const url = `/api/MasterDepartmentFacade/onloadgetdetails?${urlParams}`;
+    return await api.get<IMasterDepartmentList[]>('hrms', url);
 }
-/**
- * Get onload details for master department with search, sort, and pagination
- * POST /api/MasterDepartmentFacade/onloadgetdetails
- */
-export async function getMasterDepartmentList(roleId: number, searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
-    const url = '/api/MasterDepartmentFacade/onloadgetdetails';
-    // Normalize searchParams (convert strings to proper types)
-    const normalizedParams = normalizeSearchParams(searchParams);
-    // Extract pagination, search, and sort parameters
-    const page = normalizedParams.page || 1;
-    const page_size = normalizedParams.page_size || 10;
-    const search_query = normalizedParams.search_query || '';
-    // Define searchable columns
-    // These are the columns that can be searched when search_query is provided
-    const searchableColumns = 'HRMD_DepartmentName';
-    const search_column = normalizedParams.search_column || (search_query ? searchableColumns : '');
-    // If sort_column is provided but sort_direction is empty, default to 'asc'
-    // The API requires sort_direction to be 'asc' or 'desc' when sort_column is provided
-    const sort_column = normalizedParams.sort_column || '';
-    const sort_direction = sort_column && !normalizedParams.sort_direction 
-        ? 'asc' 
-        : (normalizedParams.sort_direction || '');
-    const requestBody = {
-        page,
-        page_size,
-        search_query,
-        search_column,
-        sort_column,
-        sort_direction,
-        is_export: false,
-        MIID: 30,
-        LoginUserId: 0,
-        UserRole: ''
-    };
-    try {
-        const response = await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
-        // Transform response to match expected structure
-        // The API returns data array directly, or in departmentList for backward compatibility
-        const departmentList = Array.isArray(response?.data) 
-            ? response.data 
-            : (response?.departmentList || (response as any)?.data?.departmentList || []);
-        // Use API's total if provided, otherwise use array length
-        const total = response?.total ?? (Array.isArray(departmentList) ? departmentList.length : 0);
-        // Return in the expected format
-        return {
-            ...response,
-            success: response?.success ?? true,
-            message: response?.message || 'Data fetched successfully',
-            data: departmentList,
-            departmentList: departmentList,
-            total: total,
-            page: response?.page ?? page,
-            page_size: response?.page_size ?? page_size
-        } as MasterDepartmentResponse;
-    } catch (error: any) {
-        console.error('🔴 [DEBUG] Error Response Data:', JSON.stringify(error?.response?.data, null, 2));
-        throw error;
-    }
+
+export async function addOrUpdateMasterDepartment(data: any) {
+    const url = '/api/MasterDepartmentFacade';
+    return await api.post<any>('hrms', url, data);
 }
-export async function saveMasterDepartment(data: MasterDepartmentInput) {
+
+export async function toggleMasterDepartment(id: number) {
+    const url = `/api/MasterDepartmentFacade/deactivateRecordById/${id}`;
+    return await api.put('hrms', url);
+}
+
+export async function deleteMasterDepartment(id: number) {
+    const url = `/api/MasterDepartmentFacade/delete/${id}`;
+    return await api.delete<any>('hrms', url);
+}
+
+export async function getDepartmentSetOrder() {
+    const url = '/api/MasterDepartmentFacade/set_order_list';
+    return await api.get<IMasterDepartmentSetOrderList[]>('hrms', url);
+}
+
+export async function updateDepartmentSetorder(data: any) {
+    const url = '/api/MasterDepartmentFacade/set_order';
+    return await api.put<any>('hrms', url, data);
+}
+
+// Legacy functions - keeping for backward compatibility if needed
+export async function saveMasterDepartment(data: any) {
     const isEdit = data.HRMD_Id && data.HRMD_Id > 0;
     const url = '/api/MasterDepartmentFacade';
     console.log('🟠 [API] Input data:', JSON.stringify(data, null, 2));
     const now = new Date().toISOString();
-    const requestBody: SaveDepartmentRequest = {
+    const requestBody: any = {
         CreatedDate: now,
         UpdatedDate: now,
         HRMD_Id: data.HRMD_Id || 0,
@@ -120,7 +68,7 @@ export async function saveMasterDepartment(data: MasterDepartmentInput) {
         DeraptmentDTO: []
     };
     try {
-        const response = await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
+        const response = await api.post<any>('hrms', url, requestBody);
         console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
         const responseData = response as any;
         // Check for response structure: { success: true, message: "Add", data: { retrunMsg: "Add", ... } }
@@ -165,7 +113,7 @@ export async function activateDeactivateMasterDepartment(data: {
     };
     console.log('🟠 [API] Request Body:', JSON.stringify(requestBody, null, 2));
     try {
-        const response = await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
+        const response = await api.post<any>('hrms', url, requestBody);
         console.log('🟢 [API] Raw response received:', JSON.stringify(response, null, 2));
         // Handle the response format - extract data from response.data
         const responseData = response as any;
@@ -236,7 +184,7 @@ export async function activateDeactivateMasterDepartment(data: {
 }
 export async function getOnloadDepartmentDetails(roleId: number) {
     const url = '/api/MasterDepartmentFacade/onloadgetdetails';
-    const requestBody: OnloadGetDepartmentDetailsRequest = {
+    const requestBody: any = {
         CreatedDate: new Date().toISOString(),
         UpdatedDate: new Date().toISOString(),
         HRMD_Id: 0,
@@ -250,49 +198,18 @@ export async function getOnloadDepartmentDetails(roleId: number) {
         roleId,
         HRMD_InternalTrainingMinimumHrs: 0,
         DeraptmentDTO: []
-    } as unknown as OnloadGetDepartmentDetailsRequest;
-    return await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
+    };
+    return await api.post<any>('hrms', url, requestBody);
 }
 export async function getDepartmentById(id: number) {
     const url = `/api/MasterDepartmentFacade/getRecordById/${id}`;
-    return await api.get<MasterDepartmentResponse>('hrms', url);
+    return await api.get<any>('hrms', url);
 }
-export async function getDepartmentSetOrder(roleId: number) {
-    const url = '/api/MasterDepartmentFacade/onloadgetdetails';
-    const requestBody = {
-        page: 1,
-        page_size: 1000,
-        search_query: '',
-        search_column: '',
-        sort_column: 'HRMD_Order',
-        sort_direction: 'asc',
-        is_export: false,
-        MIID: roleId,
-        LoginUserId: 0,
-        UserRole: ''
-    };
-    try {
-        const response = await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
-        const departmentList = Array.isArray(response?.data) 
-            ? response.data 
-            : (response?.departmentList || (response as any)?.data?.departmentList || []);
-        return {
-            success: true,
-            data: departmentList.map((dept: DepartmentDetail) => ({
-                HRMD_Id: dept.HRMD_Id,
-                HRMD_DepartmentName: dept.HRMD_DepartmentName,
-                HRMD_Order: dept.HRMD_Order ?? 0
-            }))
-        };
-    } catch (error: any) {
-        throw error;
-    }
-}
-export async function saveMasterDepartmentOrder(departments: DepartmentDetail[]) {
+export async function saveMasterDepartmentOrder(departments: any[]) {
     const url = '/api/MasterDepartmentFacade';
     const now = new Date().toISOString();
     // Use departmentList array (same as save endpoint)
-    const requestBody: SaveDepartmentRequest = {
+    const requestBody: any = {
         CreatedDate: now,
         UpdatedDate: now,
         HRMD_Id: 0,
@@ -301,14 +218,14 @@ export async function saveMasterDepartmentOrder(departments: DepartmentDetail[])
         HRMD_Order: 0,
         HRMD_ActiveFlag: true,
         departmentList: departments.map((dept) => ({
-            CreatedDate: dept.CreatedDate || now,
+            CreatedDate: dept.createdDate || now,
             UpdatedDate: now,
-            HRMD_Id: dept.HRMD_Id,
-            MI_Id: dept.MI_Id || 30,
-            HRMD_DepartmentName: dept.HRMD_DepartmentName,
-            HRMD_Order: dept.HRMD_Order ?? 0,
-            HRMD_ActiveFlag: dept.HRMD_ActiveFlag,
-            HRMD_InternalTrainingMinimumHrs: dept.HRMD_InternalTrainingMinimumHrs
+            HRMD_Id: dept.hrmD_Id,
+            MI_Id: dept.mI_Id || 30,
+            HRMD_DepartmentName: dept.hrmD_DepartmentName,
+            HRMD_Order: dept.hrmD_Order ?? 0,
+            HRMD_ActiveFlag: dept.hrmD_ActiveFlag,
+            HRMD_InternalTrainingMinimumHrs: dept.hrmD_InternalTrainingMinimumHrs
         })),
         retrunMsg: 'string',
         HRMDC_ID: 0,
@@ -317,7 +234,7 @@ export async function saveMasterDepartmentOrder(departments: DepartmentDetail[])
         DeraptmentDTO: []
     };
     try {
-        const response = await api.post<MasterDepartmentResponse>('hrms', url, requestBody);
+        const response = await api.post<any>('hrms', url, requestBody);
         console.log('🟢 [API] saveMasterDepartmentOrder response:', JSON.stringify(response, null, 2));
         console.log('🟢 [API] Response.retrunMsg:', (response as any)?.retrunMsg);
         console.log('🟢 [API] Response.departmentList count:', (response as any)?.departmentList?.length);
@@ -326,17 +243,4 @@ export async function saveMasterDepartmentOrder(departments: DepartmentDetail[])
         throw error;
     }
 }
-export async function updateDepartmentSetorder(data: Array<{ id: number; order: number }>) {
-    const deptListResponse = await getMasterDepartmentList(30, { page: 1, page_size: 1000 });
-    const allDepartments = Array.isArray(deptListResponse?.data) 
-        ? deptListResponse.data 
-        : (deptListResponse?.departmentList || []);
-    const updatedDepartments = allDepartments.map((dept) => {
-        const orderUpdate = data.find((item) => item.id === dept.HRMD_Id);
-        return {
-            ...dept,
-            HRMD_Order: orderUpdate ? orderUpdate.order : dept.HRMD_Order ?? 0
-        };
-    });
-    return await saveMasterDepartmentOrder(updatedDepartments);
-}
+// Legacy updateDepartmentSetorder removed - use updateDepartmentSetorder directly

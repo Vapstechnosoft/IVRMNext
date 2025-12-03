@@ -35,7 +35,10 @@ export function ActionsCell({ row }: ActionsCellProps) {
         <div className='flex justify-center'>
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    <Button variant='ghost' size='sm' className='h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10'>
+                    <Button
+                        variant='ghost'
+                        size='sm'
+                        className='h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive'>
                         <span className='sr-only'>Delete</span>
                         <Trash2 className='h-4 w-4' />
                     </Button>

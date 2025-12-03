@@ -1,7 +1,7 @@
 'use client';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Input } from '@/components/ui/input';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
@@ -68,11 +68,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '', t
                 toast.error(res?.message || 'Failed to add earning/deduction');
             }
         } catch (error: any) {
-            const errorMsg =
-                error?.response?.data?.message ||
-                error?.message ||
-                error?.data?.message ||
-                'Failed to add earning/deduction';
+            const errorMsg = error?.response?.data?.message || error?.message || error?.data?.message || 'Failed to add earning/deduction';
             toast.error(errorMsg);
         }
     };

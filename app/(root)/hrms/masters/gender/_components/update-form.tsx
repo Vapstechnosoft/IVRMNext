@@ -1,89 +1,92 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterGender } from '@/hooks/hrms/useMasters';
-import { GENDER_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import type { GenderItem, MasterGenderInput } from '@/types/hrms/master-gender';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterGender } from '@/server/hrms/hrmsConfig/master/gender';
+import type { IMasterGenderList } from '@/types/hrms/hrms-config/master';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.gender.update>;
+
 interface UpdateGenderFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: GenderItem;
+    selectedRow: IMasterGenderList;
 }
+
 export default function UpdateGenderForm({ onSuccess, className = '', selectedRow: row }: UpdateGenderFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterGender(roleId);
+    const { refetchAll } = useMasterGender();
+
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting, isDirty }
-    } = useForm<MasterGenderInput>({
+    } = useForm<FormFields>({
+        resolver: zodResolver(hrmsMasterSchemas.gender.update),
         mode: 'onChange'
     });
+
     useEffect(() => {
         if (row) {
             reset({
-                IVRMMG_Id: row.IVRMMG_Id,
-                MI_Id: row.MI_Id,
-                IVRMMG_GenderName: row.IVRMMG_GenderName,
-                IVRMMG_ActiveFlag: row.IVRMMG_ActiveFlag
+                ivrmmG_Id: row.ivrmmG_Id,
+                ivrmmG_GenderName: row.ivrmmG_GenderName
             });
         }
     }, [row, reset]);
-    const onSubmit = async (data: MasterGenderInput) => {
-        const sanitizedData: MasterGenderInput = {
-            ...data,
-            IVRMMG_GenderName: data.IVRMMG_GenderName?.trim() || ''
-        };
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const res = await saveMutation.mutateAsync(sanitizedData);
-            if (res?.success) {
-                toast.success(res?.message || 'Gender updated successfully');
+            const payload = {
+                ivrmmG_Id: data.ivrmmG_Id,
+                ivrmmG_GenderName: data.ivrmmG_GenderName?.trim() || ''
+            };
+            const response = await addOrUpdateMasterGender(payload);
+
+            if (response?.success) {
+                toast.success(response?.message || 'Gender updated successfully');
                 refetchAll();
-                if (onSuccess) {
-                    onSuccess();
-                }
+                onSuccess?.();
             } else {
-                toast.error(res?.message || 'Failed to update gender');
+                toast.error(response?.message || 'Failed to update gender');
             }
         } catch (error: any) {
-            const errorMsg =
-                error?.response?.data?.message ||
-                error?.message ||
-                error?.data?.message ||
-                'Failed to update gender';
-            toast.error(errorMsg);
+            toast.error(error?.message || 'Failed to update gender');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
-        <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <input type='hidden' {...register('IVRMMG_Id', { valueAsNumber: true })} />
-                    <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='IVRMMG_GenderName'>
-                            Gender Name <span className='text-destructive'>*</span>
-                        </Label>
-                        <HRMSInputText
-                            id='IVRMMG_GenderName'
+        <div className={`${className}`}>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                <div className='space-y-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                        <input type='hidden' {...register('ivrmmG_Id', { valueAsNumber: true })} />
+                        <InputText
+                            label='Gender Name'
+                            required
+                            id='ivrmmG_GenderName'
                             placeholder='Enter gender name'
-                            maxLength={GENDER_VALIDATION.HRMGEN_GenderName.maxLength?.value}
-                            error={errors.IVRMMG_GenderName?.message}
-                            defaultValue={row.IVRMMG_GenderName}
-                            {...register('IVRMMG_GenderName', GENDER_VALIDATION.HRMGEN_GenderName)}
+                            maxLength={50}
+                            defaultValue={row.ivrmmG_GenderName}
+                            {...register('ivrmmG_GenderName')}
+                            error={errors.ivrmmG_GenderName?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

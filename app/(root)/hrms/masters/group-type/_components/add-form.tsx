@@ -1,162 +1,116 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
-import { groupTypeSchema } from '@/schemas/hrms/employee-category-schemas';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateMasterGroupType } from '@/server/hrms/hrmsConfig/master/group-type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof groupTypeSchema.addOrUpdate>;
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.groupType.add>;
+
 interface AddGroupTypeFormProps {
     onSuccess?: () => void;
     className?: string;
 }
+
 export default function AddGroupTypeForm({ onSuccess, className = '' }: AddGroupTypeFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterGroupType(roleId);
+    const { refetchAll } = useMasterGroupType();
+
     const {
         register,
         control,
         handleSubmit,
         reset,
-        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(groupTypeSchema.addOrUpdate),
+        resolver: zodResolver(hrmsMasterSchemas.groupType.add),
         mode: 'onChange',
         defaultValues: {
-            MI_Id: roleId,
-            HRMGT_EmployeeGroupType: '',
-            HRMGT_Code: '',
-            HRMGT_Order: 0,
-            HRMGT_ActiveFlag: true
+            hrmgT_Order: 0
         }
     });
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        const trimmedData = {
-            ...data,
-            HRMGT_EmployeeGroupType: data.HRMGT_EmployeeGroupType?.trim() || '',
-            HRMGT_Code: data.HRMGT_Code?.trim() || ''
-        };
-        if (!trimmedData.HRMGT_EmployeeGroupType || trimmedData.HRMGT_EmployeeGroupType.length === 0) {
-            toast.error('Employee Group Type is required');
-            return;
-        }
-        if (!trimmedData.HRMGT_Code || trimmedData.HRMGT_Code.length === 0) {
-            toast.error('Code is required');
-            return;
-        }
         try {
-            const response = await saveMutation.mutateAsync(trimmedData);
+            const payload = {
+                hrmgT_Id: 0,
+                hrmgT_EmployeeGroupType: data.hrmgT_EmployeeGroupType?.trim() || '',
+                hrmgT_Code: data.hrmgT_Code?.trim() || '',
+                hrmgT_Order: data.hrmgT_Order || 0
+            };
+            const response = await addOrUpdateMasterGroupType(payload);
+
             if (response?.success) {
-                toast.success(response.message || 'Group type saved successfully');
+                toast.success(response?.message || 'Group type saved successfully');
                 reset();
                 refetchAll();
-                if (onSuccess) {
-                    setTimeout(() => {
-                        onSuccess();
-                    }, 300);
-                }
+                onSuccess?.();
             } else {
                 toast.error(response?.message || 'Failed to save group type');
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error?.message || 'Failed to save group type');
         }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                        <HRMSInputText
+                        <InputText
                             label='Employee Group Type'
                             required
-                            id='HRMGT_EmployeeGroupType'
+                            id='hrmgT_EmployeeGroupType'
                             placeholder='Enter employee group type'
                             maxLength={50}
-                            {...register('HRMGT_EmployeeGroupType')}
-                            error={errors.HRMGT_EmployeeGroupType?.message}
+                            {...register('hrmgT_EmployeeGroupType')}
+                            error={errors.hrmgT_EmployeeGroupType?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-                        <HRMSInputText
+
+                        <InputText
                             label='Code'
                             required
-                            id='HRMGT_Code'
+                            id='hrmgT_Code'
                             placeholder='Enter code'
                             maxLength={20}
-                            {...register('HRMGT_Code')}
-                            error={errors.HRMGT_Code?.message}
+                            {...register('hrmgT_Code')}
+                            error={errors.hrmgT_Code?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
+
                         <Controller
-                            name='HRMGT_Order'
+                            name='hrmgT_Order'
                             control={control}
-                            render={({ field }) => {
-                                const containerRefCallback = (containerElement: HTMLDivElement | null) => {
-                                    if (!containerElement) return;
-                                    const findInput = () => {
-                                        return containerElement.querySelector(
-                                            'input[type="text"], input[type="number"]'
-                                        ) as HTMLInputElement;
-                                    };
-                                    const attachListener = () => {
-                                        const inputElement = findInput();
-                                        if (!inputElement) {
-                                            setTimeout(attachListener, 50);
-                                            return;
-                                        }
-                                        if ((inputElement as any).__dirtyHandlerAttached) {
-                                            return;
-                                        }
-                                        const handleInput = (e: Event) => {
-                                            const target = e.target as HTMLInputElement;
-                                            const inputValue = target.value.trim();
-                                            if (inputValue !== '' && !Number.isNaN(Number(inputValue))) {
-                                                const numValue = Number(inputValue);
-                                                const currentValue = field.value || 0;
-                                                if (Math.abs(numValue - currentValue) > 0.0001) {
-                                                    field.onChange(numValue);
-                                                    setValue('HRMGT_Order', numValue, { shouldDirty: true, shouldValidate: true });
-                                                }
-                                            }
-                                        };
-                                        inputElement.addEventListener('input', handleInput, { passive: true });
-                                        (inputElement as any).__dirtyHandlerAttached = true;
-                                    };
-                                    attachListener();
-                                };
-                                return (
-                                    <div ref={containerRefCallback}>
-                                        <InputNumber
-                                            label='Order'
-                                            required
-                                            id='HRMGT_Order'
-                                            value={field.value}
-                                            onChange={(value) => {
-                                                const numValue = value !== null && value !== undefined ? Number(value) : 0;
-                                                field.onChange(numValue);
-                                                setValue('HRMGT_Order', numValue, { shouldDirty: true, shouldValidate: true });
-                                            }}
-                                            onBlur={field.onBlur}
-                                            error={errors.HRMGT_Order?.message}
-                                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                        />
-                                    </div>
-                                );
-                            }}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Order'
+                                    id='hrmgT_Order'
+                                    value={field.value}
+                                    onChange={(value) => {
+                                        const numValue = value !== null && value !== undefined ? Number(value) : 0;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmgT_Order?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
                         />
                     </div>
-                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

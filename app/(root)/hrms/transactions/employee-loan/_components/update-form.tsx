@@ -198,8 +198,7 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                             onValueChange={(value) => {
                                 setValue('loanTypeId', Number(value));
                             }}
-                            value={watch('loanTypeId')?.toString() || ''}
-                        >
+                            value={watch('loanTypeId')?.toString() || ''}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Loan Type' />
                             </SelectTrigger>

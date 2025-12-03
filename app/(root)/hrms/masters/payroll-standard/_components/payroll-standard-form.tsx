@@ -1,9 +1,9 @@
 'use client';
+import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';

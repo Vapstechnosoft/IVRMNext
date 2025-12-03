@@ -3,10 +3,10 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useGroupDeptDessgMapping, useSaveGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
+import { useDepartmentDropdown, useDesignationDropdown, useGroupTypeDropdown } from '@/hooks/hrms/useEmployeeRegister';
+import { useSaveGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
 import { groupDeptDessgMappingSchema } from '@/schemas/hrms/group-dept-dessg-mapping-schemas';
-import type { GroupDeptDessgMappingInput } from '@/types/hrms/group-dept-dessg-mapping';
+import type { IDepartmentDropdown, IDesignationDropdown, IGroupTypeDropdown } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useMemo } from 'react';
@@ -19,7 +19,24 @@ interface AddGroupDeptDessgMappingFormProps {
     className?: string;
 }
 export default function AddGroupDeptDessgMappingForm({ onSuccess, className = '' }: AddGroupDeptDessgMappingFormProps) {
-    const { data: response } = useGroupDeptDessgMapping();
+    // Group Type dropdown - API: /api/MasterDropDown/GroupType
+    const { data: groupTypeDropdownResponse, isLoading: isLoadingGroupTypes } = useGroupTypeDropdown();
+    const groupTypeDropdown: IGroupTypeDropdown[] = Array.isArray(groupTypeDropdownResponse)
+        ? groupTypeDropdownResponse
+        : (groupTypeDropdownResponse as any)?.data || [];
+
+    // Department dropdown - API: /api/MasterDropDown/GetDepartments
+    const { data: departmentDropdownResponse, isLoading: isLoadingDepartments } = useDepartmentDropdown();
+    const departmentDropdown: IDepartmentDropdown[] = Array.isArray(departmentDropdownResponse)
+        ? departmentDropdownResponse
+        : (departmentDropdownResponse as any)?.data || [];
+
+    // Designation dropdown - API: /api/MasterDropDown/GetDesignation
+    const { data: designationDropdownResponse, isLoading: isLoadingDesignations } = useDesignationDropdown();
+    const designationDropdown: IDesignationDropdown[] = Array.isArray(designationDropdownResponse)
+        ? designationDropdownResponse
+        : (designationDropdownResponse as any)?.data || [];
+
     const { mutate: saveMapping, isPending } = useSaveGroupDeptDessgMapping();
     const {
         control,
@@ -28,26 +45,18 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(groupDeptDessgMappingSchema.addOrUpdate),
-        mode: 'onChange',
-        defaultValues: {
-            mI_Id: HRMS_MI_ID,
-            hrmgT_Id: 0,
-            hrmD_Id: 0,
-            hrmdeS_Id: 0,
-            designationids: [],
-            hrgtddS_ActiveFlg: true,
-            hrgtddS_CreatedBy: 5,
-            logInUserId: 5
-        }
+        mode: 'onChange'
     });
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const submitData: GroupDeptDessgMappingInput = {
-                ...data,
-                hrmdeS_Id: data.hrmdeS_Id || (data.designationids && data.designationids.length > 0 ? data.designationids[0] : 0),
-                hrgtddS_Id: 0
+            // Construct API request body - MI_Id is excluded (extracted from JWT)
+            const requestBody: any = {
+                HRMGT_Id: data.hrmgT_Id,
+                HRMD_Id: data.hrmD_Id,
+                HRMDES_Ids: data.designationids || [],
+                UserId: data.logInUserId || 0
             };
-            saveMapping(submitData, {
+            saveMapping(requestBody, {
                 onSuccess: (response) => {
                     if (response.success) {
                         toast.success(response.message || 'Mapping saved successfully');
@@ -68,25 +77,20 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
     const handleReset = () => {
         reset();
     };
-    const groupTypes = useMemo(() => {
-        const responseData = response?.data as any;
-        return responseData?.data?.groupTypedropdown || responseData?.groupTypedropdown || [];
-    }, [response?.data]);
-    const departments = useMemo(() => {
-        const responseData = response?.data as any;
-        return responseData?.data?.departmentdropdown || responseData?.departmentdropdown || [];
-    }, [response?.data]);
-    const designations = useMemo(() => {
-        const responseData = response?.data as any;
-        return responseData?.data?.designationdropdown || responseData?.designationdropdown || [];
-    }, [response?.data]);
+
+    // Transform designation dropdown for MultiSelect component
     const designationOptions = useMemo(() => {
-        return designations.map((desig: any, index: number) => ({
-            label: desig.HRMDES_DesignationName,
-            value: desig.HRMDES_Id?.toString(),
-            _index: index
-        }));
-    }, [designations]);
+        return designationDropdown
+            .filter((desig: IDesignationDropdown) => {
+                return desig.key != null && desig.key !== '' && String(desig.key).trim() !== '';
+            })
+            .map((desig: IDesignationDropdown) => ({
+                label: desig.value || String(desig.key),
+                value: desig.key?.toString().trim() || '',
+                _index: 0
+            }))
+            .filter((opt) => opt.value !== '');
+    }, [designationDropdown]);
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -100,18 +104,26 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                                 name='hrmgT_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select
-                                        value={field.value?.toString() || ''}
-                                        onValueChange={(value) => field.onChange(Number(value))}>
+                                    <Select value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(Number(value))}>
                                         <SelectTrigger id='hrmgT_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                             <SelectValue placeholder='Select group type' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {groupTypes.map((group: any, index: number) => (
-                                                <SelectItem key={`group-${group.HRMGT_Id}-${index}`} value={group.HRMGT_Id?.toString()}>
-                                                    {group.HRMGT_EmployeeGroupType}
-                                                </SelectItem>
-                                            ))}
+                                            {groupTypeDropdown
+                                                .filter((group: IGroupTypeDropdown) => {
+                                                    return group.key != null && group.key !== '' && String(group.key).trim() !== '';
+                                                })
+                                                .map((group: IGroupTypeDropdown) => {
+                                                    const key = group.key?.toString().trim();
+                                                    if (!key || key === '') return null;
+                                                    const value = group.value || String(group.key);
+                                                    return (
+                                                        <SelectItem key={group.key} value={key}>
+                                                            {value}
+                                                        </SelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -126,25 +138,33 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                                 name='hrmD_Id'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select
-                                        value={field.value?.toString() || ''}
-                                        onValueChange={(value) => field.onChange(Number(value))}>
+                                    <Select value={field.value?.toString() || ''} onValueChange={(value) => field.onChange(Number(value))}>
                                         <SelectTrigger id='hrmD_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
                                             <SelectValue placeholder='Select department' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {departments.map((dept: any, index: number) => (
-                                                <SelectItem key={`dept-${dept.HRMD_Id}-${index}`} value={dept.HRMD_Id?.toString()}>
-                                                    {dept.HRMD_DepartmentName}
-                                                </SelectItem>
-                                            ))}
+                                            {departmentDropdown
+                                                .filter((dept: IDepartmentDropdown) => {
+                                                    return dept.key != null && dept.key !== '' && String(dept.key).trim() !== '';
+                                                })
+                                                .map((dept: IDepartmentDropdown) => {
+                                                    const key = dept.key?.toString().trim();
+                                                    if (!key || key === '') return null;
+                                                    const value = dept.value || String(dept.key);
+                                                    return (
+                                                        <SelectItem key={dept.key} value={key}>
+                                                            {value}
+                                                        </SelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
                             {errors.hrmD_Id && <FormError>{errors.hrmD_Id.message}</FormError>}
                         </div>
-                        <div className='group flex flex-col gap-1.5 md:col-span-3'>
+                        <div className='group flex flex-col gap-1.5 '>
                             <Label htmlFor='designationids'>
                                 Designation <span className='text-destructive'>*</span>
                             </Label>

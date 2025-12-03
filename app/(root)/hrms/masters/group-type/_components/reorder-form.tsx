@@ -1,60 +1,71 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterGroupType } from '@/hooks/hrms/useMasters';
+import { useGroupTypeSetOrder } from '@/hooks/hrms/useMasters';
 import { getGroupTypeSetOrder, updateGroupTypeSetorder } from '@/server/hrms/hrmsConfig/master/group-type';
-import type { GroupTypeSetOrderList } from '@/types/hrms/master-group-type';
+import type { IMasterGroupTypeSetOrderList } from '@/types/hrms/hrms-config/master';
 import { GitCompareArrows, GripVertical } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+
 export default function ReorderGroupTypeForm() {
-    const { refetchAll } = useMasterGroupType(HRMS_MI_ID);
+    const { refetchAll } = useGroupTypeSetOrder();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [orderedItems, setOrderedItems] = useState<GroupTypeSetOrderList[]>([]);
+    const [orderedItems, setOrderedItems] = useState<IMasterGroupTypeSetOrderList[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+
     const handleOpenDialog = async () => {
         try {
-            const orderResponse = await getGroupTypeSetOrder(HRMS_MI_ID);
-            setOrderedItems(orderResponse?.data ?? []);
+            const orderResponse = await getGroupTypeSetOrder();
+            setOrderedItems(Array.isArray(orderResponse) ? orderResponse : []);
             setIsDialogOpen(true);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to load group types for reordering');
         }
     };
+
     const handleDragStart = (index: number) => {
         setDraggedIndex(index);
     };
+
     const handleDragOver = (e: React.DragEvent, index: number) => {
         e.preventDefault();
+
         if (draggedIndex === null || draggedIndex === index) return;
+
         const newItems = [...orderedItems];
         const draggedItem = newItems[draggedIndex];
         newItems.splice(draggedIndex, 1);
         newItems.splice(index, 0, draggedItem);
+
         setOrderedItems(newItems);
         setDraggedIndex(index);
     };
+
     const handleDragEnd = () => {
         setDraggedIndex(null);
     };
+
     const onSubmit = async (e?: React.FormEvent) => {
         e?.preventDefault();
         setIsSaving(true);
         try {
             const payload = orderedItems.map((item, index) => ({
-                id: item.HRMGT_Id,
+                id: item.hrmgT_Id,
                 order: index + 1
             }));
+
             const response = await updateGroupTypeSetorder(payload as any);
-            if (response?.success || (response as any)?.retrunMsg === 'Order') {
-                toast.success('Order saved successfully');
+
+            if (response?.success) {
+                toast.success(response?.message || 'Order saved successfully');
                 setIsDialogOpen(false);
                 refetchAll();
             } else {
-                toast.error((response as any)?.message || 'Failed to save order');
+                toast.error(response?.message || 'Failed to save order');
             }
         } catch (error: any) {
             toast.error(error?.message ?? 'An error occurred');
@@ -62,6 +73,7 @@ export default function ReorderGroupTypeForm() {
             setIsSaving(false);
         }
     };
+
     return (
         <>
             <Button type='button' onClick={handleOpenDialog} className='w-fit transition-all duration-200 hover:scale-90'>
@@ -75,7 +87,7 @@ export default function ReorderGroupTypeForm() {
                             <div className='my-6 max-h-96 space-y-3 overflow-y-auto'>
                                 {orderedItems.map((item, index) => (
                                     <div
-                                        key={`${item.HRMGT_Id}-${index}`}
+                                        key={`${item.hrmgT_Id}-${index}`}
                                         draggable
                                         onDragStart={() => handleDragStart(index)}
                                         onDragOver={(e) => handleDragOver(e, index)}
@@ -84,7 +96,7 @@ export default function ReorderGroupTypeForm() {
                                             draggedIndex === index ? 'opacity-50' : 'hover:bg-muted'
                                         }`}>
                                         <GripVertical className='size-4' />
-                                        <div className='flex-1 font-medium text-sm'>{item.HRMGT_EmployeeGroupType}</div>
+                                        <div className='flex-1 font-medium text-sm'>{item.hrmgT_EmployeeGroupType}</div>
                                     </div>
                                 ))}
                             </div>

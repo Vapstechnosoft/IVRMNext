@@ -115,7 +115,7 @@ export default function StaffUserCreationPage() {
             ];
             setStaffUsers(mockData);
             toast.success(`Loaded ${mockData.length} staff users`);
-        } catch (error) {
+        } catch (_error) {
             toast.error('Failed to load staff users');
             setStaffUsers([]);
         } finally {

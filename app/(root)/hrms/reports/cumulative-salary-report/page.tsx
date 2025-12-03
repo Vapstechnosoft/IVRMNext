@@ -371,8 +371,7 @@ export default function CumulativeSalaryReportPage(props: { searchParams: Search
                         (data) => {
                             return onSubmit(data);
                         },
-                        (errors) => {
-                        }
+                        (_errors) => {}
                     )}
                     onCancel={handleCancel}
                 />

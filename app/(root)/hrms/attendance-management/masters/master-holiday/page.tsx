@@ -2,13 +2,12 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterHoliday } from '@/hooks/hrms/attendance-management/useMasters';
 import type { ApiSearchparams } from '@/types';
-import type { ReportListItem } from '@/types/hrms/attendance-management/master-holiday';
 import { Plus, X } from 'lucide-react';
 import { use, useMemo } from 'react';
+import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import AddMasterHolidayForm from './_components/add-form';
 import { type MasterHoliday, masterHolidayColumns } from './_components/columns';
 import DeleteMasterHolidayForm from './_components/delete-form';
@@ -92,22 +91,20 @@ function MasterHolidayPageContent({
         }
         return reportList
             .filter((item) => item && typeof item === 'object')
-            .map(
-                (item: any): MasterHoliday => {
-                    return {
-                        id: item.FOMHWDD_Id || item.fomhwD_Id || 0,
-                        createdAt: new Date(),
-                        calendarYear: '', // Extract from API if available
-                        department: item.HRMD_DepartmentName || item.hrmD_DepartmentName || '',
-                        holidayType: item.FOHTWD_HolidayWDType || item.fohtwD_HolidayWDType || '',
-                        name: item.FOMHWDD_Name || item.fomhwD_Name || '',
-                        selectedDays: [],
-                        fromDate: item.FOMHWDD_FromDate || item.fomhwD_FromDate || '',
-                        toDate: item.FOMHWDD_ToDate || item.fomhwD_ToDate || '',
-                        isActive: item.FOMHWD_ActiveFlg ?? item.fomhwD_ActiveFlg ?? false
-                    };
-                }
-            );
+            .map((item: any): MasterHoliday => {
+                return {
+                    id: item.FOMHWDD_Id || item.fomhwD_Id || 0,
+                    createdAt: new Date(),
+                    calendarYear: '', // Extract from API if available
+                    department: item.HRMD_DepartmentName || item.hrmD_DepartmentName || '',
+                    holidayType: item.FOHTWD_HolidayWDType || item.fohtwD_HolidayWDType || '',
+                    name: item.FOMHWDD_Name || item.fomhwD_Name || '',
+                    selectedDays: [],
+                    fromDate: item.FOMHWDD_FromDate || item.fomhwD_FromDate || '',
+                    toDate: item.FOMHWDD_ToDate || item.fomhwD_ToDate || '',
+                    isActive: item.FOMHWD_ActiveFlg ?? item.fomhwD_ActiveFlg ?? false
+                };
+            });
     }, [response]);
     // Create a response object that useDataTableProps expects
     // useDataTableProps expects: { data: [...], total: number, success: boolean, message: string }

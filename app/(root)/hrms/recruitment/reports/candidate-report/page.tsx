@@ -34,7 +34,7 @@ export default function CandidateReportPage(props: {
             // setSelectedCandidate(response.data);
             // Mock data for now
             setSelectedCandidate(null);
-        } catch (error: any) {
+        } catch (_error: any) {
         } finally {
             setIsLoading(false);
         }

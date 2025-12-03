@@ -1,8 +1,8 @@
 'use client';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { ChevronRight } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 interface HRMSCollapsibleSectionProps {

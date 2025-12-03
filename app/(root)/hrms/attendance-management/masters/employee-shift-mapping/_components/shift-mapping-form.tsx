@@ -45,7 +45,7 @@ function calculateTimeDifference(startTime: string, endTime: string): string {
 }
 export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel }: ShiftMappingFormProps) {
     // Fetch dropdown data from API
-    const { data: dropdownData, isLoading: isLoadingDropdowns } = useEmployeeShiftMappingDropdowns();
+    const { data: dropdownData } = useEmployeeShiftMappingDropdowns();
     // Fetch employee options
     const [employeeOptions, setEmployeeOptions] = useState<Array<{ label: string; value: string }>>([]);
     const filterEmployeesMutation = useFilterEmployeesBySelection();
@@ -53,10 +53,12 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
     useEffect(() => {
         // First, try to use employees from the dropdown API response
         if (dropdownData?.data?.employees && dropdownData.data.employees.length > 0) {
-            const apiEmployees = dropdownData.data.employees.map((emp: any) => ({
-                label: emp.label || '',
-                value: emp.value || ''
-            })).filter((opt: { label: string; value: string }) => opt.label && opt.value);
+            const apiEmployees = dropdownData.data.employees
+                .map((emp: any) => ({
+                    label: emp.label || '',
+                    value: emp.value || ''
+                }))
+                .filter((opt: { label: string; value: string }) => opt.label && opt.value);
             if (apiEmployees.length > 0) {
                 setEmployeeOptions(apiEmployees);
                 return;
@@ -90,7 +92,8 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
                     setEmployeeOptions(options);
                 }
             },
-            onError: (error) => {
+            onError: (_error) => {
+                // Error handling is done by the mutation hook
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -185,7 +188,7 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
             try {
                 const shifts = shiftStore.list();
                 setAvailableShifts(shifts);
-            } catch (error) {
+            } catch (_error) {
                 setAvailableShifts([]);
             }
         }
@@ -205,11 +208,13 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
                 id: shift.id || 0
             }));
         }
-        return availableShifts.map((shift) => ({
-            label: shift.shiftName,
-            value: shift.shiftName,
-            id: shift.id || 0
-        })).filter((shift) => shift.label);
+        return availableShifts
+            .map((shift) => ({
+                label: shift.shiftName,
+                value: shift.shiftName,
+                id: shift.id || 0
+            }))
+            .filter((shift) => shift.label);
     }, [dropdownData, availableShifts]);
     // Get the selected shift's ID
     const selectedShiftId = useMemo(() => {
@@ -228,44 +233,36 @@ export function ShiftMappingForm({ editingMapping, onSubmit, onCancel: _onCancel
         if (selectedShiftId > 0 && shiftDetailsData?.data) {
             // Get shift details from API response
             // The response might be an array or a single object
-            const shiftDetailsArray = Array.isArray(shiftDetailsData.data) 
-                ? shiftDetailsData.data 
-                : [shiftDetailsData.data];
+            const shiftDetailsArray = Array.isArray(shiftDetailsData.data) ? shiftDetailsData.data : [shiftDetailsData.data];
             if (shiftDetailsArray.length > 0) {
                 const shiftDetails = shiftDetailsArray[0];
                 // Map API response fields to form fields
                 // The API response structure may vary, so we handle multiple possible formats
-                const shiftStartTime = shiftDetails.FOMST_IHalfLoginTime || 
-                                       shiftDetails.IHalfLoginTime || 
-                                       shiftDetails.shiftStartTime || 
-                                       shiftDetails.startTime || '';
-                const shiftEndTime = shiftDetails.FOMST_IIHalfLogoutTime || 
-                                    shiftDetails.IIHalfLogoutTime || 
-                                    shiftDetails.shiftEndTime || 
-                                    shiftDetails.endTime || '';
-                const lunchStartTime = shiftDetails.FOMST_IHalfLogoutTime || 
-                                       shiftDetails.IHalfLogoutTime || 
-                                       shiftDetails.lunchStartTime || '';
-                const lunchEndTime = shiftDetails.FOMST_IIHalfLoginTime || 
-                                    shiftDetails.IIHalfLoginTime || 
-                                    shiftDetails.lunchEndTime || '';
-                const totalWorkingHours = shiftDetails.FOMST_FDWHrMin || 
-                                         shiftDetails.FDWHrMin || 
-                                         shiftDetails.totalWorkingHours || '';
-                const halfDayWorkingHours = shiftDetails.FOMST_HDWHrMin || 
-                                           shiftDetails.HDWHrMin || 
-                                           shiftDetails.halfDayWorkingHours || '';
-                const delayPerShift = shiftDetails.FOMST_DelayPerShiftHrMin || 
-                                     shiftDetails.DelayPerShiftHrMin || 
-                                     shiftDetails.delayPerShift || '';
-                const earlyPerShift = shiftDetails.FOMST_EarlyPerShiftHrMin || 
-                                     shiftDetails.EarlyPerShiftHrMin || 
-                                     shiftDetails.earlyPerShift || '';
-                const lunchHours = shiftDetails.FOMST_LunchHoursDuration || 
-                                  shiftDetails.LunchHoursDuration || 
-                                  shiftDetails.lunchHours || '';
+                const shiftStartTime =
+                    shiftDetails.FOMST_IHalfLoginTime ||
+                    shiftDetails.IHalfLoginTime ||
+                    shiftDetails.shiftStartTime ||
+                    shiftDetails.startTime ||
+                    '';
+                const shiftEndTime =
+                    shiftDetails.FOMST_IIHalfLogoutTime ||
+                    shiftDetails.IIHalfLogoutTime ||
+                    shiftDetails.shiftEndTime ||
+                    shiftDetails.endTime ||
+                    '';
+                const lunchStartTime =
+                    shiftDetails.FOMST_IHalfLogoutTime || shiftDetails.IHalfLogoutTime || shiftDetails.lunchStartTime || '';
+                const lunchEndTime = shiftDetails.FOMST_IIHalfLoginTime || shiftDetails.IIHalfLoginTime || shiftDetails.lunchEndTime || '';
+                const totalWorkingHours = shiftDetails.FOMST_FDWHrMin || shiftDetails.FDWHrMin || shiftDetails.totalWorkingHours || '';
+                const halfDayWorkingHours = shiftDetails.FOMST_HDWHrMin || shiftDetails.HDWHrMin || shiftDetails.halfDayWorkingHours || '';
+                const delayPerShift =
+                    shiftDetails.FOMST_DelayPerShiftHrMin || shiftDetails.DelayPerShiftHrMin || shiftDetails.delayPerShift || '';
+                const earlyPerShift =
+                    shiftDetails.FOMST_EarlyPerShiftHrMin || shiftDetails.EarlyPerShiftHrMin || shiftDetails.earlyPerShift || '';
+                const lunchHours =
+                    shiftDetails.FOMST_LunchHoursDuration || shiftDetails.LunchHoursDuration || shiftDetails.lunchHours || '';
                 // Clean time strings (remove extra spaces)
-                const cleanTime = (time: string) => time ? String(time).trim() : '';
+                const cleanTime = (time: string) => (time ? String(time).trim() : '');
                 // Populate form fields with API data (only if values exist)
                 if (shiftStartTime) setValue('shiftStartTime', cleanTime(shiftStartTime));
                 if (shiftEndTime) setValue('shiftEndTime', cleanTime(shiftEndTime));

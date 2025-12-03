@@ -62,9 +62,11 @@ function SalaryAdvancePageContent({
     };
     const getEmployeeName = (employee: EmployeeDropdown | null | undefined) => {
         if (!employee) return 'N/A';
-        return `${employee.HRME_EmployeeFirstName || ''} ${
-            employee.HRME_EmployeeMiddleName || ''
-        } ${employee.HRME_EmployeeLastName || ''}`.trim() || 'N/A';
+        return (
+            `${employee.HRME_EmployeeFirstName || ''} ${
+                employee.HRME_EmployeeMiddleName || ''
+            } ${employee.HRME_EmployeeLastName || ''}`.trim() || 'N/A'
+        );
     };
     const getEmployeeCode = (employeeId: number) => {
         const employee = employees.find((emp: EmployeeDropdown) => emp.HRME_Id === employeeId);

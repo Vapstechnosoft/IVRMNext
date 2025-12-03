@@ -97,11 +97,5 @@ function ActionButtonsCell({ rowData }: { rowData: MasterHoliday }) {
         },
         [openDeleteForm]
     );
-    return (
-        <ActionButtons
-            rowData={rowData}
-            buttons={{ edit: false, toggle: false, delete: true }}
-            onDelete={handleDelete}
-        />
-    );
+    return <ActionButtons rowData={rowData} buttons={{ edit: false, toggle: false, delete: true }} onDelete={handleDelete} />;
 }

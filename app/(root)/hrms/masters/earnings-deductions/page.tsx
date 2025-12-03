@@ -11,6 +11,7 @@ import { useMemo, useState } from 'react';
 import AddEarningsDeductionsForm from './_components/add-form';
 import { columns } from './_components/columns';
 import ReorderEarningsDeductionsForm from './_components/reorder-form';
+import ToggleMasterEarningsDeductionsForm from './_components/toggle-form';
 import UpdateEarningsDeductionsForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function MasterEarningsDeductionsPage(_props: {
@@ -20,7 +21,12 @@ export default function MasterEarningsDeductionsPage(_props: {
     const { listQuery, refetchAll } = useMasterEarningsDeductions(roleId);
     return (
         <FormProvider<EarningsDeductionDetail>>
-            <MasterEarningsDeductionsPageContent response={listQuery.data} isLoading={listQuery.isLoading} error={listQuery.error} refetch={refetchAll} />
+            <MasterEarningsDeductionsPageContent
+                response={listQuery.data}
+                isLoading={listQuery.isLoading}
+                error={listQuery.error}
+                refetch={refetchAll}
+            />
         </FormProvider>
     );
 }
@@ -46,9 +52,7 @@ function MasterEarningsDeductionsPageContent({
     const typeDropdown = useMemo(() => response?.data?.eardettypeDropdown ?? [], [response?.data?.eardettypeDropdown]);
     const [filterCategory, setFilterCategory] = useState<string>('all');
     const filteredRows = filterCategory === 'all' ? rows : rows.filter((row) => row.HRMED_EarnDedFlag === filterCategory);
-    const filteredTableProps = filterCategory === 'all' 
-        ? tableProps 
-        : { data: filteredRows, totalItems: filteredRows.length };
+    const filteredTableProps = filterCategory === 'all' ? tableProps : { data: filteredRows, totalItems: filteredRows.length };
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -112,8 +116,17 @@ function MasterEarningsDeductionsPageContent({
     );
 }
 function FormSections({ typeDropdown, refetch }: { typeDropdown: any[]; refetch: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<EarningsDeductionDetail>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<EarningsDeductionDetail>();
     return (
         <>
             {isAddFormOpen && (
@@ -174,6 +187,9 @@ function FormSections({ typeDropdown, refetch }: { typeDropdown: any[]; refetch:
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterEarningsDeductionsForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

@@ -2,12 +2,9 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
-import type { EarningsDeductionDetail, MasterEarningsDeductionsResponse } from '@/types/hrms/master-earnings-deductions';
+import type { EarningsDeductionDetail } from '@/types/hrms/master-earnings-deductions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
 export const columns: ColumnDef<EarningsDeductionDetail>[] = [
     {
         id: 'slNo',
@@ -65,51 +62,22 @@ export const columns: ColumnDef<EarningsDeductionDetail>[] = [
     }
 ];
 function ActionButtonsCell({ rowData }: { rowData: EarningsDeductionDetail }) {
-    const { openEditForm } = useFormContext<MasterEarningsDeductionsResponse>();
-    const { toggleMutation } = useMasterEarningsDeductions(HRMS_MI_ID);
+    const { openEditForm, openToggleForm } = useFormContext<EarningsDeductionDetail>();
+
     const handleEdit = useCallback(
         (data: EarningsDeductionDetail) => {
-            openEditForm(data as any);
+            openEditForm(data);
         },
         [openEditForm]
     );
+
     const handleToggle = useCallback(
-        async (data: EarningsDeductionDetail, newState: boolean) => {
-            const _timestamp = new Date().toISOString();
-            const _targetState = newState ? 'ACTIVE' : 'INACTIVE';
-            const _currentState = data.HRMED_ActiveFlag ? 'ACTIVE' : 'INACTIVE';
-            try {
-                const requestPayload = {
-                    HRMED_Id: data.HRMED_Id,
-                    HRMED_ActiveFlag: newState,
-                    MI_Id: HRMS_MI_ID
-                };
-                const requestStartTime = Date.now();
-                const result = await toggleMutation.mutateAsync(requestPayload);
-                const _requestDuration = Date.now() - requestStartTime;
-                if (result?.success) {
-                    const successMsg = result?.message || `Earnings/Deduction ${newState ? 'activated' : 'deactivated'} successfully`;
-                    if (result?.data) {
-                    }
-                    toast.success(successMsg);
-                } else {
-                    const errorMsg = result?.message || `Failed to ${newState ? 'activate' : 'deactivate'} earnings/deduction`;
-                    toast.error(errorMsg);
-                }
-            } catch (error: any) {
-                if (error?.response) {
-                }
-                if (error?.request) {
-                }
-                const errorMsg =
-                    error?.response?.data?.message ||
-                    error?.message ||
-                    `Failed to ${newState ? 'activate' : 'deactivate'} earnings/deduction`;
-                toast.error(errorMsg);
-            }
+        (data: EarningsDeductionDetail) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
+
     return (
         <ActionButtons
             rowData={rowData}

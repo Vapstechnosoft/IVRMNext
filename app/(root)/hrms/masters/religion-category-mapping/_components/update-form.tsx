@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useReligionCategoryMapping, useSaveReligionCategoryMapping } from '@/hooks/hrms/useMasters';
+import { useCasteCategoryDropdown, useReligionDropdown } from '@/hooks/hrms/useEmployeeRegister';
+import { useReligionCategoryMappingCRUD } from '@/hooks/hrms/useMasters';
 import { religionCategoryMappingSchema } from '@/schemas/hrms/religion-category-mapping-schemas';
+import { saveReligionCategoryMapping } from '@/server/hrms/hrmsConfig/master/religion-category-mapping';
+import type { ICasteCategoryDropdown, IReligionDropdown } from '@/types/hrms/hrms-config/employee';
 import type { ReligionCategoryMappingDetail } from '@/types/hrms/religion-category-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -13,15 +15,34 @@ import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+
 type FormFields = z.infer<typeof religionCategoryMappingSchema.addOrUpdate>;
+
 interface UpdateReligionCategoryMappingFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: ReligionCategoryMappingDetail;
 }
-export default function UpdateReligionCategoryMappingForm({ onSuccess, className = '', selectedRow: row }: UpdateReligionCategoryMappingFormProps) {
-    const { data: response } = useReligionCategoryMapping();
-    const { mutate: saveMapping, isPending } = useSaveReligionCategoryMapping();
+
+export default function UpdateReligionCategoryMappingForm({
+    onSuccess,
+    className = '',
+    selectedRow: row
+}: UpdateReligionCategoryMappingFormProps) {
+    const { refetchAll } = useReligionCategoryMappingCRUD();
+
+    // Religion dropdown - API: /api/MasterDropDown/GeAllReligionList
+    const { data: religionDropdownResponse } = useReligionDropdown();
+    const religionDropdown: IReligionDropdown[] = Array.isArray(religionDropdownResponse)
+        ? religionDropdownResponse
+        : (religionDropdownResponse as any)?.data || [];
+
+    // Caste Category dropdown - API: /api/MasterDropDown/GeAllCasteCategoriesList
+    const { data: casteCategoryDropdownResponse } = useCasteCategoryDropdown();
+    const casteCategoryDropdown: ICasteCategoryDropdown[] = Array.isArray(casteCategoryDropdownResponse)
+        ? casteCategoryDropdownResponse
+        : (casteCategoryDropdownResponse as any)?.data || [];
+
     const {
         control,
         handleSubmit,
@@ -31,6 +52,7 @@ export default function UpdateReligionCategoryMappingForm({ onSuccess, className
         resolver: zodResolver(religionCategoryMappingSchema.addOrUpdate),
         mode: 'onChange'
     });
+
     useEffect(() => {
         if (row) {
             const rowWithCategoryIds = row as ReligionCategoryMappingDetail & {
@@ -44,41 +66,18 @@ export default function UpdateReligionCategoryMappingForm({ onSuccess, className
                       : [];
             reset({
                 IMRCC_Id: row.IRCC_Id,
-                MI_Id: HRMS_MI_ID,
                 IVRMMR_Id: row.IVRMMR_Id,
                 IMCC_Id: row.IMCC_Id || 0,
-                categoryids: categoryids,
-                IMRCC_ActiveFlag: row.IRCC_ActiveFlg,
-                IMRCC_CreatedBy: 5,
-                LogInUserId: 2
+                categoryids: categoryids
             });
         }
     }, [row, reset]);
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            if (!data.IVRMMR_Id || data.IVRMMR_Id === 0 || Number.isNaN(data.IVRMMR_Id)) {
-                toast.error('Please select a religion');
-                return;
-            }
-            if (
-                !data.categoryids ||
-                !Array.isArray(data.categoryids) ||
-                data.categoryids.length === 0 ||
-                data.categoryids.every((id) => !id || id === 0)
-            ) {
-                toast.error('Please select at least one category');
-                return;
-            }
-            const validCategoryIds = data.categoryids.filter((id): id is number => typeof id === 'number' && !Number.isNaN(id) && id > 0);
-            if (validCategoryIds.length === 0) {
-                toast.error('Please select at least one valid category');
-                return;
-            }
             const rowWithCategoryIds = row as ReligionCategoryMappingDetail & { categoryids?: number[] };
             const originalCategoryIds =
-                rowWithCategoryIds.categoryids &&
-                Array.isArray(rowWithCategoryIds.categoryids) &&
-                rowWithCategoryIds.categoryids.length > 0
+                rowWithCategoryIds.categoryids && Array.isArray(rowWithCategoryIds.categoryids) && rowWithCategoryIds.categoryids.length > 0
                     ? rowWithCategoryIds.categoryids.sort((a, b) => a - b)
                     : row.IMCC_Id
                       ? [row.IMCC_Id]
@@ -86,7 +85,6 @@ export default function UpdateReligionCategoryMappingForm({ onSuccess, className
             const currentCategoryIds = (data.categoryids || []).sort((a, b) => a - b);
             const hasChanges =
                 row.IVRMMR_Id !== data.IVRMMR_Id ||
-                row.IRCC_ActiveFlg !== data.IMRCC_ActiveFlag ||
                 originalCategoryIds.length !== currentCategoryIds.length ||
                 !originalCategoryIds.every((id, index) => id === currentCategoryIds[index]);
             if (!hasChanges) {
@@ -94,85 +92,42 @@ export default function UpdateReligionCategoryMappingForm({ onSuccess, className
                 onSuccess?.();
                 return;
             }
-            const selectedReligion = religions.find((r: any) => r.IVRMMR_Id === data.IVRMMR_Id);
-            if (!selectedReligion) {
-                toast.error('Selected religion not found. Please select again.');
-                return;
-            }
-            const categoryIds = validCategoryIds;
-            const firstCategoryId = categoryIds.length > 0 ? categoryIds[0] : 0;
-            if (firstCategoryId === 0) {
-                toast.error('Please select at least one valid category');
-                return;
-            }
-            const selectedCategories = categoryIds.map((id) => categories.find((c: any) => c.IMCC_Id === id)).filter(Boolean);
-            const submitData = {
-                MI_Id: data.MI_Id || 30,
-                UserId: data.LogInUserId || 2,
-                IVRMMR_Id: data.IVRMMR_Id,
-                IMCC_Id: firstCategoryId,
-                categoryids: categoryIds,
-                IRCC_ActiveFlg: data.IMRCC_ActiveFlag ?? true,
+            const payload = {
                 IRCC_Id: row.IRCC_Id,
-                IRCC_UpdatedBy: data.IMRCC_CreatedBy || 5,
-                IRCC_CreatedDate: row.IRCC_CreatedDate,
-                IRCC_CreatedBy: row.IRCC_CreatedBy,
-                IVRMMR_Name: selectedReligion?.IVRMMR_Name || '',
-                IMCC_CategoryName: selectedCategories[0]?.IMCC_CategoryName || '',
-                IMCC_CategoryCode: selectedCategories[0]?.IMCC_CategoryCode || '',
-                IMCC_CategoryDesc: selectedCategories[0]?.IMCC_CategoryDesc || ''
+                IVRMMR_Id: data.IVRMMR_Id,
+                IMCC_Ids: data.categoryids || [],
+                UserId: 0
             };
-            saveMapping(submitData, {
-                onSuccess: (response) => {
-                    if (response.success) {
-                        toast.success(response.message || 'Mapping updated successfully');
-                        onSuccess?.();
-                    } else {
-                        const errorMessage = response.message || '';
-                        const isDuplicateError = errorMessage.toLowerCase().includes('duplicate');
-                        if (isDuplicateError) {
-                            toast.error(
-                                `Duplicate entry detected. The combination of Religion and Category already exists.`
-                            );
-                        } else {
-                            toast.error(response.message || 'Failed to update mapping');
-                        }
-                    }
-                },
-                onError: (error: any) => {
-                    const errorMessage = error.message || '';
-                    const isDuplicateError = errorMessage.toLowerCase().includes('duplicate');
-                    if (isDuplicateError) {
-                        toast.error(`Duplicate entry: The combination already exists.`);
-                    } else {
-                        toast.error(error.message || 'An error occurred');
-                    }
-                }
-            });
+            const response = await saveReligionCategoryMapping(payload);
+
+            if (response?.success) {
+                toast.success(response?.message || 'Mapping updated successfully');
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response?.message || 'Failed to update mapping');
+            }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred');
+            toast.error(error?.message || 'Failed to update mapping');
         }
     };
     const handleReset = () => {
         reset();
     };
-    const data = response?.data as any;
-    const religions = data?.religion_list || data?.data?.religion_list || [];
-    const categories = data?.caste_list || data?.data?.caste_list || [];
+
+    // Transform caste category dropdown for MultiSelect component
     const categoryOptions = useMemo(() => {
-        const seen = new Set<string>();
-        return categories
-            .filter((category: any) => {
-                const id = category.IMCC_Id?.toString() || '';
-                if (seen.has(id)) return false;
-                seen.add(id);
-                return true;
+        return casteCategoryDropdown
+            .filter((category: ICasteCategoryDropdown) => {
+                return category.key != null && category.key !== '' && String(category.key).trim() !== '';
             })
-            .map((category: any) => ({
-                label: category.IMCC_CategoryName || '',
-                value: category.IMCC_Id?.toString() || ''
-            }));
-    }, [categories]);
+            .map((category: ICasteCategoryDropdown) => ({
+                label: category.value || String(category.key),
+                value: category.key?.toString().trim() || '',
+                _index: 0
+            }))
+            .filter((opt) => opt.value !== '');
+    }, [casteCategoryDropdown]);
     const rowWithCategoryIds = row as ReligionCategoryMappingDetail & { categoryids?: number[] };
     const defaultCategoryIds =
         rowWithCategoryIds.categoryids && Array.isArray(rowWithCategoryIds.categoryids) && rowWithCategoryIds.categoryids.length > 0
@@ -208,11 +163,25 @@ export default function UpdateReligionCategoryMappingForm({ onSuccess, className
                                                 <SelectValue placeholder='Select religion' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {religions.map((religion: any) => (
-                                                    <SelectItem key={religion.IVRMMR_Id} value={religion.IVRMMR_Id?.toString()}>
-                                                        {religion.IVRMMR_Name}
-                                                    </SelectItem>
-                                                ))}
+                                                {religionDropdown
+                                                    .filter((religion: IReligionDropdown) => {
+                                                        return (
+                                                            religion.key != null &&
+                                                            religion.key !== '' &&
+                                                            String(religion.key).trim() !== ''
+                                                        );
+                                                    })
+                                                    .map((religion: IReligionDropdown) => {
+                                                        const key = religion.key?.toString().trim();
+                                                        if (!key || key === '') return null;
+                                                        const value = religion.value || String(religion.key);
+                                                        return (
+                                                            <SelectItem key={religion.key} value={key}>
+                                                                {value}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                    .filter(Boolean)}
                                             </SelectContent>
                                         </Select>
                                     );
@@ -266,15 +235,15 @@ export default function UpdateReligionCategoryMappingForm({ onSuccess, className
                         type='button'
                         variant='outline'
                         onClick={handleReset}
-                        disabled={isSubmitting || isPending}
+                        disabled={isSubmitting}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting || isPending || !isDirty}
+                        disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting || isPending}
+                        isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
