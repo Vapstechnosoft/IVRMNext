@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { exportToExcel } from '@/lib/utils';
+import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import type {
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
@@ -94,6 +95,8 @@ export default function FeeDefaulterReport() {
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
+    const [sectionLoading, setSectionLoading] = useState(false);
+
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
@@ -144,17 +147,34 @@ export default function FeeDefaulterReport() {
             setFilters((prev) => ({ ...prev, sectionId: 0 }));
         }
     }, [filters.classId, refetchSections]);
-
     useEffect(() => {
-        if (sectionListError) {
-            toast.error(sectionListError?.message || 'Failed to load sections');
-            setSections([]);
-            return;
-        }
-        if (sectionListResponse?.data && Array.isArray(sectionListResponse.data)) {
-            setSections(sectionListResponse.data);
-        }
-    }, [sectionListResponse, sectionListError]);
+        const fetchSections = async () => {
+            if (!filters.includeClassSection || !filters.academicYearId || filters.classId <= 0) {
+                setSections([]);
+                setFilters((prev) => ({ ...prev, sectionId: 0 }));
+                return;
+            }
+
+            setSectionLoading(true);
+            try {
+                const result = await getFeesSectionListByClassId(Number(filters.academicYearId), filters.classId);
+
+                const data = Array.isArray(result?.data) ? result.data : [];
+                setSections(data);
+
+                if (data.length === 0) {
+                    toast.info('No sections found for this class');
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'Failed to load sections');
+                setSections([]);
+            } finally {
+                setSectionLoading(false);
+            }
+        };
+
+        fetchSections();
+    }, [filters.academicYearId, filters.classId, filters.includeClassSection]);
 
     useEffect(() => {
         if (feegroupError) toast.error(feegroupError?.message || 'Failed to load fee groups');

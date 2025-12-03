@@ -616,3 +616,45 @@ export interface IFeeConcessionAcademicyearDropDownList {
     asmaY_Order: number;
     is_Active: boolean;
 }
+export interface IStudentSearchList {
+    amst_Id: number;
+    amsT_StudentName: string;
+}
+
+export interface IStudentTermList {
+    checked: boolean;
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fmT_Id: number;
+}
+
+export interface IStudentTDetails {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    amaY_RollNo: number;
+    classname: string;
+    sectionname: string;
+    fathername: string;
+    studentdob: string;
+    amst_mobile: number;
+    amsT_Photoname: string;
+}
+
+export interface IFeeTDetails {
+    fsS_CurrentYrCharges: number;
+    fmG_GroupName: string;
+    fsS_TotalToBePaid: number;
+    fsS_ToBePaid: number;
+    fsS_PaidAmount: number;
+    fsS_ConcessionAmount: number;
+    fsS_AdjustedAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_RefundAmount: number;
+    fmG_Id: number;
+    fsS_RunningExcessAmount: number;
+    fsS_FineAmount: number;
+}
