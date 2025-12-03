@@ -1,16 +1,104 @@
 'use client';
 
+import { Calendar } from '@/components/ui/calendar';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { IMasterFeesInstallmentDueDateList } from '@/types/fees/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+// function CalendarCell({
+//     row,
+//     field
+// }: {
+//     row: any;
+//     field: keyof IMasterFeesInstallmentDueDateList;
+// }) {
+//     const rawValue = row.getValue(field);
+//     const currentDate = rawValue && rawValue !== '0001-01-01T00:00:00' ? new Date(rawValue as string) : undefined;
+
+//     const [date, setDate] = useState<Date | undefined>(currentDate);
+
+//     useEffect(() => {
+//         setDate(currentDate);
+//     }, [currentDate, row.original.fdate, row.original.tdate]);
+
+//     const getDate = (key: keyof IMasterFeesInstallmentDueDateList): Date | null => {
+//         const val = row.original[key];
+//         if (!val || val === '0001-01-01T00:00:00') return null;
+//         const d = new Date(val as string);
+//         return Number.isNaN(d.getTime()) ? null : d;
+//     };
+
+//     const fromDate = getDate('fdate');
+//     const toDate = getDate('tdate');
+
+//     let fromDateProp: Date | undefined;
+//     let toDateProp: Date | undefined;
+//     let defaultMonth: Date = date ?? new Date();
+
+//     if (field === 'tdate' && fromDate) {
+//         fromDateProp = new Date(fromDate);
+//         fromDateProp.setDate(fromDate.getDate() + 1);
+//         defaultMonth = fromDateProp;
+//     }
+
+//     if (field === 'aplc' && fromDate) {
+//         fromDateProp = fromDate;
+//         toDateProp = toDate ?? new Date();
+//         defaultMonth = fromDate;
+//     }
+
+//     if (field === 'ddate' && fromDate) {
+
+//         fromDateProp = new Date(fromDate);
+//         fromDateProp.setDate(fromDate.getDate() + 1);
+//         defaultMonth = fromDateProp;
+//     }
+
+//     const handleSelect = (selected: Date | undefined) => {
+//         if (!selected) {
+//             setDate(undefined);
+//             row.original[field] = null;
+//             return;
+//         }
+
+//         if (field === 'tdate' && fromDate && selected <= fromDate) return;
+//         if (field === 'ddate' && fromDate && selected <= fromDate) return;
+//         if (field === 'aplc' && fromDate) {
+//             const maxDate = toDate ?? new Date();
+//             if (selected < fromDate || selected > maxDate) return;
+//         }
+
+//         selected.setHours(0, 0, 0, 0);
+//         setDate(selected);
+//         row.original[field] = selected.toISOString();
+//     };
+
+//     return (
+//         <Popover>
+//             <PopoverTrigger asChild>
+//                 <Button variant='ghost' className={cn('h-9 w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
+//                     <CalendarIcon className='mr-2 h-4 w-4' />
+//                     {date ? format(date, 'dd/MM/yyyy') : <span>Pick date</span>}
+//                 </Button>
+//             </PopoverTrigger>
+
+//             <PopoverContent className='w-auto p-0' align='start'>
+//                 <Calendar
+//                     mode='single'
+//                     selected={date}
+//                     onSelect={handleSelect}
+//                     fromDate={fromDateProp}
+//                     toDate={toDateProp}
+//                     defaultMonth={defaultMonth}
+//                     initialFocus
+//                 />
+//             </PopoverContent>
+//         </Popover>
+//     );
+// }
 
 function CalendarCell({
     row,
@@ -19,47 +107,65 @@ function CalendarCell({
     row: any;
     field: keyof IMasterFeesInstallmentDueDateList;
 }) {
-    const rawValue = row.getValue(field);
-    const currentDate = rawValue && rawValue !== '0001-01-01T00:00:00' ? new Date(rawValue as string) : undefined;
+    const fdateRaw = row.original.fdate;
+    const tdateRaw = row.original.tdate;
 
-    const [date, setDate] = useState<Date | undefined>(currentDate);
+    const fromDate = fdateRaw && fdateRaw !== '0001-01-01T00:00:00' ? new Date(fdateRaw) : undefined;
+    const toDate = tdateRaw && tdateRaw !== '0001-01-01T00:00:00' ? new Date(tdateRaw) : undefined;
 
-    // Re-render when row data changes (fdate/tdate update)
+    const rawValue = row.original[field];
+    const initialValue = rawValue && rawValue !== '0001-01-01T00:00:00' ? new Date(rawValue) : undefined;
+
+    const [date, setDate] = useState<Date | undefined>(initialValue);
+
     useEffect(() => {
-        setDate(currentDate);
-    }, [currentDate, row.original.fdate, row.original.tdate]);
+        let newDate = initialValue;
 
-    const getDate = (key: keyof IMasterFeesInstallmentDueDateList): Date | null => {
-        const val = row.original[key];
-        if (!val || val === '0001-01-01T00:00:00') return null;
-        const d = new Date(val as string);
-        return Number.isNaN(d.getTime()) ? null : d;
-    };
+        if (field === 'tdate' && fromDate) {
+            if (!newDate || newDate <= fromDate) {
+                newDate = new Date(fromDate);
+                newDate.setDate(newDate.getDate() + 1);
+            }
+        }
 
-    const fromDate = getDate('fdate');
-    const toDate = getDate('tdate');
+        if (field === 'ddate' && fromDate) {
+            if (!newDate || newDate <= fromDate) {
+                newDate = new Date(fromDate);
+                newDate.setDate(newDate.getDate() + 1);
+            }
+        }
 
+        if (field === 'aplc' && fromDate) {
+            const maxDate = toDate || new Date();
+            if (!newDate || newDate < fromDate) newDate = fromDate;
+            if (newDate > maxDate) newDate = maxDate;
+        }
+
+        // Only update if different from current state
+        if ((newDate && !date) || (!newDate && date) || (newDate && date && newDate.getTime() !== date.getTime())) {
+            setDate(newDate);
+        }
+    }, [initialValue, fromDate, toDate, field, date]);
+
+    // Calendar boundaries
     let fromDateProp: Date | undefined;
     let toDateProp: Date | undefined;
-    let defaultMonth: Date = date ?? new Date();
 
     if (field === 'tdate' && fromDate) {
-        fromDateProp = new Date(fromDate);
-        fromDateProp.setDate(fromDate.getDate() + 1);
-        defaultMonth = fromDateProp;
+        const d = new Date(fromDate);
+        d.setDate(d.getDate() + 1);
+        fromDateProp = d;
     }
 
     if (field === 'aplc' && fromDate) {
         fromDateProp = fromDate;
-        toDateProp = toDate ?? new Date(); // limit to today if tdate not set
-        defaultMonth = fromDate;
+        toDateProp = toDate || new Date();
     }
 
     if (field === 'ddate' && fromDate) {
-        // Strictly after fromDate
-        fromDateProp = new Date(fromDate);
-        fromDateProp.setDate(fromDate.getDate() + 1);
-        defaultMonth = fromDateProp;
+        const d = new Date(fromDate);
+        d.setDate(d.getDate() + 1);
+        fromDateProp = d;
     }
 
     const handleSelect = (selected: Date | undefined) => {
@@ -69,38 +175,29 @@ function CalendarCell({
             return;
         }
 
-        // Enforce ranges
+        // Validation
         if (field === 'tdate' && fromDate && selected <= fromDate) return;
-        if (field === 'ddate' && fromDate && selected <= fromDate) return; // strictly after fromDate
+        if (field === 'ddate' && fromDate && selected <= fromDate) return;
         if (field === 'aplc' && fromDate) {
-            const maxDate = toDate ?? new Date();
+            const maxDate = toDate || new Date();
             if (selected < fromDate || selected > maxDate) return;
         }
 
         selected.setHours(0, 0, 0, 0);
-        setDate(selected);
         row.original[field] = selected.toISOString();
+        setDate(selected);
     };
 
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant='ghost' className={cn('h-9 w-full justify-start text-left font-normal', !date && 'text-muted-foreground')}>
-                    <CalendarIcon className='mr-2 h-4 w-4' />
-                    {date ? format(date, 'dd/MM/yyyy') : <span>Pick date</span>}
-                </Button>
+                <div className='flex cursor-pointer items-center gap-2 rounded-md border bg-white px-2 py-1'>
+                    <CalendarIcon className='h-4 w-4 text-gray-500' />
+                    <span>{date ? date.toLocaleDateString() : '-'}</span>
+                </div>
             </PopoverTrigger>
-
-            <PopoverContent className='w-auto p-0' align='start'>
-                <Calendar
-                    mode='single'
-                    selected={date}
-                    onSelect={handleSelect}
-                    fromDate={fromDateProp}
-                    toDate={toDateProp}
-                    defaultMonth={defaultMonth}
-                    initialFocus
-                />
+            <PopoverContent className='p-0'>
+                <Calendar mode='single' selected={date} onSelect={handleSelect} fromDate={fromDateProp} toDate={toDateProp} />
             </PopoverContent>
         </Popover>
     );

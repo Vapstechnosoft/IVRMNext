@@ -662,6 +662,54 @@ export async function getUserAccessibleModules() {
                                         //     title: 'Fee Transaction',
                                         //     description: 'Fee Transaction'
                                         // }
+                                        // ,
+                                        //  {
+                                        //     id: 506,
+                                        //     name: 'Fee Adjustment',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/transactions/feeadjustment',
+                                        //     title: 'Fee Adjustment',
+                                        //     description: 'Manage Fee Adjustment'
+                                        // },
+                                        //  {
+                                        //     id: 507,
+                                        //     name: 'Fee Concession',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/transactions/feeconcession',
+                                        //     title: 'Fee Concession',
+                                        //     description: 'Manage Fee Concession'
+                                        // },
+                                    ]
+                                },
+                                {
+                                    id: 2001,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 10011,
+                                            name: 'Fee Defaulter report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feedefaulterreport',
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Fee Defaulter Report'
+                                        },
+                                        {
+                                            id: 10012,
+                                            name: 'Daily Fee Collection Report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/dailyfeecollectionreport',
+                                            title: 'Daily Fee Collection Report',
+                                            description: 'Manage Daily Fee Collection Report Details'
+                                        },
+                                        {
+                                            id: 10013,
+                                            name: 'Yearly Fee Collection Report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/yearlyfeecollectionreport',
+                                            title: 'Yearly Fee Collection Report',
+                                            description: 'Manage Yearly Fee Collection Report Details'
+                                        }
                                     ]
                                 }
                             ]
