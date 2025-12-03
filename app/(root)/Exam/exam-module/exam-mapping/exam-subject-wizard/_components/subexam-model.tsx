@@ -155,28 +155,29 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
 
         const max = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
         const min = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
-        const entry = row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
+        const entry =
+            row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
 
         // 1) Sub-exam marks cannot exceed parent max
         if (max !== undefined && max > parentMaxMarks) {
-            rowErrs['eycessS_MaxMarks'] = `Max marks cannot exceed parent subject max (${parentMaxMarks})`;
+            rowErrs.eycessS_MaxMarks = `Max marks cannot exceed parent subject max (${parentMaxMarks})`;
         }
         if (min !== undefined && min > parentMaxMarks) {
-            rowErrs['eycessS_MinMarks'] = `Min marks cannot exceed parent subject max (${parentMaxMarks})`;
+            rowErrs.eycessS_MinMarks = `Min marks cannot exceed parent subject max (${parentMaxMarks})`;
         }
         if (entry !== undefined && entry > parentMaxMarks) {
-            rowErrs['eycessS_MarksEntryMax'] = `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`;
+            rowErrs.eycessS_MarksEntryMax = `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`;
         }
 
         // 2) Min <= Max
         if (min !== undefined && max !== undefined && min > max) {
-            rowErrs['eycessS_MinMarks'] = 'Min marks cannot be greater than Max marks';
-            rowErrs['eycessS_MaxMarks'] = 'Max marks cannot be less than Min marks';
+            rowErrs.eycessS_MinMarks = 'Min marks cannot be greater than Max marks';
+            rowErrs.eycessS_MaxMarks = 'Max marks cannot be less than Min marks';
         }
 
         // 3) MarksEntry <= Max
         if (entry !== undefined && max !== undefined && entry > max) {
-            rowErrs['eycessS_MarksEntryMax'] = 'Marks entry max cannot be greater than Max marks';
+            rowErrs.eycessS_MarksEntryMax = 'Marks entry max cannot be greater than Max marks';
         }
 
         return rowErrs;
@@ -196,20 +197,21 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             if (row.checkedvalue) {
                 const maxVal = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
                 const minVal = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
-                const entryVal = row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
+                const entryVal =
+                    row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
                 const gradeVal = row.emgR_Id;
 
                 if (maxVal === undefined || maxVal === null) {
-                    rowErrs['eycessS_MaxMarks'] = 'Max marks is required';
+                    rowErrs.eycessS_MaxMarks = 'Max marks is required';
                 }
                 if (minVal === undefined || minVal === null) {
-                    rowErrs['eycessS_MinMarks'] = 'Min marks is required';
+                    rowErrs.eycessS_MinMarks = 'Min marks is required';
                 }
                 if (entryVal === undefined || entryVal === null) {
-                    rowErrs['eycessS_MarksEntryMax'] = 'Marks entry max is required';
+                    rowErrs.eycessS_MarksEntryMax = 'Marks entry max is required';
                 }
                 if (gradeVal === undefined || gradeVal === null || gradeVal === '') {
-                    rowErrs['emgR_Id'] = 'Grade is required';
+                    rowErrs.emgR_Id = 'Grade is required';
                 }
             }
 
@@ -664,8 +666,6 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                                 )}
                                             />
                                         </td>
-
-
                                     </tr>
                                 ))}
                             </tbody>
@@ -674,11 +674,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
 
                     {/* Footer Buttons */}
                     <div className='z-10 mt-4 flex w-fit justify-end gap-2 border-t bg-white p-2'>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={() => onClose(subject.ISMS_Id)}
-                        >
+                        <Button type='button' variant='ghost' onClick={() => onClose(subject.ISMS_Id)}>
                             Cancel
                         </Button>
                         <Button type='button' variant='secondary' onClick={handleSetOrder}>

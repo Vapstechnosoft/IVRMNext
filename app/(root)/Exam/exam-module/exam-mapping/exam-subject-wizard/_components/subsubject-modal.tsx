@@ -2,20 +2,9 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,17 +56,7 @@ export default function SubSubjectModal({
     });
 
     // destructure methods (added setError/clearErrors)
-    const {
-        control,
-        handleSubmit,
-        reset,
-        getValues,
-        setValue,
-        formState,
-        setError,
-        clearErrors,
-        watch
-    } = methods;
+    const { control, handleSubmit, reset, getValues, setValue, formState, setError, clearErrors, watch } = methods;
     const { errors } = formState;
 
     const [isOrderDetailsOpen, setIsOrderDetailsOpen] = useState(false);
@@ -210,28 +189,29 @@ export default function SubSubjectModal({
 
         const max = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
         const min = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
-        const entry = row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
+        const entry =
+            row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
 
         // 1) sub subject marks cannot exceed parent max
         if (max !== undefined && max > parentMaxMarks) {
-            rowErrs['eycessS_MaxMarks'] = `Max marks cannot exceed parent subject max (${parentMaxMarks})`;
+            rowErrs.eycessS_MaxMarks = `Max marks cannot exceed parent subject max (${parentMaxMarks})`;
         }
         if (min !== undefined && min > parentMaxMarks) {
-            rowErrs['eycessS_MinMarks'] = `Min marks cannot exceed parent subject max (${parentMaxMarks})`;
+            rowErrs.eycessS_MinMarks = `Min marks cannot exceed parent subject max (${parentMaxMarks})`;
         }
         if (entry !== undefined && entry > parentMaxMarks) {
-            rowErrs['eycessS_MarksEntryMax'] = `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`;
+            rowErrs.eycessS_MarksEntryMax = `Marks entry max cannot exceed parent subject max (${parentMaxMarks})`;
         }
 
         // 2) Min <= Max
         if (min !== undefined && max !== undefined && min > max) {
-            rowErrs['eycessS_MinMarks'] = 'Min marks cannot be greater than Max marks';
-            rowErrs['eycessS_MaxMarks'] = 'Max marks cannot be less than Min marks';
+            rowErrs.eycessS_MinMarks = 'Min marks cannot be greater than Max marks';
+            rowErrs.eycessS_MaxMarks = 'Max marks cannot be less than Min marks';
         }
 
         // 3) MarksEntry <= Max
         if (entry !== undefined && max !== undefined && entry > max) {
-            rowErrs['eycessS_MarksEntryMax'] = 'Marks entry max cannot be greater than Max marks';
+            rowErrs.eycessS_MarksEntryMax = 'Marks entry max cannot be greater than Max marks';
         }
 
         return rowErrs;
@@ -253,20 +233,21 @@ export default function SubSubjectModal({
                 // required: max, min, entry, grade
                 const maxVal = row.eycessS_MaxMarks === '' || row.eycessS_MaxMarks === null ? undefined : Number(row.eycessS_MaxMarks);
                 const minVal = row.eycessS_MinMarks === '' || row.eycessS_MinMarks === null ? undefined : Number(row.eycessS_MinMarks);
-                const entryVal = row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
+                const entryVal =
+                    row.eycessS_MarksEntryMax === '' || row.eycessS_MarksEntryMax === null ? undefined : Number(row.eycessS_MarksEntryMax);
                 const gradeVal = row.EMGR_Id;
 
                 if (maxVal === undefined || maxVal === null) {
-                    rowErrs['eycessS_MaxMarks'] = 'required';
+                    rowErrs.eycessS_MaxMarks = 'required';
                 }
                 if (minVal === undefined || minVal === null) {
-                    rowErrs['eycessS_MinMarks'] = ' required ';
+                    rowErrs.eycessS_MinMarks = ' required ';
                 }
                 if (entryVal === undefined || entryVal === null) {
-                    rowErrs['eycessS_MarksEntryMax'] = 'required ';
+                    rowErrs.eycessS_MarksEntryMax = 'required ';
                 }
                 if (gradeVal === undefined || gradeVal === null || gradeVal === '') {
-                    rowErrs['EMGR_Id'] = 'Grade is required ';
+                    rowErrs.emgR_Id = 'Grade is required ';
                 }
             }
 
@@ -372,8 +353,7 @@ export default function SubSubjectModal({
                     <form
                         onSubmit={(e) => {
                             e.preventDefault();
-                        }}
-                    >
+                        }}>
                         <div className='max-h-[55vh] overflow-x-auto overflow-y-auto'>
                             <table className='w-full table-auto border-collapse'>
                                 <thead>
@@ -415,10 +395,7 @@ export default function SubSubjectModal({
                                         const idPrefix = `subsubject-${subject.ISMS_Id}-${row.emsS_Id}`;
 
                                         return (
-                                            <tr
-                                                key={row.emsS_Id ?? idx}
-                                                className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}
-                                            >
+                                            <tr key={row.emsS_Id ?? idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                                                 <td className='border p-2'>{idx + 1}</td>
 
                                                 {/* Select */}
@@ -577,8 +554,7 @@ export default function SubSubjectModal({
                                                                     field.onChange(val);
                                                                     updateRowValue(idx, 'EMGR_Id', val);
                                                                     clearErrors(`subsubject_list.${idx}.EMGR_Id` as any);
-                                                                }}
-                                                            >
+                                                                }}>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder='Select Grade' />
                                                                 </SelectTrigger>
@@ -711,8 +687,7 @@ export default function SubSubjectModal({
                                 type='button'
                                 variant='secondary'
                                 onClick={handleSetOrder}
-                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'
-                            >
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
                                 <div className='flex items-center'>
                                     <List className='mr-2 h-4 w-4' />
                                     Set Order
@@ -747,8 +722,7 @@ export default function SubSubjectModal({
                                     // all good
                                     onSave(subject.ISMS_Id, selected);
                                     onClose();
-                                }}
-                            >
+                                }}>
                                 Save & Close
                             </Button>
                         </div>
