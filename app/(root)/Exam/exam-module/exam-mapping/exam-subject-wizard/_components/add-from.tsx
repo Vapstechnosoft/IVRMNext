@@ -262,7 +262,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         EYCES_MaxMarks: s.EYCES_MaxMarks ?? 0,
                         EYCES_MinMarks: s.EYCES_MinMarks ?? 0,
                         EYCES_MarksEntryMax: s.EYCES_MarksEntryMax ?? 0,
-                        EMGR_Id: watchGrade ?? s.EMGR_Id ?? undefined,
+                        EMGR_Id: watchGrade ?? s.EMGR_Id ?? 0,
                         EYCES_Id: s.eyceS_Id ?? s.EYCES_Id,
                         EYCES_SubExamFlg: false,
                         EYCES_SubSubjectFlg: false,
@@ -538,6 +538,22 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         setSubExamModalState({ open: false });
         toast.info('Sub Exams Data saved successfully.');
     };
+
+    const handleSubExamClose = (subjectId: number) => {
+        setSubjects((prev) =>
+            prev.map((s) =>
+                s.ISMS_Id === subjectId
+                    ? {
+                        ...s,
+                        EYCES_SubExamFlg: s.subExamConfig && s.subExamConfig.length > 0
+                    }
+                    : s
+            )
+        );
+
+        setSubExamModalState({ open: false });
+    };
+
 
     const handleSaveSubSubject = (subjectId: number, selectedList: any[]) => {
         setSubjects((prev) =>
@@ -946,7 +962,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 <SubExamModal
                     open={subExamModalState.open}
                     subject={subExamModalState.subject}
-                    onClose={() => setSubExamModalState({ open: false })}
+                    onClose={handleSubExamClose}
                     onSave={handleSaveSubExam}
                     gradeList={gradeList}
                     schema={SubSubjectSubExamSchema}
