@@ -16,6 +16,7 @@ import {
     useStudentFeeCasteRoutingDropDown,
     useStudentFeeGroupAdmiClassCategoryDropDown,
     useStudentFeeGroupFeeClassCategoryDropDown,
+    useStudentFeeGroupMapping,
     useStudentSectionDropDown
 } from '@/hooks/fees/useMasters';
 import { masterStudentFeeGroupMappingSchema } from '@/schemas/fees/masters';
@@ -46,6 +47,7 @@ interface AddStudentFeeGroupMappingFilter {
     onSuccess?: () => void;
 }
 export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFilter) {
+    const { refetchAll } = useStudentFeeGroupMapping();
     const [filterType, setFilterType] = useState<string>('alldata');
     const [classWise, setClassWise] = useState(false);
     const [areaWise, setAreaWise] = useState(false);
@@ -89,8 +91,8 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         resolver: zodResolver(masterStudentFeeGroupMappingSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            //  asmaY_Id:academicYear,
-            asmaY_Id: 231,
+            asmaY_Id: academicYear,
+            // asmaY_Id: 231,
             mI_Id: '30',
             institutionName: 'vidya_vikas_vidya_samste'
         }
@@ -161,9 +163,9 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         fetchStudentClassMapping();
     }, [asmaY_Id, classId, sectionId, admCategoryId, areaId, filterType, apisearchParams_]);
 
-    useEffect(() => {
-        fetchStudentClassMapping();
-    }, [academicYear, classId, sectionId, admCategoryId, areaId, filterType, apisearchParams_]);
+    // useEffect(() => {
+    //     fetchStudentClassMapping();
+    // }, [academicYear, classId, sectionId, admCategoryId, areaId, filterType, apisearchParams_]);
 
     //--------------------Student Group List----------------------
     const loadStudentFeeGroupList = async () => {
@@ -470,6 +472,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
 
             if (res?.success) {
                 toast.success(res.message || 'Saved successfully');
+                await refetchAll();
                 handleReset();
                 onSuccess?.();
             } else {
@@ -914,7 +917,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                             noDataDescription='Get started by creating your first Student Class Mapping'
                             errorTitle='Error Student Class Mapping'
                             onSearchQueryChange={handleApiParmasChange}
-                            showSearch={false}
+                            showSearch={true}
                             searchQuery=''
                             showPagination={true}
                             currentApiParams={apisearchParams_}

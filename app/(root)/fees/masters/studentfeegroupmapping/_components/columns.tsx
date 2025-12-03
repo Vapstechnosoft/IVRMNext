@@ -21,10 +21,21 @@ export const masterStudentFeeGroupMapping: ColumnDef<IMasterStudentFeeGroupMappi
         enableHiding: false
     },
 
+    // {
+    //     accessorKey: 'amsT_FirstName',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+    //     cell: ({ row }) => <div>{row.getValue('amsT_FirstName')}</div>
+    // },
     {
         accessorKey: 'amsT_FirstName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => <div>{row.getValue('amsT_FirstName')}</div>
+        cell: ({ row }) => {
+            const first = row.original.amsT_FirstName || '';
+            const middle = row.original.amsT_MiddleName || '';
+            const last = row.original.amsT_LastName || '';
+
+            return <div>{`${first} ${middle} ${last}`.trim()}</div>;
+        }
     },
 
     {
