@@ -5,7 +5,15 @@ import { getModeOfPayment } from '@/server/fees/masters/modeOfPayment';
 import { getAcademicYearDropdownData, getAmountEntry } from '@/server/fees/trasactions/feeAmountEntry';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getConcessionAcademicDropdownData, getConcessionTermDropdownData } from '@/server/fees/trasactions/FeeConcession';
+import {
+    getConcessionAcademicDropdownData,
+    getConcessionCategoryDropdownData,
+    getConcessionClassesDropdownData,
+    getConcessionHeadList,
+    getConcessionStudentConcessionGrid,
+    getConcessionStudentList,
+    getConcessionTermDropdownData
+} from '@/server/fees/trasactions/FeeConcession';
 import {
     getOpeningAcademicYearDropdownData,
     getOpeningBalanceList,
