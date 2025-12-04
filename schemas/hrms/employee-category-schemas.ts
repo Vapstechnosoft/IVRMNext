@@ -135,7 +135,6 @@ export const departmentSalaryReportSchema = z.object({
 
 export type DepartmentSalaryReportFormFields = z.infer<typeof departmentSalaryReportSchema>;
 
-
 // Schema for Employee Strength report (same fields as department salary report)
 export const EmployeeStrengthReportSchema = z.object({
     // Selection fields present on the UI - month/year are not used on this page
@@ -322,3 +321,10 @@ export const ReportSchema = z
 
 export type ReportFormFields = z.infer<typeof ReportSchema>;
 
+export const EmployeeProfileReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Please select at least one group type'),
+    department: z.array(z.string()).min(1, 'Please select at least one department'),
+    designation: z.array(z.string()).min(1, 'Please select at least one designation')
+});
+
+export type EmployeeProfileReportFields = z.infer<typeof EmployeeProfileReportSchema>;

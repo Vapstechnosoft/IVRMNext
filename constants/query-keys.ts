@@ -326,5 +326,7 @@ export const HRMS_QUERY_KEYS = {
     MASTER_DEAPARTMENTS: 'hrms_master_departments',
     MASTER_DESIGNATIONS: 'hrms_master_designation',
     MASTER_MONTHS: 'hrms_master_months',
-    MASTER_YEARS: 'hrms_master_years'
+    MASTER_YEARS: 'hrms_master_years',
+    MASTER_BANK_LIST: 'hrms_master_bank_list',
+    MASTER_PAYMENT_MODE_LIST: 'hrms_master_payment_mode_list'
 };
