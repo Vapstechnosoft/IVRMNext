@@ -39,6 +39,11 @@ export async function getMasterYears() {
     return await api.get<dropdown[]>('hrms', url);
 }
 
+export async function getMasterPaymentModeList() {
+    const url = '/api/MasterDropDown/GetPaymentModeList';
+    return await api.get<dropdown[]>('hrms', url);
+}
+
 export async function addMasterClassCategory(data: any) {
     const url = '/master_class_category';
     return await api.post<any>('admission', url, data);

@@ -321,6 +321,7 @@ export const ReportSchema = z
 
 export type ReportFormFields = z.infer<typeof ReportSchema>;
 
+
 export const EmployeeOfferLaterSchema = z.object({
     groupType: z.string().min(1, 'At least one group type is required'),
     department: z.string().min(1, 'At least one department is required'),
@@ -353,3 +354,12 @@ export const EmployeeDetailSchema = z.object({
     status: z.string().optional(),
     typeOrEmployee: z.string().optional()
 });
+
+export const EmployeeProfileReportSchema = z.object({
+    groupType: z.array(z.string()).min(1, 'Please select at least one group type'),
+    department: z.array(z.string()).min(1, 'Please select at least one department'),
+    designation: z.array(z.string()).min(1, 'Please select at least one designation')
+});
+
+export type EmployeeProfileReportFields = z.infer<typeof EmployeeProfileReportSchema>;
+

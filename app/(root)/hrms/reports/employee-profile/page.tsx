@@ -1,355 +1,210 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useEmployeeProfileReportOnload, useFilterEmployeesBySelection, useSearchEmployeeProfileDetails } from '@/hooks/hrms/useReports';
-import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
-import { useEffect, useMemo, useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { MultiSelect } from '@/components/ui/multi-select';
+import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes } from '@/hooks/hrms/useReports';
+
+import { SelectItem } from '@/components/ui/select';
+import { type EmployeeProfileReportFields, EmployeeProfileReportSchema } from '@/schemas/hrms/employee-category-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Printer, RefreshCw, Search } from 'lucide-react';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { EmployeeProfileFilters } from './_components/filters';
-import { EmployeeProfileReportTemplate } from './_components/report-template';
+import Footer from '../footer/footer';
+
+const mockEmployees = [
+    { key: '1447', value: 'Lavnya' },
+    { key: '1208', value: 'ANUSHA T' },
+    { key: 'EMP002', value: 'KIRAN KUMAR' },
+    { key: 'EMP003', value: 'PALLAVI C' },
+    { key: 'EMP004', value: 'RAFIQ' },
+    { key: 'EMP005', value: 'NATARAJA' }
+];
+
+const mockApiData = {
+    1447: {
+        institutionDetails: {
+            mI_Name: 'Vidya Vikasa Vidya Samsthe (R)',
+            mI_Address1: 'Basaveshwara Talkies rd',
+            mI_Address2: 'Gayatri circle',
+            mI_Address3: 'karantaka',
+            mI_Pincode: 577501,
+            mI_ContactDetails: 'Ph No: 8194220904 Email Id : vvvsoffice@gmail.com'
+        },
+        currentemployeeDetails: {
+            hrmE_EmployeeFirstName: 'Lavnya',
+            hrmE_EmployeeLastName: 'L',
+            hrmE_EmployeeCode: '14578',
+            hrmE_Photo: 'https://kusumadata.blob.core.windows.net/files/30/EmployeeProfilePics/c026836d-f9ac-4ab7-9975-0b29a169312a.jpg',
+            hrmE_DOB: '2001-10-28T00:00:00',
+            hrmE_DOJ: '2024-05-01T00:00:00',
+            hrmE_MobileNo: '8970133128',
+            hrmE_EmailId: 'Staff78915@gmail.com',
+            hrmE_BloodGroup: 'O+'
+        },
+        designationName: 'Asst. Teacher',
+        hrmD_DepartmentName: 'Teaching',
+        hrmgT_EmployeeGroupType: 'Teaching',
+        ivrmmG_GenderName: 'Female',
+        employeeclasssubject: [
+            {
+                asmcL_ClassName: 'I Std',
+                asmC_SectionName: 'A',
+                ismS_SubjectName: 'DANCE'
+            },
+            {
+                asmcL_ClassName: 'II Std',
+                asmC_SectionName: 'A',
+                ismS_SubjectName: 'DANCE'
+            },
+            {
+                asmcL_ClassName: 'III Std',
+                asmC_SectionName: 'A',
+                ismS_SubjectName: 'DANCE'
+            }
+        ]
+    },
+    1208: {
+        institutionDetails: {
+            mI_Name: 'Vidya Vikasa Vidya Samsthe (R)',
+            mI_Address1: 'Basaveshwara Talkies rd',
+            mI_Address2: 'Gayatri circle',
+            mI_Address3: 'karantaka',
+            mI_Pincode: 577501,
+            mI_ContactDetails: 'Ph No: 8194220904 Email Id : vvvsoffice@gmail.com'
+        },
+        currentemployeeDetails: {
+            hrmE_EmployeeFirstName: 'ANUSHA',
+            hrmE_EmployeeLastName: 'T',
+            hrmE_EmployeeCode: 'VVS015',
+            hrmE_Photo: null,
+            hrmE_DOB: '1990-05-15T00:00:00',
+            hrmE_DOJ: '2020-06-01T00:00:00',
+            hrmE_MobileNo: '9876543210',
+            hrmE_EmailId: 'anusha@gmail.com',
+            hrmE_BloodGroup: 'A+'
+        },
+        designationName: 'Senior Teacher',
+        hrmD_DepartmentName: 'Teaching',
+        hrmgT_EmployeeGroupType: 'Teaching',
+        ivrmmG_GenderName: 'Female',
+        employeeclasssubject: [
+            {
+                asmcL_ClassName: 'IV Std',
+                asmC_SectionName: 'A',
+                ismS_SubjectName: 'ENGLISH'
+            },
+            {
+                asmcL_ClassName: 'V Std',
+                asmC_SectionName: 'B',
+                ismS_SubjectName: 'ENGLISH'
+            }
+        ]
+    }
+};
 
 export default function EmployeeProfileReportPage() {
-    const roleId = HRMS_MI_ID;
-    const [showReport, setShowReport] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
     const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false);
+    const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+    const [reportData, setReportData] = useState<any[]>([]);
 
-    // React Query hooks
-    const { data: onloadData, isLoading: onloadLoading, error: onloadError } = useEmployeeProfileReportOnload(roleId, 0);
-    const filterMutation = useFilterEmployeesBySelection();
-    const searchMutation = useSearchEmployeeProfileDetails();
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
 
-    // Memoize arrays to prevent unnecessary re-renders
-    // Extract dropdown data from the API response - handle different field name variations
-    const groupTypes = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        // Try different possible field names from the API response
-        return (data as any).groupTypedropdownlist || (data as any).groupTypedropdown || (data as any).grouplist || [];
-    }, [onloadData?.data]);
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
 
-    const departments = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        // Try different possible field names from the API response
-        return (data as any).departmentdropdownlist || (data as any).departmentdropdown || (data as any).departmentlist || [];
-    }, [onloadData?.data]);
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
 
-    const designations = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        // Try different possible field names from the API response
-        return (data as any).designationdropdownlist || (data as any).designationdropdown || (data as any).designationlist || [];
-    }, [onloadData?.data]);
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-    // Memoize onload employee dropdown to prevent unnecessary re-renders
-    const onloadEmployees = useMemo(() => {
-        const data = onloadData?.data;
-        if (!data) return [];
-        // Try to get employeedropdown from different possible locations
-        const currentEmployeeDetails = (data as any).currentemployeeDetails;
-        if (currentEmployeeDetails?.employeedropdown) {
-            return currentEmployeeDetails.employeedropdown;
-        }
-        if ((data as any).employeedropdown) {
-            return (data as any).employeedropdown;
-        }
-        if ((data as any).employeedetailList) {
-            return (data as any).employeedetailList;
-        }
-        if ((data as any).ArrayempsList) {
-            return (data as any).ArrayempsList;
-        }
-        return [];
-    }, [onloadData?.data]);
+    const DepartmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-    // Initialize with empty array to prevent hydration mismatches
-    const [employees, setEmployees] = useState<EmployeeDropdown[]>([]);
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-    // Update employees when onload data is available (client-side only)
-    useEffect(() => {
-        if (onloadEmployees.length > 0) {
-            setEmployees(onloadEmployees);
-        }
-    }, [onloadEmployees]);
+    const EmployeeOptions = mockEmployees.map((emp) => ({
+        value: emp.key,
+        label: emp.value
+    }));
 
-    // Filter states (multi-select)
-    const [selectedGroupTypes, setSelectedGroupTypes] = useState<number[]>([]);
-    const [selectedDepartments, setSelectedDepartments] = useState<number[]>([]);
-    const [selectedDesignations, setSelectedDesignations] = useState<number[]>([]);
-    const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+    const {
+        control,
+        handleSubmit,
+        reset,
+        watch,
+        formState: { errors, isSubmitting }
+    } = useForm<EmployeeProfileReportFields>({
+        resolver: zodResolver(EmployeeProfileReportSchema),
+        defaultValues: {
+            groupType: [],
+            department: [],
+            designation: []
+        },
+        mode: 'onChange'
+    });
 
-    // Employee search
-    const [employeeSearchQuery, setEmployeeSearchQuery] = useState('');
-    const [filteredEmployees, setFilteredEmployees] = useState<EmployeeDropdown[]>([]);
-
-    // Selected employee details (array to support multiple reports)
-    const [employeeReports, setEmployeeReports] = useState<
-        Array<{
-            EmployeeCode: string;
-            EmployeeName: string;
-            Designation: string;
-            InstitutionName: string;
-            InstitutionAddress?: string;
-            InstitutionCity?: string;
-            InstitutionPincode?: string;
-            ContactDetails: string[];
-            EmailId: string;
-            JoinDate: string;
-            LeftDate: string;
-            TotalServiceDays: number;
-            BloodGroup: string;
-            Address: string;
-            Age: string | number;
-            Religion: string;
-            DOB: string;
-            AadharCardNumber: string;
-            FatherName: string;
-            ProfilePhoto?: string;
-        }>
-    >([]);
-
-    // No automatic filtering - employees will only load when user clicks "SEARCH EMPLOYEES"
-
-    // Hide employee dropdown when filters change (user must search again)
-    useEffect(() => {
-        if (showEmployeeDropdown) {
-            setShowEmployeeDropdown(false);
-            setSelectedEmployees([]);
-            setFilteredEmployees([]);
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedGroupTypes, selectedDepartments, selectedDesignations]);
-
-    // Filter employees based on search query
-    useEffect(() => {
-        const filtered = employees.filter(
-            (emp) =>
-                emp.HRME_EmployeeCode.toLowerCase().includes(employeeSearchQuery.toLowerCase()) ||
-                `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`
-                    .toLowerCase()
-                    .includes(employeeSearchQuery.toLowerCase())
-        );
-        setFilteredEmployees(filtered);
-    }, [employeeSearchQuery, employees]);
-
-    // Handle filter search - load employees based on filters
-    const handleFilterSearch = () => {
-        const hasFilters = selectedGroupTypes.length > 0 || selectedDepartments.length > 0 || selectedDesignations.length > 0;
-
-        if (!hasFilters) {
-            toast.error('Please select at least one filter (Group Type, Department, or Designation)');
-            return;
-        }
-
-        const request = {
-            MI_Id: roleId,
-            LogInUserId: 0,
-            hrmgT_IdList: selectedGroupTypes.length > 0 ? selectedGroupTypes : [0],
-            hrmD_IdList: selectedDepartments.length > 0 ? selectedDepartments : [0],
-            hrmdeS_IdList: selectedDesignations.length > 0 ? selectedDesignations : [0]
-        };
-
-        filterMutation.mutate(request, {
-            onSuccess: (response) => {
-                if (response.success && response.data?.employeedropdown) {
-                    setEmployees(response.data.employeedropdown);
-                    setFilteredEmployees(response.data.employeedropdown);
-                    setShowEmployeeDropdown(true);
-                    toast.success('Employees loaded successfully');
-                } else {
-                    toast.error(response.message || 'No employees found for the selected filters');
-                }
-            },
-            onError: (error) => {
-                console.error('Error filtering employees:', error);
-                toast.error(error.message || 'Failed to load employees. Please check if the API endpoint is available.');
-            }
-        });
-    };
-
-    // Handle select all employees
-    const handleSelectAll = (checked: boolean) => {
-        if (checked) {
-            setSelectedEmployees(filteredEmployees.map((emp) => emp.HRME_Id));
-        } else {
-            setSelectedEmployees([]);
-        }
-    };
-
-    // Check if all filtered employees are selected
-    const isAllSelected = filteredEmployees.length > 0 && selectedEmployees.length === filteredEmployees.length;
-    const isIndeterminate = selectedEmployees.length > 0 && selectedEmployees.length < filteredEmployees.length;
-
-    // Handle individual employee selection
-    const handleEmployeeToggle = (employeeId: number, checked: boolean) => {
-        if (checked) {
-            setSelectedEmployees((prev) => [...prev, employeeId]);
-        } else {
-            setSelectedEmployees((prev) => prev.filter((id) => id !== employeeId));
-        }
-    };
-
-    const handleSearch = async () => {
-        // Always show report template when search is clicked, even without employees
-        setShowReport(true);
-
-        if (selectedEmployees.length === 0) {
-            toast.warning('Please select at least one employee. Showing empty report template.');
-            return;
-        }
-
-        // Show loading state
-        const reports: any[] = [];
-        let successCount = 0;
-        let errorCount = 0;
-
-        // Fetch details for each selected employee
-        for (const employeeId of selectedEmployees) {
-            const employee = employees.find((emp) => emp.HRME_Id === employeeId);
+    const onSearch = async (data: EmployeeProfileReportFields) => {
+        if (!showEmployeeDropdown) {
+            setIsSearching(true);
             try {
-                if (!employee) {
-                    errorCount++;
-                    continue;
-                }
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                setShowEmployeeDropdown(true);
+                toast.success('Please select employees to generate report');
+            } catch (error: any) {
+                toast.error(error.message || 'Failed to load employees');
+            } finally {
+                setIsSearching(false);
+            }
+        } else {
+            if (selectedEmployees.length === 0) {
+                toast.error('Please select at least one employee');
+                return;
+            }
 
-                const request = {
-                    MI_Id: roleId,
-                    groupTypeIds: selectedGroupTypes,
-                    departmentIds: selectedDepartments,
-                    designationIds: selectedDesignations,
-                    employeeIds: [employeeId],
-                    roleId: roleId
-                };
+            setIsSearching(true);
+            try {
+                await new Promise((resolve) => setTimeout(resolve, 1000));
 
-                const response = await searchMutation.mutateAsync(request);
+                const reports = selectedEmployees.map((empId) => ({
+                    ...mockApiData[empId as unknown as keyof typeof mockApiData],
+                    empId
+                }));
 
-                if (response.success && response.data) {
-                    const employeeData = response.data;
-
-                    // Extract currentemployeeDetails from the response if available
-                    const currentEmployeeDetails = (employeeData as any).currentemployeeDetails || employeeData;
-
-                    // Map the API response fields to our display format
-                    // Extract employee details from currentemployeeDetails if available
-                    const empDetails = currentEmployeeDetails?.currentemployeeDetails || currentEmployeeDetails;
-                    const institutionDetails = (employeeData as any).institutionDetails || currentEmployeeDetails?.institutionDetails;
-
-                    // Build institution address from available fields
-                    const institutionAddressParts = [];
-                    if (institutionDetails?.MI_Address1) institutionAddressParts.push(institutionDetails.MI_Address1);
-                    if (institutionDetails?.MI_Address2) institutionAddressParts.push(institutionDetails.MI_Address2);
-                    if (institutionDetails?.MI_Address3) institutionAddressParts.push(institutionDetails.MI_Address3);
-                    const institutionAddress = institutionAddressParts.length > 0 ? institutionAddressParts.join(', ') : '-';
-
-                    const details = {
-                        EmployeeCode: empDetails?.HRME_EmployeeCode || employee.HRME_EmployeeCode,
-                        EmployeeName: empDetails
-                            ? `${empDetails.HRME_EmployeeFirstName || ''} ${empDetails.HRME_EmployeeMiddleName || ''} ${empDetails.HRME_EmployeeLastName || ''}`.trim()
-                            : `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim(),
-                        Designation:
-                            empDetails?.DesignationName ||
-                            designations.find((d: any) => d.HRMDES_Id === (empDetails?.HRMDES_Id || employee.HRMDES_Id))
-                                ?.HRMDES_DesignationName ||
-                            '-',
-                        InstitutionName: institutionDetails?.MI_Name || '-',
-                        InstitutionAddress: institutionAddress,
-                        InstitutionCity: institutionDetails?.MI_AddressArea || '-',
-                        InstitutionPincode: institutionDetails?.MI_Pincode?.toString() || '-',
-                        ContactDetails: (() => {
-                            const contacts: string[] = [];
-                            // Add primary mobile number
-                            if (empDetails?.HRME_MobileNo) {
-                                contacts.push(empDetails.HRME_MobileNo.toString());
-                            } else if (employee.HRME_MobileNo) {
-                                contacts.push(employee.HRME_MobileNo.toString());
-                            }
-                            // Add spouse mobile number if available
-                            if (empDetails?.HRME_SpouseMobileNo) {
-                                contacts.push(empDetails.HRME_SpouseMobileNo.toString());
-                            }
-                            // Add any additional mobile numbers from mobile list
-                            if (empDetails?.selectedmobile_list_dto && Array.isArray(empDetails.selectedmobile_list_dto)) {
-                                empDetails.selectedmobile_list_dto.forEach((mobile: any) => {
-                                    if (mobile.HRMEMNO_MobileNo && !contacts.includes(mobile.HRMEMNO_MobileNo.toString())) {
-                                        contacts.push(mobile.HRMEMNO_MobileNo.toString());
-                                    }
-                                });
-                            }
-                            return contacts;
-                        })(),
-                        EmailId: empDetails?.HRME_EmailId || employee.HRME_EmailID || '-',
-                        JoinDate: empDetails?.HRME_DOJ
-                            ? empDetails.HRME_DOJ
-                            : employee.HRME_DateOfJoining
-                              ? employee.HRME_DateOfJoining
-                              : '-',
-                        LeftDate: empDetails?.HRME_DOL
-                            ? empDetails.HRME_DOL
-                            : employee.HRME_DateOfLeaving
-                              ? employee.HRME_DateOfLeaving
-                              : '-',
-                        TotalServiceDays: empDetails?.HRME_DOJ
-                            ? Math.floor((Date.now() - new Date(empDetails.HRME_DOJ).getTime()) / (1000 * 60 * 60 * 24))
-                            : employee.HRME_DateOfJoining
-                              ? Math.floor((Date.now() - new Date(employee.HRME_DateOfJoining).getTime()) / (1000 * 60 * 60 * 24))
-                              : 0,
-                        BloodGroup: empDetails?.HRME_BloodGroup || '-',
-                        Address: empDetails?.HRME_PerStreet || empDetails?.HRME_LocStreet || '-',
-                        Age: empDetails?.HRME_DOB
-                            ? Math.floor((Date.now() - new Date(empDetails.HRME_DOB).getTime()) / (1000 * 60 * 60 * 24 * 365))
-                            : '-',
-                        Religion: '-', // Would need to map from religion dropdown
-                        DOB: empDetails?.HRME_DOB ? empDetails.HRME_DOB : '-',
-                        AadharCardNumber: empDetails?.HRME_AadharCardNo?.toString() || '-',
-                        FatherName: empDetails?.HRME_FatherName || '-',
-                        ProfilePhoto: empDetails?.HRME_Photo || employee.HRME_ProfilePhoto
-                    };
-
-                    reports.push(details);
-                    successCount++;
-                } else {
-                    toast.error(`Failed to fetch details for employee ${employee?.HRME_EmployeeCode || employeeId}`);
-                    errorCount++;
-                }
-            } catch (error) {
-                console.error(`Error fetching details for employee ${employeeId}:`, error);
-                toast.error(
-                    `Error fetching details for employee ${employee?.HRME_EmployeeCode || employeeId}. Please check if the API endpoint is available.`
-                );
-                errorCount++;
-                // Still show template even on error
-                setShowReport(true);
+                setReportData(reports);
+                toast.success(`Generated reports for ${selectedEmployees.length} employee(s)`);
+            } catch (error: any) {
+                toast.error(error.message || 'Failed to generate reports');
+            } finally {
+                setIsSearching(false);
             }
         }
-
-        if (reports.length > 0) {
-            setEmployeeReports(reports);
-            setShowReport(true);
-            toast.success(`Successfully generated ${successCount} report(s)${errorCount > 0 ? `, ${errorCount} failed` : ''}`);
-        } else {
-            // Still show template even if no reports generated
-            setEmployeeReports([]);
-            setShowReport(true);
-            toast.error('Failed to generate reports for selected employees. Showing empty template.');
-        }
     };
 
-    const handleCancel = () => {
-        setSelectedGroupTypes([]);
-        setSelectedDepartments([]);
-        setSelectedDesignations([]);
-        setSelectedEmployees([]);
-        setEmployeeSearchQuery('');
-        setShowReport(false);
+    const handleReset = () => {
+        reset({
+            groupType: [],
+            department: [],
+            designation: []
+        });
         setShowEmployeeDropdown(false);
-        setEmployeeReports([]);
-    };
-
-    const _handleBack = () => {
-        setShowReport(false);
-        setEmployeeReports([]);
         setSelectedEmployees([]);
+        setReportData([]);
+        toast.info('Form has been reset');
     };
 
     const handlePrint = () => {
@@ -357,123 +212,353 @@ export default function EmployeeProfileReportPage() {
         toast.success('Print dialog opened');
     };
 
-    // Get employee name
-    const getEmployeeName = (employee: EmployeeDropdown) => {
-        return `${employee.HRME_EmployeeFirstName} ${
-            employee.HRME_EmployeeMiddleName || ''
-        } ${employee.HRME_EmployeeLastName || ''}`.trim();
+    const getTodayDate = () => {
+        const today = new Date();
+        return today.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
     };
 
-    // Handle onload errors
-    useEffect(() => {
-        if (onloadError) {
-            toast.error('Failed to load filter options. Please check if the API endpoint is available.');
-        } else if (onloadData && !onloadData.success) {
-            toast.error(onloadData.message || 'Failed to load filter options');
-        }
-    }, [onloadError, onloadData]);
-
-    // Show error message if onload fails
-    if (onloadError || (onloadData && !onloadData.success)) {
-        return (
-            <div className='space-y-6'>
-                <div className='rounded-lg border border-destructive bg-destructive/10 p-4 text-center'>
-                    <p className='font-semibold text-destructive'>
-                        {onloadError
-                            ? 'Failed to load filter options. Please check if the API endpoint is available.'
-                            : onloadData?.message || 'Failed to load filter options'}
-                    </p>
-                </div>
-            </div>
-        );
-    }
+    const formatDate = (dateString: string) => {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
 
     return (
-        <div className='space-y-6'>
-            {/* Employee Selection Section */}
-            <EmployeeProfileFilters
-                groupTypes={groupTypes}
-                departments={departments}
-                designations={designations}
-                selectedGroupTypes={selectedGroupTypes}
-                selectedDepartments={selectedDepartments}
-                selectedDesignations={selectedDesignations}
-                selectedEmployees={selectedEmployees}
-                employeeSearchQuery={employeeSearchQuery}
-                filteredEmployees={filteredEmployees}
-                showEmployeeDropdown={showEmployeeDropdown}
-                isAllSelected={isAllSelected}
-                isIndeterminate={isIndeterminate}
-                onGroupTypeChange={setSelectedGroupTypes}
-                onDepartmentChange={setSelectedDepartments}
-                onDesignationChange={setSelectedDesignations}
-                onEmployeeSearchChange={setEmployeeSearchQuery}
-                onSelectAllEmployees={handleSelectAll}
-                onEmployeeToggle={handleEmployeeToggle}
-                onFilterSearch={handleFilterSearch}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-                getEmployeeName={getEmployeeName}
-            />
+        <div className='min-h-screen p-8'>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='Employee Profile Report'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            <div className='space-y-2'>
+                                <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                    Group Type: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterGroupTypesLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : masterGroupTypesError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='groupType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={groupTypeOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Group Types'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
 
-            {/* Employee Profile Reports Section - Show template even when no data */}
-            {showReport && (
-                <div className='space-y-6'>
-                    {/* Render each report or show empty template */}
-                    {employeeReports.length > 0 ? (
-                        employeeReports.map((report, index) => {
-                            // Build school address
-                            const addressParts = [];
-                            if (report.InstitutionAddress && report.InstitutionAddress !== '-') {
-                                addressParts.push(report.InstitutionAddress);
-                            }
-                            if (
-                                report.InstitutionCity &&
-                                report.InstitutionCity !== '-' &&
-                                report.InstitutionPincode &&
-                                report.InstitutionPincode !== '-'
-                            ) {
-                                addressParts.push(`${report.InstitutionCity} - ${report.InstitutionPincode}.`);
-                            }
-                            const fullAddress = addressParts.length > 0 ? addressParts.join(', ') : '';
+                            <div className='space-y-2'>
+                                <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                    Department: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDepartmentsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : masterDepartmentsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='department'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DepartmentsOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Departments'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
 
-                            return (
-                                <CollapsibleSection
-                                    key={index}
-                                    defaultOpen={true}
-                                    variant='default'
-                                    size='lg'
-                                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                    <EmployeeProfileReportTemplate
-                                        schoolName={report.InstitutionName}
-                                        schoolAddress={fullAddress}
-                                        employeeData={report}
-                                        isLoading={false}
-                                        onPrint={handlePrint}
-                                        onCancel={handleCancel}
+                            <div className='space-y-2'>
+                                <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                    Designation: <span className='text-red-500'>*</span>
+                                </Label>
+                                {masterDesignationsLoading ? (
+                                    <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                ) : masterDesignationsError ? (
+                                    <SelectItem value='error' disabled>
+                                        Error loading data
+                                    </SelectItem>
+                                ) : (
+                                    <>
+                                        <Controller
+                                            name='designation'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MultiSelect
+                                                    options={DesignationOptions}
+                                                    defaultValue={field.value}
+                                                    onValueChange={field.onChange}
+                                                    placeholder='Select Designations'
+                                                    className='w-full'
+                                                    maxHeight={240}
+                                                />
+                                            )}
+                                        />
+                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {showEmployeeDropdown && (
+                            <div className='slide-in-from-top-4 flex animate-in justify-center duration-300'>
+                                <div className='w-full max-w-md space-y-2'>
+                                    <Label htmlFor='employee' className='font-medium text-sm text-white-900'>
+                                        Employee: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <MultiSelect
+                                        options={EmployeeOptions}
+                                        defaultValue={selectedEmployees}
+                                        onValueChange={setSelectedEmployees}
+                                        placeholder='Select Employees'
+                                        className='w-full'
+                                        maxHeight={240}
                                     />
-                                </CollapsibleSection>
-                            );
-                        })
-                    ) : (
-                        // Show empty template when no data
-                        <CollapsibleSection
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            <EmployeeProfileReportTemplate
-                                schoolName=''
-                                schoolAddress=''
-                                employeeData={null}
-                                isLoading={searchMutation.isPending}
-                                onPrint={handlePrint}
-                                onCancel={handleCancel}
-                            />
-                        </CollapsibleSection>
-                    )}
-                </div>
-            )}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching || isSubmitting}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching || isSubmitting}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </CollapsibleSection>
+
+                {reportData.length > 0 && (
+                    <div className='space-y-6'>
+                        {reportData.map((employee) => (
+                            <CollapsibleSection
+                                key={employee.empId}
+                                title={'Employee Profile Report'}
+                                defaultOpen={true}
+                                variant='outline'
+                                size='md'
+                                className='no-print slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                                <div className='space-y-6 p-6'>
+                                    <div className='border-b pb-4 text-center'>
+                                        <h1 className='font-bold text-2xl'>{employee.institutionDetails.mI_Name}</h1>
+                                        <p className='text-sm'>{employee.institutionDetails.mI_Address1}</p>
+                                        <p className='text-sm'>
+                                            {employee.institutionDetails.mI_Address2}, {employee.institutionDetails.mI_Address3}
+                                        </p>
+                                        <p className='text-sm'>Pincode: {employee.institutionDetails.mI_Pincode}</p>
+                                    </div>
+
+                                    <h2 className='text-center font-semibold text-xl underline'>Employee Profile</h2>
+
+                                    <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
+                                        <div className='md:col-span-2'>
+                                            <div className='space-y-3'>
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Employee Code</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.hrmE_EmployeeCode || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Name of Employee</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>
+                                                        {employee.currentemployeeDetails.hrmE_EmployeeFirstName}{' '}
+                                                        {employee.currentemployeeDetails.hrmE_EmployeeLastName || '-'}
+                                                    </p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Designation</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.designationName || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Institution Name</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.institutionDetails.mI_Name || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Contact Details</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.hrmE_MobileNo || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Email-Id</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.hrmE_EmailId || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Join Date</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{formatDate(employee.currentemployeeDetails.hrmE_DOJ)}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Left Date</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>
+                                                        {formatDate(employee.currentemployeeDetails.hrmE_LeftDate) || '-'}
+                                                    </p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Total no. Of Service</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.totalService || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Blood Group</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.hrmE_BloodGroup || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Address</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.hrmE_Address || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Age</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.age || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Religion</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.hrmE_Religion || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>DOB</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{formatDate(employee.currentemployeeDetails.hrmE_DOB)}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>AdharCard Number</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.hrmE_AadharNo || '-'}</p>
+                                                </div>
+
+                                                <div className='flex text-sm'>
+                                                    <p className='w-64 font-medium text-muted-foreground'>Father Name</p>
+                                                    <p className='px-4 font-medium text-muted-foreground'>:</p>
+                                                    <p className='text-sm'>{employee.currentemployeeDetails.hrmE_FatherName || '-'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className='flex flex-col items-center justify-start space-y-4'>
+                                            <div className='flex h-48 w-48 items-center justify-center overflow-hidden rounded-lg border-2 border-gray-300 bg-gray-100'>
+                                                {employee.currentemployeeDetails.hrmE_Photo ? (
+                                                    <img
+                                                        src={employee.currentemployeeDetails.hrmE_Photo}
+                                                        alt='Employee'
+                                                        className='h-full w-full object-cover'
+                                                    />
+                                                ) : (
+                                                    <span className='text-gray-400'>No Photo</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className='flex items-end justify-between border-t pt-6'>
+                                        <div>
+                                            <p className='font-medium text-sm'>Date: {getTodayDate()}</p>
+                                        </div>
+                                        <div className='text-right'>
+                                            <p className='text-center text-muted-foreground text-sm'>Signature of Nodal Officer</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CollapsibleSection>
+                        ))}
+
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Cancel
+                            </Button>
+                            <Button
+                                type='button'
+                                onClick={handlePrint}
+                                className='no-print order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                <Printer className='mr-2 h-4 w-4' />
+                                Print
+                            </Button>
+                        </div>
+                    </div>
+                )}
+                <Footer />
+            </div>
         </div>
     );
 }

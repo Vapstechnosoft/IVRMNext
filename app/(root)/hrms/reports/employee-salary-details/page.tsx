@@ -1,374 +1,317 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { createLocalCrud } from '@/lib/localdb';
-import { BarChart3 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMasterYears } from '@/hooks/hrms/useReports';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FileText, Mail, MessageSquare, Printer, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
+import { z } from 'zod';
 import { type MonthlySalaryDetail, getMonthlySalaryDetailColumns } from './_components/columns';
 
-export default function EmployeeSalaryDetailsReportPage() {
-    // Database instances
-    const salaryDetailsDB = createLocalCrud<MonthlySalaryDetail>('report:employee-salary-details');
+const monthEndReportSchema = z.object({
+    year: z.string().min(1, 'Year is required')
+});
 
-    // State
-    const [currentYear, setCurrentYear] = useState<number | null>(null);
-    const [salaryDetails, setSalaryDetails] = useState<MonthlySalaryDetail[]>([]);
+type FormFields = z.infer<typeof monthEndReportSchema>;
 
+const generateMockSalaryData = (year: string): MonthlySalaryDetail[] => {
+    const months = [
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December',
+        'January',
+        'February',
+        'March'
+    ];
+
+    return months.map((month, index) => {
+        const basicSalary = 50000 + Math.random() * 10000;
+        const hra = basicSalary * 0.4;
+        const da = basicSalary * 0.2;
+        const otherAllowances = 5000 + Math.random() * 3000;
+        const grossSalary = basicSalary + hra + da + otherAllowances;
+        const pf = basicSalary * 0.12;
+        const tax = grossSalary * 0.1;
+        const otherDeductions = 1000 + Math.random() * 500;
+        const netSalary = grossSalary - pf - tax - otherDeductions;
+
+        return {
+            id: index + 1,
+            month,
+            year,
+            basicSalary: Math.round(basicSalary),
+            netSalary: Math.round(netSalary),
+            createdAt: new Date().toISOString()
+        };
+    });
+};
+
+export default function HRMSMonthEndReportPage() {
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<MonthlySalaryDetail[] | null>(null);
+    const [selectedMonth, setSelectedMonth] = useState<MonthlySalaryDetail | null>(null);
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
+
+    const YearsOptions =
+        masterYears?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const {
+        control,
+        watch,
+        formState: { errors }
+    } = useForm<FormFields>({
+        resolver: zodResolver(monthEndReportSchema),
+        defaultValues: {
+            year: ''
+        },
+        mode: 'onChange'
+    });
+
+    const selectedYear = watch('year');
+
+    const columns = getMonthlySalaryDetailColumns((monthData) => {
+        setSelectedMonth(monthData);
+    });
+
+    // Auto-generate report when year is selected
     useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
-    const [filteredDetails, setFilteredDetails] = useState<MonthlySalaryDetail[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedFinancialYear, setSelectedFinancialYear] = useState('2030');
+        if (selectedYear) {
+            generateReport(selectedYear);
+        } else {
+            setReportData(null);
+            setSelectedMonth(null);
+        }
+    }, [selectedYear]);
 
-    // Load data on mount
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
+    const generateReport = async (year: string) => {
+        setIsSearching(true);
         try {
-            // Load salary details
-            let detailsList = salaryDetailsDB.list();
-            if (detailsList.length === 0) {
-                const mockData = generateMockSalaryDetails();
-                mockData.forEach((detail) => salaryDetailsDB.create(detail));
-                detailsList = salaryDetailsDB.list(); // Reload data after creating mock records
-            }
-            setSalaryDetails(detailsList);
-            setFilteredDetails(detailsList);
-        } catch (_error) {
-            toast.error('Failed to load data');
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            const mockData = generateMockSalaryData(year);
+            setReportData(mockData);
+            toast.success('Report generated successfully!');
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
         } finally {
-            setIsLoading(false);
+            setIsSearching(false);
         }
     };
 
-    // Generate mock salary details data
-    const generateMockSalaryDetails = (): Omit<MonthlySalaryDetail, 'id' | 'createdAt'>[] => {
-        const months = [
-            { name: 'JANUARY', netSalary: 14664 },
-            { name: 'FEBRUARY', netSalary: 45200 },
-            { name: 'MARCH', netSalary: 47800 },
-            { name: 'APRIL', netSalary: 46500 },
-            { name: 'MAY', netSalary: 48200 },
-            { name: 'JUNE', netSalary: 44800 },
-            { name: 'JULY', netSalary: 49100 },
-            { name: 'AUGUST', netSalary: 47600 },
-            { name: 'SEPTEMBER', netSalary: 139054 },
-            { name: 'OCTOBER', netSalary: 451111 },
-            { name: 'NOVEMBER', netSalary: 46900 },
-            { name: 'DECEMBER', netSalary: 48700 }
-        ];
-
-        return months.map((month, index) => {
-            const basicSalary = month.netSalary / 0.85; // Assuming net is ~85% of basic
-            const allowances = basicSalary * 0.3;
-            const grossSalary = basicSalary + allowances;
-            const deductions = grossSalary - month.netSalary;
-
-            return {
-                month: month.name,
-                year: '2030',
-                basicSalary: Math.round(basicSalary),
-                allowances: Math.round(allowances),
-                deductions: Math.round(deductions),
-                grossSalary: Math.round(grossSalary),
-                netSalary: month.netSalary,
-                workingDays: 26,
-                presentDays: 24 + Math.floor(Math.random() * 3),
-                absentDays: Math.floor(Math.random() * 3),
-                overtimeHours: Math.floor(Math.random() * 10),
-                overtimeAmount: Math.floor(Math.random() * 2000),
-                bonuses: index % 3 === 0 ? Math.floor(Math.random() * 5000) : 0,
-                pfDeduction: Math.round(basicSalary * 0.12),
-                esiDeduction: Math.round(basicSalary * 0.0175),
-                professionalTax: 200
-            };
-        });
+    const handleReset = () => {
+        setReportData(null);
+        setSelectedMonth(null);
+        toast.info('Report cleared');
     };
 
-    // Filter salary details based on search term and financial year
-    useEffect(() => {
-        let filtered = salaryDetails.filter((detail) => detail.year === selectedFinancialYear);
+    const handlePrint = () => {
+        window.print();
+    };
 
-        if (searchTerm) {
-            filtered = filtered.filter((detail) => detail.month.toLowerCase().includes(searchTerm.toLowerCase()));
+    const handleGenerateSlip = () => {
+        if (selectedMonth) {
+            toast.success(`Generating salary slip for ${selectedMonth.month}`);
+        } else {
+            toast.warning('Please select a month to generate slip');
         }
+    };
 
-        setFilteredDetails(filtered);
-    }, [searchTerm, selectedFinancialYear, salaryDetails]);
+    const handleSendMail = () => {
+        if (selectedMonth) {
+            toast.success(`Sending email for ${selectedMonth.month} salary`);
+        } else {
+            toast.warning('Please select a month to send email');
+        }
+    };
 
-    const handleViewDetails = useCallback((monthData: MonthlySalaryDetail) => {
-        toast.info(`Viewing details for ${monthData.month} ${monthData.year}`);
-    }, []);
+    const handleSendSMS = () => {
+        if (selectedMonth) {
+            toast.success(`Sending SMS for ${selectedMonth.month} salary`);
+        } else {
+            toast.warning('Please select a month to send SMS');
+        }
+    };
 
-    // Calculate yearly totals
-    const yearlyTotals = useMemo(() => {
-        return filteredDetails.reduce(
-            (acc, detail) => ({
-                basicSalary: acc.basicSalary + detail.basicSalary,
-                allowances: acc.allowances + detail.allowances,
-                deductions: acc.deductions + detail.deductions,
-                grossSalary: acc.grossSalary + detail.grossSalary,
-                netSalary: acc.netSalary + detail.netSalary,
-                bonuses: acc.bonuses + detail.bonuses,
-                pfDeduction: acc.pfDeduction + detail.pfDeduction,
-                esiDeduction: acc.esiDeduction + detail.esiDeduction,
-                professionalTax: acc.professionalTax + detail.professionalTax
-            }),
-            {
-                basicSalary: 0,
-                allowances: 0,
-                deductions: 0,
-                grossSalary: 0,
-                netSalary: 0,
-                bonuses: 0,
-                pfDeduction: 0,
-                esiDeduction: 0,
-                professionalTax: 0
-            }
-        );
-    }, [filteredDetails]);
-
-    // Prepare chart data
-    const chartData = useMemo(() => {
-        return filteredDetails.map((detail) => ({
-            month: detail.month.substring(0, 3), // Short month name
-            netSalary: detail.netSalary
-        }));
-    }, [filteredDetails]);
-
-    // Table columns
-    const columns = useMemo(() => getMonthlySalaryDetailColumns(handleViewDetails), [handleViewDetails]);
+    const chartData = reportData?.map((item) => ({
+        month: item.month.substring(0, 3),
+        'Net Salary': item.netSalary,
+        'Basic Salary': item.basicSalary
+    }));
 
     return (
-        <div className='space-y-6'>
-            {/* Salary Details Section */}
-            <CollapsibleSection
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <div className='space-y-4'>
-                    {/* Financial Year Selection */}
-                    <div className='flex items-center justify-center gap-4'>
-                        <span className='font-medium text-foreground text-sm'>Financial Year :</span>
-                        <Select value={selectedFinancialYear} onValueChange={setSelectedFinancialYear}>
-                            <SelectTrigger className='w-48'>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {currentYear &&
-                                    Array.from({ length: 10 }, (_, i) => {
-                                        const year = currentYear + 5 - i;
-                                        return (
-                                            <SelectItem key={year} value={year.toString()}>
-                                                {year}
-                                            </SelectItem>
-                                        );
-                                    })}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-            </CollapsibleSection>
+        <div className='min-h-screen p-8'>
+            <style>
+                {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #printable-report, #printable-report * {
+              visibility: visible;
+            }
+            #printable-report {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}
+            </style>
 
-            {/* Monthwise Salary Details Section */}
-            <CollapsibleSection
-                defaultOpen={true}
-                variant='outline'
-                size='lg'
-                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <div className='space-y-4'>
-                    <div className='mb-4 flex items-center justify-end'>
-                        <Input
-                            placeholder='search here...'
-                            value={searchTerm}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                            className='w-64'
-                        />
-                    </div>
-
-                    {/* Summary Cards */}
-                    <div className='mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Basic Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>₹{yearlyTotals.basicSalary.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Allowances</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-foreground text-lg'>₹{yearlyTotals.allowances.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Deductions</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-lg text-red-600'>₹{yearlyTotals.deductions.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardHeader className='pb-2'>
-                                <CardTitle className='text-muted-foreground text-sm'>Total Net Salary</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className='font-semibold text-green-600 text-lg'>₹{yearlyTotals.netSalary.toLocaleString()}</div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Data Table */}
-                    <DataTable
-                        isLoading={isLoading}
-                        columns={columns}
-                        data={filteredDetails}
-                        totalItems={filteredDetails.length}
-                        showViewOptions={true}
-                        columnPinning={{ left: ['id'], right: ['viewDetails'] }}
-                    />
-                </div>
-
-                {/* Graph Section */}
-                <div className='space-y-4 rounded-lg border bg-card p-4'>
-                    <div className='flex items-center gap-2 font-semibold text-foreground text-lg'>
-                        <BarChart3 className='h-5 w-5' />
-                        GRAPH
-                    </div>
-
-                    {/* Simple Chart Representation */}
-                    <div className='space-y-4'>
-                        <div className='text-center text-muted-foreground text-sm'>
-                            Monthly Net Salary Trend for Financial Year {selectedFinancialYear}
-                        </div>
-
-                        {/* Chart Container */}
-                        <div className='h-64 rounded-lg border bg-background p-4'>
-                            <div className='flex h-full items-end justify-around gap-2'>
-                                {chartData.map((data, index) => {
-                                    const maxSalary = Math.max(...chartData.map((d) => d.netSalary));
-                                    const height = (data.netSalary / maxSalary) * 100;
-                                    const colors = ['#0ea5e9', '#ef4444', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
-                                    const color = colors[index % colors.length];
-
-                                    return (
-                                        <div key={data.month} className='flex flex-1 flex-col items-center gap-2'>
-                                            <div className='text-muted-foreground text-xs'>₹{(data.netSalary / 1000).toFixed(0)}K</div>
-                                            <div
-                                                className='w-full rounded-t-md transition-all duration-300 hover:opacity-80'
-                                                style={{
-                                                    height: `${height}%`,
-                                                    backgroundColor: color,
-                                                    minHeight: '20px'
-                                                }}
-                                                title={`${data.month}: ₹${data.netSalary.toLocaleString()}`}
-                                            />
-                                            <div className='font-medium text-foreground text-xs'>{data.month}</div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Chart Legend */}
-                        <div className='flex items-center justify-center gap-4'>
-                            <div className='flex items-center gap-2'>
-                                <div className='h-3 w-3 rounded bg-blue-500' />
-                                <span className='text-muted-foreground text-xs'>DataSeries 1</span>
+            <div className='container space-y-4 p-1'>
+                <CollapsibleSection
+                    title='Salary Details'
+                    defaultOpen={true}
+                    variant='outline'
+                    size='md'
+                    className='no-print slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className='space-y-6'>
+                        <div className='flex flex-row justify-center'>
+                            <div className='w-full max-w-md space-y-2'>
+                                <Label htmlFor='year' className='font-medium text-gray-900 text-sm'>
+                                    Financial Year: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='year'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select Financial Year' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {masterYearsLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : masterYearsError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading data
+                                                    </SelectItem>
+                                                ) : (
+                                                    YearsOptions?.map((opt: any) => (
+                                                        <SelectItem key={opt.value} value={opt.value}>
+                                                            {opt.label}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.year && <FormError>{errors.year.message}</FormError>}
                             </div>
                         </div>
                     </div>
-                </div>
+                </CollapsibleSection>
 
-                {/* Detailed Salary Breakdown (shown when View Details is clicked) */}
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className='text-sm'>Earnings Breakdown</CardTitle>
-                        </CardHeader>
-                        <CardContent className='space-y-2'>
-                            <div className='flex justify-between text-sm'>
-                                <span>Basic Salary:</span>
-                                <span>₹{yearlyTotals.basicSalary.toLocaleString()}</span>
-                            </div>
-                            <div className='flex justify-between text-sm'>
-                                <span>Allowances:</span>
-                                <span>₹{yearlyTotals.allowances.toLocaleString()}</span>
-                            </div>
-                            <div className='flex justify-between text-sm'>
-                                <span>Bonuses:</span>
-                                <span>₹{yearlyTotals.bonuses.toLocaleString()}</span>
-                            </div>
-                            <div className='flex justify-between border-t pt-2 font-semibold text-sm'>
-                                <span>Total Earnings:</span>
-                                <span>₹{yearlyTotals.grossSalary.toLocaleString()}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
+                {reportData && (
+                    <div id='printable-report' ref={printRef}>
+                        <CollapsibleSection
+                            title='Salary Details'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                            <GenericDataTable<MonthlySalaryDetail>
+                                data={reportData}
+                                columns={columns}
+                                isLoading={isSearching}
+                                showViewOptions={true}
+                                columnPinning={{ right: ['viewDetails'] }}
+                                loadingMessage='Loading salary details...'
+                                noDataTitle='No Salary Data Found'
+                                noDataDescription='No salary records available for the selected year'
+                                errorTitle='Error Loading Salary Data'
+                            />
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className='text-sm'>Deductions Breakdown</CardTitle>
-                        </CardHeader>
-                        <CardContent className='space-y-2'>
-                            <div className='flex justify-between text-sm'>
-                                <span>PF Deduction:</span>
-                                <span>₹{yearlyTotals.pfDeduction.toLocaleString()}</span>
+                            <div className='no-print flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                                <Button
+                                    onClick={handleGenerateSlip}
+                                    className='w-fit transition-all duration-200 hover:scale-105'
+                                    variant='default'>
+                                    <FileText className='h-4 w-4' />
+                                    Generate Slip
+                                </Button>
+                                <Button
+                                    onClick={handlePrint}
+                                    className='w-fit transition-all duration-200 hover:scale-105'
+                                    variant='default'>
+                                    <Printer className='h-4 w-4' />
+                                    Print
+                                </Button>
+                                <Button
+                                    onClick={handleSendMail}
+                                    className='w-fit transition-all duration-200 hover:scale-105'
+                                    variant='default'>
+                                    <Mail className='h-4 w-4' />
+                                    Send Mail
+                                </Button>
+                                <Button
+                                    onClick={handleSendSMS}
+                                    className='w-fit transition-all duration-200 hover:scale-105'
+                                    variant='default'>
+                                    <MessageSquare className='h-4 w-4' />
+                                    Send SMS
+                                </Button>
+                                <Button
+                                    onClick={handleReset}
+                                    className='w-fit transition-all duration-200 hover:scale-105'
+                                    variant='outline'>
+                                    <X className='h-4 w-4' />
+                                    Cancel
+                                </Button>
                             </div>
-                            <div className='flex justify-between text-sm'>
-                                <span>ESI Deduction:</span>
-                                <span>₹{yearlyTotals.esiDeduction.toLocaleString()}</span>
-                            </div>
-                            <div className='flex justify-between text-sm'>
-                                <span>Professional Tax:</span>
-                                <span>₹{yearlyTotals.professionalTax.toLocaleString()}</span>
-                            </div>
-                            <div className='flex justify-between border-t pt-2 font-semibold text-sm'>
-                                <span>Total Deductions:</span>
-                                <span>₹{yearlyTotals.deductions.toLocaleString()}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
+                        </CollapsibleSection>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className='text-sm'>Annual Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent className='space-y-2'>
-                            <div className='flex justify-between text-sm'>
-                                <span>Gross Salary:</span>
-                                <span>₹{yearlyTotals.grossSalary.toLocaleString()}</span>
+                        <CollapsibleSection
+                            title='Salary Analytics'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 mt-4 animate-in shadow-lg duration-300'>
+                            <div className='space-y-6 p-6'>
+                                <div className='mt-4'>
+                                    <h3 className='mb-6 text-center font-semibold text-lg'>Monthly Salary Breakdown</h3>
+                                    <ResponsiveContainer width='100%' height={400}>
+                                        <BarChart data={chartData}>
+                                            <CartesianGrid strokeDasharray='3 3' />
+                                            <XAxis dataKey='month' angle={-45} textAnchor='end' height={80} />
+                                            <YAxis tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`} />
+                                            <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} />
+                                            <Legend />
+                                            <Bar dataKey='Basic Salary' fill='#3b82f6' />
+                                            <Bar dataKey='Net Salary' fill='#22c55e' />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
                             </div>
-                            <div className='flex justify-between text-sm'>
-                                <span>Total Deductions:</span>
-                                <span>₹{yearlyTotals.deductions.toLocaleString()}</span>
-                            </div>
-                            <div className='flex justify-between text-sm'>
-                                <span>Months Paid:</span>
-                                <span>{filteredDetails.length}</span>
-                            </div>
-                            <div className='flex justify-between border-t pt-2 font-semibold text-green-600 text-sm'>
-                                <span>Net Annual Salary:</span>
-                                <span>₹{yearlyTotals.netSalary.toLocaleString()}</span>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </CollapsibleSection>
+                        </CollapsibleSection>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

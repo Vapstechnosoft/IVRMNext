@@ -7,7 +7,14 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes, useMasterMonths, useMasterYears } from '@/hooks/hrms/useReports';
+import {
+    useMasterDepartments,
+    useMasterDesignations,
+    useMasterGroupTypes,
+    useMasterMonths,
+    useMasterPaymentModeList,
+    useMasterYears
+} from '@/hooks/hrms/useReports';
 import { BankCashReportSchema, type BankCashReportSchemaFormFields } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Search } from 'lucide-react';
@@ -190,6 +197,12 @@ export default function BankCashReportPage() {
 
     const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
 
+    const {
+        data: masterPaymentModeList,
+        isLoading: masterPaymentModeListLoading,
+        isError: masterPaymentModeListError
+    } = useMasterPaymentModeList();
+
     const groupTypeOptions =
         masterGroupTypes?.data?.map((item: any) => ({
             value: item.key,
@@ -219,6 +232,14 @@ export default function BankCashReportPage() {
             value: item.key,
             label: item.value
         })) || [];
+
+    const PaymentModeListOptions =
+        masterPaymentModeList?.data
+            ?.map((item: any) => ({
+                value: item.key,
+                label: item.value
+            }))
+            .sort((a, b) => a.label.localeCompare(b.label)) || [];
 
     const {
         control,
@@ -391,24 +412,22 @@ export default function BankCashReportPage() {
                                 control={control}
                                 render={({ field }) => (
                                     <RadioGroup onValueChange={field.onChange} value={field.value} className='flex items-center gap-6'>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='Bank' id='bank' />
-                                            <Label htmlFor='bank' className='cursor-pointer font-normal'>
-                                                Bank <span className='text-red-500'>*</span>
-                                            </Label>
-                                        </div>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='Cash' id='cash' />
-                                            <Label htmlFor='cash' className='cursor-pointer font-normal'>
-                                                Cash <span className='text-red-500'>*</span>
-                                            </Label>
-                                        </div>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='Cheque' id='cheque' />
-                                            <Label htmlFor='cheque' className='cursor-pointer font-normal'>
-                                                Cheque <span className='text-red-500'>*</span>
-                                            </Label>
-                                        </div>
+                                        {masterPaymentModeListLoading ? (
+                                            <div className='text-sm text-white-500'>Loading payment modes...</div>
+                                        ) : masterPaymentModeListError ? (
+                                            <div className='text-red-500 text-sm'>Error loading payment modes</div>
+                                        ) : PaymentModeListOptions.length === 0 ? (
+                                            <div className='text-sm text-white-500'>No payment modes available</div>
+                                        ) : (
+                                            PaymentModeListOptions.map((option) => (
+                                                <div key={option.value} className='flex items-center space-x-2'>
+                                                    <RadioGroupItem value={option.value} id={option.value.toLowerCase()} />
+                                                    <Label htmlFor={option.value.toLowerCase()} className='cursor-pointer font-normal'>
+                                                        {option.label} <span className='text-red-500'>*</span>
+                                                    </Label>
+                                                </div>
+                                            ))
+                                        )}
                                     </RadioGroup>
                                 )}
                             />
