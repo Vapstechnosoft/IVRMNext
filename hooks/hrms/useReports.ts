@@ -72,7 +72,14 @@ import {
     getPeriodLeaveReportDesignation,
     getPeriodLeaveReportEmployees
 } from '@/server/hrms/leave-management/reports/leave-report';
-import { getMasterDepartments, getMasterDesignations, getMasterGroupTypes, getMasterMonths, getMasterYears } from '@/server/hrms/master';
+import {
+    getMasterDepartments,
+    getMasterDesignations,
+    getMasterGroupTypes,
+    getMasterMonths,
+    getMasterPaymentModeList,
+    getMasterYears
+} from '@/server/hrms/master';
 import type { ApiSearchparams } from '@/types';
 import type { EmployeeAdvanceReportSearchRequest } from '@/types/hrms/reports/advance-report';
 import type { BankCashReportSearchRequest } from '@/types/hrms/reports/bank-cash-report';
@@ -2157,6 +2164,23 @@ export const useMasterYears = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_YEARS]
+            });
+        }
+    };
+};
+
+export const useMasterPaymentModeList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_PAYMENT_MODE_LIST],
+            queryFn: async () => getMasterPaymentModeList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_PAYMENT_MODE_LIST]
             });
         }
     };
