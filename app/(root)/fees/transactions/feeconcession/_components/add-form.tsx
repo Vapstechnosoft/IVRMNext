@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -6,555 +7,545 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useMasterFeeOpeningBalance,
-    useconcessionacademicyerdropdowndatafee,
-    useopeningCategorydropdowndatafee,
-    useopeningClassdropdowndatafee,
-    useopeningSectiondropdowndatafee
-} from '@/hooks/fees/useTrasactions';
-import { feeOpeningBalanceSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateFeeOpeningBalance } from '@/server/fees/trasactions/fee_opening_balance';
-import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import type { z } from 'zod';
-type FormFields = z.infer<typeof feeOpeningBalanceSchema.addOrUpdate>;
+
+import { MultiSelect } from '@/components/ui/multi-select';
+import {
+    useFeeConcessionClassDropdowndata,
+    useFeeConcessionHeadList,
+    useFeeConcessionStudentList,
+    useFeeConcessionTermDropdowndata,
+    useconcessionacademicyerdropdowndatafee,
+    useopeningCategorydropdowndatafee
+} from '@/hooks/fees/useTrasactions';
+
+const MI_ID = 30;
+
 interface StudentRow {
     amst_Id: number;
-    fullName: string;
-    fmoB_Student_Due: number;
-    fmoB_Institution_Due: number;
+    studentName: string;
+    registrationNo: string;
+    admNo: string;
+    rollNo: number;
+    checked: boolean;
+    concessionAmount: number;
+}
+
+interface HeadRow {
+    slno: number;
+    fmH_Id: number;
+    fmH_FeeName: string;
+    fmI_Name: string;
+    fmA_Amount: number;
+    type: 'Amount' | 'Percentage' | '';
+    concessionValue: number;
+    remarks: string;
     checked: boolean;
 }
 
-export default function AddFeeConcessionForm({
-    onSuccess,
-    className = ''
-}: {
-    onSuccess?: () => void;
-    className?: string;
-}) {
-    const { refetchAll } = useMasterFeeOpeningBalance();
-    const { control, reset, resetField, setValue } = useForm<FormFields>({
-        resolver: zodResolver(feeOpeningBalanceSchema.addOrUpdate),
-        defaultValues: {
-            academicYearId: undefined,
-            classId: undefined,
-            sectionId: undefined,
-            headId: undefined,
-            groupId: undefined,
-            installmentId: undefined,
-            date: format(new Date(), 'yyyy-MM-dd')
-        }
-    });
-
-    const academicYearId = useWatch({ control, name: 'academicYearId' });
-    const mi_Id = useWatch({ control, name: 'mi_Id' });
-    const classId = useWatch({ control, name: 'classId' });
-    const sectionId = useWatch({ control, name: 'sectionId' });
-    const headId = useWatch({ control, name: 'headId' });
-    const groupId = useWatch({ control, name: 'groupId' });
-    const installmentId = useWatch({ control, name: 'installmentId' });
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => void }) {
+    const { control, watch, reset, setValue } = useForm();
     const [selectionType, setSelectionType] = useState<'C' | 'A' | 'L' | 'F' | 'S'>('C');
-
-    const [categoryId, setCategoryId] = useState<string>('');
+    const [searchValue, setSearchValue] = useState('');
     const [students, setStudents] = useState<StudentRow[]>([]);
-    const [showTable, setShowTable] = useState(false);
+    const [heads, setHeads] = useState<HeadRow[]>([]);
     const [saving, setSaving] = useState(false);
 
-    const { data: academicYear, isLoading: loadingAcademicYear } = useconcessionacademicyerdropdowndatafee(mi_Id ? Number(mi_Id) : 0);
-    const { data: classdata, isLoading: loadingClasses } = useopeningClassdropdowndatafee();
-    const { data: sectiondata, isLoading: loadingSections } = useopeningSectiondropdowndatafee(
-        academicYearId ? Number(academicYearId) : 0,
-        classId ? Number(classId) : 0
+    const academicYearId = watch('academicYearId');
+    const classId = watch('classId');
+    const categoryId = watch('categoryId');
+    const termIds = watch('termIds') || [];
+    const admissionNo = watch('admissionNo');
+
+    const { data: academicYears, isLoading: loadingAY } = useconcessionacademicyerdropdowndatafee(MI_ID);
+    const { data: terms, isLoading: loadingTerms } = useFeeConcessionTermDropdowndata(MI_ID);
+    const { data: classes, isLoading: loadingClasses } = useFeeConcessionClassDropdowndata(MI_ID);
+    const { data: categories, isLoading: loadingCategories } = useopeningCategorydropdowndatafee();
+
+    // Determine if we have the required filter (class or category)
+    const hasFilterId =
+        selectionType === 'C' || selectionType === 'L'
+            ? !!classId
+            : selectionType === 'A' || selectionType === 'F'
+              ? !!categoryId
+              : selectionType === 'S'
+                ? !!admissionNo
+                : false;
+
+    const filterId =
+        selectionType === 'C' || selectionType === 'L'
+            ? classId
+            : selectionType === 'A' || selectionType === 'F'
+              ? categoryId
+              : selectionType === 'S'
+                ? admissionNo
+                : undefined;
+
+    const shouldFetchStudents = !!academicYearId && hasFilterId;
+
+    const studentQuery = useFeeConcessionStudentList(
+        MI_ID,
+        Number(academicYearId || 0),
+        selectionType === 'S' ? 0 : Number(filterId || 0),
+        selectionType as any
     );
 
-    // const { data: refundabledata, isLoading: loadingRefundable } = useFeeOpeningRefundable(
-    //     academicYearId ? Number(academicYearId) : 0,
-    //     refundableType
-    // );
+    const headQuery = useFeeConcessionHeadList(MI_ID, Number(academicYearId || 0), Number(classId || 0));
 
-    const { data: categorydata, isLoading: loadingCategories } = useopeningCategorydropdowndatafee();
-    // const { data: groupdata, isLoading: loadingGroups } = useopeningGroupdropdowndatafee(headId ? Number(headId) : 0);
-    // const { data: installmentdata, isLoading: loadingInstallments } = useopeningInstallmentdropdowndatafee(
-    //     academicYearId ? Number(academicYearId) : 0,
-    //     groupId ? Number(groupId) : 0,
-    //     headId ? Number(headId) : 0
-    // );
-
-    const [searchValue, setSearchValue] = useState('');
-
+    // Load students
     useEffect(() => {
-        setStudents([]);
-        setShowTable(false);
-        setCategoryId('');
-    }, [selectionType]);
-
-    useEffect(() => {
-        resetField('headId');
-        resetField('groupId');
-        resetField('installmentId');
-    }, [academicYearId, resetField]);
-
-    const onSubmit = async () => {
-        const selected = students.filter((s) => s.checked);
-        if (selected.length === 0) return toast.error('Please select at least one student');
-        setSaving(true);
-        try {
-            const payload = {
-                Asmay_Id: Number(academicYearId),
-                Fmg_Id: groupId ? Number(groupId) : 0,
-
-                FMOB_Entry_Date: format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss"),
-                SaveTmpData: selected.map((s) => ({
-                    Amst_Id: s.amst_Id,
-                    FMOB_Student_Due: s.fmoB_Student_Due,
-                    FMOB_Institution_Due: s.fmoB_Institution_Due,
-                    checkedvalue: true
-                })),
-                TempHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
-            };
-
-            const res = await addOrUpdateFeeOpeningBalance(payload);
-            if (res.success || res.returnval) {
-                toast.success('Opening balance saved successfully!');
-                handleFullReset();
-                refetchAll();
-                onSuccess?.();
-            } else {
-                toast.error(res.message || 'Failed to save');
-            }
-        } catch {
-            toast.error('Error saving data');
-        } finally {
-            setSaving(false);
+        if (studentQuery.data?.data && shouldFetchStudents) {
+            setStudents(
+                studentQuery.data.data.map((s: any) => ({
+                    amst_Id: s.amsT_Id,
+                    studentName: s.studentName || '—',
+                    registrationNo: s.amsT_RegistrationNo || '—',
+                    admNo: s.amsT_AdmNo || '—',
+                    rollNo: s.amaY_RollNo || 0,
+                    checked: false,
+                    concessionAmount: 0
+                }))
+            );
+        } else {
+            setStudents([]);
         }
-    };
+    }, [studentQuery.data, shouldFetchStudents]);
 
-    const handleFullReset = () => {
-        reset();
-        setSelectedDate(new Date());
-        setSelectionType('C');
-        setCategoryId('');
+    const selectedStudentsCount = students.filter((s) => s.checked).length;
+    const shouldShowHeads = selectedStudentsCount > 0;
+
+    useEffect(() => {
+        if (shouldShowHeads && headQuery.data?.data) {
+            setHeads(
+                headQuery.data.data.map((h: any, i: number) => ({
+                    slno: i + 1,
+                    fmH_Id: h.fmH_Id,
+                    fmH_FeeName: h.fmH_FeeName,
+                    fmI_Name: h.fmI_Name || 'Yearly',
+                    fmA_Amount: h.fmA_Amount || 0,
+                    type: '' as 'Amount' | 'Percentage' | '',
+                    concessionValue: 0,
+                    remarks: '',
+                    checked: false
+                }))
+            );
+        } else {
+            setHeads([]);
+        }
+    }, [shouldShowHeads, headQuery.data]);
+
+    useEffect(() => {
         setStudents([]);
-        setShowTable(false);
+        setHeads([]);
+        setValue('classId', undefined);
+        setValue('categoryId', undefined);
+        setValue('admissionNo', undefined);
+        setSearchValue('');
+    }, [selectionType, setValue]);
+
+    const filteredStudents = students.filter(
+        (s) =>
+            (s.studentName || '').toLowerCase().includes(searchValue.toLowerCase()) ||
+            (s.admNo || '').toLowerCase().includes(searchValue.toLowerCase())
+    );
+
+    const allStudentsChecked = students.length > 0 && students.every((s) => s.checked);
+    const someStudentsChecked = students.some((s) => s.checked) && !allStudentsChecked;
+
+    const toggleAllStudents = () => {
+        setStudents((prev) => prev.map((s) => ({ ...s, checked: !allStudentsChecked })));
     };
 
-    const columns: ColumnDef<StudentRow>[] = useMemo(
+    const studentColumns: ColumnDef<StudentRow>[] = useMemo(
         () => [
             {
                 id: 'select',
-
-                header: () => {
-                    const checkedCount = students.filter((s) => s.checked).length;
-                    const allChecked = checkedCount === students.length && students.length > 0;
-                    const someChecked = checkedCount > 0 && !allChecked;
-                    return (
-                        <Checkbox
-                            checked={allChecked}
-                            {...(someChecked ? { 'data-state': 'indeterminate' } : {})}
-                            onCheckedChange={(checked) => {
-                                //const newCheckedState = checked ? true : false;
-                                const newCheckedState = !!checked;
-                                setStudents((prev) => prev.map((s) => ({ ...s, checked: newCheckedState })));
-                            }}
-                        />
-                    );
-                },
-
+                header: () => (
+                    <Checkbox
+                        checked={allStudentsChecked}
+                        {...(someStudentsChecked ? { 'data-state': 'indeterminate' } : {})}
+                        onCheckedChange={toggleAllStudents}
+                    />
+                ),
                 cell: ({ row }) => (
                     <Checkbox
                         checked={row.original.checked}
-                        onCheckedChange={(checked) => {
-                            setStudents((prev) => prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, checked: !!checked } : s)));
-                        }}
+                        onCheckedChange={(v) =>
+                            setStudents((prev) => prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, checked: !!v } : s)))
+                        }
                     />
                 ),
-
                 size: 50
             },
-
             {
-                accessorKey: 'fullName',
+                accessorKey: 'studentName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-                size: 300
+                size: 320
             },
-
+            { accessorKey: 'admNo', header: 'Adm No', size: 140 },
+            { accessorKey: 'registrationNo', header: 'Reg No', size: 160 },
             {
-                accessorKey: 'fmoB_Student_Due',
-                header: 'Student Due',
+                accessorKey: 'rollNo',
+                header: 'Roll No',
+                size: 100,
+                cell: ({ row }) => <div className='text-center font-medium'>{row.original.rollNo || '-'}</div>
+            },
+            {
+                id: 'amount',
+                header: 'Concession Amount',
+                size: 200,
                 cell: ({ row }) => (
                     <Input
                         type='number'
                         min='0'
-                        step='1'
-                        className='w-32 text-right font-medium sm:w-40'
-                        value={row.original.fmoB_Student_Due}
+                        placeholder='0'
+                        className='text-right font-medium'
+                        value={row.original.concessionAmount}
                         onChange={(e) => {
                             const val = Number(e.target.value) || 0;
                             setStudents((prev) =>
-                                prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Student_Due: val } : s))
-                            );
-                        }}
-                    />
-                )
-            },
-
-            {
-                accessorKey: 'fmoB_Institution_Due',
-                header: 'Institution Due',
-                cell: ({ row }) => (
-                    <Input
-                        type='number'
-                        min='0'
-                        step='1'
-                        className='w-32 text-right font-medium sm:w-40'
-                        value={row.original.fmoB_Institution_Due}
-                        onChange={(e) => {
-                            const val = Number(e.target.value) || 0;
-
-                            setStudents((prev) =>
-                                prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, fmoB_Institution_Due: val } : s))
+                                prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, concessionAmount: val } : s))
                             );
                         }}
                     />
                 )
             }
         ],
-
-        [students, setStudents]
+        [allStudentsChecked, someStudentsChecked]
     );
 
+    const headColumns: ColumnDef<HeadRow>[] = useMemo(
+        () => [
+            { accessorKey: 'slno', header: 'S.No', size: 70, cell: ({ row }) => <div className='text-center'>{row.original.slno}</div> },
+            {
+                id: 'select',
+                header: () => <></>,
+                cell: ({ row }) => (
+                    <Checkbox
+                        checked={row.original.checked}
+                        onCheckedChange={(v) =>
+                            setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, checked: !!v } : h)))
+                        }
+                    />
+                ),
+                size: 60
+            },
+            { accessorKey: 'fmH_FeeName', header: 'Fee Head', size: 300 },
+            { accessorKey: 'fmI_Name', header: 'Installment', size: 160 },
+            {
+                id: 'type',
+                header: 'Type',
+                size: 160,
+                cell: ({ row }) => (
+                    <Select
+                        value={row.original.type}
+                        onValueChange={(value) =>
+                            setHeads((prev) =>
+                                prev.map((h) =>
+                                    h.fmH_Id === row.original.fmH_Id
+                                        ? { ...h, type: value as 'Amount' | 'Percentage', concessionValue: 0 }
+                                        : h
+                                )
+                            )
+                        }>
+                        <SelectTrigger className='h-9'>
+                            <SelectValue placeholder='Select' />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value='Amount'>Amount</SelectItem>
+                            <SelectItem value='Percentage'>Percentage</SelectItem>
+                        </SelectContent>
+                    </Select>
+                )
+            },
+            {
+                accessorKey: 'fmA_Amount',
+                header: 'Amount',
+                size: 140,
+                cell: ({ row }) => <div className='pr-3 text-right font-medium'>{row.original.fmA_Amount.toLocaleString()}</div>
+            },
+            {
+                id: 'concession',
+                header: 'Concession',
+                size: 200,
+                cell: ({ row }) => (
+                    <Input
+                        type='number'
+                        min='0'
+                        max={row.original.type === 'Percentage' ? 100 : undefined}
+                        placeholder={row.original.type === 'Percentage' ? '0-100' : 'Amount'}
+                        className='text-right font-medium'
+                        value={row.original.concessionValue}
+                        onChange={(e) => {
+                            const val = Number(e.target.value) || 0;
+                            setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, concessionValue: val } : h)));
+                        }}
+                    />
+                )
+            },
+            {
+                id: 'remarks',
+                header: 'Remarks',
+                size: 280,
+                cell: ({ row }) => (
+                    <Input
+                        placeholder='Optional'
+                        value={row.original.remarks}
+                        onChange={(e) =>
+                            setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, remarks: e.target.value } : h)))
+                        }
+                    />
+                )
+            }
+        ],
+        []
+    );
+
+    const onSubmit = () => {
+        if (!academicYearId) return toast.error('Select Academic Year');
+        if (!termIds.length) return toast.error('Select Term');
+        if (selectedStudentsCount === 0) return toast.error('Select student(s)');
+        if (heads.length === 0) return toast.error('No fee heads loaded');
+
+        toast.success('Fee Concession Saved Successfully!');
+        reset();
+        setStudents([]);
+        setHeads([]);
+        setSearchValue('');
+        onSuccess?.();
+    };
+
+    // Show Term only when required fields are filled (except for 'S')
+    const showTermField = selectionType === 'S' ? !!academicYearId : !!academicYearId && hasFilterId;
+
+    // Show Student Table only when Term is selected
+    const showStudentTable = students.length > 0 && termIds.length > 0;
+
     return (
-        <div className={`space-y-6 ${className}`}>
-            <div className='flex flex-wrap justify-center gap-6 rounded-lg border bg-white p-4 shadow-sm sm:gap-12 sm:p-6'>
-                {(['C', 'A', 'L', 'F', 'S'] as const).map((val) => (
-                    <label key={val} className='flex cursor-pointer items-center gap-3'>
-                        <input
-                            type='radio'
-                            name='selectionType'
-                            value={val}
-                            checked={selectionType === val}
-                            onChange={(e) => setSelectionType(e.target.value as any)}
-                            className='h-5 w-5 text-blue-600'
-                        />
+        <div className='mx-auto max-w-7xl space-y-8 p-4 md:p-6'>
+            <Card className='overflow-hidden border-2 border-blue-100 pb-9 shadow-xl'>
+                <CardContent className='p-4'>
+                    <div className='flex justify-center'>
+                        <RadioGroup
+                            value={selectionType}
+                            onValueChange={(v) => setSelectionType(v as any)}
+                            className='flex flex-wrap justify-center gap-4 rounded-2xl p-4'>
+                            {[
+                                { value: 'C', label: 'Class Wise' },
+                                { value: 'A', label: 'Adm Category Wise' },
+                                { value: 'L', label: 'Left Student' },
+                                { value: 'F', label: 'Fee Concession Category' },
+                                { value: 'S', label: 'Admission No Search' }
+                            ].map((item) => (
+                                <div key={item.value} className='flex items-center space-x-4'>
+                                    <RadioGroupItem value={item.value} id={item.value} className='h-6 w-6 border-2' />
+                                    <Label
+                                        htmlFor={item.value}
+                                        className='cursor-pointer font-semibold text-gray-800 text-sm transition-all'>
+                                        {item.label}
+                                    </Label>
+                                </div>
+                            ))}
+                        </RadioGroup>
+                    </div>
+                </CardContent>
 
-                        <span className='font-medium text-sm sm:text-base'>
-                            {val === 'C'
-                                ? 'Class Wise'
-                                : val === 'A'
-                                  ? 'Adm Category Wise'
-                                  : val === 'L'
-                                    ? 'Left Student'
-                                    : val === 'F'
-                                      ? 'Fee Concession Category'
-                                      : 'Admission No Search'}
-                        </span>
-                    </label>
-                ))}
-            </div>
-
-            {/* Main Form */}
-
-            <div className='grid gap-8 lg:grid-cols-2'>
-                <div className='space-y-5'>
-                    {/* Academic Year */}
-                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                        <Label className='w-44 text-right sm:w-44'>
-                            Academic Year <span className='text-red-500'>*</span>
-                        </Label>
-
-                        <div className='w-full sm:w-96'>
+                <CardContent className='space-y-6 pt-6'>
+                    <div className='grid gap-6 md:grid-cols-2'>
+                        {/* Academic Year - Always */}
+                        <div className='flex flex-col gap-2'>
+                            <Label className='font-medium'>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
-                                name='academicYearId'
                                 control={control}
+                                name='academicYearId'
                                 render={({ field }) => (
-                                    <Select
-                                        onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                        value={field.value?.toString()}
-                                        disabled={loadingAcademicYear}>
-                                        <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={loadingAcademicYear ? 'Loading academic years...' : 'Select Academic Year'}
-                                            />
+                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                        <SelectTrigger className='h-12'>
+                                            <SelectValue placeholder={loadingAY ? 'Loading...' : 'Select Academic Year'} />
                                         </SelectTrigger>
-
                                         <SelectContent>
-                                            {loadingAcademicYear ? (
-                                                <div className='px-4 py-8 text-center text-muted-foreground'>Loading...</div>
-                                            ) : academicYear?.data && academicYear.data.length > 0 ? (
-                                                academicYear.data.map((item: any) => (
-                                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                        {item.asmaY_Year}
-                                                    </SelectItem>
-                                                ))
-                                            ) : (
-                                                <div className='px-4 py-8 text-center text-muted-foreground'>No academic years found</div>
-                                            )}
+                                            {academicYears?.data?.map((ay: any) => (
+                                                <SelectItem key={ay.asmaY_Id} value={String(ay.asmaY_Id)}>
+                                                    {ay.asmaY_Year}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}
                             />
                         </div>
-                    </div>
 
-                    {/* Category (Category mode) */}
-
-                    {selectionType === 'A' && (
-                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                            <Label className='w-44 text-right'>
-                                Category <span className='text-red-500'>*</span>
-                            </Label>
-
-                            <div className='w-full sm:w-96'>
-                                <Select value={categoryId} onValueChange={setCategoryId} disabled={loadingCategories}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={loadingCategories ? 'Loading categories...' : 'Select Category'} />
-                                    </SelectTrigger>
-
-                                    <SelectContent>
-                                        {loadingCategories ? (
-                                            <div className='px-4 py-8 text-center text-muted-foreground'>Loading...</div>
-                                        ) : categorydata?.data && categorydata.data.length > 0 ? (
-                                            categorydata.data.map((item: any) => (
-                                                <SelectItem key={item.fmcC_Id} value={String(item.fmcC_Id)}>
-                                                    {item.fmcC_ClassCategoryName}
-                                                </SelectItem>
-                                            ))
-                                        ) : (
-                                            <div className='px-4 py-8 text-center text-muted-foreground'>No categories found</div>
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Class & Section */}
-
-                    {(selectionType === 'C' || selectionType === 'L') && (
-                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                            <Label className='w-44 text-right'>
-                                Class <span className='text-red-500'>*</span>
-                            </Label>
-
-                            <div className='w-full sm:w-96'>
+                        {/* Class - For C & L */}
+                        {(selectionType === 'C' || selectionType === 'L') && (
+                            <div className='flex flex-col gap-2'>
+                                <Label className='font-medium'>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
+                                    control={control}
                                     name='classId'
-                                    control={control}
                                     render={({ field }) => (
-                                        <Select
-                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                            value={field.value?.toString()}
-                                            disabled={loadingClasses}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={loadingClasses ? 'Loading classes...' : 'Select Class'} />
+                                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                            <SelectTrigger className='h-12'>
+                                                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                             </SelectTrigger>
-
                                             <SelectContent>
-                                                {loadingClasses ? (
-                                                    <div className='px-4 py-8 text-center text-muted-foreground'>Loading...</div>
-                                                ) : classdata?.data && classdata.data.length > 0 ? (
-                                                    classdata.data.map((item: any) => (
-                                                        <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
-                                                            {item.asmcL_ClassName}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    <div className='px-4 py-8 text-center text-muted-foreground'>No classes found</div>
-                                                )}
+                                                {classes?.data?.map((cls: any) => (
+                                                    <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                        {cls.asmcL_ClassName}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
                             </div>
-                        </div>
-                    )}
-                    {selectionType === 'F' && (
-                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                            <Label className='w-44 text-right'>
-                                Fee Concession Category <span className='text-red-500'>*</span>
-                            </Label>
+                        )}
 
-                            <div className='w-full sm:w-96'>
+                        {/* Category - For A & F */}
+                        {(selectionType === 'A' || selectionType === 'F') && (
+                            <div className='flex flex-col gap-2'>
+                                <Label className='font-medium'>
+                                    {selectionType === 'A' ? 'Category' : 'Fee Concession Category'} <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
-                                    name='sectionId'
                                     control={control}
+                                    name='categoryId'
                                     render={({ field }) => (
-                                        <Select
-                                            disabled={!classId || loadingSections}
-                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                            value={field.value?.toString()}>
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                    placeholder={
-                                                        loadingSections
-                                                            ? 'Loading sections...'
-                                                            : classId
-                                                              ? 'Select Section'
-                                                              : 'Select Class first'
-                                                    }
-                                                />
+                                        <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                            <SelectTrigger className='h-12'>
+                                                <SelectValue placeholder={loadingCategories ? 'Loading...' : 'Select Category'} />
                                             </SelectTrigger>
-
                                             <SelectContent>
-                                                {loadingSections ? (
-                                                    <div className='px-4 py-8 text-center text-muted-foreground'>Loading...</div>
-                                                ) : sectiondata?.data && sectiondata.data.length > 0 ? (
-                                                    sectiondata.data.map((item: any) => (
-                                                        <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                            {item.asmC_SectionName}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    <div className='px-4 py-8 text-center text-muted-foreground'>No sections found</div>
-                                                )}
+                                                {categories?.data?.map((cat: any) => (
+                                                    <SelectItem key={cat.fmcC_Id} value={String(cat.fmcC_Id)}>
+                                                        {cat.fmcC_ClassCategoryName}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {selectionType === 'S' && (
-                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                            <Label className='w-44 text-right'>
-                                Admission No: <span className='text-red-500'>*</span>
-                            </Label>
-
-                            <div className='w-full sm:w-96'>
+                        {/* Admission No Search */}
+                        {selectionType === 'S' && (
+                            <div className='flex flex-col gap-2'>
+                                <Label className='font-medium'>
+                                    Admission No <span className='text-red-500'>*</span>
+                                </Label>
                                 <Controller
-                                    name='sectionId'
                                     control={control}
+                                    name='admissionNo'
                                     render={({ field }) => (
-                                        <Select
-                                            disabled={!classId || loadingSections}
-                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                            value={field.value?.toString()}>
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                    placeholder={
-                                                        loadingSections
-                                                            ? 'Loading sections...'
-                                                            : classId
-                                                              ? 'Select Section'
-                                                              : 'Select Class first'
-                                                    }
-                                                />
-                                            </SelectTrigger>
-
-                                            <SelectContent>
-                                                {loadingSections ? (
-                                                    <div className='px-4 py-8 text-center text-muted-foreground'>Loading...</div>
-                                                ) : sectiondata?.data && sectiondata.data.length > 0 ? (
-                                                    sectiondata.data.map((item: any) => (
-                                                        <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                            {item.asmC_SectionName}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    <div className='px-4 py-8 text-center text-muted-foreground'>No sections found</div>
-                                                )}
-                                            </SelectContent>
-                                        </Select>
+                                        <Input
+                                            placeholder='Enter Admission No'
+                                            value={field.value || ''}
+                                            onChange={field.onChange}
+                                            className='h-12'
+                                        />
                                     )}
                                 />
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <div className='group flex flex-col gap-1.5'>
-                        <Label aria-label='Heads' htmlFor='fmH_Id'>
-                            Term Name <span className='ml-1 text-red-500'>*</span>
-                        </Label>
-                        {/* <Controller
-                                name='heads'
-                                control={control}
-                                render={({ field }) => (
-                                    <MultiSelect
-                                        options={
-                                            masterHeads?.data?.map((data) => ({
-                                                label: data.fmH_FeeName || '',
-                                                value: data.fmH_Id.toString()
-                                            })) ?? []
-                                        }
-                                        onValueChange={(selectedValues) => {
-                                            field.onChange(selectedValues);
-                                            handleHeadSelection(selectedValues);
-                                        }}
-                                        defaultValue={selectedHeadsItems.map((data) =>
-                                            data.fmH_Id !== undefined ? data.fmH_Id.toString() : ''
-                                        )}
-                                        value={selectedHeadsItems.map((data) => (data.fmH_Id !== undefined ? data.fmH_Id.toString() : ''))}
-                                        placeholder='Select Heads'
-                                        variant='inverted'
-                                        disabled={masterHeadsLoading}
-                                    />
-                                )}
-                            /> */}
-
-                        {/* {errors.heads && <FormError>{errors.heads.message}</FormError>} */}
-                    </div>
-
-                    {showTable && (
-                        <Card className='shadow-lg'>
-                            <CardHeader>
-                                <CardTitle className='text-lg sm:text-xl'>Student Opening Balance</CardTitle>
-                            </CardHeader>
-
-                            <CardContent className='overflow-x-auto'>
-                                <div className='mb-4'>
-                                    <Input
-                                        placeholder='Search by student name...'
-                                        value={searchValue}
-                                        onChange={(e) => setSearchValue(e.target.value)}
-                                        className='max-w-sm'
-                                    />
-                                </div>
-
-                                <GenericDataTable<StudentRow>
-                                    columns={columns}
-                                    data={students.filter((s) => s.fullName.toLowerCase().includes(searchValue.toLowerCase()))}
-                                    totalItems={students.filter((s) => s.fullName.toLowerCase().includes(searchValue.toLowerCase())).length}
-                                    isLoading={true}
-                                    isPaginationRequired={false}
-                                    showViewOptions={false}
-                                    isSearchRequired={false}
+                        {/* Term - Conditionally Visible */}
+                        {showTermField && (
+                            <div className='flex flex-col gap-2'>
+                                <Label className='font-medium'>
+                                    Term Name <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    control={control}
+                                    name='termIds'
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={terms?.data?.map((t: any) => ({ label: t.fmT_Name, value: String(t.fmT_Id) })) || []}
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value || []}
+                                            placeholder={loadingTerms ? 'Loading...' : 'Select Terms'}
+                                            className='h-12'
+                                        />
+                                    )}
                                 />
-                            </CardContent>
-                        </Card>
-                    )}
-
-                    <div className='flex flex-col-reverse gap-4 border-t pt-6 sm:flex-row sm:justify-start'>
-                        <Button
-                            type='button'
-                            variant='outline'
-                            size='lg'
-                            onClick={handleFullReset}
-                            className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
-                            Reset
-                        </Button>
-
-                        <Button
-                            type='button'
-                            size='lg'
-                            onClick={onSubmit}
-                            disabled={students.filter((s) => s.checked).length === 0 || saving}
-                            isLoading={saving}
-                            className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
-                            <Save className='mr-2 h-5 w-5' />
-                            Save
-                        </Button>
+                            </div>
+                        )}
                     </div>
-                </div>
+                </CardContent>
+            </Card>
+
+            {/* Student Table - Only after Term is selected */}
+            {showStudentTable && (
+                <Card className='shadow-xl'>
+                    <CardHeader className='text-black'>
+                        <CardTitle className='text-2xl'>Student List ({selectedStudentsCount} selected)</CardTitle>
+                    </CardHeader>
+                    <CardContent className='p-6'>
+                        <div className='overflow-hidden rounded-lg border bg-white'>
+                            <GenericDataTable
+                                columns={studentColumns}
+                                data={filteredStudents}
+                                isLoading={studentQuery.isLoading}
+                                totalItems={filteredStudents.length}
+                                isPaginationRequired={true}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Fee Heads */}
+            {shouldShowHeads && heads.length > 0 && (
+                <Card className='shadow-xl'>
+                    <CardHeader className='text-black'>
+                        <CardTitle className='text-2xl'>Fee Head List</CardTitle>
+                    </CardHeader>
+                    <CardContent className='p-0'>
+                        <div className='overflow-hidden rounded-lg border bg-white'>
+                            <GenericDataTable
+                                columns={headColumns}
+                                data={heads}
+                                isLoading={false}
+                                totalItems={heads.length}
+                                isPaginationRequired={false}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Buttons */}
+            <div className='flex flex-col-reverse gap-4 border-t pt-6 sm:flex-row sm:justify-start'>
+                <Button
+                    size='lg'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        setStudents([]);
+                        setHeads([]);
+                        setSearchValue('');
+                    }}
+                    className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
+                    <X className='mr-2 h-5 w-5' /> Cancel
+                </Button>
+                <Button
+                    size='lg'
+                    onClick={onSubmit}
+                    disabled={saving || selectedStudentsCount === 0}
+                    isLoading={saving}
+                    className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
+                    <Save className='mr-2 h-5 w-5' />
+                    Save Concession
+                </Button>
             </div>
         </div>
     );
