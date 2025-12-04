@@ -1,593 +1,920 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { CalendarYear } from '@/components/ui/calendar_year';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { useFilterEmployeeOfferAndExperienceData, useGetEmployeeDetailsBySelection } from '@/hooks/hrms/useReports';
-import { createLocalCrud } from '@/lib/localdb';
+import { Label } from '@/components/ui/label';
+
+import { InputText } from '@/components/ui/extension/input-text';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes } from '@/hooks/hrms/useReports';
+import { cn } from '@/lib/utils';
+import { type EmployeeOfferLaterFields, EmployeeOfferLaterSchema } from '@/schemas/hrms/employee-category-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Printer, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { CalendarIcon, Printer, RefreshCw, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import {
-    type Department,
-    type Designation,
-    type Employee,
-    EmployeeOfferLetterFilters,
-    type GroupType,
-    type OfferLetterFilters
-} from './_components/filters';
 
-export default function EmployeeOfferLetterPage() {
-    // API hooks
-    const filterMutation = useFilterEmployeeOfferAndExperienceData();
-    const searchMutation = useGetEmployeeDetailsBySelection();
+const mockEmployees = [
+    { key: '1208', value: 'ANUSHA T' },
+    { key: 'EMP002', value: 'KIRAN KUMAR' },
+    { key: 'EMP003', value: 'PALLAVI C' },
+    { key: 'EMP004', value: 'RAFIQ' },
+    { key: 'EMP005', value: 'NATARAJA' }
+];
 
-    // Database instances (for dropdowns - group types, departments, designations)
-    const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
-    const departmentDB = createLocalCrud<Department>('master:department');
-    const designationDB = createLocalCrud<Designation>('master:designation');
-    const employeeDB = createLocalCrud<Employee>('master:employee');
-
-    // State
-    const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
-    const [departments, setDepartments] = useState<Department[]>([]);
-    const [designations, setDesignations] = useState<Designation[]>([]);
-    const [employees, setEmployees] = useState<Employee[]>([]);
-    const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-    const [_isLoading, setIsLoading] = useState(true);
-    const [showReport, setShowReport] = useState(false);
-
-    const [filters, setFilters] = useState<OfferLetterFilters>({
-        type: '',
-        department: '',
-        designation: '',
-        selectedEmployee: '',
-        currentDate: new Date(),
-        reportType: 'Experience Certificate'
-    });
-
-    // Load data on mount
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = () => {
-        try {
-            // Load master data
-            let groupList = groupTypeDB.list();
-            if (groupList.length === 0) {
-                const mockData = generateMockGroupTypes();
-                mockData.forEach((group) => groupTypeDB.create(group));
-                groupList = groupTypeDB.list();
-            }
-            setGroupTypes(groupList.filter((g) => g.isActive));
-
-            let deptList = departmentDB.list();
-            if (deptList.length === 0) {
-                const mockData = generateMockDepartments();
-                mockData.forEach((dept) => departmentDB.create(dept));
-                deptList = departmentDB.list();
-            }
-            setDepartments(deptList.filter((d) => d.isActive));
-
-            let desigList = designationDB.list();
-            if (desigList.length === 0) {
-                const mockData = generateMockDesignations();
-                mockData.forEach((desig) => designationDB.create(desig));
-                desigList = designationDB.list();
-            }
-            setDesignations(desigList.filter((d) => d.isActive));
-
-            // Load employees
-            let empList = employeeDB.list();
-            if (empList.length === 0) {
-                const mockData = generateMockEmployees();
-                mockData.forEach((emp) => employeeDB.create(emp));
-                empList = employeeDB.list();
-            }
-            setEmployees(empList);
-            setFilteredEmployees(empList);
-        } catch (_error) {
-            toast.error('Failed to load data');
-        } finally {
-            setIsLoading(false);
+const mockletter = [
+    { key: '1', value: 'Teaching Staff Offer Letter' },
+    { key: '2', value: 'Non Teaching Staff Offer Letter' },
+    { key: '3', value: 'Experience Certificate' },
+    { key: '4', value: 'Service Certificate' },
+    { key: '5', value: 'Teaching Staff Appointment Letter' },
+    { key: '6', value: 'Non Teaching Staff Appointment Letter' },
+    { key: '7', value: 'Confirmation Letter' },
+    { key: '8', value: 'Termination Letter' },
+    { key: '9', value: 'Relieving Letter' },
+    { key: '10', value: 'Account Opening' }
+];
+const mockApiResponse = {
+    institutionDetails: {
+        mI_Name: 'Vidya Vikasa Vidya Samsthe (R)',
+        mI_Address1: 'Basaveshwara Talkies rd',
+        mI_Address2: 'Gayatri circle',
+        mI_Address3: 'karantaka',
+        mI_Pincode: 577501,
+        mI_ContactDetails: 'Ph No: 8194220904 Email Id : vvvsoffice@gmail.com'
+    },
+    currentemployeeDetails: {
+        hrmE_EmployeeFirstName: 'ANUSHA ',
+        hrmE_EmployeeLastName: 'T',
+        hrmE_EmployeeCode: 'VVS015'
+    },
+    designationName: 'Asst. Teacher',
+    employeeSalaryslipDetails: [
+        {
+            HRMED_EarnDedFlag: 'Earning',
+            HRMED_Name: 'BASIC PAY',
+            Amount: 7020.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Earning',
+            HRMED_Name: 'HRA',
+            Amount: 1404.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Earning',
+            HRMED_Name: 'DA',
+            Amount: 2808.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Earning',
+            HRMED_Name: 'OTHER ALLOWANCE',
+            Amount: 2268.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Deduction',
+            HRMED_Name: 'PF CONT',
+            Amount: 1179.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Deduction',
+            HRMED_Name: 'ESIC CONT',
+            Amount: 0.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Deduction',
+            HRMED_Name: 'PT',
+            Amount: 0.0
+        },
+        {
+            HRMED_EarnDedFlag: 'Deduction',
+            HRMED_Name: 'TDS',
+            Amount: 0.0
         }
-    };
+    ]
+};
 
-    // Generate mock data
-    const generateMockGroupTypes = (): Omit<GroupType, 'id' | 'createdAt'>[] => {
-        return [
-            { groupType: 'Teaching', groupCode: 'T', order: 1, isActive: true },
-            { groupType: 'Non Teaching', groupCode: 'NT', order: 2, isActive: true },
-            { groupType: 'Administrative', groupCode: 'ADM', order: 3, isActive: true }
-        ];
-    };
+export default function SalaryCertificatePage() {
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any>(null);
+    const [currentDate, setCurrentDate] = useState<string>('');
+    const [joiningDate, setJoiningDate] = useState<string>('');
+    const [interviewDate, setInterviewDate] = useState<string>('');
+    const [responseDate, setResponseDate] = useState<string>('');
+    const [dueDate, setDueDate] = useState<string>('');
+    const [workingDay, setWorkingDay] = useState<string>('');
+    const [probationDate, setProbationDate] = useState<string>('');
+    const [resignationDate, setResignationDate] = useState<string>('');
 
-    const generateMockDepartments = (): Omit<Department, 'id' | 'createdAt'>[] => {
-        return [
-            { departmentName: 'Teaching', internalTrainingHours: '40', order: 1, isActive: true },
-            { departmentName: 'JUNIOR SCHOOL', internalTrainingHours: '35', order: 2, isActive: true },
-            { departmentName: 'SENIOR SCHOOL', internalTrainingHours: '40', order: 3, isActive: true },
-            { departmentName: 'OFFICE STAFF', internalTrainingHours: '40', order: 4, isActive: true }
-        ];
-    };
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
 
-    const generateMockDesignations = (): Omit<Designation, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                designationName: 'Senior yoga teacher',
-                basicAmount: '50000',
-                sanctionedSeats: '5',
-                displaySanctionedSeats: true,
-                order: 1,
-                isActive: true
-            },
-            {
-                designationName: 'Principal',
-                basicAmount: '100000',
-                sanctionedSeats: '1',
-                displaySanctionedSeats: true,
-                order: 2,
-                isActive: true
-            },
-            {
-                designationName: 'Assistant Teacher',
-                basicAmount: '40000',
-                sanctionedSeats: '10',
-                displaySanctionedSeats: true,
-                order: 3,
-                isActive: true
-            },
-            {
-                designationName: 'Vice Principal',
-                basicAmount: '80000',
-                sanctionedSeats: '2',
-                displaySanctionedSeats: true,
-                order: 4,
-                isActive: true
-            }
-        ];
-    };
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
 
-    const generateMockEmployees = (): Omit<Employee, 'id' | 'createdAt'>[] => {
-        return [
-            {
-                employeeCode: 'EMP001',
-                employeeName: 'Vidyashree P',
-                employeeFirstName: 'chandrakala',
-                employeeMiddleName: 'j',
-                employeeLastName: 'k',
-                groupTypeId: 1,
-                departmentId: 1,
-                designationId: 1,
-                departmentName: 'Teaching',
-                designationName: 'Senior yoga teacher',
-                dateOfJoining: '2021-05-01',
-                employmentType: 'Permanent',
-                gender: 'Female'
-            },
-            {
-                employeeCode: 'EMP002',
-                employeeName: 'John Doe',
-                employeeFirstName: 'John',
-                employeeMiddleName: undefined,
-                employeeLastName: 'Doe',
-                groupTypeId: 1,
-                departmentId: 2,
-                designationId: 3,
-                departmentName: 'JUNIOR SCHOOL',
-                designationName: 'Assistant Teacher',
-                dateOfJoining: '2023-03-15',
-                employmentType: 'Permanent',
-                gender: 'Male'
-            },
-            {
-                employeeCode: 'EMP003',
-                employeeName: 'Anita Sharma',
-                employeeFirstName: 'Anita',
-                employeeMiddleName: undefined,
-                employeeLastName: 'Sharma',
-                groupTypeId: 1,
-                departmentId: 3,
-                designationId: 4,
-                departmentName: 'SENIOR SCHOOL',
-                designationName: 'Vice Principal',
-                dateOfJoining: '2019-08-01',
-                employmentType: 'Permanent',
-                gender: 'Female'
-            },
-            {
-                employeeCode: 'EMP004',
-                employeeName: 'Ramesh Kumar',
-                employeeFirstName: 'Ramesh',
-                employeeMiddleName: undefined,
-                employeeLastName: 'Kumar',
-                groupTypeId: 2,
-                departmentId: 4,
-                designationId: 1,
-                departmentName: 'OFFICE STAFF',
-                designationName: 'Senior yoga teacher',
-                dateOfJoining: '2020-11-20',
-                employmentType: 'Probationary',
-                gender: 'Male'
-            }
-        ];
-    };
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
 
-    // Filter employees using API when filters change
-    useEffect(() => {
-        // If no filters selected, keep the local/mock employees in the dropdown
-        if (!filters.type && !filters.department && !filters.designation) {
-            setFilteredEmployees(employees);
-            return;
-        }
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+    const MockLetterOptions =
+        mockletter.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
 
-        // Find IDs for selected filters
-        const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
-        const selectedDept = departments.find((d) => d.departmentName === filters.department);
-        const selectedDesig = designations.find((d) => d.designationName === filters.designation);
+    const DepartmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-        const filterRequest = {
-            MI_Id: 30,
-            HRMGT_Id: selectedType?.id || 0,
-            HRMD_Id: selectedDept?.id || 0,
-            HRMDES_Id: selectedDesig?.id || 0,
-            LogInUserId: 0
-        };
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-        filterMutation.mutate(filterRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    const employeeList = response.data.employeedropdown || [];
-                    const mappedEmployees: Employee[] = employeeList.map((emp: any) => ({
-                        id: emp.HRME_Id || 0,
-                        createdAt: new Date(),
-                        employeeCode: emp.HRME_EmployeeCode || '',
-                        employeeName:
-                            `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                        employeeFirstName: emp.HRME_EmployeeFirstName || '',
-                        employeeMiddleName: emp.HRME_EmployeeMiddleName,
-                        employeeLastName: emp.HRME_EmployeeLastName || '',
-                        groupTypeId: emp.HRMGT_Id || 0,
-                        departmentId: emp.HRMD_Id || 0,
-                        designationId: emp.HRMDES_Id || 0,
-                        departmentName: emp.HRMD_DepartmentName || '',
-                        designationName: emp.HRMDES_DesignationName || '',
-                        dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
-                        dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : undefined,
-                        employmentType:
-                            emp.HRMET_EmployeeType === 'Permanent'
-                                ? 'Permanent'
-                                : emp.HRMET_EmployeeType === 'Probationary'
-                                  ? 'Probationary'
-                                  : 'Permanent',
-                        gender: (emp.IVRMMG_GenderName === 'Male' ? 'Male' : emp.IVRMMG_GenderName === 'Female' ? 'Female' : undefined) as
-                            | 'Male'
-                            | 'Female'
-                            | 'Other'
-                            | undefined
-                    }));
+    const EmployeeOptions = mockEmployees.map((emp) => ({
+        value: emp.key,
+        label: emp.value
+    }));
 
-                    setEmployees(mappedEmployees);
-                    setFilteredEmployees(mappedEmployees);
-                } else {
-                    toast.error(response.message || 'Failed to filter employees');
-                    setEmployees([]);
-                    setFilteredEmployees([]);
-                }
-            },
-            onError: (error: any) => {
-                toast.error(error?.message || 'Failed to filter employees');
-                setEmployees([]);
-                setFilteredEmployees([]);
-            }
-        });
-    }, [filters.type, filters.department, filters.designation, groupTypes, departments, designations, employees]);
-
-    const handleFilterChange = (key: keyof OfferLetterFilters, value: any) => {
-        setFilters((prev) => ({ ...prev, [key]: value }));
-
-        // Reset employee when filters change
-        if (key !== 'selectedEmployee' && key !== 'currentDate' && key !== 'reportType') {
-            setFilters((prev) => ({ ...prev, selectedEmployee: '' }));
-        }
-    };
-
-    const handleSearch = () => {
-        if (!filters.selectedEmployee) {
-            toast.error('Please select an employee');
-            return;
-        }
-
-        if (!filters.type || !filters.department || !filters.designation) {
-            toast.error('Please select Type, Department, and Designation');
-            return;
-        }
-
-        // Find IDs for selected filters
-        const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
-        const selectedDept = departments.find((d) => d.departmentName === filters.department);
-        const selectedDesig = designations.find((d) => d.designationName === filters.designation);
-
-        const searchRequest = {
-            MI_Id: 30,
-            HRMGT_Id: selectedType?.id || 0,
-            HRMD_Id: selectedDept?.id || 0,
-            HRMDES_Id: selectedDesig?.id || 0,
-            LogInUserId: 0
-        };
-
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    const employeeList = response.data.employeedropdown || [];
-                    const mappedEmployees: Employee[] = employeeList.map((emp: any) => ({
-                        id: emp.HRME_Id || 0,
-                        createdAt: new Date(),
-                        employeeCode: emp.HRME_EmployeeCode || '',
-                        employeeName:
-                            `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                        employeeFirstName: emp.HRME_EmployeeFirstName || '',
-                        employeeMiddleName: emp.HRME_EmployeeMiddleName,
-                        employeeLastName: emp.HRME_EmployeeLastName || '',
-                        groupTypeId: emp.HRMGT_Id || 0,
-                        departmentId: emp.HRMD_Id || 0,
-                        designationId: emp.HRMDES_Id || 0,
-                        departmentName: emp.HRMD_DepartmentName || '',
-                        designationName: emp.HRMDES_DesignationName || '',
-                        dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
-                        dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : undefined,
-                        employmentType:
-                            emp.HRMET_EmployeeType === 'Permanent'
-                                ? 'Permanent'
-                                : emp.HRMET_EmployeeType === 'Probationary'
-                                  ? 'Probationary'
-                                  : 'Permanent',
-                        gender: (emp.IVRMMG_GenderName === 'Male' ? 'Male' : emp.IVRMMG_GenderName === 'Female' ? 'Female' : undefined) as
-                            | 'Male'
-                            | 'Female'
-                            | 'Other'
-                            | undefined
-                    }));
-
-                    // Update employees list and find selected employee
-                    setEmployees(mappedEmployees);
-                    const selectedEmp = mappedEmployees.find((emp) => emp.id.toString() === filters.selectedEmployee);
-                    if (selectedEmp) {
-                        setShowReport(true);
-                        toast.success(`${filters.reportType} generated successfully`);
-                    } else {
-                        toast.error('Selected employee not found in the filtered results');
-                    }
-                } else {
-                    toast.error(response.message || 'Failed to get employee details');
-                }
-            },
-            onError: (error: any) => {
-                toast.error(error?.message || 'Failed to get employee details');
-            }
-        });
-    };
-
-    const handleCancel = () => {
-        setFilters({
-            type: '',
+    const {
+        control,
+        handleSubmit,
+        reset,
+        watch,
+        formState: { errors, isSubmitting }
+    } = useForm<EmployeeOfferLaterFields>({
+        resolver: zodResolver(EmployeeOfferLaterSchema),
+        defaultValues: {
+            groupType: '',
             department: '',
             designation: '',
-            selectedEmployee: '',
-            currentDate: new Date(),
-            reportType: 'Experience Certificate'
+            month: '',
+            year: '',
+            employee: '',
+            mockLetter: '1'
+        },
+        mode: 'onChange'
+    });
+
+    const selectedMockLetter = watch('mockLetter');
+
+    useEffect(() => {
+        const today = new Date().toISOString();
+        setCurrentDate(today);
+    }, []);
+
+    const onSearch = async () => {
+        setIsSearching(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            toast.success('Salary certificate generated successfully!');
+            setReportData(mockApiResponse);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate certificate');
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleReset = () => {
+        reset({
+            groupType: '',
+            department: '',
+            designation: '',
+            month: '',
+            year: '',
+            employee: '',
+            mockLetter: ''
         });
-        setShowReport(false);
-        toast.info('Filters cleared');
+        setReportData(null);
+        toast.info('Form has been reset');
     };
 
     const handlePrint = () => {
-        // Validate required filters
-        if (!filters.selectedEmployee) {
-            toast.error('Please select an employee');
-            return;
-        }
-
-        if (!filters.type || !filters.department || !filters.designation) {
-            toast.error('Please select Type, Department, and Designation');
-            return;
-        }
-
-        // Try to find selected employee from either the API-loaded `employees` or the
-        // `filteredEmployees` (which backs the dropdown). This ensures the report can
-        // be generated from what the user picked in the dropdown even before SEARCH.
-        const selEmp =
-            employees.find((emp) => emp.id.toString() === filters.selectedEmployee) ||
-            filteredEmployees.find((emp) => emp.id.toString() === filters.selectedEmployee) ||
-            null;
-
-        if (!selEmp) {
-            toast.error('Selected employee not found. Try selecting from the dropdown or click SEARCH');
-            return;
-        }
-
-        // Show report then open print dialog after a short delay so the report can render
-        setShowReport(true);
-        setTimeout(() => {
-            window.print();
-            toast.success('Print dialog opened');
-        }, 120);
+        window.print();
+        toast.success('Print dialog opened');
     };
 
-    // Get selected employee details
-    const selectedEmployeeDetails = useMemo(() => {
-        if (!filters.selectedEmployee) return null;
-
-        const found =
-            filteredEmployees.find((emp) => emp.id.toString() === filters.selectedEmployee) ||
-            employees.find((emp) => emp.id.toString() === filters.selectedEmployee) ||
-            null;
-
-        if (!found) return null;
-
-        // Override designation/department shown in the report with the currently
-        // selected dropdown values so the printed report matches what the user selected
-        // (even if the underlying employee record has a different value).
-        return {
-            ...found,
-            designationName: filters.designation || found.designationName,
-            departmentName: filters.department || found.departmentName
-        } as Employee;
-    }, [filters.selectedEmployee, employees, filteredEmployees, filters.designation, filters.department]);
-
-    // Format employee name with title (Mr/Ms)
-    const getEmployeeNameWithTitle = (employee: Employee | null) => {
-        if (!employee) return '';
-        const title = employee.gender === 'Male' ? 'Mr' : employee.gender === 'Female' ? 'Ms' : 'Mr/Ms';
-        const fullName = `${employee.employeeFirstName} ${employee.employeeMiddleName || ''} ${employee.employeeLastName || ''}`.trim();
-        return `${title}.${fullName}`;
+    const calculateGrossEarning = () => {
+        if (!reportData) return 0;
+        return reportData.employeeSalaryslipDetails
+            .filter((item: any) => item.HRMED_EarnDedFlag === 'Earning')
+            .reduce((sum: number, item: any) => sum + item.Amount, 0);
     };
+
+    const calculateTotalDeductions = () => {
+        if (!reportData) return 0;
+        return reportData.employeeSalaryslipDetails
+            .filter((item: any) => item.HRMED_EarnDedFlag === 'Deduction')
+            .reduce((sum: number, item: any) => sum + item.Amount, 0);
+    };
+
+    const calculateNetSalary = () => {
+        return calculateGrossEarning() - calculateTotalDeductions();
+    };
+
+    const getTodayDate = () => {
+        const today = new Date();
+        return today.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
+
+    const grossEarning = calculateGrossEarning();
+    const totalDeductions = calculateTotalDeductions();
+    const netSalary = calculateNetSalary();
 
     return (
-        <div className='space-y-6'>
-            {/* Report Configuration Section */}
-            <EmployeeOfferLetterFilters
-                filters={filters}
-                groupTypes={groupTypes}
-                departments={departments}
-                designations={designations}
-                filteredEmployees={filteredEmployees}
-                onFilterChange={handleFilterChange}
-                onSearch={handleSearch}
-                onCancel={handleCancel}
-            />
-
-            {/* Report Results */}
-            {showReport && selectedEmployeeDetails && (
+        <div className='min-h-screen p-8'>
+            <div className='container space-y-4 p-1'>
                 <CollapsibleSection
-                    title='EMPLOYEE OFFER AND EXPERIENCE REPORT'
-                    description={`${filters.reportType} - ${selectedEmployeeDetails.employeeName}`}
+                    title='Salary Certificate'
                     defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='printable-report shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                     <div className='space-y-6'>
-                        {/* Experience Certificate */}
-                        {filters.reportType === 'Experience Certificate' && (
-                            <div className='rounded-lg border bg-white p-8'>
-                                <div className='space-y-6'>
-                                    {/* Date */}
-                                    <div className='text-right text-sm'>
-                                        <span className='font-semibold'>DATE: {format(filters.currentDate, 'dd-MM-yyyy')}</span>
+                        <div className=''>
+                            <div className='grid gap-6 sm:grid-cols-2 md:grid-cols-3'>
+                                <div className=''>
+                                    <div className='space-y-2'>
+                                        <Label htmlFor='groupType' className='font-medium text-sm text-white-900'>
+                                            Group Type: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='groupType'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select GroupType' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masterGroupTypesLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : masterGroupTypesError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading data
+                                                            </SelectItem>
+                                                        ) : (
+                                                            groupTypeOptions?.map((opt: any) => (
+                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                    {opt.label}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
                                     </div>
 
-                                    {/* Heading */}
-                                    <div className='text-center'>
-                                        <h2 className='font-bold text-lg uppercase'>TO WHOMSOEVER IT MAY CONCERN</h2>
+                                    <div className='mt-3 space-y-2'>
+                                        <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                            Department: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='department'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select department' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masterDepartmentsLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : masterDepartmentsError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading data
+                                                            </SelectItem>
+                                                        ) : (
+                                                            DepartmentsOptions?.map((opt: any) => (
+                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                    {opt.label}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.department && <FormError>{errors.department.message}</FormError>}
+                                    </div>
+                                    <div className='mt-3 space-y-2'>
+                                        <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                            Designation: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='designation'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select designation' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masterDesignationsLoading ? (
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
+                                                        ) : masterDesignationsError ? (
+                                                            <SelectItem value='error' disabled>
+                                                                Error loading data
+                                                            </SelectItem>
+                                                        ) : (
+                                                            DesignationOptions?.map((opt: any) => (
+                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                    {opt.label}
+                                                                </SelectItem>
+                                                            ))
+                                                        )}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.designation && <FormError>{errors.designation.message}</FormError>}
                                     </div>
 
-                                    {/* Certificate Content */}
-                                    <div className='mx-auto max-w-3xl space-y-4 text-sm leading-relaxed'>
-                                        <p className='text-justify'>
-                                            This is to certify that <strong>{getEmployeeNameWithTitle(selectedEmployeeDetails)}</strong> is
-                                            a{' '}
-                                            <strong>
-                                                {selectedEmployeeDetails.employmentType === 'Permanent' ||
-                                                selectedEmployeeDetails.employmentType === 'Probationary'
-                                                    ? selectedEmployeeDetails.employmentType
-                                                    : 'Permanent'}
-                                            </strong>{' '}
-                                            employee of Our Institution working as a{' '}
-                                            <strong>{selectedEmployeeDetails.designationName}</strong> since{' '}
-                                            <strong>{format(new Date(selectedEmployeeDetails.dateOfJoining), 'dd-MM-yyyy')}</strong>.
-                                        </p>
+                                    <div className=' mt-3 space-y-2'>
+                                        <Label htmlFor='employee' className='font-medium text-sm text-white-900'>
+                                            Employee: <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Controller
+                                            name='employee'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Employee' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {EmployeeOptions.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                    {/* <SelectContent>
+                                                    {masterEmployeeLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : masterEmployeeError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading data
+                                                        </SelectItem>
+                                                    ) : (
+                                                        EmployeeOptions?.map((opt: any) => (
+                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                {opt.label}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent> */}
+                                                </Select>
+                                            )}
+                                        />
+                                        {errors.employee && <FormError>{errors.employee.message}</FormError>}
+                                    </div>
+                                </div>
 
-                                        {selectedEmployeeDetails.dateOfLeaving && (
-                                            <p className='text-justify'>
-                                                The employee served from{' '}
-                                                <strong>{format(new Date(selectedEmployeeDetails.dateOfJoining), 'dd-MM-yyyy')}</strong> to{' '}
-                                                <strong>{format(new Date(selectedEmployeeDetails.dateOfLeaving), 'dd-MM-yyyy')}</strong>.
-                                            </p>
+                                <div className='grid grid-cols-1 gap-4'>
+                                    <div>
+                                        <Label className='font-medium text-sm text-white-900'>
+                                            Current Date<span className='text-red-600'>*</span>
+                                        </Label>
+
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    className={cn(
+                                                        'w-full justify-start text-left font-normal',
+                                                        !currentDate && 'text-muted-foreground'
+                                                    )}>
+                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                    {currentDate ? format(new Date(currentDate), 'dd/MM/yyyy') : 'Current date'}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <CalendarYear
+                                                    mode='single'
+                                                    selected={currentDate ? new Date(currentDate) : undefined}
+                                                    onSelect={(date: Date | undefined) => setCurrentDate(date?.toISOString() ?? '')}
+                                                    captionLayout='dropdown'
+                                                    fromYear={2000}
+                                                    toYear={2050}
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    {selectedMockLetter !== '3' &&
+                                        selectedMockLetter !== '4' &&
+                                        selectedMockLetter !== '10' &&
+                                        selectedMockLetter !== '9' && (
+                                            <div className='space-y-3'>
+                                                {selectedMockLetter !== '8' && (
+                                                    <div>
+                                                        <div>
+                                                            <Label className='font-medium text-sm text-white-900'>
+                                                                Date Of Joining
+                                                                <span className='text-red-600'>*</span>
+                                                            </Label>
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        className={cn(
+                                                                            'w-full justify-start text-left font-normal',
+                                                                            !joiningDate && 'text-muted-foreground'
+                                                                        )}>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {joiningDate
+                                                                            ? format(new Date(joiningDate), 'dd/MM/yyyy')
+                                                                            : 'joining Date'}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <CalendarYear
+                                                                        mode='single'
+                                                                        selected={joiningDate ? new Date(joiningDate) : undefined}
+                                                                        onSelect={(date: Date | undefined) =>
+                                                                            setJoiningDate(date?.toISOString() ?? '')
+                                                                        }
+                                                                        captionLayout='dropdown'
+                                                                        fromYear={2000}
+                                                                        toYear={2050}
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        </div>
+                                                        <div>
+                                                            <Label className='font-medium text-sm text-white-900'>
+                                                                Date Of Interview
+                                                                <span className='text-red-600'>*</span>
+                                                            </Label>
+                                                            <Popover>
+                                                                <PopoverTrigger asChild>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        className={cn(
+                                                                            'w-full justify-start text-left font-normal',
+                                                                            !interviewDate && 'text-muted-foreground'
+                                                                        )}>
+                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                        {interviewDate
+                                                                            ? format(new Date(interviewDate), 'dd/MM/yyyy')
+                                                                            : 'Interview Date'}
+                                                                    </Button>
+                                                                </PopoverTrigger>
+                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                    <CalendarYear
+                                                                        mode='single'
+                                                                        selected={interviewDate ? new Date(interviewDate) : undefined}
+                                                                        onSelect={(date: Date | undefined) =>
+                                                                            setInterviewDate(date?.toISOString() ?? '')
+                                                                        }
+                                                                        captionLayout='dropdown'
+                                                                        fromYear={2000}
+                                                                        toYear={2050}
+                                                                    />
+                                                                </PopoverContent>
+                                                            </Popover>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {selectedMockLetter !== '7' && (
+                                                    <div>
+                                                        {selectedMockLetter !== '8' && (
+                                                            <div>
+                                                                <div>
+                                                                    <Label className='font-medium text-sm text-white-900'>
+                                                                        Date Of Response
+                                                                        <span className='text-red-600'>*</span>
+                                                                    </Label>
+                                                                    <Popover>
+                                                                        <PopoverTrigger asChild>
+                                                                            <Button
+                                                                                type='button'
+                                                                                variant='outline'
+                                                                                className={cn(
+                                                                                    'w-full justify-start text-left font-normal',
+                                                                                    !responseDate && 'text-muted-foreground'
+                                                                                )}>
+                                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                                {responseDate
+                                                                                    ? format(new Date(responseDate), 'dd/MM/yyyy')
+                                                                                    : 'Response Date'}
+                                                                            </Button>
+                                                                        </PopoverTrigger>
+                                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                                            <CalendarYear
+                                                                                mode='single'
+                                                                                selected={responseDate ? new Date(responseDate) : undefined}
+                                                                                onSelect={(date: Date | undefined) =>
+                                                                                    setResponseDate(date?.toISOString() ?? '')
+                                                                                }
+                                                                                captionLayout='dropdown'
+                                                                                fromYear={2000}
+                                                                                toYear={2050}
+                                                                            />
+                                                                        </PopoverContent>
+                                                                    </Popover>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {selectedMockLetter !== '1' &&
+                                                            selectedMockLetter !== '2' &&
+                                                            selectedMockLetter !== '5' &&
+                                                            selectedMockLetter !== '6' && (
+                                                                <div className='space-y-3'>
+                                                                    <div>
+                                                                        <Label className='font-medium text-sm text-white-900'>
+                                                                            Date Of Due
+                                                                            <span className='text-red-600'>*</span>
+                                                                        </Label>
+                                                                        <Popover>
+                                                                            <PopoverTrigger asChild>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    variant='outline'
+                                                                                    className={cn(
+                                                                                        'w-full justify-start text-left font-normal',
+                                                                                        !dueDate && 'text-muted-foreground'
+                                                                                    )}>
+                                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                                    {dueDate
+                                                                                        ? format(new Date(dueDate), 'dd/MM/yyyy')
+                                                                                        : 'Due Date'}
+                                                                                </Button>
+                                                                            </PopoverTrigger>
+                                                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                                                <CalendarYear
+                                                                                    mode='single'
+                                                                                    selected={dueDate ? new Date(dueDate) : undefined}
+                                                                                    onSelect={(date: Date | undefined) =>
+                                                                                        setDueDate(date?.toISOString() ?? '')
+                                                                                    }
+                                                                                    captionLayout='dropdown'
+                                                                                    fromYear={2000}
+                                                                                    toYear={2050}
+                                                                                />
+                                                                            </PopoverContent>
+                                                                        </Popover>
+                                                                    </div>
+
+                                                                    <div>
+                                                                        <Label className='font-medium text-sm text-white-900'>
+                                                                            Last Working Day
+                                                                            <span className='text-red-600'>*</span>
+                                                                        </Label>
+                                                                        <Popover>
+                                                                            <PopoverTrigger asChild>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    variant='outline'
+                                                                                    className={cn(
+                                                                                        'w-full justify-start text-left font-normal',
+                                                                                        !workingDay && 'text-muted-foreground'
+                                                                                    )}>
+                                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                                    {workingDay
+                                                                                        ? format(new Date(workingDay), 'dd/MM/yyyy')
+                                                                                        : 'Working Day'}
+                                                                                </Button>
+                                                                            </PopoverTrigger>
+                                                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                                                <CalendarYear
+                                                                                    mode='single'
+                                                                                    selected={workingDay ? new Date(workingDay) : undefined}
+                                                                                    onSelect={(date: Date | undefined) =>
+                                                                                        setWorkingDay(date?.toISOString() ?? '')
+                                                                                    }
+                                                                                    captionLayout='dropdown'
+                                                                                    fromYear={2000}
+                                                                                    toYear={2050}
+                                                                                />
+                                                                            </PopoverContent>
+                                                                        </Popover>
+                                                                    </div>
+                                                                    <div>
+                                                                        <Label className='font-medium text-sm text-white-900'>
+                                                                            Date Of Probation
+                                                                            <span className='text-red-600'>*</span>
+                                                                        </Label>
+                                                                        <Popover>
+                                                                            <PopoverTrigger asChild>
+                                                                                <Button
+                                                                                    type='button'
+                                                                                    variant='outline'
+                                                                                    className={cn(
+                                                                                        'w-full justify-start text-left font-normal',
+                                                                                        !probationDate && 'text-muted-foreground'
+                                                                                    )}>
+                                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                                    {probationDate
+                                                                                        ? format(new Date(probationDate), 'dd/MM/yyyy')
+                                                                                        : 'Probation Date'}
+                                                                                </Button>
+                                                                            </PopoverTrigger>
+                                                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                                                <CalendarYear
+                                                                                    mode='single'
+                                                                                    selected={
+                                                                                        probationDate ? new Date(probationDate) : undefined
+                                                                                    }
+                                                                                    onSelect={(date: Date | undefined) =>
+                                                                                        setProbationDate(date?.toISOString() ?? '')
+                                                                                    }
+                                                                                    captionLayout='dropdown'
+                                                                                    fromYear={2000}
+                                                                                    toYear={2050}
+                                                                                />
+                                                                            </PopoverContent>
+                                                                        </Popover>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
-                                    </div>
-
-                                    {/* Signature Section */}
-                                    <div className='mt-12 flex flex-col items-end space-y-2 text-sm'>
-                                        <div className='font-semibold'>Mrs. Phebe Sheela Rani</div>
-                                        <div>MANAGER</div>
-                                    </div>
+                                    {selectedMockLetter === '9' && (
+                                        <div>
+                                            <Label className='font-medium text-sm text-white-900'>
+                                                Date Of Resignation
+                                                <span className='text-red-600'>*</span>
+                                            </Label>
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        type='button'
+                                                        variant='outline'
+                                                        className={cn(
+                                                            'w-full justify-start text-left font-normal',
+                                                            !resignationDate && 'text-muted-foreground'
+                                                        )}>
+                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                        {resignationDate
+                                                            ? format(new Date(resignationDate), 'dd/MM/yyyy')
+                                                            : 'Probation Date'}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                    <CalendarYear
+                                                        mode='single'
+                                                        selected={resignationDate ? new Date(resignationDate) : undefined}
+                                                        onSelect={(date: Date | undefined) => setResignationDate(date?.toISOString() ?? '')}
+                                                        captionLayout='dropdown'
+                                                        fromYear={2000}
+                                                        toYear={2050}
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                    )}
+                                    {selectedMockLetter === '10' && (
+                                        <InputText label='Enter Bank Address' required id='bankAddress' placeholder='Bank Adress' />
+                                    )}
+                                </div>
+                                <div className=''>
+                                    {masterGroupTypesLoading ? (
+                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                    ) : MockLetterOptions.length === 0 ? (
+                                        <div className='text-sm text-white-500'>No group types available</div>
+                                    ) : masterGroupTypesError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading data
+                                        </SelectItem>
+                                    ) : (
+                                        <div>
+                                            <Controller
+                                                name='mockLetter'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <RadioGroup
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        className='grid max-h-64 grid-cols-1 gap-4 overflow-y-auto rounded-md border border-purple-500 p-3'>
+                                                        {MockLetterOptions.map((option) => (
+                                                            <div
+                                                                key={option.value}
+                                                                className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                <Label
+                                                                    htmlFor={`letter-${option.value}`}
+                                                                    className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                    {option.label}
+                                                                </Label>
+                                                            </div>
+                                                        ))}
+                                                    </RadioGroup>
+                                                )}
+                                            />
+                                            {errors.mockLetter && <FormError>{errors.mockLetter.message}</FormError>}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
-                        )}
+                        </div>
 
-                        {/* Offer Letter */}
-                        {filters.reportType === 'Offer Letter' && (
-                            <div className='rounded-lg border bg-white p-8'>
-                                <div className='space-y-6'>
-                                    {/* Date */}
-                                    <div className='text-right text-sm'>
-                                        <span className='font-semibold'>DATE: {format(filters.currentDate, 'dd-MM-yyyy')}</span>
-                                    </div>
-
-                                    {/* Employee Details */}
-                                    <div className='space-y-1 text-sm'>
-                                        <div>
-                                            <strong>{getEmployeeNameWithTitle(selectedEmployeeDetails)}</strong>
-                                        </div>
-                                        <div>Employee Code: {selectedEmployeeDetails.employeeCode}</div>
-                                        {selectedEmployeeDetails.departmentName && <div>{selectedEmployeeDetails.departmentName}</div>}
-                                    </div>
-
-                                    {/* Subject */}
-                                    <div className='space-y-2 text-sm'>
-                                        <div>
-                                            <strong>Subject: Offer of Employment</strong>
-                                        </div>
-                                    </div>
-
-                                    {/* Letter Content */}
-                                    <div className='mx-auto max-w-3xl space-y-4 text-sm leading-relaxed'>
-                                        <p className='text-justify'>Dear {selectedEmployeeDetails.employeeFirstName},</p>
-
-                                        <p className='text-justify'>
-                                            We are pleased to offer you the position of{' '}
-                                            <strong>{selectedEmployeeDetails.designationName}</strong> in the{' '}
-                                            <strong>{selectedEmployeeDetails.departmentName}</strong> department at our institution.
-                                        </p>
-
-                                        <p className='text-justify'>
-                                            Your employment will commence from <strong>{format(filters.currentDate, 'dd-MM-yyyy')}</strong>.
-                                            We are confident that your skills and experience will be a valuable addition to our team.
-                                        </p>
-
-                                        <p className='text-justify'>
-                                            Please confirm your acceptance of this offer by signing and returning a copy of this letter
-                                            within 7 days.
-                                        </p>
-
-                                        <p className='text-justify'>We look forward to welcoming you to our organization.</p>
-                                    </div>
-
-                                    {/* Signature Section */}
-                                    <div className='mt-12 flex flex-col items-end space-y-2 text-sm'>
-                                        <div className='font-semibold'>Mrs. Phebe Sheela Rani</div>
-                                        <div>MANAGER</div>
-                                        <div>VAPS SCHOOL</div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Action Buttons */}
-                        <div className='flex justify-center gap-2 border-t pt-4'>
-                            <Button variant='outline' onClick={handlePrint}>
-                                <Printer className='mr-2 h-4 w-4' />
-                                PRINT
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching || isSubmitting}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
                             </Button>
-                            <Button variant='outline' onClick={handleCancel}>
-                                <X className='mr-2 h-4 w-4' />
-                                CANCEL
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching || isSubmitting}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <div>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </div>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
                             </Button>
                         </div>
                     </div>
                 </CollapsibleSection>
-            )}
+
+                {reportData && (
+                    <CollapsibleSection
+                        title='Salary Certificate'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='space-y-6 p-6 '>
+                            <div className='space-y-4'>
+                                <Label className='mx-auto block text-center text-gray-600 underline'>Salary Certificate</Label>
+
+                                <p className='text-justify leading-relaxed'>
+                                    This is to certify that Mr/Ms.{' '}
+                                    <span className='font-semibold'>
+                                        {reportData.currentemployeeDetails.hrmE_EmployeeFirstName}
+                                        {reportData.currentemployeeDetails.hrmE_EmployeeLastName}
+                                    </span>{' '}
+                                    (Employee Code:{' '}
+                                    <span className='font-semibold'>{reportData.currentemployeeDetails.hrmE_EmployeeCode}</span>) is working
+                                    in Our Institution as a <span className='font-semibold'>{reportData.designationName}</span> and his/her
+                                    monthly emoluments are as follows.
+                                </p>
+                            </div>
+
+                            {/* Salary Table */}
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-white-300 border-b-2 bg-white-100'>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Pay & Allowance
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>Amount</th>
+                                            <th className='border border-white-300 px-4 py-3 text-left font-semibold text-sm'>
+                                                Deductions
+                                            </th>
+                                            <th className='border border-white-300 px-4 py-3 text-right font-semibold text-sm'>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(() => {
+                                            const earnings = reportData.employeeSalaryslipDetails.filter(
+                                                (item: any) => item.HRMED_EarnDedFlag === 'Earning'
+                                            );
+                                            const deductions = reportData.employeeSalaryslipDetails.filter(
+                                                (item: any) => item.HRMED_EarnDedFlag === 'Deduction'
+                                            );
+                                            const maxRows = Math.max(earnings.length, deductions.length);
+
+                                            return Array.from({ length: maxRows }).map((_, index) => (
+                                                <tr key={index} className='hover:bg-white-50'>
+                                                    <td className='border border-white-300 px-4 py-2 text-sm'>
+                                                        {earnings[index]?.HRMED_Name || ''}
+                                                    </td>
+                                                    <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                        {earnings[index]
+                                                            ? `₹${earnings[index].Amount.toLocaleString('en-IN', {
+                                                                  minimumFractionDigits: 2,
+                                                                  maximumFractionDigits: 2
+                                                              })}`
+                                                            : ''}
+                                                    </td>
+                                                    <td className='border border-white-300 px-4 py-2 text-sm'>
+                                                        {deductions[index]?.HRMED_Name || ''}
+                                                    </td>
+                                                    <td className='border border-white-300 px-4 py-2 text-right text-sm'>
+                                                        {deductions[index]
+                                                            ? `₹${deductions[index].Amount.toLocaleString('en-IN', {
+                                                                  minimumFractionDigits: 2,
+                                                                  maximumFractionDigits: 2
+                                                              })}`
+                                                            : ''}
+                                                    </td>
+                                                </tr>
+                                            ));
+                                        })()}
+
+                                        <tr className='border-white-400 border-t-2 bg-white-200 font-bold'>
+                                            <td className='border border-white-300 px-4 py-3 text-sm'>Gross Earning:</td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {grossEarning.toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                            <td className='border border-white-300 px-4 py-3 text-sm'>Gross Deduction:</td>
+                                            <td className='border border-white-300 px-4 py-3 text-right text-sm'>
+                                                ₹
+                                                {totalDeductions.toLocaleString('en-IN', {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                })}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className='flex justify-end'>
+                                <div className='rounded-lg border bg-white-50 px-6 py-4'>
+                                    <div className='flex items-center gap-4'>
+                                        <span className='font-semibold text-lg'>Net Salary:</span>
+                                        <span className='font-bold text-gray-600 text-xl'>
+                                            ₹
+                                            {netSalary.toLocaleString('en-IN', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            })}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className='flex items-end justify-between border-t pt-6'>
+                                <div>
+                                    <p className='font-medium text-sm'>Date: {getTodayDate()}</p>
+                                </div>
+                                <div className='text-right'>
+                                    <div className='mb-16' />
+                                    <p className='font-semibold'>Principal</p>
+                                </div>
+                            </div>
+
+                            {/* Action Buttons at Bottom */}
+                            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={handleReset}
+                                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={handlePrint}
+                                    className='no-print order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                    <Printer className='mr-2 h-4 w-4' />
+                                    Print
+                                </Button>
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                )}
+            </div>
         </div>
     );
 }

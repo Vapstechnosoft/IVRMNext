@@ -53,3 +53,7 @@ export async function toggleMasterClassCategory(id: number) {
     const url = `/master_class_category/toggle/${id}`;
     return await api.put('admission', url);
 }
+export async function getMasterEmployeeTypes() {
+    const url = '/api/MasterDropDown/GetEmployeeType';
+    return await api.get<dropdown[]>('hrms', url);
+}
