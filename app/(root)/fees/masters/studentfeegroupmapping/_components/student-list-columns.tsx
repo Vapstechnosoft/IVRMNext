@@ -42,13 +42,17 @@ export const masterFeeStudentClassMapping: ColumnDef<IMasterStudentClassMappingL
     {
         accessorKey: 'registrationNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />,
-        cell: ({ row }) => <div>{row.getValue('registrationNo')}</div>
+        cell: ({ row }) => <div>{row.getValue('registrationNo')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
         accessorKey: 'admissionNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
-        cell: ({ row }) => <div>{row.getValue('admissionNo')}</div>
+        cell: ({ row }) => <div>{row.getValue('admissionNo')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
@@ -60,25 +64,33 @@ export const masterFeeStudentClassMapping: ColumnDef<IMasterStudentClassMappingL
             const last = row.original.lastName || '';
 
             return <div>{`${first} ${middle} ${last}`.trim()}</div>;
-        }
+        },
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
         accessorKey: 'className',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
-        cell: ({ row }) => <div>{row.getValue('className')}</div>
+        cell: ({ row }) => <div>{row.getValue('className')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
         accessorKey: 'sectionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
-        cell: ({ row }) => <div>{row.getValue('sectionName')}</div>
+        cell: ({ row }) => <div>{row.getValue('sectionName')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {
         accessorKey: 'rollNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' />,
-        cell: ({ row }) => <div>{row.getValue('rollNo')}</div>
+        cell: ({ row }) => <div>{row.getValue('rollNo')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
 
     {

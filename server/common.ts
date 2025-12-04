@@ -653,6 +653,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Preadmission Transaction',
                                             description: 'Manage Fee Preadmission Transaction'
                                         }
+                                        // {
+                                        //     id: 508,
+                                        //     name: 'Fee Refundable',
+                                        //     icon: 'Settings',
+                                        //     url: '/fees/transactions/feerefundable',
+                                        //     title: 'Fee Refundable',
+                                        //     description: 'Manage Fee Refundable'
+                                        // }
                                         // ,
                                         // {
                                         //     id: 505,

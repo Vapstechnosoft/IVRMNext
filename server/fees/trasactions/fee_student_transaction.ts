@@ -22,7 +22,17 @@ export async function getFeeStudentTransactionDetails(asmaY_Id: number, searchPa
     return await api.post<Ifeetransaction[]>('fees', url, data);
 }
 
-export async function searchStudentName() {
-    const url = '';
-    return api.get('fees', url);
+export async function searchStudentName(payload: any) {
+    const url = '/FeeStudentTransaction/fee-stud-search-filter';
+    return api.post<any>('fees', url, payload);
+}
+
+export async function getStudentDetails(payload: any) {
+    const url = '/FeeStudentTransaction/fee-stud-lst-det';
+    return api.post<any>('fees', url, payload);
+}
+
+export async function getFeeHead(payload: any) {
+    const url = '/FeeStudentTransaction/fee-stud-lst-det';
+    return api.post<any>('fees', url, payload);
 }

@@ -555,11 +555,12 @@ export default function DailyFeeCollectionReportForm() {
 
                             {/* CLASS */}
                             <div className='flex items-center gap-4'>
-                                {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-                                <label className='flex w-32 items-center gap-2'>
+                                <Label>Class {isClassRequired && <span className='text-red-500'>*</span>}</Label>
+
+                                {/* <label className='flex w-32 items-center gap-2'>
                                     <Checkbox checked={enableAllClasses} onCheckedChange={(v) => setValue('enableAllClasses', !!v)} />
                                     <Label>Class {isClassRequired && <span className='text-red-500'>*</span>}</Label>
-                                </label>
+                                </label> */}
 
                                 <Select
                                     disabled={enableAllClasses}
@@ -597,7 +598,7 @@ export default function DailyFeeCollectionReportForm() {
             {/* =====================================================
                 DYNAMIC RESULT TABLE AFTER REPORT CLICK
             ====================================================== */}
-            {showTable && (
+            {/* {showTable && (
                 <div className='mt-10'>
                     {loading && <p className='py-6 text-center font-semibold'>Loading Report...</p>}
 
@@ -630,6 +631,88 @@ export default function DailyFeeCollectionReportForm() {
                     )}
 
                     {!loading && tableRows.length === 0 && <p className='py-6 text-center text-gray-500'>No Records Found</p>}
+                </div>
+            )} */}
+
+            {showTable && (
+                <div className='mt-10'>
+                    {/* REPORT TITLE */}
+                    <h2 className='mb-6 text-center font-bold text-2xl text-gray-800 tracking-wide'>DAILY FEE COLLECTION REPORT</h2>
+
+                    {/* Glass Card Container */}
+                    <div className='overflow-auto rounded-2xl border bg-white/60 shadow-xl backdrop-blur-lg'>
+                        <table className='w-full border-collapse text-sm'>
+                            {/* Table Header (Improved UI) */}
+                            <thead className='sticky top-0 z-20 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'>
+                                <tr>
+                                    <th className='border px-3 py-2 font-semibold'>Student Name</th>
+                                    <th className='border px-3 py-2 font-semibold'>Adm No</th>
+                                    <th className='border px-3 py-2 font-semibold'>Class</th>
+                                    <th className='border px-3 py-2 font-semibold'>Section</th>
+                                    <th className='border px-3 py-2 font-semibold'>MobileNo</th>
+                                    <th className='border px-3 py-2 font-semibold'>EmailId</th>
+                                    <th className='border px-3 py-2 font-semibold'>Gender</th>
+                                    <th className='border px-3 py-2 font-semibold'>DOB</th>
+                                    <th className='border px-3 py-2 font-semibold'>TermName</th>
+                                    <th className='border px-3 py-2 font-semibold'>ReceiptNo</th>
+                                    <th className='border px-3 py-2 font-semibold'>Bank</th>
+                                    <th className='border px-3 py-2 font-semibold'>Mode Of Payment</th>
+                                    <th className='border px-3 py-2 font-semibold'>Reference Id</th>
+                                    <th className='border px-3 py-2 font-semibold'>Cheque/DD Details</th>
+                                    <th className='border px-3 py-2 font-semibold'>Transaction Id</th>
+                                    <th className='border px-3 py-2 font-semibold'>Date</th>
+                                    <th className='border px-3 py-2 font-semibold'>Cheque Date</th>
+                                    <th className='border px-3 py-2 font-semibold'>Remarks</th>
+                                    <th className='border px-3 py-2 font-semibold'>AccName</th>
+                                    <th className='border px-3 py-2 font-semibold'>FYP</th>
+                                </tr>
+                            </thead>
+
+                            {/* Alternating Rows */}
+                            <tbody className='[&>tr:nth-child(odd)]:bg-gray-50/60'>
+                                {[
+                                    'Rahul Sharma',
+                                    'Anjali Verma',
+                                    'Karan Patel',
+                                    'Neha Gupta',
+                                    'Rohan Mehta',
+                                    'Simran Kaur',
+                                    'Arjun Reddy',
+                                    'Pooja Singh',
+                                    'Manish Kumar',
+                                    'Sneha Nair',
+                                    'Vikas Rao',
+                                    'Divya Jain',
+                                    'Harsh Thakur',
+                                    'Meena Yadav',
+                                    'Jay Shah'
+                                ].map((name, index) => (
+                                    <tr key={index} className='backdrop-blur-sm transition hover:bg-blue-50/60'>
+                                        <td className='border px-3 py-2'>{name}</td>
+                                        <td className='border px-3 py-2'>20{100 + index}</td>
+                                        <td className='border px-3 py-2'>{6 + (index % 6)}</td>
+                                        <td className='border px-3 py-2'>{['A', 'B', 'C', 'D'][index % 4]}</td>
+                                        <td className='border px-3 py-2'>98{Math.floor(100000 + index * 321)}</td>
+                                        <td className='border px-3 py-2'>{name.split(' ')[0].toLowerCase()}@example.com</td>
+                                        <td className='border px-3 py-2'>{index % 2 === 0 ? 'Male' : 'Female'}</td>
+                                        <td className='border px-3 py-2'>201{index}-01-10</td>
+                                        <td className='border px-3 py-2'>Term {index % 2 === 0 ? '1' : '2'}</td>
+                                        <td className='border px-3 py-2'>RCPT40{index + 20}</td>
+                                        <td className='border px-3 py-2'>{['HDFC', 'SBI', 'ICICI', 'Axis'][index % 4]}</td>
+                                        <td className='border px-3 py-2'>{['Cash', 'Online', 'UPI', 'Cheque'][index % 4]}</td>
+                                        <td className='border px-3 py-2'>REF99{index + 300}</td>
+                                        <td className='border px-3 py-2'>{index % 4 === 3 ? 'Cheque No: 55' + index : '---'}</td>
+                                        <td className='border px-3 py-2'>TXN23{index + 555}</td>
+                                        <td className='border px-3 py-2'>2025-01-{(index % 28) + 1}</td>
+                                        <td className='border px-3 py-2'>{index % 4 === 3 ? '2025-01-10' : '---'}</td>
+                                        <td className='border px-3 py-2'>Paid</td>
+                                        <td className='border px-3 py-2'>General Account</td>
+                                        <td className='border px-3 py-2'>2024-25</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             )}
         </div>

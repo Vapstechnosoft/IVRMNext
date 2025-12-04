@@ -12,73 +12,20 @@ import { Calendar } from '@/components/ui/calendar';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarIcon, RotateCcw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
+import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
+import { InputText } from '@/components/ui/extension/input-text';
+import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
+import { useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
+import { getFeeHead, getStudentDetails, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
+import type { IFeeTDetails, IStudentSearchList, IStudentTDetails, IStudentTermList } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
+import FeeDetails from './fee-head-column';
 
-/* -------------------------------------------------------
-   MOCK STATIC API — remove & replace later
-------------------------------------------------------- */
-async function fetchStudents(filterType: string) {
-    return [
-        { amst_Id: 474, name: 'KRITHIKA V – VI C' },
-        { amst_Id: 475, name: 'STUDENT 475 – V A' }
-    ];
-}
-
-async function fetchTerms(studentId: number) {
-    return [
-        { id: 1, name: 'TERM 1' },
-        { id: 2, name: 'VAN FEES' }
-    ];
-}
-
-async function fetchBank() {
-    return {
-        bank: [
-            {
-                fmB_Id: 1,
-                bank: 'Cash'
-            },
-            { fmB_Id: 2, bank: 'Bank' },
-            {
-                fmB_Id: 3,
-                bank: 'RTGS/NEFT'
-            },
-            { fmB_Id: 4, bank: 'Swipe/Card' },
-            { fmB_Id: 5, bank: 'UPI' }
-        ]
-    };
-}
-
-async function fetchFeeDetails(studentId: number, termId: number) {
-    return {
-        heads: [
-            {
-                fmH_Id: 1,
-                headName: 'ILM & OTHER FEES',
-                installment: 'Yearly',
-                currentCharges: 17000,
-                totalAdjusted: 0
-            }
-        ],
-
-        summary: {
-            currentFee: 17000,
-            concession: 0,
-            outstanding: 2000,
-            fine: 0,
-            nowPaying: 2000
-        }
-    };
-}
-
-/* -------------------------------------------------------
-   FORM FIELDS TYPE
-------------------------------------------------------- */
 type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
 
 interface FeestudentTrasactionsFormProps {
@@ -86,16 +33,10 @@ interface FeestudentTrasactionsFormProps {
 }
 
 export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactionsFormProps) {
-    /* -------------------------------------------------------
-     FORM INITIALIZATION
-  ------------------------------------------------------- */
     const {
-        control,
         handleSubmit,
-        setValue,
         reset,
-        watch,
-        formState: { errors, isSubmitting }
+        formState: { isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feesStudentTransactionSchema.addOrUpdate),
         mode: 'onChange',
@@ -112,241 +53,857 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         }
     });
 
-    const [filterType, setFilterType] = useState('regular');
-
-    /* -------------------------------------------------------
-     STATE FOR UI
-  ------------------------------------------------------- */
-    const [students, setStudents] = useState<any[]>([]);
-    const [terms, setTerms] = useState<any[]>([]);
-    const [feeHeads, setFeeHeads] = useState<any[]>([]);
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    const [selectedclassId, setSelectedClassId] = useState<number | null>(null);
+    const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
+    const [studentSearch, setStudentSearch] = useState('');
+    const [students, setStudents] = useState<IStudentSearchList[]>([]);
+    const [loadingStudents, setLoadingStudents] = useState(false);
+    const [selectedStudent, setSelectedStudent] = useState<IStudentSearchList | null>(null);
+    const [selectedTerm, setselectedTerm] = useState<string[]>([]);
+    const [terms, setTerms] = useState<IStudentTermList[]>([]);
+    const [loadingTerm, setLoadingTerm] = useState(false);
+    const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
+    const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
+    const [feeHeads, setFeeHeads] = useState<IFeeTDetails[]>([]);
+    const [loadingFeeHead, setLoadingFeeHead] = useState(false);
+    const [selectedHeads, setSelectedHeads] = useState<Record<number, boolean>>({});
+    const [currentCharges, setCurrentCharges] = useState<{
+        [key: number]: string;
+    }>({});
+    const [toatlAdjusted, setToatlAdjusted] = useState<{
+        [key: number]: string;
+    }>({});
+    const [totalCharges, setTotalCharges] = useState<{
+        [key: number]: string;
+    }>({});
+    const [concession, setConcession] = useState<{
+        [key: number]: string;
+    }>({});
+    const [openingBalance, setOpeningBalance] = useState<{
+        [key: number]: string;
+    }>({});
+    const [payableAmount, setPayableAmount] = useState<{
+        [key: number]: string;
+    }>({});
+    const [netAmount, setNetAmount] = useState<{
+        [key: number]: string;
+    }>({});
+    const [rebateAmount, setRebateAmount] = useState<{
+        [key: number]: string;
+    }>({});
     const [summary, setSummary] = useState<any | null>(null);
     const [bankDetails, setBankDetails] = useState<any[]>([]);
-    const [chequeNo, setChequeNo] = useState('0');
-    const [amount, setAmount] = useState('0');
+    const [chequeNo, setChequeNo] = useState('');
+    const [amount, setAmount] = useState('');
+    const [filterType, setFilterType] = useState('regular');
     const [payType, setPayType] = useState<string>('Bank');
     const [modeType, setModeType] = useState<string>('Single');
     const [checkPayType, setCheckPayType] = useState<string[]>([]);
     const [dates, setDates] = useState<Record<number, Date | null>>({});
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
 
-    const selectedStudent = watch('amst_Id');
-    const selectedTerm = watch('asmcl_Id');
+    const [left, setLeft] = useState(false);
+    const [deactive, setDeative] = useState(false);
+    const [classs, setClass] = useState(false);
+    const [section, setSection] = useState(false);
+    const [amountCheck, setAmountCheck] = useState(false);
 
-    /* -------------------------------------------------------
-     LOAD STUDENTS ON FILTER CHANGE
-  ------------------------------------------------------- */
+    const [selectAll, setSelectAll] = useState(false);
+    const [sms, setSms] = useState(false);
+    const [email, setEmail] = useState(false);
+    const [openFeeDetails, setOpenFeeDetails] = useState(false);
+
+    const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
+
+    const filterOptions = [
+        { value: 'regular', label: 'Regular' },
+        { value: 'Chal_no', label: 'Challan No.' },
+        { value: 'regno', label: 'Reg No' },
+        { value: 'admno', label: 'Adm No' },
+        { value: 'nameadmno', label: 'Name:Adm.No.' },
+        { value: 'nameregno', label: 'Name:Reg.No.' },
+        { value: 'father', label: 'Father Name' },
+        { value: 'mother', label: 'Mother Name' },
+        { value: 'mobile', label: 'Mobile No' }
+    ];
+
+    const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
+
+    const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
+
     useEffect(() => {
-        (async () => {
-            const s = await fetchStudents(filterType);
-            setStudents(s);
-        })();
-    }, [filterType]);
+        setStudentSearch('');
+        setTerms([]);
+        SetStudentDetails([]);
+        SetFeeDetails([]);
+        // setFeeHeads([]);
+    }, [selectedAsmayId, selectedclassId, selectedSectionId]);
 
-    /* -------------------------------------------------------
-     LOAD TERMS WHEN STUDENT SELECTED
-  ------------------------------------------------------- */
+    const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(classs);
+
+    const { data: feeSectionData, isLoading: feeSectionDataLoading } = useStudentSectionDropDown(section);
+
     useEffect(() => {
-        if (!selectedStudent) return;
+        if (!studentSearch.trim()) {
+            setStudents([]);
+            return;
+        }
 
-        (async () => {
-            const t = await fetchTerms(selectedStudent);
-            setTerms(t);
+        const fetchStudents = async () => {
+            setLoadingStudents(true);
+            try {
+                const payload = {
+                    asmaY_Id: selectedAsmayId,
+                    filterinitialdata: filterType,
+                    searchfilter: studentSearch,
+                    asmcL_ID: selectedclassId ?? 0,
+                    asmS_Id: selectedSectionId ?? 0,
+                    amsT_SOL: 'string'
+                };
+                const studentsArray = await searchStudentName(payload);
+                const studentsData = JSON.parse(JSON.stringify(studentsArray.feeStudentSearch || []));
+                setStudents(studentsData || []);
+            } catch (error) {
+                console.error('Failed to fetch students:', error);
+                setStudents([]);
+            } finally {
+                setLoadingStudents(false);
+            }
+        };
 
-            // Reset term + fee data
-            setValue('asmcl_Id', undefined);
-            setFeeHeads([]);
-            setSummary(null);
-        })();
+        fetchStudents();
+    }, [studentSearch]);
+
+    useEffect(() => {
+        if (!selectedStudent) {
+            setTerms([]);
+            SetStudentDetails([]);
+            SetFeeDetails([]);
+            return;
+        }
+        const fetchStudentsDetails = async () => {
+            setLoadingTerm(true);
+            try {
+                const payload = {
+                    amst_Id: selectedStudent.amst_Id,
+                    filterinitialdata: filterType,
+                    configset: 'T',
+                    autoReceiptFlag: true,
+                    asmaY_Id: selectedAsmayId
+                };
+                const termArray = await getStudentDetails(payload);
+                const termList = JSON.parse(JSON.stringify(termArray.masterGroupDetails || []));
+                const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
+                const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
+                setTerms(termList || []);
+                SetStudentDetails(studentDetails || []);
+                SetFeeDetails(feeDetails || []);
+            } catch (error) {
+                console.error('Failed to fetch students:', error);
+                setTerms([]);
+            } finally {
+                setLoadingTerm(false);
+            }
+        };
+        fetchStudentsDetails();
     }, [selectedStudent]);
 
-    /* -------------------------------------------------------
-     LOAD FEE DETAILS WHEN TERM SELECTED
-  ------------------------------------------------------- */
     useEffect(() => {
-        if (!selectedTerm || !selectedStudent) return;
+        if (!selectedTerm || selectedTerm.length === 0) {
+            setFeeHeads([]);
+            return;
+        }
 
-        (async () => {
-            const data = await fetchFeeDetails(selectedStudent, selectedTerm);
-            setFeeHeads(data.heads);
-            setSummary(data.summary);
-        })();
+        const fetchFeeHeadDetails = async () => {
+            setLoadingFeeHead(true);
+
+            try {
+                const payload = {
+                    amst_Id: selectedStudent?.amst_Id,
+                    filterinitialdata: filterType,
+                    configset: 'T',
+                    autoReceiptFlag: true,
+                    asmaY_Id: selectedAsmayId
+                };
+
+                const termArray = await getFeeHead(payload);
+
+                const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
+
+                setFeeHeads(feeDetails || []);
+            } catch (error) {
+                console.error('Failed to fetch students:', error);
+                setFeeHeads([]);
+            } finally {
+                setLoadingFeeHead(false);
+            }
+        };
+
+        fetchFeeHeadDetails();
     }, [selectedTerm]);
 
-    useEffect(() => {
-        if (!selectedTerm || !selectedStudent) return;
+    const toggleRow = (id: number, checked: boolean) => {
+        setSelectedHeads((prev) => {
+            const updated = { ...prev, [id]: checked };
+            if (!checked) {
+                setSelectAll(false);
+            } else {
+                const allChecked = feeHeads.every((item) => updated[item.fmG_Id]);
+                setSelectAll(allChecked);
+            }
 
-        (async () => {
-            const data = await fetchBank();
-            setBankDetails(data.bank);
-        })();
-    }, [selectedTerm]);
+            return updated;
+        });
+    };
 
-    /* -------------------------------------------------------
-     SUBMIT HANDLER
-  ------------------------------------------------------- */
+    const handleSelectAll = (checked: boolean) => {
+        setSelectAll(checked);
+        const newState: Record<number, boolean> = {};
+        feeHeads.forEach((f) => {
+            newState[f.fmG_Id] = checked;
+        });
+
+        setSelectedHeads(newState);
+    };
+
     const onSubmit = async () => {
         toast.success('Fee Transaction Saved Successfully!');
     };
 
-    /* -------------------------------------------------------
-     RESET HANDLER
-  ------------------------------------------------------- */
     const handleReset = () => {
         reset();
         setStudents([]);
-        setTerms([]);
-        setFeeHeads([]);
-        setSummary(null);
+        // setTerms([]);
+        // setFeeHeads([]);
+        // setSummary(null);
     };
 
-    /* -------------------------------------------------------
-     UI START
-  ------------------------------------------------------- */
-    return (
-        <div>
-            {/* -------- FILTER OPTIONS -------- */}
-            <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-6xl space-y-6 p-4'>
-                <Card className='p-4'>
-                    <RadioGroup value={filterType} onValueChange={setFilterType}>
-                        <div className='grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5'>
-                            {[
-                                { value: 'regular', label: 'Regular' },
-                                { value: 'regno', label: 'Reg No' },
-                                { value: 'admno', label: 'Adm No' },
-                                { value: 'nameadmno', label: 'Name:Adm.No.' },
-                                { value: 'father', label: 'Father Name' },
-                                { value: 'mother', label: 'Mother Name' },
-                                { value: 'mobile', label: 'Mobile No' }
-                            ].map((item) => (
-                                <div key={item.value} className='flex items-center space-x-2'>
-                                    <RadioGroupItem value={item.value} id={item.value} />
-                                    <Label htmlFor={item.value} className='cursor-pointer text-sm'>
-                                        {item.label}
-                                    </Label>
-                                </div>
-                            ))}
-                        </div>
-                    </RadioGroup>
-                </Card>
+    const handleCheckboxChange = (checked: boolean, type: 'left' | 'deactive' | 'class' | 'section') => {
+        if (type === 'left') {
+            setLeft(checked);
+        } else if (type === 'deactive') {
+            setDeative(checked);
+        } else if (type === 'class') {
+            setClass(checked);
+        } else if (type === 'section') {
+            setSection(checked);
+            if (checked) {
+                setClass(true);
+            } else {
+                setClass(false);
+            }
+        }
+    };
 
-                {/* -------- STUDENT DROPDOWN -------- */}
-                <Card className='space-y-4 p-4'>
-                    <div>
-                        <Label>Student *</Label>
-                        <Controller
-                            name='amst_Id'
-                            control={control}
-                            render={({ field }) => (
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Search or Select Student' />
+    return (
+        <div className='mx-auto max-w-7xl p-2'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 '>
+                <div className='flex gap-8'>
+                    <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner' style={{ width: '30%' }}>
+                        <RadioGroup value={filterType} onValueChange={setFilterType}>
+                            <div className='grid grid-cols-2 gap-3'>
+                                {filterOptions.map((item) => (
+                                    <div key={item.value} className='flex items-center space-x-2'>
+                                        <RadioGroupItem value={item.value} id={item.value} />
+                                        <Label htmlFor={item.value} className='cursor-pointer text-sm'>
+                                            {item.label}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </div>
+                        </RadioGroup>
+                        <div className='grid grid-cols-2 gap-3 pt-4 '>
+                            <div className='flex items-center space-x-2'>
+                                <Checkbox id='left' checked={left} onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'left')} />
+                                <Label htmlFor='left' className='cursor-pointer text-sm'>
+                                    Left
+                                </Label>
+                            </div>
+
+                            <div className='flex items-center space-x-2'>
+                                <Checkbox
+                                    id='deactive'
+                                    checked={deactive}
+                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'deactive')}
+                                />
+                                <Label htmlFor='deactive' className='cursor-pointer text-sm'>
+                                    Deactive
+                                </Label>
+                            </div>
+
+                            <div className='flex items-center space-x-2'>
+                                <Checkbox
+                                    id='class'
+                                    checked={classs}
+                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'class')}
+                                />
+                                <Label htmlFor='class' className='cursor-pointer text-sm'>
+                                    Class
+                                </Label>
+                            </div>
+
+                            <div className='flex items-center space-x-2'>
+                                <Checkbox
+                                    id='section'
+                                    checked={section}
+                                    onCheckedChange={(c) => handleCheckboxChange(c as boolean, 'section')}
+                                />
+                                <Label htmlFor='section' className='cursor-pointer text-sm'>
+                                    Section
+                                </Label>
+                            </div>
+                        </div>
+                        <div className=' flex w-full items-center space-x-4 pt-4 '>
+                            <Label className='font-semibold'>Date</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant='outline' className='w-full justify-start text-left font-normal'>
+                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                        {todaysDate ? format(todaysDate, 'PPP') : 'Select Date'}
+                                    </Button>
+                                </PopoverTrigger>
+
+                                <PopoverContent className='w-auto p-0' align='start'>
+                                    <Calendar
+                                        mode='single'
+                                        selected={todaysDate ?? undefined}
+                                        onSelect={(date) => {
+                                            if (date) setTodaysDate(date);
+                                        }}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                        {filterType === 'Chal_no' && (
+                            <div className='flex w-full items-center space-x-4 pt-4'>
+                                <Label className='font-semibold'>
+                                    Challan No. :<span className='ml-1 text-red-500'>*</span>
+                                </Label>
+
+                                <InputText
+                                    id='Chal_no'
+                                    placeholder='Enter Challan No'
+                                    className='flex transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <div className='max-h-[600px] w-[40%] overflow-auto rounded border bg-gray-50 p-4 shadow-inner'>
+                        {/* Academic Year */}
+                        <div className='mb-4 space-y-2'>
+                            <div className='flex w-full items-center justify-between gap-4'>
+                                <Label className='whitespace-nowrap font-semibold'>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </Label>
+
+                                <Select
+                                    value={selectedAsmayId?.toString() || ''}
+                                    onValueChange={(v) => setSelectedAsmayId(Number(v))}
+                                    disabled={loadingYears}>
+                                    <SelectTrigger className='w-64'>
+                                        <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {students.map((s) => (
-                                            <SelectItem key={s.amst_Id} value={s.amst_Id.toString()}>
-                                                {s.name}
+                                        {academicYearData?.data?.map((item) => (
+                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                {item.asmaY_Year}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                            )}
-                        />
-                    </div>
+                            </div>
 
-                    {/* TERM DROPDOWN */}
-                    {selectedStudent ? (
-                        <div>
-                            <Label>Term *</Label>
-                            <Controller
-                                name='asmcl_Id'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Term' />
+                            {/* Class */}
+                            {classs && (
+                                <div className='flex w-full items-center justify-between gap-4'>
+                                    <Label className='whitespace-nowrap font-semibold'>Class</Label>
+
+                                    <Select
+                                        value={selectedclassId?.toString() || ''}
+                                        onValueChange={(v) => setSelectedClassId(Number(v))}
+                                        disabled={feeclassDataLoading}>
+                                        <SelectTrigger className='w-64'>
+                                            <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {terms.map((t) => (
-                                                <SelectItem value={t.id.toString()} key={t.id}>
-                                                    {t.name}
+                                            {feeclassData?.data?.map((item) => (
+                                                <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
+                                                    {item.asmcL_ClassName}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                )}
-                            />
+                                </div>
+                            )}
+
+                            {/* Section */}
+                            {section && (
+                                <div className='flex w-full items-center justify-between gap-4'>
+                                    <Label className='whitespace-nowrap font-semibold'>Section</Label>
+
+                                    <Select
+                                        value={selectedSectionId?.toString() || ''}
+                                        onValueChange={(v) => setSelectedSectionId(Number(v))}
+                                        disabled={feeSectionDataLoading}>
+                                        <SelectTrigger className='w-64'>
+                                            <SelectValue placeholder='Select Section' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {feeSectionData?.data?.map((item) => (
+                                                <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
+                                                    {item.asmC_SectionName}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
+                            {/* Student Name */}
+                            <div className='flex w-full items-center justify-between gap-4'>
+                                <Label className='whitespace-nowrap font-semibold'>
+                                    {filterType === 'regular' || filterType === 'Chal_no' ? 'Student Name' : selectedLabel}
+
+                                    <span className='ml-1 text-red-500'>*</span>
+                                </Label>
+
+                                <div className='relative w-64'>
+                                    <input
+                                        id='studentSearchInput'
+                                        type='text'
+                                        placeholder='Search student...'
+                                        disabled={!selectedAsmayId}
+                                        value={studentSearch}
+                                        onChange={(e) => {
+                                            setStudentSearch(e.target.value);
+                                            setSelectedStudent(null);
+                                        }}
+                                        className='w-full rounded border px-3 py-2'
+                                        autoComplete='off'
+                                    />
+
+                                    {studentSearch.trim() !== '' && !selectedStudent && (
+                                        <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
+                                            {loadingStudents ? (
+                                                <li className='px-3 py-2 text-gray-500'>Loading...</li>
+                                            ) : students.length === 0 ? (
+                                                <li className='px-3 py-2 text-gray-500'>No students found</li>
+                                            ) : (
+                                                students.map((student) => (
+                                                    <li
+                                                        key={student.amst_Id}
+                                                        onClick={() => {
+                                                            setSelectedStudent(student);
+                                                            setStudentSearch(student.amsT_StudentName);
+                                                        }}
+                                                        className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
+                                                        {student.amsT_StudentName}
+                                                    </li>
+                                                ))
+                                            )}
+                                        </ul>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    ) : null}
-                </Card>
+
+                        {/* Term + Options */}
+                        <div className='mt-3 flex gap-6'>
+                            <div className='flex w-40 flex-col space-y-6'>
+                                <div className='flex items-center space-x-2'>
+                                    <Label className='font-semibold'>Term Name :</Label>
+                                </div>
+
+                                <div className='flex items-center space-x-6'>
+                                    <Label>SMS</Label>
+                                    <Checkbox checked={sms} onCheckedChange={(v) => setSms(v === true)} />
+                                </div>
+
+                                <div className='flex items-center space-x-3'>
+                                    <Label>EMAIL</Label>
+                                    <Checkbox checked={email} onCheckedChange={(v) => setEmail(v === true)} />
+                                </div>
+                            </div>
+
+                            <div className='w-80'>
+                                <CustomMultiSelectBox
+                                    options={terms.map((ex) => ({
+                                        label: ex.fmG_GroupName,
+                                        value: ex.fmT_Id.toString()
+                                    }))}
+                                    isLoading={loadingTerm}
+                                    value={terms.filter((ex) => ex.checked).map((ex) => ex.fmT_Id.toString())}
+                                    onChange={(selectedValues) => {
+                                        setselectedTerm(selectedValues);
+                                        const updated = terms.map((ex) => ({
+                                            ...ex,
+                                            checked: selectedValues.includes(ex.fmT_Id.toString())
+                                        }));
+                                        setTerms(updated);
+                                    }}
+                                    height='150px'
+                                />
+                            </div>
+                        </div>
+
+                        {/* Amount */}
+                        <div className='mt-3'>
+                            <div className='flex items-center gap-3'>
+                                <Checkbox id='amount' checked={amountCheck} onCheckedChange={(v) => setAmountCheck(v === true)} />
+
+                                <Label>Amount {amountCheck && <span className='text-red-500'>*</span>}</Label>
+
+                                <InputText
+                                    id='amount'
+                                    placeholder='Enter Amount'
+                                    className='flex transition-colors focus:ring-2 focus:ring-primary/20'
+                                    disabled={!amountCheck}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-4 shadow-inner' style={{ width: '30%' }}>
+                        <h3 className='mb-2 font-bold text-lg'>Student Information</h3>
+                        <div className='flex min-w-[220px] max-w-[300px] flex-[1] flex-col items-center'>
+                            <Card className='w-full p-0 shadow'>
+                                <div className='flex justify-center p-4'>
+                                    <div className='rounded-full border border-blue-300 p-1'>
+                                        <img
+                                            src={
+                                                studentDetails?.[0]?.amsT_Photoname ??
+                                                'https://hutchingspreadmission.blob.core.windows.net/files/Student.jpg'
+                                            }
+                                            alt='Student'
+                                            className='h-40 w-40 rounded-full object-cover'
+                                        />
+                                    </div>
+                                </div>
+                                <div className='flex items-center justify-between border-t px-3 py-2 font-semibold text-blue-700 text-sm'>
+                                    <span
+                                        className='flex cursor-pointer items-center gap-1 hover:underline'
+                                        onClick={() => setOpenFeeDetails(true)}>
+                                        Fee Details <span>➤</span>
+                                    </span>
+
+                                    <span className='flex cursor-pointer items-center gap-1 hover:underline'>
+                                        Student Profile <span>➤</span>
+                                    </span>
+                                </div>
+
+                                {studentDetails.length > 0 && (
+                                    <div className='mt-1 px-4 pb-5 font-semibold text-xs'>
+                                        <div className='grid grid-cols-2 gap-x-5 gap-y-3 border-gray-300 border-t pt-3 '>
+                                            <div>STUDENT NAME</div>
+                                            <div className='text-gray-700'>
+                                                {studentDetails?.[0]?.amsT_FirstName || 'N/A'}
+                                                {studentDetails?.[0]?.amsT_MiddleName}
+                                                {studentDetails?.[0]?.amsT_LastName}
+                                            </div>
+
+                                            <div>CLASS / SECTION</div>
+                                            <div className='text-gray-700'>
+                                                {studentDetails?.[0]?.classname} / {studentDetails?.[0]?.sectionname}
+                                            </div>
+
+                                            <div>ADMISSION NUMBER</div>
+                                            <div className='text-gray-700'>{studentDetails?.[0]?.amsT_AdmNo}</div>
+
+                                            <div>MOBILE NUMBER</div>
+                                            <div className='text-gray-700'>{studentDetails?.[0]?.amst_mobile}</div>
+
+                                            <div>FATHER NAME</div>
+                                            <div className='text-gray-700'>{studentDetails?.[0]?.fathername}</div>
+
+                                            <div>USERNAME</div>
+                                            <div className='text-gray-700'>{studentDetails?.[0]?.username || 'N/A'}</div>
+                                        </div>
+                                    </div>
+                                )}
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+
+                {openFeeDetails && <FeeDetails onClose={() => setOpenFeeDetails(false)} data={feeDetails} loading={false} />}
 
                 {/* -------- FEE GRID -------- */}
-                {feeHeads.length > 0 && (
+                {loadingFeeHead ? (
+                    <Card className='p-4 text-center'>Loading...</Card>
+                ) : selectedTerm.length > 0 ? (
                     <Card className='p-4'>
-                        <h2 className='mb-3 font-semibold text-lg'>Fee Details</h2>
-
-                        <table className='w-full border text-sm'>
+                        <table className='w-full border text-center text-sm'>
                             <thead className='bg-gray-100'>
                                 <tr>
+                                    <th className='border p-2'>Sl.No</th>
+                                    <th className='border p-2'>
+                                        <Checkbox checked={selectAll} onCheckedChange={(val) => handleSelectAll(val === true)} />
+                                    </th>
                                     <th className='border p-2'>Fee Head</th>
                                     <th className='border p-2'>Installment</th>
                                     <th className='border p-2'>Current Charges</th>
-                                    <th className='border p-2'>Adjusted</th>
+                                    <th className='border p-2'>Total Adjusted</th>
+                                    <th className='border p-2'>Total Charges</th>
+                                    <th className='border p-2'>Concession</th>
+                                    <th className='border p-2'>Opening Balance</th>
+                                    <th className='border p-2'>Payable Amount</th>
+                                    <th className='border p-2'>Net Amount</th>
+                                    <th className='border p-2'>Rebate Amount</th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                {feeHeads.map((f) => (
-                                    <tr key={f.fmH_Id}>
-                                        <td className='border p-2'>{f.headName}</td>
-                                        <td className='border p-2'>{f.installment}</td>
-                                        <td className='border p-2'>{f.currentCharges}</td>
-                                        <td className='border p-2'>{f.totalAdjusted}</td>
+                                {feeHeads.map((f, index) => (
+                                    <tr key={f.fmG_Id}>
+                                        <td className='border p-2'>{index + 1}</td>
+                                        <td className='border p-2'>
+                                            <Checkbox
+                                                checked={selectedHeads[f.fmG_Id] || false}
+                                                onCheckedChange={(val) => toggleRow(f.fmG_Id, val === true)}
+                                            />
+                                        </td>
+
+                                        <td className='border p-2'>{f.fmG_GroupName}</td>
+                                        <td className='border p-2'>{f.fmG_GroupName}</td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={currentCharges[f.fmG_Id] || '0'}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setCurrentCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setCurrentCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={toatlAdjusted[f.fmG_Id] || ''}
+                                                // disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setToatlAdjusted((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setToatlAdjusted((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={totalCharges[f.fmG_Id] || ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setTotalCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setTotalCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={concession[f.fmG_Id] || ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setConcession((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setConcession((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={openingBalance[f.fmG_Id] || ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setOpeningBalance((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setOpeningBalance((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={payableAmount[f.fmG_Id] || ''}
+                                                disabled={!selectedHeads[f.fmG_Id]}
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setPayableAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setPayableAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={netAmount[f.fmG_Id] || ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setNetAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setNetAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={rebateAmount[f.fmG_Id] || ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setRebateAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setRebateAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
                     </Card>
+                ) : (
+                    <Card className='p-4 text-center'>No Results Found</Card>
                 )}
 
                 {/* -------- SUMMARY -------- */}
-                {summary && (
+                {selectedTerm.length > 0 && (
                     <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-3'>
                         <div>
-                            Current Fee: <b>{summary.currentFee}</b>
+                            Current Fee: <b>{1000}</b>
                         </div>
                         <div>
-                            Concession: <b>{summary.concession}</b>
+                            Concession: <b>{0}</b>
                         </div>
                         <div>
-                            Outstanding: <b>{summary.outstanding}</b>
+                            Outstanding: <b>{300}</b>
                         </div>
                         <div>
-                            Fine: <b>{summary.fine}</b>
+                            Fine: <b>{200}</b>
                         </div>
                         <div>
-                            Now Paying: <b>{summary.fine}</b>
+                            Now Paying: <b>{200}</b>
                         </div>
                     </Card>
                 )}
 
-                {summary && (
+                {selectedTerm.length > 0 && (
                     <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-3'>
                         <div>
-                            Total Payable: <b>{summary.currentFee}</b>
+                            Total Payable: <b>{2000}</b>
                         </div>
                         <div>
-                            Total Concession: <b>{summary.concession}</b>
+                            Total Concession: <b>{3000}</b>
                         </div>
                         <div>
-                            Total Waived off: <b>{summary.outstanding}</b>
+                            Total Waived off: <b>{40000}</b>
                         </div>
                         <div>
-                            Overall Outstanding: <b>{summary.fine}</b>
+                            Overall Outstanding: <b>{40000}</b>
                         </div>
                     </Card>
                 )}
-                {summary && (
+                {selectedTerm.length > 0 && (
                     <Card className='p-4'>
                         <div className='flex items-center gap-6'>
                             {' '}
@@ -379,7 +936,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                         </div>
                     </Card>
                 )}
-                {summary && (
+                {selectedTerm.length > 0 && (
                     <Card className='p-4'>
                         <table className='w-full border text-sm'>
                             <thead className='bg-gray-100'>
