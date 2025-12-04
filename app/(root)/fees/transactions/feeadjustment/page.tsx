@@ -3,20 +3,20 @@ import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
 import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeAdjustmentForm from './_components/add-form';
+import { type OpeningBalanceRow, openingBalanceColumns } from './_components/columns';
 import ToggleMasterFeesConfigForm from './_components/toggle-form';
-import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
-import { openingBalanceColumns, OpeningBalanceRow } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function fineSlabPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeeconfiguration(searchParams);
+    const { data: response, isLoading } = useFeeconfiguration(searchParams);
 
     return (
         <FormProvider<IFeeConfig>>
@@ -42,7 +42,6 @@ function MasterFeeOpeningBalancePageContent({ data, isLoading }: { data: any; is
                     </Button>
                 </div>
                 <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='rounded-xl border bg-white shadow-xl'>
-
                     <GenericDataTable<OpeningBalanceRow>
                         data={tableData}
                         columns={openingBalanceColumns}
@@ -52,12 +51,9 @@ function MasterFeeOpeningBalancePageContent({ data, isLoading }: { data: any; is
                         noDataTitle={`No ${activeTab} Opening Balance Records Found`}
                         noDataDescription='No records exist for the selected academic year.'
                     />
-
                 </CollapsibleSection>
                 <FormSections />
-
             </div>
-
         </div>
     );
 }
@@ -71,7 +67,6 @@ function FormSections() {
                 <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add Fee Transaction Adjustment'
-
                         defaultOpen={true}
                         variant='outline'
                         size='md'
