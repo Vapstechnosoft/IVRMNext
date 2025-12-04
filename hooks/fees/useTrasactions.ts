@@ -18,6 +18,7 @@ import {
     getOpeningRefundable,
     getOpeningSectionDropdownData
 } from '@/server/fees/trasactions/fee_opening_balance';
+import { getFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundable';
 import { getFeeStudentTransactionDetails } from '@/server/fees/trasactions/fee_student_transaction';
 import { getFeePreadmissionTransactionList, getPreadmissionStudentDropdownData } from '@/server/fees/trasactions/feepreadmissiontrasaction';
 import {
@@ -525,13 +526,13 @@ export const useFeeOpeningRefundable = (asmaY_Id: number, filterrefund: string, 
     };
 };
 
-export const useconcessionacademicyerdropdowndatafee = (miid: number, searchParams?: ApiSearchparams) => {
+export const useconcessionacademicyerdropdowndatafee = (mi_Id: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN, searchParams ?? {}],
-            queryFn: async () => getConcessionAcademicDropdownData(miid),
+            queryFn: async () => getConcessionAcademicDropdownData(mi_Id),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -554,6 +555,112 @@ export const useFeeConcessionTermDropdowndata = (mi_id: number, searchParams?: A
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_TERM_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeRefundableList = (asmay_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_REFUNDABLE_LIST, asmay_Id, searchParams ?? {}],
+            queryFn: async () => getFeeRefundableDetails(asmay_Id, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_REFUNDABLE_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionClassDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, mi_id, searchParams ?? {}],
+            queryFn: async () => getConcessionClassesDropdownData(mi_id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN]
+            });
+        }
+    };
+};
+export const useFeeConcessionCategoryDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, mi_id, searchParams ?? {}],
+            queryFn: async () => getConcessionCategoryDropdownData(mi_id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionHeadList = (mi_Id: number, asmaY_Id: number, asmcL_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
+            queryFn: async () => getConcessionHeadList(mi_Id, asmaY_Id, asmcL_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionStudentList = (mi_Id: number, asmaY_Id: number, asmcL_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_LIST, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
+            queryFn: async () => getConcessionStudentList(mi_Id, asmaY_Id, asmcL_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionStudentConcessionGrid = (
+    mi_Id: number,
+    asmaY_Id: number,
+    asmcL_Id: number,
+    searchParams?: ApiSearchparams
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
+            queryFn: async () => getConcessionStudentConcessionGrid(mi_Id, asmaY_Id, asmcL_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID]
             });
         }
     };

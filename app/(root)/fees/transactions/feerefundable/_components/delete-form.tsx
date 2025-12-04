@@ -4,12 +4,9 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { useMasterPaymentgatewaydetails } from '@/hooks/fees/useMasters';
-
-import { paymentgatewaydetailsSchema } from '@/schemas/fees/masters';
-
-import { deletepaymentgatewaydetails } from '@/server/fees/masters/fee_payment_gateway_details';
-
-import type { IMasterPaymentGatewayList } from '@/types/fees/masters/masters';
+import { feesRefundableSchema } from '@/schemas/fees/trasactions';
+import { deleteFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundable';
+import type { IFeeRefundableList } from '@/types/fees/transactions/transactions';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
@@ -17,10 +14,10 @@ import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof paymentgatewaydetailsSchema.delete>;
+type FormFields = z.infer<typeof feesRefundableSchema.delete>;
 
 interface DeleteFeeRefundableFormProps {
-    rowData: IMasterPaymentGatewayList;
+    rowData: IFeeRefundableList;
     onClose: () => void;
 }
 
@@ -33,7 +30,7 @@ export default function DeleteFeeRefundableForm({ rowData, onClose }: DeleteFeeR
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(paymentgatewaydetailsSchema.delete),
+        resolver: zodResolver(feesRefundableSchema.delete),
         mode: 'onChange'
     });
 
@@ -44,7 +41,7 @@ export default function DeleteFeeRefundableForm({ rowData, onClose }: DeleteFeeR
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await deletepaymentgatewaydetails(Number(rowData.fpgD_Id));
+            const response = await deleteFeeRefundableDetails(Number(rowData.fr_id));
             if (response?.success) {
                 toast.success(response.message);
                 refetchAll();
@@ -58,12 +55,12 @@ export default function DeleteFeeRefundableForm({ rowData, onClose }: DeleteFeeR
     };
 
     return (
-        <AdaptiveDialog title='Delete Payment Gateway' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Delete Fee Refundable' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('FPGD_Id')} defaultValue={rowData.fpgD_Id} />
+                    <input type='hidden' {...register('fR_Id')} defaultValue={rowData.fr_id} />
                     <p>Are you sure you want to permanently delete The selected Data</p>
-                    <FormError>{errors.FPGD_Id?.message}</FormError>
+                    <FormError>{errors.fR_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

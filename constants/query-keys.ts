@@ -182,7 +182,13 @@ export const FEES_QUERY_KEYS = {
     FEE_REPORT_HEAD_DROPDOWN: 'fee_report_head_dropdown',
     FEES_REPORT_INSTLLMENT_DROPDOWN_YEARLYREPORT: 'fees_report_instllment_dropdown_yearlyreport',
     FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN: 'fee_concession_academic_year_dropdown',
-    FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown'
+    FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown',
+    FEE_REFUNDABLE_LIST: 'fee_refundable_list',
+
+    FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
+    FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
+    FEE_CONCESSION_STUDENT_LIST: 'fee_concession_student_list',
+    FEE_CONCESSION_STUDENT_GRID: 'fee_concession_student_grid'
 };
 
 export const EXAM_QUERY_KEYS = {

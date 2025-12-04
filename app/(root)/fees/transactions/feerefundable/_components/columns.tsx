@@ -3,12 +3,12 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 
-import type { IFeePreAdmissionTransactionDetails } from '@/types/fees/transactions/transactions';
+import type { IFeeRefundableList } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
-export const feeRefundableColumns: ColumnDef<IFeePreAdmissionTransactionDetails>[] = [
+export const feeRefundableColumns: ColumnDef<IFeeRefundableList>[] = [
     // {
     //     id: 'select',
     //     header: ({ table }) => (
@@ -45,32 +45,32 @@ export const feeRefundableColumns: ColumnDef<IFeePreAdmissionTransactionDetails>
         enableHiding: true
     },
     {
-        accessorKey: 'classname',
+        accessorKey: 'admisionNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Admision No' />,
-        cell: ({ row }) => <div>{row.getValue('classname')}</div>,
+        cell: ({ row }) => <div>{row.getValue('admisionNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
 
     {
-        accessorKey: 'studentRegNo',
+        accessorKey: 'voucherNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Voucher No' />,
-        cell: ({ row }) => <div>{row.getValue('studentRegNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('voucherNo')}</div>,
         enableSorting: true,
         enableHiding: true
     },
 
     {
-        accessorKey: 'studentMobile',
+        accessorKey: 'refundedAmount',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Refunded Amount' />,
-        cell: ({ row }) => <div>{row.getValue('studentMobile')}</div>,
+        cell: ({ row }) => <div>{row.getValue('refundedAmount')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'studentEmail',
+        accessorKey: 'modeOfPayment',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mode of Payment' />,
-        cell: ({ row }) => <div>{row.getValue('studentEmail')}</div>,
+        cell: ({ row }) => <div>{row.getValue('modeOfPayment')}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -84,12 +84,12 @@ export const feeRefundableColumns: ColumnDef<IFeePreAdmissionTransactionDetails>
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: IFeePreAdmissionTransactionDetails }) {
-    const { openEditForm, openDeleteForm, openDetailsView } = useFormContext<IFeePreAdmissionTransactionDetails>();
+function ActionButtonsCell({ rowData }: { rowData: IFeeRefundableList }) {
+    const { openEditForm, openDeleteForm, openDetailsView } = useFormContext<IFeeRefundableList>();
 
-    const handleEdit = useCallback((data: IFeePreAdmissionTransactionDetails) => openEditForm(data), [openEditForm]);
+    const handleEdit = useCallback((data: IFeeRefundableList) => openEditForm(data), [openEditForm]);
 
-    const handleDelete = useCallback((data: IFeePreAdmissionTransactionDetails) => openDeleteForm(data), [openDeleteForm]);
+    const handleDelete = useCallback((data: IFeeRefundableList) => openDeleteForm(data), [openDeleteForm]);
 
     const handleView = useCallback(() => {
         openDetailsView(rowData);

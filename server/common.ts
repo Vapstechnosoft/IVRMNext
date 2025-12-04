@@ -582,14 +582,14 @@ export async function getUserAccessibleModules() {
                                             title: 'Master Online Payment Head Group',
                                             description: 'Manage Master Online Payment Head Group Mapping Details'
                                         },
-                                        // {
-                                        //     id: 900,
-                                        //     name: 'Master Student Fee Group Mapping',
-                                        //     icon: 'Settings',
-                                        //     url: '/fees/masters/studentfeegroupmapping',
-                                        //     title: 'MasterStudent Fee Group Mapping',
-                                        //     description: 'Manage Manage Student Fee Group Mapping Details'
-                                        // },
+                                        {
+                                            id: 900,
+                                            name: 'Master Student Fee Group Mapping',
+                                            icon: 'Settings',
+                                            url: '/fees/masters/studentfeegroupmapping',
+                                            title: 'Master Student Fee Group Mapping',
+                                            description: 'Manage Manage Student Fee Group Mapping Details'
+                                        },
                                         {
                                             id: 501,
                                             name: 'Master Fee Other Student',
@@ -653,6 +653,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Preadmission Transaction',
                                             description: 'Manage Fee Preadmission Transaction'
                                         }
+                                        // ,
                                         // {
                                         //     id: 508,
                                         //     name: 'Fee Refundable',
@@ -717,6 +718,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/yearlyfeecollectionreport',
                                             title: 'Yearly Fee Collection Report',
                                             description: 'Manage Yearly Fee Collection Report Details'
+                                        },
+                                        {
+                                            id: 10014,
+                                            name: 'Audit Report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/auditreport',
+                                            title: 'Audit Report',
+                                            description: 'Manage Audit Report Details'
                                         }
                                     ]
                                 }

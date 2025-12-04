@@ -221,7 +221,7 @@ export const feesStudentTransactionSchema = {
 
             // Payment mode (Single / Multiple)
             payModeType: z.enum(['Single', 'Multiple']),
-             date: z.date({ required_error: 'Date is required' }),
+            date: z.date({ required_error: 'Date is required' }),
             bankName: z.string().optional(),
 
             // Payment rows (at least one must be filled)
@@ -330,6 +330,15 @@ export const feesStudentTransactionSchema = {
                 path: ['paymentRows']
             }
         )
+};
+
+export const feesRefundableSchema = {
+    addOrUpdate: z.object({
+        ivrmmoD_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional()
+    }),
+    delete: z.object({
+        fR_Id: deleteIdSchema('fR_Id')
+    })
 };
 
 // src/types/fees/receipt.ts

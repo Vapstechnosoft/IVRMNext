@@ -610,7 +610,6 @@ export interface FeeConcessionTermDropdown {
 }
 
 export interface IFeeConcessionAcademicyearDropDownList {
-    miid: number;
     asmaY_Id: number;
     asmaY_Year: string;
     asmaY_Order: number;
@@ -642,6 +641,7 @@ export interface IStudentTDetails {
     studentdob: string;
     amst_mobile: number;
     amsT_Photoname: string;
+    username: string;
 }
 
 export interface IFeeTDetails {
@@ -657,4 +657,60 @@ export interface IFeeTDetails {
     fmG_Id: number;
     fsS_RunningExcessAmount: number;
     fsS_FineAmount: number;
+}
+
+export interface IFeeRefundableList {
+    amst_Id: number;
+    studentName: string;
+    admisionNo: string;
+    voucherNo: string;
+    refundedAmount: number;
+    modeOfPayment: string;
+    fr_Date: string;
+    fr_id: number;
+}
+
+export interface IFeeConcessionClassDropDownList {
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmcL_Order: number;
+}
+export interface IFeeConcessionCategoryDropDownList {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+}
+
+export interface IFeeConcessionHeadList {
+    slno: number;
+    fmH_Id: number;
+    fmH_FeeName: string;
+    fmI_Id: number;
+    fmI_Name: string;
+    fmA_Amount: number;
+    isSelected: boolean;
+}
+export interface IFeeConcessionStudentList {
+    slno: number;
+    amsT_Id: number;
+    amsT_RegistrationNo: number;
+    amsT_AdmNo: number;
+    studentName: string;
+    amaY_RollNo: number;
+    isSelected: boolean;
+}
+
+export interface IFeeConcessionStudentConcessionGrid {
+    slno: number;
+    fmI_Id: number;
+    amsT_Id: number;
+    studentName: string;
+    amsT_AdmNo: number;
+    asmcL_ClassName: string;
+    asmaY_Year: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fmcC_ConcessionName: string;
+    fsC_ConcessionAmount: number;
+    fsC_Id: number;
 }
