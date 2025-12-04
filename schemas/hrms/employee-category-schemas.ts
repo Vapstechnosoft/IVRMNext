@@ -135,7 +135,6 @@ export const departmentSalaryReportSchema = z.object({
 
 export type DepartmentSalaryReportFormFields = z.infer<typeof departmentSalaryReportSchema>;
 
-
 // Schema for Employee Strength report (same fields as department salary report)
 export const EmployeeStrengthReportSchema = z.object({
     // Selection fields present on the UI - month/year are not used on this page
@@ -322,3 +321,35 @@ export const ReportSchema = z
 
 export type ReportFormFields = z.infer<typeof ReportSchema>;
 
+export const EmployeeOfferLaterSchema = z.object({
+    groupType: z.string().min(1, 'At least one group type is required'),
+    department: z.string().min(1, 'At least one department is required'),
+    designation: z.string().min(1, 'At least one designation is required'),
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required'),
+    employee: z.string().min(1, 'Employee is required'),
+    mockLetter: z.string().min(1, 'At least one mock letter type is required'),
+    currentDate: z.string().optional(),
+    joiningDate: z.string().optional(),
+    interviewDate: z.string().optional(),
+    responseDate: z.string().optional(),
+    dueDate: z.string().optional(),
+    workingDay: z.string().optional(),
+    probationDate: z.string().optional()
+});
+export type EmployeeOfferLaterFields = z.infer<typeof EmployeeOfferLaterSchema>;
+export const EmployeeDetailSchema = z.object({
+    groupType: z.array(z.string()).optional(),
+    department: z.array(z.string()).optional(),
+    designation: z.array(z.string()).optional(),
+    fromdate: z.string().optional(),
+    todate: z.string().optional(),
+    employee: z.string().optional(),
+    formated: z.string().optional(),
+    mockLetter: z.string().optional(),
+    type: z.string().optional(),
+    formatted: z.string().optional(),
+    selectedHeaders: z.array(z.string()).optional(),
+    status: z.string().optional(),
+    typeOrEmployee: z.string().optional()
+});

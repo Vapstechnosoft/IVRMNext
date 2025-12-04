@@ -2,1201 +2,841 @@
 
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
-import { Label } from '@/components/ui/extension/field';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useEmployeeDetailsReportOnload, useFilterEmployeeDetailsReport, useSearchEmployeeDetailsReport } from '@/hooks/hrms/useReports';
+import { useMasterDepartments, useMasterDesignations, useMasterEmployeeTypes, useMasterGroupTypes } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
-import type { EmployeeDetailsReportFilterRequest } from '@/types/hrms/reports/employee-details-report';
+import { EmployeeDetailSchema } from '@/schemas/hrms/employee-category-schemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Search, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { EmployeeDetailsReportTemplate } from './_components/report-template';
+import type { z } from 'zod';
 
-// Employee data structure for reports
-interface Employee {
-    id: string;
-    employeeCode: string;
-    employeeName: string;
-    fatherName: string;
-    mobileNo: string;
-    emailId: string;
-    dateOfBirth: string;
-    emergencyContactNumber: string;
-    dateOfJoining: string;
-    dateOfLeaving?: string;
-    dateOfConfirmation?: string;
-    employeeType?: string;
-    groupType?: string;
-    departmentName: string;
-    designationName: string;
-    address: string;
-    qualification: string;
-    experience: string;
-    status: 'Working' | 'Left';
-    reasonForLeaving?: string;
-    remarks?: string;
-}
+type FormFields = z.infer<typeof EmployeeDetailSchema>;
+const mockletter = [
+    { key: '1', value: 'Date of Birth' },
+    { key: '2', value: 'Date of Joining' },
+    { key: '3', value: 'Date of Leaving' }
+];
+const formated = [
+    { key: 'format1', value: 'Format 1' },
+    { key: 'format2', value: 'Format 2' }
+];
+const status = [
+    { key: 'all', value: 'All' },
+    { key: 'individual', value: 'Individual' }
+];
+const typeOrEmployee = [
+    { key: 'type', value: 'Type' },
+    { key: 'employee', value: 'Employee' }
+];
+const mockEmployees = [
+    { key: '1208', value: 'ANUSHA T' },
+    { key: 'EMP002', value: 'KIRAN KUMAR' },
+    { key: 'EMP003', value: 'PALLAVI C' },
+    { key: 'EMP004', value: 'RAFIQ' },
+    { key: 'EMP005', value: 'NATARAJA' }
+];
+const availableHeaders = [
+    'Employee Code',
+    'Employee Name',
+    'Father Name',
+    'Mobile No.',
+    'Email Id',
+    'Date Of Birth',
+    'Emergency Contact Number',
+    'Date Of confirmation',
+    'Employee Type',
+    'Group Type',
+    'Department',
+    'Designation',
+    'Status',
+    'Date Of Joining',
+    'Date Of Leaving',
+    'Reason For Leaving',
+    'Remarks',
+    'Address',
+    'Qualification',
+    'Experience'
+];
+const mockApiResponse = {
+    employeeSalaryslipDetails: [
+        {
+            hrmD_Id: 80,
+            hrmD_code: 'EMP001',
+            hrmD_Name: 'John Doe',
+            hrmD_FatherName: 'Father Name 1',
+            hrmD_MobileNo: '9876543210',
+            hrmD_EmailId: 'john@example.com',
+            hrmD_DateOfBirth: '1990-01-01',
+            hrmD_EmergencyContact: '9876543211',
+            hrmD_DateOfConfirmation: '2023-01-01',
+            hrmD_EmployeeType: 'Permanent',
+            hrmD_GroupType: 'Teaching Staff',
+            hrmD_DepartmentName: 'Teaching',
+            hrmD_Designation: 'Senior Teacher',
+            hrmD_Status: 'Active',
+            hrmD_DateOfJoining: '2022-01-01',
+            hrmD_DateOfLeaving: '',
+            hrmD_ReasonForLeaving: '',
+            hrmD_Remarks: 'Good performance',
+            hrmD_Address: '123 Main St',
+            hrmD_Qualification: 'M.Ed',
+            hrmD_Experience: '5 years',
+            hrmD_WorkingDays: 22,
+            hrmD_Lop: 0
+        },
+        {
+            hrmD_Id: 84,
+            hrmD_code: 'EMP002',
+            hrmD_Name: 'John Smith',
+            hrmD_FatherName: 'Father Name 2',
+            hrmD_MobileNo: '9876543220',
+            hrmD_EmailId: 'smith@example.com',
+            hrmD_DateOfBirth: '1985-05-15',
+            hrmD_EmergencyContact: '9876543221',
+            hrmD_DateOfConfirmation: '2023-06-01',
+            hrmD_EmployeeType: 'Contract',
+            hrmD_GroupType: 'Non Teaching Staff',
+            hrmD_DepartmentName: 'Non Teaching',
+            hrmD_Designation: 'Admin',
+            hrmD_Status: 'Active',
+            hrmD_DateOfJoining: '2023-01-01',
+            hrmD_DateOfLeaving: '',
+            hrmD_ReasonForLeaving: '',
+            hrmD_Remarks: '',
+            hrmD_Address: '456 Oak Ave',
+            hrmD_Qualification: 'B.Com',
+            hrmD_Experience: '3 years',
+            hrmD_WorkingDays: 31,
+            hrmD_Lop: 5
+        },
+        {
+            hrmD_Id: 84,
+            hrmD_code: 'EMP002',
+            hrmD_Name: 'John Smith',
+            hrmD_FatherName: 'Father Name 2',
+            hrmD_MobileNo: '9876543220',
+            hrmD_EmailId: 'smith@example.com',
+            hrmD_DateOfBirth: '1985-05-15',
+            hrmD_EmergencyContact: '9876543221',
+            hrmD_DateOfConfirmation: '2023-06-01',
+            hrmD_EmployeeType: 'Contract',
+            hrmD_GroupType: 'Non Teaching Staff',
+            hrmD_DepartmentName: 'Non Teaching',
+            hrmD_Designation: 'Admin',
+            hrmD_Status: 'Active',
+            hrmD_DateOfJoining: '2023-01-01',
+            hrmD_DateOfLeaving: '',
+            hrmD_ReasonForLeaving: '',
+            hrmD_Remarks: '',
+            hrmD_Address: '456 Oak Ave',
+            hrmD_Qualification: 'B.Com',
+            hrmD_Experience: '3 years',
+            hrmD_WorkingDays: 31,
+            hrmD_Lop: 5
+        },
+        {
+            hrmD_Id: 84,
+            hrmD_code: 'EMP002',
+            hrmD_Name: 'John Smith',
+            hrmD_FatherName: 'Father Name 2',
+            hrmD_MobileNo: '9876543220',
+            hrmD_EmailId: 'smith@example.com',
+            hrmD_DateOfBirth: '1985-05-15',
+            hrmD_EmergencyContact: '9876543221',
+            hrmD_DateOfConfirmation: '2023-06-01',
+            hrmD_EmployeeType: 'Contract',
+            hrmD_GroupType: 'Non Teaching Staff',
+            hrmD_DepartmentName: 'Non Teaching',
+            hrmD_Designation: 'Admin',
+            hrmD_Status: 'Active',
+            hrmD_DateOfJoining: '2023-01-01',
+            hrmD_DateOfLeaving: '',
+            hrmD_ReasonForLeaving: '',
+            hrmD_Remarks: '',
+            hrmD_Address: '456 Oak Ave',
+            hrmD_Qualification: 'B.Com',
+            hrmD_Experience: '3 years',
+            hrmD_WorkingDays: 31,
+            hrmD_Lop: 5
+        }
+    ]
+};
 
-// Report filters and settings
-interface EmployeeDetailsFilters {
-    selectedHeaders: string[];
-    format: 'Format 1' | 'Format 2';
-    dateFilter: 'Date of Birth' | 'Date of Joining' | 'Date of Leaving';
-    fromDate: Date | null;
-    toDate: Date | null;
-    employeeStatus: string[]; // Changed to array to support multiple selections
-    reportType: 'All' | 'Individual';
-    // Format 1 specific fields
-    employeeType: 'Type' | 'Employee';
-    selectedEmployeeType: string;
-    selectedEmployee: string;
-    // Format 2 specific fields
-    selectedGroupTypes: string[];
-    selectedDepartments: string[];
-    selectedDesignations: string[];
-}
+export default function DepartmentSalaryReportPage() {
+    const [isSearching, setIsSearching] = useState(false);
+    const [reportData, setReportData] = useState<any[]>([]);
+    const [fromDate, setFromDate] = useState<string>('');
+    const [toDate, setToDate] = useState<string>('');
+    const [selectedRangeTypes, setSelectedRangeTypes] = useState<string[]>([]);
 
-interface HeaderForm {
-    selectedHeaders: string[];
-}
+    const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useMasterGroupTypes();
+    const { data: masterEmployeeTypes, isLoading: masterEmployeeTypeLoading, isError: masterEmployeeTypeError } = useMasterEmployeeTypes();
 
-export default function EmployeeDetailsReportPage() {
-    // React Query hooks
-    const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeDetailsReportOnload(30, 0);
-    const filterMutation = useFilterEmployeeDetailsReport();
-    const searchMutation = useSearchEmployeeDetailsReport();
+    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useMasterDepartments();
 
-    // State
-    const [employees, setEmployees] = useState<Employee[]>([]);
-    const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
-    const [showReport, setShowReport] = useState(false);
-    const [employeeDropdownOptions, setEmployeeDropdownOptions] = useState<any[]>([]);
+    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useMasterDesignations();
 
-    // Memoize arrays to prevent unnecessary re-renders
-    const _months = useMemo(() => onloadData?.data?.monthdropdown || [], [onloadData?.data?.monthdropdown]);
-    const _leaveYears = useMemo(() => onloadData?.data?.leaveyeardropdown || [], [onloadData?.data?.leaveyeardropdown]);
-    const departments = useMemo(() => onloadData?.data?.departmentdropdown || [], [onloadData?.data?.departmentdropdown]);
-    const designations = useMemo(() => onloadData?.data?.designationdropdown || [], [onloadData?.data?.designationdropdown]);
-    const employeeTypes = useMemo(() => onloadData?.data?.employeeTypedropdown || [], [onloadData?.data?.employeeTypedropdown]);
-    const groupTypes = useMemo(() => onloadData?.data?.groupTypedropdown || [], [onloadData?.data?.groupTypedropdown]);
+    const groupTypeOptions =
+        masterGroupTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+    const employeeTypeOptions =
+        masterEmployeeTypes?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-    const [filters, setFilters] = useState<EmployeeDetailsFilters>({
-        selectedHeaders: [], // Start with no headers selected
-        format: 'Format 1',
-        dateFilter: 'Date of Birth',
-        fromDate: null,
-        toDate: null,
-        employeeStatus: ['Working'], // Default to Working only
-        reportType: 'All',
-        // Format 1 specific fields
-        employeeType: 'Type',
-        selectedEmployeeType: '',
-        selectedEmployee: '',
-        // Format 2 specific fields
-        selectedGroupTypes: [],
-        selectedDepartments: [],
-        selectedDesignations: []
-    });
+    const DeaparmentsOptions =
+        masterDepartments?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
 
-    // Form for header selection
-    const { control, watch, reset } = useForm<HeaderForm>({
+    const DesignationOptions =
+        masterDesignations?.data?.map((item: any) => ({
+            value: item.key,
+            label: item.value
+        })) || [];
+
+    const MockLetterOptions =
+        mockletter?.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
+
+    const formatedOptions =
+        formated?.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
+    const statusOptions =
+        status?.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
+    const typeOrEmployeeOptions =
+        typeOrEmployee?.map((emp) => ({
+            value: emp.key,
+            label: emp.value
+        })) || [];
+    const EmployeeOptions = mockEmployees.map((emp) => ({
+        value: emp.key,
+        label: emp.value
+    }));
+
+    const {
+        control,
+        handleSubmit,
+        reset,
+        watch,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(EmployeeDetailSchema),
         defaultValues: {
-            selectedHeaders: [] // Start with no headers selected
-        }
+            groupType: [],
+            department: [],
+            designation: [],
+            fromdate: '',
+            status: 'all',
+            mockLetter: '1',
+            todate: '',
+            formated: 'format1',
+            type: '',
+            employee: '',
+            selectedHeaders: []
+        },
+        mode: 'onChange'
     });
 
-    // Watch form values
-    const watchedHeaders = watch('selectedHeaders');
+    const selectedFormat = watch('formated');
+    const selectedstatus = watch('status');
+    const selectedtypeOrEmployee = watch('typeOrEmployee');
+    const selectedHeaders = watch('selectedHeaders');
 
-    // Show error if API fails
-    useEffect(() => {
-        if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-            const errorMessage =
-                onloadError?.message ||
-                onloadData?.message ||
-                'Failed to load employee details report data. Please check if the API endpoint is available.';
-            toast.error(errorMessage);
-        }
-    }, [onloadError, onloadData, isLoadingOnload]);
-
-    // Available header options
-    const availableHeaders = [
-        'Employee Code',
-        'Employee Name',
-        'Father Name',
-        'Mobile No.',
-        'Email Id',
-        'Date Of Birth',
-        'Emergency Contact Number',
-        'Date Of confirmation',
-        'Employee Type',
-        'Group Type',
-        'Department',
-        'Designation',
-        'Status',
-        'Date Of Joining',
-        'Date Of Leaving',
-        'Reason For Leaving',
-        'Remarks',
-        'Address',
-        'Qualification',
-        'Experience'
-    ];
-
-    // Call filter API when Type is selected to populate employee dropdown
-    // Note: The onload endpoint returns employeedropdown as null initially,
-    // so we need to call FilterEmployeeDataNew API when a Type is selected
-    useEffect(() => {
-        // Only proceed if we're in Individual report type mode
-        if (filters.reportType !== 'Individual') {
-            return;
-        }
-
-        // Check if onload has employeedropdown (though it's usually null in onload)
-        const onloadEmployees = onloadData?.data?.employeedropdown;
-        const _onloadEmployeesArray = onloadEmployees && Array.isArray(onloadEmployees) ? onloadEmployees : [];
-
-        // When Type is selected and we have all required filters (Format 1 only)
-        if (
-            filters.format === 'Format 1' &&
-            filters.employeeType === 'Type' &&
-            filters.selectedEmployeeType &&
-            filters.fromDate &&
-            filters.toDate
-        ) {
-            const filterRequest: EmployeeDetailsReportFilterRequest = {
-                MI_Id: 30,
-                FormatType: 'Format1',
-                DOBJL: filters.dateFilter === 'Date of Birth' ? 'DOB' : filters.dateFilter === 'Date of Joining' ? 'DOJ' : 'DOL',
-                FromDate: filters.fromDate.toISOString().split('T')[0],
-                ToDate: filters.toDate.toISOString().split('T')[0],
-                AllOrIndividual: 'All',
-                TypeOrEmployee: 'Type',
-                HRMET_Id: Number(filters.selectedEmployeeType) || 0,
-                HRME_Id: 0,
-                Left: filters.employeeStatus.includes('Left'),
-                Working: filters.employeeStatus.includes('Working')
-            };
-
-            filterMutation.mutate(filterRequest, {
-                onSuccess: (response) => {
-                    if (response.success && response.data) {
-                        // Use filter API response employeedropdown if available
-                        if (
-                            response.data.employeedropdown &&
-                            Array.isArray(response.data.employeedropdown) &&
-                            response.data.employeedropdown.length > 0
-                        ) {
-                            setEmployeeDropdownOptions(response.data.employeedropdown);
-                        } else {
-                            // No employees found for the selected type
-                            setEmployeeDropdownOptions([]);
-                            toast.info('No employees found for the selected type');
-                        }
-                    } else {
-                        // API returned unsuccessful response
-                        const errorMsg =
-                            response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
-                        toast.error(errorMsg);
-                        setEmployeeDropdownOptions([]);
-                    }
-                },
-                onError: (error: any) => {
-                    const errorMsg = error?.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
-                    toast.error(errorMsg);
-                    setEmployeeDropdownOptions([]);
-                }
-            });
-        } else if (filters.format === 'Format 1' && filters.employeeType === 'Employee' && filters.fromDate && filters.toDate) {
-            // When Employee Type is "Employee" (Format 1), call filter API to get all filtered employees
-            const filterRequest: EmployeeDetailsReportFilterRequest = {
-                MI_Id: 30,
-                FormatType: 'Format1',
-                DOBJL: filters.dateFilter === 'Date of Birth' ? 'DOB' : filters.dateFilter === 'Date of Joining' ? 'DOJ' : 'DOL',
-                FromDate: filters.fromDate.toISOString().split('T')[0],
-                ToDate: filters.toDate.toISOString().split('T')[0],
-                AllOrIndividual: 'Individual',
-                TypeOrEmployee: 'Employee',
-                HRMET_Id: 0,
-                HRME_Id: Number(filters.selectedEmployee) || 0,
-                Left: filters.employeeStatus.includes('Left'),
-                Working: filters.employeeStatus.includes('Working')
-            };
-
-            filterMutation.mutate(filterRequest, {
-                onSuccess: (response) => {
-                    if (response.success && response.data) {
-                        // Use filter API response employeedropdown if available
-                        if (
-                            response.data.employeedropdown &&
-                            Array.isArray(response.data.employeedropdown) &&
-                            response.data.employeedropdown.length > 0
-                        ) {
-                            setEmployeeDropdownOptions(response.data.employeedropdown);
-                        } else {
-                            // No employees found
-                            setEmployeeDropdownOptions([]);
-                            toast.info('No employees found for the selected criteria');
-                        }
-                    } else {
-                        // API returned unsuccessful response
-                        const errorMsg =
-                            response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
-                        toast.error(errorMsg);
-                        setEmployeeDropdownOptions([]);
-                    }
-                },
-                onError: (error: any) => {
-                    const errorMsg = error?.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
-                    toast.error(errorMsg);
-                    setEmployeeDropdownOptions([]);
-                }
-            });
-        }
-        // Don't update state in else block to prevent infinite loops
-        // Only update state when API calls are made
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
-        filters.selectedEmployeeType,
-        filters.employeeType,
-        filters.reportType,
-        filters.fromDate,
-        filters.toDate,
-        filters.employeeStatus,
-        filters.dateFilter,
-        filters.format
-    ]);
-
-    // Sync form values with filters state
-    useEffect(() => {
-        setFilters((prev) => ({
-            ...prev,
-            selectedHeaders: watchedHeaders
-        }));
-    }, [watchedHeaders]);
-
-    // Filter employees based on selected criteria
-    useEffect(() => {
-        let filtered = employees;
-
-        // Filter by employee status
-        if (filters.employeeStatus.length > 0) {
-            filtered = filtered.filter((emp) => filters.employeeStatus.includes(emp.status));
-        }
-
-        // Filter by date range
-        if (filters.fromDate && filters.toDate) {
-            filtered = filtered.filter((emp) => {
-                let dateToCheck: string;
-                switch (filters.dateFilter) {
-                    case 'Date of Birth':
-                        dateToCheck = emp.dateOfBirth;
-                        break;
-                    case 'Date of Joining':
-                        dateToCheck = emp.dateOfJoining;
-                        break;
-                    case 'Date of Leaving':
-                        dateToCheck = emp.dateOfLeaving || '';
-                        break;
-                    default:
-                        dateToCheck = emp.dateOfBirth;
-                }
-
-                if (!dateToCheck) return false;
-
-                const checkDate = new Date(dateToCheck);
-                return checkDate >= filters.fromDate! && checkDate <= filters.toDate!;
-            });
-        }
-
-        setFilteredEmployees(filtered);
-    }, [filters, employees]);
-
-    // Handle employee status change and trigger API automatically
-    const handleEmployeeStatusChange = async (status: string, checked: boolean) => {
-        const newStatuses = checked ? [...filters.employeeStatus, status] : filters.employeeStatus.filter((s) => s !== status);
-
-        // Ensure at least one status is selected
-        if (newStatuses.length === 0) {
-            toast.error('Please select at least one employee status');
-            return;
-        }
-
-        setFilters((prev) => ({
-            ...prev,
-            employeeStatus: newStatuses
-        }));
-
-        // Trigger API call automatically
-        await triggerFilterAPI(newStatuses);
+    // Mapping of header names to data field keys
+    const headerFieldMap: { [key: string]: string } = {
+        'Employee Code': 'hrmD_code',
+        'Employee Name': 'hrmD_Name',
+        'Father Name': 'hrmD_FatherName',
+        'Mobile No.': 'hrmD_MobileNo',
+        'Email Id': 'hrmD_EmailId',
+        'Date Of Birth': 'hrmD_DateOfBirth',
+        'Emergency Contact Number': 'hrmD_EmergencyContact',
+        'Date Of confirmation': 'hrmD_DateOfConfirmation',
+        'Employee Type': 'hrmD_EmployeeType',
+        'Group Type': 'hrmD_GroupType',
+        Department: 'hrmD_DepartmentName',
+        Designation: 'hrmD_Designation',
+        Status: 'hrmD_Status',
+        'Date Of Joining': 'hrmD_DateOfJoining',
+        'Date Of Leaving': 'hrmD_DateOfLeaving',
+        'Reason For Leaving': 'hrmD_ReasonForLeaving',
+        Remarks: 'hrmD_Remarks',
+        Address: 'hrmD_Address',
+        Qualification: 'hrmD_Qualification',
+        Experience: 'hrmD_Experience'
     };
 
-    // Separate function to trigger the filter API
-    const triggerFilterAPI = (statuses: string[] = filters.employeeStatus) => {
-        // Prepare request body based on format type
-        let filterRequest: any;
+    const onSearch = async () => {
+        setIsSearching(true);
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
-        if (filters.format === 'Format 1') {
-            // Format 1: Simple format
-            filterRequest = {
-                MI_Id: 30,
-                FormatType: 'Format1',
-                DOBJL: filters.dateFilter === 'Date of Birth' ? 'DOB' : filters.dateFilter === 'Date of Joining' ? 'DOJ' : 'DOL',
-                FromDate: filters.fromDate ? filters.fromDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                ToDate: filters.toDate ? filters.toDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                Left: statuses.includes('Left'),
-                Working: statuses.includes('Working')
-            };
-        } else {
-            // Format 2: Extended format
-            filterRequest = {
-                MI_Id: 30,
-                FormatType: 'Format2',
-                DOBJL: filters.dateFilter === 'Date of Birth' ? 'DOB' : filters.dateFilter === 'Date of Joining' ? 'DOJ' : 'DOL',
-                FromDate: filters.fromDate?.toISOString() || new Date().toISOString(),
-                ToDate: filters.toDate?.toISOString() || new Date().toISOString(),
-                AllOrIndividual: filters.reportType || 'string',
-                TypeOrEmployee: filters.employeeType || 'string',
-                HRMET_Id: filters.selectedEmployeeType ? Number.parseInt(filters.selectedEmployeeType) : 0,
-                HRME_Id: filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0,
-                Left: statuses.includes('Left'),
-                Working: statuses.includes('Working')
-            };
+            toast.success('Report generated successfully!');
+            setReportData(mockApiResponse.employeeSalaryslipDetails);
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to generate report');
+        } finally {
+            setIsSearching(false);
         }
-
-        filterMutation.mutate(filterRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    if (response.data.employeedropdown && response.data.employeedropdown.length > 0) {
-                        const filteredEmployees: Employee[] = response.data.employeedropdown.map((emp: any) => ({
-                            id: emp.HRME_Id.toString(),
-                            employeeCode: emp.HRME_EmployeeCode || '',
-                            employeeName: `${emp.HRME_EmployeeFirstName || ''} ${
-                                emp.HRME_EmployeeMiddleName || ''
-                            } ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                            fatherName: emp.HRME_FatherName || '',
-                            mobileNo: emp.HRME_MobileNo?.toString() || '',
-                            emailId: emp.HRME_EmailId || '',
-                            dateOfBirth: emp.HRME_DOB ? emp.HRME_DOB.split('T')[0] : '',
-                            emergencyContactNumber: emp.HRME_SpouseMobileNo?.toString() || '',
-                            dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
-                            dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : '',
-                            dateOfConfirmation: emp.HRME_DOC ? emp.HRME_DOC.split('T')[0] : '',
-                            employeeType: emp.HRMET_EmployeeType || '',
-                            groupType: emp.HRMGT_EmployeeGroupType || '',
-                            departmentName: emp.HRMD_DepartmentName || '',
-                            designationName: emp.HRMDES_DesignationName || '',
-                            address: `${emp.HRME_PerStreet || ''} ${emp.HRME_PerArea || ''} ${emp.HRME_PerCity || ''}`.trim(),
-                            qualification: '',
-                            experience: '',
-                            status: emp.HRME_LeftFlag ? 'Left' : 'Working',
-                            reasonForLeaving: emp.HRME_LeavingReason || '',
-                            remarks: emp.HRME_Remarks || ''
-                        }));
-
-                        setEmployees(filteredEmployees);
-                        setShowReport(true);
-                        toast.success('Employee status filter applied successfully');
-                    } else {
-                        setEmployees([]);
-                        setShowReport(true); // Keep template visible even when no data
-                        toast.info('No employees found for the selected criteria');
-                    }
-                } else {
-                    // API returned unsuccessful response - but still show the report template
-                    const errorMsg =
-                        response.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
-                    toast.error(errorMsg);
-                    setEmployees([]);
-                    setShowReport(true); // Keep template visible even on API error
-                }
-            },
-            onError: (error: any) => {
-                const errorMsg = error?.message || 'Failed to filter employees. Please check if the filter API endpoint is available.';
-                toast.error(errorMsg);
-                setEmployees([]);
-                setShowReport(true); // Keep template visible even on API error
-            }
-        });
     };
 
-    const handleSearch = () => {
-        // Always show report template when search is clicked, even without headers
-        setShowReport(true);
-
-        if (filters.selectedHeaders.length === 0) {
-            toast.warning('Please select at least one header field to generate the report. Showing empty report template.');
-            return;
-        }
-
-        // Map date filter to DOBJL format
-        const dobjlMap: Record<string, string> = {
-            'Date of Birth': 'DOB',
-            'Date of Joining': 'DOJ',
-            'Date of Leaving': 'DOL'
-        };
-        const dobjl = dobjlMap[filters.dateFilter] || 'DOB';
-
-        // Prepare the search request payload based on format type
-        let searchRequest: any;
-
-        if (filters.format === 'Format 1') {
-            // Format 1: Use YYYY-MM-DD date format
-            searchRequest = {
-                LogInUserId: 2,
-                MI_Id: 30,
-                FormatType: 'Format1',
-                DOBJL: dobjl,
-                AllOrIndividual: filters.reportType || 'All',
-                TypeOrEmployee: filters.employeeType || 'Type',
-                HRMET_Id: filters.selectedEmployeeType ? Number.parseInt(filters.selectedEmployeeType) : 0,
-                HRME_Id: filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0,
-                FromDate: filters.fromDate ? filters.fromDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                ToDate: filters.toDate ? filters.toDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-                Working: filters.employeeStatus.includes('Working'),
-                Left: filters.employeeStatus.includes('Left')
-            };
-        } else {
-            // Format 2: Use ISO string date format
-            searchRequest = {
-                LogInUserId: 2,
-                MI_Id: 30,
-                FormatType: 'Format2',
-                DOBJL: dobjl,
-                AllOrIndividual: filters.reportType || 'All',
-                TypeOrEmployee: filters.employeeType || 'Type',
-                HRMET_Id: filters.selectedEmployeeType ? Number.parseInt(filters.selectedEmployeeType) : 0,
-                HRME_Id: filters.selectedEmployee ? Number.parseInt(filters.selectedEmployee) : 0,
-                FromDate: filters.fromDate?.toISOString() || new Date().toISOString(),
-                ToDate: filters.toDate?.toISOString() || new Date().toISOString(),
-                Working: filters.employeeStatus.includes('Working'),
-                Left: filters.employeeStatus.includes('Left')
-            };
-        }
-
-        searchMutation.mutate(searchRequest, {
-            onSuccess: (response) => {
-                if (response.success && response.data) {
-                    // Check if API returned any employee data
-                    const hasEmployeeData =
-                        response.data &&
-                        ((Array.isArray(response.data.employeedropdown) && response.data.employeedropdown.length > 0) ||
-                            (Array.isArray(response.data.employeeDetails) && response.data.employeeDetails.length > 0) ||
-                            (Array.isArray(response.data.masterEmployeeList) && response.data.masterEmployeeList.length > 0));
-
-                    if (hasEmployeeData) {
-                        // Use the first available data array
-                        const dataBlock: any[] =
-                            Array.isArray(response.data.employeedropdown) && response.data.employeedropdown.length > 0
-                                ? response.data.employeedropdown
-                                : Array.isArray(response.data.employeeDetails) && response.data.employeeDetails.length > 0
-                                  ? response.data.employeeDetails
-                                  : Array.isArray(response.data.masterEmployeeList) && response.data.masterEmployeeList.length > 0
-                                    ? response.data.masterEmployeeList
-                                    : [];
-
-                        const mappedEmployees: Employee[] = dataBlock.map((emp: any) => ({
-                            id: emp.HRME_Id?.toString() || emp.hrmE_Id?.toString() || '',
-                            employeeCode: emp.HRME_EmployeeCode || emp.hrmE_EmployeeCode || '',
-                            employeeName: `${emp.HRME_EmployeeFirstName || ''} ${
-                                emp.HRME_EmployeeMiddleName || ''
-                            } ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                            fatherName: emp.HRME_FatherName || '',
-                            mobileNo: emp.HRME_MobileNo?.toString() || '',
-                            emailId: emp.HRME_EmailId || '',
-                            dateOfBirth: emp.HRME_DOB ? emp.HRME_DOB.split('T')[0] : '',
-                            emergencyContactNumber: emp.HRME_SpouseMobileNo?.toString() || '',
-                            dateOfJoining: emp.HRME_DOJ ? emp.HRME_DOJ.split('T')[0] : '',
-                            dateOfLeaving: emp.HRME_DOL ? emp.HRME_DOL.split('T')[0] : '',
-                            dateOfConfirmation: emp.HRME_DOC ? emp.HRME_DOC.split('T')[0] : '',
-                            employeeType: emp.HRMET_EmployeeType || '',
-                            groupType: emp.HRMGT_EmployeeGroupType || '',
-                            departmentName: emp.HRMD_DepartmentName || '',
-                            designationName: emp.HRMDES_DesignationName || '',
-                            address: `${emp.HRME_PerStreet || ''} ${emp.HRME_PerArea || ''} ${emp.HRME_PerCity || ''}`.trim(),
-                            qualification: '',
-                            experience: '',
-                            status: emp.HRME_LeftFlag ? 'Left' : 'Working',
-                            reasonForLeaving: emp.HRME_LeavingReason || '',
-                            remarks: emp.HRME_Remarks || ''
-                        }));
-
-                        setEmployees(mappedEmployees);
-                        setShowReport(true);
-                        toast.success(`Found ${mappedEmployees.length} employee records`);
-                    } else {
-                        // No employee data found - but still show the report template
-                        setEmployees([]);
-                        setShowReport(true);
-
-                        const errorMsg = response.data?.retrunMsg || 'No employee data found for the selected criteria';
-                        toast.info(errorMsg);
-                    }
-                } else {
-                    // API returned unsuccessful response - but still show the report template
-                    const errorMsg =
-                        response.message || 'Failed to search employee details. Please check if the search API endpoint is available.';
-                    toast.error(errorMsg);
-                    setEmployees([]);
-                    setShowReport(true); // Keep template visible even on API error
-                }
-            },
-            onError: (error: any) => {
-                const errorMsg =
-                    error?.message || 'Failed to search employee details. Please check if the search API endpoint is available.';
-                toast.error(errorMsg);
-                setEmployees([]);
-                setShowReport(true); // Keep template visible even on API error
-            }
-        });
-    };
-
-    const handleCancel = () => {
-        const defaultHeaders: string[] = []; // Reset to no headers selected
-
-        setFilters({
-            selectedHeaders: defaultHeaders,
-            format: 'Format 1',
-            dateFilter: 'Date of Birth',
-            fromDate: null,
-            toDate: null,
-            employeeStatus: ['Working'], // Reset to default
-            reportType: 'All',
-            // Format 1 specific fields
-            employeeType: 'Type',
-            selectedEmployeeType: '',
-            selectedEmployee: '',
-            // Format 2 specific fields
-            selectedGroupTypes: [],
-            selectedDepartments: [],
-            selectedDesignations: []
-        });
-
-        // Reset form as well
+    const handleReset = () => {
         reset({
-            selectedHeaders: defaultHeaders
+            groupType: [],
+            department: [],
+            designation: [],
+            fromdate: '',
+            todate: '',
+            formated: ''
         });
-
-        setShowReport(false);
-        toast.info('Filters reset');
+        setReportData([]);
+        toast.info('Form has been reset');
     };
-
-    const handleExport = () => {
-        toast.success('Employee details exported successfully');
-    };
-
-    const _handlePrint = () => {
-        window.print();
-        toast.success('Print dialog opened');
-    };
-
-    // Get institution details from API response if available
-    const institutionDetails = useMemo(() => {
-        // Try to get institution details from the API response
-        const searchResponse = searchMutation.data;
-        if (searchResponse?.data && typeof searchResponse.data === 'object' && 'institutionDetails' in searchResponse.data) {
-            return (searchResponse.data as any).institutionDetails;
-        }
-        // Try to get from onload data
-        if (onloadData?.data && typeof onloadData.data === 'object' && 'institutionDetails' in onloadData.data) {
-            return (onloadData.data as any).institutionDetails;
-        }
-        return null;
-    }, [searchMutation.data, onloadData]);
-
-    // Build school name and address
-    const schoolName = institutionDetails?.MI_Name || '';
-    const schoolAddress = useMemo(() => {
-        if (!institutionDetails) return '';
-        const addressParts = [];
-        if (institutionDetails.MI_Address1) addressParts.push(institutionDetails.MI_Address1);
-        if (institutionDetails.MI_Address2) addressParts.push(institutionDetails.MI_Address2);
-        if (institutionDetails.MI_Address3) addressParts.push(institutionDetails.MI_Address3);
-        return addressParts.join(', ');
-    }, [institutionDetails]);
-
-    // Show error message if onload fails
-    if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
-        return (
-            <div className='min-h-screen'>
-                <div className='container space-y-4 p-1'>
-                    <div className='flex flex-col items-center justify-center space-y-4 rounded-lg bg-destructive/10 py-12'>
-                        <div className='text-center'>
-                            <h3 className='font-semibold text-destructive text-lg'>Error Loading Filter Options</h3>
-                            <p className='mt-2 text-muted-foreground text-sm'>
-                                {onloadError?.message ||
-                                    onloadData?.message ||
-                                    'Failed to load filter options. Please check if the API endpoint is available.'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
 
     return (
-        <div className='min-h-screen'>
+        <div className='min-h-screen p-8'>
             <div className='container space-y-4 p-1'>
-                {/* Report Configuration Section */}
                 <CollapsibleSection
+                    title='Employee Details'
                     defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <div className='space-y-6'>
-                        {/* Format Selection */}
-                        <div className='space-y-3'>
-                            <Label>Format</Label>
-                            <div className='flex items-center gap-6'>
-                                <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                    <input
-                                        type='radio'
-                                        name='format'
-                                        value='Format 1'
-                                        checked={filters.format === 'Format 1'}
-                                        onChange={(e) =>
-                                            setFilters((prev) => ({
-                                                ...prev,
-                                                format: e.target.value as 'Format 1' | 'Format 2'
-                                            }))
-                                        }
-                                        className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                    />
-                                    Format 1
-                                </label>
-                                <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                    <input
-                                        type='radio'
-                                        name='format'
-                                        value='Format 2'
-                                        checked={filters.format === 'Format 2'}
-                                        onChange={(e) =>
-                                            setFilters((prev) => ({
-                                                ...prev,
-                                                format: e.target.value as 'Format 1' | 'Format 2'
-                                            }))
-                                        }
-                                        className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                    />
-                                    Format 2
-                                </label>
+                    variant='outline'
+                    size='md'
+                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                    <div className=''>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                            {/* Header Selection */}
+                            <div className='space-y-3'>
+                                <Label className='font-semibold'>
+                                    Header: <span className='text-red-500'>*</span>
+                                </Label>
+                                <Controller
+                                    name='selectedHeaders'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <MultiSelect
+                                            options={availableHeaders.map((header) => ({
+                                                label: header,
+                                                value: header
+                                            }))}
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            placeholder='Select headers to include in report'
+                                            className='w-full'
+                                            maxHeight={240}
+                                        />
+                                    )}
+                                />
                             </div>
-                        </div>
-
-                        {/* Header Selection */}
-                        <div className='space-y-3'>
-                            <Label className='font-semibold'>
-                                Header: <span className='text-red-500'>*</span>
-                            </Label>
-                            <Controller
-                                name='selectedHeaders'
-                                control={control}
-                                render={({ field }) => (
-                                    <MultiSelect
-                                        options={availableHeaders.map((header) => ({
-                                            label: header,
-                                            value: header
-                                        }))}
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        placeholder='Select headers to include in report'
-                                        className='w-full'
-                                        maxHeight={240}
-                                    />
-                                )}
-                            />
-                        </div>
-
-                        {/* Format 1 Specific Sections */}
-                        {filters.format === 'Format 1' && (
-                            <div className='space-y-6'>
-                                {/* Date Filter Selection */}
-                                <div className='space-y-3'>
-                                    <Label>Date Filter</Label>
-                                    <div className='flex items-center gap-6'>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='radio'
-                                                name='dateFilter'
-                                                value='Date of Birth'
-                                                checked={filters.dateFilter === 'Date of Birth'}
-                                                onChange={(e) =>
-                                                    setFilters((prev) => ({
-                                                        ...prev,
-                                                        dateFilter: e.target.value as any
-                                                    }))
-                                                }
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            Date of Birth
-                                        </label>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='radio'
-                                                name='dateFilter'
-                                                value='Date of Joining'
-                                                checked={filters.dateFilter === 'Date of Joining'}
-                                                onChange={(e) =>
-                                                    setFilters((prev) => ({
-                                                        ...prev,
-                                                        dateFilter: e.target.value as any
-                                                    }))
-                                                }
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            Date of Joining
-                                        </label>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='radio'
-                                                name='dateFilter'
-                                                value='Date of Leaving'
-                                                checked={filters.dateFilter === 'Date of Leaving'}
-                                                onChange={(e) =>
-                                                    setFilters((prev) => ({
-                                                        ...prev,
-                                                        dateFilter: e.target.value as any
-                                                    }))
-                                                }
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            Date of Leaving
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* Date Range */}
-                                <div className='grid grid-cols-2 gap-4'>
-                                    <div className='space-y-2'>
-                                        <Label>
-                                            From: <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !filters.fromDate && 'text-muted-foreground'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {filters.fromDate ? format(filters.fromDate, 'dd-MM-yyyy') : <span>Enter date</span>}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={filters.fromDate || undefined}
-                                                    onDayClick={async (day) => {
-                                                        setFilters((prev) => ({
-                                                            ...prev,
-                                                            fromDate: day
-                                                        }));
-                                                        // Trigger API call automatically when date changes
-                                                        await triggerFilterAPI();
-                                                    }}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-
-                                    <div className='space-y-2'>
-                                        <Label>
-                                            To: <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button
-                                                    variant='outline'
-                                                    className={cn(
-                                                        'w-full justify-start text-left font-normal',
-                                                        !filters.toDate && 'text-muted-foreground'
-                                                    )}>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {filters.toDate ? format(filters.toDate, 'dd-MM-yyyy') : <span>Enter date</span>}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0'>
-                                                <CalendarYear
-                                                    mode='single'
-                                                    selected={filters.toDate || undefined}
-                                                    onDayClick={async (day) => {
-                                                        setFilters((prev) => ({
-                                                            ...prev,
-                                                            toDate: day
-                                                        }));
-                                                        // Trigger API call automatically when date changes
-                                                        await triggerFilterAPI();
-                                                    }}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                </div>
-
-                                {/* Employee Status */}
-                                <div className='space-y-3'>
-                                    <Label>Employee Status</Label>
-                                    <div className='flex items-center gap-6'>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='checkbox'
-                                                checked={filters.employeeStatus.includes('Working')}
-                                                onChange={(e) => handleEmployeeStatusChange('Working', e.target.checked)}
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            Working
-                                        </label>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='checkbox'
-                                                checked={filters.employeeStatus.includes('Left')}
-                                                onChange={(e) => handleEmployeeStatusChange('Left', e.target.checked)}
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            Left
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* Report Type */}
-                                <div className='space-y-3'>
-                                    <Label>Report Type</Label>
-                                    <div className='flex items-center gap-6'>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='radio'
-                                                name='reportType'
-                                                value='All'
-                                                checked={filters.reportType === 'All'}
-                                                onChange={(e) =>
-                                                    setFilters((prev) => ({
-                                                        ...prev,
-                                                        reportType: e.target.value as 'All' | 'Individual'
-                                                    }))
-                                                }
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            All
-                                        </label>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='radio'
-                                                name='reportType'
-                                                value='Individual'
-                                                checked={filters.reportType === 'Individual'}
-                                                onChange={(e) =>
-                                                    setFilters((prev) => ({
-                                                        ...prev,
-                                                        reportType: e.target.value as 'All' | 'Individual'
-                                                    }))
-                                                }
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            Individual
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* Employee Type Selection - Only show when Report Type is Individual */}
-                                {filters.reportType === 'Individual' && (
+                            <div className='space-y-3'>
+                                <div className='flex justify-center'>
                                     <div className='space-y-3'>
-                                        <Label>Employee Type</Label>
-                                        <div className='flex items-center gap-6'>
-                                            <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                                <input
-                                                    type='radio'
-                                                    name='employeeType'
-                                                    value='Type'
-                                                    checked={filters.employeeType === 'Type'}
-                                                    onChange={(e) =>
-                                                        setFilters((prev) => ({
-                                                            ...prev,
-                                                            employeeType: e.target.value as 'Type' | 'Employee',
-                                                            selectedEmployee: '', // Reset employee when switching to Type
-                                                            selectedEmployeeType: '' // Reset type selection when switching
-                                                        }))
-                                                    }
-                                                    className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                                />
-                                                Type <span className='text-red-500'>*</span>
-                                            </label>
-                                            <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                                <input
-                                                    type='radio'
-                                                    name='employeeType'
-                                                    value='Employee'
-                                                    checked={filters.employeeType === 'Employee'}
-                                                    onChange={(e) =>
-                                                        setFilters((prev) => ({
-                                                            ...prev,
-                                                            employeeType: e.target.value as 'Type' | 'Employee',
-                                                            selectedEmployee: '', // Reset employee when switching
-                                                            selectedEmployeeType: '' // Reset type selection when switching to Employee
-                                                        }))
-                                                    }
-                                                    className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                                />
-                                                Employee <span className='text-red-500'>*</span>
-                                            </label>
+                                        <div className=''>
+                                            <Controller
+                                                name='formated'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <RadioGroup
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
+                                                        {formatedOptions.map((option) => (
+                                                            <div
+                                                                key={option.value}
+                                                                className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                <Label
+                                                                    htmlFor={`letter-${option.value}`}
+                                                                    className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                    {option.label}
+                                                                </Label>
+                                                            </div>
+                                                        ))}
+                                                    </RadioGroup>
+                                                )}
+                                            />
                                         </div>
-                                    </div>
-                                )}
+                                        {selectedFormat !== 'format2' && (
+                                            <div className=''>
+                                                <Controller
+                                                    name='mockLetter'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <RadioGroup
+                                                            onValueChange={field.onChange}
+                                                            value={field.value}
+                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
+                                                            {MockLetterOptions.map((option) => (
+                                                                <div
+                                                                    key={option.value}
+                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                    <Label
+                                                                        htmlFor={`letter-${option.value}`}
+                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                        {option.label}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </RadioGroup>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                        {selectedFormat !== 'format2' && (
+                                            <div className='flex justify-center gap-2 '>
+                                                <div>
+                                                    <Label className='font-medium text-sm text-white-900'>
+                                                        From Date<span className='text-red-600'>*</span>
+                                                    </Label>
 
-                                {/* Type Dropdown - Only show when Employee Type is "Type" and Report Type is "Individual" */}
-                                {filters.reportType === 'Individual' && filters.employeeType === 'Type' && (
-                                    <div className='space-y-2'>
-                                        <Label>Type:</Label>
-                                        <Select
-                                            value={filters.selectedEmployeeType}
-                                            onValueChange={(value) =>
-                                                setFilters((prev) => ({
-                                                    ...prev,
-                                                    selectedEmployeeType: value,
-                                                    selectedEmployee: '' // Reset employee selection when type changes
-                                                }))
-                                            }>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Employee Type' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {employeeTypes.map((type) => (
-                                                    <SelectItem key={type.HRMET_Id} value={type.HRMET_Id.toString()}>
-                                                        {type.HRMET_EmployeeType}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
-
-                                {/* Employee Dropdown - Only show when Employee Type is "Employee" and Report Type is "Individual" */}
-                                {filters.reportType === 'Individual' && filters.employeeType === 'Employee' && (
-                                    <div className='space-y-2'>
-                                        <Label>
-                                            Employee: <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <Select
-                                            value={filters.selectedEmployee}
-                                            onValueChange={(value) =>
-                                                setFilters((prev) => ({
-                                                    ...prev,
-                                                    selectedEmployee: value
-                                                }))
-                                            }>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Employee' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {employeeDropdownOptions.length > 0 ? (
-                                                    employeeDropdownOptions.map((emp: any) => {
-                                                        const empId = emp.HRME_Id?.toString() || '';
-                                                        const empName = `${emp.HRME_EmployeeFirstName || ''} ${
-                                                            emp.HRME_EmployeeMiddleName || ''
-                                                        } ${emp.HRME_EmployeeLastName || ''}`.trim();
-                                                        return (
-                                                            <SelectItem key={empId} value={empId}>
-                                                                {empName || emp.HRME_EmployeeCode || 'Unknown'}
-                                                            </SelectItem>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !fromDate && 'text-muted-foreground'
+                                                                )}>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {fromDate ? format(new Date(fromDate), 'dd/MM/yyyy') : 'From date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                            <CalendarYear
+                                                                mode='single'
+                                                                selected={fromDate ? new Date(fromDate) : undefined}
+                                                                onSelect={(date: Date | undefined) =>
+                                                                    setFromDate(date?.toISOString() ?? '')
+                                                                }
+                                                                captionLayout='dropdown'
+                                                                fromYear={2000}
+                                                                toYear={2050}
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </div>
+                                                <div>
+                                                    <Label className='font-medium text-sm text-white-900'>
+                                                        To Date<span className='text-red-600'>*</span>
+                                                    </Label>
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                className={cn(
+                                                                    'w-full justify-start text-left font-normal',
+                                                                    !toDate && 'text-muted-foreground'
+                                                                )}>
+                                                                <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                {toDate ? format(new Date(toDate), 'dd/MM/yyyy') : 'To date'}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className='w-auto p-0' align='start'>
+                                                            <CalendarYear
+                                                                mode='single'
+                                                                selected={toDate ? new Date(toDate) : undefined}
+                                                                onSelect={(date: Date | undefined) => setToDate(date?.toISOString() ?? '')}
+                                                                captionLayout='dropdown'
+                                                                fromYear={2000}
+                                                                toYear={2050}
+                                                            />
+                                                        </PopoverContent>
+                                                    </Popover>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className='mt-2 flex items-center justify-center gap-6 rounded-md p-2 shadow-md'>
+                                            <div className='flex items-center space-x-2'>
+                                                <Checkbox
+                                                    checked={selectedRangeTypes.includes('working')}
+                                                    onCheckedChange={(checked) => {
+                                                        setSelectedRangeTypes((prev) =>
+                                                            checked ? [...prev, 'working'] : prev.filter((x) => x !== 'working')
                                                         );
-                                                    })
-                                                ) : (
-                                                    <SelectItem value='no-data' disabled>
-                                                        No employees found
-                                                    </SelectItem>
+                                                    }}
+                                                />
+                                                <Label htmlFor='working' className='cursor-pointer font-normal'>
+                                                    Working
+                                                </Label>
+                                            </div>
+
+                                            <div className='flex items-center space-x-2'>
+                                                <Checkbox
+                                                    checked={selectedRangeTypes.includes('left')}
+                                                    onCheckedChange={(checked) =>
+                                                        setSelectedRangeTypes((prev) =>
+                                                            checked ? [...prev, 'left'] : prev.filter((x) => x !== 'left')
+                                                        )
+                                                    }
+                                                />
+                                                <Label htmlFor='left' className='cursor-pointer font-normal'>
+                                                    Left
+                                                </Label>
+                                            </div>
+                                        </div>
+                                        {selectedFormat !== 'format2' && (
+                                            <div className=''>
+                                                <Controller
+                                                    name='status'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <RadioGroup
+                                                            onValueChange={field.onChange}
+                                                            value={field.value}
+                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
+                                                            {statusOptions.map((option) => (
+                                                                <div
+                                                                    key={option.value}
+                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                    <Label
+                                                                        htmlFor={`letter-${option.value}`}
+                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                        {option.label}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </RadioGroup>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                        {selectedFormat !== 'format2' && selectedstatus !== 'all' && (
+                                            <div className=''>
+                                                <Controller
+                                                    name='typeOrEmployee'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <RadioGroup
+                                                            onValueChange={field.onChange}
+                                                            value={field.value}
+                                                            className='flex justify-center gap-4 rounded-md p-3 shadow-md '>
+                                                            {typeOrEmployeeOptions.map((option) => (
+                                                                <div
+                                                                    key={option.value}
+                                                                    className='flex cursor-pointer items-center space-x-3 transition-colors hover:bg-accent/50'>
+                                                                    <RadioGroupItem value={option.value} id={`letter-${option.value}`} />
+                                                                    <Label
+                                                                        htmlFor={`letter-${option.value}`}
+                                                                        className='flex-1 cursor-pointer font-normal text-sm'>
+                                                                        {option.label}
+                                                                    </Label>
+                                                                </div>
+                                                            ))}
+                                                        </RadioGroup>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                        {selectedFormat !== 'format2' && selectedstatus !== 'all' && (
+                                            <div>
+                                                {selectedtypeOrEmployee === 'type' && (
+                                                    <div className='space-y-2'>
+                                                        <Label htmlFor='type' className='font-medium text-sm text-white-900'>
+                                                            Type: <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='type'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger className='w-full'>
+                                                                        <SelectValue placeholder='Select Employee Type' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {masterEmployeeTypeError ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : masterEmployeeTypeLoading ? (
+                                                                            <SelectItem value='error' disabled>
+                                                                                Error loading data
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            employeeTypeOptions?.map((opt: any) => (
+                                                                                <SelectItem key={opt.value} value={opt.value}>
+                                                                                    {opt.label}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.type && <FormError>{errors.type.message}</FormError>}
+                                                    </div>
                                                 )}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
-
-                                {/* Employee Dropdown - Show when Type is selected to display filtered employees */}
-                                {filters.reportType === 'Individual' && filters.employeeType === 'Type' && filters.selectedEmployeeType && (
-                                    <div className='space-y-2'>
-                                        <Label>
-                                            Employee: <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <Select
-                                            value={filters.selectedEmployee}
-                                            onValueChange={(value) =>
-                                                setFilters((prev) => ({
-                                                    ...prev,
-                                                    selectedEmployee: value
-                                                }))
-                                            }>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Employee' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {employeeDropdownOptions.length > 0 ? (
-                                                    employeeDropdownOptions.map((emp: any) => {
-                                                        const empId = emp.HRME_Id?.toString() || '';
-                                                        const empName = `${emp.HRME_EmployeeFirstName || ''} ${
-                                                            emp.HRME_EmployeeMiddleName || ''
-                                                        } ${emp.HRME_EmployeeLastName || ''}`.trim();
-                                                        return (
-                                                            <SelectItem key={empId} value={empId}>
-                                                                {empName || emp.HRME_EmployeeCode || 'Unknown'}
-                                                            </SelectItem>
-                                                        );
-                                                    })
-                                                ) : (
-                                                    <SelectItem value='no-data' disabled>
-                                                        {filterMutation.isPending
-                                                            ? 'Loading employees...'
-                                                            : 'No employees found for selected type'}
-                                                    </SelectItem>
+                                                {selectedtypeOrEmployee === 'employee' && (
+                                                    <div className=' mt-3 space-y-2'>
+                                                        <Label htmlFor='employee' className='font-medium text-sm text-white-900'>
+                                                            Employee: <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='employee'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                    <SelectTrigger className='w-full'>
+                                                                        <SelectValue placeholder='Select Employee' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {EmployeeOptions.map((opt: any) => (
+                                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                                {opt.label}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                    {/* <SelectContent>
+                                                                    {masterEmployeeLoading ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
+                                                                        </SelectItem>
+                                                                    ) : masterEmployeeError ? (
+                                                                        <SelectItem value='error' disabled>
+                                                                            Error loading data
+                                                                        </SelectItem>
+                                                                    ) : (
+                                                                        EmployeeOptions?.map((opt: any) => (
+                                                                            <SelectItem key={opt.value} value={opt.value}>
+                                                                                {opt.label}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
+                                                                </SelectContent> */}
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.employee && <FormError>{errors.employee.message}</FormError>}
+                                                    </div>
                                                 )}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Format 2 Specific Sections */}
-                        {filters.format === 'Format 2' && (
-                            <div className='space-y-6'>
-                                <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-                                    {/* Group Type Selection */}
-                                    <div className='space-y-3'>
-                                        <Label className='font-semibold'>
-                                            Group Type: <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <MultiSelect
-                                            options={groupTypes.map((g) => ({
-                                                label: g.HRMGT_EmployeeGroupType,
-                                                value: String(g.HRMGT_Id)
-                                            }))}
-                                            onValueChange={(values) =>
-                                                setFilters((prev) => ({
-                                                    ...prev,
-                                                    selectedGroupTypes: values
-                                                }))
-                                            }
-                                            defaultValue={filters.selectedGroupTypes}
-                                            placeholder='Select Group Types'
-                                            className='w-full'
-                                            maxHeight={240}
-                                        />
-                                    </div>
-
-                                    {/* Department Selection */}
-                                    <div className='space-y-3'>
-                                        <Label className='font-semibold'>
-                                            Department: <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <MultiSelect
-                                            options={departments.map((d) => ({
-                                                label: d.HRMD_DepartmentName,
-                                                value: String(d.HRMD_Id)
-                                            }))}
-                                            onValueChange={(values) =>
-                                                setFilters((prev) => ({
-                                                    ...prev,
-                                                    selectedDepartments: values
-                                                }))
-                                            }
-                                            defaultValue={filters.selectedDepartments}
-                                            placeholder='Select Departments'
-                                            className='w-full'
-                                            maxHeight={240}
-                                        />
-                                    </div>
-
-                                    {/* Designation Selection */}
-                                    <div className='space-y-3'>
-                                        <Label className='font-semibold'>
-                                            Designation: <span className='text-red-500'>*</span>
-                                        </Label>
-                                        <MultiSelect
-                                            options={designations.map((d) => ({
-                                                label: d.HRMDES_DesignationName,
-                                                value: String(d.HRMDES_Id)
-                                            }))}
-                                            onValueChange={(values) =>
-                                                setFilters((prev) => ({
-                                                    ...prev,
-                                                    selectedDesignations: values
-                                                }))
-                                            }
-                                            defaultValue={filters.selectedDesignations}
-                                            placeholder='Select Designations'
-                                            className='w-full'
-                                            maxHeight={240}
-                                        />
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
-
-                                {/* Employee Status */}
-                                <div className='space-y-3'>
-                                    <Label>Employee Status</Label>
-                                    <div className='flex items-center gap-6'>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='checkbox'
-                                                checked={filters.employeeStatus.includes('Working')}
-                                                onChange={(e) => handleEmployeeStatusChange('Working', e.target.checked)}
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            Working
-                                        </label>
-                                        <label className='flex cursor-pointer items-center gap-2 text-sm'>
-                                            <input
-                                                type='checkbox'
-                                                checked={filters.employeeStatus.includes('Left')}
-                                                onChange={(e) => handleEmployeeStatusChange('Left', e.target.checked)}
-                                                className='h-4 w-4 border-gray-300 bg-gray-100 text-blue-600 focus:ring-blue-500'
-                                            />
-                                            Left
-                                        </label>
-                                    </div>
-                                </div>
                             </div>
-                        )}
+                        </div>
+                        <div className='mb-5 grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                            {selectedFormat !== 'format1' && (
+                                <div className='space-y-2'>
+                                    <Label htmlFor='group-type' className='font-medium text-sm text-white-900'>
+                                        Group Type: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    {masterGroupTypesLoading ? (
+                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                    ) : groupTypeOptions.length === 0 ? (
+                                        <div className='text-sm text-white-500'>No group types available</div>
+                                    ) : masterGroupTypesError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading data
+                                        </SelectItem>
+                                    ) : (
+                                        <>
+                                            <Controller
+                                                name='groupType'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <MultiSelect
+                                                        options={groupTypeOptions}
+                                                        defaultValue={field.value}
+                                                        onValueChange={field.onChange}
+                                                        placeholder='Select Group Types'
+                                                        className='w-full'
+                                                        maxHeight={240}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.groupType && <FormError>{errors.groupType.message}</FormError>}
+                                        </>
+                                    )}
+                                </div>
+                            )}
 
-                        {/* Action Buttons */}
-                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
-                            <Button variant='outline' onClick={handleCancel} className='w-fit transition-all duration-200 hover:scale-105'>
-                                <X className='mr-2 h-4 w-4' />
-                                CANCEL
+                            {selectedFormat !== 'format1' && (
+                                <div className='space-y-2'>
+                                    <Label htmlFor='department' className='font-medium text-sm text-white-900'>
+                                        Department: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    {masterDepartmentsLoading ? (
+                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                    ) : DeaparmentsOptions.length === 0 ? (
+                                        <div className='text-sm text-white-500'>No departments available</div>
+                                    ) : masterDepartmentsError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading data
+                                        </SelectItem>
+                                    ) : (
+                                        <>
+                                            <Controller
+                                                name='department'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <MultiSelect
+                                                        options={DeaparmentsOptions}
+                                                        defaultValue={field.value}
+                                                        onValueChange={field.onChange}
+                                                        placeholder='Select Departments'
+                                                        className='w-full'
+                                                        maxHeight={240}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.department && <FormError>{errors.department.message}</FormError>}
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {selectedFormat !== 'format1' && (
+                                <div className='space-y-2'>
+                                    <Label htmlFor='designation' className='font-medium text-sm text-white-900'>
+                                        Designation: <span className='text-red-500'>*</span>
+                                    </Label>
+                                    {masterDesignationsLoading ? (
+                                        <div className='h-10 w-full animate-pulse rounded-md bg-white-200' />
+                                    ) : DesignationOptions.length === 0 ? (
+                                        <div className='text-sm text-white-500'>No designations available</div>
+                                    ) : masterDesignationsError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading data
+                                        </SelectItem>
+                                    ) : (
+                                        <>
+                                            <Controller
+                                                name='designation'
+                                                control={control}
+                                                render={({ field }) => (
+                                                    <MultiSelect
+                                                        options={DesignationOptions}
+                                                        defaultValue={field.value}
+                                                        onValueChange={field.onChange}
+                                                        placeholder='Select Designations'
+                                                        className='w-full'
+                                                        maxHeight={240}
+                                                    />
+                                                )}
+                                            />
+                                            {errors.designation && <FormError>{errors.designation.message}</FormError>}
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-center'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={handleReset}
+                                disabled={isSearching || isSubmitting}
+                                className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                                Reset
                             </Button>
-                            <Button onClick={handleSearch} className='w-fit transition-all duration-200 hover:scale-105'>
-                                <Search className='mr-2 h-4 w-4' />
-                                SEARCH
+                            <Button
+                                type='button'
+                                onClick={handleSubmit(onSearch)}
+                                disabled={isSearching || isSubmitting}
+                                className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
+                                {isSearching ? (
+                                    <>
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                        Searching...
+                                    </>
+                                ) : (
+                                    <div className='flex items-center'>
+                                        <Search className='mr-2 h-4 w-4' />
+                                        Search
+                                    </div>
+                                )}
                             </Button>
                         </div>
                     </div>
                 </CollapsibleSection>
 
-                {/* Report Results */}
-                {showReport && (
+                {reportData.length > 0 && (
                     <CollapsibleSection
-                        title='Employee Details Report'
-                        description={`Total Records: ${filteredEmployees.length} employees | Date Filter: ${
-                            filters.dateFilter
-                        } | Selected Fields: ${filters.selectedHeaders.length > 0 ? filters.selectedHeaders.length : 'None selected'}`}
+                        title='Employee Details'
                         defaultOpen={true}
-                        variant='default'
-                        size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        <EmployeeDetailsReportTemplate
-                            schoolName={schoolName}
-                            schoolAddress={schoolAddress}
-                            reportData={filteredEmployees}
-                            selectedHeaders={filters.selectedHeaders || []}
-                            isLoading={searchMutation.isPending || filterMutation.isPending}
-                            onExport={handleExport}
-                            onCancel={handleCancel}
-                        />
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='mt-2 space-x-4'>
+                            <div className='mb-4 text-center'>
+                                <h4 className='font-semibold'>Vidya Vikasa Vidya Samsthe (R)</h4>
+                                <p className='text-sm'>Basaveshwara Talkies rd,Gayatri circle,karantaka</p>
+                                <p className='text-sm'>Chitradurga - 577501.</p>
+                                <h5 className='font-semibold'>Employee Details Report</h5>
+                            </div>
+                            <div className='overflow-x-auto rounded-lg border'>
+                                <table className='w-full border-collapse'>
+                                    <thead>
+                                        <tr className='border-white-300 border-b-2 bg-white-100'>
+                                            <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>S.No</th>
+                                            {selectedHeaders && selectedHeaders.length > 0 ? (
+                                                selectedHeaders.map((header: string) => (
+                                                    <th
+                                                        key={header}
+                                                        className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>
+                                                        {header}
+                                                    </th>
+                                                ))
+                                            ) : (
+                                                <th className='border border-white-300 px-3 py-3 text-center font-semibold text-sm'>
+                                                    No headers selected
+                                                </th>
+                                            )}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {reportData.map((row: any, index: number) => (
+                                            <tr key={index} className='hover:bg-white-50'>
+                                                <td className='border border-white-300 px-3 py-2 text-center text-sm'>{index + 1}</td>
+                                                {selectedHeaders && selectedHeaders.length > 0 ? (
+                                                    selectedHeaders.map((header: string) => {
+                                                        const fieldKey = headerFieldMap[header];
+                                                        const cellValue = fieldKey ? row[fieldKey] : '';
+                                                        return (
+                                                            <td
+                                                                key={`${index}-${header}`}
+                                                                className='border border-white-300 px-3 py-2 text-left text-sm'>
+                                                                {cellValue || '-'}
+                                                            </td>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <td className='border border-white-300 px-3 py-2 text-left text-sm'>
+                                                        No headers selected
+                                                    </td>
+                                                )}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </CollapsibleSection>
                 )}
             </div>

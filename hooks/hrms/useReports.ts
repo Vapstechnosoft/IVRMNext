@@ -72,7 +72,14 @@ import {
     getPeriodLeaveReportDesignation,
     getPeriodLeaveReportEmployees
 } from '@/server/hrms/leave-management/reports/leave-report';
-import { getMasterDepartments, getMasterDesignations, getMasterGroupTypes, getMasterMonths, getMasterYears } from '@/server/hrms/master';
+import {
+    getMasterDepartments,
+    getMasterDesignations,
+    getMasterEmployeeTypes,
+    getMasterGroupTypes,
+    getMasterMonths,
+    getMasterYears
+} from '@/server/hrms/master';
 import type { ApiSearchparams } from '@/types';
 import type { EmployeeAdvanceReportSearchRequest } from '@/types/hrms/reports/advance-report';
 import type { BankCashReportSearchRequest } from '@/types/hrms/reports/bank-cash-report';
@@ -300,8 +307,6 @@ export function usePFChallanReportOnload(MI_Id = 30) {
 }
 
 export function useFilterPFChallanEmployeeData() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFChallanReportFilterRequest) => filterPFChallanEmployeeData(data),
         onSuccess: (response) => {
@@ -317,8 +322,6 @@ export function useFilterPFChallanEmployeeData() {
 }
 
 export function useSearchPFChallanReport() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFChallanReportSearchRequest) => searchPFChallanReport(data),
         onSuccess: (response) => {
@@ -346,8 +349,6 @@ export function usePFForm10ReportOnload(MI_Id = 30) {
 }
 
 export function useFilterPFForm10EmployeeData() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFForm10ReportFilterRequest) => filterPFForm10EmployeeData(data),
         onSuccess: (response) => {
@@ -363,8 +364,6 @@ export function useFilterPFForm10EmployeeData() {
 }
 
 export function useSearchPFForm10Report() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFForm10ReportSearchRequest) => searchPFForm10Report(data),
         onSuccess: (response) => {
@@ -392,8 +391,6 @@ export function usePFForm5ReportOnload(MI_Id = 30) {
 }
 
 export function useFilterPFForm5EmployeeData() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFForm5ReportFilterRequest) => filterPFForm5EmployeeData(data),
         onSuccess: (response) => {
@@ -409,8 +406,6 @@ export function useFilterPFForm5EmployeeData() {
 }
 
 export function useSearchPFForm5Report() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFForm5ReportSearchRequest) => searchPFForm5Report(data),
         onSuccess: (response) => {
@@ -438,8 +433,6 @@ export function usePFForm3AReportOnload(MI_Id = 30) {
 }
 
 export function useFilterPFForm3AEmployeeData() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFForm3AReportFilterRequest) => filterPFForm3AEmployeeData(data),
         onSuccess: (response) => {
@@ -455,8 +448,6 @@ export function useFilterPFForm3AEmployeeData() {
 }
 
 export function useSearchPFForm3AReport() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFForm3AReportSearchRequest) => searchPFForm3AReport(data),
         onSuccess: (response) => {
@@ -484,8 +475,6 @@ export function usePFForm6AReportOnload(MI_Id = 30) {
 }
 
 export function useFilterPFForm6AEmployeeData() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFForm6AReportFilterRequest) => filterPFForm6AEmployeeData(data),
         onSuccess: (response) => {
@@ -501,8 +490,6 @@ export function useFilterPFForm6AEmployeeData() {
 }
 
 export function useSearchPFForm6AReport() {
-    const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: (data: PFForm6AReportSearchRequest) => searchPFForm6AReport(data),
         onSuccess: (response) => {
@@ -530,7 +517,7 @@ export function useMonthEndReportOnload(MI_Id = 30) {
 }
 
 export function useSearchMonthEndReport() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: MonthEndReportSearchRequest) => searchMonthEndReport(data),
@@ -547,7 +534,7 @@ export function useSearchMonthEndReport() {
 }
 
 export function useFilterEmployeeContributionReport() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: EmployeeContributionReportFilterRequest) => filterEmployeeContributionData(data),
@@ -564,7 +551,7 @@ export function useFilterEmployeeContributionReport() {
 }
 
 export function useSearchEmployeeContributionDetails() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: EmployeeContributionReportSearchRequest) => searchEmployeeContributionDetails(data),
@@ -641,7 +628,7 @@ export function useCumulativeSalaryReportList(
     },
     enabled = true
 ) {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     const query = useQuery({
         queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH, searchParams ?? {}, filterParams ?? {}],
@@ -676,7 +663,7 @@ export function useCumulativeSalaryReportList(
     return {
         ...query,
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH]
             });
         }
@@ -688,7 +675,7 @@ export function useCumulativeSalaryReportList(
  * Uses the GetEmployeedetailsBySelection endpoint
  */
 export function useSearchCumulativeSalaryReport() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: CumulativeSalaryReportSearchRequest) => {
@@ -699,7 +686,7 @@ export function useSearchCumulativeSalaryReport() {
                 toast.error(response.message || 'Failed to search salary report');
             } else {
                 // Invalidate queries to refresh data
-                queryClient.invalidateQueries({
+                _queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.CUMULATIVE_SALARY_REPORT_SEARCH]
                 });
             }
@@ -741,7 +728,7 @@ export function useEmployeeInOutReportList(
     },
     enabled = true
 ) {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -754,7 +741,7 @@ export function useEmployeeInOutReportList(
             enabled // Only fetch when enabled (when search criteria are present)
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_INOUT_REPORT_SEARCH]
             });
         }
@@ -830,7 +817,7 @@ export function useEmployeeLateInEarlyOutReportList(
     },
     enabled = true
 ) {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -845,7 +832,7 @@ export function useEmployeeLateInEarlyOutReportList(
             enabled // Only fetch when enabled (when search criteria are present)
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT_SEARCH]
             });
         }
@@ -887,7 +874,7 @@ export function useEmployeeLogReportList(
     },
     enabled = true
 ) {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -899,7 +886,7 @@ export function useEmployeeLogReportList(
             enabled // Only fetch when enabled (when search criteria are present)
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT_SEARCH]
             });
         }
@@ -937,7 +924,7 @@ export function useEmployeeYearlyReportList(
     },
     enabled = true
 ) {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -949,7 +936,7 @@ export function useEmployeeYearlyReportList(
             enabled // Only fetch when enabled (when search criteria are present)
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_YEARLY_REPORT_SEARCH]
             });
         }
@@ -986,7 +973,7 @@ export function useEmployeeMonthlyReportList(
     },
     enabled = true
 ) {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -998,7 +985,7 @@ export function useEmployeeMonthlyReportList(
             enabled // Only fetch when enabled (when search criteria are present)
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT_SEARCH]
             });
         }
@@ -1122,7 +1109,7 @@ export function useEmployeeAdvanceReportOnload(MI_Id = 30, LogInUserId = 0) {
 }
 
 export function useSearchEmployeeAdvanceReport() {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: (data: EmployeeAdvanceReportSearchRequest) => searchEmployeeAdvanceReport(data),
@@ -2078,7 +2065,7 @@ export function useLeaveReportYearwise(
 //Master dropdown
 
 export const useMasterGroupTypes = () => {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -2087,7 +2074,7 @@ export const useMasterGroupTypes = () => {
             staleTime: 0
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_GROUP_TYPES]
             });
         }
@@ -2095,7 +2082,7 @@ export const useMasterGroupTypes = () => {
 };
 
 export const useMasterDepartments = () => {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -2104,7 +2091,7 @@ export const useMasterDepartments = () => {
             staleTime: 0
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_DEAPARTMENTS]
             });
         }
@@ -2112,7 +2099,7 @@ export const useMasterDepartments = () => {
 };
 
 export const useMasterDesignations = () => {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -2121,7 +2108,7 @@ export const useMasterDesignations = () => {
             staleTime: 0
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_DESIGNATIONS]
             });
         }
@@ -2129,7 +2116,7 @@ export const useMasterDesignations = () => {
 };
 
 export const useMasterMonths = () => {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -2138,7 +2125,7 @@ export const useMasterMonths = () => {
             staleTime: 0
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_MONTHS]
             });
         }
@@ -2146,7 +2133,7 @@ export const useMasterMonths = () => {
 };
 
 export const useMasterYears = () => {
-    const queryClient = useQueryClient();
+    const _queryClient = useQueryClient();
 
     return {
         ...useQuery({
@@ -2155,8 +2142,24 @@ export const useMasterYears = () => {
             staleTime: 0
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_YEARS]
+            });
+        }
+    };
+};
+export const useMasterEmployeeTypes = () => {
+    const _queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPES],
+            queryFn: async () => getMasterEmployeeTypes(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return _queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPES]
             });
         }
     };
