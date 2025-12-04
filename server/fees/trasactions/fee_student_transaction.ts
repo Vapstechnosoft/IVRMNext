@@ -31,3 +31,8 @@ export async function getStudentDetails(payload: any) {
     const url = '/FeeStudentTransaction/fee-stud-lst-det';
     return api.post<any>('fees', url, payload);
 }
+
+export async function getFeeHead(payload: any) {
+    const url = '/FeeStudentTransaction/fee-stud-lst-det';
+    return api.post<any>('fees', url, payload);
+}

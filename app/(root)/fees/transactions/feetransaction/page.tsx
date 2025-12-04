@@ -11,7 +11,7 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
 import StudentFeeTransaction from './_components/add-form';
 import { feeTransactionColumns } from './_components/columns';
-// import { feeTransactionColumns } from './_components/columns';
+import ReceiptViewPage from './_components/receiptview';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function FeeTransactionPage(props: { searchParams: SearchParams }) {
@@ -19,7 +19,6 @@ export default function FeeTransactionPage(props: { searchParams: SearchParams }
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
 
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
-    //const { data: response, isLoading, error } = useFeeTransactionList(asmaY_Id, searchParams);
     const { data: response, isLoading, error } = useFeeTransactionList(selectedAsmayId ?? 0, searchParams);
 
     useEffect(() => {
@@ -32,7 +31,6 @@ export default function FeeTransactionPage(props: { searchParams: SearchParams }
     return (
         <FormProvider<Ifeetransaction>>
             <FeeTransactionContent
-                // response={response} isLoading={isLoading} error={error}
                 selectedAsmayId={selectedAsmayId}
                 setSelectedAsmayId={setSelectedAsmayId}
                 academicYearData={academicYearData}
@@ -127,7 +125,7 @@ function FeeTransactionContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<Ifeetransaction>();
+    const { isAddFormOpen, closeAddForm, isDetailsViewOpen, closeDetailsView, addFormRef, selectedRow } = useFormContext<Ifeetransaction>();
 
     return (
         <>
@@ -154,6 +152,8 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {isDetailsViewOpen && selectedRow && <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} />}
         </>
     );
 }

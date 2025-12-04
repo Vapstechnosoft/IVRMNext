@@ -21,78 +21,11 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
-import { getStudentDetails, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
+import { getFeeHead, getStudentDetails, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
 import type { IFeeTDetails, IStudentSearchList, IStudentTDetails, IStudentTermList } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 import FeeDetails from './fee-head-column';
 
-/* -------------------------------------------------------
-   MOCK STATIC API — remove & replace later
-------------------------------------------------------- */
-async function fetchStudents(filterType: string) {
-    return [
-        { amst_Id: 474, name: 'KRITHIKA V – VI C' },
-        { amst_Id: 475, name: 'STUDENT 475 – V A' }
-    ];
-}
-
-async function fetchTerms(studentId: number) {
-    return [
-        { id: 1, name: 'TERM 1' },
-        { id: 2, name: 'VAN FEES' }
-    ];
-}
-
-async function fetchBank() {
-    return {
-        bank: [
-            {
-                fmB_Id: 1,
-                bank: 'Cash'
-            },
-            { fmB_Id: 2, bank: 'Bank' },
-            {
-                fmB_Id: 3,
-                bank: 'RTGS/NEFT'
-            },
-            { fmB_Id: 4, bank: 'Swipe/Card' },
-            { fmB_Id: 5, bank: 'UPI' }
-        ]
-    };
-}
-
-async function fetchFeeDetails(studentId: number, termId: string[]) {
-    return {
-        heads: [
-            {
-                fmH_Id: 1,
-                headName: 'ILM & OTHER FEES',
-                installment: 'Yearly',
-                currentCharges: 17000,
-                totalAdjusted: 0
-            },
-            {
-                fmH_Id: 2,
-                headName: 'TUTION FEES',
-                installment: 'Yearly',
-                currentCharges: 17000,
-                totalAdjusted: 0
-            }
-        ],
-
-        summary: {
-            currentFee: 17000,
-            concession: 0,
-            outstanding: 2000,
-            fine: 0,
-            nowPaying: 2000
-        }
-    };
-}
-
-/* -------------------------------------------------------
-   FORM FIELDS TYPE
-------------------------------------------------------- */
 type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
 
 interface FeestudentTrasactionsFormProps {
@@ -127,11 +60,38 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const [students, setStudents] = useState<IStudentSearchList[]>([]);
     const [loadingStudents, setLoadingStudents] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<IStudentSearchList | null>(null);
+    const [selectedTerm, setselectedTerm] = useState<string[]>([]);
     const [terms, setTerms] = useState<IStudentTermList[]>([]);
     const [loadingTerm, setLoadingTerm] = useState(false);
     const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
     const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
-    const [feeHeads, setFeeHeads] = useState<any[]>([]);
+    const [feeHeads, setFeeHeads] = useState<IFeeTDetails[]>([]);
+    const [loadingFeeHead, setLoadingFeeHead] = useState(false);
+    const [selectedHeads, setSelectedHeads] = useState<Record<number, boolean>>({});
+    const [currentCharges, setCurrentCharges] = useState<{
+        [key: number]: string;
+    }>({});
+    const [toatlAdjusted, setToatlAdjusted] = useState<{
+        [key: number]: string;
+    }>({});
+    const [totalCharges, setTotalCharges] = useState<{
+        [key: number]: string;
+    }>({});
+    const [concession, setConcession] = useState<{
+        [key: number]: string;
+    }>({});
+    const [openingBalance, setOpeningBalance] = useState<{
+        [key: number]: string;
+    }>({});
+    const [payableAmount, setPayableAmount] = useState<{
+        [key: number]: string;
+    }>({});
+    const [netAmount, setNetAmount] = useState<{
+        [key: number]: string;
+    }>({});
+    const [rebateAmount, setRebateAmount] = useState<{
+        [key: number]: string;
+    }>({});
     const [summary, setSummary] = useState<any | null>(null);
     const [bankDetails, setBankDetails] = useState<any[]>([]);
     const [chequeNo, setChequeNo] = useState('');
@@ -142,13 +102,13 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const [checkPayType, setCheckPayType] = useState<string[]>([]);
     const [dates, setDates] = useState<Record<number, Date | null>>({});
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
-    const [selectedTerm, setselectedTerm] = useState<string[]>([]);
+
     const [left, setLeft] = useState(false);
     const [deactive, setDeative] = useState(false);
     const [classs, setClass] = useState(false);
     const [section, setSection] = useState(false);
     const [amountCheck, setAmountCheck] = useState(false);
-    const [selectedHeads, setSelectedHeads] = useState<Record<number, boolean>>({});
+
     const [selectAll, setSelectAll] = useState(false);
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
@@ -177,6 +137,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         setTerms([]);
         SetStudentDetails([]);
         SetFeeDetails([]);
+        // setFeeHeads([]);
     }, [selectedAsmayId, selectedclassId, selectedSectionId]);
 
     const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(classs);
@@ -248,13 +209,47 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         fetchStudentsDetails();
     }, [selectedStudent]);
 
+    useEffect(() => {
+        if (!selectedTerm || selectedTerm.length === 0) {
+            setFeeHeads([]);
+            return;
+        }
+
+        const fetchFeeHeadDetails = async () => {
+            setLoadingFeeHead(true);
+
+            try {
+                const payload = {
+                    amst_Id: selectedStudent?.amst_Id,
+                    filterinitialdata: filterType,
+                    configset: 'T',
+                    autoReceiptFlag: true,
+                    asmaY_Id: selectedAsmayId
+                };
+
+                const termArray = await getFeeHead(payload);
+
+                const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
+
+                setFeeHeads(feeDetails || []);
+            } catch (error) {
+                console.error('Failed to fetch students:', error);
+                setFeeHeads([]);
+            } finally {
+                setLoadingFeeHead(false);
+            }
+        };
+
+        fetchFeeHeadDetails();
+    }, [selectedTerm]);
+
     const toggleRow = (id: number, checked: boolean) => {
         setSelectedHeads((prev) => {
             const updated = { ...prev, [id]: checked };
             if (!checked) {
                 setSelectAll(false);
             } else {
-                const allChecked = feeHeads.every((item) => updated[item.fmH_Id]);
+                const allChecked = feeHeads.every((item) => updated[item.fmG_Id]);
                 setSelectAll(allChecked);
             }
 
@@ -264,71 +259,18 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
     const handleSelectAll = (checked: boolean) => {
         setSelectAll(checked);
-
         const newState: Record<number, boolean> = {};
         feeHeads.forEach((f) => {
-            newState[f.fmH_Id] = checked;
+            newState[f.fmG_Id] = checked;
         });
 
         setSelectedHeads(newState);
     };
 
-    useEffect(() => {
-        (async () => {
-            const s = await fetchStudents(filterType);
-            //   setStudents(s);
-        })();
-    }, [filterType]);
-
-    /* -------------------------------------------------------
-     LOAD TERMS WHEN STUDENT SELECTED
-  ------------------------------------------------------- */
-    //   useEffect(() => {
-    //     if (!selectedStudent) return;
-
-    //     (async () => {
-    //       const t = await fetchTerms(selectedStudent);
-    //       setTerms(t);
-
-    //       // Reset term + fee data
-    //       setValue("asmcl_Id", undefined);
-    //       setFeeHeads([]);
-    //       setSummary(null);
-    //     })();
-    //   }, [selectedStudent]);
-
-    /* -------------------------------------------------------
-     LOAD FEE DETAILS WHEN TERM SELECTED
-  ------------------------------------------------------- */
-    //   useEffect(() => {
-    //     if (!selectedTerm || !selectedStudent) return;
-
-    //     (async () => {
-    //       const data = await fetchFeeDetails(selectedStudent, selectedTerm);
-    //       setFeeHeads(data.heads);
-    //       setSummary(data.summary);
-    //     })();
-    //   }, [selectedTerm]);
-
-    useEffect(() => {
-        if (!selectedTerm || !selectedStudent) return;
-
-        (async () => {
-            const data = await fetchBank();
-            setBankDetails(data.bank);
-        })();
-    }, [selectedTerm]);
-
-    /* -------------------------------------------------------
-     SUBMIT HANDLER
-  ------------------------------------------------------- */
     const onSubmit = async () => {
         toast.success('Fee Transaction Saved Successfully!');
     };
 
-    /* -------------------------------------------------------
-     RESET HANDLER
-  ------------------------------------------------------- */
     const handleReset = () => {
         reset();
         setStudents([]);
@@ -447,12 +389,14 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                             </div>
                         )}
                     </div>
-                    <div className='max-h-[600px] overflow-auto rounded border bg-gray-50 p-2 shadow-inner' style={{ width: '40%' }}>
-                        <div className='mb-4'>
-                            <div className='flex w-full items-center space-x-5 pb-1'>
-                                <Label className='whitespace-nowrap text-right font-semibold'>
+                    <div className='max-h-[600px] w-[40%] overflow-auto rounded border bg-gray-50 p-4 shadow-inner'>
+                        {/* Academic Year */}
+                        <div className='mb-4 space-y-2'>
+                            <div className='flex w-full items-center justify-between gap-4'>
+                                <Label className='whitespace-nowrap font-semibold'>
                                     Academic Year <span className='text-red-500'>*</span>
                                 </Label>
+
                                 <Select
                                     value={selectedAsmayId?.toString() || ''}
                                     onValueChange={(v) => setSelectedAsmayId(Number(v))}
@@ -460,9 +404,8 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                     <SelectTrigger className='w-64'>
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
-
                                     <SelectContent>
-                                        {academicYearData?.data?.map((item: any) => (
+                                        {academicYearData?.data?.map((item) => (
                                             <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
                                                 {item.asmaY_Year}
                                             </SelectItem>
@@ -470,9 +413,12 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                     </SelectContent>
                                 </Select>
                             </div>
-                            {classs === true && (
-                                <div className='flex w-full items-center space-x-10 pb-1 pl-12'>
-                                    <Label className='whitespace-nowrap text-right font-semibold'>Class</Label>
+
+                            {/* Class */}
+                            {classs && (
+                                <div className='flex w-full items-center justify-between gap-4'>
+                                    <Label className='whitespace-nowrap font-semibold'>Class</Label>
+
                                     <Select
                                         value={selectedclassId?.toString() || ''}
                                         onValueChange={(v) => setSelectedClassId(Number(v))}
@@ -481,7 +427,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                             <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {feeclassData?.data?.map((item: any) => (
+                                            {feeclassData?.data?.map((item) => (
                                                 <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
                                                     {item.asmcL_ClassName}
                                                 </SelectItem>
@@ -490,9 +436,12 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                     </Select>
                                 </div>
                             )}
-                            {section === true && (
-                                <div className='flex w-full items-center space-x-10 pb-1 pl-9'>
-                                    <Label className='whitespace-nowrap text-right font-semibold'>Section</Label>
+
+                            {/* Section */}
+                            {section && (
+                                <div className='flex w-full items-center justify-between gap-4'>
+                                    <Label className='whitespace-nowrap font-semibold'>Section</Label>
+
                                     <Select
                                         value={selectedSectionId?.toString() || ''}
                                         onValueChange={(v) => setSelectedSectionId(Number(v))}
@@ -501,7 +450,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                             <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {feeSectionData?.data?.map((item: any) => (
+                                            {feeSectionData?.data?.map((item) => (
                                                 <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
                                                     {item.asmC_SectionName}
                                                 </SelectItem>
@@ -511,17 +460,15 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                 </div>
                             )}
 
-                            <div className='flex w-full items-center space-x-4'>
-                                {filterType === 'regular' || filterType === 'Chal_no' ? (
-                                    <Label className='font-semibold'>
-                                        Student Name: <span className='ml-1 text-red-500'>*</span>
-                                    </Label>
-                                ) : (
-                                    <Label className='font-semibold'>
-                                        {selectedLabel}: <span className='ml-1 text-red-500'>*</span>
-                                    </Label>
-                                )}
-                                <div className='relative'>
+                            {/* Student Name */}
+                            <div className='flex w-full items-center justify-between gap-4'>
+                                <Label className='whitespace-nowrap font-semibold'>
+                                    {filterType === 'regular' || filterType === 'Chal_no' ? 'Student Name' : selectedLabel}
+
+                                    <span className='ml-1 text-red-500'>*</span>
+                                </Label>
+
+                                <div className='relative w-64'>
                                     <input
                                         id='studentSearchInput'
                                         type='text'
@@ -532,11 +479,12 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                             setStudentSearch(e.target.value);
                                             setSelectedStudent(null);
                                         }}
-                                        className='w-72 rounded border px-3 py-2'
+                                        className='w-full rounded border px-3 py-2'
                                         autoComplete='off'
                                     />
+
                                     {studentSearch.trim() !== '' && !selectedStudent && (
-                                        <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-72 overflow-y-auto rounded border bg-white shadow-md'>
+                                        <ul className='absolute top-full left-0 z-10 mt-1 max-h-40 w-full overflow-y-auto rounded border bg-white shadow-md'>
                                             {loadingStudents ? (
                                                 <li className='px-3 py-2 text-gray-500'>Loading...</li>
                                             ) : students.length === 0 ? (
@@ -560,29 +508,31 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                             </div>
                         </div>
 
-                        <div className='mt-4 flex'>
-                            <div className='flex flex-col space-y-6'>
+                        {/* Term + Options */}
+                        <div className='mt-3 flex gap-6'>
+                            <div className='flex w-40 flex-col space-y-6'>
                                 <div className='flex items-center space-x-2'>
                                     <Label className='font-semibold'>Term Name :</Label>
                                 </div>
-                                <div className='flex items-center space-x-5'>
+
+                                <div className='flex items-center space-x-6'>
                                     <Label>SMS</Label>
                                     <Checkbox checked={sms} onCheckedChange={(v) => setSms(v === true)} />
                                 </div>
 
-                                <div className='flex items-center space-x-2'>
+                                <div className='flex items-center space-x-3'>
                                     <Label>EMAIL</Label>
                                     <Checkbox checked={email} onCheckedChange={(v) => setEmail(v === true)} />
                                 </div>
                             </div>
 
-                            <div className=' w-80 space-x-2 pl-4'>
+                            <div className='w-80'>
                                 <CustomMultiSelectBox
                                     options={terms.map((ex) => ({
                                         label: ex.fmG_GroupName,
                                         value: ex.fmT_Id.toString()
                                     }))}
-                                    isLoading={loadingTerm === true}
+                                    isLoading={loadingTerm}
                                     value={terms.filter((ex) => ex.checked).map((ex) => ex.fmT_Id.toString())}
                                     onChange={(selectedValues) => {
                                         setselectedTerm(selectedValues);
@@ -597,10 +547,12 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                             </div>
                         </div>
 
-                        <div className='mt-2'>
-                            <div className='flex flex-wrap items-center gap-3'>
+                        {/* Amount */}
+                        <div className='mt-3'>
+                            <div className='flex items-center gap-3'>
                                 <Checkbox id='amount' checked={amountCheck} onCheckedChange={(v) => setAmountCheck(v === true)} />
-                                <Label>Amount {amountCheck && <span className='ml-1 text-red-500'>*</span>}</Label>
+
+                                <Label>Amount {amountCheck && <span className='text-red-500'>*</span>}</Label>
 
                                 <InputText
                                     id='amount'
@@ -664,7 +616,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                             <div className='text-gray-700'>{studentDetails?.[0]?.fathername}</div>
 
                                             <div>USERNAME</div>
-                                            <div className='text-gray-700'>{studentDetails?.[0]?.classname}</div>
+                                            <div className='text-gray-700'>{studentDetails?.[0]?.username || 'N/A'}</div>
                                         </div>
                                     </div>
                                 )}
@@ -676,10 +628,10 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 {openFeeDetails && <FeeDetails onClose={() => setOpenFeeDetails(false)} data={feeDetails} loading={false} />}
 
                 {/* -------- FEE GRID -------- */}
-                {feeHeads.length > 0 && (
+                {loadingFeeHead ? (
+                    <Card className='p-4 text-center'>Loading...</Card>
+                ) : selectedTerm.length > 0 ? (
                     <Card className='p-4'>
-                        <h2 className='mb-3 font-semibold text-lg'>Fee Details</h2>
-
                         <table className='w-full border text-center text-sm'>
                             <thead className='bg-gray-100'>
                                 <tr>
@@ -687,149 +639,222 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                     <th className='border p-2'>
                                         <Checkbox checked={selectAll} onCheckedChange={(val) => handleSelectAll(val === true)} />
                                     </th>
-
                                     <th className='border p-2'>Fee Head</th>
                                     <th className='border p-2'>Installment</th>
                                     <th className='border p-2'>Current Charges</th>
-                                    <th className='border p-2'> Total Adjusted</th>
+                                    <th className='border p-2'>Total Adjusted</th>
                                     <th className='border p-2'>Total Charges</th>
                                     <th className='border p-2'>Concession</th>
                                     <th className='border p-2'>Opening Balance</th>
                                     <th className='border p-2'>Payable Amount</th>
                                     <th className='border p-2'>Net Amount</th>
+                                    <th className='border p-2'>Rebate Amount</th>
                                 </tr>
                             </thead>
 
                             <tbody>
                                 {feeHeads.map((f, index) => (
-                                    <tr key={f.fmH_Id}>
+                                    <tr key={f.fmG_Id}>
                                         <td className='border p-2'>{index + 1}</td>
                                         <td className='border p-2'>
                                             <Checkbox
-                                                checked={selectedHeads[f.fmH_Id] || false}
-                                                onCheckedChange={(val) => toggleRow(f.fmH_Id, val === true)}
+                                                checked={selectedHeads[f.fmG_Id] || false}
+                                                onCheckedChange={(val) => toggleRow(f.fmG_Id, val === true)}
                                             />
                                         </td>
 
-                                        <td className='border p-2'>{f.headName}</td>
-                                        <td className='border p-2'>{f.installment}</td>
+                                        <td className='border p-2'>{f.fmG_GroupName}</td>
+                                        <td className='border p-2'>{f.fmG_GroupName}</td>
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={chequeNo}
+                                                value={currentCharges[f.fmG_Id] || '0'}
+                                                disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
-                                                        setChequeNo('');
+                                                        setCurrentCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
-                                                        setChequeNo(v);
+                                                        setCurrentCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
                                                     }
                                                 }}
-                                                className='w-full rounded border px-2 py-1 text-sm'
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
                                             />
                                         </td>
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={chequeNo}
+                                                value={toatlAdjusted[f.fmG_Id] || ''}
+                                                // disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
-                                                        setChequeNo('');
+                                                        setToatlAdjusted((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
-                                                        setChequeNo(v);
+                                                        setToatlAdjusted((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
                                                     }
                                                 }}
-                                                className='w-full rounded border px-2 py-1 text-sm'
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
                                             />
                                         </td>
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={chequeNo}
+                                                value={totalCharges[f.fmG_Id] || ''}
+                                                disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
-                                                        setChequeNo('');
+                                                        setTotalCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
-                                                        setChequeNo(v);
+                                                        setTotalCharges((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
                                                     }
                                                 }}
-                                                className='w-full rounded border px-2 py-1 text-sm'
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
                                             />
                                         </td>
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={chequeNo}
+                                                value={concession[f.fmG_Id] || ''}
+                                                disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
-                                                        setChequeNo('');
+                                                        setConcession((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
-                                                        setChequeNo(v);
+                                                        setConcession((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
                                                     }
                                                 }}
-                                                className='w-full rounded border px-2 py-1 text-sm'
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
                                             />
                                         </td>
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={chequeNo}
+                                                value={openingBalance[f.fmG_Id] || ''}
+                                                disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
-                                                        setChequeNo('');
+                                                        setOpeningBalance((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
-                                                        setChequeNo(v);
+                                                        setOpeningBalance((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
                                                     }
                                                 }}
-                                                className='w-full rounded border px-2 py-1 text-sm'
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
                                             />
                                         </td>
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={chequeNo}
+                                                value={payableAmount[f.fmG_Id] || ''}
+                                                disabled={!selectedHeads[f.fmG_Id]}
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
-                                                        setChequeNo('');
+                                                        setPayableAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
-                                                        setChequeNo(v);
+                                                        setPayableAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
                                                     }
                                                 }}
-                                                className='w-full rounded border px-2 py-1 text-sm'
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
                                             />
                                         </td>
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={chequeNo}
+                                                value={netAmount[f.fmG_Id] || ''}
+                                                disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
-                                                        setChequeNo('');
+                                                        setNetAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
-                                                        setChequeNo(v);
+                                                        setNetAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
                                                     }
                                                 }}
-                                                className='w-full rounded border px-2 py-1 text-sm'
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                            />
+                                        </td>
+                                        <td className='border p-2'>
+                                            <input
+                                                type='number'
+                                                value={rebateAmount[f.fmG_Id] || ''}
+                                                disabled
+                                                onChange={(e) => {
+                                                    const v = e.target.value;
+                                                    if (v === '') {
+                                                        setRebateAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: ''
+                                                        }));
+                                                        return;
+                                                    }
+                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                        setRebateAmount((prev) => ({
+                                                            ...prev,
+                                                            [f.fmG_Id]: v
+                                                        }));
+                                                    }
+                                                }}
+                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
                                             />
                                         </td>
                                     </tr>
@@ -837,46 +862,48 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                             </tbody>
                         </table>
                     </Card>
+                ) : (
+                    <Card className='p-4 text-center'>No Results Found</Card>
                 )}
 
                 {/* -------- SUMMARY -------- */}
-                {summary && (
+                {selectedTerm.length > 0 && (
                     <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-3'>
                         <div>
-                            Current Fee: <b>{summary.currentFee}</b>
+                            Current Fee: <b>{1000}</b>
                         </div>
                         <div>
-                            Concession: <b>{summary.concession}</b>
+                            Concession: <b>{0}</b>
                         </div>
                         <div>
-                            Outstanding: <b>{summary.outstanding}</b>
+                            Outstanding: <b>{300}</b>
                         </div>
                         <div>
-                            Fine: <b>{summary.fine}</b>
+                            Fine: <b>{200}</b>
                         </div>
                         <div>
-                            Now Paying: <b>{summary.fine}</b>
+                            Now Paying: <b>{200}</b>
                         </div>
                     </Card>
                 )}
 
-                {summary && (
+                {selectedTerm.length > 0 && (
                     <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-3'>
                         <div>
-                            Total Payable: <b>{summary.currentFee}</b>
+                            Total Payable: <b>{2000}</b>
                         </div>
                         <div>
-                            Total Concession: <b>{summary.concession}</b>
+                            Total Concession: <b>{3000}</b>
                         </div>
                         <div>
-                            Total Waived off: <b>{summary.outstanding}</b>
+                            Total Waived off: <b>{40000}</b>
                         </div>
                         <div>
-                            Overall Outstanding: <b>{summary.fine}</b>
+                            Overall Outstanding: <b>{40000}</b>
                         </div>
                     </Card>
                 )}
-                {summary && (
+                {selectedTerm.length > 0 && (
                     <Card className='p-4'>
                         <div className='flex items-center gap-6'>
                             {' '}
@@ -909,7 +936,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                         </div>
                     </Card>
                 )}
-                {summary && (
+                {selectedTerm.length > 0 && (
                     <Card className='p-4'>
                         <table className='w-full border text-sm'>
                             <thead className='bg-gray-100'>
