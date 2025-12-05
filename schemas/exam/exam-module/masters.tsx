@@ -135,7 +135,8 @@ export const gradeDetailsSchema = z
         emgD_Name: createCustomStringSchema('Grade Name', 1, 100),
         emgD_From: z.preprocess(
             (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
-            z.number()
+            z
+                .number()
                 .min(0, { message: 'From must be at least 0' })
                 .max(100, { message: 'From cannot exceed 100' })
                 .nullable()
@@ -143,15 +144,12 @@ export const gradeDetailsSchema = z
         ),
         emgD_To: z.preprocess(
             (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
-            z.number()
-                .min(0, { message: 'To must be at least 0' })
-                .max(100, { message: 'To cannot exceed 100' })
-                .nullable()
-                .default(null)
+            z.number().min(0, { message: 'To must be at least 0' }).max(100, { message: 'To cannot exceed 100' }).nullable().default(null)
         ),
         emgD_GradePoints: z.preprocess(
             (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
-            z.number()
+            z
+                .number()
                 .min(0, { message: 'Grade points must be at least 0' })
                 .max(10, { message: 'Grade points cannot exceed 10' })
                 .nullable()
@@ -161,24 +159,14 @@ export const gradeDetailsSchema = z
         emgD_ActiveFlag: z.boolean().default(true)
     })
     // ✅ Add mutual validation between From and To (only when both are not null)
-    .refine((data) =>
-        data.emgD_From === null ||
-        data.emgD_To === null ||
-        data.emgD_From <= data.emgD_To,
-        {
-            path: ['emgD_From'],
-            message: "'From' value cannot be greater than 'To' value"
-        }
-    )
-    .refine((data) =>
-        data.emgD_From === null ||
-        data.emgD_To === null ||
-        data.emgD_To >= data.emgD_From,
-        {
-            path: ['emgD_To'],
-            message: "'To' value cannot be less than 'From' value"
-        }
-    );
+    .refine((data) => data.emgD_From === null || data.emgD_To === null || data.emgD_From <= data.emgD_To, {
+        path: ['emgD_From'],
+        message: "'From' value cannot be greater than 'To' value"
+    })
+    .refine((data) => data.emgD_From === null || data.emgD_To === null || data.emgD_To >= data.emgD_From, {
+        path: ['emgD_To'],
+        message: "'To' value cannot be less than 'From' value"
+    });
 // Master Grade Schema
 export const masterGradeSchema = {
     addOrUpdate: z.object({
@@ -210,9 +198,7 @@ export const masterSubjectGroupSchema = {
             mI_Id: z.number().optional(),
             emG_GroupName: createCustomStringSchema('Subject Group Name', 1, 100),
 
-            emG_TotSubjects: z
-                .number({ required_error: 'Total Subjects is required' })
-                .min(1, 'Total Subjects must be at least 1'),
+            emG_TotSubjects: z.number({ required_error: 'Total Subjects is required' }).min(1, 'Total Subjects must be at least 1'),
 
             emG_MaxAplSubjects: z
                 .number({ required_error: 'Max Applicable Subjects is required' })
@@ -222,9 +208,7 @@ export const masterSubjectGroupSchema = {
                 .number({ required_error: 'Min Applicable Subjects is required' })
                 .min(1, 'Min Applicable Subjects must be at least 1'),
 
-            emG_BestOff: z
-                .number({ required_error: 'Best Off Subjects is required' })
-                .min(0, 'Best Off Subjects must be 0 or greater'),
+            emG_BestOff: z.number({ required_error: 'Best Off Subjects is required' }).min(0, 'Best Off Subjects must be 0 or greater'),
 
             subject_list: z.array(subjectGroupDetailSchema).optional()
         })
@@ -256,6 +240,9 @@ export const masterSubjectGroupSchema = {
                 path: ['emG_BestOff']
             })
         ),
+    delete: z.object({
+        emG_Id: z.number({ required_error: 'Exam Group Id is required' })
+    })
 };
 
 export const masterCategorySchema = {
@@ -349,7 +336,7 @@ export const lifeSkillAreaSchema = {
                     ecsA_SkillOrder: z
                         .number({ invalid_type_error: 'Skill Order must be a number' })
                         .min(1, { message: 'Skill Order is required' }),
-                    ecsA_SkillArea: createCustomStringSchema('Life Skill Area Name', 1, 100),
+                    ecsA_SkillArea: createCustomStringSchema('Life Skill Area Name', 1, 100)
                 })
             )
             .min(1, { message: 'At least one skill area is required' }),
