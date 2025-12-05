@@ -1,31 +1,26 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useEmployeeShiftMapping } from '@/hooks/hrms/attendance-management/useMasters';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
+import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import AddEmployeeShiftMappingForm from './_components/add-form';
 import { type EmployeeShiftMapping, employeeShiftMappingColumns } from './_components/columns';
 import DeleteEmployeeShiftMappingForm from './_components/delete-form';
 import UpdateEmployeeShiftMappingForm from './_components/update-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function EmployeeShiftMappingPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useEmployeeShiftMapping();
-
     return (
         <FormProvider<EmployeeShiftMapping>>
             <EmployeeShiftMappingPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function EmployeeShiftMappingPageContent({
     response,
     isLoading,
@@ -37,7 +32,6 @@ function EmployeeShiftMappingPageContent({
 }) {
     const { openAddForm } = useFormContext<EmployeeShiftMapping>();
     const tableProps = useDataTableProps(response);
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -51,7 +45,6 @@ function EmployeeShiftMappingPageContent({
                         Add Shift Mapping
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -72,14 +65,12 @@ function EmployeeShiftMappingPageContent({
                         errorTitle='Error Loading Shift Mappings'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -92,7 +83,6 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<EmployeeShiftMapping>();
-
     return (
         <>
             {/* Add Form */}
@@ -118,7 +108,6 @@ function FormSections() {
                     </HRMSCollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -142,7 +131,6 @@ function FormSections() {
                     </HRMSCollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && <DeleteEmployeeShiftMappingForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>

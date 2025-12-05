@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -10,21 +9,18 @@ import type { BaseEntity } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Search, X } from 'lucide-react';
-
 export interface GroupType extends BaseEntity {
     groupType: string;
     groupCode: string;
     order: number;
     isActive: boolean;
 }
-
 export interface Department extends BaseEntity {
     departmentName: string;
     internalTrainingHours: string;
     order: number;
     isActive: boolean;
 }
-
 export interface Designation extends BaseEntity {
     designationName: string;
     basicAmount: string;
@@ -33,7 +29,6 @@ export interface Designation extends BaseEntity {
     order: number;
     isActive: boolean;
 }
-
 export interface Employee extends BaseEntity {
     employeeCode: string;
     employeeName: string;
@@ -50,7 +45,6 @@ export interface Employee extends BaseEntity {
     employmentType?: 'Permanent' | 'Probationary' | 'Contract' | 'Temporary';
     gender?: 'Male' | 'Female' | 'Other';
 }
-
 // Report filters
 export interface OfferLetterFilters {
     type: string;
@@ -60,7 +54,6 @@ export interface OfferLetterFilters {
     currentDate: Date;
     reportType: 'Experience Certificate' | 'Offer Letter';
 }
-
 interface EmployeeOfferLetterFiltersProps {
     filters: OfferLetterFilters;
     groupTypes: GroupType[];
@@ -71,7 +64,6 @@ interface EmployeeOfferLetterFiltersProps {
     onSearch: () => void;
     onCancel: () => void;
 }
-
 export function EmployeeOfferLetterFilters({
     filters,
     groupTypes,
@@ -84,7 +76,6 @@ export function EmployeeOfferLetterFilters({
 }: EmployeeOfferLetterFiltersProps) {
     const handleInternalFilterChange = (key: keyof OfferLetterFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
-
         // Reset dependent filters when parent changes
         if (key === 'type') {
             newFilters.department = '';
@@ -96,10 +87,8 @@ export function EmployeeOfferLetterFilters({
         } else if (key === 'designation') {
             newFilters.selectedEmployee = '';
         }
-
         onFilterChange(key, value);
     };
-
     return (
         <CollapsibleSection
             title='EMPLOYEE OFFER AND EXPERIENCE REPORT'
@@ -130,7 +119,6 @@ export function EmployeeOfferLetterFilters({
                                 </SelectContent>
                             </Select>
                         </div>
-
                         {/* Department Selection */}
                         <div className='space-y-2'>
                             <span className='font-medium text-foreground text-sm'>
@@ -149,7 +137,6 @@ export function EmployeeOfferLetterFilters({
                                 </SelectContent>
                             </Select>
                         </div>
-
                         {/* Designation Selection */}
                         <div className='space-y-2'>
                             <span className='font-medium text-foreground text-sm'>
@@ -168,7 +155,6 @@ export function EmployeeOfferLetterFilters({
                                 </SelectContent>
                             </Select>
                         </div>
-
                         {/* Employee Selection */}
                         <div className='space-y-2'>
                             <span className='font-medium text-foreground text-sm'>
@@ -190,7 +176,6 @@ export function EmployeeOfferLetterFilters({
                             </Select>
                         </div>
                     </div>
-
                     {/* Right Column */}
                     <div className='space-y-4'>
                         {/* Current Date */}
@@ -220,7 +205,6 @@ export function EmployeeOfferLetterFilters({
                                 </PopoverContent>
                             </Popover>
                         </div>
-
                         {/* Report Type Radio Buttons */}
                         <div className='space-y-3'>
                             <span className='font-medium text-foreground text-sm'>Report Type:</span>
@@ -246,7 +230,6 @@ export function EmployeeOfferLetterFilters({
                         </div>
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button onClick={onSearch}>

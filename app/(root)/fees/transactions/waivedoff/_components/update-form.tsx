@@ -15,7 +15,13 @@ import {
 } from '@/hooks/fees/useTrasactions';
 
 import { feeTransactionWaivedOffSchema } from '@/schemas/fees/trasactions';
-import { getGroupList, getHeadList, getStudentdetails, saveFeeWivedOff, uploadDocument } from '@/server/fees/trasactions/waived_off';
+import {
+    getEditGroupList,
+    getEditHeadList,
+    getStudentdetails,
+    saveFeeWivedOff,
+    uploadDocument
+} from '@/server/fees/trasactions/waived_off';
 import type { ApiSearchparams } from '@/types';
 import type {
     feeTransactionWaivedOffGrid,
@@ -31,7 +37,7 @@ import { useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { FeeTransactionHeadList } from './head-list-columns';
+import { FeeTransactionHeadUpdateList } from './head-update-list';
 
 type FormFields = z.infer<typeof feeTransactionWaivedOffSchema.addOrUpdate>;
 
@@ -90,7 +96,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
     const [isViewing, setIsViewing] = useState(false);
     const [selectedHead, setSelectedHead] = useState<any[]>([]);
     const [apisearchParams_, setApisearchParams_] = useState<ApiSearchparams>({});
-    const [tableProps, setTableProps] = useState<any>(null);
+    //const [tableProps, setTableProps] = useState<any>(null);
     const [headList, setHeadList] = useState<feeTransactionWaivedOffHead[]>([]);
     const [headListLoading, setHeadListLoading] = useState(false);
     const [headListError, setHeadListError] = useState<any>(null);
@@ -100,8 +106,15 @@ export default function UpdateFeeTransactionWaiveOffForm({
         isUploading: boolean;
     } | null>(null);
     const [preSelectedInstallmentIds, setPreSelectedInstallmentIds] = useState<string[]>([]);
-
-    const [tablePropsData, setTablePropsData] = useState<any>(null);
+    const tableConfig = useMemo(() => {
+        return {
+            data: headList,
+            total: headList.length,
+            page: 1,
+            pageSize: headList.length
+        };
+    }, [headList]);
+    const tableProps = useDataTableProps(tableConfig);
 
     useEffect(() => {
         if (!selectedRow) return;
@@ -174,7 +187,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
             setGroupListLoading(true);
             setGroupListError(null);
 
-            const res = await getGroupList(Number(asmay_Id), Number(amst_Id), refundableType);
+            const res = await getEditGroupList(Number(asmay_Id), Number(amst_Id), selectedRow.fmG_Id);
             setGroupList(res.data ?? []);
         } catch (error) {
             console.error('Error fetching student class mapping', error);
@@ -209,9 +222,14 @@ export default function UpdateFeeTransactionWaiveOffForm({
             setHeadListLoading(true);
             setHeadListError(null);
 
-            const res = await getHeadList(Number(asmay_Id), Number(amst_Id), refundableType, fineWaiveOff === true ? 1 : 0, {
-                groupIds: selectedGroups
-            });
+            const res = await getEditHeadList(
+                Number(asmay_Id),
+                Number(amst_Id),
+                selectedRow.fmG_Id,
+                selectedRow.fmH_Id,
+                selectedRow.ftI_Id,
+                selectedRow.fmA_Id
+            );
             const updatedHeadList =
                 res.data?.map((item) => {
                     if (item.fmH_Id === selectedRow?.fmH_Id && item.ftI_Id === selectedRow?.ftI_Id) {
@@ -223,10 +241,16 @@ export default function UpdateFeeTransactionWaiveOffForm({
                     return item;
                 }) ?? [];
             console.log('updatedheadlist', updatedHeadList, res.data);
-
+            const preselectedIds = updatedHeadList.reduce<string[]>((acc, s, ind) => {
+                if (s.fmH_Id === selectedRow.fmH_Id && s.ftI_Id === selectedRow.ftI_Id) {
+                    acc.push(ind.toString());
+                }
+                return acc;
+            }, []);
+            setPreSelectedInstallmentIds(preselectedIds);
             setHeadList(updatedHeadList ?? []);
-            res.data = updatedHeadList;
-            setTableProps(useDataTableProps(res ?? []));
+            //res.data = updatedHeadList;
+            //setTableProps(useDataTableProps(res ?? []));
         } catch (error) {
             console.error('Error fetching student class mapping', error);
             setHeadListError(error);
@@ -245,16 +269,16 @@ export default function UpdateFeeTransactionWaiveOffForm({
     }, [asmay_Id, asmcl_Id, asms_Id]);
 
     //--------------------Bind Head List---------------------------
-    useEffect(() => {
-        if (!selectedRow || headList.length === 0) return;
-        const preselectedIds = headList.reduce<string[]>((acc, s, ind) => {
-            if (s.fmH_Id === selectedRow.fmH_Id && s.ftI_Id === selectedRow.ftI_Id) {
-                acc.push(ind.toString());
-            }
-            return acc;
-        }, []);
-        setPreSelectedInstallmentIds(preselectedIds);
-    }, [selectedRow, headList]);
+    // useEffect(() => {
+    //     if (!selectedRow || headList.length === 0) return;
+    //     const preselectedIds = headList.reduce<string[]>((acc, s, ind) => {
+    //         if (s.fmH_Id === selectedRow.fmH_Id && s.ftI_Id === selectedRow.ftI_Id) {
+    //             acc.push(ind.toString());
+    //         }
+    //         return acc;
+    //     }, []);
+    //     setPreSelectedInstallmentIds(preselectedIds);
+    // }, [selectedRow, headList]);
 
     useEffect(() => {
         if (!selectedRow) return;
@@ -278,7 +302,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
     };
 
     const feeHeads = useMemo(() => {
-        return FeeTransactionHeadList.filter((col) => {
+        return FeeTransactionHeadUpdateList.filter((col) => {
             if (fineWaiveOff && 'accessorKey' in col && col.accessorKey === 'totalTobepaid') {
                 return false;
             }
@@ -370,8 +394,8 @@ export default function UpdateFeeTransactionWaiveOffForm({
                 finewaiveoff: fineWaiveOff === true ? 1 : 0,
                 fswO_WaivedOffRemarks: data.remarks || '',
                 completefinewaiveoff: completeFineWaiveOff === true ? 1 : 0,
-                filepath: uploadedLogo?.documentName || '',
-                filename: uploadedLogo?.document_Path || '',
+                filepath: uploadedLogo?.document_Path || '',
+                filename: uploadedLogo?.documentName || '',
                 headlist: formattedHeadList
             };
 
@@ -402,10 +426,6 @@ export default function UpdateFeeTransactionWaiveOffForm({
         setCompleteFineWaiveOff(false);
         setnameType('NameReg.No');
         setRemarks('');
-        setgrouplist([]);
-        setSelectedGroups([]);
-        // setHeadList([]);
-        setSelectedHead([]);
         setPhotoFile(null);
     };
     return (
@@ -434,8 +454,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                                     ? String(field.value)
                                                     : ''
                                             }
-                                            //   disabled={academicYearLoading}
-                                        >
+                                            disabled={true}>
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Academic Year--' />
                                             </SelectTrigger>
@@ -483,8 +502,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                                     ? String(field.value)
                                                     : ''
                                             }
-                                            //   disabled={classloading}
-                                        >
+                                            disabled={true}>
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Class --' />
                                             </SelectTrigger>
@@ -533,8 +551,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                                     ? String(field.value)
                                                     : ''
                                             }
-                                            //   disabled={secloading}
-                                        >
+                                            disabled={true}>
                                             <SelectTrigger className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select Section --' />
                                             </SelectTrigger>
@@ -570,6 +587,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                     className='form-radio h-4 w-4 text-blue-600'
                                     checked={nameType === 'NameReg.No'}
                                     onChange={(e) => setnameType(e.target.value)}
+                                    disabled={true}
                                 />
                                 <span className='text-gray-900 text-sm'>Name:Reg.No</span>
                             </label>
@@ -582,6 +600,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                     className='form-radio h-4 w-4 text-gray-600'
                                     checked={nameType === 'Reg.NoName'}
                                     onChange={(e) => setnameType(e.target.value)}
+                                    disabled={true}
                                 />
                                 <span className='text-gray-900 text-sm'>Reg.No:Name</span>
                             </label>
@@ -604,7 +623,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                                 field.onChange(id);
                                                 setstudentWise(id);
                                             }}>
-                                            <SelectTrigger className='min-w-[400px] text-center'>
+                                            <SelectTrigger disabled className='min-w-[400px] text-center'>
                                                 <SelectValue placeholder='--Select student --' />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -704,6 +723,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                         className='form-radio h-4 w-4 text-blue-600'
                                         checked={refundableType === 'Refundable'}
                                         onChange={(e) => setRefundableType(e.target.value)}
+                                        disabled={true}
                                     />
                                     <span className='text-gray-900 text-sm'>Refundable</span>
                                 </label>
@@ -716,6 +736,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                         className='form-radio h-4 w-4 text-gray-600'
                                         checked={refundableType === 'NonRefundable'}
                                         onChange={(e) => setRefundableType(e.target.value)}
+                                        disabled={true}
                                     />
                                     <span className='text-gray-900 text-sm'>Non Refundable</span>
                                 </label>
@@ -748,6 +769,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                                             type='checkbox'
                                                             value={grp.fmG_Id}
                                                             checked={selectedGroups.includes(optVal)}
+                                                            disabled={true}
                                                             onChange={async (e) => {
                                                                 const checked = e.target.checked;
                                                                 const newSelected = checked
@@ -782,6 +804,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                     value='FineWaiveOff'
                                     className='form-checkbox h-4 w-4 text-blue-600'
                                     checked={fineWaiveOff}
+                                    disabled={true}
                                     onChange={(e) => setFineWaiveOff(e.target.checked)}
                                 />
                                 <span className='text-gray-900 text-sm'>Fine WaiveOff</span>
@@ -794,7 +817,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                     value='CompleteFineWaiveOff'
                                     className='form-checkbox h-4 w-4 text-gray-600'
                                     checked={completeFineWaiveOff}
-                                    disabled={!fineWaiveOff}
+                                    disabled={true}
                                     onChange={(e) => setCompleteFineWaiveOff(e.target.checked)}
                                 />
                                 <span className='text-gray-900 text-sm'>Complete Fine WaiveOff</span>
@@ -881,7 +904,7 @@ export default function UpdateFeeTransactionWaiveOffForm({
                                 searchQuery=''
                                 showPagination={false}
                                 currentApiParams={apisearchParams_}
-                                enableRowSelection={true}
+                                // enableRowSelection={true}
                             />
                         </CollapsibleSection>
                     </div>

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -10,7 +9,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type EmployeeAdvanceRecord, advanceReportColumns, advanceTypeSummaryColumns } from './_components/columns';
 import { type AdvanceFilters, AdvanceReportFilters } from './_components/filters';
-
 // Advance Summary
 interface AdvanceSummary {
     totalEmployees: number;
@@ -25,7 +23,6 @@ interface AdvanceSummary {
     fullyRecoveredRequests: number;
     averageAdvanceAmount: number;
 }
-
 // Advance Type Summary
 interface AdvanceTypeSummary {
     advanceType: string;
@@ -36,20 +33,16 @@ interface AdvanceTypeSummary {
     recoveredAmount: number;
     remainingAmount: number;
 }
-
 export default function AdvanceReportPage() {
     const roleId = HRMS_MI_ID;
     const LogInUserId = 0;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeAdvanceReportOnload(roleId, LogInUserId);
     const searchMutation = useSearchEmployeeAdvanceReport();
-
     // State
     const [advanceRecords, setAdvanceRecords] = useState<EmployeeAdvanceRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<EmployeeAdvanceRecord[]>([]);
     const [showReport, setShowReport] = useState(false);
-
     const [filters, setFilters] = useState<AdvanceFilters>({
         selectedGroupTypes: [],
         selectedDepartments: [],
@@ -57,38 +50,32 @@ export default function AdvanceReportPage() {
         month: '',
         year: ''
     });
-
     // Memoize dropdown data from API
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     const groupTypes = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).groupTypedropdown || [];
     }, [onloadData?.data]);
-
     const departments = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).departmentdropdown || [];
     }, [onloadData?.data]);
-
     const designations = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).designationdropdown || [];
     }, [onloadData?.data]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -99,11 +86,9 @@ export default function AdvanceReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Filter records based on selected criteria
     useEffect(() => {
         let filtered = advanceRecords;
-
         // Filter by group types (by ID)
         if (filters.selectedGroupTypes.length > 0) {
             filtered = filtered.filter((record) => {
@@ -111,7 +96,6 @@ export default function AdvanceReportPage() {
                 return filters.selectedGroupTypes.includes(record.groupType);
             });
         }
-
         // Filter by departments (by ID)
         if (filters.selectedDepartments.length > 0) {
             filtered = filtered.filter((record) => {
@@ -119,7 +103,6 @@ export default function AdvanceReportPage() {
                 return filters.selectedDepartments.includes(record.department);
             });
         }
-
         // Filter by designations (by ID)
         if (filters.selectedDesignations.length > 0) {
             filtered = filtered.filter((record) => {
@@ -127,34 +110,27 @@ export default function AdvanceReportPage() {
                 return filters.selectedDesignations.includes(record.designation);
             });
         }
-
         // Filter by month
         if (filters.month) {
             filtered = filtered.filter((record) => record.month === filters.month);
         }
-
         // Filter by year
         if (filters.year) {
             filtered = filtered.filter((record) => record.year === filters.year);
         }
-
         setFilteredRecords(filtered);
     }, [filters, advanceRecords]);
-
     const handleFilterChange = (newFilters: AdvanceFilters) => {
         setFilters(newFilters);
     };
-
     const handleSearch = () => {
         if (!filters.month || !filters.year) {
             toast.error('Please select both month and year');
             return;
         }
-
         // Find month name from selected month
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
-
         // Find selected department IDs
         const selectedDepartmentIds = filters.selectedDepartments
             .map((id) => {
@@ -162,7 +138,6 @@ export default function AdvanceReportPage() {
                 return dept?.HRMD_Id;
             })
             .filter((id): id is number => id !== undefined);
-
         // Find selected designation IDs
         const selectedDesignationIds = filters.selectedDesignations
             .map((id) => {
@@ -170,11 +145,9 @@ export default function AdvanceReportPage() {
                 return desg?.HRMDES_Id;
             })
             .filter((id): id is number => id !== undefined);
-
         // Find selected year
         const selectedYearObj = years.find((y: any) => y.HRMLY_LeaveYear === filters.year);
         const yearValue = selectedYearObj ? Number.parseInt(selectedYearObj.HRMLY_LeaveYear) : Number.parseInt(filters.year) || 0;
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
@@ -183,14 +156,12 @@ export default function AdvanceReportPage() {
             HRESA_AdvYear: yearValue,
             HRESA_AdvMonth: monthName
         };
-
         // Call search API
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
                     // Extract employee details from response
                     const employeeData = response.data.employeeDetails || [];
-
                     if (Array.isArray(employeeData) && employeeData.length > 0) {
                         // Map API response to EmployeeAdvanceRecord format
                         const mappedRecords: EmployeeAdvanceRecord[] = employeeData.map((item: any, index: number) => {
@@ -198,7 +169,6 @@ export default function AdvanceReportPage() {
                             const approvedAmount = item.HRESA_ApprovedAmount || item.approvedAmount || 0;
                             const recoveredAmount = item.HRESA_RecoveredAmount || item.recoveredAmount || 0;
                             const remainingAmount = item.HRESA_RemainingAmount || item.remainingAmount || approvedAmount - recoveredAmount;
-
                             // Determine status
                             let status: 'Pending' | 'Approved' | 'Rejected' | 'Partially Recovered' | 'Fully Recovered' = 'Pending';
                             if (item.HRESA_Status) {
@@ -213,11 +183,9 @@ export default function AdvanceReportPage() {
                                     status = 'Approved';
                                 }
                             }
-
                             // Calculate advance percentage
                             const basicSalary = item.HRME_BasicSalary || item.basicSalary || 0;
                             const advancePercentage = basicSalary > 0 ? Math.round((advanceAmount / basicSalary) * 100) : 0;
-
                             return {
                                 id: `advance-${item.HRESA_Id || index}`,
                                 employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || '',
@@ -252,7 +220,6 @@ export default function AdvanceReportPage() {
                                 advancePercentage: advancePercentage
                             };
                         });
-
                         setAdvanceRecords(mappedRecords);
                         setShowReport(true);
                         toast.success('Employee Advance Report generated successfully');
@@ -267,12 +234,10 @@ export default function AdvanceReportPage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching advance report:', error);
                 toast.error(error.message || 'Failed to generate Employee Advance Report');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             selectedGroupTypes: [],
@@ -286,16 +251,13 @@ export default function AdvanceReportPage() {
         setShowReport(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Employee Advance Report exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate Advance summary
     const advanceSummary: AdvanceSummary = useMemo(() => {
         const uniqueEmployees = [...new Set(filteredRecords.map((record) => record.employeeCode))];
@@ -305,7 +267,6 @@ export default function AdvanceReportPage() {
         ).length;
         const rejectedRequests = filteredRecords.filter((record) => record.status === 'Rejected').length;
         const fullyRecoveredRequests = filteredRecords.filter((record) => record.status === 'Fully Recovered').length;
-
         const summary = filteredRecords.reduce(
             (acc, record) => ({
                 totalEmployees: uniqueEmployees.length,
@@ -334,27 +295,21 @@ export default function AdvanceReportPage() {
                 averageAdvanceAmount: 0
             }
         );
-
         summary.averageAdvanceAmount = filteredRecords.length > 0 ? Math.round(summary.totalAdvanceAmount / filteredRecords.length) : 0;
-
         return summary;
     }, [filteredRecords]);
-
     // Calculate Advance Type summary
     const advanceTypeSummaries: AdvanceTypeSummary[] = useMemo(() => {
         const typeMap = new Map<string, EmployeeAdvanceRecord[]>();
-
         filteredRecords.forEach((record) => {
             if (!typeMap.has(record.advanceType)) {
                 typeMap.set(record.advanceType, []);
             }
             typeMap.get(record.advanceType)!.push(record);
         });
-
         return Array.from(typeMap.entries())
             .map(([advanceType, records]) => {
                 const approvedRecords = records.filter((r) => r.status === 'Approved' || r.status.includes('Recovered'));
-
                 return {
                     advanceType,
                     totalRequests: records.length,
@@ -367,7 +322,6 @@ export default function AdvanceReportPage() {
             })
             .sort((a, b) => b.totalAmount - a.totalAmount);
     }, [filteredRecords]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -383,7 +337,6 @@ export default function AdvanceReportPage() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Report Results */}
             {showReport && (
                 <div className='space-y-4'>
@@ -407,7 +360,6 @@ export default function AdvanceReportPage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -459,7 +411,6 @@ export default function AdvanceReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Advance Type Summary Table */}
                     <Card>
                         <CardHeader>
@@ -479,7 +430,6 @@ export default function AdvanceReportPage() {
                             />
                         </CardContent>
                     </Card>
-
                     {/* Detailed Summary */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <Card>
@@ -520,7 +470,6 @@ export default function AdvanceReportPage() {
                                 </div>
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className='flex items-center gap-2 text-sm'>
@@ -554,7 +503,6 @@ export default function AdvanceReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Employee Advance Details Table */}
                     <Card>
                         <CardHeader>

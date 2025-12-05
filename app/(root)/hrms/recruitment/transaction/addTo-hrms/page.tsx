@@ -4,9 +4,7 @@
 // 2. Import form from _components/add-to-hrms-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +20,6 @@ import { Edit, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface HRMSEmployee extends BaseEntity {
     candidateName: string;
     candidateId: number;
@@ -41,7 +38,6 @@ interface HRMSEmployee extends BaseEntity {
     addedDate: string;
     updatedDate?: string;
 }
-
 interface Candidate extends BaseEntity {
     firstName: string;
     middleName?: string;
@@ -54,32 +50,26 @@ interface Candidate extends BaseEntity {
     maritalStatus: string;
     status: string;
 }
-
 interface Company extends BaseEntity {
     companyName: string;
     companyCode: string;
 }
-
 interface Department extends BaseEntity {
     departmentName: string;
     departmentCode: string;
 }
-
 interface Designation extends BaseEntity {
     designationName: string;
     designationCode: string;
 }
-
 interface EmployeeGrade extends BaseEntity {
     gradeName: string;
     gradeCode: string;
 }
-
 interface GroupType extends BaseEntity {
     groupTypeName: string;
     groupTypeCode: string;
 }
-
 type HRMSForm = {
     candidateId: string;
     companyName: string;
@@ -94,7 +84,6 @@ type HRMSForm = {
     employeeCode: string;
     hidCardNo: string;
 };
-
 export default function AddToHRMSPage() {
     const [hrmsEmployees, setHRMSEmployees] = useState<HRMSEmployee[]>([]);
     const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -107,7 +96,6 @@ export default function AddToHRMSPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState<HRMSEmployee | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-
     const hrmsDB = createLocalCrud<HRMSEmployee>('recruitment:hrms-employee');
     const candidateDB = createLocalCrud<Candidate>('recruitment:candidate');
     const companyDB = createLocalCrud<Company>('hrms:company');
@@ -115,7 +103,6 @@ export default function AddToHRMSPage() {
     const designationDB = createLocalCrud<Designation>('hrms:designation');
     const employeeGradeDB = createLocalCrud<EmployeeGrade>('hrms:employee-grade');
     const groupTypeDB = createLocalCrud<GroupType>('hrms:group-type');
-
     const {
         register,
         handleSubmit,
@@ -125,20 +112,16 @@ export default function AddToHRMSPage() {
     } = useForm<HRMSForm>({
         mode: 'onChange'
     });
-
     // Load data on component mount
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = async () => {
         try {
             setHRMSEmployees(hrmsDB.list());
             setCandidates(candidateDB.list());
-
             // Create sample data if none exists
             initializeSampleData();
-
             setCompanies(companyDB.list());
             setDepartments(departmentDB.list());
             setDesignations(designationDB.list());
@@ -150,7 +133,6 @@ export default function AddToHRMSPage() {
             setIsLoading(false);
         }
     };
-
     const initializeSampleData = () => {
         // Initialize Companies
         if (companyDB.list().length === 0) {
@@ -161,7 +143,6 @@ export default function AddToHRMSPage() {
             ];
             sampleCompanies.forEach((company) => companyDB.create(company));
         }
-
         // Initialize Departments
         if (departmentDB.list().length === 0) {
             const sampleDepartments: Omit<Department, 'id' | 'createdAt'>[] = [
@@ -173,7 +154,6 @@ export default function AddToHRMSPage() {
             ];
             sampleDepartments.forEach((dept) => departmentDB.create(dept));
         }
-
         // Initialize Designations
         if (designationDB.list().length === 0) {
             const sampleDesignations: Omit<Designation, 'id' | 'createdAt'>[] = [
@@ -186,7 +166,6 @@ export default function AddToHRMSPage() {
             ];
             sampleDesignations.forEach((desig) => designationDB.create(desig));
         }
-
         // Initialize Employee Grades
         if (employeeGradeDB.list().length === 0) {
             const sampleGrades: Omit<EmployeeGrade, 'id' | 'createdAt'>[] = [
@@ -197,7 +176,6 @@ export default function AddToHRMSPage() {
             ];
             sampleGrades.forEach((grade) => employeeGradeDB.create(grade));
         }
-
         // Initialize Group Types
         if (groupTypeDB.list().length === 0) {
             const sampleGroupTypes: Omit<GroupType, 'id' | 'createdAt'>[] = [
@@ -209,29 +187,24 @@ export default function AddToHRMSPage() {
             sampleGroupTypes.forEach((group) => groupTypeDB.create(group));
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setTimeout(() => {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingEmployee(null);
         reset();
     };
-
     const onSubmit: SubmitHandler<HRMSForm> = async (data: HRMSForm) => {
         try {
             const candidate = candidates.find((c) => c.id.toString() === data.candidateId);
-
             if (!candidate) {
                 toast.error('Please select a valid candidate');
                 return;
             }
-
             const hrmsEmployeeData: Omit<HRMSEmployee, 'id' | 'createdAt'> = {
                 candidateName: `${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim(),
                 candidateId: candidate.id,
@@ -250,7 +223,6 @@ export default function AddToHRMSPage() {
                 addedDate: new Date().toISOString(),
                 updatedDate: editingEmployee ? new Date().toISOString() : undefined
             };
-
             if (editingEmployee) {
                 hrmsDB.update(editingEmployee.id, hrmsEmployeeData);
                 toast.success('HRMS employee updated successfully');
@@ -258,19 +230,16 @@ export default function AddToHRMSPage() {
                 hrmsDB.create(hrmsEmployeeData);
                 toast.success('Employee added to HRMS successfully');
             }
-
             handleFormClose();
             loadData();
         } catch (error: any) {
             toast.error(error.message || 'Operation failed');
         }
     };
-
     const handleClear = () => {
         handleFormClose();
         toast.info('Form cleared');
     };
-
     const handleEdit = (employee: HRMSEmployee) => {
         setEditingEmployee(employee);
         reset({
@@ -292,7 +261,6 @@ export default function AddToHRMSPage() {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
     const handleDelete = async (employee: HRMSEmployee) => {
         try {
             hrmsDB.remove(employee.id);
@@ -302,12 +270,10 @@ export default function AddToHRMSPage() {
             toast.error('Failed to delete employee');
         }
     };
-
     const getCandidateName = (candidateId: number) => {
         const candidate = candidates.find((c) => c.id === candidateId);
         return candidate ? `${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim() : 'Unknown';
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -325,7 +291,6 @@ export default function AddToHRMSPage() {
                         Add To HRMS
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     title='HRMS Employees Data'
@@ -343,7 +308,6 @@ export default function AddToHRMSPage() {
                         getCandidateName={getCandidateName}
                     />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef}>
@@ -376,7 +340,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.candidateId && <FormError>Candidate selection is required</FormError>}
                                     </div>
-
                                     {/* Employee Department */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -396,7 +359,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.employeeDepartment && <FormError>Department is required</FormError>}
                                     </div>
-
                                     {/* Company Name */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -416,7 +378,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.companyName && <FormError>Company is required</FormError>}
                                     </div>
-
                                     {/* Employee Designation */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -436,7 +397,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.employeeDesignation && <FormError>Designation is required</FormError>}
                                     </div>
-
                                     {/* Employee Type */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -456,7 +416,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.employeeType && <FormError>Employee type is required</FormError>}
                                     </div>
-
                                     {/* Employee Grade */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -476,7 +435,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.employeeGrade && <FormError>Employee grade is required</FormError>}
                                     </div>
-
                                     {/* Religion */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -497,7 +455,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.religion && <FormError>Religion is required</FormError>}
                                     </div>
-
                                     {/* Group Type */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -517,7 +474,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.groupType && <FormError>Group type is required</FormError>}
                                     </div>
-
                                     {/* Caste */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -537,7 +493,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.caste && <FormError>Caste is required</FormError>}
                                     </div>
-
                                     {/* Employee Code */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -549,7 +504,6 @@ export default function AddToHRMSPage() {
                                             error={errors.employeeCode?.message}
                                         />
                                     </div>
-
                                     {/* Marital Status */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -568,7 +522,6 @@ export default function AddToHRMSPage() {
                                         </Select>
                                         {errors.maritalStatus && <FormError>Marital status is required</FormError>}
                                     </div>
-
                                     {/* HID Card No */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -581,7 +534,6 @@ export default function AddToHRMSPage() {
                                         />
                                     </div>
                                 </div>
-
                                 {/* Form Actions */}
                                 <div className='flex justify-center gap-4 border-t pt-6'>
                                     <Button type='button' variant='outline' onClick={handleClear}>
@@ -610,7 +562,6 @@ export default function AddToHRMSPage() {
         </div>
     );
 }
-
 interface HRMSEmployeeTableProps {
     employees: HRMSEmployee[];
     isLoading: boolean;
@@ -618,7 +569,6 @@ interface HRMSEmployeeTableProps {
     onDelete: (employee: HRMSEmployee) => void;
     getCandidateName: (candidateId: number) => string;
 }
-
 function HRMSEmployeeTable({ employees, isLoading, onEdit, onDelete, getCandidateName: _getCandidateName }: HRMSEmployeeTableProps) {
     const employeeColumns: ColumnDef<HRMSEmployee>[] = [
         {
@@ -693,7 +643,6 @@ function HRMSEmployeeTable({ employees, isLoading, onEdit, onDelete, getCandidat
             }
         }
     ];
-
     return (
         <GenericDataTable
             isLoading={isLoading}

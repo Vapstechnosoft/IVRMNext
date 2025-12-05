@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,9 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Check, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type HolidayReportFilters = z.infer<typeof holidayReportFilterSchema>;
-
 interface HolidayReportFiltersProps {
     filters: HolidayReportFilters;
     calendarYears: string[];
@@ -19,9 +16,7 @@ interface HolidayReportFiltersProps {
     onSearch: () => void;
     onCancel: () => void;
 }
-
 const holidayTypes = ['PUBLIC HOLIDAY', 'WEEK DAY', 'WEEK END', 'NATIONAL HOLIDAY', 'FESTIVAL', 'OPTIONAL HOLIDAY'];
-
 export function HolidayReportFilters({ filters, calendarYears, onFilterChange, onSearch, onCancel }: HolidayReportFiltersProps) {
     const {
         handleSubmit,
@@ -32,18 +27,15 @@ export function HolidayReportFilters({ filters, calendarYears, onFilterChange, o
         defaultValues: filters,
         mode: 'onChange'
     });
-
     const handleFilterChange = (key: keyof HolidayReportFilters, value: string) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const onSubmit = (data: HolidayReportFilters) => {
         onFilterChange(data);
         onSearch();
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -70,7 +62,6 @@ export function HolidayReportFilters({ filters, calendarYears, onFilterChange, o
                         </Select>
                         {errors.calendarYear && <FormError>{errors.calendarYear.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-4'>
                         <label className='font-medium text-sm' htmlFor='holidayType'>
                             Holiday Type <span className='text-red-500'>*</span>
@@ -89,7 +80,6 @@ export function HolidayReportFilters({ filters, calendarYears, onFilterChange, o
                         </Select>
                         {errors.holidayType && <FormError>{errors.holidayType.message}</FormError>}
                     </div>
-
                     <div className='flex items-end gap-2 md:col-span-4'>
                         <Button type='submit'>
                             <Check className='mr-2 h-4 w-4' /> Report

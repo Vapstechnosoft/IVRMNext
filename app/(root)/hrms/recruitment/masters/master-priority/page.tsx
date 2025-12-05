@@ -4,7 +4,6 @@
 // 2. Import form from _components/priority-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,32 +20,26 @@ import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-r
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface MasterPriority extends BaseEntity {
     institution: string;
     priority: string;
     order: string;
     isActive: boolean;
 }
-
 type MasterPriorityForm = {
     institution: string;
     priority: string;
     order: string;
     isActive: boolean;
 };
-
 const institutions = ['VAPS School', 'VAPS College', 'VAPS University', 'VAPS Institute', 'VAPS Academy'];
-
 export default function MasterPriorityPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [priorities, setPriorities] = useState<MasterPriority[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const formRef = useRef<HTMLDivElement>(null);
-
     const priorityDB = createLocalCrud<MasterPriority>('master:priority');
-
     const {
         register,
         handleSubmit,
@@ -60,14 +53,11 @@ export default function MasterPriorityPage() {
             isActive: true
         }
     });
-
     const institution = watch('institution');
-
     // Load data on component mount
     useEffect(() => {
         loadPriorities();
     }, []);
-
     const loadPriorities = () => {
         try {
             setPriorities(priorityDB.list());
@@ -77,7 +67,6 @@ export default function MasterPriorityPage() {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
@@ -90,13 +79,11 @@ export default function MasterPriorityPage() {
             });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
         reset({ isActive: true });
     };
-
     const onSubmit: SubmitHandler<MasterPriorityForm> = async (data: MasterPriorityForm) => {
         try {
             if (editingId) {
@@ -112,7 +99,6 @@ export default function MasterPriorityPage() {
             toast.error(error.message || 'Operation failed');
         }
     };
-
     const handleEdit = (priority: MasterPriority) => {
         setEditingId(priority.id);
         setValue('institution', priority.institution);
@@ -120,7 +106,6 @@ export default function MasterPriorityPage() {
         setValue('order', priority.order);
         setValue('isActive', priority.isActive);
         setIsFormOpen(true);
-
         // Scroll to form after state update
         setTimeout(() => {
             formRef.current?.scrollIntoView({
@@ -129,7 +114,6 @@ export default function MasterPriorityPage() {
             });
         }, 100);
     };
-
     const handleDelete = (id: number) => {
         try {
             priorityDB.remove(id);
@@ -139,7 +123,6 @@ export default function MasterPriorityPage() {
             toast.error('Failed to delete priority');
         }
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -160,7 +143,6 @@ export default function MasterPriorityPage() {
                         Add Master Priority
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     // title='Master Priorities Data'
@@ -172,7 +154,6 @@ export default function MasterPriorityPage() {
                     headerClassName=''>
                     <PriorityTable priorities={priorities} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -222,7 +203,6 @@ export default function MasterPriorityPage() {
                                                 )}
                                                 {errors.institution && <FormError>{errors.institution.message}</FormError>}
                                             </div>
-
                                             <InputText
                                                 label='Order'
                                                 required
@@ -232,7 +212,6 @@ export default function MasterPriorityPage() {
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                         </div>
-
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                             <InputText
                                                 label='Priority'
@@ -242,7 +221,6 @@ export default function MasterPriorityPage() {
                                                 error={errors.priority?.message}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
-
                                             <div className='flex items-center space-y-2 pt-6'>
                                                 <input
                                                     type='checkbox'
@@ -255,11 +233,9 @@ export default function MasterPriorityPage() {
                                                 </label>
                                             </div>
                                         </div>
-
                                         {/* Root Error */}
                                         {errors.root && <FormError>{errors.root.message}</FormError>}
                                     </div>
-
                                     {/* Action Buttons */}
                                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                                         <Button
@@ -296,14 +272,12 @@ export default function MasterPriorityPage() {
         </div>
     );
 }
-
 interface PriorityTableProps {
     priorities: MasterPriority[];
     isLoading: boolean;
     onEdit: (priority: MasterPriority) => void;
     onDelete: (id: number) => void;
 }
-
 function PriorityTable({ priorities, isLoading, onEdit, onDelete }: PriorityTableProps) {
     const priorityColumns: ColumnDef<MasterPriority>[] = [
         {
@@ -362,7 +336,6 @@ function PriorityTable({ priorities, isLoading, onEdit, onDelete }: PriorityTabl
             }
         }
     ];
-
     return (
         <GenericDataTable
             isLoading={isLoading}

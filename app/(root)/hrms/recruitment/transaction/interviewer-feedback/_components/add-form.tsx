@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,7 +8,6 @@ import { Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-
 const interviewerFeedbackSchema = z.object({
     candidateId: z.string().min(1, 'Candidate is required'),
     interviewId: z.string().min(1, 'Interview is required'),
@@ -18,15 +16,12 @@ const interviewerFeedbackSchema = z.object({
     feedback: z.string().min(1, 'Feedback is required'),
     recommendation: z.string().min(1, 'Recommendation is required')
 });
-
 type FormFields = z.infer<typeof interviewerFeedbackSchema>;
-
 interface AddInterviewerFeedbackFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-
 export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, className = '' }: AddInterviewerFeedbackFormProps) {
     const {
         control,
@@ -38,7 +33,6 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
         resolver: zodResolver(interviewerFeedbackSchema),
         mode: 'onChange'
     });
-
     const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             // TODO: Replace with actual API call
@@ -49,7 +43,6 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
             toast.error(error.message || 'Failed to add interviewer feedback');
         }
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
             <div className='flex flex-col gap-5'>
@@ -75,7 +68,6 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
                         />
                         {errors.candidateId && <FormError>{errors.candidateId.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='block font-medium text-sm'>
                             Interview <span className='text-red-500'>*</span>
@@ -97,7 +89,6 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
                         />
                         {errors.interviewId && <FormError>{errors.interviewId.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='block font-medium text-sm'>
                             Interviewer <span className='text-red-500'>*</span>
@@ -119,7 +110,6 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
                         />
                         {errors.interviewerId && <FormError>{errors.interviewerId.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='block font-medium text-sm'>
                             Rating <span className='text-red-500'>*</span>
@@ -143,7 +133,6 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
                         />
                         {errors.rating && <FormError>{errors.rating.message}</FormError>}
                     </div>
-
                     <div className='space-y-2 md:col-span-2'>
                         <label className='block font-medium text-sm'>
                             Feedback <span className='text-red-500'>*</span>
@@ -151,7 +140,6 @@ export default function AddInterviewerFeedbackForm({ onSuccess, onCancel, classN
                         <Textarea placeholder='Enter feedback' rows={4} {...register('feedback')} />
                         {errors.feedback && <FormError>{errors.feedback.message}</FormError>}
                     </div>
-
                     <div className='space-y-2 md:col-span-2'>
                         <label className='block font-medium text-sm'>
                             Recommendation <span className='text-red-500'>*</span>

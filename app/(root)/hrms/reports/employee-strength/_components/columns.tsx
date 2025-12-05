@@ -1,8 +1,6 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface EmployeeStrengthRecord {
     id?: number;
     createdAt?: string;
@@ -17,7 +15,6 @@ export interface EmployeeStrengthRecord {
     femaleEmployees: number;
     dateRange: string;
 }
-
 export const employeeStrengthColumns: ColumnDef<EmployeeStrengthRecord>[] = [
     {
         accessorKey: 'id',

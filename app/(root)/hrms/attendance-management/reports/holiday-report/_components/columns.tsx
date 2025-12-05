@@ -1,9 +1,7 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface HolidayReportRow extends BaseEntity {
     calendarYear: string;
     department: string;
@@ -13,7 +11,6 @@ export interface HolidayReportRow extends BaseEntity {
     toDate: string;
     isActive: boolean;
 }
-
 export const holidayReportColumns: ColumnDef<HolidayReportRow>[] = [
     {
         id: 'sl',

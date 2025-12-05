@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError } from '@/components/ui/extension/field';
@@ -15,15 +14,12 @@ import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-ho
 import type { z } from 'zod';
 import { TimePicker12Hour } from '../../master-shift/_components/time-picker-12hour';
 import type { MissingLog } from './columns';
-
 export type MissingLogFormData = z.infer<typeof employeeMissingLogsSchema.addOrUpdate>;
-
 interface MissingLogFormProps {
     editingMissingLog: MissingLog | null;
     onSubmit: (data: MissingLogFormData) => void;
     onCancel: () => void;
 }
-
 export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: MissingLogFormProps) {
     const {
         register,
@@ -61,12 +57,10 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                   ]
               }
     });
-
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'entries'
     });
-
     const handleAddRow = () => {
         append({
             time: '00:00',
@@ -75,41 +69,33 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
             file: undefined
         });
     };
-
     const handleRemoveRow = (index: number) => {
         if (fields.length > 1) {
             remove(index);
         }
     };
-
     const handleFileChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             const maxSize = 5 * 1024 * 1024; // 5MB
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-
             if (file.size > maxSize) {
                 alert('File must not exceed 5MB');
                 return;
             }
-
             if (!allowedTypes.includes(file.type)) {
                 alert('File must be jpg, png, or pdf');
                 return;
             }
-
             setValue(`entries.${index}.uploadFile`, file);
             setValue(`entries.${index}.file`, file.name);
         }
     };
-
     const handleFormSubmit: SubmitHandler<MissingLogFormData> = async (data) => {
         onSubmit(data);
     };
-
     // Mock employee list - replace with actual data source
     const employees = ['RAMESH G', 'Govindalah M', 'Siddesh Kumar R', 'John Doe', 'Jane Smith'];
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
             {/* Employee Name and Date */}
@@ -132,7 +118,6 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                     </Select>
                     {errors.employeeName && <FormError>{errors.employeeName.message}</FormError>}
                 </div>
-
                 <div className='space-y-2'>
                     <label className='font-medium text-sm' htmlFor='date'>
                         Date <span className='text-red-500'>*</span>
@@ -144,7 +129,6 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                             const selectedDate = field.value ? new Date(field.value) : undefined;
                             const maxDate = new Date();
                             maxDate.setHours(23, 59, 59, 999);
-
                             return (
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -181,13 +165,11 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                     {errors.date && <FormError>{errors.date.message}</FormError>}
                 </div>
             </div>
-
             {/* Missing Time Entry Grid */}
             <div className='space-y-4'>
                 <div className='border-primary border-b-2 pb-2'>
                     <h3 className='font-semibold text-base'>Missing Time Entry</h3>
                 </div>
-
                 <div className='overflow-x-auto'>
                     <table className='w-full border-collapse'>
                         <thead>
@@ -315,19 +297,16 @@ export function MissingLogForm({ editingMissingLog, onSubmit, onCancel }: Missin
                         </tbody>
                     </table>
                 </div>
-
                 {/* Add Row Button */}
                 <div className='flex justify-end'>
                     <Button type='button' variant='outline' onClick={handleAddRow} size='sm'>
                         <Plus className='mr-2 h-4 w-4' /> Add Row
                     </Button>
                 </div>
-
                 {errors.entries && typeof errors.entries === 'object' && 'message' in errors.entries && (
                     <FormError>{errors.entries.message as string}</FormError>
                 )}
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-4 border-t pt-6'>
                 <Button type='button' variant='outline' onClick={onCancel}>

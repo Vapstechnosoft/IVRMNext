@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
@@ -7,7 +6,6 @@ import type {
     EmployeeLogReportOnloadResponse,
     EmployeeLogReportGetDataResponse
 } from '@/types/hrms/reports/employee-log-report';
-
 /**
  * Get onload data for employee log report
  * This endpoint returns filter dropdowns (types/group types)
@@ -19,7 +17,6 @@ export async function getEmployeeLogReportOnload(
     UserRole = ''
 ): Promise<ApiResponse<EmployeeLogReportOnloadResponse>> {
     const url = '/api/EmployeeLogReportFacade/getdata';
-    
     // Build request body
     const requestBody: EmployeeLogReportOnloadRequest = {
         page: 1,
@@ -33,14 +30,11 @@ export async function getEmployeeLogReportOnload(
         loginUserId: LoginUserId,
         userRole: UserRole
     };
-    
     const response = await api.post<EmployeeLogReportGetDataResponse>('hrmsfrontoffice', url, requestBody);
-    
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "OK", data: { types: [...], months: null, years: null }, total: 0, page: 1, page_size: 10 }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const responseData = response.data;
-        
         if (responseData) {
             const data = responseData as any;
             return {
@@ -54,7 +48,6 @@ export async function getEmployeeLogReportOnload(
             };
         }
     }
-    
     // Return empty data if response structure is unexpected
     return {
         success: false,
@@ -66,7 +59,6 @@ export async function getEmployeeLogReportOnload(
         }
     };
 }
-
 /**
  * Get employee log report data with pagination, search, and sort
  * TODO: Replace this with the actual search endpoint once provided
@@ -97,7 +89,6 @@ export async function getEmployeeLogReportList(
 ): Promise<ApiResponse<any>> {
     // TODO: Replace this URL with the actual search endpoint
     const url = '/api/EmployeeLogReportFacade/search'; // PLACEHOLDER - update when search endpoint is provided
-    
     // Build request body with pagination, search, sort, and filter params
     const requestBody: any = {
         page: searchParams?.page || 1,
@@ -111,7 +102,6 @@ export async function getEmployeeLogReportList(
         loginUserId: filterParams?.LoginUserId || 0,
         userRole: filterParams?.UserRole || ''
     };
-    
     // Add filter parameters
     if (filterParams?.typeIdList && filterParams.typeIdList.length > 0) {
         requestBody.typeIdList = filterParams.typeIdList;
@@ -152,10 +142,8 @@ export async function getEmployeeLogReportList(
     if (filterParams?.metric) {
         requestBody.metric = filterParams.metric;
     }
-    
     // TODO: Uncomment and update when search endpoint is available
     // const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-    
     // For now, return empty response until search endpoint is provided
     return {
         success: false,
@@ -168,4 +156,3 @@ export async function getEmployeeLogReportList(
         }
     };
 }
-

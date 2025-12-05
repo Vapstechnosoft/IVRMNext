@@ -1,25 +1,20 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface MasterPriority {
     id: number;
     institution: string;
     priority: string;
     order: string;
     isActive: boolean;
-
     createdAt: string;
 }
-
 interface MasterPriorityColumnsProps {
     onEdit: (row: MasterPriority) => void;
     onDelete: (row: MasterPriority) => void;
 }
-
 export const getMasterPriorityColumns = ({ onEdit, onDelete }: MasterPriorityColumnsProps): ColumnDef<MasterPriority>[] => [
     {
         id: 'sl',

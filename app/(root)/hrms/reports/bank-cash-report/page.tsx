@@ -1,12 +1,10 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useBankCashReportOnload, useSearchBankCashReport } from '@/hooks/hrms/useReports';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { BankCashReportFilters, type BankCashReportFilters as BankCashReportFiltersType } from './_components/filters';
 import { BankCashReportTemplate } from './_components/report-template';
-
 // Simplified Bank Cash Record for template
 interface BankCashRecord {
     id?: string;
@@ -16,21 +14,17 @@ interface BankCashRecord {
     ifscCode?: string;
     branch?: string;
 }
-
 export default function BankCashReportPage() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useBankCashReportOnload(roleId, 0);
     const searchMutation = useSearchBankCashReport();
-
     // State
     const [bankCashRecords, setBankCashRecords] = useState<BankCashRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<BankCashRecord[]>([]);
     const [showReport, setShowReport] = useState(false);
     const [schoolName, setSchoolName] = useState<string>('');
     const [schoolAddress, setSchoolAddress] = useState<string>('');
-
     const [filters, setFilters] = useState<BankCashReportFiltersType>({
         selectedTypes: [],
         selectedDepartments: [],
@@ -39,38 +33,32 @@ export default function BankCashReportPage() {
         month: '',
         year: ''
     });
-
     // Memoize dropdown data from API
     const groupTypes = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).groupTypedropdown || [];
     }, [onloadData?.data]);
-
     const departments = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).departmentdropdown || [];
     }, [onloadData?.data]);
-
     const designations = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).designationdropdown || [];
     }, [onloadData?.data]);
-
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -81,7 +69,6 @@ export default function BankCashReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Map API data to component format
     const mappedGroupTypes = useMemo(() => {
         return groupTypes.map((gt: any) => ({
@@ -92,7 +79,6 @@ export default function BankCashReportPage() {
             isActive: gt.HRMGT_ActiveFlag !== false
         }));
     }, [groupTypes]);
-
     const mappedDepartments = useMemo(() => {
         return departments.map((dept: any) => ({
             id: dept.HRMD_Id,
@@ -102,7 +88,6 @@ export default function BankCashReportPage() {
             isActive: dept.HRMD_ActiveFlag !== false
         }));
     }, [departments]);
-
     const mappedDesignations = useMemo(() => {
         return designations.map((desig: any) => ({
             id: desig.HRMDES_Id,
@@ -114,34 +99,27 @@ export default function BankCashReportPage() {
             isActive: desig.HRMDES_ActiveFlag !== false
         }));
     }, [designations]);
-
     // Filter records based on selected criteria
     useEffect(() => {
         // For now, show all records as filtering is done on the API side
         setFilteredRecords(bankCashRecords);
     }, [bankCashRecords]);
-
     const handleFilterChange = (newFilters: BankCashReportFiltersType) => {
         setFilters(newFilters);
     };
-
     const handleSearch = () => {
         // Always show report template when search is clicked, even without data or on errors
         setShowReport(true);
-
         if (!filters.month || !filters.year) {
             toast.error('Please select month and year');
             return;
         }
-
         // Find month ID from selected month name
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthId = selectedMonthObj?.IVRM_Month_Id || 0;
-
         // Find year ID from selected year
         const selectedYearObj = years.find((y: any) => y.HRMLY_LeaveYear === filters.year);
         const yearId = selectedYearObj?.HRMLY_Id || 0;
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
@@ -151,7 +129,6 @@ export default function BankCashReportPage() {
             departmentselected: filters.selectedDepartments.length > 0 ? filters.selectedDepartments.map((id) => Number.parseInt(id)) : [],
             groupTypeselected: filters.selectedTypes.length > 0 ? filters.selectedTypes.map((id) => Number.parseInt(id)) : []
         };
-
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -166,7 +143,6 @@ export default function BankCashReportPage() {
                         if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
                         setSchoolAddress(addressParts.join(', ') || '');
                     }
-
                     // Map API response to BankCashRecord format (simplified for template)
                     const employeeDetails = response.data.employeeDetails || [];
                     const mappedRecords: BankCashRecord[] = employeeDetails.map((emp: any, index: number) => ({
@@ -181,7 +157,6 @@ export default function BankCashReportPage() {
                         ifscCode: filters.paymentMode === 'Bank' ? emp.HRMBD_IFSCCode || emp.IFSCCode || emp.ifscCode || '' : undefined,
                         branch: filters.paymentMode === 'Bank' ? emp.HRMBD_BranchName || emp.BranchName || emp.branch || '' : undefined
                     }));
-
                     setBankCashRecords(mappedRecords);
                     toast.success('Bank/Cash Report generated successfully');
                 } else {
@@ -189,12 +164,10 @@ export default function BankCashReportPage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching bank cash report:', error);
                 toast.error(error.message || 'Failed to generate bank cash report');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             selectedTypes: [],
@@ -211,16 +184,13 @@ export default function BankCashReportPage() {
         setSchoolAddress('');
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Bank/Cash Report exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Extract institution details from onload data if available
     useEffect(() => {
         if (onloadData?.data) {
@@ -236,7 +206,6 @@ export default function BankCashReportPage() {
             }
         }
     }, [onloadData]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -252,7 +221,6 @@ export default function BankCashReportPage() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Report Results */}
             {showReport && (
                 <BankCashReportTemplate

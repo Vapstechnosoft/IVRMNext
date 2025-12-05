@@ -4,9 +4,7 @@
 // 2. Import form from _components/mrfrequisition-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +18,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
 interface MRF extends BaseEntity {
     requestedBy?: string;
     requestedDate?: string;
@@ -42,15 +39,12 @@ interface MRF extends BaseEntity {
     state: string;
     reason: string;
 }
-
 export default function MRFApprovalPage() {
     const [data, setData] = useState<MRF[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selected, setSelected] = useState<MRF | null>(null);
     const [filters, setFilters] = useState({ department: '', position: '', priority: '', count: '', location: '' });
-
     const mrfDB = createLocalCrud<MRF>('recruitment:mrf');
-
     useEffect(() => {
         try {
             setData(mrfDB.list());
@@ -58,7 +52,6 @@ export default function MRFApprovalPage() {
             setIsLoading(false);
         }
     }, []);
-
     const filtered = useMemo(() => {
         return data.filter(
             (m) =>
@@ -69,7 +62,6 @@ export default function MRFApprovalPage() {
                 (filters.location ? m.locationType.toLowerCase().includes(filters.location.toLowerCase()) : true)
         );
     }, [data, filters]);
-
     const columns: ColumnDef<MRF>[] = [
         {
             id: 'sl',
@@ -122,7 +114,6 @@ export default function MRFApprovalPage() {
             }
         }
     ];
-
     const handleApprove = (m: MRF) => {
         mrfDB.update(m.id, { ...m, status: 'Approved' });
         toast.success('MRF approved');
@@ -133,7 +124,6 @@ export default function MRFApprovalPage() {
         toast.success('MRF rejected');
         setData(mrfDB.list());
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -142,7 +132,6 @@ export default function MRFApprovalPage() {
                         <Heading title='MRF Approval - Manpower Requisition Form' description='Approve or reject manpower requisitions' />
                     </div>
                 </div>
-
                 <CollapsibleSection
                     title='MRF Requisition List'
                     description='Filter and review requisitions'
@@ -186,7 +175,6 @@ export default function MRFApprovalPage() {
                         showViewOptions
                     />
                 </CollapsibleSection>
-
                 <CollapsibleSection
                     title='MRF Requisition Detail'
                     description={selected ? selected.position : 'Select a record to view details'}

@@ -11,7 +11,8 @@ export const employeeTypeSchema = {
             .string()
             .min(1, 'Employee type is required')
             .max(50, 'Employee type must not exceed 50 characters')
-            .regex(/^[a-zA-Z\s]+$/, 'Employee type must contain only alphabets'),
+            .regex(/^[a-zA-Z\s]+$/, 'Employee type must contain only alphabets')
+            .refine((val) => val.trim().length > 0 && /[a-zA-Z]/.test(val), 'Employee type must contain at least one letter'),
         HRMET_ActiveFlag: z.boolean().default(true)
     })
 };
@@ -63,7 +64,7 @@ export const departmentSchema = {
         HRMD_InternalTrainingMinimumHrs: z
             .number()
             .min(0, 'Training hours must be a positive number')
-            .max(99, 'Training hours must not exceed 2 digits')
+            .max(999, 'Training hours must not exceed 3 digits')
             .optional(),
         HRMD_ActiveFlag: z.boolean().default(true)
     })

@@ -156,7 +156,7 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
             const miIdFromRow = selectedRow.mI_Id ?? (selectedRow as any).mI_ID ?? (selectedRow as any).mi_id ?? 30;
 
             const payload = {
-                fyrebseT_Id: Number(data.fyrebseT_Id),
+                fyrebseT_Id: Number(selectedRow.fyrebseT_Id),
                 mI_Id: Number(miIdFromRow),
                 asmaY_Id,
                 fyrebseT_RebateTypeFlg: data.fyrebseT_RebateTypeFlg,

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,9 +8,7 @@ import { use, useState } from 'react';
 import { toast } from 'sonner';
 import { type LeaveOpeningBalance, getLeaveOpeningBalanceColumns } from './_components/columns';
 import { LeaveOpeningBalanceForm, type LeaveOpeningBalanceFormData } from './_components/leave-opening-balance-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 // TODO: Replace with actual API hooks
 // Example structure:
 // const { data: typesData, isLoading: isLoadingTypes } = useLeaveOpeningBalanceTypes();
@@ -24,18 +21,15 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 // });
 // const { data: leaveTypesData } = useLeaveTypes();
 // const { data: reportData, isLoading: isLoadingReport } = useLeaveOpeningBalanceReport();
-
 export default function LeaveOpeningBalancePage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const [rows, setRows] = useState<LeaveOpeningBalance[]>([]);
-
     return (
         <FormProvider<LeaveOpeningBalance>>
             <LeaveOpeningBalancePageContent rows={rows} setRows={setRows} />
         </FormProvider>
     );
 }
-
 function LeaveOpeningBalancePageContent({
     rows,
     setRows
@@ -45,7 +39,6 @@ function LeaveOpeningBalancePageContent({
 }) {
     const { openAddForm } = useFormContext<LeaveOpeningBalance>();
     const { openEditForm } = useFormContext<LeaveOpeningBalance>();
-
     // TODO: Replace with actual API calls
     // These will be populated from API responses
     const types: Array<{ id: number; name: string }> = [];
@@ -57,11 +50,9 @@ function LeaveOpeningBalancePageContent({
     const isLoadingDepartments = false;
     const isLoadingDesignations = false;
     const isLoadingEmployees = false;
-
     const columns = getLeaveOpeningBalanceColumns({
         onEdit: openEditForm
     });
-
     const tableProps = useDataTableProps({
         data: rows,
         columns: columns,
@@ -71,7 +62,6 @@ function LeaveOpeningBalancePageContent({
             // Search params change handler - no action needed
         }
     });
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -85,7 +75,6 @@ function LeaveOpeningBalancePageContent({
                         Add Leave Opening Balance
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     title='LEAVE OPENING BALANCE REPORT'
@@ -110,7 +99,6 @@ function LeaveOpeningBalancePageContent({
                         />
                     )}
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections
                     types={types}
@@ -128,7 +116,6 @@ function LeaveOpeningBalancePageContent({
         </div>
     );
 }
-
 function FormSections({
     types,
     departments,
@@ -155,7 +142,6 @@ function FormSections({
 }) {
     const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<LeaveOpeningBalance>();
-
     const handleFormSubmit = (_formData: LeaveOpeningBalanceFormData) => {
         // TODO: Replace with actual API call
         // saveLeaveOpeningBalance(formData, {
@@ -169,13 +155,11 @@ function FormSections({
         //         toast.error('Failed to save leave opening balance');
         //     }
         // });
-
         // Mock implementation
         toast.success('Leave opening balance saved successfully');
         closeEditForm();
         closeAddForm();
     };
-
     return (
         <>
             {/* Add Form */}
@@ -214,7 +198,6 @@ function FormSections({
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>

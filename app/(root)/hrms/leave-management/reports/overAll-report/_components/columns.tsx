@@ -1,9 +1,7 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface OverallReportRow {
     employee: string;
     leaveName: string;
@@ -11,7 +9,6 @@ export interface OverallReportRow {
     toDate: string;
     status: 'Applied' | 'Approved' | 'Requested' | 'Rejected' | 'PartialApproved';
 }
-
 export const overallReportColumns: ColumnDef<OverallReportRow>[] = [
     {
         accessorKey: 'employee',

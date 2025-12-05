@@ -1,5 +1,4 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useEmployeeStrengthReportOnload, useSearchEmployeeStrengthReport } from '@/hooks/hrms/useReports';
 import { format } from 'date-fns';
@@ -7,7 +6,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { EmployeeStrengthFilters, type StrengthReportFilters } from './_components/filters';
 import { EmployeeStrengthReportTemplate } from './_components/report-template';
-
 // Employee strength data structure
 interface EmployeeStrengthRecord {
     id?: string;
@@ -22,40 +20,33 @@ interface EmployeeStrengthRecord {
     femaleEmployees: number;
     dateRange: string;
 }
-
 export default function EmployeeStrengthReportPage() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useEmployeeStrengthReportOnload(roleId, 0);
     const searchMutation = useSearchEmployeeStrengthReport();
-
     // State
     const [strengthRecords, setStrengthRecords] = useState<EmployeeStrengthRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<EmployeeStrengthRecord[]>([]);
     const [showReport, setShowReport] = useState(false);
     const [schoolName, setSchoolName] = useState<string>('');
     const [schoolAddress, setSchoolAddress] = useState<string>('');
-
     // Memoize dropdown data from API
     const groupTypes = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).groupTypedropdown || [];
     }, [onloadData?.data]);
-
     const departments = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).departmentdropdown || [];
     }, [onloadData?.data]);
-
     const designations = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).designationdropdown || [];
     }, [onloadData?.data]);
-
     const [filters, setFilters] = useState<StrengthReportFilters>({
         groupType: 'All',
         department: 'All',
@@ -68,7 +59,6 @@ export default function EmployeeStrengthReportPage() {
         fromDate: null,
         toDate: null
     });
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -79,7 +69,6 @@ export default function EmployeeStrengthReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Map API data to component format
     const mappedGroupTypes = useMemo(() => {
         return groupTypes.map((gt: any) => ({
@@ -90,7 +79,6 @@ export default function EmployeeStrengthReportPage() {
             isActive: gt.HRMGT_ActiveFlag !== false
         }));
     }, [groupTypes]);
-
     const mappedDepartments = useMemo(() => {
         return departments.map((dept: any) => ({
             id: dept.HRMD_Id,
@@ -100,7 +88,6 @@ export default function EmployeeStrengthReportPage() {
             isActive: dept.HRMD_ActiveFlag !== false
         }));
     }, [departments]);
-
     const mappedDesignations = useMemo(() => {
         return designations.map((desig: any) => ({
             id: desig.HRMDES_Id,
@@ -112,36 +99,29 @@ export default function EmployeeStrengthReportPage() {
             isActive: desig.HRMDES_ActiveFlag !== false
         }));
     }, [designations]);
-
     // Cascading filter logic
     const availableDepartments = useMemo(() => {
         if (filters.groupType === 'All') return mappedDepartments;
         // In a real app, departments would be filtered by groupType relationship
         return mappedDepartments;
     }, [filters.groupType, mappedDepartments]);
-
     const availableDesignations = useMemo(() => {
         if (filters.department === 'All') return mappedDesignations;
         // In a real app, designations would be filtered by department relationship
         return mappedDesignations;
     }, [filters.department, mappedDesignations]);
-
     // Filter strength records based on selected criteria
     useEffect(() => {
         let filtered = strengthRecords;
-
         if (filters.groupType !== 'All') {
             filtered = filtered.filter((record) => record.groupType === filters.groupType);
         }
-
         if (filters.department !== 'All') {
             filtered = filtered.filter((record) => record.departmentName === filters.department);
         }
-
         if (filters.designation !== 'All') {
             filtered = filtered.filter((record) => record.designationName === filters.designation);
         }
-
         // Apply employee category filters
         if (
             !filters.employeeCategories.allEmployee &&
@@ -152,29 +132,22 @@ export default function EmployeeStrengthReportPage() {
             setFilteredRecords(filtered);
             return;
         }
-
         let categoryFiltered: EmployeeStrengthRecord[] = [];
-
         if (filters.employeeCategories.allEmployee) {
             categoryFiltered = [...filtered];
         }
-
         if (filters.employeeCategories.departmentWise) {
             // Group by department for department-wise view
             categoryFiltered = [...filtered];
         }
-
         if (filters.employeeCategories.leftEmployee) {
             // Filter to show only records with left employees
             categoryFiltered = filtered.filter((record) => record.leftEmployees > 0);
         }
-
         setFilteredRecords(categoryFiltered);
     }, [filters, strengthRecords]);
-
     const handleFilterChange = (key: keyof Omit<StrengthReportFilters, 'employeeCategories' | 'fromDate' | 'toDate'>, value: string) => {
         const newFilters = { ...filters, [key]: value };
-
         // Reset dependent filters when parent changes
         if (key === 'groupType') {
             newFilters.department = 'All';
@@ -182,23 +155,19 @@ export default function EmployeeStrengthReportPage() {
         } else if (key === 'department') {
             newFilters.designation = 'All';
         }
-
         setFilters(newFilters);
     };
-
     const handleDateChange = (key: 'fromDate' | 'toDate', date: Date | null) => {
         setFilters((prev) => ({
             ...prev,
             [key]: date
         }));
     };
-
     const handleCategoryChange = (category: keyof StrengthReportFilters['employeeCategories'], checked: boolean) => {
         const newCategories = {
             ...filters.employeeCategories,
             [category]: checked
         };
-
         // If "All Employee" is checked, uncheck others
         if (category === 'allEmployee' && checked) {
             newCategories.departmentWise = false;
@@ -208,17 +177,14 @@ export default function EmployeeStrengthReportPage() {
         else if ((category === 'departmentWise' || category === 'leftEmployee') && checked) {
             newCategories.allEmployee = false;
         }
-
         setFilters((prev) => ({
             ...prev,
             employeeCategories: newCategories
         }));
     };
-
     const handleSearch = () => {
         // Always show report template when search is clicked, even without data or on errors
         setShowReport(true);
-
         // Only validate dates if "All Employee" is not selected
         if (!filters.employeeCategories.allEmployee) {
             if (!filters.fromDate || !filters.toDate) {
@@ -226,7 +192,6 @@ export default function EmployeeStrengthReportPage() {
                 return;
             }
         }
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
@@ -248,7 +213,6 @@ export default function EmployeeStrengthReportPage() {
             FromDate: filters.fromDate ? filters.fromDate.toISOString() : '',
             ToDate: filters.toDate ? filters.toDate.toISOString() : ''
         };
-
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -263,7 +227,6 @@ export default function EmployeeStrengthReportPage() {
                         if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
                         setSchoolAddress(addressParts.join(', ') || '');
                     }
-
                     // Map API response to EmployeeStrengthRecord format
                     const employeeDetails = response.data.employeeDetails || [];
                     const mappedRecords: EmployeeStrengthRecord[] = employeeDetails.map((emp: any, index: number) => ({
@@ -282,7 +245,6 @@ export default function EmployeeStrengthReportPage() {
                                 ? `${format(filters.fromDate, 'dd-MM-yyyy')} to ${format(filters.toDate, 'dd-MM-yyyy')}`
                                 : ''
                     }));
-
                     setStrengthRecords(mappedRecords);
                     toast.success('Employee strength report generated successfully');
                 } else {
@@ -290,12 +252,10 @@ export default function EmployeeStrengthReportPage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching employee strength report:', error);
                 toast.error(error.message || 'Failed to generate employee strength report');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             groupType: 'All',
@@ -316,16 +276,13 @@ export default function EmployeeStrengthReportPage() {
         setSchoolAddress('');
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Employee strength report exported');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Extract institution details from onload data if available
     useEffect(() => {
         if (onloadData?.data) {
@@ -341,7 +298,6 @@ export default function EmployeeStrengthReportPage() {
             }
         }
     }, [onloadData]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -358,7 +314,6 @@ export default function EmployeeStrengthReportPage() {
                 onExport={handleExport}
                 onPrint={handlePrint}
             />
-
             {/* Report Results */}
             {showReport && (
                 <EmployeeStrengthReportTemplate

@@ -1,8 +1,6 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface ServiceHistoryRecord {
     period: string;
     designation: string;
@@ -10,7 +8,6 @@ export interface ServiceHistoryRecord {
     salary: number;
     performance: string;
 }
-
 export const serviceReportColumns: ColumnDef<ServiceHistoryRecord>[] = [
     {
         accessorKey: 'period',

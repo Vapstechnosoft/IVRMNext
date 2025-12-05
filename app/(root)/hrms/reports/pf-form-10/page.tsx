@@ -1,12 +1,10 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { usePFForm10ReportOnload, useSearchPFForm10Report } from '@/hooks/hrms/useReports';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type Form10Filters, PFForm10Filters } from './_components/filters';
 import { PFForm10Template } from './_components/pf-form10-template';
-
 // Member leaving service data structure
 interface MemberLeavingService {
     serialNo: number;
@@ -17,39 +15,32 @@ interface MemberLeavingService {
     reasonForLeaving: string;
     remarks: string;
 }
-
 export default function Form10Page() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm10ReportOnload(roleId);
     const searchMutation = useSearchPFForm10Report();
-
     // State
     const [membersLeavingService, setMembersLeavingService] = useState<MemberLeavingService[]>([]);
     const [showForm, setShowForm] = useState(false);
     const [establishmentName, setEstablishmentName] = useState<string>('');
     const [establishmentCode, setEstablishmentCode] = useState<string>('');
     const [establishmentAddress, setEstablishmentAddress] = useState<string>('');
-
     const [filters, setFilters] = useState<Form10Filters>({
         month: '',
         year: ''
     });
-
     // Memoize dropdown data from API
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     // Extract institution details from onload data
     useEffect(() => {
         if (onloadData?.data) {
@@ -66,7 +57,6 @@ export default function Form10Page() {
             }
         }
     }, [onloadData]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -77,31 +67,25 @@ export default function Form10Page() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     const handleFilterChange = (newFilters: Form10Filters) => {
         setFilters(newFilters);
     };
-
     const handleGenerate = () => {
         // Always show form template when generate is clicked, even without data or on errors
         setShowForm(true);
-
         if (!filters.month || !filters.year) {
             toast.error('Please select month and year');
             return;
         }
-
         // Find month name from selected month
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
             HRES_Month: monthName,
             HRES_Year: filters.year
         };
-
         // Call search API to get PF Form 10 data
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
@@ -118,10 +102,8 @@ export default function Form10Page() {
                         if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
                         setEstablishmentAddress(addressParts.join(', ') || '');
                     }
-
                     // Extract PF Form 10 data - members leaving service
                     const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
-
                     if (Array.isArray(pfData) && pfData.length > 0) {
                         // Filter employees who left service in the selected month/year
                         // Map API response to MemberLeavingService format
@@ -130,13 +112,11 @@ export default function Form10Page() {
                                 // Check if employee has a date of leaving
                                 const dateOfLeaving = item.HRME_DOL || item.dateOfLeaving;
                                 if (!dateOfLeaving) return false;
-
                                 try {
                                     // Check if the leaving date matches the selected month/year
                                     const leavingDate = new Date(dateOfLeaving);
                                     const leavingMonth = leavingDate.getMonth() + 1; // 1-12
                                     const leavingYear = leavingDate.getFullYear().toString();
-
                                     // Get month number from selected month name
                                     const monthMap: { [key: string]: number } = {
                                         January: 1,
@@ -153,7 +133,6 @@ export default function Form10Page() {
                                         December: 12
                                     };
                                     const selectedMonthNum = monthMap[filters.month] || 0;
-
                                     return leavingMonth === selectedMonthNum && leavingYear === filters.year;
                                 } catch {
                                     return false;
@@ -162,7 +141,6 @@ export default function Form10Page() {
                             .map((item: any, index: number) => {
                                 // Determine reason for leaving
                                 const reasonForLeaving = item.HRME_LeavingReason || item.reasonForLeaving || item.LeavingReason || 'Left';
-
                                 return {
                                     serialNo: index + 1,
                                     accountNo: item.HRME_PFAccNo || item.HRME_PFuAN || item.pfNumber || '',
@@ -176,7 +154,6 @@ export default function Form10Page() {
                                     remarks: item.HRME_Remarks || item.remarks || ''
                                 };
                             });
-
                         setMembersLeavingService(mappedMembers);
                         toast.success('Form 10 generated successfully');
                     } else {
@@ -189,12 +166,10 @@ export default function Form10Page() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching PF Form 10 report:', error);
                 toast.error(error.message || 'Failed to generate Form 10');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             month: '',
@@ -204,12 +179,10 @@ export default function Form10Page() {
         setShowForm(false);
         toast.info('Filters cleared');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -222,7 +195,6 @@ export default function Form10Page() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Form 10 Results */}
             {showForm && (
                 <PFForm10Template

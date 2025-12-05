@@ -1,5 +1,4 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -14,32 +13,30 @@ import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { ActionsCell } from './_components/actions-cell';
 import FormSections from './_components/form-sections';
-
 export default function EmployeeLoanPage() {
     const {
         data: loanData,
         isLoading,
+        error,
         refetch
     } = useEmployeeLoanList({
         page: 1,
         page_size: 10,
         search_query: '',
         search_column: '',
-        sort_column: '',
         sort_direction: '',
         is_export: false,
         MIID: 30,
         LoginUserId: 0,
         UserRole: ''
     });
-
+    // Debug logging for errors
     return (
         <FormProvider<EmployeeLoanItem>>
             <EmployeeLoanPageContent loanData={loanData} isLoading={isLoading} refetch={refetch} />
         </FormProvider>
     );
 }
-
 function EmployeeLoanPageContent({
     loanData,
     isLoading,
@@ -51,12 +48,11 @@ function EmployeeLoanPageContent({
 }) {
     const { openAddForm } = useFormContext<EmployeeLoanItem>();
     const toggleMutation = useActivateDeactivateEmployeeLoan();
-
     const loans = loanData?.emploanList || [];
     const employees = loanData?.employeedropdown || [];
     const loanTypes = loanData?.masterloandropdown || [];
     const _paymentModes = loanData?.modeOfPaymentdropdown || [];
-
+    // Debug logging
     const handleToggleActive = async (id: number, currentStatus: boolean) => {
         toggleMutation.mutate(
             {
@@ -70,28 +66,22 @@ function EmployeeLoanPageContent({
             }
         );
     };
-
     const getEmployeeName = (employeeId: number) => {
         const employee = employees.find((emp: EmployeeDropdown) => emp?.HRME_Id === employeeId);
         if (!employee) return 'Unknown Employee';
-
         const firstName = employee.HRME_EmployeeFirstName || '';
         const middleName = employee.HRME_EmployeeMiddleName || '';
         const lastName = employee.HRME_EmployeeLastName || '';
-
         return `${firstName} ${middleName} ${lastName}`.trim() || 'Unknown Employee';
     };
-
     const getEmployeeCode = (employeeId: number) => {
         const employee = employees.find((emp: EmployeeDropdown) => emp?.HRME_Id === employeeId);
         return employee?.HRME_EmployeeCode || 'Unknown';
     };
-
     const getLoanTypeName = (loanTypeId: number) => {
         const loanType = loanTypes.find((type: MasterLoanDropdown) => type?.HRMLN_Id === loanTypeId);
         return loanType?.HRML_LoanType || 'Unknown Loan Type';
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -105,7 +95,6 @@ function EmployeeLoanPageContent({
                         Add Employee Loan
                     </Button>
                 </div>
-
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
@@ -120,14 +109,12 @@ function EmployeeLoanPageContent({
                         getLoanTypeName={getLoanTypeName}
                     />
                 </CollapsibleSection>
-
                 {/* Forms Section - Moved after table */}
                 <FormSections onloadData={loanData} onSuccess={refetch} />
             </div>
         </div>
     );
 }
-
 interface EmployeeLoanTableProps {
     loans: EmployeeLoanItem[];
     isLoading: boolean;
@@ -136,7 +123,6 @@ interface EmployeeLoanTableProps {
     getEmployeeCode: (employeeId: number) => string;
     getLoanTypeName: (loanTypeId: number) => string;
 }
-
 function EmployeeLoanTable({
     loans,
     isLoading,
@@ -224,7 +210,6 @@ function EmployeeLoanTable({
             cell: ({ row }) => {
                 const loan = row.original;
                 const isActive = loan.HREL_ActiveFlag === true;
-
                 return (
                     <Badge variant={isActive ? 'success' : 'destructive'} className='text-xs'>
                         {isActive ? 'Active' : 'Inactive'}
@@ -250,7 +235,6 @@ function EmployeeLoanTable({
             enableHiding: false
         }
     ];
-
     return (
         <div className='overflow-hidden rounded-lg bg-card'>
             <DataTable

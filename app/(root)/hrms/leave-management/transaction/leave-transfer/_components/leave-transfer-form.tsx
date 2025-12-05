@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Label } from '@/components/ui/label';
@@ -9,7 +8,6 @@ import { useLeaveTransferBasicData } from '@/hooks/hrms/leave-management/useTran
 import { Save, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-
 export interface LeaveTransferFormData {
     type: string[];
     department: string[];
@@ -17,18 +15,15 @@ export interface LeaveTransferFormData {
     leaveYear: string;
     leaveName: string;
 }
-
 interface LeaveTransferFormProps {
     activeTab: string;
     onSubmit: (data: LeaveTransferFormData) => void;
     onCancel: () => void;
     defaultValues?: Partial<LeaveTransferFormData>;
 }
-
 export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, defaultValues }: LeaveTransferFormProps) {
     // Fetch basic data from API
     const { data: basicDataResponse, isLoading: isLoadingBasicData } = useLeaveTransferBasicData();
-
     // Extract dropdown options from API response
     const typeOptions = useMemo(() => {
         if (!basicDataResponse?.data?.typeOptions || !Array.isArray(basicDataResponse.data.typeOptions)) {
@@ -36,28 +31,24 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
         }
         return basicDataResponse.data.typeOptions;
     }, [basicDataResponse]);
-
     const departmentOptions = useMemo(() => {
         if (!basicDataResponse?.data?.departmentOptions || !Array.isArray(basicDataResponse.data.departmentOptions)) {
             return [];
         }
         return basicDataResponse.data.departmentOptions;
     }, [basicDataResponse]);
-
     const designationOptions = useMemo(() => {
         if (!basicDataResponse?.data?.designationOptions || !Array.isArray(basicDataResponse.data.designationOptions)) {
             return [];
         }
         return basicDataResponse.data.designationOptions;
     }, [basicDataResponse]);
-
     const leaveYearOptions = useMemo(() => {
         if (!basicDataResponse?.data?.leaveYearOptions || !Array.isArray(basicDataResponse.data.leaveYearOptions)) {
             return [];
         }
         return basicDataResponse.data.leaveYearOptions;
     }, [basicDataResponse]);
-
     const leaveNameOptions = useMemo(() => {
         if (!basicDataResponse?.data?.leaveNameOptions || !Array.isArray(basicDataResponse.data.leaveNameOptions)) {
             return [];
@@ -77,11 +68,9 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
             leaveName: ''
         }
     });
-
     const onSubmitForm: SubmitHandler<LeaveTransferFormData> = (data) => {
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6'>
             <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
@@ -104,7 +93,6 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
                         )}
                     />
                 </div>
-
                 {/* Department Filter */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Department:</Label>
@@ -124,7 +112,6 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
                         )}
                     />
                 </div>
-
                 {/* Designation Filter */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Designation:</Label>
@@ -145,7 +132,6 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
                     />
                 </div>
             </div>
-
             {/* Leave Year and Leave Name */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div>
@@ -179,7 +165,6 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
                     />
                     {errors.leaveYear && <FormError>{errors.leaveYear.message}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='leave-name-select' className='font-medium text-sm'>
                         Leave Name <span className='text-red-500'>*</span>
@@ -212,7 +197,6 @@ export function LeaveTransferForm({ activeTab: _activeTab, onSubmit, onCancel, d
                     {errors.leaveName && <FormError>{errors.leaveName.message}</FormError>}
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-center gap-2 pt-4'>
                 <Button type='submit' variant='default' className='min-w-[120px]'>

@@ -1,8 +1,6 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface Form6ARecord {
     id?: number;
     createdAt?: string;
@@ -27,7 +25,6 @@ export interface Form6ARecord {
     period: string;
     financialYear: string;
 }
-
 export const form6AColumns: ColumnDef<Form6ARecord>[] = [
     {
         accessorKey: 'id',

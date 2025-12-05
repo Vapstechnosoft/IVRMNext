@@ -1,10 +1,8 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { EmployeeListItem } from '@/types/hrms/employee';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ActionsCell } from './actions-cell';
-
 export const employeeColumns: ColumnDef<EmployeeListItem>[] = [
     {
         id: 'slNo',
@@ -59,7 +57,6 @@ export const employeeColumns: ColumnDef<EmployeeListItem>[] = [
             const firstName = row.original.HRME_EmployeeFirstName;
             const lastName = row.original.HRME_EmployeeLastName;
             const initials = `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
-
             return (
                 <div className='flex items-center gap-2'>
                     <div className='relative h-10 w-10'>

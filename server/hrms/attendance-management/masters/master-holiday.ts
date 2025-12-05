@@ -1,5 +1,4 @@
 'use server';
-
 import { api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
@@ -7,13 +6,11 @@ import type {
     MasterHolidayGetDataResponseData,
     MasterHolidaySaveRequest
 } from '@/types/hrms/attendance-management/master-holiday';
-
 /**
  * Helper function to convert searchParams from URL (strings) to proper types
  */
 function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>): ApiSearchparams {
     if (!searchParams) return {};
-    
     // Helper to get first value if array, or the value itself
     const getValue = (value: string | string[] | number | undefined, defaultValue: string | number): string | number => {
         if (value === undefined) return defaultValue;
@@ -21,7 +18,6 @@ function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, s
         if (Array.isArray(value)) return value[0] || defaultValue;
         return value;
     };
-    
     return {
         page: typeof getValue(searchParams.page, 1) === 'string' ? parseInt(getValue(searchParams.page, 1) as string, 10) || 1 : (getValue(searchParams.page, 1) as number) || 1,
         page_size: typeof getValue(searchParams.page_size, 10) === 'string' ? parseInt(getValue(searchParams.page_size, 10) as string, 10) || 10 : (getValue(searchParams.page_size, 10) as number) || 10,
@@ -31,7 +27,6 @@ function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, s
         sort_direction: (getValue(searchParams.sort_direction, '') as string) || ''
     };
 }
-
 /**
  * Get master holiday data from API
  * Following the preadmission module pattern - returns API response directly
@@ -39,7 +34,6 @@ function normalizeSearchParams(searchParams?: ApiSearchparams | Record<string, s
 export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<string, string | string[] | undefined>) {
     // Normalize searchParams (convert strings to proper types)
     const normalizedParams = normalizeSearchParams(searchParams);
-    
     const requestBody = {
         page: normalizedParams.page || 1,
         page_size: normalizedParams.page_size || 10,
@@ -52,14 +46,10 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
         LoginUserId: 0,
         UserRole: ''
     };
-
     console.log('📤 [SERVER] getMasterHoliday request body:', JSON.stringify(requestBody, null, 2));
-
     const url = '/api/MasterHolidayFacade/getdata';
-    
     try {
         const response = await api.post<MasterHolidayGetDataResponseData>('hrmsfrontoffice', url, requestBody);
-        
         console.log('📥 [SERVER] getMasterHoliday raw response:', {
             hasResponse: !!response,
             responseKeys: response ? Object.keys(response) : [],
@@ -69,7 +59,6 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
             dataValue: response?.data,
             fullResponse: JSON.stringify(response, null, 2)
         });
-        
         // API response structure (from Swagger):
         // {
         //   "success": true,
@@ -92,7 +81,6 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
         //   "page": null,
         //   "page_size": null
         // }
-        
         // Extract the nested data structure
         const innerResponse = response?.data as any;
         const actualData: MasterHolidayGetDataResponseData = innerResponse?.data || {
@@ -102,7 +90,6 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
             dayslist: [],
             report_list: []
         };
-        
         // Extract pagination info from inner response (response.data.total, response.data.page, response.data.page_size)
         // Fallback to outer response or defaults
         const responseTotal = typeof innerResponse?.total === 'number' 
@@ -120,7 +107,6 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
                     : (typeof response?.page_Size === 'number' 
                         ? response.page_Size 
                         : (normalizedParams.page_size || 10))));
-        
         const responseData: MasterHolidayGetDataResponse = {
             success: response?.success ?? true,
             message: response?.message || 'Master holiday data retrieved successfully',
@@ -129,41 +115,12 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
             page: responsePage,
             page_size: responsePageSize
         };
-        
-        console.log('📥 [SERVER] getMasterHoliday transformed response:', {
-            success: responseData.success,
-            hasData: !!responseData.data,
-            reportListLength: responseData.data?.report_list?.length || 0,
-            total: responseData.total,
-            page: responseData.page,
-            page_size: responseData.page_size,
-            hasYearDropdown: !!responseData.data?.yeardropdown,
-            yearDropdownLength: responseData.data?.yeardropdown?.length || 0,
-            hasDepartmentType: !!responseData.data?.departmentType,
-            departmentTypeLength: responseData.data?.departmentType?.length || 0,
-            hasHolidayType: !!responseData.data?.holidayType,
-            holidayTypeLength: responseData.data?.holidayType?.length || 0,
-            hasDaysList: !!responseData.data?.dayslist,
-            daysListLength: responseData.data?.dayslist?.length || 0
-        });
-        
         return responseData;
     } catch (error: any) {
-        console.error('❌ [SERVER] getMasterHoliday API error:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            responseData: error?.response?.data,
-            fullError: error
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to fetch master holiday data';
-        
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
             } else if (typeof apiError === 'object' && apiError !== null) {
@@ -184,7 +141,6 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         // Return error response in expected format
         return {
             success: false,
@@ -202,7 +158,6 @@ export async function getMasterHoliday(searchParams?: ApiSearchparams | Record<s
         };
     }
 }
-
 /**
  * Save master holiday data to API
  * Following the preadmission module pattern - returns API response directly
@@ -221,15 +176,7 @@ export async function addOrUpdateMasterHoliday(
     },
     dropdownData?: MasterHolidayGetDataResponseData
 ) {
-    console.log('🔵 [SERVER] addOrUpdateMasterHoliday called');
     console.log('📥 [SERVER] Received data:', JSON.stringify(data, null, 2));
-    console.log('📥 [SERVER] Dropdown data available:', {
-        hasYear: !!dropdownData?.yeardropdown,
-        hasDept: !!dropdownData?.departmentType,
-        hasHolidayType: !!dropdownData?.holidayType,
-        hasDaysList: !!dropdownData?.dayslist
-    });
-
     // Find IDs from dropdown data
     // API field names are uppercase: HRMLY_LeaveYear, HRMD_DepartmentName, FOHTWD_HolidayWDType
     const yearItem = dropdownData?.yeardropdown?.find((y: any) => 
@@ -243,7 +190,6 @@ export async function addOrUpdateMasterHoliday(
     const holidayTypeItem = dropdownData?.holidayType?.find((h: any) => 
         (h.FOHTWD_HolidayWDType || h.fohtwD_HolidayWDType) === data.holidayType
     );
-
     console.log('🔍 [SERVER] Found IDs:', {
         yearId: (yearItem as any)?.HRMLY_Id || yearItem?.hrmlY_Id || 'NOT FOUND',
         departmentId: (departmentItem as any)?.HRMD_Id || departmentItem?.hrmD_Id || (data.department ? 'NOT FOUND' : 'NOT PROVIDED'),
@@ -252,10 +198,8 @@ export async function addOrUpdateMasterHoliday(
         deptSearch: data.department || 'NOT PROVIDED',
         holidayTypeSearch: data.holidayType
     });
-
     // Build selectedDaysDate array - API expects Date and Dayname (capital D)
     const selectedDaysDate: { Date: string; Dayname: string }[] = [];
-    
     // Get day names from dayslist
     // API field names are uppercase: FOMD_DayCode, FOMD_DayName
     const daysMap = new Map(
@@ -264,13 +208,11 @@ export async function addOrUpdateMasterHoliday(
             day.FOMD_DayName || day.fomD_DayName || ''
         ]) || []
     );
-    
     if (data.selectedDays && data.selectedDays.length > 0) {
         if (data.holidayType === 'WEEK DAY') {
             // For WEEK DAY type: use the calendar year's date range to generate all occurrences
             // Get the year's date range from dropdown data
             const yearItem = dropdownData?.yeardropdown?.find((y) => y.hrmlY_LeaveYear === data.calendarYear);
-            
             // API field names are uppercase: HRMLY_FromDate, HRMLY_ToDate
             const fromDate = (yearItem as any)?.HRMLY_FromDate || yearItem?.hrmlY_FromDate;
             const toDate = (yearItem as any)?.HRMLY_ToDate || yearItem?.hrmlY_ToDate;
@@ -278,20 +220,17 @@ export async function addOrUpdateMasterHoliday(
                 const fromDateObj = new Date(fromDate);
                 const toDateObj = new Date(toDate);
                 const currentDate = new Date(fromDateObj);
-                
                 console.log('📅 [SERVER] Building selectedDaysDate for WEEK DAY using year range:', {
                     year: data.calendarYear,
                     fromDate: fromDateObj.toISOString(),
                     toDate: toDateObj.toISOString(),
                     selectedDays: data.selectedDays
                 });
-                
                 // Generate all occurrences of selected days within the year range
                 while (currentDate <= toDateObj) {
                     const dayOfWeek = currentDate.getDay();
                     const dayCodes = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
                     const currentDayCode = dayCodes[dayOfWeek];
-                    
                     if (data.selectedDays.includes(currentDayCode)) {
                         const dayName = daysMap.get(currentDayCode) || currentDayCode;
                         // Format date as YYYY-MM-DD (date only, no time) - API might expect this format
@@ -301,12 +240,10 @@ export async function addOrUpdateMasterHoliday(
                             Dayname: dayName  // Capital D
                         });
                     }
-                    
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
             } else {
                 // Fallback: just send day names with empty dates if year range not available
-                console.warn('⚠️ [SERVER] Year date range not found, using empty dates for WEEK DAY');
                 for (const dayCode of data.selectedDays) {
                     const dayName = daysMap.get(dayCode) || dayCode;
                     selectedDaysDate.push({
@@ -315,7 +252,6 @@ export async function addOrUpdateMasterHoliday(
                     });
                 }
             }
-            
             console.log('📅 [SERVER] Built selectedDaysDate for WEEK DAY:', {
                 count: selectedDaysDate.length,
                 sample: selectedDaysDate.slice(0, 5) // Show first 5 as sample
@@ -325,18 +261,15 @@ export async function addOrUpdateMasterHoliday(
             const fromDateObj = new Date(data.fromDate);
             const toDateObj = new Date(data.toDate);
             const currentDate = new Date(fromDateObj);
-
             console.log('📅 [SERVER] Building selectedDaysDate with date range:', {
                 fromDate: fromDateObj.toISOString(),
                 toDate: toDateObj.toISOString(),
                 selectedDays: data.selectedDays
             });
-
             while (currentDate <= toDateObj) {
                 const dayOfWeek = currentDate.getDay();
                 const dayCodes = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
                 const currentDayCode = dayCodes[dayOfWeek];
-
                 if (data.selectedDays.includes(currentDayCode)) {
                     const dayName = daysMap.get(currentDayCode) || currentDayCode;
                     // Format date as YYYY-MM-DD (date only, no time) - API might expect this format
@@ -346,17 +279,10 @@ export async function addOrUpdateMasterHoliday(
                         Dayname: dayName  // Capital D
                     });
                 }
-
                 currentDate.setDate(currentDate.getDate() + 1);
             }
         }
     }
-    
-    console.log('📅 [SERVER] Selected days date array:', {
-        count: selectedDaysDate.length,
-        items: selectedDaysDate
-    });
-
     // Handle dates - only convert if they exist and are not empty
     // Send null instead of empty string for optional dates (API validation requirement)
     const startDate = data.fromDate && data.fromDate.trim() !== '' 
@@ -365,18 +291,9 @@ export async function addOrUpdateMasterHoliday(
     const endDate = data.toDate && data.toDate.trim() !== '' 
         ? new Date(data.toDate).toISOString() 
         : null;
-
-    console.log('📅 [SERVER] Date conversion:', {
-        fromDateInput: data.fromDate,
-        toDateInput: data.toDate,
-        startDateISO: startDate,
-        endDateISO: endDate
-    });
-
     // For new records, id should be 0 or undefined
     // For updates, id should be the existing record ID
     const isEdit = data.id && data.id > 0;
-    
     // API expects exact field names with specific capitalization
     const requestBody: MasterHolidaySaveRequest & { FOMHWD_Id?: number; FOMHWDD_Id?: number } = {
         MI_Id: 30,  // Capital M, Capital I
@@ -395,7 +312,6 @@ export async function addOrUpdateMasterHoliday(
             FOMHWDD_Id: data.id // All caps - May need to get the detail ID separately
         } : {})
     };
-    
     console.log('📝 [SERVER] Request body details:', {
         isEdit,
         hasId: !!data.id,
@@ -404,24 +320,13 @@ export async function addOrUpdateMasterHoliday(
         day_flag: requestBody.Day_flag,
         selectedDaysDateCount: requestBody.selectedDaysDate.length
     });
-
     console.log('📤 [SERVER] Request body:', JSON.stringify(requestBody, null, 2));
-    console.log('📤 [SERVER] Selected days date count:', selectedDaysDate.length);
-
     const url = '/api/MasterHolidayFacade/savedetail';
-    console.log('🌐 [SERVER] Calling API:', url);
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
         // ========== COMPREHENSIVE DEBUG LOGGING ==========
-        console.log('🔵 ========== MASTER HOLIDAY SAVE API RESPONSE ==========');
         console.log('🔵 [SERVER] Raw API Response (Full):', JSON.stringify(response, null, 2));
-        console.log('🔵 [SERVER] Response Type:', typeof response);
         console.log('🔵 [SERVER] Response is Array?', Array.isArray(response));
-        console.log('🔵 [SERVER] Response is Null?', response === null);
-        console.log('🔵 [SERVER] Response is Undefined?', response === undefined);
-        
         // Detailed response logging
         console.log('📊 [SERVER] Response structure analysis:', {
             hasResponse: !!response,
@@ -441,25 +346,13 @@ export async function addOrUpdateMasterHoliday(
             dataType: typeof response?.data,
             dataKeys: response?.data && typeof response.data === 'object' ? Object.keys(response.data) : []
         });
-        
         // Transform response to match expected format
         // The API response is nested: { success: true, message: "success", data: { returnval: true, report_list: [...] } }
         const responseData = response as any;
-        
-        console.log('🔵 [SERVER] Response Data Type Check:', {
-            isObject: typeof responseData === 'object',
-            isNull: responseData === null,
-            isUndefined: responseData === undefined,
-            hasResponseData: !!responseData,
-            hasData: !!responseData?.data,
-            hasNestedData: !!responseData?.data?.data
-        });
-        
         // Check nested structure - API returns: { success: true, message: "success", data: { returnval: true, report_list: [...] } }
         const nestedData = responseData?.data?.data || responseData?.data || responseData;
         const apiSuccess = responseData?.data?.success || responseData?.success;
         const apiMessage = responseData?.data?.message || responseData?.message;
-        
         console.log('🔍 [SERVER] Checking nested structure for success indicators:', {
             hasResponseData: !!responseData,
             hasData: !!responseData?.data,
@@ -476,12 +369,10 @@ export async function addOrUpdateMasterHoliday(
             reportListIsArray: Array.isArray(nestedData?.report_list),
             reportListLength: Array.isArray(nestedData?.report_list) ? nestedData.report_list.length : 0
         });
-        
         // Extract success indicators from nested structure
         const returnval = nestedData?.returnval;
         const reportList = nestedData?.report_list;
         const hasReportList = Array.isArray(reportList) && reportList.length > 0;
-        
         // Check for success indicators:
         // 1. API success flag (response.data.success === true)
         // 2. returnval === true (explicit success)
@@ -490,10 +381,8 @@ export async function addOrUpdateMasterHoliday(
         const fomhwD_Id = nestedData?.fomhwD_Id || 0;
         const fomhwdD_Id = nestedData?.fomhwdD_Id || 0;
         const hasNewIds = fomhwD_Id > 0 || fomhwdD_Id > 0;
-        
         // Success if: API success is true, OR returnval is true, OR (has new IDs AND has report list)
         const isSuccess = apiSuccess === true || returnval === true || (hasNewIds && hasReportList);
-        
         // Extract error message from response if available
         const apiErrorMessage = nestedData?.msg || 
                                nestedData?.errorMessage || 
@@ -504,7 +393,6 @@ export async function addOrUpdateMasterHoliday(
                                (nestedData?.errors && Array.isArray(nestedData.errors) 
                                    ? nestedData.errors.map((e: any) => e.message || e).join(', ')
                                    : null);
-        
         // Determine message - use API message if available, otherwise default
         let message = apiMessage || 'Master holiday saved successfully';
         if (!isSuccess) {
@@ -520,7 +408,6 @@ export async function addOrUpdateMasterHoliday(
         } else {
             message = apiMessage || 'Master holiday saved successfully';
         }
-        
         console.log('🔄 [SERVER] Transforming response - Analysis:', {
             apiSuccess,
             apiSuccessType: typeof apiSuccess,
@@ -546,7 +433,6 @@ export async function addOrUpdateMasterHoliday(
                 nestedDataKeys: nestedData && typeof nestedData === 'object' ? Object.keys(nestedData).slice(0, 10) : []
             }
         });
-        
         // Transform to expected ApiResponse format
         // Use the nested data if available, otherwise use the full response
         const transformedResponse = {
@@ -558,31 +444,12 @@ export async function addOrUpdateMasterHoliday(
             page: 1,
             page_size: 10
         };
-        
         console.log('✅ [SERVER] Final transformed response:', JSON.stringify(transformedResponse, null, 2));
-        console.log('✅ [SERVER] Transformed response summary:', {
-            success: transformedResponse.success,
-            successType: typeof transformedResponse.success,
-            message: transformedResponse.message,
-            messageType: typeof transformedResponse.message,
-            hasData: !!transformedResponse.data,
-            total: transformedResponse.total
-        });
-        console.log('🔵 ========== END MASTER HOLIDAY SAVE API RESPONSE ==========');
-        
         return transformedResponse;
     } catch (error: any) {
-        console.error('❌ [SERVER] API error:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            data: error?.response?.data
-        });
         throw error;
     }
 }
-
 /**
  * Delete master holiday
  * POST /api/MasterHolidayFacade/advdelete
@@ -590,35 +457,24 @@ export async function addOrUpdateMasterHoliday(
  */
 export async function deleteMasterHoliday(id: number) {
     const url = '/api/MasterHolidayFacade/delete';
-    
     const requestBody = {
         FOMHWDD_Id: id
     };
-    
-    console.log('🗑️ [SERVER] deleteMasterHoliday called');
     console.log('📥 [SERVER] Delete ID (FOMHWDD_Id):', id);
     console.log('📤 [SERVER] Request body:', JSON.stringify(requestBody, null, 2));
-    console.log('🌐 [SERVER] API URL:', url);
-    console.log('🌐 [SERVER] Method: POST');
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
         console.log('📥 [SERVER] Delete API response:', JSON.stringify(response, null, 2));
-        
         // Transform response to match expected format
         // Response structure: { success: true, message: "success", data: { returnval: true, ... } }
         const responseData = response as any;
-        
         // Check nested structure for success indicators
         const nestedData = responseData?.data;
         const returnval = nestedData?.returnval;
         const apiSuccess = responseData?.success === true;
         const returnvalBool = returnval === true || returnval === 'true' || returnval === 1 || returnval === '1';
-        
         // Success if API success is true AND returnval is true
         const isSuccess = apiSuccess && returnvalBool;
-        
         // Extract error message from response if available
         const apiErrorMessage = nestedData?.msg || 
                                responseData?.msg ||
@@ -627,40 +483,20 @@ export async function deleteMasterHoliday(id: number) {
                                (responseData?.errors && Array.isArray(responseData.errors) 
                                    ? responseData.errors.map((e: any) => e.message || e).join(', ')
                                    : null);
-        
         // Determine message
         const message = isSuccess 
             ? (responseData?.message || 'Master holiday deleted successfully')
             : (apiErrorMessage || 'Failed to delete master holiday');
-        
-        console.log('✅ [SERVER] Delete result:', {
-            isSuccess,
-            message,
-            apiSuccess,
-            returnval,
-            returnvalBool
-        });
-        
         return {
             success: isSuccess,
             message: message,
             data: nestedData || responseData
         };
     } catch (error: any) {
-        console.error('❌ [SERVER] Failed to delete master holiday:', error);
-        console.error('❌ [SERVER] Error details:', {
-            message: error?.message,
-            status: error?.response?.status,
-            statusText: error?.response?.statusText,
-            data: error?.response?.data
-        });
-        
         // Extract proper error message from API response
         let errorMessage = 'Failed to delete master holiday';
-        
         if (error?.response?.data) {
             const apiError = error.response.data;
-            
             if (typeof apiError === 'string') {
                 errorMessage = apiError;
             } else if (typeof apiError === 'object' && apiError !== null) {
@@ -681,7 +517,6 @@ export async function deleteMasterHoliday(id: number) {
         } else if (error?.message) {
             errorMessage = error.message;
         }
-        
         return {
             success: false,
             message: errorMessage,
@@ -689,4 +524,3 @@ export async function deleteMasterHoliday(id: number) {
         };
     }
 }
-

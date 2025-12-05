@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
@@ -14,13 +13,11 @@ import { CalendarIcon, Save, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCreditTransaction } from './columns';
-
 interface LeaveCreditTransactionFormProps {
     editingRow: LeaveCreditTransaction | null;
     onSubmit: (data: LeaveCreditTransaction) => void;
     onCancel: () => void;
 }
-
 // Mock data - replace with actual API calls
 const typeOptions = [
     { label: 'Teaching', value: 'Teaching' },
@@ -31,7 +28,6 @@ const typeOptions = [
     { label: 'Principal', value: 'Principal' },
     { label: 'Owner of the company', value: 'Owner of the company' }
 ];
-
 const departmentOptions = [
     { label: 'Teaching', value: 'Teaching' },
     { label: 'Non Teaching', value: 'Non Teaching' },
@@ -41,7 +37,6 @@ const departmentOptions = [
     { label: 'OFFICE STAFF', value: 'OFFICE STAFF' },
     { label: 'Service Staff', value: 'Service Staff' }
 ];
-
 const designationOptions = [
     { label: 'Assistant Teacher', value: 'Assistant Teacher' },
     { label: 'Principal', value: 'Principal' },
@@ -51,7 +46,6 @@ const designationOptions = [
     { label: 'Teacher Helper', value: 'Teacher Helper' },
     { label: 'Electrician', value: 'Electrician' }
 ];
-
 const leaveYearOptions = [
     { label: '2025', value: '2025' },
     { label: '2024', value: '2024' },
@@ -59,7 +53,6 @@ const leaveYearOptions = [
     { label: '2022', value: '2022' },
     { label: '2021', value: '2021' }
 ];
-
 const leaveNameOptions = [
     { label: 'Casual Leave', value: 'Casual Leave' },
     { label: 'Sick Leave', value: 'Sick Leave' },
@@ -69,14 +62,12 @@ const leaveNameOptions = [
     { label: 'Optional Leave', value: 'Optional Leave' },
     { label: 'Emergency Leave', value: 'Emergency Leave' }
 ];
-
 const employeeOptions = [
     { label: 'MR JOHN SHAH', value: 'MR JOHN SHAH' },
     { label: 'MRS JANE DOE', value: 'MRS JANE DOE' },
     { label: 'MR DIPAKKUMARMONDAL', value: 'MR DIPAKKUMARMONDAL' },
     { label: 'MRS JHUMAROYNATH', value: 'MRS JHUMAROYNATH' }
 ];
-
 const lossOfPayOptions = [
     { label: 'None', value: 'none' },
     { label: 'Loss Of Pay', value: 'full' },
@@ -84,7 +75,6 @@ const lossOfPayOptions = [
     { label: 'Loss Of Pay One Fourth Day', value: 'oneFourth' },
     { label: 'Loss Of Pay Three Fourth Day', value: 'threeFourth' }
 ];
-
 export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: LeaveCreditTransactionFormProps) {
     const {
         control,
@@ -108,12 +98,10 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
             availed: 0
         }
     });
-
     const fromDate = watch('fromDate');
     const toDate = watch('toDate');
     const totalDays = watch('totalDays');
     const lossOfPayType = watch('lossOfPayType');
-
     // Calculate total days from date range
     useEffect(() => {
         if (fromDate && toDate) {
@@ -124,14 +112,11 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     const days = differenceInDays(to, from) + 1; // +1 to include both start and end dates
                     setValue('totalDays', days, { shouldValidate: true });
                 }
-            } catch (error) {
-                console.error('Error calculating days:', error);
-            }
+            } catch (_error) {}
         } else {
             setValue('totalDays', 0);
         }
     }, [fromDate, toDate, setValue]);
-
     // Calculate loss of pay amount based on total days and loss of pay type
     useEffect(() => {
         if (totalDays > 0 && lossOfPayType !== 'none') {
@@ -157,11 +142,9 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
             setValue('lossOfPayAmount', 0);
         }
     }, [totalDays, lossOfPayType, setValue]);
-
     const onSubmitForm: SubmitHandler<LeaveCreditTransaction> = (data) => {
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6'>
             {/* Filters Section */}
@@ -184,7 +167,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                         )}
                     />
                 </div>
-
                 {/* Department Filter */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Department:</Label>
@@ -203,7 +185,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                         )}
                     />
                 </div>
-
                 {/* Designation Filter */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>Designation:</Label>
@@ -223,7 +204,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     />
                 </div>
             </div>
-
             {/* Leave Details Section */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div>
@@ -251,7 +231,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     />
                     {errors.leaveYear && <FormError>{errors.leaveYear.message}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='leave-name-select' className='font-medium text-sm'>
                         Leave Name <span className='text-red-500'>*</span>
@@ -277,7 +256,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     />
                     {errors.leaveName && <FormError>{errors.leaveName.message}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='from-date-input' className='font-medium text-sm'>
                         From Date <span className='text-red-500'>*</span>
@@ -319,7 +297,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     />
                     {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='to-date-input' className='font-medium text-sm'>
                         To Date <span className='text-red-500'>*</span>
@@ -362,7 +339,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     />
                     {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='total-days-input' className='font-medium text-sm'>
                         Total Days <span className='text-red-500'>*</span>
@@ -384,7 +360,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     />
                     {errors.totalDays && <FormError>{errors.totalDays.message}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='employee-select' className='font-medium text-sm'>
                         Employee <span className='text-red-500'>*</span>
@@ -410,7 +385,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     />
                     {errors.employee && <FormError>{errors.employee.message}</FormError>}
                 </div>
-
                 <div>
                     <Label htmlFor='loss-of-pay-select' className='font-medium text-sm'>
                         Loss Of Pay Options:
@@ -434,7 +408,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                         )}
                     />
                 </div>
-
                 {lossOfPayType !== 'none' && (
                     <div>
                         <Label htmlFor='loss-of-pay-amount-input' className='font-medium text-sm'>
@@ -456,7 +429,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                         />
                     </div>
                 )}
-
                 <div>
                     <Label htmlFor='availed-input' className='font-medium text-sm'>
                         Availed:
@@ -476,7 +448,6 @@ export function LeaveCreditTransactionForm({ editingRow, onSubmit, onCancel }: L
                     />
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-center gap-2 pt-4'>
                 <Button type='submit' variant='default' className='min-w-[120px]'>

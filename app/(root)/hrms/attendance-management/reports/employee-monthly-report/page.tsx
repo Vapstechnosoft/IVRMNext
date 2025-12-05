@@ -1,5 +1,4 @@
 'use client';
-
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeMonthlyReportList, useEmployeeMonthlyReportOnload } from '@/hooks/hrms/useReports';
@@ -10,13 +9,10 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { employeeMonthlyReportColumns } from './_components/columns';
 import { EmployeeMonthlyReportFilters, type EmployeeMonthlyReportFilters as ReportFilters } from './_components/filters';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function EmployeeMonthlyReportPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
     const router = useRouter();
-
     // Convert Next.js searchParams to ApiSearchparams format
     const searchParams: ApiSearchparams = {
         page:
@@ -60,7 +56,6 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     // Extract filter params from URL
     const MI_Id = 30;
     const LoginUserId = 0;
@@ -125,13 +120,10 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
                     | 'Total Absent Days'
                 )[])
               : [];
-
     // Check if we have search criteria (fromDate and toDate are required)
     const hasSearchCriteria = !!(fromDate && toDate);
-
     // React Query hook for dropdowns - always enabled to get filter options
     const { data: onloadData, isLoading: onloadLoading } = useEmployeeMonthlyReportOnload(MI_Id, LoginUserId, UserRole);
-
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypesData = useMemo(() => onloadData?.data?.types || [], [onloadData?.data?.types]);
     const groupTypesOptions = useMemo(
@@ -142,7 +134,6 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
             })),
         [groupTypesData]
     );
-
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useEmployeeMonthlyReportList(
         searchParams,
@@ -162,7 +153,6 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
         },
         hasSearchCriteria // Only fetch when fromDate and toDate are selected
     );
-
     // Form for filters
     const { handleSubmit, reset, setValue } = useForm<ReportFilters>({
         mode: 'onChange',
@@ -177,7 +167,6 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
             reportOptions: []
         }
     });
-
     // Sync form with URL params - use useEffect instead of useMemo to avoid render issues
     // Only update when URL params actually change, not on every render
     useEffect(() => {
@@ -200,16 +189,13 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
         toDate,
         reportOptions.join(',')
     ]);
-
     const onSubmit = (data: ReportFilters) => {
         if (!data.fromDate || !data.toDate) {
             toast.error('Please select from date and to date to generate report');
             return;
         }
-
         // Build URL params
         const params = new URLSearchParams();
-
         // Add filter params
         if (data.type && data.type.length > 0) {
             params.set('type', data.type.join(','));
@@ -231,31 +217,25 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
         if (data.reportOptions && data.reportOptions.length > 0) {
             params.set('reportOptions', data.reportOptions.join(','));
         }
-
         // Reset pagination when filters change
         params.set('page', '1');
-
         // Navigate with new params
         router.push(`/hrms/attendance-management/reports/employee-monthly-report?${params.toString()}`);
     };
-
     const handleCancel = () => {
         reset();
         router.push('/hrms/attendance-management/reports/employee-monthly-report');
     };
-
     // Transform API response to table data
     const transformedData = useMemo(() => {
         const responseData = reportListQuery.data?.data;
         if (!responseData || !Array.isArray(responseData?.rows)) {
             return [];
         }
-
         // TODO: Map API response rows to MonthlyRow format when search endpoint is available
         // For now, return empty array
         return [];
     }, [reportListQuery.data]);
-
     // Prepare data table props
     const tableProps = useDataTableProps({
         data: transformedData,
@@ -264,7 +244,6 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
         searchParams,
         onSearchParamsChange: (newParams: any) => {
             const params = new URLSearchParams();
-
             // Preserve existing filter params
             if (fromDate) params.set('fromDate', fromDate);
             if (toDate) params.set('toDate', toDate);
@@ -274,21 +253,17 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
             if (allOrIndividual) params.set('allOrIndividual', allOrIndividual);
             if (employeeName) params.set('employeeName', employeeName);
             if (reportOptions.length > 0) params.set('reportOptions', reportOptions.join(','));
-
             // Add/update pagination and sort params
             Object.entries(newParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     params.set(key, String(value));
                 }
             });
-
             router.push(`/hrms/attendance-management/reports/employee-monthly-report?${params.toString()}`);
         }
     });
-
     // Determine if we should show the report
     const showReport = hasSearchCriteria && reportListQuery.data?.success && transformedData.length > 0;
-
     // Memoize filters object to prevent unnecessary re-renders
     const filtersForComponent = useMemo(
         () => ({
@@ -303,7 +278,6 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
         }),
         [type, department, designation, allOrIndividual, employeeName, fromDate, toDate, reportOptions]
     );
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -329,7 +303,6 @@ export default function EmployeeMonthlyReportPage(props: { searchParams: SearchP
                         onPrint={() => window.print()}
                     />
                 )}
-
                 {showReport && (
                     <CollapsibleSection
                         title='Employee Monthly Report'

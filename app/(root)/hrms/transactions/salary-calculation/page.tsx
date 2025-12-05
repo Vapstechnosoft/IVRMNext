@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/extension/field';
@@ -17,7 +16,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type Employee, getSalaryCalculationColumns } from './_components/columns';
-
 interface SearchForm {
     groupType: string[];
     department: string[];
@@ -25,7 +23,6 @@ interface SearchForm {
     salaryMonth: string;
     salaryYear: string;
 }
-
 export default function SalaryCalculationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
@@ -34,7 +31,6 @@ export default function SalaryCalculationPage() {
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
     const [currentSearchData, setCurrentSearchData] = useState<SearchForm | null>(null);
-
     const { handleSubmit, reset, watch, control } = useForm<SearchForm>({
         mode: 'onChange',
         defaultValues: {
@@ -45,18 +41,15 @@ export default function SalaryCalculationPage() {
             salaryYear: new Date().getFullYear().toString()
         }
     });
-
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
-
     const { data: onloadData, isLoading } = useSalaryCalculationOnload({
         MI_Id: 30,
         LogInUserId: 0
     });
     const searchMutation = useSearchSalaryCalculation();
     const generateMutation = useGenerateSalary();
-
     // Memoize arrays to prevent unnecessary re-renders
     const monthOptions = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
     const leaveYearOptions = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
@@ -72,35 +65,28 @@ export default function SalaryCalculationPage() {
         () => onloadData?.groupTypedropdownlist || onloadData?.groupTypedropdown || [],
         [onloadData?.groupTypedropdownlist, onloadData?.groupTypedropdown]
     );
-
     // Memoize filterEmployees to prevent infinite loops
     const filterEmployees = useCallback(() => {
         let filtered = employees;
-
         if (watchedGroupType && watchedGroupType.length > 0) {
             const groupTypeIds = new Set(watchedGroupType.map((v) => Number(v)));
             filtered = filtered.filter((emp) => groupTypeIds.has(emp.HRMGT_Id));
         }
-
         if (watchedDepartment && watchedDepartment.length > 0) {
             const departmentIds = new Set(watchedDepartment.map((v) => Number(v)));
             filtered = filtered.filter((emp) => departmentIds.has(emp.HRMD_Id));
         }
-
         if (watchedDesignation && watchedDesignation.length > 0) {
             const designationIds = new Set(watchedDesignation.map((v) => Number(v)));
             filtered = filtered.filter((emp) => designationIds.has(emp.HRMDES_Id));
         }
-
         setFilteredEmployees(filtered);
     }, [watchedGroupType, watchedDepartment, watchedDesignation, employees]);
-
     useEffect(() => {
         if (hasSearched) {
             filterEmployees();
         }
     }, [hasSearched, filterEmployees]);
-
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
         const payload: SalaryCalculationSearchRequest = {
             MI_Id: 30,
@@ -111,15 +97,12 @@ export default function SalaryCalculationPage() {
             hrmdeS_IdList: (data.designation || []).map((v) => Number(v)),
             LogInUserId: 0
         };
-
         searchMutation.mutate(payload, {
             onSuccess: (responseData) => {
                 const employeeList = responseData.employeedropdown || [];
-
                 const employeesWithStatus: Employee[] = employeeList.map((emp: any) => {
                     const designation = designationOptions.find((d: DesignationDropdown) => d.HRMDES_Id === emp.HRMDES_Id);
                     const basicSalary = designation?.HRMDES_BasicAmount || 0;
-
                     return {
                         ...emp,
                         calculationStatus: 'Not Calculated' as const,
@@ -129,12 +112,10 @@ export default function SalaryCalculationPage() {
                         netSalary: basicSalary
                     } as Employee;
                 });
-
                 setEmployees(employeesWithStatus);
                 setFilteredEmployees(employeesWithStatus);
                 setHasSearched(true);
                 setCurrentSearchData(data);
-
                 if (data.salaryMonth && data.salaryYear) {
                     const monthData = monthOptions.find((m) => m.IVRM_Month_Name === data.salaryMonth);
                     if (monthData) {
@@ -142,7 +123,6 @@ export default function SalaryCalculationPage() {
                         const monthIndex = monthData.IVRM_Month_Id - 1;
                         const fromDate = new Date(year, monthIndex, 1);
                         const toDate = new Date(year, monthIndex + 1, 0);
-
                         setFromDate(
                             `${String(fromDate.getDate()).padStart(2, '0')}/${String(fromDate.getMonth() + 1).padStart(2, '0')}/${fromDate.getFullYear()}`
                         );
@@ -151,7 +131,6 @@ export default function SalaryCalculationPage() {
                         );
                     }
                 }
-
                 toast.success(`Search completed successfully. Found ${employeesWithStatus.length} employees`);
             },
             onError: () => {
@@ -161,7 +140,6 @@ export default function SalaryCalculationPage() {
             }
         });
     };
-
     const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
         if (selected) {
             setSelectedEmployees([...selectedEmployees, employeeId]);
@@ -169,7 +147,6 @@ export default function SalaryCalculationPage() {
             setSelectedEmployees(selectedEmployees.filter((id) => id !== employeeId));
         }
     };
-
     const handleSelectAll = (selected: boolean) => {
         if (selected) {
             setSelectedEmployees(filteredEmployees.map((emp) => emp.HRME_Id));
@@ -177,18 +154,15 @@ export default function SalaryCalculationPage() {
             setSelectedEmployees([]);
         }
     };
-
     const handleGenerateSalary = async () => {
         if (selectedEmployees.length === 0) {
             toast.error('Please select at least one employee to generate salary');
             return;
         }
-
         if (!currentSearchData) {
             toast.error('Please perform a search first before generating salary');
             return;
         }
-
         const payload: SalaryCalculationGenerateRequest = {
             MI_Id: 30,
             HRES_Year: currentSearchData.salaryYear,
@@ -196,7 +170,6 @@ export default function SalaryCalculationPage() {
             employeeIdList: selectedEmployees,
             LogInUserId: 0
         };
-
         generateMutation.mutate(payload, {
             onSuccess: () => {
                 setEmployees((prevEmployees) =>
@@ -209,12 +182,10 @@ export default function SalaryCalculationPage() {
                         selectedEmployees.includes(emp.HRME_Id) ? { ...emp, calculationStatus: 'Calculated' as const } : emp
                     )
                 );
-
                 setSelectedEmployees([]);
             }
         });
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -243,7 +214,6 @@ export default function SalaryCalculationPage() {
                                     )}
                                 />
                             </div>
-
                             {/* Department */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Department</Label>
@@ -265,7 +235,6 @@ export default function SalaryCalculationPage() {
                                     )}
                                 />
                             </div>
-
                             {/* Designation */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Designation</Label>
@@ -287,7 +256,6 @@ export default function SalaryCalculationPage() {
                                     )}
                                 />
                             </div>
-
                             {/* Month */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Month</Label>
@@ -310,7 +278,6 @@ export default function SalaryCalculationPage() {
                                     )}
                                 />
                             </div>
-
                             {/* Year */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Year</Label>
@@ -334,7 +301,6 @@ export default function SalaryCalculationPage() {
                                 />
                             </div>
                         </div>
-
                         {/* Search and Cancel Buttons */}
                         <div className='flex gap-2 pt-4'>
                             <Button type='submit' className='w-fit transition-all duration-200 hover:scale-105'>
@@ -358,7 +324,6 @@ export default function SalaryCalculationPage() {
                         </div>
                     </form>
                 </CollapsibleSection>
-
                 {/* Employee List Table */}
                 {hasSearched && (
                     <CollapsibleSection
@@ -379,7 +344,6 @@ export default function SalaryCalculationPage() {
                         />
                     </CollapsibleSection>
                 )}
-
                 {/* Initial State Message */}
                 {!hasSearched && (
                     <div className='flex items-center justify-center rounded-lg bg-muted/50 py-12'>
@@ -395,7 +359,6 @@ export default function SalaryCalculationPage() {
         </div>
     );
 }
-
 interface SalaryCalculationTableProps {
     employees: Employee[];
     isLoading: boolean;
@@ -406,7 +369,6 @@ interface SalaryCalculationTableProps {
     fromDate: string;
     toDate: string;
 }
-
 function SalaryCalculationTable({
     employees,
     isLoading,
@@ -427,9 +389,7 @@ function SalaryCalculationTable({
             page_size: employees.length
         };
     }, [employees]);
-
     const tableProps = useDataTableProps(tableResponse);
-
     // Get columns with selection handlers
     const columns = useMemo(
         () =>
@@ -441,7 +401,6 @@ function SalaryCalculationTable({
             }),
         [employees, selectedEmployees, onEmployeeSelect, onSelectAll]
     );
-
     return (
         <div className='space-y-4'>
             {/* Date Range Display */}
@@ -458,7 +417,6 @@ function SalaryCalculationTable({
                     </div>
                 </div>
             )}
-
             <GenericDataTable<Employee>
                 {...tableProps}
                 columns={columns}
@@ -471,7 +429,6 @@ function SalaryCalculationTable({
                 noDataDescription='No employee records match your search criteria'
                 errorTitle='Error Loading Employees'
             />
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-2'>
                 <Button

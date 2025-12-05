@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -11,13 +10,11 @@ import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveCredit } from './columns';
-
 interface UpdateLeaveCreditFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: LeaveCredit;
 }
-
 const typeOptions = [
     { label: 'VKS', value: 'VKS' },
     { label: 'Permanent', value: 'Permanent' },
@@ -42,12 +39,10 @@ const designationOptions = [
     { label: 'Sr HR Executive', value: 'Sr HR Executive' },
     { label: 'Manager HR', value: 'Manager HR' }
 ];
-
 export default function UpdateLeaveCreditForm({ onSuccess, className = '', selectedRow: row }: UpdateLeaveCreditFormProps) {
     const { refetchAll } = useLeaveCredit();
     const { mutate: updateCredit, isPending } = useUpdateLeaveCredit();
     const [activeTab, setActiveTab] = useState('Leave Credit');
-
     const {
         register,
         handleSubmit,
@@ -59,7 +54,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
     } = useForm<LeaveCredit>({
         mode: 'onChange'
     });
-
     useEffect(() => {
         if (row) {
             reset({
@@ -74,7 +68,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
             });
         }
     }, [row, reset]);
-
     const onSubmit: SubmitHandler<LeaveCredit> = async (data) => {
         updateCredit(
             {
@@ -90,11 +83,9 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
             }
         );
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
@@ -104,7 +95,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                     <TabsTrigger value='Leave Deduction'>Leave Deduction</TabsTrigger>
                     <TabsTrigger value='Leave CarryForward'>Leave CarryForward</TabsTrigger>
                 </TabsList>
-
                 <TabsContent value='Leave Credit' className='space-y-4'>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
@@ -126,7 +116,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='department-multiselect' className='mb-2 block font-medium text-sm'>
                                     Department
@@ -145,7 +134,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                                     )}
                                 />
                             </div>
-
                             <div>
                                 <label htmlFor='designation-multiselect' className='mb-2 block font-medium text-sm'>
                                     Designation
@@ -165,7 +153,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                                 />
                             </div>
                         </div>
-
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <Controller
                                 name='leaveYear'
@@ -192,7 +179,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                                     </div>
                                 )}
                             />
-
                             <Controller
                                 name='leaveName'
                                 control={control}
@@ -219,7 +205,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                                     </div>
                                 )}
                             />
-
                             <InputText
                                 label='Employee Name'
                                 id='employee-name-input'
@@ -227,7 +212,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                                 error={errors.employeeName?.message}
                                 placeholder='Enter employee name'
                             />
-
                             <InputText
                                 label='Leave Transfer'
                                 id='leave-credit-input'
@@ -237,7 +221,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                                 error={errors.leaveCredit?.message}
                                 placeholder='Enter leave credit'
                             />
-
                             <InputText
                                 label='Leave Balance'
                                 id='leave-balance-input'
@@ -248,7 +231,6 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                                 placeholder='Enter leave balance'
                             />
                         </div>
-
                         <div className='flex justify-end gap-2'>
                             <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                                 Reset
@@ -260,15 +242,12 @@ export default function UpdateLeaveCreditForm({ onSuccess, className = '', selec
                         </div>
                     </form>
                 </TabsContent>
-
                 <TabsContent value='Leave Addition' className='space-y-4'>
                     <div className='py-8 text-center text-gray-500'>Leave Addition functionality will be implemented here</div>
                 </TabsContent>
-
                 <TabsContent value='Leave Deduction' className='space-y-4'>
                     <div className='py-8 text-center text-gray-500'>Leave Deduction functionality will be implemented here</div>
                 </TabsContent>
-
                 <TabsContent value='Leave CarryForward' className='space-y-4'>
                     <div className='py-8 text-center text-gray-500'>Leave CarryForward functionality will be implemented here</div>
                 </TabsContent>

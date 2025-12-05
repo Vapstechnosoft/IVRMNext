@@ -1,12 +1,10 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 // Report filters
 export interface DepartmentSalaryFilters {
     selectedGroupTypes: string[]; // Array of IDs (as strings for MultiSelect)
@@ -15,7 +13,6 @@ export interface DepartmentSalaryFilters {
     month: string;
     year: string;
 }
-
 interface DepartmentSalaryReportFiltersProps {
     filters: DepartmentSalaryFilters;
     groupTypes?: Array<{ hrmgT_Id: number; HRMGT_GroupTypeName: string; [key: string]: any }>;
@@ -28,7 +25,6 @@ interface DepartmentSalaryReportFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function DepartmentSalaryReportFilters({
     filters,
     groupTypes = [],
@@ -80,7 +76,6 @@ export function DepartmentSalaryReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Department Section */}
                     <div className='space-y-2'>
                         <Label htmlFor='department' className='font-medium text-foreground text-sm'>
@@ -111,7 +106,6 @@ export function DepartmentSalaryReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Designation Section */}
                     <div className='space-y-2'>
                         <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
@@ -143,7 +137,6 @@ export function DepartmentSalaryReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Additional Filters */}
                 <div className='flex items-center justify-center gap-6 pt-4'>
                     {/* Month Filter */}
@@ -172,7 +165,6 @@ export function DepartmentSalaryReportFilters({
                             </Select>
                         )}
                     </div>
-
                     {/* Year Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -200,7 +192,6 @@ export function DepartmentSalaryReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button onClick={onSearch}>

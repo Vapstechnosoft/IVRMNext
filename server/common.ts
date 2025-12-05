@@ -663,6 +663,29 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Fee Transaction'
                                         // }
                                     ]
+                                },
+                                {
+                                    id: 2001,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 10011,
+                                            name: 'Fee Defaulter report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feedefaulterreport',
+                                            title: 'Fee Defaulter Report',
+                                            description: 'Fee Defaulter Report'
+                                        },
+                                        {
+                                            id: 10012,
+                                            name: 'Daily Fee Collection Report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/dailyfeecollectionreport',
+                                            title: 'Daily Fee Collection Report',
+                                            description: 'Manage Daily Fee Collection Report Details'
+                                        }
+                                    ]
                                 }
                             ]
                         }
@@ -1022,14 +1045,6 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
-                                            name: 'Leave Year',
-                                            icon: 'Calendar',
-                                            url: '/hrms/masters/leave-year',
-                                            title: 'Leave Year Master',
-                                            description: 'Manage Leave Year'
-                                        },
-                                        {
-                                            id: 6,
                                             name: 'Marital Status',
                                             icon: 'Heart',
                                             url: '/hrms/masters/marital-status',
@@ -1037,23 +1052,55 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Marital Status'
                                         },
                                         {
+                                            id: 6,
+                                            name: 'Specialization',
+                                            icon: 'GraduationCap',
+                                            url: '/hrms/masters/specialization',
+                                            title: 'Specialization Master',
+                                            description: 'Manage Specialization Details'
+                                        },
+                                        {
                                             id: 7,
-                                            name: 'Professional Tax',
-                                            icon: 'FileText',
-                                            url: '/hrms/masters/professional-tax',
-                                            title: 'Professional Tax Slab',
-                                            description: 'Manage Professional Tax'
+                                            name: 'Employee Type',
+                                            icon: 'Users',
+                                            url: '/hrms/masters/employee-type',
+                                            title: 'Employee Type Master',
+                                            description: 'Manage Employee Types'
                                         },
                                         {
                                             id: 8,
-                                            name: 'Employee Category',
-                                            icon: 'Users',
-                                            url: '/hrms/masters/employee-category',
-                                            title: 'Employee Category Management',
-                                            description: 'Manage Employee Categories and Classifications'
+                                            name: 'Group Type',
+                                            icon: 'Layers',
+                                            url: '/hrms/masters/group-type',
+                                            title: 'Group Type Master',
+                                            description: 'Manage Group Types'
                                         },
                                         {
                                             id: 9,
+                                            name: 'Department',
+                                            icon: 'Building2',
+                                            url: '/hrms/masters/department',
+                                            title: 'Department Master',
+                                            description: 'Manage Departments'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Designation',
+                                            icon: 'Award',
+                                            url: '/hrms/masters/designation',
+                                            title: 'Designation Master',
+                                            description: 'Manage Designations'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Grade',
+                                            icon: 'Trophy',
+                                            url: '/hrms/masters/grade',
+                                            title: 'Grade Master',
+                                            description: 'Manage Grades'
+                                        },
+                                        {
+                                            id: 12,
                                             name: 'Group-Dept-Desig Mapping',
                                             icon: 'Network',
                                             url: '/hrms/masters/group-dept-dessg-mapping',
@@ -1061,7 +1108,23 @@ export async function getUserAccessibleModules() {
                                             description: 'Map Group, Department & Designation'
                                         },
                                         {
-                                            id: 10,
+                                            id: 13,
+                                            name: 'Leave Year',
+                                            icon: 'Calendar',
+                                            url: '/hrms/masters/leave-year',
+                                            title: 'Leave Year Master',
+                                            description: 'Manage Leave Year'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Professional Tax',
+                                            icon: 'FileText',
+                                            url: '/hrms/masters/professional-tax',
+                                            title: 'Professional Tax Slab',
+                                            description: 'Manage Professional Tax'
+                                        },
+                                        {
+                                            id: 15,
                                             name: 'Loan',
                                             icon: 'CreditCard',
                                             url: '/hrms/masters/loan',
@@ -1069,7 +1132,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Loan Types'
                                         },
                                         {
-                                            id: 11,
+                                            id: 16,
                                             name: 'Payroll Standard',
                                             icon: 'Calculator',
                                             url: '/hrms/masters/payroll-standard',
@@ -1077,20 +1140,12 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Payroll Standards'
                                         },
                                         {
-                                            id: 12,
+                                            id: 17,
                                             name: 'Religion-Category Mapping',
                                             icon: 'Link',
                                             url: '/hrms/masters/religion-category-mapping',
                                             title: 'Religion-Category Mapping',
                                             description: 'Map Religion & Category'
-                                        },
-                                        {
-                                            id: 13,
-                                            name: 'Specialization',
-                                            icon: 'GraduationCap',
-                                            url: '/hrms/masters/specialization',
-                                            title: 'Specialization Master',
-                                            description: 'Manage Specialization Details'
                                         }
                                     ]
                                 },

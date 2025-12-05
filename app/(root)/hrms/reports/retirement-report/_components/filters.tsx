@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
@@ -13,7 +12,6 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Search, X } from 'lucide-react';
 import { headerFields } from './columns';
-
 export interface RetirementFilters {
     selectedHeaders: string[];
     format: 'format1' | 'format2';
@@ -30,7 +28,6 @@ export interface RetirementFilters {
     selectedDepartments?: string[]; // Selected department IDs (as strings for MultiSelect)
     selectedDesignations?: string[]; // Selected designation IDs (as strings for MultiSelect)
 }
-
 interface RetirementReportFiltersProps {
     filters: RetirementFilters;
     employeeTypes?: Array<{ HRMET_Id: number; HRMET_EmployeeType: string; [key: string]: any }>;
@@ -54,7 +51,6 @@ interface RetirementReportFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function RetirementReportFilters({
     filters,
     employeeTypes = [],
@@ -111,7 +107,6 @@ export function RetirementReportFilters({
                         </div>
                     </div>
                 </div>
-
                 {/* Right Column */}
                 <div className='space-y-4'>
                     {/* Format Selection */}
@@ -149,7 +144,6 @@ export function RetirementReportFilters({
                             </div>
                         </RadioGroup>
                     </div>
-
                     {/* Date Filter Selection */}
                     <div className='space-y-3'>
                         <span className='font-medium text-foreground text-sm'>Date Filter:</span>
@@ -177,7 +171,6 @@ export function RetirementReportFilters({
                             </div>
                         </RadioGroup>
                     </div>
-
                     {/* Date Range Selection */}
                     <div className='flex items-center gap-4'>
                         <div className='space-y-2'>
@@ -206,7 +199,6 @@ export function RetirementReportFilters({
                                 </PopoverContent>
                             </Popover>
                         </div>
-
                         <div className='space-y-2'>
                             <span className='font-medium text-foreground text-sm'>
                                 To: <span className='text-red-500'>*</span>
@@ -234,7 +226,6 @@ export function RetirementReportFilters({
                             </Popover>
                         </div>
                     </div>
-
                     {/* Employee Status */}
                     <div className='space-y-3'>
                         <div className='flex items-center gap-4'>
@@ -260,7 +251,6 @@ export function RetirementReportFilters({
                             </div>
                         </div>
                     </div>
-
                     {/* Report Scope - Only show for Format 1 */}
                     {filters.format === 'format1' && (
                         <div className='space-y-3'>
@@ -292,7 +282,6 @@ export function RetirementReportFilters({
                             </RadioGroup>
                         </div>
                     )}
-
                     {/* Type/Employee Selection - Only show when Format 1 and Individual are selected */}
                     {filters.format === 'format1' && filters.reportScope === 'individual' && (
                         <div className='space-y-3'>
@@ -323,7 +312,6 @@ export function RetirementReportFilters({
                             </RadioGroup>
                         </div>
                     )}
-
                     {/* Type Dropdown - Only show when Format 1, Individual, and Type are selected */}
                     {filters.format === 'format1' && filters.reportScope === 'individual' && filters.selectionType === 'type' && (
                         <div className='space-y-2'>
@@ -352,7 +340,6 @@ export function RetirementReportFilters({
                             )}
                         </div>
                     )}
-
                     {/* Employee Dropdown - Only show when Format 1, Individual, and Employee are selected */}
                     {filters.format === 'format1' && filters.reportScope === 'individual' && filters.selectionType === 'employee' && (
                         <div className='space-y-2'>
@@ -390,7 +377,6 @@ export function RetirementReportFilters({
                     )}
                 </div>
             </div>
-
             {/* Format 2 Filters - Group Type, Department, Designation */}
             {filters.format === 'format2' && (
                 <div className='grid grid-cols-1 gap-6 pt-4 lg:grid-cols-3'>
@@ -419,7 +405,6 @@ export function RetirementReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Department Section */}
                     <div className='space-y-2'>
                         <Label htmlFor='department' className='font-medium text-foreground text-sm'>
@@ -445,7 +430,6 @@ export function RetirementReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Designation Section */}
                     <div className='space-y-2'>
                         <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
@@ -473,7 +457,6 @@ export function RetirementReportFilters({
                     </div>
                 </div>
             )}
-
             {/* Action Buttons */}
             <div className='flex gap-2 pt-4'>
                 <Button onClick={onSearch}>

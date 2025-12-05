@@ -1,5 +1,4 @@
 'use client';
-
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeLateInEarlyOutReportList, useEmployeeLateInEarlyOutReportOnload } from '@/hooks/hrms/useReports';
@@ -10,13 +9,10 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { employeeLateInEarlyOutReportColumns } from './_components/columns';
 import { EmployeeLateInEarlyOutReportFilters, type EmployeeLateInEarlyOutReportFilters as ReportFilters } from './_components/filters';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
     const router = useRouter();
-
     // Convert Next.js searchParams to ApiSearchparams format
     const searchParams: ApiSearchparams = {
         page:
@@ -60,7 +56,6 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     // Extract filter params from URL
     const MI_Id = 30;
     const LoginUserId = 0;
@@ -113,10 +108,8 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
             : Array.isArray(rawSearchParams?.mode)
               ? (rawSearchParams.mode[0] as 'Late By' | 'Early Out' | 'Late In Early Out')
               : 'Late By';
-
     // Check if we have search criteria (fromDate and toDate are required)
     const hasSearchCriteria = !!(fromDate && toDate);
-
     // React Query hook for dropdowns - always enabled to get filter options
     const {
         data: onloadData,
@@ -124,17 +117,10 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
         isError: onloadError,
         error: onloadErrorObj
     } = useEmployeeLateInEarlyOutReportOnload(MI_Id, LoginUserId, UserRole);
-
     // Debug logging for onload data
     useEffect(() => {
         if (onloadErrorObj) {
-            console.error('❌ [PAGE] Onload Error:', {
-                errorMessage: onloadErrorObj?.message,
-                error: onloadErrorObj,
-                errorStack: onloadErrorObj?.stack
-            });
         }
-
         if (onloadData) {
             if (onloadData?.data?.types && onloadData.data.types.length > 0) {
             }
@@ -142,18 +128,15 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
             }
         }
     }, [onloadData, onloadLoading, onloadError, onloadErrorObj]);
-
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypesData = useMemo(() => {
         const types = onloadData?.data?.types || [];
         return types;
     }, [onloadData?.data?.types]);
-
     const employeesData = useMemo(() => {
         const employees = onloadData?.data?.employees || [];
         return employees;
     }, [onloadData?.data?.employees]);
-
     const groupTypesOptions = useMemo(() => {
         const options = groupTypesData.map((gt) => ({
             label: gt.hrmgT_EmployeeGroupType,
@@ -161,7 +144,6 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
         }));
         return options;
     }, [groupTypesData]);
-
     const employeesOptions = useMemo(() => {
         const options = employeesData.map((emp) => ({
             label: `${emp.ename} (${emp.hrmE_EmployeeCode})`,
@@ -169,7 +151,6 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
         }));
         return options;
     }, [employeesData]);
-
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useEmployeeLateInEarlyOutReportList(
         searchParams,
@@ -191,7 +172,6 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
         },
         hasSearchCriteria // Only fetch when fromDate and toDate are selected
     );
-
     // Form for filters
     const { handleSubmit, reset, watch, control, setValue } = useForm<ReportFilters>({
         mode: 'onChange',
@@ -207,7 +187,6 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
             mode: 'Late By'
         }
     });
-
     // Sync form with URL params - use useEffect instead of useMemo to avoid render issues
     // Only update when URL params actually change, not on every render
     useEffect(() => {
@@ -221,16 +200,13 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
         setValue('mode', mode, { shouldDirty: false, shouldValidate: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [type.join(','), department.join(','), designation.join(','), allOrIndividual, employeeCode, fromDate, toDate, mode]);
-
     const onSubmit = (data: ReportFilters) => {
         if (!data.fromDate || !data.toDate) {
             toast.error('Please select from date and to date to generate report');
             return;
         }
-
         // Build URL params
         const params = new URLSearchParams();
-
         // Add filter params
         if (data.fromDate) params.set('fromDate', data.fromDate);
         if (data.toDate) params.set('toDate', data.toDate);
@@ -252,31 +228,25 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
         if (data.mode) {
             params.set('mode', data.mode);
         }
-
         // Reset pagination when filters change
         params.set('page', '1');
-
         // Navigate with new params
         router.push(`/hrms/attendance-management/reports/employee-lateInEarlyOut-report?${params.toString()}`);
     };
-
     const handleCancel = () => {
         reset();
         router.push('/hrms/attendance-management/reports/employee-lateInEarlyOut-report');
     };
-
     // Transform API response to table data
     const transformedData = useMemo(() => {
         const responseData = reportListQuery.data?.data;
         if (!responseData || !Array.isArray(responseData?.rows)) {
             return [];
         }
-
         // TODO: Map API response rows to LIEORow format when search endpoint is available
         // For now, return empty array
         return [];
     }, [reportListQuery.data]);
-
     // Prepare data table props
     const tableProps = useDataTableProps({
         data: transformedData,
@@ -285,7 +255,6 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
         searchParams,
         onSearchParamsChange: (newParams: any) => {
             const params = new URLSearchParams();
-
             // Preserve existing filter params
             if (fromDate) params.set('fromDate', fromDate);
             if (toDate) params.set('toDate', toDate);
@@ -295,21 +264,17 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
             if (allOrIndividual) params.set('allOrIndividual', allOrIndividual);
             if (employeeCode) params.set('employeeCode', employeeCode);
             if (mode) params.set('mode', mode);
-
             // Add/update pagination and sort params
             Object.entries(newParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     params.set(key, String(value));
                 }
             });
-
             router.push(`/hrms/attendance-management/reports/employee-lateInEarlyOut-report?${params.toString()}`);
         }
     });
-
     // Determine if we should show the report
     const showReport = hasSearchCriteria && reportListQuery.data?.success && transformedData.length > 0;
-
     // Memoize filters object to prevent unnecessary re-renders
     const filtersForComponent = useMemo(
         () => ({
@@ -325,7 +290,6 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
         }),
         [type, department, designation, allOrIndividual, employeeCode, fromDate, toDate, mode]
     );
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -360,7 +324,6 @@ export default function EmployeeLateInEarlyOutReportPage(props: { searchParams: 
                         );
                     })()
                 )}
-
                 {showReport && (
                     <CollapsibleSection
                         title='Employee Late In Early Out Report'

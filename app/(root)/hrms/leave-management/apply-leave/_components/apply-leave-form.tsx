@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DateField } from '@/components/ui/dateField';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -7,7 +6,6 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { ApplyLeave } from './columns';
-
 interface ApplyLeaveFormProps {
     defaultEmployee: {
         name: string;
@@ -19,7 +17,6 @@ interface ApplyLeaveFormProps {
     onSubmit: (data: ApplyLeave) => void;
     onCancel: () => void;
 }
-
 export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLeaveFormProps) {
     const {
         register,
@@ -41,10 +38,8 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
             dateReportingBack: ''
         }
     });
-
     const _todayISO = new Date().toISOString().slice(0, 10);
     const selectedFile = watch('file');
-
     const handleFormSubmit: SubmitHandler<ApplyLeave & { contactNumber: string; dateReportingBack: string; file?: FileList }> = (data) => {
         if (!data.reason?.trim()) {
             return;
@@ -57,7 +52,6 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
         }
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
             {/* Read-only Employee Information */}
@@ -129,11 +123,9 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
                     </div>
                 </div>
             </div>
-
             {/* Leave Application Form */}
             <div className='space-y-6 rounded-lg border bg-background p-5'>
                 <h3 className='font-semibold text-base text-foreground'>Leave Application Details</h3>
-
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Reasons for Leave */}
                     <div className='space-y-2'>
@@ -149,7 +141,6 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
                             className='w-full'
                         />
                     </div>
-
                     {/* Contact Number While on Leave */}
                     <div className='space-y-2'>
                         <label htmlFor='contact-number-input' className='block font-medium text-sm'>
@@ -164,7 +155,6 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
                             className='w-full'
                         />
                     </div>
-
                     {/* Date Reporting Back */}
                     <div className='space-y-2'>
                         <Controller
@@ -182,7 +172,6 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
                             )}
                         />
                     </div>
-
                     {/* File Upload */}
                     <div className='space-y-2'>
                         <label htmlFor='leave-document-file' className='block font-medium text-sm'>
@@ -210,7 +199,6 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
                     </div>
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 pt-2'>
                 <Button type='button' variant='outline' onClick={onCancel} className='min-w-[120px]'>

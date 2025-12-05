@@ -1,5 +1,4 @@
 'use client';
-
 import {
     useEmployeeShiftMapping,
     useEmployeeShiftMappingEditData,
@@ -9,13 +8,11 @@ import { useMemo } from 'react';
 import type { EmployeeShiftMapping } from './columns';
 import { ShiftMappingForm } from './shift-mapping-form';
 import type { EmployeeShiftMappingForm } from './shift-mapping-form';
-
 interface UpdateEmployeeShiftMappingFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: EmployeeShiftMapping;
 }
-
 export default function UpdateEmployeeShiftMappingForm({
     onSuccess,
     className = '',
@@ -23,19 +20,15 @@ export default function UpdateEmployeeShiftMappingForm({
 }: UpdateEmployeeShiftMappingFormProps) {
     const { refetchAll } = useEmployeeShiftMapping();
     const { mutate: saveMapping } = useSaveEmployeeShiftMapping();
-
     // Fetch edit data from API
     const { data: editDataResponse, isLoading: isLoadingEditData } = useEmployeeShiftMappingEditData(row.id);
     const editData = editDataResponse?.data;
-
     // Use API data if available, otherwise fallback to row data
     const editingMapping: EmployeeShiftMappingForm | null = useMemo(() => {
         if (isLoadingEditData) {
             return null; // Show loading state
         }
-
         const sourceData = editData || row;
-
         return {
             type: Array.isArray(sourceData.type) ? sourceData.type : sourceData.type ? [sourceData.type] : [],
             department: Array.isArray(sourceData.department) ? sourceData.department : sourceData.department ? [sourceData.department] : [],
@@ -59,7 +52,6 @@ export default function UpdateEmployeeShiftMappingForm({
             lunchHours: sourceData.lunchHours || ''
         };
     }, [editData, row, isLoadingEditData]);
-
     const handleSubmit = (data: EmployeeShiftMappingForm) => {
         // Similar to add-form, we need to map the form data to API format
         // This will be handled in the save function which already has the logic
@@ -95,7 +87,6 @@ export default function UpdateEmployeeShiftMappingForm({
             lunchHours: data.lunchHours,
             isActive: editData?.isActive ?? row.isActive ?? true
         };
-
         saveMapping(mappingData, {
             onSuccess: () => {
                 refetchAll();
@@ -103,7 +94,6 @@ export default function UpdateEmployeeShiftMappingForm({
             }
         });
     };
-
     // Show loading state while fetching edit data
     if (isLoadingEditData || !editingMapping) {
         return (
@@ -114,7 +104,6 @@ export default function UpdateEmployeeShiftMappingForm({
             </div>
         );
     }
-
     return (
         <div className={className}>
             <ShiftMappingForm editingMapping={editingMapping} onSubmit={handleSubmit} onCancel={() => onSuccess?.()} />

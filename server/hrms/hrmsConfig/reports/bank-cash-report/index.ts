@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     BankCashReportOnloadRequest,
@@ -7,7 +6,6 @@ import type {
     BankCashReportSearchRequest,
     BankCashReportSearchResponse
 } from '@/types/hrms/reports/bank-cash-report';
-
 /**
  * Get onload data for Bank Cash Report
  * POST /api/BankCashReportFacade/onloadgetdetails
@@ -19,22 +17,16 @@ export async function getBankCashReportOnload(
     LogInUserId = 0
 ): Promise<ApiResponse<BankCashReportOnloadResponse>> {
     const url = '/api/BankCashReportFacade/onloadgetdetails';
-
     const requestBody: BankCashReportOnloadRequest = {
         MI_Id,
         LogInUserId
     };
-
-    console.log('🔵 ========== BANK CASH REPORT ONLOAD ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<BankCashReportOnloadResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to load bank cash report data',
@@ -81,14 +73,12 @@ export async function getBankCashReportOnload(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<BankCashReportOnloadResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as BankCashReportOnloadResponse;
     return {
@@ -97,7 +87,6 @@ export async function getBankCashReportOnload(
         data: rawResponse
     };
 }
-
 /**
  * Search Bank Cash report by selection criteria
  * POST /api/BankCashReportFacade/getEmployeedetailsBySelection
@@ -108,7 +97,6 @@ export async function searchBankCashReport(
     request: BankCashReportSearchRequest
 ): Promise<ApiResponse<BankCashReportSearchResponse>> {
     const url = '/api/BankCashReportFacade/getEmployeedetailsBySelection';
-
     const requestBody: BankCashReportSearchRequest = {
         MI_Id: request.MI_Id || 0,
         HRES_Year: request.HRES_Year || 0,
@@ -117,17 +105,12 @@ export async function searchBankCashReport(
         departmentselected: request.departmentselected || [],
         groupTypeselected: request.groupTypeselected || []
     };
-
-    console.log('🔵 ========== BANK CASH REPORT SEARCH ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<BankCashReportSearchResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to search bank cash report',
@@ -138,14 +121,12 @@ export async function searchBankCashReport(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<BankCashReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as BankCashReportSearchResponse;
     return {
@@ -154,4 +135,3 @@ export async function searchBankCashReport(
         data: rawResponse
     };
 }
-

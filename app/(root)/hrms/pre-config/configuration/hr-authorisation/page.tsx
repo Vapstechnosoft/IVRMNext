@@ -4,9 +4,7 @@
 // 2. Import form from _components/hrauthorisation-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +20,6 @@ import { Edit, Eye, Mail, MoreHorizontal, Plus, Save, Trash2, X } from 'lucide-r
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface HRAuthorisation {
     id: number;
     type: string;
@@ -38,7 +35,6 @@ interface HRAuthorisation {
     emailCC?: string;
     approvedBy?: string;
 }
-
 interface CartItem {
     id: number;
     activities: string[];
@@ -46,7 +42,6 @@ interface CartItem {
     approvedLevel: number;
     finalFlag: boolean;
 }
-
 type HRAuthorisationForm = {
     group: string;
     department: string;
@@ -59,7 +54,6 @@ type HRAuthorisationForm = {
     approvedBy: string;
     finalAuthority: boolean;
 };
-
 export default function HRAuthorisationPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
@@ -67,7 +61,6 @@ export default function HRAuthorisationPage() {
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const formRef = useRef<HTMLDivElement>(null);
-
     // Mock data for dropdowns
     const _groups = ['Teaching', 'Non-Teaching', 'Administration'];
     const _departments = ['ComputerScience', 'Mathematics', 'Physics', 'Chemistry', 'Biology'];
@@ -86,7 +79,6 @@ export default function HRAuthorisationPage() {
         'Probationary'
     ];
     const _users = ['BATMAN', 'WendyHazra', 'PoonamJaiswal'];
-
     const {
         reset,
         setValue,
@@ -99,14 +91,11 @@ export default function HRAuthorisationPage() {
             finalAuthority: false
         }
     });
-
     const watchedActivities = watch('activities');
-
     // Load mock data on component mount
     useEffect(() => {
         loadAuthorisations();
     }, []);
-
     const loadAuthorisations = async () => {
         try {
             setIsLoading(true);
@@ -152,21 +141,17 @@ export default function HRAuthorisationPage() {
                     activities: ['Loan']
                 }
             ];
-
             setAuthorisations(mockData);
             toast.success(`Loaded ${mockData.length} HR authorisations`);
-        } catch (error) {
-            console.error('Error loading HR authorisations:', error);
+        } catch (_error) {
             toast.error('Failed to load HR authorisations');
             setAuthorisations([]);
         } finally {
             setIsLoading(false);
         }
     };
-
     const handleAddToCart = () => {
         const formData = watch();
-
         if (
             !formData.group ||
             !formData.department ||
@@ -178,7 +163,6 @@ export default function HRAuthorisationPage() {
             toast.error('Please fill in all required fields');
             return;
         }
-
         const newCartItem: CartItem = {
             id: Date.now(),
             activities: formData.activities,
@@ -186,10 +170,8 @@ export default function HRAuthorisationPage() {
             approvedLevel: Number.parseInt(formData.orderBy),
             finalFlag: formData.finalAuthority
         };
-
         setCartItems((prev) => [...prev, newCartItem]);
         toast.success('Added to cart');
-
         // Reset form
         reset({
             group: '',
@@ -204,29 +186,24 @@ export default function HRAuthorisationPage() {
             finalAuthority: false
         });
     };
-
     const handleRemoveFromCart = (id: number) => {
         setCartItems((prev) => prev.filter((item) => item.id !== id));
         toast.success('Removed from cart');
     };
-
     const handleSaveCart = () => {
         if (cartItems.length === 0) {
             toast.error('Cart is empty');
             return;
         }
-
         // Here you would typically save to the backend
         toast.success(`Saved ${cartItems.length} items successfully`);
         setCartItems([]);
         loadAuthorisations();
     };
-
     const handleCancelCart = () => {
         setCartItems([]);
         toast.info('Cart cleared');
     };
-
     const handleActivityChange = (activity: string, checked: boolean) => {
         const currentActivities = watchedActivities || [];
         if (checked) {
@@ -238,7 +215,6 @@ export default function HRAuthorisationPage() {
             );
         }
     };
-
     const handleEdit = (auth: HRAuthorisation) => {
         setEditingId(auth.id);
         setValue('group', auth.group);
@@ -253,7 +229,6 @@ export default function HRAuthorisationPage() {
         setValue('finalAuthority', auth.finalFlag);
         setIsFormOpen(true);
     };
-
     const handleDelete = async (id: number) => {
         try {
             setAuthorisations((prev) => prev.filter((auth) => auth.id !== id));
@@ -262,7 +237,6 @@ export default function HRAuthorisationPage() {
             toast.error('Failed to delete HR Authorisation');
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
@@ -278,7 +252,6 @@ export default function HRAuthorisationPage() {
             });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
@@ -287,7 +260,6 @@ export default function HRAuthorisationPage() {
             finalAuthority: false
         });
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -310,7 +282,6 @@ export default function HRAuthorisationPage() {
                         </Button>
                     </div>
                 </div>
-
                 {/* Data Table Section - Always visible */}
                 <CollapsibleSection
                     title='HR Authorisation Data'
@@ -327,7 +298,6 @@ export default function HRAuthorisationPage() {
                         onDelete={handleDelete}
                     />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -361,7 +331,6 @@ export default function HRAuthorisationPage() {
                         </CollapsibleSection>
                     </div>
                 )}
-
                 {/* Cart Details Section - Only show when there are items */}
                 {cartItems.length > 0 && (
                     <CollapsibleSection
@@ -410,7 +379,6 @@ export default function HRAuthorisationPage() {
                                     </tbody>
                                 </table>
                             </div>
-
                             <div className='flex gap-3 border-t pt-4'>
                                 <Button type='button' onClick={handleSaveCart} className='bg-blue-600 hover:bg-blue-700'>
                                     <Save className='mr-2 h-4 w-4' />
@@ -428,7 +396,6 @@ export default function HRAuthorisationPage() {
         </div>
     );
 }
-
 interface HRAuthorisationFormProps {
     onSubmit: () => void;
     onCancel: () => void;
@@ -439,14 +406,12 @@ interface HRAuthorisationFormProps {
     errors: any;
     isSubmitting: boolean;
 }
-
 interface HRAuthorisationTableProps {
     authorisations: HRAuthorisation[];
     isLoading: boolean;
     onEdit: (auth: HRAuthorisation) => void;
     onDelete: (id: number) => void;
 }
-
 function HRAuthorisationForm({
     onSubmit,
     onCancel,
@@ -475,7 +440,6 @@ function HRAuthorisationForm({
         'Probationary'
     ];
     const users = ['BATMAN', 'WendyHazra', 'PoonamJaiswal'];
-
     return (
         <div className='max-w-full space-y-6'>
             <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
@@ -496,7 +460,6 @@ function HRAuthorisationForm({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='space-y-2'>
                         <span className='font-medium text-sm'>Department :*</span>
                         <Select onValueChange={(value) => setValue('department', value)}>
@@ -512,7 +475,6 @@ function HRAuthorisationForm({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='space-y-2'>
                         <span className='font-medium text-sm'>Designation Type :*</span>
                         <Select onValueChange={(value) => setValue('designationType', value)}>
@@ -528,7 +490,6 @@ function HRAuthorisationForm({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='space-y-2'>
                         <span className='font-medium text-sm'>Grade Type :*</span>
                         <Select onValueChange={(value) => setValue('gradeType', value)}>
@@ -544,7 +505,6 @@ function HRAuthorisationForm({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='space-y-2'>
                         <span className='font-medium text-sm'>Activities :*</span>
                         <div className='max-h-32 space-y-1 overflow-y-auto rounded-md border p-2'>
@@ -563,7 +523,6 @@ function HRAuthorisationForm({
                         </div>
                     </div>
                 </div>
-
                 {/* Right Column */}
                 <div className='space-y-4'>
                     <InputText
@@ -574,7 +533,6 @@ function HRAuthorisationForm({
                         onChange={(e) => setValue('email', e.target.value)}
                         error={errors.email?.message}
                     />
-
                     <InputText
                         label='Email CC'
                         id='emailCC'
@@ -583,7 +541,6 @@ function HRAuthorisationForm({
                         onChange={(e) => setValue('emailCC', e.target.value)}
                         error={errors.emailCC?.message}
                     />
-
                     <div className='space-y-2'>
                         <span className='font-medium text-sm'>Orderby :*</span>
                         <Select onValueChange={(value) => setValue('orderBy', value)}>
@@ -597,7 +554,6 @@ function HRAuthorisationForm({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='space-y-2'>
                         <span className='font-medium text-sm'>Approved by :*</span>
                         <Select onValueChange={(value) => setValue('approvedBy', value)}>
@@ -613,7 +569,6 @@ function HRAuthorisationForm({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='flex items-center space-x-2 pt-2'>
                         <Checkbox
                             id='finalAuthority'
@@ -626,7 +581,6 @@ function HRAuthorisationForm({
                     </div>
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-3 border-t pt-4'>
                 <Button type='button' onClick={onSubmit} className='bg-blue-600 hover:bg-blue-700'>
@@ -645,7 +599,6 @@ function HRAuthorisationForm({
         </div>
     );
 }
-
 function HRAuthorisationTable({ authorisations, isLoading, onEdit, onDelete }: HRAuthorisationTableProps) {
     const authColumns: ColumnDef<HRAuthorisation>[] = [
         {
@@ -774,7 +727,6 @@ function HRAuthorisationTable({ authorisations, isLoading, onEdit, onDelete }: H
             }
         }
     ];
-
     return (
         <div className='overflow-hidden rounded-lg bg-card'>
             <GenericDataTable

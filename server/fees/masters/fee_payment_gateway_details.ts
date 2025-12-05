@@ -19,7 +19,7 @@ export async function addOrUpdatepaymentgatewaydetails(data: any) {
 }
 
 export async function togglepaymentgatewaydetails(mi_id: number, id: number) {
-    const url = `/FeePaymentGatewayDetailsFacade/deletePaymentGatewayDetails/${id}`;
+    const url = `/FeePaymentGatewayDetailsFacade/toggle-PaymentGatewayDetails/${id}`;
     return await api.put('fees', url);
 }
 
@@ -28,3 +28,10 @@ export async function getpaymentgateway_dropdown(searchParams?: ApiSearchparams)
     const url = `/FeePaymentGatewayDetailsFacade/paymentgatewaylist/30?${urlParams}`;
     return await api.get<IMasterpaymentGatewayDropdownList[]>('fees', url);
 }
+
+export async function deletepaymentgatewaydetails(id: number) {
+    const url = `/FeePaymentGatewayDetailsFacade/deletePaymentGatewayDetails/${id}`;
+    
+    return await api.delete('fees', url);
+}
+

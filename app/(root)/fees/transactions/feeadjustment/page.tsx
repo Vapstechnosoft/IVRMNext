@@ -9,6 +9,8 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeAdjustmentForm from './_components/add-form';
 import ToggleMasterFeesConfigForm from './_components/toggle-form';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
+import { openingBalanceColumns, OpeningBalanceRow } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -18,13 +20,14 @@ export default function fineSlabPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IFeeConfig>>
-            <MasterFeeOpeningBalancePageContent />
+            <MasterFeeOpeningBalancePageContent data={response} isLoading={isLoading} />
         </FormProvider>
     );
 }
-function MasterFeeOpeningBalancePageContent() {
+function MasterFeeOpeningBalancePageContent({ data, isLoading }: { data: any; isLoading: boolean }) {
     const { openAddForm } = useFormContext<IFeeConfig>();
-
+    const activeTab = 'Fee Adjustment';
+    const tableData: any[] = (data as any)?.data ?? [];
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -38,8 +41,23 @@ function MasterFeeOpeningBalancePageContent() {
                         Fee Adjustment
                     </Button>
                 </div>
+                <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='rounded-xl border bg-white shadow-xl'>
+
+                    <GenericDataTable<OpeningBalanceRow>
+                        data={tableData}
+                        columns={openingBalanceColumns}
+                        isLoading={isLoading}
+                        columnPinning={{ right: ['actions'] }}
+                        loadingMessage={`Loading ${activeTab} Opening Balances...`}
+                        noDataTitle={`No ${activeTab} Opening Balance Records Found`}
+                        noDataDescription='No records exist for the selected academic year.'
+                    />
+
+                </CollapsibleSection>
                 <FormSections />
+
             </div>
+
         </div>
     );
 }
@@ -52,8 +70,8 @@ function FormSections() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Add Fee Transaction Waived Off'
-                        description='Add a new Fee Transaction Waived Off record'
+                        title='Add Fee Transaction Adjustment'
+
                         defaultOpen={true}
                         variant='outline'
                         size='md'

@@ -1,23 +1,19 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface GroupType extends BaseEntity {
     groupType: string;
     groupCode: string;
     order: number;
     isActive: boolean;
 }
-
 export interface Department extends BaseEntity {
     departmentName: string;
     internalTrainingHours: string;
     order: number;
     isActive: boolean;
 }
-
 export interface Designation extends BaseEntity {
     designationName: string;
     basicAmount: string;
@@ -26,7 +22,6 @@ export interface Designation extends BaseEntity {
     order: number;
     isActive: boolean;
 }
-
 export interface EmployeeContribution extends BaseEntity {
     id: number;
     employeeCode: string;
@@ -46,7 +41,6 @@ export interface EmployeeContribution extends BaseEntity {
     totalContribution: number;
     cumulativeContribution: number;
 }
-
 export const employeeContributionColumns: ColumnDef<EmployeeContribution>[] = [
     {
         accessorKey: 'id',

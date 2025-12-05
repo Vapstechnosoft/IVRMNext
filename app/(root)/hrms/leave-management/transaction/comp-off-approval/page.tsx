@@ -1,42 +1,33 @@
 'use client';
-
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { createLocalCrud } from '@/lib/localdb';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type CompOffApproval, getCompOffApprovalColumns } from './_components/columns';
-
 const compOffDB = createLocalCrud<CompOffApproval>('compOffApproval');
-
 export default function CompOffApprovalPage() {
     const [data, setData] = useState<CompOffApproval[]>([]);
-
     const loadData = () => {
         setData(compOffDB.list());
     };
-
     useEffect(() => {
         loadData();
     }, []);
-
     const handleApprove = (row: CompOffApproval) => {
         compOffDB.update(row.id, { hrStatus: 'Approved' });
         toast.success('Approved');
         loadData();
     };
-
     const handleReject = (row: CompOffApproval) => {
         compOffDB.update(row.id, { hrStatus: 'Rejected' });
         toast.success('Rejected');
         loadData();
     };
-
     const columns = useMemo(
         () => getCompOffApprovalColumns({ onApprove: handleApprove, onReject: handleReject }),
         [handleApprove, handleReject]
     );
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>

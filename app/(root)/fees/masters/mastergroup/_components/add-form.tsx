@@ -97,15 +97,15 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                        {/* <InputText
+                        <InputText
                             label='Fee Group'
                             required
                             id='fmG_GroupName'
                             {...register('fmG_GroupName')}
                             error={errors.fmG_GroupName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-                        <InputText
+                        />
+                        {/* <InputText
                             label='Fee Group'
                             required
                             id='fmG_GroupName'
@@ -127,7 +127,7 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
                             }}
                             error={errors.fmG_GroupName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        /> */}
 
                         <div className='group flex flex-col gap-1.5'>
                             <InputTextarea

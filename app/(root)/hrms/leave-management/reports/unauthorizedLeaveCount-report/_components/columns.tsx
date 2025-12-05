@@ -1,8 +1,6 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface UnauthorizedLeaveCountRow {
     slNo: number;
     companyOrDept?: string;
@@ -10,12 +8,10 @@ export interface UnauthorizedLeaveCountRow {
     absentDate?: string;
     unauthorizedLeaveCount?: number;
 }
-
 export interface UnauthorizedLeaveCountColumnsProps {
     mode: 'Company Wise' | 'Department Wise';
     detailLevel: 'Only Count' | 'Overall Details';
 }
-
 export const getUnauthorizedLeaveCountColumns = ({
     mode,
     detailLevel

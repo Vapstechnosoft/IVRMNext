@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     EmployeeDetailsReportFilterRequest,
@@ -9,7 +8,6 @@ import type {
     EmployeeDetailsReportSearchRequest,
     EmployeeDetailsReportSearchResponse
 } from '@/types/hrms/reports/employee-details-report';
-
 /**
  * Get onload data for employee details report
  * POST /api/EmployeeDetailsReportFacade/onloadgetdetails
@@ -28,14 +26,12 @@ export async function getEmployeeDetailsReportOnload(
         '/api/EmployeeDetailsReportFacade/onloadgetdetails',
         requestBody
     );
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<EmployeeDetailsReportOnloadResponse>;
     }
-
     // Wrap raw response data
     return {
         success: true,
@@ -43,21 +39,13 @@ export async function getEmployeeDetailsReportOnload(
         data: response as unknown as EmployeeDetailsReportOnloadResponse
     };
 }
-
 export async function filterEmployeeDetailsReport(
     requestBody: EmployeeDetailsReportFilterRequest
 ): Promise<ApiResponse<EmployeeDetailsReportFilterResponse>> {
-    console.log('🔵 [EMPLOYEE DETAILS REPORT - BACKEND] filterEmployeeDetailsReport - START');
     console.log('📥 [EMPLOYEE DETAILS REPORT - BACKEND] Request payload:', JSON.stringify(requestBody, null, 2));
-    
     const url = '/api/EmployeeDetailsReportFacade/FilterEmployeeData';
-    console.log('🌐 [EMPLOYEE DETAILS REPORT - BACKEND] API URL:', url);
-    console.log('🌐 [EMPLOYEE DETAILS REPORT - BACKEND] API Base: hrms');
-    console.log('🌐 [EMPLOYEE DETAILS REPORT - BACKEND] Method: POST');
-    
     // Prepare request body based on FormatType
     let apiRequestBody: any;
-    
     if (requestBody.FormatType === 'Format1' || requestBody.FormatType === 'Format 1') {
         // Format 1: Simple format
         apiRequestBody = {
@@ -85,63 +73,33 @@ export async function filterEmployeeDetailsReport(
             Working: requestBody.Working ?? false
         };
     }
-    
     console.log('📤 [EMPLOYEE DETAILS REPORT - BACKEND] Request body prepared:', JSON.stringify(apiRequestBody, null, 2));
-    console.log('📊 [EMPLOYEE DETAILS REPORT - BACKEND] Request body summary:', {
-        FormatType: apiRequestBody.FormatType,
-        MI_Id: apiRequestBody.MI_Id,
-        DOBJL: apiRequestBody.DOBJL,
-        FromDate: apiRequestBody.FromDate,
-        ToDate: apiRequestBody.ToDate,
-        Left: apiRequestBody.Left,
-        Working: apiRequestBody.Working
-    });
-    
     try {
         const response = await api.post<EmployeeDetailsReportFilterResponse>(
             'hrms',
             url,
             apiRequestBody
         );
-        
-        console.log('✅ [EMPLOYEE DETAILS REPORT - BACKEND] API Response received');
-        console.log('📤 [EMPLOYEE DETAILS REPORT - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as EmployeeDetailsReportFilterResponse;
-            console.log('✅ [EMPLOYEE DETAILS REPORT - BACKEND] Response already wrapped, returning as-is');
             console.log('📊 [EMPLOYEE DETAILS REPORT - BACKEND] Response data summary:', {
                 hasEmployeedropdown: !!responseData?.employeedropdown,
                 employeedropdownCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
                 retrunMsg: responseData?.retrunMsg
             });
-            
             return response as ApiResponse<EmployeeDetailsReportFilterResponse>;
         }
-
         // Wrap raw response data
         const rawResponse = response as unknown as EmployeeDetailsReportFilterResponse;
-        console.log('⚠️ [EMPLOYEE DETAILS REPORT - BACKEND] Response not wrapped, wrapping it');
         return {
             success: true,
             message: rawResponse?.retrunMsg || 'Filter completed successfully',
             data: rawResponse
         };
     } catch (error: any) {
-        console.error('❌ [EMPLOYEE DETAILS REPORT - BACKEND] Error in filterEmployeeDetailsReport:', error);
-        console.error('❌ [EMPLOYEE DETAILS REPORT - BACKEND] Error details:', {
-            message: error?.message,
-            stack: error?.stack,
-            response: error?.response
-        });
-        
         return {
             success: false,
             message: error?.message || 'Failed to filter employee details',
@@ -149,7 +107,6 @@ export async function filterEmployeeDetailsReport(
         };
     }
 }
-
 export async function searchEmployeeDetailsReport(
     requestBody: EmployeeDetailsReportSearchRequest
 ): Promise<ApiResponse<EmployeeDetailsReportSearchResponse>> {
@@ -158,14 +115,12 @@ export async function searchEmployeeDetailsReport(
         '/api/EmployeeDetailsReportFacade/getEmployeedetailsBySelectionNew',
         requestBody
     );
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<EmployeeDetailsReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as EmployeeDetailsReportSearchResponse;
     return {

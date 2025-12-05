@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -8,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Search, X } from 'lucide-react';
-
 export interface ServiceReportFilters {
     type: string;
     department: string;
@@ -17,7 +15,6 @@ export interface ServiceReportFilters {
     currentDate: Date;
     reportType: 'Experience Certificate';
 }
-
 interface EmployeeServiceFiltersProps {
     filters: ServiceReportFilters;
     groupTypes: Array<{ id: number; groupType: string }>;
@@ -36,7 +33,6 @@ interface EmployeeServiceFiltersProps {
     onSearch: () => void;
     onCancel: () => void;
 }
-
 export function EmployeeServiceFilters({
     filters,
     groupTypes,
@@ -76,7 +72,6 @@ export function EmployeeServiceFilters({
                                 </SelectContent>
                             </Select>
                         </div>
-
                         {/* Department Selection */}
                         <div className='space-y-2'>
                             <span className='font-medium text-foreground text-sm'>
@@ -95,7 +90,6 @@ export function EmployeeServiceFilters({
                                 </SelectContent>
                             </Select>
                         </div>
-
                         {/* Designation Selection */}
                         <div className='space-y-2'>
                             <span className='font-medium text-foreground text-sm'>
@@ -114,7 +108,6 @@ export function EmployeeServiceFilters({
                                 </SelectContent>
                             </Select>
                         </div>
-
                         {/* Employee Selection */}
                         <div className='space-y-2'>
                             <span className='font-medium text-foreground text-sm'>
@@ -134,7 +127,6 @@ export function EmployeeServiceFilters({
                             </Select>
                         </div>
                     </div>
-
                     {/* Right Column */}
                     <div className='space-y-4'>
                         {/* Current Date */}
@@ -164,7 +156,6 @@ export function EmployeeServiceFilters({
                                 </PopoverContent>
                             </Popover>
                         </div>
-
                         {/* Report Type */}
                         <div className='space-y-3'>
                             <span className='font-medium text-foreground text-sm'>Report Type:</span>
@@ -182,7 +173,6 @@ export function EmployeeServiceFilters({
                                 </label>
                             </div>
                         </div>
-
                         {/* Selected Employee Info */}
                         {selectedEmployeeDetails && (
                             <div className='space-y-2 rounded-md border bg-background p-3'>
@@ -199,7 +189,6 @@ export function EmployeeServiceFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button onClick={onSearch}>

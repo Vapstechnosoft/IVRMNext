@@ -221,6 +221,8 @@ export const feesStudentTransactionSchema = {
 
             // Payment mode (Single / Multiple)
             payModeType: z.enum(['Single', 'Multiple']),
+             date: z.date({ required_error: 'Date is required' }),
+            bankName: z.string().optional(),
 
             // Payment rows (at least one must be filled)
             paymentRows: z

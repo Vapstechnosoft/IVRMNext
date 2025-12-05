@@ -1,5 +1,4 @@
 'use client';
-
 import {
     AlertDialog,
     AlertDialogAction,
@@ -26,15 +25,12 @@ import type { SalaryUpdationItem } from '@/types/hrms/salary-updation';
 import type { Row } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
-
 interface ActionsCellProps {
     row: Row<SalaryUpdationItem>;
 }
-
 export function ActionsCell({ row }: ActionsCellProps) {
     const { openEditForm } = useFormContext<SalaryUpdationItem>();
     const { mutate: deleteUpdation, isPending: isDeleting } = useDeleteSalaryUpdation();
-
     const handleDelete = () => {
         deleteUpdation(
             {
@@ -51,7 +47,6 @@ export function ActionsCell({ row }: ActionsCellProps) {
             }
         );
     };
-
     return (
         <div className='flex justify-end'>
             <DropdownMenu>

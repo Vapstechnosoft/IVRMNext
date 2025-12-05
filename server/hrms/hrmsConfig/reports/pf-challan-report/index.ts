@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     PFChallanReportOnloadRequest,
@@ -9,7 +8,6 @@ import type {
     PFChallanReportSearchRequest,
     PFChallanReportSearchResponse
 } from '@/types/hrms/reports/pf-challan-report';
-
 /**
  * Get onload data for PF Challan Report
  * POST /api/PFChallenFacade/onloadgetdetails
@@ -18,21 +16,15 @@ import type {
  */
 export async function getPFChallanReportOnload(MI_Id = 30): Promise<ApiResponse<PFChallanReportOnloadResponse>> {
     const url = '/api/PFChallenFacade/onloadgetdetails';
-
     const requestBody: PFChallanReportOnloadRequest = {
         MI_Id
     };
-
-    console.log('🔵 ========== PF CHALLAN REPORT ONLOAD ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<PFChallanReportOnloadResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to load PF challan report data',
@@ -151,14 +143,12 @@ export async function getPFChallanReportOnload(MI_Id = 30): Promise<ApiResponse<
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<PFChallanReportOnloadResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as PFChallanReportOnloadResponse;
     return {
@@ -167,7 +157,6 @@ export async function getPFChallanReportOnload(MI_Id = 30): Promise<ApiResponse<
         data: rawResponse
     };
 }
-
 /**
  * Filter employee data for PF Challan Report
  * POST /api/PFChallenFacade/FilterEmployeeData
@@ -178,21 +167,15 @@ export async function filterPFChallanEmployeeData(
     request: PFChallanReportFilterRequest
 ): Promise<ApiResponse<PFChallanReportFilterResponse>> {
     const url = '/api/PFChallenFacade/FilterEmployeeData';
-
     const requestBody: PFChallanReportFilterRequest = {
         MI_Id: request.MI_Id || 30
     };
-
-    console.log('🔵 ========== PF CHALLAN REPORT FILTER ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<PFChallanReportFilterResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to filter PF challan employee data',
@@ -203,14 +186,12 @@ export async function filterPFChallanEmployeeData(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<PFChallanReportFilterResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as PFChallanReportFilterResponse;
     return {
@@ -219,7 +200,6 @@ export async function filterPFChallanEmployeeData(
         data: rawResponse
     };
 }
-
 /**
  * Get employee details by selection for PF Challan Report
  * POST /api/PFChallenFacade/getEmployeedetailsBySelection
@@ -230,23 +210,17 @@ export async function searchPFChallanReport(
     request: PFChallanReportSearchRequest
 ): Promise<ApiResponse<PFChallanReportSearchResponse>> {
     const url = '/api/PFChallenFacade/getEmployeedetailsBySelection';
-
     const requestBody: PFChallanReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
         HRES_Month: request.HRES_Month || '',
         HRES_Year: request.HRES_Year || ''
     };
-
-    console.log('🔵 ========== PF CHALLAN REPORT SEARCH ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<PFChallanReportSearchResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to search PF challan report',
@@ -257,14 +231,12 @@ export async function searchPFChallanReport(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<PFChallanReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as PFChallanReportSearchResponse;
     return {
@@ -273,4 +245,3 @@ export async function searchPFChallanReport(
         data: rawResponse
     };
 }
-

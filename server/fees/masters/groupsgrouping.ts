@@ -24,3 +24,8 @@ export async function deleteGroupGrouping(id: number) {
     const url = `/FeeGroupGroupingFacade/feegroups/${id}`;
     return await api.delete('fees', url);
 }
+
+export async function groupgroupingdropdowndata() {
+    const url = '/FeeGroupGroupingFacade/feegroups_details';
+    return await api.get<IMasterGroupsGrouping[]>('fees', url);
+}

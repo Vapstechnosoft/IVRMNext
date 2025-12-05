@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -11,20 +10,16 @@ import { use, useState } from 'react';
 import { toast } from 'sonner';
 import { type LeaveCredit, getLeaveCreditColumns } from './_components/columns';
 import { LeaveTransferForm, type LeaveTransferFormData } from './_components/leave-transfer-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function LeaveTransferPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useLeaveCredit();
-
     return (
         <FormProvider<LeaveCredit>>
             <LeaveTransferPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function LeaveTransferPageContent({
     response,
     isLoading,
@@ -37,7 +32,6 @@ function LeaveTransferPageContent({
     const { openAddForm } = useFormContext<LeaveCredit>();
     const { openEditForm, openDeleteForm } = useFormContext<LeaveCredit>();
     const tableProps = useDataTableProps(response);
-
     const columns = getLeaveCreditColumns({
         onEdit: openEditForm,
         onDelete: (id: number) => {
@@ -47,7 +41,6 @@ function LeaveTransferPageContent({
             }
         }
     });
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -61,7 +54,6 @@ function LeaveTransferPageContent({
                         Add Leave Transfer
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -81,14 +73,12 @@ function LeaveTransferPageContent({
                         errorTitle='Error Loading Leave Transfers'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -105,7 +95,6 @@ function FormSections() {
     const { mutate: saveCredit } = useSaveLeaveCredit();
     const { mutate: deleteCredit } = useDeleteLeaveCredit();
     const [activeTab, setActiveTab] = useState('Leave Updation');
-
     const handleFormSubmit = (formData: LeaveTransferFormData) => {
         const submitData: LeaveCredit = {
             id: selectedRow?.id || 0,
@@ -119,7 +108,6 @@ function FormSections() {
             department: formData.department,
             designation: formData.designation
         };
-
         saveCredit(submitData, {
             onSuccess: () => {
                 toast.success(selectedRow ? 'Leave transfer updated successfully' : 'Leave transfer saved successfully');
@@ -129,7 +117,6 @@ function FormSections() {
             }
         });
     };
-
     const handleDelete = () => {
         if (selectedRow) {
             deleteCredit(selectedRow.id, {
@@ -141,7 +128,6 @@ function FormSections() {
             });
         }
     };
-
     return (
         <>
             {/* Add Form */}
@@ -169,15 +155,12 @@ function FormSections() {
                                     <TabsTrigger value='Leave Addition'>Leave Addition</TabsTrigger>
                                     <TabsTrigger value='Leave CarryForward'>Leave CarryForward</TabsTrigger>
                                 </TabsList>
-
                                 <TabsContent value='Leave Updation' className='mt-4'>
                                     <LeaveTransferForm activeTab='Leave Updation' onSubmit={handleFormSubmit} onCancel={closeAddForm} />
                                 </TabsContent>
-
                                 <TabsContent value='Leave Addition' className='mt-4'>
                                     <LeaveTransferForm activeTab='Leave Addition' onSubmit={handleFormSubmit} onCancel={closeAddForm} />
                                 </TabsContent>
-
                                 <TabsContent value='Leave CarryForward' className='mt-4'>
                                     <LeaveTransferForm activeTab='Leave CarryForward' onSubmit={handleFormSubmit} onCancel={closeAddForm} />
                                 </TabsContent>
@@ -186,7 +169,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -212,7 +194,6 @@ function FormSections() {
                                     <TabsTrigger value='Leave Addition'>Leave Addition</TabsTrigger>
                                     <TabsTrigger value='Leave CarryForward'>Leave CarryForward</TabsTrigger>
                                 </TabsList>
-
                                 <TabsContent value='Leave Updation' className='mt-4'>
                                     <LeaveTransferForm
                                         activeTab='Leave Updation'
@@ -227,7 +208,6 @@ function FormSections() {
                                         }}
                                     />
                                 </TabsContent>
-
                                 <TabsContent value='Leave Addition' className='mt-4'>
                                     <LeaveTransferForm
                                         activeTab='Leave Addition'
@@ -242,7 +222,6 @@ function FormSections() {
                                         }}
                                     />
                                 </TabsContent>
-
                                 <TabsContent value='Leave CarryForward' className='mt-4'>
                                     <LeaveTransferForm
                                         activeTab='Leave CarryForward'
@@ -262,7 +241,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && (
                 <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>

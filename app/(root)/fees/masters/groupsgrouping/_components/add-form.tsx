@@ -5,7 +5,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useMasterFeeGroupDropdown } from '@/hooks/fees/useMasters';
+import { useGroupGroupingGroupDropdowndta } from '@/hooks/fees/useMasters';
 import { cn } from '@/lib/utils';
 import { masterGroupsGroupingSchema } from '@/schemas/fees/masters';
 import { addOrUpdateGroupGrouping } from '@/server/fees/masters/groupsgrouping';
@@ -45,10 +45,12 @@ interface AddMasterGroupGroupingProps {
 export default function AddMasterGroupGrouping({ onSuccess, className = '' }: AddMasterGroupGroupingProps) {
     const [search, setSearch] = useState('');
 
-    const { data: response, isLoading } = useMasterFeeGroupDropdown() as {
+    const { data: response, isLoading } = useGroupGroupingGroupDropdowndta() as {
         data: { success: boolean; message: string; data: FeeGroup[] } | undefined;
         isLoading: boolean;
     };
+
+    console.log('response', response);
 
     // Extract feeGroups from nested response and ensure it's always an array
     const feeGroups = Array.isArray(response?.data) ? response.data : [];
@@ -106,39 +108,39 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                             name='fmgG_GroupName'
                             control={control}
                             render={({ field }) => (
-                                // <InputText
-                                //     label='Fees Group Name'
-                                //     required
-                                //     id='fmgG_GroupName'
-                                //     value={field.value}
-                                //     onChange={field.onChange}
-                                //     error={errors.fmgG_GroupName?.message}
-                                //     className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                // />
-
                                 <InputText
                                     label='Fees Group Name'
                                     required
                                     id='fmgG_GroupName'
-                                    {...register('fmgG_GroupName', {
-                                        required: 'Fee Group is required'
-                                    })}
-                                    onKeyDown={(e) => {
-                                        const allowed = /^[A-Za-z\s]$/;
-
-                                        // Allow navigation keys
-                                        if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
-                                            return;
-                                        }
-
-                                        // Block characters that are not letters/spaces
-                                        if (!allowed.test(e.key)) {
-                                            e.preventDefault();
-                                        }
-                                    }}
+                                    value={field.value}
+                                    onChange={field.onChange}
                                     error={errors.fmgG_GroupName?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
+
+                                // <InputText
+                                //     label='Fees Group Name'
+                                //     required
+                                //     id='fmgG_GroupName'
+                                //     {...register('fmgG_GroupName', {
+                                //         required: 'Fee Group is required'
+                                //     })}
+                                //     onKeyDown={(e) => {
+                                //         const allowed = /^[A-Za-z\s]$/;
+
+                                //         // Allow navigation keys
+                                //         if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                //             return;
+                                //         }
+
+                                //         // Block characters that are not letters/spaces
+                                //         if (!allowed.test(e.key)) {
+                                //             e.preventDefault();
+                                //         }
+                                //     }}
+                                //     error={errors.fmgG_GroupName?.message}
+                                //     className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                // />
                             )}
                         />
 
@@ -147,38 +149,38 @@ export default function AddMasterGroupGrouping({ onSuccess, className = '' }: Ad
                             name='fmgG_GroupCode'
                             control={control}
                             render={({ field }) => (
-                                // <InputText
-                                //     label='Groups Code'
-                                //     required
-                                //     id='fmgG_GroupCode'
-                                //     value={field.value}
-                                //     onChange={field.onChange}
-                                //     error={errors.fmgG_GroupCode?.message}
-                                //     className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                // />
                                 <InputText
                                     label='Groups Code'
                                     required
                                     id='fmgG_GroupCode'
-                                    {...register('fmgG_GroupCode', {
-                                        required: 'Fee Group is required'
-                                    })}
-                                    onKeyDown={(e) => {
-                                        const allowed = /^[A-Za-z\s]$/;
-
-                                        // Allow navigation keys
-                                        if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
-                                            return;
-                                        }
-
-                                        // Block characters that are not letters/spaces
-                                        if (!allowed.test(e.key)) {
-                                            e.preventDefault();
-                                        }
-                                    }}
+                                    value={field.value}
+                                    onChange={field.onChange}
                                     error={errors.fmgG_GroupCode?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
+                                // <InputText
+                                //     label='Groups Code'
+                                //     required
+                                //     id='fmgG_GroupCode'
+                                //     {...register('fmgG_GroupCode', {
+                                //         required: 'Fee Group is required'
+                                //     })}
+                                //     onKeyDown={(e) => {
+                                //         const allowed = /^[A-Za-z\s]$/;
+
+                                //         // Allow navigation keys
+                                //         if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'].includes(e.key)) {
+                                //             return;
+                                //         }
+
+                                //         // Block characters that are not letters/spaces
+                                //         if (!allowed.test(e.key)) {
+                                //             e.preventDefault();
+                                //         }
+                                //     }}
+                                //     error={errors.fmgG_GroupCode?.message}
+                                //     className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                // />
                             )}
                         />
                     </div>

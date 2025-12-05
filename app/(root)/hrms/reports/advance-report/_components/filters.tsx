@@ -1,12 +1,10 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Search, X } from 'lucide-react';
-
 // Report filters
 export interface AdvanceFilters {
     selectedGroupTypes: string[]; // Array of IDs (as strings for MultiSelect)
@@ -15,7 +13,6 @@ export interface AdvanceFilters {
     month: string;
     year: string;
 }
-
 interface AdvanceReportFiltersProps {
     filters: AdvanceFilters;
     groupTypes?: Array<{ HRMGT_Id: number; HRMGT_EmployeeGroupType: string; HRMGT_ActiveFlag?: boolean; [key: string]: any }>;
@@ -28,7 +25,6 @@ interface AdvanceReportFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function AdvanceReportFilters({
     filters,
     groupTypes = [],
@@ -51,7 +47,6 @@ export function AdvanceReportFilters({
                 <FileText className='h-5 w-5' />
                 EMPLOYEE ADVANCE REPORT
             </div>
-
             <div className='space-y-6'>
                 {/* Filter Sections */}
                 <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
@@ -85,7 +80,6 @@ export function AdvanceReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Department Section */}
                     <div className='space-y-2'>
                         <Label htmlFor='department' className='font-medium text-foreground text-sm'>
@@ -116,7 +110,6 @@ export function AdvanceReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Designation Section */}
                     <div className='space-y-2'>
                         <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
@@ -148,7 +141,6 @@ export function AdvanceReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Additional Filters */}
                 <div className='flex items-center justify-center gap-6 pt-4'>
                     {/* Month Filter */}
@@ -177,7 +169,6 @@ export function AdvanceReportFilters({
                             </Select>
                         )}
                     </div>
-
                     {/* Year Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -205,7 +196,6 @@ export function AdvanceReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button onClick={onSearch}>

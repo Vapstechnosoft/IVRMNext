@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { getCommonPinningStyles } from '@/lib/data-table.config';
 import type { ApiSearchparams } from '@/types';
@@ -299,7 +298,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                 )}
 
                                 {/* Rows per page */}
-                                <div className='flex items-center space-x-2'>
+                                {/* <div className='flex items-center space-x-2'>
                                     <p className='whitespace-nowrap font-medium text-sm'>Rows per page</p>
                                     <Select
                                         value={`${paginationState.pageSize}`}
@@ -316,7 +315,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                </div>
+                                </div> */}
 
                                 {/* Controls */}
                                 <div className='flex items-center space-x-2'>

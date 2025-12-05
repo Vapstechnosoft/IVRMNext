@@ -1,16 +1,13 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 export interface Form10Filters {
     month: string;
     year: string;
 }
-
 interface PFForm10FiltersProps {
     filters: Form10Filters;
     months: any[];
@@ -20,12 +17,10 @@ interface PFForm10FiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function PFForm10Filters({ filters, months, years, onFilterChange, onGenerate, onCancel, isLoading = false }: PFForm10FiltersProps) {
     const handleSelectChange = (key: keyof Form10Filters, value: string) => {
         onFilterChange({ ...filters, [key]: value });
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -60,7 +55,6 @@ export function PFForm10Filters({ filters, months, years, onFilterChange, onGene
                         </Select>
                     )}
                 </div>
-
                 {/* Year Filter */}
                 <div className='space-y-2'>
                     <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -88,7 +82,6 @@ export function PFForm10Filters({ filters, months, years, onFilterChange, onGene
                     )}
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-2 pt-4'>
                 <Button onClick={onGenerate}>

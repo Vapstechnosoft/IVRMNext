@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -8,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, X } from 'lucide-react';
-
 export interface OverallReportFilters {
     status: 'Applied' | 'Approved' | 'Requested' | 'Rejected' | 'PartialApproved';
     groupBy: 'Employee Wise' | 'Leave Wise';
@@ -18,14 +16,12 @@ export interface OverallReportFilters {
     fromDate: Date | undefined;
     toDate: Date | undefined;
 }
-
 interface OverallReportFiltersProps {
     filters: OverallReportFilters;
     onFilterChange: (key: keyof OverallReportFilters, value: any) => void;
     onReport: () => void;
     onCancel: () => void;
 }
-
 export function OverallReportFilters({ filters, onFilterChange, onReport, onCancel }: OverallReportFiltersProps) {
     return (
         <CollapsibleSection
@@ -67,7 +63,6 @@ export function OverallReportFilters({ filters, onFilterChange, onReport, onCanc
                         Partial Approved
                     </label>
                 </div>
-
                 {/* Group By Selection */}
                 <div className='flex items-center gap-6'>
                     <label className='flex items-center gap-2 text-sm'>
@@ -87,7 +82,6 @@ export function OverallReportFilters({ filters, onFilterChange, onReport, onCanc
                         Leave Wise
                     </label>
                 </div>
-
                 {/* Filter Fields */}
                 <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-3'>
                     {/* Employee Wise Fields */}
@@ -110,7 +104,6 @@ export function OverallReportFilters({ filters, onFilterChange, onReport, onCanc
                             </Select>
                         </div>
                     )}
-
                     {/* Leave Wise Fields */}
                     {filters.groupBy === 'Leave Wise' && (
                         <>
@@ -150,7 +143,6 @@ export function OverallReportFilters({ filters, onFilterChange, onReport, onCanc
                             </div>
                         </>
                     )}
-
                     <div className='space-y-2'>
                         <label htmlFor='from-date-input' className='font-medium text-sm'>
                             From Date
@@ -205,7 +197,6 @@ export function OverallReportFilters({ filters, onFilterChange, onReport, onCanc
                             </PopoverContent>
                         </Popover>
                     </div>
-
                     {/* Action Buttons */}
                     <div className='mt-2 flex gap-2 md:col-span-3'>
                         <Button onClick={onReport} variant='default'>

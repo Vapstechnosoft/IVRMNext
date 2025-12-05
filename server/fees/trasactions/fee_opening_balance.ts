@@ -64,8 +64,12 @@ export async function getOpeningBalanceList(asmaY_Id: number, searchParams?: Api
     const url = `FeeOpeningBalance/opening-balance-list/${asmaY_Id}?${urlParams}`;
     return await api.get<IFeeOpeningBalanceList[]>('fees', url);
 }
-export async function getOpeningPDAList(asmaY_Id: number) {
-    const url = `FeeOpeningBalance/opening-balance-pda-list/${asmaY_Id}`;
+export async function getOpeningPDAList(asmaY_Id: number, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'fmoB_Institution_Due,fmoB_Student_Due,asmcL_ClassName,amsT_FirstName,amsT_MiddleName,amsT_LastName'
+    );
+    const url = `FeeOpeningBalance/opening-balance-pda-list/${asmaY_Id}?${urlParams}`;
     return await api.get<IFeeOpeningPDA[]>('fees', url);
 }
 export async function getOpeningHeadDropdownData(asmaY_Id: number) {

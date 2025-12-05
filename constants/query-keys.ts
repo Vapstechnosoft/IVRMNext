@@ -167,7 +167,19 @@ export const FEES_QUERY_KEYS = {
     FEE_SPECIAL_FEE_HEAD_DROPDOWN: 'fee_special_fee_head_dropdown',
     FEE_OPENING_BALANCE_LIST: 'fee_opening_balance_list',
     FEE_OPENING_PDA_LIST: 'fee_opening_pda_list',
-    FEE_OPENING_REFUNDABLE: 'fee_opening_refundable'
+    FEE_OPENING_REFUNDABLE: 'fee_opening_refundable',
+    FEE_GROUPGROUPING_GROUPDROPDOWN: 'fee_groupgrouping_groupdropdown',
+    STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN: 'student_fee_group_mapping_bus_area_dropdown',
+
+    FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
+    FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
+    FEE_TERM_DEFAULTER: 'fee_term_defaulter_report',
+    FEE_BUS_ROUTES_DEFAULTER: 'fee_bus_routes_defaulter_report',
+    FEE_CUSTOM_GROUP_DEFAULTER: 'fee_custom_group_defaulter_report',
+    FEE_CLASS_LIST_DEFAULTER: 'fee_class_list_defaulter_report',
+    FEE_SECTION_LIST_DEFAULTER: 'fee_section_list_defaulter_report',
+    FEE_REPORT_GROUP_DROPDOWN: 'fee_report_group_dropdown',
+    FEE_REPORT_HEAD_DROPDOWN: 'fee_report_head_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
@@ -225,15 +237,21 @@ export const EXAM_QUERY_KEYS = {
 
 export const HRMS_QUERY_KEYS = {
     MASTER_DESIGNATION: 'hrms_master_designation',
+    MASTER_DESIGNATION_SET_ORDER: 'hrms_master_designation_set_order',
     MASTER_DEPARTMENT: 'hrms_master_department',
+    MASTER_DEPARTMENT_SET_ORDER: 'hrms_master_department_set_order',
     MASTER_EMPLOYEE_TYPE: 'hrms_master_employee_type',
     MASTER_GRADE: 'hrms_master_grade',
+    MASTER_GRADE_SET_ORDER: 'hrms_master_grade_set_order',
     MASTER_GENDER: 'hrms_master_gender',
     MASTER_MARITAL_STATUS: 'hrms_master_marital_status',
     MASTER_GROUP_TYPE: 'hrms_master_group_type',
+    MASTER_GROUP_TYPE_SET_ORDER: 'hrms_master_group_type_set_order',
     MASTER_BANK: 'hrms_master_bank',
     MASTER_COURSE: 'hrms_master_course',
+    MASTER_COURSE_SET_ORDER: 'hrms_master_course_set_order',
     MASTER_LEAVE_YEAR: 'hrms_master_leave_year',
+    MASTER_LEAVE_YEAR_SET_ORDER: 'hrms_master_leave_year_set_order',
     MASTER_LOAN: 'hrms_master_loan',
     MASTER_SPECIALIZATION: 'hrms_master_specialization',
     MASTER_PROFESSIONAL_TAX: 'hrms_master_professional_tax',
@@ -243,6 +261,7 @@ export const HRMS_QUERY_KEYS = {
     RELIGION_CATEGORY_MAPPING: 'hrms_religion_category_mapping',
     EMPLOYEE: 'hrms_employee',
     EMPLOYEE_ONLOAD: 'hrms_employee_onload',
+    GRADE_DROPDOWN: 'hrms_grade_dropdown',
     SALARY_CALCULATION_ONLOAD: 'hrms_salary_calculation_onload',
     SALARY_CALCULATION_EMPLOYEES: 'hrms_salary_calculation_employees',
     SALARY_APPROVAL_ONLOAD: 'hrms_salary_approval_onload',

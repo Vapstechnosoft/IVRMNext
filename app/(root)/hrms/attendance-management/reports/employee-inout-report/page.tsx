@@ -1,5 +1,4 @@
 'use client';
-
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
@@ -16,13 +15,10 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { employeeInOutReportColumns } from './_components/columns';
 import { EmployeeInOutReportFilters, type EmployeeInOutReportFilters as ReportFilters } from './_components/filters';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function EmployeeInOutReportPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
     const router = useRouter();
-
     // Convert Next.js searchParams to ApiSearchparams format
     const searchParams: ApiSearchparams = {
         page:
@@ -66,7 +62,6 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     // Extract filter params from URL
     const MI_Id = 30;
     const LoginUserId = 0;
@@ -119,23 +114,18 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             : Array.isArray(rawSearchParams?.timeInTimeOut)
               ? (rawSearchParams.timeInTimeOut[0] as 'Time In' | 'Time Out' | 'In Out')
               : undefined;
-
     // Check if we have search criteria (fromDate and toDate are required)
     const hasSearchCriteria = !!(fromDate && toDate);
-
     // React Query hook for dropdowns - always enabled to get filter options
     const { data: onloadData, isLoading: onloadLoading } = useEmployeeInOutReportOnload(MI_Id, LoginUserId, UserRole);
-
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypesData = useMemo(() => onloadData?.data?.types || [], [onloadData?.data?.types]);
     const groupTypesOptions = useMemo(() => {
         if (!Array.isArray(groupTypesData) || groupTypesData.length === 0) {
             return [];
         }
-
         // Use a Set to track unique values and prevent duplicates
         const seenValues = new Set<string>();
-
         return groupTypesData
             .map((gt: any, _index: number) => {
                 // Try different field name variations (API might return different cases)
@@ -148,21 +138,17 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                     gt.label ??
                     gt.name ??
                     gt.employeeGroupType;
-
                 // Ensure we have valid id and name
                 if (id === undefined || id === null || name === undefined || name === null || name === '') {
                     return null;
                 }
-
                 const valueStr = String(id);
                 const labelStr = String(name);
-
                 // Skip if we've already seen this value (prevent duplicates)
                 if (seenValues.has(valueStr)) {
                     return null;
                 }
                 seenValues.add(valueStr);
-
                 return {
                     label: labelStr,
                     value: valueStr
@@ -180,12 +166,10 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                     item.label !== ''
             );
     }, [groupTypesData]);
-
     // Build comma-separated strings for API calls
     const multipletype = useMemo(() => type.join(','), [type]);
     const multipledep = useMemo(() => department.join(','), [department]);
     const multipledes = useMemo(() => designation.join(','), [designation]);
-
     // Cascading dropdown hooks
     const { data: departmentsData, isLoading: isLoadingDepartments } = useEmployeeInOutReportDepartments(
         MI_Id,
@@ -194,13 +178,11 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         multipletype,
         multipletype.length > 0
     );
-
     const { data: designationsData, isLoading: isLoadingDesignations } = useEmployeeInOutReportDesignations(
         MI_Id,
         multipledep,
         multipledep.length > 0
     );
-
     const { data: employeesData, isLoading: isLoadingEmployees } = useEmployeeInOutReportEmployees(
         MI_Id,
         multipledes,
@@ -208,43 +190,34 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         multipletype,
         (multipledes.length > 0 || multipledep.length > 0 || multipletype.length > 0) && allOrIndividual === 'Individual'
     );
-
     // Transform API responses to filter component format
     const departmentsOptions = useMemo(() => {
         if (!departmentsData?.data) {
             return [];
         }
-
         // Server function already extracts the departments array from response.data.departments
         const deptData = Array.isArray(departmentsData.data) ? departmentsData.data : [];
-
         if (deptData.length === 0) {
             return [];
         }
-
         // Use a Set to track unique values and prevent duplicates
         const seenValues = new Set<string>();
-
         // Transform to options format using correct field names
         return deptData
             .map((dept: any) => {
                 // Use correct HRMS field names
                 const id = dept.HRMD_Id ?? dept.hrmdT_Id ?? dept.id ?? dept.value ?? dept.departmentId;
                 const name = dept.HRMD_DepartmentName ?? dept.hrmdT_DepartmentName ?? dept.label ?? dept.name ?? dept.departmentName;
-
                 if (id === undefined || id === null || name === undefined || name === null || name === '') {
                     return null;
                 }
-
                 const valueStr = String(id);
                 const labelStr = String(name);
-
                 // Skip if we've already seen this value (prevent duplicates)
                 if (seenValues.has(valueStr)) {
                     return null;
                 }
                 seenValues.add(valueStr);
-
                 return {
                     label: labelStr,
                     value: valueStr
@@ -262,42 +235,33 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                     item.label !== ''
             );
     }, [departmentsData]);
-
     const designationsOptions = useMemo(() => {
         if (!designationsData?.data) {
             return [];
         }
-
         // Server function already extracts the designations array from response.data.designations
         const desgData = Array.isArray(designationsData.data) ? designationsData.data : [];
-
         if (desgData.length === 0) {
             return [];
         }
-
         // Use a Set to track unique values and prevent duplicates
         const seenValues = new Set<string>();
-
         // Transform to options format using correct field names
         return desgData
             .map((desg: any) => {
                 // Use correct HRMS field names
                 const id = desg.HRMDES_Id ?? desg.hrmdsT_Id ?? desg.id ?? desg.value ?? desg.designationId;
                 const name = desg.HRMDES_DesignationName ?? desg.hrmdsT_DesignationName ?? desg.label ?? desg.name ?? desg.designationName;
-
                 if (id === undefined || id === null || name === undefined || name === null || name === '') {
                     return null;
                 }
-
                 const valueStr = String(id);
                 const labelStr = String(name);
-
                 // Skip if we've already seen this value (prevent duplicates)
                 if (seenValues.has(valueStr)) {
                     return null;
                 }
                 seenValues.add(valueStr);
-
                 return {
                     label: labelStr,
                     value: valueStr
@@ -315,22 +279,17 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                     item.label !== ''
             );
     }, [designationsData]);
-
     const employeesOptions = useMemo(() => {
         if (!employeesData?.data) {
             return [];
         }
-
         // Server function already extracts the employees array from response.data.employees
         const empData = Array.isArray(employeesData.data) ? employeesData.data : [];
-
         if (empData.length === 0) {
             return [];
         }
-
         // Use a Set to track unique values and prevent duplicates
         const seenValues = new Set<string>();
-
         // Transform to options format
         return empData
             .map((emp: any) => {
@@ -351,21 +310,16 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                     emp.EmployeeName ??
                     emp.name ??
                     emp.label;
-
                 if (code === undefined || code === null || code === '') {
                     return null;
                 }
-
                 const valueStr = String(code);
-
                 // Skip if we've already seen this value (prevent duplicates)
                 if (seenValues.has(valueStr)) {
                     return null;
                 }
                 seenValues.add(valueStr);
-
                 const displayName = name && code ? `${name} (${code})` : name || code || String(emp);
-
                 return {
                     label: displayName,
                     value: valueStr
@@ -376,7 +330,6 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                     item !== null && item !== undefined && item.value !== undefined && item.value !== null && item.value !== ''
             );
     }, [employeesData]);
-
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useEmployeeInOutReportList(
         searchParams,
@@ -396,7 +349,6 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         },
         hasSearchCriteria // Only fetch when fromDate and toDate are selected
     );
-
     // Form for filters
     const {
         handleSubmit,
@@ -418,7 +370,6 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             timeInTimeOut: undefined
         }
     });
-
     // Sync form with URL params - use useEffect instead of useMemo to avoid render issues
     // Only update when URL params actually change, not on every render
     useEffect(() => {
@@ -442,16 +393,13 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         timeInTimeOut,
         setValue
     ]);
-
     const onSubmit = (data: ReportFilters) => {
         if (!data.fromDate || !data.toDate) {
             toast.error('Please select from date and to date to generate report');
             return;
         }
-
         // Build URL params
         const params = new URLSearchParams();
-
         // Add filter params
         if (data.fromDate) params.set('fromDate', data.fromDate);
         if (data.toDate) params.set('toDate', data.toDate);
@@ -473,31 +421,25 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         if (data.timeInTimeOut) {
             params.set('timeInTimeOut', data.timeInTimeOut);
         }
-
         // Reset pagination when filters change
         params.set('page', '1');
-
         // Navigate with new params
         router.push(`/hrms/attendance-management/reports/employee-inout-report?${params.toString()}`);
     };
-
     const handleCancel = () => {
         reset();
         router.push('/hrms/attendance-management/reports/employee-inout-report');
     };
-
     // Transform API response to table data
     const transformedData = useMemo(() => {
         const responseData = reportListQuery.data?.data;
         if (!responseData || !Array.isArray(responseData?.rows)) {
             return [];
         }
-
         // TODO: Map API response rows to InOutRow format when search endpoint is available
         // For now, return empty array
         return [];
     }, [reportListQuery.data]);
-
     // Prepare data table props
     const tableProps = useDataTableProps({
         data: transformedData,
@@ -506,7 +448,6 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         searchParams,
         onSearchParamsChange: (newParams: any) => {
             const params = new URLSearchParams();
-
             // Preserve existing filter params
             if (fromDate) params.set('fromDate', fromDate);
             if (toDate) params.set('toDate', toDate);
@@ -516,21 +457,17 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
             if (allOrIndividual) params.set('allOrIndividual', allOrIndividual);
             if (employeeCode) params.set('employeeCode', employeeCode);
             if (timeInTimeOut) params.set('timeInTimeOut', timeInTimeOut);
-
             // Add/update pagination and sort params
             Object.entries(newParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     params.set(key, String(value));
                 }
             });
-
             router.push(`/hrms/attendance-management/reports/employee-inout-report?${params.toString()}`);
         }
     });
-
     // Determine if we should show the report
     const showReport = hasSearchCriteria && reportListQuery.data?.success && transformedData.length > 0;
-
     // Memoize filters object to prevent unnecessary re-renders
     const filtersForComponent = useMemo(
         () => ({
@@ -546,7 +483,6 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
         }),
         [type, department, designation, allOrIndividual, employeeCode, fromDate, toDate, timeInTimeOut]
     );
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -623,7 +559,6 @@ export default function EmployeeInOutReportPage(props: { searchParams: SearchPar
                         isLoadingEmployees={isLoadingEmployees}
                     />
                 )}
-
                 {showReport && (
                     <CollapsibleSection
                         title='Employee In/Out Report'

@@ -45,24 +45,57 @@ export const feegroupgroupingColoumn: ColumnDef<IMasterGroupsGrouping>[] = [
         enableSorting: true,
         enableHiding: true
     },
+    // {
+    //     accessorKey: 'selectedFeeGroups',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Group Names' />,
+    //     cell: ({ row }) => {
+    //         const selectedFeeGroups =
+    //             (row.getValue('selectedFeeGroups') as Array<{
+    //                 fmG_Id: number;
+    //                 fmG_GroupName: string;
+    //             }>) || [];
+
+    //         const fmG_GroupName = selectedFeeGroups.map((group) => group.fmG_GroupName);
+    //         const count = fmG_GroupName.length;
+
+    //         return <SelectedFeeGroupsCell fmG_GroupName={fmG_GroupName} count={count} />;
+    //     },
+    //     enableSorting: false,
+    //     enableHiding: true
+    // },
     {
         accessorKey: 'selectedFeeGroups',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Group Names' />,
-        cell: ({ row }) => {
-            const selectedFeeGroups =
-                (row.getValue('selectedFeeGroups') as Array<{
-                    fmG_Id: number;
-                    fmG_GroupName: string;
-                }>) || [];
+        size: 150,
+        minSize: 120,
 
-            const fmG_GroupName = selectedFeeGroups.map((group) => group.fmG_GroupName);
+        header: () => (
+            <div className='flex h-8 w-full items-center justify-start'>
+                <span className='font-medium text-xs'>Fee Group Names</span>
+            </div>
+        ),
+
+        // 🔥 This aligns the CELL (not just the header)
+        meta: {
+            className: 'text-left justify-start'
+        },
+
+        cell: ({ row }) => {
+            const selectedFeeGroups = (row.getValue('selectedFeeGroups') as Array<{ fmG_Id: number; fmG_GroupName: string }>) || [];
+
+            const fmG_GroupName = selectedFeeGroups.map((g) => g.fmG_GroupName);
             const count = fmG_GroupName.length;
 
-            return <SelectedFeeGroupsCell fmG_GroupName={fmG_GroupName} count={count} />;
+            return (
+                <div className='flex w-full justify-start'>
+                    <SelectedFeeGroupsCell fmG_GroupName={fmG_GroupName} count={count} />
+                </div>
+            );
         },
+
         enableSorting: false,
         enableHiding: true
     },
+
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,

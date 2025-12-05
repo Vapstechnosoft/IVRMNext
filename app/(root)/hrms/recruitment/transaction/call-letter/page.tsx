@@ -4,9 +4,7 @@
 // 2. Import form from _components/call-letter-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,7 +25,6 @@ import { Calendar as CalendarIcon, Edit, FileText, Mail, Plus, RefreshCw, Trash2
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface CallLetter extends BaseEntity {
     candidateFirstName: string;
     candidateMiddleName?: string;
@@ -48,7 +45,6 @@ interface CallLetter extends BaseEntity {
     generatedDate?: string;
     sentDate?: string;
 }
-
 interface Candidate extends BaseEntity {
     firstName: string;
     middleName?: string;
@@ -58,25 +54,21 @@ interface Candidate extends BaseEntity {
     jobTitle: string;
     status: string;
 }
-
 interface JobPosting extends BaseEntity {
     jobTitle: string;
     jobLocation: string;
     company: string;
     postDate: string;
 }
-
 interface Company extends BaseEntity {
     companyName: string;
     companyCode: string;
 }
-
 interface HR extends BaseEntity {
     name: string;
     email: string;
     department: string;
 }
-
 type CallLetterForm = {
     candidateFirstName: string;
     candidateMiddleName?: string;
@@ -95,7 +87,6 @@ type CallLetterForm = {
     officeEmailId: string;
     officePhNo: string;
 };
-
 export default function CallLetterPage() {
     const [callLetters, setCallLetters] = useState<CallLetter[]>([]);
     const [_candidates, setCandidates] = useState<Candidate[]>([]);
@@ -106,13 +97,11 @@ export default function CallLetterPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingLetter, setEditingLetter] = useState<CallLetter | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-
     const callLetterDB = createLocalCrud<CallLetter>('recruitment:call-letter');
     const candidateDB = createLocalCrud<Candidate>('recruitment:candidate');
     const jobPostingDB = createLocalCrud<JobPosting>('recruitment:job-posting');
     const companyDB = createLocalCrud<Company>('hrms:company');
     const hrDB = createLocalCrud<HR>('recruitment:hr');
-
     const {
         register,
         handleSubmit,
@@ -130,20 +119,16 @@ export default function CallLetterPage() {
             officeEmailId: 'noreply@vapstech.com'
         }
     });
-
     // Load data on component mount
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = async () => {
         try {
             setCallLetters(callLetterDB.list());
             setCandidates(candidateDB.list());
-
             // Initialize sample data if none exists
             initializeSampleData();
-
             setJobPostings(jobPostingDB.list());
             setCompanies(companyDB.list());
             setHRList(hrDB.list());
@@ -153,7 +138,6 @@ export default function CallLetterPage() {
             setIsLoading(false);
         }
     };
-
     const initializeSampleData = () => {
         // Initialize Job Postings
         if (jobPostingDB.list().length === 0) {
@@ -165,7 +149,6 @@ export default function CallLetterPage() {
             ];
             sampleJobPostings.forEach((job) => jobPostingDB.create(job));
         }
-
         // Initialize Companies
         if (companyDB.list().length === 0) {
             const sampleCompanies: Omit<Company, 'id' | 'createdAt'>[] = [
@@ -176,7 +159,6 @@ export default function CallLetterPage() {
             ];
             sampleCompanies.forEach((company) => companyDB.create(company));
         }
-
         // Initialize HR
         if (hrDB.list().length === 0) {
             const sampleHR: Omit<HR, 'id' | 'createdAt'>[] = [
@@ -188,14 +170,12 @@ export default function CallLetterPage() {
             sampleHR.forEach((hr) => hrDB.create(hr));
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setTimeout(() => {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingLetter(null);
@@ -207,14 +187,12 @@ export default function CallLetterPage() {
             officeEmailId: 'noreply@vapstech.com'
         });
     };
-
     const onSubmit: SubmitHandler<CallLetterForm> = async (data: CallLetterForm) => {
         try {
             if (!data.jobPostDate || !data.interviewDate) {
                 toast.error('Please fill all required date fields');
                 return;
             }
-
             const callLetterData: Omit<CallLetter, 'id' | 'createdAt'> = {
                 candidateFirstName: data.candidateFirstName,
                 candidateMiddleName: data.candidateMiddleName,
@@ -233,7 +211,6 @@ export default function CallLetterPage() {
                 officePhNo: data.officePhNo,
                 status: 'Draft'
             };
-
             if (editingLetter) {
                 callLetterDB.update(editingLetter.id, callLetterData);
                 toast.success('Call letter updated successfully');
@@ -241,23 +218,19 @@ export default function CallLetterPage() {
                 callLetterDB.create(callLetterData);
                 toast.success('Call letter created successfully');
             }
-
             handleFormClose();
             loadData();
         } catch (error: any) {
             toast.error(error.message || 'Operation failed');
         }
     };
-
     const handleClear = () => {
         handleFormClose();
         toast.info('Form cleared');
     };
-
     const handleEdit = (letter: CallLetter) => {
         setEditingLetter(letter);
         const [hours, minutes] = letter.interviewTime.split(':');
-
         reset({
             candidateFirstName: letter.candidateFirstName,
             candidateMiddleName: letter.candidateMiddleName,
@@ -276,13 +249,11 @@ export default function CallLetterPage() {
             officeEmailId: letter.officeEmailId,
             officePhNo: letter.officePhNo
         });
-
         setIsFormOpen(true);
         setTimeout(() => {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
     const handleDelete = async (letter: CallLetter) => {
         try {
             callLetterDB.remove(letter.id);
@@ -292,7 +263,6 @@ export default function CallLetterPage() {
             toast.error('Failed to delete call letter');
         }
     };
-
     const handleGenerateTemplate = (letter: CallLetter) => {
         // Update status to Generated
         callLetterDB.update(letter.id, {
@@ -303,7 +273,6 @@ export default function CallLetterPage() {
         toast.success('Call letter template generated successfully');
         loadData();
     };
-
     const handleSendLetter = (letter: CallLetter) => {
         // Update status to Sent
         callLetterDB.update(letter.id, {
@@ -314,11 +283,9 @@ export default function CallLetterPage() {
         toast.success('Call letter sent successfully');
         loadData();
     };
-
     const getCandidateName = (letter: CallLetter) => {
         return `${letter.candidateFirstName} ${letter.candidateMiddleName || ''} ${letter.candidateLastName}`.trim();
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -336,7 +303,6 @@ export default function CallLetterPage() {
                         Create Call Letter
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     title='Call Letters Data'
@@ -356,7 +322,6 @@ export default function CallLetterPage() {
                         getCandidateName={getCandidateName}
                     />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef}>
@@ -384,7 +349,6 @@ export default function CallLetterPage() {
                                                 error={errors.candidateFirstName?.message}
                                             />
                                         </div>
-
                                         {/* Middle Name */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -396,7 +360,6 @@ export default function CallLetterPage() {
                                                 error={errors.candidateMiddleName?.message}
                                             />
                                         </div>
-
                                         {/* Last Name */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -408,7 +371,6 @@ export default function CallLetterPage() {
                                                 error={errors.candidateLastName?.message}
                                             />
                                         </div>
-
                                         {/* Address */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -421,7 +383,6 @@ export default function CallLetterPage() {
                                             />
                                             {errors.address && <FormError>{errors.address.message}</FormError>}
                                         </div>
-
                                         {/* Position */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -442,7 +403,6 @@ export default function CallLetterPage() {
                                             </Select>
                                             {errors.position && <FormError>Position is required</FormError>}
                                         </div>
-
                                         {/* Candidate Email Id */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -461,7 +421,6 @@ export default function CallLetterPage() {
                                                 error={errors.candidateEmailId?.message}
                                             />
                                         </div>
-
                                         {/* Company */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -481,7 +440,6 @@ export default function CallLetterPage() {
                                             </Select>
                                             {errors.company && <FormError>Company is required</FormError>}
                                         </div>
-
                                         {/* HR */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -502,7 +460,6 @@ export default function CallLetterPage() {
                                             {errors.hr && <FormError>HR is required</FormError>}
                                         </div>
                                     </div>
-
                                     {/* Right Column */}
                                     <div className='space-y-6'>
                                         {/* Job Posting Site */}
@@ -525,7 +482,6 @@ export default function CallLetterPage() {
                                             </Select>
                                             {errors.jobPostingSite && <FormError>Job posting site is required</FormError>}
                                         </div>
-
                                         {/* Job Location */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -537,7 +493,6 @@ export default function CallLetterPage() {
                                                 error={errors.jobLocation?.message}
                                             />
                                         </div>
-
                                         {/* Job Post Date */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>Job Post Date</span>
@@ -569,7 +524,6 @@ export default function CallLetterPage() {
                                                 )}
                                             />
                                         </div>
-
                                         {/* Interview Date */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>Interview Date</span>
@@ -602,7 +556,6 @@ export default function CallLetterPage() {
                                                 )}
                                             />
                                         </div>
-
                                         {/* Interview Time */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -636,7 +589,6 @@ export default function CallLetterPage() {
                                                 </Select>
                                             </div>
                                         </div>
-
                                         {/* Office Email Id */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -655,7 +607,6 @@ export default function CallLetterPage() {
                                                 error={errors.officeEmailId?.message}
                                             />
                                         </div>
-
                                         {/* Office Ph. No. */}
                                         <div className='space-y-2'>
                                             <span className='font-medium text-gray-700 text-sm'>
@@ -670,7 +621,6 @@ export default function CallLetterPage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 {/* Form Actions */}
                                 <div className='flex justify-center gap-4 border-t pt-6'>
                                     <Button type='button' variant='outline' onClick={handleClear}>
@@ -699,7 +649,6 @@ export default function CallLetterPage() {
         </div>
     );
 }
-
 interface CallLetterTableProps {
     letters: CallLetter[];
     isLoading: boolean;
@@ -709,7 +658,6 @@ interface CallLetterTableProps {
     onSendLetter: (letter: CallLetter) => void;
     getCandidateName: (letter: CallLetter) => string;
 }
-
 function CallLetterTable({
     letters,
     isLoading,
@@ -814,7 +762,6 @@ function CallLetterTable({
             }
         }
     ];
-
     return (
         <GenericDataTable isLoading={isLoading} columns={letterColumns} data={letters} totalItems={letters.length} showViewOptions={true} />
     );

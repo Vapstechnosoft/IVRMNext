@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Download, X } from 'lucide-react';
 import { useMemo } from 'react';
-
 interface Employee {
     id: string;
     employeeCode: string;
@@ -25,7 +23,6 @@ interface Employee {
     reasonForLeaving?: string;
     remarks?: string;
 }
-
 interface ReportTemplateProps {
     schoolName?: string;
     schoolAddress?: string;
@@ -35,7 +32,6 @@ interface ReportTemplateProps {
     onExport: () => void;
     onCancel: () => void;
 }
-
 export function EmployeeDetailsReportTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -56,7 +52,6 @@ export function EmployeeDetailsReportTemplate({
             return '-';
         }
     };
-
     // Get all possible columns based on available headers - matching the exact format from the image
     const allColumns = [
         'Sl.No',
@@ -78,14 +73,12 @@ export function EmployeeDetailsReportTemplate({
         'Reason For Leaving',
         'Remarks'
     ];
-
     // Filter columns based on selected headers (always include Sl.No)
     // If no headers selected, show all standard columns to maintain table structure
     // Ensure we always have at least Sl.No column
     const visibleColumns = useMemo(() => {
         // Ensure selectedHeaders is an array
         const headers = Array.isArray(selectedHeaders) ? selectedHeaders : [];
-
         if (headers.length > 0) {
             // Filter out 'Sl.No' from selected headers and add it at the beginning
             const filteredHeaders = headers.filter((h) => h && h !== 'Sl.No' && h.trim() !== '');
@@ -94,13 +87,11 @@ export function EmployeeDetailsReportTemplate({
         // Show all columns when no headers selected
         return allColumns;
     }, [selectedHeaders]);
-
     // Get cell value for a specific column
     const getCellValue = (employee: Employee, column: string, index: number): string => {
         if (column === 'Sl.No') {
             return String(index + 1);
         }
-
         switch (column) {
             case 'Employee Code':
                 return employee.employeeCode || '-';
@@ -141,7 +132,6 @@ export function EmployeeDetailsReportTemplate({
                 return '-';
         }
     };
-
     return (
         <div className='mx-auto w-full max-w-[1600px] bg-white p-6 print:p-4'>
             {/* Report Header */}
@@ -150,7 +140,6 @@ export function EmployeeDetailsReportTemplate({
                 {schoolName && <div className='mb-1 font-semibold text-gray-800 text-lg'>{schoolName}</div>}
                 {schoolAddress && <div className='text-gray-600 text-sm'>{schoolAddress}</div>}
             </div>
-
             {/* Report Table */}
             <div className='mb-6 overflow-x-auto'>
                 {visibleColumns.length > 0 ? (
@@ -207,7 +196,6 @@ export function EmployeeDetailsReportTemplate({
                     <div className='border border-gray-300 p-8 text-center text-gray-500'>No columns available to display</div>
                 )}
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
                 <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>

@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     EmployeeContributionReportFilterRequest,
@@ -12,7 +11,6 @@ import type {
     EmployeeContributionReportSearchResponse,
     EmployeeContributionReportSearchResponseType
 } from '@/types/hrms/reports/employee-contribution-report';
-
 /**
  * Get onload details for employee contribution report
  * POST /api/EmployeeContributionReportFacade/onloadgetdetails
@@ -32,14 +30,12 @@ export async function getEmployeeContributionReportOnload(
         '/api/EmployeeContributionReportFacade/onloadgetdetails',
         requestBody
     );
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<EmployeeContributionReportResponse>;
     }
-
     // Wrap raw response data
     return {
         success: true,
@@ -47,7 +43,6 @@ export async function getEmployeeContributionReportOnload(
         data: response as unknown as EmployeeContributionReportResponse
     };
 }
-
 /**
  * Filter employee contribution data
  * POST /api/EmployeeContributionReportFacade/FilterEmployeeData
@@ -70,20 +65,17 @@ export async function filterEmployeeContributionData(
         departmentselected: request.departmentselected.length > 0 ? request.departmentselected : [0],
         groupTypeselected: request.groupTypeselected.length > 0 ? request.groupTypeselected : [0]
     };
-
     const response = await api.post<EmployeeContributionReportFilterResponse>(
         'hrms',
         '/api/EmployeeContributionReportFacade/FilterEmployeeData',
         requestBody
     );
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as EmployeeContributionReportFilterResponseType;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as EmployeeContributionReportFilterResponse;
     return {
@@ -92,7 +84,6 @@ export async function filterEmployeeContributionData(
         data: rawResponse
     };
 }
-
 /**
  * Get employee contribution details by selection
  * POST /api/EmployeeContributionReportFacade/getEmployeedetailsBySelection
@@ -119,20 +110,17 @@ export async function searchEmployeeContributionDetails(
         EarningHead: request.EarningHead || 0,
         DeductionHead: request.DeductionHead || 0
     };
-
     const response = await api.post<EmployeeContributionReportSearchResponse>(
         'hrms',
         '/api/EmployeeContributionReportFacade/getEmployeedetailsBySelection',
         requestBody
     );
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as EmployeeContributionReportSearchResponseType;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as EmployeeContributionReportSearchResponse;
     return {
@@ -141,4 +129,3 @@ export async function searchEmployeeContributionDetails(
         data: rawResponse
     };
 }
-

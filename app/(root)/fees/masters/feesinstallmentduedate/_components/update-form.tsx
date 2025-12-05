@@ -19,6 +19,7 @@ import { getInstallmentDueDateList, saveInstallmentDueDate } from '@/server/fees
 import type { IMasterFeesInstallmentDueDateList, IMasterFeesInstallmentDuedateList } from '@/types/fees/masters';
 import type { IMasterFeeInstallmentDropDown } from '@/types/fees/masters/masters';
 import { masterFeeInstallmentDueDateColumn } from './fee_due_date_column';
+import { masterFeeInstallmentDueDateUpdateColumn } from './fee_due_date_columnupdate';
 
 //type MasterInstallmentFormSchema = z.infer<typeof masterInstallmentDueDateSchema>;
 
@@ -225,7 +226,7 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<IMasterFeesInstallmentDueDateList>
                         {...tableProps}
-                        columns={masterFeeInstallmentDueDateColumn}
+                        columns={masterFeeInstallmentDueDateUpdateColumn}
                         isLoading={masterInstallmentDueDataLoading}
                         error={masterInstallmentDueDataError}
                         // onRowSelectionChange={handleSelectStudent}

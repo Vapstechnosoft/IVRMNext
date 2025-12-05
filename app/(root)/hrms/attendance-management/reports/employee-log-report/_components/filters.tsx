@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
@@ -15,9 +14,7 @@ import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type LogReportFiltersState = z.infer<typeof employeeLogReportFilterSchema>;
-
 interface LogReportFiltersProps {
     filters: LogReportFiltersState;
     branches: string[];
@@ -31,7 +28,6 @@ interface LogReportFiltersProps {
     onExport: () => void;
     onPrint: () => void;
 }
-
 export function LogReportFilters({
     filters,
     branches,
@@ -55,13 +51,11 @@ export function LogReportFilters({
         defaultValues: filters,
         mode: 'onChange'
     });
-
     // Watch the allOrIndividual and query fields to reactively show/hide employee dropdown
     // Use watch to get the current form value, which updates immediately when changed
     const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
     const queryValue = watch('query') || filters.query || '';
     const dateModeValue = watch('dateMode') || filters.dateMode;
-
     // Sync form when filters prop changes from parent
     useEffect(() => {
         setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
@@ -91,18 +85,15 @@ export function LogReportFilters({
         filters.toDate,
         filters.metric
     ]);
-
     const handleFilterChange = (key: keyof LogReportFiltersState, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const onSubmit = (data: LogReportFiltersState) => {
         onFilterChange(data);
         onReport();
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -160,7 +151,6 @@ export function LogReportFilters({
                         />
                         {errors.designation && <FormError>{errors.designation.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='allOrIndividual'>
                             All / Individual <span className='text-red-500'>*</span>
@@ -209,7 +199,6 @@ export function LogReportFilters({
                             {errors.query && <FormError>{errors.query.message}</FormError>}
                         </div>
                     )}
-
                     {/* Date Mode Dropdown */}
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='dateMode'>
@@ -229,7 +218,6 @@ export function LogReportFilters({
                         </Select>
                         {errors.dateMode && <FormError>{errors.dateMode.message}</FormError>}
                     </div>
-
                     {/* Date Field - Show when Date mode is selected */}
                     {dateModeValue === 'Date' && (
                         <div className='md:col-span-3'>
@@ -267,7 +255,6 @@ export function LogReportFilters({
                             {errors.date && <FormError>{errors.date.message}</FormError>}
                         </div>
                     )}
-
                     {/* Monthly Field - Show when Monthly mode is selected */}
                     {dateModeValue === 'Monthly' && (
                         <div className='md:col-span-3'>
@@ -302,7 +289,6 @@ export function LogReportFilters({
                             {errors.month && <FormError>{errors.month.message}</FormError>}
                         </div>
                     )}
-
                     {/* From Date and To Date Fields - Show when From Date mode is selected */}
                     {dateModeValue === 'From Date' && (
                         <>
@@ -377,7 +363,6 @@ export function LogReportFilters({
                             </div>
                         </>
                     )}
-
                     <div className='md:col-span-3'>
                         <label htmlFor='mode-select' className='font-medium text-sm'>
                             Mode <span className='text-red-500'>*</span>

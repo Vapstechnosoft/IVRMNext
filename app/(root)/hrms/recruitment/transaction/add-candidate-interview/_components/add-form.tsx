@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -11,7 +10,6 @@ import { CalendarIcon, Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-
 const candidateInterviewSchema = z.object({
     candidateId: z.string().min(1, 'Candidate is required'),
     interviewDate: z.string().min(1, 'Interview date is required'),
@@ -22,15 +20,12 @@ const candidateInterviewSchema = z.object({
     notifyByEmail: z.boolean().optional(),
     notifyBySMS: z.boolean().optional()
 });
-
 type FormFields = z.infer<typeof candidateInterviewSchema>;
-
 interface AddCandidateInterviewFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-
 export default function AddCandidateInterviewForm({ onSuccess, onCancel, className = '' }: AddCandidateInterviewFormProps) {
     const {
         control,
@@ -47,7 +42,6 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
             notifyBySMS: false
         }
     });
-
     const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             // TODO: Replace with actual API call
@@ -66,7 +60,6 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
             toast.error(error.message || 'Failed to add candidate interview');
         }
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
             <div className='flex flex-col gap-5'>
@@ -94,7 +87,6 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
                             />
                             {errors.candidateId && <FormError>{errors.candidateId.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Interview Date:<span className='text-red-500'>*</span>
@@ -109,7 +101,6 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
                                 />
                             </div>
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>Notify Candidate By:</label>
                             <div className='flex items-center space-x-6'>
@@ -127,7 +118,6 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
                                 </div>
                             </div>
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Status:<span className='text-red-500'>*</span>
@@ -152,7 +142,6 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
                             {errors.status && <FormError>{errors.status.message}</FormError>}
                         </div>
                     </div>
-
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <div className='space-y-2'>
@@ -179,7 +168,6 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
                             />
                             {errors.interviewRound && <FormError>{errors.interviewRound.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Interviewer Name:<span className='text-red-500'>*</span>
@@ -201,7 +189,6 @@ export default function AddCandidateInterviewForm({ onSuccess, onCancel, classNa
                             />
                             {errors.interviewerId && <FormError>{errors.interviewerId.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Interview Venue:<span className='text-red-500'>*</span>
