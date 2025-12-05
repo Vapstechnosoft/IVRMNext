@@ -39,6 +39,11 @@ export async function getMasterYears() {
     return await api.get<dropdown[]>('hrms', url);
 }
 
+export async function getMasterPaymentModeList() {
+    const url = '/api/MasterDropDown/GetPaymentModeList';
+    return await api.get<dropdown[]>('hrms', url);
+}
+
 export async function addMasterClassCategory(data: any) {
     const url = '/master_class_category';
     return await api.post<any>('admission', url, data);
@@ -47,4 +52,8 @@ export async function addMasterClassCategory(data: any) {
 export async function toggleMasterClassCategory(id: number) {
     const url = `/master_class_category/toggle/${id}`;
     return await api.put('admission', url);
+}
+export async function getMasterEmployeeTypes() {
+    const url = '/api/MasterDropDown/GetEmployeeType';
+    return await api.get<dropdown[]>('hrms', url);
 }

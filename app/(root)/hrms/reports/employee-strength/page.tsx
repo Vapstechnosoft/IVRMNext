@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { SelectItem } from '@/components/ui/select';
 import { useMasterDepartments, useMasterDesignations, useMasterGroupTypes } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
-import { type EmployeeStrengthReportFormFields, EmployeeStrengthReportSchema } from '@/schemas/hrms/employee-category-schemas';
+import { EmployeeStrengthReportSchema } from '@/schemas/hrms/employee-category-schemas';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
@@ -111,7 +111,7 @@ export default function DepartmentSalaryReportPage() {
         mode: 'onChange'
     });
 
-    const onSearch = async (data: EmployeeStrengthReportFormFields) => {
+    const onSearch = async () => {
         setIsSearching(true);
         try {
             await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -161,13 +161,11 @@ export default function DepartmentSalaryReportPage() {
         return totals;
     };
 
-    const totals = calculateTotals();
-
     return (
         <div className='min-h-screen p-8'>
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection
-                    title='ESI Report'
+                    title='Employee Strength'
                     defaultOpen={true}
                     variant='outline'
                     size='md'
@@ -417,7 +415,7 @@ export default function DepartmentSalaryReportPage() {
 
                 {reportData.length > 0 && (
                     <CollapsibleSection
-                        title='ESI Report'
+                        title='Employee Strength'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
