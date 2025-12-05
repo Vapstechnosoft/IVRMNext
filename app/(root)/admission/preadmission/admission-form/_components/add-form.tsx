@@ -421,7 +421,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         if (date) {
             // Convert date to words
             const dobInWords = dateToWords(date);
-            setValue('pasR_DOBInWords', dobInWords);
+            setValue('amsT_DOB_Words', dobInWords);
 
             // Calculate and set age
             const age = calculateAge(date);
@@ -429,7 +429,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             setValue('pasR_Age', ageFormatted);
 
             // Trigger validation if needed
-            trigger(['pasR_DOBInWords', 'pasR_Age']);
+            trigger(['amsT_DOB_Words', 'pasR_Age']);
         }
     };
 
@@ -1450,44 +1450,44 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             <InputText
                                                 label='First Name'
                                                 required
-                                                id='pasR_FirstName'
+                                                id='amsT_FirstName'
                                                 placeholder='Enter first name'
-                                                {...register('pasR_FirstName')}
-                                                error={errors.pasR_FirstName?.message}
+                                                {...register('amsT_FirstName')}
+                                                error={errors.amsT_FirstName?.message}
                                             />
                                             <InputText
                                                 label='Middle Name'
                                                 required
-                                                id='pasR_MiddleName'
+                                                id='amsT_MiddleName'
                                                 placeholder='Enter middle name'
-                                                {...register('pasR_MiddleName')}
-                                                error={errors.pasR_MiddleName?.message}
+                                                {...register('amsT_MiddleName')}
+                                                error={errors.amsT_MiddleName?.message}
                                             />
                                             <InputText
                                                 label='Last Name'
                                                 required
-                                                id='pasR_LastName'
+                                                id='amsT_LastName'
                                                 placeholder='Enter last name'
-                                                {...register('pasR_LastName')}
-                                                error={errors.pasR_LastName?.message}
+                                                {...register('amsT_LastName')}
+                                                error={errors.amsT_LastName?.message}
                                             />
                                             <InputText
                                                 label='Registration No'
                                                 required
-                                                id='pasR_RegistrationNo'
+                                                id='amsT_RegistrationNo'
                                                 placeholder='Enter registration number'
-                                                {...register('pasR_RegistrationNo')}
-                                                error={errors.pasR_RegistrationNo?.message}
+                                                {...register('amsT_RegistrationNo')}
+                                                error={errors.amsT_RegistrationNo?.message}
                                             />
                                             <InputText
                                                 label='Admission No'
                                                 required
-                                                id='pasR_AdmissionNo'
+                                                id='amsT_AdmNo'
                                                 placeholder='Enter admission number'
-                                                {...register('pasR_AdmissionNo')}
-                                                error={errors.pasR_AdmissionNo?.message}
+                                                {...register('amsT_AdmNo')}
+                                                error={errors.amsT_AdmNo?.message}
                                             />
-                                            {/* <div className='flex flex-col gap-1.5'>
+                                            <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='asmcL_Id'>
                                                     Class <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
@@ -1524,7 +1524,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 />
 
                                                 {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
-                                            </div> */}
+                                            </div>
 
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='pasR_Section'>Section</Label>
@@ -1552,17 +1552,17 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <Controller
-                                                name='pasR_DateOfAdmission'
+                                                name='amsT_Date'
                                                 control={control}
                                                 render={({ field, fieldState: { error } }) => (
                                                     <div className='flex flex-col space-y-2'>
-                                                        <Label htmlFor='pasR_DateOfAdmission'>
+                                                        <Label htmlFor='amsT_Date'>
                                                             Date of Admission <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
 
                                                         <Popover
-                                                            open={openPopover === 'pasR_DateOfAdmission'}
-                                                            onOpenChange={(open) => setOpenPopover(open ? 'pasR_DateOfAdmission' : null)}>
+                                                            open={openPopover === 'amsT_Date'}
+                                                            onOpenChange={(open) => setOpenPopover(open ? 'amsT_Date' : null)}>
                                                             <PopoverTrigger asChild>
                                                                 <Button
                                                                     variant={'outline'}
@@ -1606,12 +1606,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 control={control}
                                                 render={({ field, fieldState: { error } }) => (
                                                     <div className='flex flex-col space-y-2'>
-                                                        <Label htmlFor='pasR_DOB'>
+                                                        <Label htmlFor='amsT_DOB'>
                                                             Date of Birth <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
                                                         <Popover
-                                                            open={openPopover === 'pasR_DOB'}
-                                                            onOpenChange={(open) => setOpenPopover(open ? 'pasR_DOB' : null)}>
+                                                            open={openPopover === 'amsT_DOB'}
+                                                            onOpenChange={(open) => setOpenPopover(open ? 'amsT_DOB' : null)}>
                                                             <PopoverTrigger asChild>
                                                                 <Button
                                                                     variant={'outline'}
@@ -1654,10 +1654,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             {/* Date of Birth in Words - Auto-filled */}
                                             <InputText
                                                 label='Date of Birth in Words'
-                                                id='pasR_DOBInWords'
+                                                id='amsT_DOB_Words'
                                                 placeholder='Date of birth in words'
-                                                {...register('pasR_DOBInWords')}
-                                                error={errors.pasR_DOBInWords?.message}
+                                                {...register('amsT_DOB_Words')}
+                                                error={errors.amsT_DOB_Words?.message}
                                                 disabled
                                             />
 
@@ -1673,10 +1673,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                             <InputText
                                                 label='Birth Place'
-                                                id='pasR_BirthPlace'
+                                                id='amsT_BirthPlace'
                                                 placeholder='Enter birth place'
-                                                {...register('pasR_BirthPlace')}
-                                                error={errors.pasR_BirthPlace?.message}
+                                                {...register('amsT_BirthPlace')}
+                                                error={errors.amsT_BirthPlace?.message}
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
@@ -1772,31 +1772,31 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                             <InputText
                                                 label='Birth Certificate No'
-                                                id='pasR_BirthCertificateNo'
+                                                id='amsT_BirthCertNO'
                                                 placeholder='Enter birth certificate number'
-                                                {...register('pasR_BirthCertificateNo')}
-                                                error={errors.pasR_BirthCertificateNo?.message}
+                                                {...register('amsT_BirthCertNO')}
+                                                error={errors.amsT_BirthCertNO?.message}
                                             />
                                             <InputText
                                                 label='Caste Certificate No'
-                                                id='pasR_CasteCertificateNo'
+                                                id='amsT_StuCasteCertiNo"'
                                                 placeholder='Enter caste certificate number'
-                                                {...register('pasR_CasteCertificateNo')}
-                                                error={errors.pasR_CasteCertificateNo?.message}
+                                                {...register('amsT_StuCasteCertiNo')}
+                                                error={errors.amsT_StuCasteCertiNo?.message}
                                             />
                                             <InputText
                                                 label='Biometric Id'
-                                                id='pasR_BiometricId'
+                                                id='amsT_BiometricId'
                                                 placeholder='Enter biometric ID'
-                                                {...register('pasR_BiometricId')}
-                                                error={errors.pasR_BiometricId?.message}
+                                                {...register('amsT_BiometricId')}
+                                                error={errors.amsT_BiometricId?.message}
                                             />
                                             <InputText
                                                 label='RF Card No'
-                                                id='pasR_RFCardNo'
+                                                id='amsT_RFCardNo'
                                                 placeholder='Enter RF card number'
-                                                {...register('pasR_RFCardNo')}
-                                                error={errors.pasR_RFCardNo?.message}
+                                                {...register('amsT_RFCardNo')}
+                                                error={errors.amsT_RFCardNo?.message}
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
@@ -1839,10 +1839,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                             <InputText
                                                 label='Mother Tongue'
-                                                id='pasR_MotherTongue'
+                                                id='amsT_MotherTongue'
                                                 placeholder='Enter mother tongue'
-                                                {...register('pasR_MotherTongue')}
-                                                error={errors.pasR_MotherTongue?.message}
+                                                {...register('amsT_MotherTongue')}
+                                                error={errors.amsT_MotherTongue?.message}
                                             />
                                             <InputText
                                                 label='Languages Spoken'
@@ -3357,7 +3357,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     render={({ field }) => (
                                                                         <div>
                                                                             <Label htmlFor='pasR_FatherOffice_PhNo'>
-                                                                                Mother Office PhNo.
+                                                                                Father Office Phone No.
                                                                             </Label>
                                                                             <PhoneInput
                                                                                 country='in'
@@ -3566,6 +3566,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('pasR_FatherPanno')}
                                                                 error={errors.pasR_FatherPanno?.message}
                                                             />
+                                                            <div className='flex items-center space-x-2'>
+                                                                <Checkbox
+                                                                    id='amsT_VaccinatedFlg'
+                                                                    checked={Boolean(watch('amsT_VaccinatedFlg'))}
+                                                                    onCheckedChange={(checked) => {
+                                                                        setValue('amsT_VaccinatedFlg', checked === true);
+                                                                    }}
+                                                                />
+                                                                <Label htmlFor='amsT_VaccinatedFlg' className='cursor-pointer'>
+                                                                    Self Employed Flg
+                                                                </Label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4507,6 +4519,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 {...register('pasR_MotherPanno')}
                                                                 error={errors.pasR_MotherPanno?.message}
                                                             />
+                                                            <div className='flex items-center space-x-2'>
+                                                                <Checkbox
+                                                                    id='amsT_VaccinatedFlg'
+                                                                    checked={Boolean(watch('amsT_VaccinatedFlg'))}
+                                                                    onCheckedChange={(checked) => {
+                                                                        setValue('amsT_VaccinatedFlg', checked === true);
+                                                                    }}
+                                                                />
+                                                                <Label htmlFor='amsT_VaccinatedFlg' className='cursor-pointer'>
+                                                                    Self Employed Flg
+                                                                </Label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4944,7 +4968,58 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         errors.previousSchoolDetails?.[idx]?.pasrpS_PrvSchoolName?.message
                                                                     }
                                                                 />
-
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='pasR_Section'>School Type</Label>
+                                                                    <Controller
+                                                                        name='pasR_Section'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(value)}
+                                                                                value={field.value?.toString() || ''}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select Class' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value='A'>A</SelectItem>
+                                                                                    <SelectItem value='B'>B</SelectItem>
+                                                                                    <SelectItem value='C'>C</SelectItem>
+                                                                                    <SelectItem value='D'>D</SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.pasR_Section && (
+                                                                        <FormError>{errors.pasR_Section.message}</FormError>
+                                                                    )}
+                                                                </div>
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='pasR_Section'>Class</Label>
+                                                                    <Controller
+                                                                        name='pasR_Section'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(value)}
+                                                                                value={field.value?.toString() || ''}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select Class' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value='A'>A</SelectItem>
+                                                                                    <SelectItem value='B'>B</SelectItem>
+                                                                                    <SelectItem value='C'>C</SelectItem>
+                                                                                    <SelectItem value='D'>D</SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.pasR_Section && (
+                                                                        <FormError>{errors.pasR_Section.message}</FormError>
+                                                                    )}
+                                                                </div>
                                                                 <InputText
                                                                     label='Percentage'
                                                                     id={`previous_percentage_${idx}`}
@@ -4954,13 +5029,140 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         errors.previousSchoolDetails?.[idx]?.pasrpS_PrvPercentage?.message
                                                                     }
                                                                 />
-
                                                                 <InputText
                                                                     label='Grade'
                                                                     id={`previous_grade_${idx}`}
                                                                     placeholder='Enter Grade'
                                                                     {...register(`previousSchoolDetails.${idx}.pasrpS_PrvGrade`)}
                                                                     error={errors.previousSchoolDetails?.[idx]?.pasrpS_PrvGrade?.message}
+                                                                />
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='pasR_Section'>Passed Year</Label>
+                                                                    <Controller
+                                                                        name='pasR_Section'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(value)}
+                                                                                value={field.value?.toString() || ''}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select Class' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value='A'>A</SelectItem>
+                                                                                    <SelectItem value='B'>B</SelectItem>
+                                                                                    <SelectItem value='C'>C</SelectItem>
+                                                                                    <SelectItem value='D'>D</SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.pasR_Section && (
+                                                                        <FormError>{errors.pasR_Section.message}</FormError>
+                                                                    )}
+                                                                </div>
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='pasR_FatherPermanentCountry'>Country</Label>
+                                                                    <Controller
+                                                                        name='pasR_FatherPermanentCountry'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(value)}
+                                                                                value={field.value?.toString() || ''}
+                                                                                disabled={sameAsResidential}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select country' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {countryLoading ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : countryError ? (
+                                                                                        <SelectItem value='error' disabled>
+                                                                                            Error loading
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        country?.data?.map((item) => (
+                                                                                            <SelectItem
+                                                                                                key={item.ivrmmC_Id}
+                                                                                                value={item.ivrmmC_Id.toString()}>
+                                                                                                {item.ivrmmC_CountryName}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.pasR_PerCountry && (
+                                                                        <FormError>{errors.pasR_PerCountry.message}</FormError>
+                                                                    )}
+                                                                </div>
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor='pasR_FatherPermanentState'> State</Label>
+                                                                    <Controller
+                                                                        name='pasR_FatherPermanentState'
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                key={field.value || 'empty'}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                                value={field.value?.toString() || ''}
+                                                                                disabled={sameAsResidential}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select state' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {perStateLoading ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : perStateError ? (
+                                                                                        <SelectItem value='error' disabled>
+                                                                                            Error loading
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        perState?.data?.map((item) => (
+                                                                                            <SelectItem
+                                                                                                key={item.ivrmmS_Id}
+                                                                                                value={item.ivrmmS_Id.toString()}>
+                                                                                                {item.ivrmmS_Name}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.pasR_PerState && (
+                                                                        <FormError>{errors.pasR_PerState.message}</FormError>
+                                                                    )}
+                                                                </div>
+
+                                                                <InputText
+                                                                    label='Address'
+                                                                    id={`previous_address_${idx}`}
+                                                                    placeholder='Enter address'
+                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_Address`)}
+                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_Address?.message}
+                                                                />
+                                                                <InputText
+                                                                    label='Left Reason'
+                                                                    id={`previous_leftreason_${idx}`}
+                                                                    placeholder='Enter Left Reason'
+                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_LeftReason`)}
+                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_LeftReason?.message}
+                                                                />
+                                                                <InputText
+                                                                    label='Medium'
+                                                                    id={`previous_medium_${idx}`}
+                                                                    placeholder='Enter Medium'
+                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_PrvMedium`)}
+                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_PrvMedium?.message}
                                                                 />
 
                                                                 <InputText
@@ -4972,29 +5174,61 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         errors.previousSchoolDetails?.[idx]?.pasrpS_PreviousClass?.message
                                                                     }
                                                                 />
+                                                                <Controller
+                                                                    name='amsT_Date'
+                                                                    control={control}
+                                                                    render={({ field, fieldState: { error } }) => (
+                                                                        <div className='flex flex-col space-y-2'>
+                                                                            <Label htmlFor='pasR_DateOfAdmission'>
+                                                                                TC Date <span className='ml-1 text-red-500'>*</span>
+                                                                            </Label>
 
-                                                                <InputText
-                                                                    label='Medium'
-                                                                    id={`previous_medium_${idx}`}
-                                                                    placeholder='Enter Medium'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_PrvMedium`)}
-                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_PrvMedium?.message}
-                                                                />
-
-                                                                <InputText
-                                                                    label='Left Reason'
-                                                                    id={`previous_leftreason_${idx}`}
-                                                                    placeholder='Enter Left Reason'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_LeftReason`)}
-                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_LeftReason?.message}
-                                                                />
-
-                                                                <InputText
-                                                                    label='Address'
-                                                                    id={`previous_address_${idx}`}
-                                                                    placeholder='Enter address'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_Address`)}
-                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_Address?.message}
+                                                                            <Popover
+                                                                                open={openPopover === 'amsT_Date'}
+                                                                                onOpenChange={(open) =>
+                                                                                    setOpenPopover(open ? 'amsT_Date' : null)
+                                                                                }>
+                                                                                <PopoverTrigger asChild>
+                                                                                    <Button
+                                                                                        variant={'outline'}
+                                                                                        className={cn(
+                                                                                            'w-full justify-start text-left font-normal',
+                                                                                            !field.value && 'text-muted-foreground',
+                                                                                            error && 'border-red-500'
+                                                                                        )}>
+                                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                                        {field.value ? (
+                                                                                            format(field.value, 'dd/MM/yyyy')
+                                                                                        ) : (
+                                                                                            <span>Pick a date</span>
+                                                                                        )}
+                                                                                    </Button>
+                                                                                </PopoverTrigger>
+                                                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                                                    <CalendarYear
+                                                                                        mode='single'
+                                                                                        selected={field.value}
+                                                                                        onSelect={(date: Date | undefined) => {
+                                                                                            if (date) {
+                                                                                                field.onChange(date);
+                                                                                                setOpenPopover(null);
+                                                                                            }
+                                                                                        }}
+                                                                                        disabled={(date: Date) =>
+                                                                                            date > new Date() ||
+                                                                                            date < new Date('1900-01-01')
+                                                                                        }
+                                                                                        initialFocus
+                                                                                    />
+                                                                                </PopoverContent>
+                                                                            </Popover>
+                                                                            {error && (
+                                                                                <span className='text-red-500 text-sm'>
+                                                                                    {error.message}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
                                                                 />
                                                             </div>
                                                         </div>
@@ -5053,6 +5287,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     placeholder='Enter Guardian Phone'
                                                                     {...register(`guardiansDetails.${idx}.guardianPhone`)}
                                                                     error={errors.guardiansDetails?.[idx]?.guardianPhone?.message}
+                                                                />
+                                                                <InputText
+                                                                    label='Guardian Email'
+                                                                    id={`guardian_address_${idx}`}
+                                                                    placeholder='Enter Guardian Email'
+                                                                    {...register(`guardiansDetails.${idx}.guardianAddress`)}
+                                                                    error={errors.guardiansDetails?.[idx]?.guardianAddress?.message}
                                                                 />
 
                                                                 <InputText

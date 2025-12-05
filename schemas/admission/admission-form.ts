@@ -54,21 +54,22 @@ export const studentAdmissionFormSchema = {
     add: z
         .object({
             // Student Details
-            pasR_FirstName: createStringOnlySchema('First Name', 1, 100),
-            pasR_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
-            pasR_LastName: createStringOnlySchema('Last Name', 1, 100),
-            pasR_RegistrationNo: createNumberOnlyStringSchema('Registration No', 1, 50),
-            pasR_AdmissionNo: createNumberOnlyStringSchema('Admission No', 1, 50),
+            amsT_FirstName: createStringOnlySchema('First Name', 1, 100),
+            amsT_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
+            amsT_LastName: createStringOnlySchema('Last Name', 1, 100),
+            amsT_RegistrationNo: createNumberOnlyStringSchema('Registration No', 1, 50),
+            amsT_AdmNo: createNumberOnlyStringSchema('Admission No', 1, 50),
             pasR_Student_Pic_Path: createOptionalStringSchema('Student Photo Path', 1, 500).optional(),
             pasR_Section: createStringOnlyOptionalSchema('Section', 1, 10),
-            pasR_DOBInWords: createStringOnlyOptionalSchema('Date Of Birth In Words', 1, 1000).optional(),
+            amsT_DOB_Words: createStringOnlyOptionalSchema('Date Of Birth In Words', 1, 1000).optional(),
             pasR_Age: createRequiredAlphaNumericWithSpaceSchema('Age', 1, 10),
             pasR_Caste: createStringOnlySchema('Caste', 1, 100),
             pasR_SubCaste: createStringOnlyOptionalSchema('Sub Caste', 1, 100),
-            pasR_BirthCertificateNo: createOptionalAlphaNumericSchema('Birth Certificate No', 1, 50),
-            pasR_CasteCertificateNo: createOptionalAlphaNumericSchema('Caste Certificate No', 1, 50),
-            pasR_BiometricId: createOptionalAlphaNumericSchema('Biometric Id', 1, 50),
-            pasR_RFCardNo: createOptionalAlphaNumericSchema('RF Card No', 1, 50),
+            amsT_BirthCertNO: createOptionalAlphaNumericSchema('Birth Certificate No', 1, 50),
+            amsT_StuCasteCertiNo: createOptionalAlphaNumericSchema('Caste Certificate No', 1, 50),
+            amsT_BiometricId: createOptionalAlphaNumericSchema('Biometric Id', 1, 50),
+            amsT_RFCardNo: createOptionalAlphaNumericSchema('RF Card No', 1, 50),
+            amsT_BloodGroup: createOptionalStringSchema('Blood Group', 1, 50),
 
             //ecs flag
             pasR_ECSFlag: z.number().int({ message: 'ECS Flag is required' }),
@@ -109,11 +110,11 @@ export const studentAdmissionFormSchema = {
                 message: 'Mobile number cannot start with 0'
             }),
 
-            pasR_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
+            amsT_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
             religion_Id: z.number().int({ message: 'Religion is required' }),
             caste_Id: z.number().int({ message: 'Caste is required' }),
             pasR_Sex: createStringSchema('Gender', 1, 50),
-            pasR_DateOfAdmission: z.date({ message: 'Date Of Admission is required' }),
+            amsT_Date: z.date({ message: 'Date Of Admission is required' }),
 
             pasR_DOB: z.date({ message: 'Date Of Birth is required' }).refine(() => true),
             asmcL_Id: z.number(),
@@ -122,7 +123,7 @@ export const studentAdmissionFormSchema = {
 
             pasR_FeeConcessionType: createStringOnlySchema('Caste', 1, 100),
             pasR_emailId: createEmailSchema('Student Email', 1, 50),
-            pasR_MotherTongue: createStringOnlyOptionalSchema('Student Mother Tongue', 1, 100),
+            amsT_MotherTongue: createStringOnlyOptionalSchema('Student Mother Tongue', 1, 100),
 
             // Other Details
             pasR_AadharNo: z

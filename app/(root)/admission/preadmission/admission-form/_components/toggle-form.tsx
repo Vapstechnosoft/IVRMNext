@@ -10,7 +10,7 @@ import { studentApplicationFormSchema } from '@/schemas/admission/preadmission/t
 import { toggleStudentApplication } from '@/server/admission/preadmission/transactions/application_form';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Power, PowerOff } from 'lucide-react';
+import { Power, PowerOff, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -18,15 +18,16 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof studentApplicationFormSchema.delete>;
 
-export default function ToggleStudentApplicationForm({ cell }: { cell: any }) {
+export default function ToggleStudentApplicationForm({ row, cell }: { row?: any; cell?: any }) {
+    const data = cell?.getValue ? cell.getValue() : row;
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isActive, setIsActive] = useState(Number(cell.getValue().pasR_ActiveFlag) === 0);
+    const [isActive, setIsActive] = useState(Number(data?.pasR_ActiveFlag) === 0);
     const [selectedRow, setSelectedRow] = useState<IadmissionStudentApplicationList>();
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { refetchAll } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0);
 
     const handleToggle = () => {
-        setSelectedRow(cell.getValue());
+        setSelectedRow(data);
         setIsDialogOpen(true);
     };
 
@@ -81,6 +82,22 @@ export default function ToggleStudentApplicationForm({ cell }: { cell: any }) {
                             onCheckedChange={handleToggle}
                             className='data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-400'
                         />
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='sm'
+                                    disabled={!isActive}
+                                    onClick={handleToggle}
+                                    className='w-fit p-1'>
+                                    <Trash2 className={`h-4 w-4 ${isActive ? 'text-red-500' : 'text-gray-300'}`} />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{isActive ? 'Delete' : 'Cannot delete - Inactive'}</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 </TooltipTrigger>
                 <TooltipContent>
