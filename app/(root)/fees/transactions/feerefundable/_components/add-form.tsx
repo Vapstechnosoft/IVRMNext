@@ -8,22 +8,22 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    useFeeOpeningRefundable,
     useMasterFeeOpeningBalance,
-    useopeningCategorydropdowndatafee,
     useopeningClassdropdowndatafee,
-    useopeningGroupdropdowndatafee,
-    useopeningInstallmentdropdowndatafee,
     useopeningSectiondropdowndatafee,
     useopeningacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
 import { cn } from '@/lib/utils';
 import { feeOpeningBalanceSchema } from '@/schemas/fees/trasactions';
-import { addOrUpdateFeeOpeningBalance, studentListDropdown, studentNameDropdown } from '@/server/fees/trasactions/fee_opening_balance';
+import {
+    getFeeRefundableGroupDropdownDetails,
+    getFeeRefundableHeadDetails,
+    getFeeRefundableStudentDropdownDetails
+} from '@/server/fees/trasactions/fee_refundable';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, CheckSquare, Save, Square } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -71,6 +71,11 @@ export default function AddFeeRefundableForm({
             installmentId: undefined
         }
     });
+
+    const [groupData, setGroupData] = useState<any[]>([]);
+
+    const [headData, setheadData] = useState<any[]>([]);
+    const [loadingGroups, setLoadingGroups] = useState(false); // <-- add this
     const [selectedGroupItems, setSelectedGroupItems] = useState<{ fmG_Id: string }[]>([]);
     const [groupSearch, setgroupSearch] = useState('');
     const academicYearId = useWatch({ control, name: 'academicYearId' });
@@ -87,7 +92,7 @@ export default function AddFeeRefundableForm({
     const [activefee, setActivefee] = useState<'Fee' | 'PDA'>('Fee');
     const [nameType, setNameType] = useState<'NameRegNo' | 'RegNameNo'>('NameRegNo');
     const [studentWise, setStudentWise] = useState<string>('');
-    const [categoryId, setCategoryId] = useState<string>('');
+
     const [students, setStudents] = useState<StudentRow[]>([]);
     const [showTable, setShowTable] = useState(false);
     const [loadingStudents, setLoadingStudents] = useState(false);
@@ -102,7 +107,8 @@ export default function AddFeeRefundableForm({
     const [narration, setNarration] = useState('');
     const [search, setSearch] = useState('');
 
-    const isPDA = activefee === 'PDA';
+    const [headLoading, setHeadLoading] = useState(false);
+    const [headError, setHeadError] = useState('');
 
     // Data Hooks
     const { data: academicYearData, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
@@ -111,42 +117,117 @@ export default function AddFeeRefundableForm({
         academicYearId ? Number(academicYearId) : 0,
         classId ? Number(classId) : 0
     );
-    const { data: refundableData, isLoading: loadingRefundable } = useFeeOpeningRefundable(
-        academicYearId ? Number(academicYearId) : 0,
-        refundableType
-    );
-    const { data: categoryData, isLoading: loadingCategories } = useopeningCategorydropdowndatafee();
-    const { data: groupData, isLoading: loadingGroups } = useopeningGroupdropdowndatafee(headId ? Number(headId) : 0);
-    const { data: installmentData, isLoading: loadingInstallments } = useopeningInstallmentdropdowndatafee(
-        academicYearId ? Number(academicYearId) : 0,
-        groupId ? Number(groupId) : 0,
-        headId ? Number(headId) : 0
-    );
+
+    console.log('sectionData', sectionData);
+
+    // const toggleAll = () => {
+    //     const newVal = !selectedAll;
+    //     setSelectedAll(newVal);
+    //     setStudents(
+    //         students.map((s) => ({
+    //             ...s,
+    //             Selected: newVal
+    //         }))
+    //     );
+    // };
+
+    //     const toggleAll = () => {
+    //     const newVal = !selectedAll;
+    //     setSelectedAll(newVal);
+
+    //     setheadData(
+    //         headData.map((h) => ({
+    //             ...h,
+    //             Selected: newVal
+    //         }))
+    //     );
+    // };
 
     const toggleAll = () => {
         const newVal = !selectedAll;
         setSelectedAll(newVal);
-        setStudents(
-            students.map((s) => ({
-                ...s,
+
+        setheadData(
+            headData.map((h) => ({
+                ...h,
                 Selected: newVal
             }))
         );
     };
 
+    const toggleHead = (row: any) => {
+        const updated = headData.map((h) => (h === row ? { ...h, Selected: !h.Selected } : h));
+
+        // Update selectedAll if needed
+        const allSelected = updated.every((h) => h.Selected);
+        setSelectedAll(allSelected);
+
+        setheadData(updated);
+    };
+
+    const toggleAllHeads = () => {
+        const newVal = !selectedAll;
+        setSelectedAll(newVal);
+
+        let totalRefundable = 0;
+
+        const updated = headData.map((h) => {
+            if (newVal) {
+                const amt = Number(h.fsS_RunningExcessAmount) + Number(h.fsS_RefundableAmount);
+                totalRefundable += amt;
+            }
+
+            return {
+                ...h,
+                Selected: newVal
+            };
+        });
+
+        setheadData(updated);
+
+        // 🔥 Update narration automatically
+        if (newVal) {
+            setNarration(`Total Amount: ${totalRefundable}`);
+        } else {
+            setNarration('');
+        }
+    };
+
+    // const updateRefund = (row: any, val: number) => {
+    //     let refund = Number(val ?? 0);
+    //     if (refund > row.Amountall) refund = row.Amountall;
+    //     const updated = students.map((s) =>
+    //         s === row
+    //             ? {
+    //                   ...s,
+    //                   FR_RefundAmount: refund,
+    //                   balamt: row.Amountall - refund
+    //               }
+    //             : s
+    //     );
+    //     setStudents(updated);
+    // };
+
     const updateRefund = (row: any, val: number) => {
         let refund = Number(val ?? 0);
-        if (refund > row.Amountall) refund = row.Amountall;
-        const updated = students.map((s) =>
-            s === row
-                ? {
-                      ...s,
-                      FR_RefundAmount: refund,
-                      balamt: row.Amountall - refund
-                  }
-                : s
+        const maxAmount = Number(row.fsS_RunningExcessAmount) + Number(row.fsS_RefundableAmount);
+
+        if (refund > maxAmount) {
+            toast.error('Refund Amount Should not be greater than Excess Amount');
+            refund = maxAmount;
+        }
+
+        setheadData(
+            headData.map((h) =>
+                h === row
+                    ? {
+                          ...h,
+                          FR_RefundAmount: refund,
+                          balamt: maxAmount - refund
+                      }
+                    : h
+            )
         );
-        setStudents(updated);
     };
 
     // Add modal control and data states
@@ -166,11 +247,6 @@ export default function AddFeeRefundableForm({
     const [instantRefundChecked, setInstantRefundChecked] = useState(false);
 
     // CRITICAL FIX: Clear dependent fields when refundableType or headId changes
-    useEffect(() => {
-        setValue('headId', undefined);
-        setValue('groupId', undefined);
-        setValue('installmentId', undefined);
-    }, [refundableType, academicYearId, setValue]);
 
     useEffect(() => {
         setValue('groupId', undefined);
@@ -179,7 +255,7 @@ export default function AddFeeRefundableForm({
 
     // Convert Heads API to { label, id }
     const groupOptions =
-        groupData?.data?.map((h) => ({
+        groupData?.map((h) => ({
             id: h.fmG_Id.toString(),
             label: h.fmG_GroupName
         })) ?? [];
@@ -204,28 +280,142 @@ export default function AddFeeRefundableForm({
         }
     };
 
+    // const toggleGroup = (id: string) => {
+    //     let updated = [];
+
+    //     if (fmG_Ids.includes(id)) {
+    //         updated = fmG_Ids.filter((v: string) => v !== id);
+    //     } else {
+    //         updated = [...fmG_Ids, id];
+    //     }
+
+    //     // MUST be tuple: at least 1 element
+    //     if (updated.length === 0) {
+    //         setValue('groups', undefined as any);
+    //     } else {
+    //         setValue('groups', updated as [string, ...string[]], {
+    //             shouldValidate: true
+    //         });
+    //     }
+
+    //     setSelectedGroupItems(updated.map((x) => ({ fmG_Id: x })));
+    // };
+
     const toggleGroup = (id: string) => {
-        let updated = [];
+        const updated = fmG_Ids.includes(id) ? fmG_Ids.filter((v) => v !== id) : [...fmG_Ids, id];
 
-        if (fmG_Ids.includes(id)) {
-            updated = fmG_Ids.filter((v: string) => v !== id);
-        } else {
-            updated = [...fmG_Ids, id];
-        }
-
-        // MUST be tuple: at least 1 element
-        if (updated.length === 0) {
-            setValue('groups', undefined as any);
-        } else {
-            setValue('groups', updated as [string, ...string[]], {
-                shouldValidate: true
-            });
-        }
-
+        setValue('groups', updated.length ? updated : undefined, { shouldValidate: true });
         setSelectedGroupItems(updated.map((x) => ({ fmG_Id: x })));
     };
 
-    const filteredGroups = groupData?.data?.filter((h) => h.fmG_GroupName.toLowerCase().includes(searchValue.toLowerCase())) ?? [];
+    const filteredGroups = groupData?.filter((h) => h.fmG_GroupName.toLowerCase().includes(searchValue.toLowerCase())) ?? [];
+
+    const selectedStudentId = useWatch({ control, name: 'studentWise' });
+
+    useEffect(() => {
+        const fetchGroupsForStudent = async () => {
+            if (!selectedStudentId || !academicYearId || !refundableType) {
+                setValue('groups', undefined);
+                setSelectedGroupItems([]);
+                setGroupData([]);
+                return;
+            }
+
+            try {
+                setLoadingGroups(true); // start loading
+                const refundableflag = refundableType === 'Refunable';
+                const res = await getFeeRefundableGroupDropdownDetails(Number(academicYearId), Number(selectedStudentId), refundableflag);
+
+                if (res?.success && Array.isArray(res.data)) {
+                    setGroupData(res.data); // store groups
+                } else {
+                    setGroupData([]);
+                }
+            } catch (err) {
+                console.error('Error fetching student groups:', err);
+                setGroupData([]);
+            } finally {
+                setLoadingGroups(false); // stop loading
+            }
+        };
+
+        fetchGroupsForStudent();
+    }, [selectedStudentId, refundableType, academicYearId, setValue]);
+
+    // Explicitly tell TS that 'groups' is a string array
+    const groupsWatched =
+        (useWatch({
+            control,
+            name: 'groups'
+        }) as string[]) || [];
+
+    useEffect(() => {
+        const fetchHeadsForStudent = async () => {
+            if (!selectedStudentId || !academicYearId || !refundableType || groupsWatched.length === 0) {
+                setheadData([]);
+                return;
+            }
+
+            const groupIds = groupsWatched.map((id) => Number(id));
+
+            setHeadLoading(true);
+            setHeadError('');
+            setheadData([]); // clear old data while loading
+
+            try {
+                const refundableflag = refundableType === 'Refunable';
+                const res = await getFeeRefundableHeadDetails(Number(academicYearId), Number(selectedStudentId), refundableflag, groupIds);
+
+                // if (res?.success && Array.isArray(res.data)) {
+                //     setheadData(res.data);
+                // }
+                if (res?.success && Array.isArray(res.data)) {
+                    const processed = res.data.map((h) => {
+                        const amountAll = Number(h.fsS_RunningExcessAmount) + Number(h.fsS_RefundableAmount);
+
+                        return {
+                            ...h,
+                            Amountall: amountAll,
+                            balamt: amountAll,
+                            FR_RefundAmount: amountAll,
+                            Selected: false,
+                            Selected1: false
+                        };
+                    });
+
+                    setheadData(processed); // set final data ONCE
+                } else {
+                    setheadData([]);
+                    setHeadError('No head details found');
+                }
+            } catch (err) {
+                console.error('Error fetching student heads:', err);
+                setheadData([]);
+            }
+            setHeadLoading(false); // ✅ ALWAYS stop loader
+        };
+
+        fetchHeadsForStudent();
+    }, [selectedStudentId, refundableType, academicYearId, groupsWatched.join(',')]);
+
+    //     useEffect(() => {
+
+    //     if (headData.length > 0) {
+    //         const updatedHeadData = headData.map((h) => {
+    //             const amountAll = Number(h.fsS_RunningExcessAmount) + Number(h.fsS_RefundableAmount);
+    //             return {
+    //                 ...h,
+    //                 Amountall: amountAll,
+    //                 balamt: amountAll,
+    //                 FR_RefundAmount: amountAll,
+    //                 Selected: false,
+    //                 Selected1: false,
+    //             };
+    //         });
+
+    //         setheadData(updatedHeadData);
+    //     }
+    // }, [headData]);
 
     // FULL RESET FUNCTION
     const resetAllFormState = useCallback(() => {
@@ -243,7 +433,7 @@ export default function AddFeeRefundableForm({
         setActivefee('Fee');
         setNameType('NameRegNo');
         setStudentWise('');
-        setCategoryId('');
+
         setStudents([]);
         setShowTable(false);
         setStudentDropdownList([]);
@@ -255,147 +445,83 @@ export default function AddFeeRefundableForm({
         resetAllFormState();
     }, [selectionType, resetAllFormState]);
 
-    // Load individual student dropdown
+    // 🔥 Load student list based on Academic Year, Class & Section
     useEffect(() => {
-        if (selectionType !== 'G' || !academicYearId || !classId) {
-            setStudentDropdownList([]);
-            setStudentWise('');
-            return;
-        }
+        const loadStudentsByClass = async () => {
+            if (!academicYearId || !classId || !sectionId) {
+                setStudentDropdownList([]);
+                setStudentWise('');
+                return;
+            }
 
-        let isMounted = true;
-        setLoadingDropdown(true);
+            setLoadingDropdown(true);
 
-        const fetchStudents = async () => {
             try {
-                const payload = {
-                    asmay_Id: Number(academicYearId),
-                    fillClasFlg: String(classId),
-                    fillSecCls: sectionId ? String(sectionId) : '0',
-                    filterInitialData: nameType === 'NameRegNo' ? 'NameRegNo' : 'RegNoName',
-                    studentType: activeType
-                };
-
-                const res = await studentNameDropdown(payload);
-                if (!isMounted) return;
+                const res = await getFeeRefundableStudentDropdownDetails(Number(academicYearId), Number(classId), Number(sectionId));
 
                 if (res?.data && Array.isArray(res.data)) {
-                    const formatted = res.data.map((s: any) => ({
-                        value: String(s.amst_Id || s.AMST_Id),
-                        label: [s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' ').trim()
+                    // const list = res.data.map((s: any) => ({
+                    //     value: String(s.amst_Id || s.AMST_Id),
+                    //     label: s.studentName
+                    // }));
+
+                    const list = res.data.map((s: any) => ({
+                        value:
+                            s.amst_Id !== undefined && s.amst_Id !== null
+                                ? String(s.amst_Id)
+                                : s.AMST_Id !== undefined && s.AMST_Id !== null
+                                  ? String(s.AMST_Id)
+                                  : crypto.randomUUID(), // fallback to UNIQUE value
+                        label: s.studentName || 'Unknown'
                     }));
-                    setStudentDropdownList(formatted);
+
+                    setStudentDropdownList(list);
+                } else {
+                    setStudentDropdownList([]);
                 }
-            } catch {
+            } catch (err) {
+                console.error(err);
                 toast.error('Failed to load students');
             } finally {
-                if (isMounted) setLoadingDropdown(false);
+                setLoadingDropdown(false);
             }
         };
 
-        fetchStudents();
-        return () => {
-            isMounted = false;
-        };
-    }, [selectionType, academicYearId, classId, sectionId, nameType, activeType]);
-
-    const showFeeGroup = useMemo(() => {
-        if (!headId || !refundableData?.data) return false;
-        const head = refundableData.data.find((h: any) => h.fmH_Id === Number(headId));
-        return head?.fmH_FeeName !== 'Other Allowances';
-    }, [headId, refundableData]);
-
-    const showFeeInstallment = useMemo(() => {
-        if (!headId || !groupId || !refundableData?.data || !groupData?.data) return false;
-        const head = refundableData.data.find((h: any) => h.fmH_Id === Number(headId))?.fmH_FeeName;
-        const group = groupData.data.find((g: any) => g.fmG_Id === Number(groupId))?.fmG_GroupName;
-        return head === 'TRANSPORT FEE' && group && ['TRANSPORT FEE', 'TRANSPORT OTHER FEE', 'TRANSPORT UKG AND LKG FEE'].includes(group);
-    }, [headId, groupId, refundableData, groupData]);
-
-    const loadStudents = useCallback(async () => {
-        if (!academicYearId || !headId) return toast.error('Please select Academic Year and Fee Head');
-        if (selectionType === 'G' && !studentWise) return toast.error('Please select a student');
-        if (selectionType === 'C' && !categoryId) return toast.error('Please select a category');
-        if (selectionType !== 'C' && !classId) return toast.error('Please select a class');
-
-        setLoadingStudents(true);
-        try {
-            const payload: any = {
-                typeofrpt: selectionType === 'T' ? 'All' : selectionType === 'G' ? 'Individual' : 'Category',
-                asmay_id: Number(academicYearId),
-                fillclasflg: selectionType === 'C' ? '0' : String(classId || 0),
-                fillseccls: selectionType === 'C' ? '0' : String(sectionId || 0),
-                Amst_Id: selectionType === 'G' ? Number(studentWise) : 0,
-                fmcC_Id: selectionType === 'C' ? Number(categoryId) : 0,
-                studenttype: activeType,
-                FMG_Id: groupId ? Number(groupId) : 0,
-                FMH_Id: Number(headId),
-                userid: 9,
-                isPDA: isPDA ? 'Y' : 'N',
-                TempArrayHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
-            };
-
-            const res = await studentListDropdown(payload);
-
-            if (res?.success && res.data?.saveheadlst?.length > 0) {
-                const formatted: StudentRow[] = res.data.saveheadlst.map((s: any) => ({
-                    amst_Id: Number(s.amst_Id || s.AMST_Id || 0),
-                    fullName: [s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' ').trim() || 'Unknown Student',
-                    fmoB_Student_Due: Number(s.fmoB_Student_Due || 0),
-                    fmoB_Institution_Due: Number(s.fmoB_Institution_Due || 0),
-                    checked: false
-                }));
-
-                setStudents(formatted);
-                setShowTable(true);
-                toast.success(`${formatted.length} student(s) loaded`);
-            } else {
-                setStudents([]);
-                setShowTable(true);
-                toast.info('No students found');
-            }
-        } catch {
-            toast.error('Failed to load students');
-            setStudents([]);
-            setShowTable(false);
-        } finally {
-            setLoadingStudents(false);
-        }
-    }, [academicYearId, classId, sectionId, headId, groupId, installmentId, selectionType, studentWise, categoryId, activeType, isPDA]);
+        loadStudentsByClass();
+    }, [academicYearId, classId, sectionId, activeType, nameType]);
 
     const onSubmit = async () => {
-        const selected = students.filter((s) => s.checked);
-        if (selected.length === 0) return toast.error('Please select at least one student');
+        // const selected = students.filter((s) => s.checked);
+        // if (selected.length === 0) return toast.error('Please select at least one student');
 
         setSaving(true);
         try {
-            const payload = {
-                Asmay_Id: Number(academicYearId),
-                Fmg_Id: groupId ? Number(groupId) : 0,
-                Fmh_Id: Number(headId),
-                FillBusRouteStudents: activefee === 'Fee' ? 'fees' : '',
-                filterrefund: refundableType,
-                FMOB_Entry_Date: format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss"),
-                SaveTmpData: selected.map((s) => ({
-                    Amst_Id: s.amst_Id,
-                    FMOB_Student_Due: s.fmoB_Student_Due,
-                    FMOB_Institution_Due: s.fmoB_Institution_Due,
-                    checkedvalue: true
-                })),
-                TempHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
-            };
-
-            const res = await addOrUpdateFeeOpeningBalance(payload);
-            if (res.success || res.returnval) {
-                toast.success('Opening balance saved successfully!');
-                resetAllFormState();
-                refetchAll();
-                onSuccess?.();
-            } else {
-                toast.error(res.message || 'Failed to save');
-            }
+            // const payload = {
+            //     Asmay_Id: Number(academicYearId),
+            //     Fmg_Id: groupId ? Number(groupId) : 0,
+            //     Fmh_Id: Number(headId),
+            //     FillBusRouteStudents: activefee === 'Fee' ? 'fees' : '',
+            //     filterrefund: refundableType,
+            //     FMOB_Entry_Date: format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss"),
+            //     SaveTmpData: selected.map((s) => ({
+            //         Amst_Id: s.amst_Id,
+            //         FMOB_Student_Due: s.fmoB_Student_Due,
+            //         FMOB_Institution_Due: s.fmoB_Institution_Due,
+            //         checkedvalue: true
+            //     })),
+            //     TempHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
+            // };
+            // const res = await addOrUpdateFeeOpeningBalance(payload);
+            // if (res.success || res.returnval) {
+            //     toast.success('Opening balance saved successfully!');
+            //     resetAllFormState();
+            //     refetchAll();
+            //     onSuccess?.();
+            // } else {
+            //     toast.error(res.message || 'Failed to save');
+            // }
         } catch {
-            toast.error('Error saving data');
+            // toast.error('Error saving data');
         } finally {
             setSaving(false);
         }
@@ -436,91 +562,65 @@ export default function AddFeeRefundableForm({
                         </div>
                     </div>
 
-                    {/* Category (only in Category mode) */}
-                    {selectionType === 'C' && (
+                    <>
                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
                             <Label className='w-44 text-right'>
-                                Category <span className='text-red-500'>*</span>
+                                Class <span className='text-red-500'>*</span>
                             </Label>
                             <div className='w-full sm:w-96'>
-                                <Select value={categoryId} onValueChange={setCategoryId} disabled={loadingCategories}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder={loadingCategories ? 'Loading...' : 'Select Category'} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categoryData?.data?.map((item: any) => (
-                                            <SelectItem key={item.fmcC_Id} value={String(item.fmcC_Id)}>
-                                                {item.fmcC_ClassCategoryName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Controller
+                                    name='classId'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                            value={field.value?.toString()}
+                                            disabled={loadingClasses}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {classData?.data?.map((item: any) => (
+                                                    <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
+                                                        {item.asmcL_ClassName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
                             </div>
                         </div>
-                    )}
 
-                    {/* Class & Section (non-category mode) */}
-                    {selectionType !== 'C' && (
-                        <>
-                            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                <Label className='w-44 text-right'>
-                                    Class <span className='text-red-500'>*</span>
-                                </Label>
-                                <div className='w-full sm:w-96'>
-                                    <Controller
-                                        name='classId'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                                value={field.value?.toString()}
-                                                disabled={loadingClasses}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {classData?.data?.map((item: any) => (
-                                                        <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
-                                                            {item.asmcL_ClassName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                </div>
+                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                            <Label className='w-44 text-right'>
+                                Section <span className='text-red-500'>*</span>
+                            </Label>
+                            <div className='w-full sm:w-96'>
+                                <Controller
+                                    name='sectionId'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            disabled={!classId || loadingSections}
+                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                            value={field.value?.toString()}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder={loadingSections ? 'Loading ...' : 'Select Section'} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {sectionData?.data?.map((item: any) => (
+                                                    <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
+                                                        {item.asmC_SectionName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
                             </div>
-
-                            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                <Label className='w-44 text-right'>
-                                    Section <span className='text-red-500'>*</span>
-                                </Label>
-                                <div className='w-full sm:w-96'>
-                                    <Controller
-                                        name='sectionId'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                disabled={!classId || loadingSections}
-                                                onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                                value={field.value?.toString()}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={loadingSections ? 'Loading ...' : 'Select Section'} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {sectionData?.data?.map((item: any) => (
-                                                        <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                            {item.asmC_SectionName}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
+                        </div>
+                    </>
 
                     {/* Refundable / Non-Refundable - FIXED */}
 
@@ -531,25 +631,17 @@ export default function AddFeeRefundableForm({
                         </Label>
                         <div className='w-full sm:w-96'>
                             <Controller
-                                name='headId'
+                                name='studentWise'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select
-                                        key={`feehead-${refundableType}-${academicYearId}`} // Forces fresh load
-                                        onValueChange={(v) => {
-                                            field.onChange(v ? Number(v) : undefined);
-                                            setValue('groupId', undefined);
-                                            setValue('installmentId', undefined);
-                                        }}
-                                        value={field.value?.toString()}
-                                        disabled={loadingRefundable || !academicYearId}>
+                                    <Select value={field.value?.toString()} onValueChange={(v) => field.onChange(v)}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder={loadingRefundable ? 'Loading...' : 'Select Fee Head'} />
+                                            <SelectValue placeholder='Select Student' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {refundableData?.data?.map((item: any) => (
-                                                <SelectItem key={item.fmH_Id} value={String(item.fmH_Id)}>
-                                                    {item.fmH_FeeName}
+                                            {studentDropdownList.map((item) => (
+                                                <SelectItem key={item.value} value={item.value}>
+                                                    {item.label}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -662,9 +754,9 @@ export default function AddFeeRefundableForm({
                                                 setRefundableType(newType);
 
                                                 // Clear fee-related fields
-                                                setValue('headId', undefined);
-                                                setValue('groupId', undefined);
-                                                setValue('installmentId', undefined);
+                                                // setValue('headId', undefined);
+                                                // setValue('groupId', undefined);
+                                                //  setValue('installmentId', undefined);
                                             }}
                                             className='h-5 w-5 text-blue-600'
                                         />
@@ -691,7 +783,7 @@ export default function AddFeeRefundableForm({
                             />
 
                             {/* Select All Users */}
-                            {groupData?.data && (
+                            {groupData && (
                                 <div
                                     onClick={selectAllGroup}
                                     className={cn(
@@ -712,7 +804,7 @@ export default function AddFeeRefundableForm({
                             <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
                                 {loadingGroups ? (
                                     <div className='py-4 text-center text-gray-500 text-sm'>Loading Groups...</div>
-                                ) : groupData?.data?.length === 0 ? (
+                                ) : groupData.length === 0 ? (
                                     <div className='py-4 text-center text-gray-500 text-sm'>No groups found</div>
                                 ) : (
                                     filteredGroups.map((u) => {
@@ -781,18 +873,18 @@ export default function AddFeeRefundableForm({
                     </div>
                 </div>
             </div>
-            <div className='mt-6 space-y-5 rounded border bg-white p-5 shadow'>
-                {/* HEADER */}
+            {/* <div className='mt-6 space-y-5 rounded border bg-white p-5 shadow'>
+              
                 <div className='flex items-center justify-between border-b pb-3'>
                     <h3 className='font-semibold text-xl'>Fee Head List</h3>
 
-                    {/* Search */}
+                  
                     <div className='w-64'>
                         <Input placeholder='Search here...' value={search} onChange={(e) => setSearch(e.target.value)} />
                     </div>
                 </div>
 
-                {/* TABLE */}
+              
                 <div className='overflow-auto'>
                     <table className='w-full border text-sm'>
                         <thead>
@@ -869,13 +961,13 @@ export default function AddFeeRefundableForm({
                     </table>
                 </div>
 
-                {/* NARRATION */}
+               
                 <div className='mt-6 flex justify-center'>
                     <div className='flex w-full max-w-xl items-start gap-4'>
-                        {/* Label on the left */}
+                       
                         <Label className='mt-1 whitespace-nowrap font-medium'>Narration:</Label>
 
-                        {/* Expandable Textarea */}
+                       
                         <Textarea
                             className='min-h-[50px] w-full resize rounded border p-3'
                             value={narration}
@@ -885,10 +977,10 @@ export default function AddFeeRefundableForm({
                     </div>
                 </div>
 
-                {/* PAYMENT MODE */}
+               
                 <div className='mt-6 flex justify-center'>
                     <div className='w-full max-w-xl rounded border bg-gray-50 p-6 text-center'>
-                        {/* Radio Buttons */}
+                        
                         <div className='mb-4 flex justify-center gap-10'>
                             <Label className='flex items-center gap-2'>
                                 <input
@@ -924,22 +1016,22 @@ export default function AddFeeRefundableForm({
                             </Label>
                         </div>
 
-                        {/* BANK FIELDS */}
+                      
                         {paymentMode === 'B' && (
                             <div className='mt-5 space-y-4'>
-                                {/* Bank Name Row */}
+                               
                                 <div className='flex items-center gap-4'>
                                     <Label className='w-40 text-right font-medium'>Bank Name:</Label>
                                     <Input className='flex-1' placeholder='Enter bank name' />
                                 </div>
 
-                                {/* Cheque Number Row */}
+                               
                                 <div className='flex items-center gap-4'>
                                     <Label className='w-40 text-right font-medium'>Cheque/DD No:</Label>
                                     <Input className='flex-1' placeholder='Enter cheque number' />
                                 </div>
 
-                                {/* Cheque Date Row */}
+                                
                                 <div className='flex items-center gap-4'>
                                     <Label className='w-40 text-right font-medium'>Cheque/DD Date:</Label>
                                     <Input className='flex-1' type='date' />
@@ -948,7 +1040,228 @@ export default function AddFeeRefundableForm({
                         )}
                     </div>
                 </div>
-            </div>
+            </div> */}
+
+            {headLoading && <div className='mt-6 text-center font-semibold text-blue-600'>Loading head details...</div>}
+
+            {!headLoading && headError && <div className='mt-6 text-center font-semibold text-red-600'>{headError}</div>}
+
+            {!headLoading && headData.length > 0 && (
+                <div className='mt-6 space-y-5 rounded border bg-white p-5 shadow'>
+                    {/* HEADER */}
+                    <div className='flex items-center justify-between border-b pb-3'>
+                        <h3 className='font-semibold text-xl'>Fee Head List</h3>
+
+                        {/* Search */}
+                        {/* <div className='w-64'>
+                            <Input placeholder='Search here...' value={search} onChange={(e) => setSearch(e.target.value)} />
+                        </div> */}
+                    </div>
+
+                    {/* TABLE */}
+                    <div className='overflow-auto'>
+                        <table className='w-full border text-sm'>
+                            <thead>
+                                <tr className='bg-gray-100 text-center'>
+                                    <th className='border p-2'>SLNO</th>
+                                    <th className='border p-2'>
+                                        <input type='checkbox' className='h-4 w-4' checked={selectedAll} onChange={toggleAllHeads} />
+                                    </th>
+                                    <th className='border p-2'>Fee Head</th>
+                                    <th className='border p-2'>Installment</th>
+                                    <th className='border p-2'>Excess Amount</th>
+                                    <th className='border p-2'>Refund Amount</th>
+                                    <th className='border p-2'>Balance Amount</th>
+                                    <th className='border p-2'>Refund Over</th>
+                                </tr>
+                            </thead>
+
+                            {/* <tbody>
+                                {headData
+                                    .filter((x) => x.fmH_FeeName.toLowerCase().includes(search.toLowerCase()))
+                                    .map((row, i) => (
+                                        <tr key={row.fsS_Id} className='text-center odd:bg-gray-50'>
+                                            <td className='border p-2'>{i + 1}</td>
+
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='checkbox'
+                                                    className='h-4 w-4'
+                                                    checked={row.Selected || false}
+                                                    onChange={(e) => {
+                                                        row.Selected = e.target.checked;
+                                                        setheadData([...headData]);
+                                                    }}
+                                                />
+                                            </td>
+
+                                            <td className='border p-2'>{row.fmH_FeeName}</td>
+                                            <td className='border p-2'>{row.ftI_Name}</td>
+                                            <td className='border p-2'>{row.fsS_RunningExcessAmount}</td>
+
+                                            <td className='w-40 border p-2'>
+                                                <Input
+                                                    type='number'
+                                                    min={0}
+                                                    max={row.fsS_RunningExcessAmount}
+                                                    value={row.fsS_RefundAmount || ''}
+                                                    onChange={(e) => {
+                                                        const val = Number(e.target.value);
+                                                        row.fsS_RefundAmount = Math.min(val, row.fsS_RunningExcessAmount);
+                                                        row.balamt = row.fsS_RunningExcessAmount - row.fsS_RefundAmount;
+                                                        setheadData([...headData]);
+                                                    }}
+                                                />
+                                                {(row.fsS_RefundAmount ?? 0) > row.fsS_RunningExcessAmount && (
+                                                    <p className='text-red-600 text-xs'>Refund cannot exceed Excess</p>
+                                                )}
+                                            </td>
+
+                                            <td className='border p-2'>{row.balamt ?? row.fsS_RunningExcessAmount}</td>
+
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='checkbox'
+                                                    className='h-4 w-4'
+                                                    checked={row.Selected1 || false}
+                                                    onChange={(e) => {
+                                                        row.Selected1 = e.target.checked;
+                                                        setheadData([...headData]);
+                                                    }}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                            </tbody> */}
+                            <tbody>
+                                {headData.map((row, i) => (
+                                    <tr key={i} className='text-center odd:bg-gray-50'>
+                                        <td>{i + 1}</td>
+
+                                        {/* SELECT ROW */}
+                                        <td>
+                                            <input
+                                                type='checkbox'
+                                                checked={row.Selected}
+                                                onChange={() => toggleHead(row)}
+                                                className='h-4 w-4'
+                                            />
+                                        </td>
+
+                                        <td>{row.fmH_FeeName}</td>
+                                        <td>{row.ftI_Name}</td>
+                                        <td>{row.Amountall}</td>
+
+                                        {/* REFUND AMOUNT */}
+                                        <td className='w-40'>
+                                            <Input
+                                                type='number'
+                                                min={0}
+                                                max={row.Amountall}
+                                                value={row.FR_RefundAmount ?? ''} // <-- FIX #1
+                                                onChange={(e) => updateRefund(row, Number(e.target.value))}
+                                            />
+                                            {row.FR_RefundAmount > row.Amountall && (
+                                                <p className='text-red-600 text-xs'>Refund cannot exceed Excess</p>
+                                            )}
+                                        </td>
+
+                                        <td>{row.balamt}</td>
+
+                                        {/* SELECTED1 */}
+                                        <td>
+                                            <input
+                                                type='checkbox'
+                                                checked={row.Selected1}
+                                                onChange={(e) => {
+                                                    const updated = headData.map((h) =>
+                                                        h === row ? { ...h, Selected1: e.target.checked } : h
+                                                    ); // <-- FIX #2
+                                                    setheadData(updated);
+                                                }}
+                                                className='h-4 w-4'
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* NARRATION */}
+                    <div className='mt-6 flex justify-center'>
+                        <div className='flex w-full max-w-xl items-start gap-4'>
+                            <Label className='mt-1 whitespace-nowrap font-medium'>Narration:</Label>
+                            <Textarea
+                                className='min-h-[50px] w-full resize rounded border p-3'
+                                value={narration}
+                                onChange={(e) => setNarration(e.target.value)}
+                                placeholder='Enter your narration here...'
+                            />
+                        </div>
+                    </div>
+
+                    {/* PAYMENT MODE */}
+                    <div className='mt-6 flex justify-center'>
+                        <div className='w-full max-w-xl rounded border bg-gray-50 p-6 text-center'>
+                            <div className='mb-4 flex justify-center gap-10'>
+                                <Label className='flex items-center gap-2'>
+                                    <input
+                                        type='radio'
+                                        value='C'
+                                        checked={paymentMode === 'C'}
+                                        onChange={() => setPaymentMode('C')}
+                                        className='h-4 w-4'
+                                    />
+                                    Cash
+                                </Label>
+
+                                <Label className='flex items-center gap-2'>
+                                    <input
+                                        type='radio'
+                                        value='B'
+                                        checked={paymentMode === 'B'}
+                                        onChange={() => setPaymentMode('B')}
+                                        className='h-4 w-4'
+                                    />
+                                    Bank
+                                </Label>
+
+                                <Label className='flex items-center gap-2'>
+                                    <input
+                                        type='radio'
+                                        value='O'
+                                        checked={paymentMode === 'O'}
+                                        onChange={() => setPaymentMode('O')}
+                                        className='h-4 w-4'
+                                    />
+                                    Online
+                                </Label>
+                            </div>
+
+                            {/* BANK FIELDS */}
+                            {paymentMode === 'B' && (
+                                <div className='mt-5 space-y-4'>
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right font-medium'>Bank Name:</Label>
+                                        <Input className='flex-1' placeholder='Enter bank name' />
+                                    </div>
+
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right font-medium'>Cheque/DD No:</Label>
+                                        <Input className='flex-1' placeholder='Enter cheque number' />
+                                    </div>
+
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right font-medium'>Cheque/DD Date:</Label>
+                                        <Input className='flex-1' type='date' />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className='flex flex-col-reverse gap-4 border-t pt-6 sm:flex-row sm:justify-start'>
                 <Button

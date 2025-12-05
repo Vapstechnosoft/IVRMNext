@@ -692,10 +692,13 @@ export interface IFeeConcessionHeadList {
 export interface IFeeConcessionStudentList {
     slno: number;
     amsT_Id: number;
-    amsT_RegistrationNo: number;
-    amsT_AdmNo: number;
-    studentName: string;
+    amsT_AdmNo: string;
+    amsT_RegistrationNo: string;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
     amaY_RollNo: number;
+    asmcL_ClassName?: string;
     isSelected: boolean;
 }
 
@@ -713,4 +716,31 @@ export interface IFeeConcessionStudentConcessionGrid {
     fmcC_ConcessionName: string;
     fsC_ConcessionAmount: number;
     fsC_Id: number;
+}
+
+export interface IFeeRefundableStudentDropDownList {
+    amsT_Id: number;
+    studentName: string;
+    amsT_AdmNo: string;
+    amsT_RegistrationNo: string;
+
+    amsT_MobileNo: string;
+    amsT_emailId: string;
+}
+
+export interface IFeeRefundableGroupDropDownList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IFeeRefundableHeadList {
+    fsS_Id: number;
+    fmH_ID: number;
+    fmH_FeeName: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fsS_RunningExcessAmount: number;
+    fsS_RefundableAmount: number;
+    fsS_RefundAmount: number;
+    fmG_Id: number;
 }

@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,51 +16,18 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { toast } from 'sonner';
 
 import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
+import { dailyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getDailyFeeCollectionReport, getGroupsDropdown } from '@/server/fees/reports/daily_fee_collection_report';
 import type { ApiSearchparams } from '@/types';
 import type { IDailyFeeCollectionRequest } from '@/types/fees/reports/reports';
 
-// ===================================================
-// ZOD SCHEMA
-// ===================================================
-const dailyFeeCollectionSchema = z.object({
-    report: z.enum(['All', 'students', 'staff', 'others']).default('students'),
-    rpttyp: z.enum(['All', 'Individual']).default('Individual'),
-    reportdate: z.enum(['transdate', 'settdate', 'SettledOnline']).default('transdate'),
-
-    asmaY_Id: z.number().min(1, { message: 'Academic Year is required' }),
-
-    groupIds: z.array(z.number()).min(1, { message: 'Select at least one Group' }),
-
-    chequeDate: z.boolean().default(false),
-    acdmyr: z.boolean().default(false),
-    headwise: z.boolean().default(false),
-    paymentwise: z.boolean().default(false),
-
-    fromDate: z.string().min(1, { message: 'From Date is required' }),
-    toDate: z.string().min(1, { message: 'To Date is required' }),
-
-    enableAllClasses: z.boolean().default(false),
-    asmcL_Id: z.number().optional(),
-
-    Fmc_allorsudentorother: z.enum(['All', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode']).default('All'),
-
-    Fmc_allorcorddorop: z.enum(['All', 'C', 'B', 'O', 'Ecs', 'S', 'R', 'BT', 'U']).default('All'),
-
-    storedTrans: z.boolean().default(false),
-    thirdPartyTrans: z.boolean().default(false),
-    pdaTrans: z.boolean().default(false)
-});
-
 type FormFields = z.infer<typeof dailyFeeCollectionSchema>;
 
-// ===================================================
-// PROPS
-// ===================================================
 interface DailyFeeProps {
     onSuccess?: (payload: any, apiSearchParams?: ApiSearchparams) => void;
     apiSearchParams: ApiSearchparams;
 }
+const today = new Date().toISOString().split('T')[0];
 
 export default function DailyFeeCollectionReportForm() {
     // ---------------------------- FORM ----------------------------
@@ -84,8 +51,8 @@ export default function DailyFeeCollectionReportForm() {
             acdmyr: false,
             headwise: false,
             paymentwise: false,
-            fromDate: '',
-            toDate: '',
+            fromDate: today,
+            toDate: today,
             enableAllClasses: false,
             Fmc_allorsudentorother: 'All',
             Fmc_allorcorddorop: 'All'
@@ -325,7 +292,7 @@ export default function DailyFeeCollectionReportForm() {
         setSubmitClicked(false);
         setTableColumns([]);
         setTableRows([]);
-        setShowTable(false); // 👉 HIDE TABLE ON RESET
+        setShowTable(false);
     };
 
     // ===================================================
@@ -404,7 +371,7 @@ export default function DailyFeeCollectionReportForm() {
                                                 onYearChange(num);
                                             }}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Year' />
+                                                <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {academicYears.map((y) => (
@@ -421,13 +388,14 @@ export default function DailyFeeCollectionReportForm() {
                             )}
                         />
 
-                        {/* GROUPS */}
-                        <div>
-                            <Label className='font-medium'>
+                        <div className='flex items-start gap-4'>
+                            {/* LABEL */}
+                            <Label className='mt-[6px] whitespace-nowrap font-medium'>
                                 Group <span className='text-red-500'>*</span>
                             </Label>
 
-                            <div className='mt-2'>
+                            {/* MULTI SELECT */}
+                            <div className='flex-1'>
                                 <CustomMultiSelectBox
                                     options={feeGroups.map((g) => ({
                                         label: g.fmG_GroupName,
@@ -447,23 +415,33 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* SPECIAL CHECKBOXES */}
                         <div className='space-y-3 text-sm'>
-                            {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-                            <label className='flex items-center gap-2'>
-                                <Checkbox checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                <span>Acd Year Wise Report</span>
-                            </label>
+                            <div className='flex items-center gap-2'>
+                                <Checkbox id='acdmyr-1' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
+                                <label htmlFor='acdmyr-1'>Cheque Date</label>
+                            </div>
+
+                            <div className='flex items-center gap-2'>
+                                <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
+                                <label htmlFor='acdmyr-2'>Acd Year Wise Report</label>
+                            </div>
 
                             {showHeadPaymentBlock && (
                                 <>
-                                    {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-                                    <label className='flex items-center gap-2'>
-                                        <Checkbox checked={headwise} onCheckedChange={(v) => setValue('headwise', !!v)} />
+                                    <label htmlFor='headwise-checkbox' className='flex items-center gap-2'>
+                                        <Checkbox
+                                            id='headwise-checkbox'
+                                            checked={headwise}
+                                            onCheckedChange={(v) => setValue('headwise', !!v)}
+                                        />
                                         <span>Head Wise Report</span>
                                     </label>
 
-                                    {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-                                    <label className='flex items-center gap-2'>
-                                        <Checkbox checked={paymentwise} onCheckedChange={(v) => setValue('paymentwise', !!v)} />
+                                    <label htmlFor='paymentwise-checkbox' className='flex items-center gap-2'>
+                                        <Checkbox
+                                            id='paymentwise-checkbox'
+                                            checked={paymentwise}
+                                            onCheckedChange={(v) => setValue('paymentwise', !!v)}
+                                        />
                                         <span>Payment Mode</span>
                                     </label>
                                 </>

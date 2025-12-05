@@ -726,6 +726,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/auditreport',
                                             title: 'Audit Report',
                                             description: 'Manage Audit Report Details'
+                                        },
+                                        {
+                                            id: 10015,
+                                            name: 'Fee Concession Report',
+                                            icon: 'Settings',
+                                            url: '/fees/feereports/feeconcessionreport',
+                                            title: 'Fee Concession Report',
+                                            description: 'Manage Fee Concession Report Details'
                                         }
                                     ]
                                 }
