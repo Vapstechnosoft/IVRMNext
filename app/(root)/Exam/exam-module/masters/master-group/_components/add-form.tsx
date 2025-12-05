@@ -70,24 +70,25 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterSubjectGroupSchema.addOrUpdate),
-        mode: 'onChange',
+        mode: "onChange",
+        reValidateMode: "onChange",
         defaultValues: initialData
             ? {
-                  emG_GroupName: initialData.emG_GroupName,
-                  emG_TotSubjects: initialData.emG_TotSubjects,
-                  emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
-                  emG_MinAplSubjects: initialData.emG_MinAplSubjects,
-                  emG_BestOff: initialData.emG_BestOff,
-                  subject_list: initialData.subjects?.map((s) => ({ ismS_Id: s.ismS_Id })) || []
-              }
+                emG_GroupName: initialData.emG_GroupName,
+                emG_TotSubjects: initialData.emG_TotSubjects,
+                emG_MaxAplSubjects: initialData.emG_MaxAplSubjects,
+                emG_MinAplSubjects: initialData.emG_MinAplSubjects,
+                emG_BestOff: initialData.emG_BestOff,
+                subject_list: initialData.subjects?.map((s) => ({ ismS_Id: s.ismS_Id })) || []
+            }
             : {
-                  emG_GroupName: '',
-                  emG_TotSubjects: 1,
-                  emG_MaxAplSubjects: 1,
-                  emG_MinAplSubjects: 1,
-                  emG_BestOff: 0,
-                  subject_list: []
-              }
+                emG_GroupName: '',
+                emG_TotSubjects: 1,
+                emG_MaxAplSubjects: 1,
+                emG_MinAplSubjects: 1,
+                emG_BestOff: 0,
+                subject_list: []
+            }
     });
 
     const maxApplicableSubjects = watch('emG_MaxAplSubjects');
@@ -104,6 +105,14 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
         pageIndex: 0,
         pageSize: 10
     });
+    const total = watch("emG_TotSubjects")
+    const max = watch("emG_MaxAplSubjects")
+    const min = watch("emG_MinAplSubjects")
+
+    // Enables subject selection instantly when correct
+    useEffect(() => {
+        setIsSubjectsEnabled(min <= max && max <= total && min > 0)
+    }, [total, max, min])
 
     // -------------------------
     // ROW SELECTION HANDLER

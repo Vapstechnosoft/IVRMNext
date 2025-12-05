@@ -88,6 +88,9 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             try {
                 const { data: cats } = await getCategoryDropDownByAcademicYearlist(orgId, asmaY_Id);
                 setCategories(Array.isArray(cats) ? cats : []);
+                if (Array.isArray(cats) && cats.length === 0) {
+                    toast.info('No categories found for selected academic year');
+                }
                 const { data: g } = await getMasterGrade({});
                 setGrades(Array.isArray(g) ? g : []);
                 setValue('emcA_Id', 0);
@@ -104,6 +107,9 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
             try {
                 const { data: exs } = await getExamGroupsByCategory(asmaY_Id, emcA_Id);
                 setExams(Array.isArray(exs) ? exs : []);
+                if (Array.isArray(exs) && exs.length === 0) {
+                    toast.info('No exams found for selected category');
+                }
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load exams');
             }
@@ -661,20 +667,23 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             {addedRows.map((r, idx) => (
                                                 <tr
                                                     key={idx}
-                                                    className='border-gray-300 border-t transition-colors duration-150 hover:bg-gray-50'>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>{idx + 1}</td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>{r.emE_ExamName}</td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>
+                                                    className='border-gray-300 border-t transition-colors hover:bg-accent/90 duration-200 
+               text-sm [&>*]:py-1 [&>*]:px-2'>
+
+
+                                                    <td className='border-gray-300 border-r px-3 '>{idx + 1}</td>
+                                                    <td className='border-gray-300 border-r px-3'>{r.emE_ExamName}</td>
+                                                    <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_MarksPerFlag === 'M' ? 'Marks' : 'Percentage'}
                                                     </td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>{r.ecteX_MarksPercentValue}</td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>
+                                                    <td className='border-gray-300 border-r px-3'>{r.ecteX_MarksPercentValue}</td>
+                                                    <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_RoundOffReqFlg ? 'Yes' : 'No'}
                                                     </td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>
+                                                    <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_ConversionReqFlg ? 'Yes' : 'No'}
                                                     </td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>
+                                                    <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_NotApplicableToTotal ? 'Yes' : 'No'}
                                                     </td>
                                                     <td className='px-3 py-2 text-center'>

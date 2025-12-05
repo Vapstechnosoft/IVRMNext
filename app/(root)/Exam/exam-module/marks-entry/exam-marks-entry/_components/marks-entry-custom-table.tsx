@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState, useRef, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 /* -------------------------
    Table Cells
@@ -108,7 +109,7 @@ export const MarksInputCell = forwardRef<
 
     return (
         <div className="flex flex-col items-start">
-            <input
+            <Input
                 ref={ref}
                 className={`border border-gray-300 rounded px-2 py-1 text-sm bg-white ${sizeClass}`}
                 placeholder={placeholder ?? 'Enter Marks...'}

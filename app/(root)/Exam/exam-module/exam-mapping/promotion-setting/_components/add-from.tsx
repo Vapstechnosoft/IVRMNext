@@ -9,8 +9,10 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/extension/field';
 import { Eye, X, Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { ViewExamsModal, ViewGroupsModal } from './subject-table';
 
-type GroupItem = {
+export type GroupItem = {
     id: number;
     groupName: string;
     displayName: string;
@@ -23,7 +25,7 @@ type GroupItem = {
     exams: { id: number; name: string; marks: number; conversionRequired: boolean }[];
 };
 
-type SubjectRow = {
+export type SubjectRow = {
     id: number;
     name: string;
     code?: string;
@@ -226,82 +228,109 @@ export default function AddPromotionalSettingForm() {
                     </div>
                 </div>
 
-                {/* table area */}
+                {/* subjects table */}
                 {!isTableVisible ? (
                     <div className="py-10 text-center text-gray-500">Select Category to display subjects</div>
                 ) : (
-                    <div className="overflow-x-auto border rounded">
-                        <table className="min-w-full text-left">
+                    <div className="overflow-x-auto rounded border">
+                        <table className="min-w-full border-collapse">
                             <thead className="bg-blue-600 text-white">
-                                <tr>
-                                    <th className="p-2 w-12">SLNO</th>
-                                    <th className="p-2 w-12 text-center"><input type="checkbox" aria-label="select all" /></th>
-                                    <th className="p-2">Subject Name (Code)</th>
-                                    <th className="p-2 w-40">MaxMarks</th>
-                                    <th className="p-2 w-40">MinMarks</th>
-                                    <th className="p-2 w-40">Convert Marks For</th>
-                                    <th className="p-2 w-28">Apply to Result</th>
-                                    <th className="p-2 w-32">Grade</th>
-                                    <th className="p-2 w-20">Action</th>
+                                <tr className="text-sm">
+                                    <th className="px-3 py-2 w-12 text-center">SLNO</th>
+                                    <th className="px-3 py-2 w-12 text-center">
+                                        <Checkbox aria-label="select-all" />
+                                    </th>
+                                    <th className="px-3 py-2">Subject Name (Code)</th>
+                                    <th className="px-3 py-2 w-40 text-center">Max Marks</th>
+                                    <th className="px-3 py-2 w-40 text-center">Min Marks</th>
+                                    <th className="px-3 py-2 w-40 text-center">Convert Marks For</th>
+                                    <th className="px-3 py-2 w-32 text-center">Apply to Result</th>
+                                    <th className="px-3 py-2 w-32 text-center">Grade</th>
+                                    <th className="px-3 py-2 w-20 text-center">Action</th>
                                 </tr>
                             </thead>
 
                             <tbody>
                                 {subjects.map((s, idx) => (
-                                    <tr key={s.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                        <td className="p-2 text-center align-middle">{idx + 1}</td>
-                                        <td className="p-2 text-center align-middle">
-                                            <input
-                                                type="checkbox"
+                                    <tr
+                                        key={s.id}
+                                        className={`text-sm ${idx % 2 ? "bg-gray-50" : "bg-white"}`}
+                                    >
+                                        {/* SL No */}
+                                        <td className="px-3 py-2 text-center">{idx + 1}</td>
+
+                                        {/* Checkbox */}
+                                        <td className="px-3 py-2 text-center">
+                                            <Checkbox
                                                 checked={!!selectedSubjects[s.id]}
-                                                onChange={() => toggleSubject(s.id)}
-                                                aria-label={`select-subject-${s.id}`}
+                                                onCheckedChange={() => toggleSubject(s.id)}
                                             />
                                         </td>
-                                        <td className="p-2 font-medium">
+
+                                        {/* Subject Name */}
+                                        <td className="px-3 py-2 font-medium">
                                             {s.name}
-                                            {s.code ? <span className="text-sm text-gray-500"> ({s.code})</span> : null}
+                                            {s.code && <span className="text-gray-500 text-xs"> ({s.code})</span>}
                                         </td>
-                                        <td className="p-2">
-                                            <input
-                                                className="w-full border px-2 py-1"
-                                                defaultValue={s.maxMarks ?? ''}
-                                                placeholder="Enter Marks..."
+
+                                        {/* Max Marks */}
+                                        <td className="px-3 py-1">
+                                            <Input
+                                                type="number"
+                                                defaultValue={s.maxMarks ?? ""}
+                                                placeholder="Enter..."
+                                                className="text-sm"
                                             />
                                         </td>
-                                        <td className="p-2">
-                                            <input
-                                                className="w-full border px-2 py-1"
-                                                defaultValue={s.minMarks ?? ''}
-                                                placeholder="Enter Marks..."
+
+                                        {/* Min Marks */}
+                                        <td className="px-3 py-1">
+                                            <Input
+                                                type="number"
+                                                defaultValue={s.minMarks ?? ""}
+                                                placeholder="Enter..."
+                                                className="text-sm"
                                             />
                                         </td>
-                                        <td className="p-2">
-                                            <input
-                                                className="w-full border px-2 py-1"
-                                                defaultValue={s.convertFor ?? ''}
-                                                placeholder="Enter Marks..."
+
+                                        {/* Convert Marks */}
+                                        <td className="px-3 py-1">
+                                            <Input
+                                                type="number"
+                                                defaultValue={s.convertFor ?? ""}
+                                                placeholder="Enter..."
+                                                className="text-sm"
                                             />
                                         </td>
-                                        <td className="p-2 text-center">
-                                            <input type="checkbox" defaultChecked={s.applyToResult} />
+
+                                        {/* Apply Result Checkbox */}
+                                        <td className="px-3 py-2 text-center">
+                                            <Checkbox defaultChecked={s.applyToResult} />
                                         </td>
-                                        <td className="p-2">
-                                            <select className="w-full border px-2 py-1">
-                                                <option>{s.grade ?? '--Select--'}</option>
-                                                <option>50 Grade</option>
-                                                <option>Pass/Fail</option>
-                                            </select>
+
+                                        {/* Grade - Using Select (same as reference component) */}
+                                        <td className="px-3 py-1">
+                                            <Select defaultValue={s.grade ?? ""}>
+                                                <SelectTrigger className="h-8 text-sm">
+                                                    <SelectValue placeholder="--Select--" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="50 Grade">50 Grade</SelectItem>
+                                                    <SelectItem value="Pass/Fail">Pass / Fail</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </td>
-                                        <td className="p-2 text-center">
-                                            <button
-                                                type="button"
+
+                                        {/* Action button */}
+                                        <td className="px-3 py-2 text-center">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
                                                 onClick={() => openGroupModal(s)}
                                                 title="Group Mapping"
-                                                className="rounded p-2 hover:bg-gray-100"
                                             >
                                                 <Eye className="h-4 w-4 text-blue-600" />
-                                            </button>
+                                            </Button>
                                         </td>
                                     </tr>
                                 ))}
@@ -309,6 +338,7 @@ export default function AddPromotionalSettingForm() {
                         </table>
                     </div>
                 )}
+
 
                 {/* Save / Cancel */}
                 <div className="mt-4 flex gap-3">
@@ -353,299 +383,296 @@ export default function AddPromotionalSettingForm() {
  * ViewGroupsModal - custom modal to show exam list on left and group add form on right.
  * Styled to mimic your screenshot and category-class mapping behavior.
  */
-export function ViewGroupsModal({
-    subject,
-    onClose,
-    onAddGroup,
-    groups,
-    onOpenExams
-}: {
-    subject: SubjectRow;
-    onClose: () => void;
-    onAddGroup: (g: GroupItem) => void;
-    groups: GroupItem[];
-    onOpenExams: (g: GroupItem) => void;
-}) {
-    // local form fields for group creation (hardcoded defaults)
-    const [marks, setMarks] = useState<number>(0);
-    const [percentage, setPercentage] = useState<number>(0);
-    const [groupName, setGroupName] = useState<string>('');
-    const [groupOrder, setGroupOrder] = useState<number>(1);
-    const [maxOff, setMaxOff] = useState<number>(0);
-    const [bestOff, setBestOff] = useState<number>(0);
-    const [displayName, setDisplayName] = useState<string>('');
-    const [roundOff, setRoundOff] = useState<boolean>(false);
+// export function ViewGroupsModal({
+//     subject,
+//     onClose,
+//     onAddGroup,
+//     groups,
+//     onOpenExams
+// }: {
+//     subject: SubjectRow;
+//     onClose: () => void;
+//     onAddGroup: (g: GroupItem) => void;
+//     groups: GroupItem[];
+//     onOpenExams: (g: GroupItem) => void;
+// }) {
+//     // local form fields for group creation (hardcoded defaults)
+//     const [marks, setMarks] = useState<number>(0);
+//     const [percentage, setPercentage] = useState<number>(0);
+//     const [groupName, setGroupName] = useState<string>('');
+//     const [groupOrder, setGroupOrder] = useState<number>(1);
+//     const [maxOff, setMaxOff] = useState<number>(0);
+//     const [bestOff, setBestOff] = useState<number>(0);
+//     const [displayName, setDisplayName] = useState<string>('');
+//     const [roundOff, setRoundOff] = useState<boolean>(false);
 
-    // sample exams on the left (hardcoded)
-    const leftExams = [
-        { id: 101, name: 'Formative Assessment -04' },
-        { id: 102, name: 'Summative Assessment-02' },
-        { id: 103, name: 'Unit Test 1' }
-    ];
+//     // sample exams on the left (hardcoded)
+//     const leftExams = [
+//         { id: 101, name: 'Formative Assessment -04' },
+//         { id: 102, name: 'Summative Assessment-02' },
+//         { id: 103, name: 'Unit Test 1' }
+//     ];
 
-    const [selectedExamIds, setSelectedExamIds] = useState<Record<number, boolean>>({});
+//     const [selectedExamIds, setSelectedExamIds] = useState<Record<number, boolean>>({});
 
-    const toggleSelectExam = (id: number) => setSelectedExamIds((p) => ({ ...p, [id]: !p[id] }));
+//     const toggleSelectExam = (id: number) => setSelectedExamIds((p) => ({ ...p, [id]: !p[id] }));
 
-    const handleAdd = () => {
-        if (!groupName || !displayName) {
-            toast.error('Group Name and Display Name are required');
-            return;
-        }
+//     const handleAdd = () => {
+//         if (!groupName || !displayName) {
+//             toast.error('Group Name and Display Name are required');
+//             return;
+//         }
 
-        // Build a new group from the form values + exams selection
-        const newGroup: GroupItem = {
-            id: Math.floor(Math.random() * 100000),
-            groupName,
-            displayName,
-            percentage,
-            marks,
-            maxOff,
-            bestOff,
-            order: groupOrder,
-            roundOffFlag: roundOff,
-            exams: leftExams
-                .filter((e) => selectedExamIds[e.id])
-                .map((e) => ({
-                    id: e.id,
-                    name: e.name,
-                    marks: Math.floor(Math.random() * 100),
-                    conversionRequired: false
-                }))
-        };
+//         // Build a new group from the form values + exams selection
+//         const newGroup: GroupItem = {
+//             id: Math.floor(Math.random() * 100000),
+//             groupName,
+//             displayName,
+//             percentage,
+//             marks,
+//             maxOff,
+//             bestOff,
+//             order: groupOrder,
+//             roundOffFlag: roundOff,
+//             exams: leftExams
+//                 .filter((e) => selectedExamIds[e.id])
+//                 .map((e) => ({
+//                     id: e.id,
+//                     name: e.name,
+//                     marks: Math.floor(Math.random() * 100),
+//                     conversionRequired: false
+//                 }))
+//         };
 
-        onAddGroup(newGroup);
+//         onAddGroup(newGroup);
 
-        // clear form
-        setGroupName('');
-        setDisplayName('');
-        setSelectedExamIds({});
-        setPercentage(0);
-        setMarks(0);
-        setBestOff(0);
-        setMaxOff(0);
-        setGroupOrder((o) => o + 1);
-    };
+//         // clear form
+//         setGroupName('');
+//         setDisplayName('');
+//         setSelectedExamIds({});
+//         setPercentage(0);
+//         setMarks(0);
+//         setBestOff(0);
+//         setMaxOff(0);
+//         setGroupOrder((o) => o + 1);
+//     };
 
-    const handleRemoveGroup = (id: number) => {
-        // We mutate the groups via onAddGroup in parent; for demo we show a toast instructing the workflow
-        toast.info('Remove (demo) - implement server removal when ready');
-    };
+//     const handleRemoveGroup = (id: number) => {
+//         // We mutate the groups via onAddGroup in parent; for demo we show a toast instructing the workflow
+//         toast.info('Remove (demo) - implement server removal when ready');
+//     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
-            <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-            <div className="relative z-10 w-[95%] md:w-[90%] max-w-6xl bg-white rounded shadow-lg">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b p-3 bg-blue-800 text-white rounded-t">
-                    <h3 className="text-lg font-semibold">{subject.name.toUpperCase()} GROUPS MAPPING</h3>
-                    <button onClick={onClose} className="w-fit p-1 rounded hover:bg-white/10">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
+//     return (
+//         <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
+//             <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+//             <div className="relative z-10 w-[95%] md:w-[90%] max-w-6xl bg-white rounded shadow-lg">
+//                 {/* Header */}
+//                 <div className="flex items-center justify-between border-b p-3 bg-blue-800 text-white rounded-t">
+//                     <h3 className="text-lg font-semibold">{subject.name.toUpperCase()} GROUPS MAPPING</h3>
+//                     <button onClick={onClose} className="w-fit p-1 rounded hover:bg-white/10">
+//                         <X className="h-5 w-5" />
+//                     </button>
+//                 </div>
 
-                {/* Content */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                    {/* Left: Exams + converted marks table */}
-                    <div>
-                        <table className="min-w-full border">
-                            <thead className="bg-blue-600 text-white">
-                                <tr>
-                                    <th className="p-2 w-12">SL.No</th>
-                                    <th className="p-2">Exam Name</th>
-                                    <th className="p-2 w-40">Converted Marks</th>
-                                    <th className="p-2 w-36">Conversion Required</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {leftExams.map((e, i) => (
-                                    <tr key={e.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                        <td className="p-2 text-center">
-                                            <input type="checkbox" checked={!!selectedExamIds[e.id]} onChange={() => toggleSelectExam(e.id)} />
-                                        </td>
-                                        <td className="p-2">{e.name}</td>
-                                        <td className="p-2">
-                                            <input className="w-full border px-2 py-1" placeholder="Enter converted marks" />
-                                        </td>
-                                        <td className="p-2">
-                                            <input type="checkbox" />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+//                 {/* Content */}
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+//                     {/* Left: Exams + converted marks table */}
+//                     <div>
+//                         <table className="min-w-full border">
+//                             <thead className="bg-blue-600 text-white">
+//                                 <tr>
+//                                     <th className="p-2 w-12">SL.No</th>
+//                                     <th className="p-2">Exam Name</th>
+//                                     <th className="p-2 w-40">Converted Marks</th>
+//                                     <th className="p-2 w-36">Conversion Required</th>
+//                                 </tr>
+//                             </thead>
+//                             <tbody>
+//                                 {leftExams.map((e, i) => (
+//                                     <tr key={e.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+//                                         <td className="p-2 text-center">
+//                                             <input type="checkbox" checked={!!selectedExamIds[e.id]} onChange={() => toggleSelectExam(e.id)} />
+//                                         </td>
+//                                         <td className="p-2">{e.name}</td>
+//                                         <td className="p-2">
+//                                             <input className="w-full border px-2 py-1" placeholder="Enter converted marks" />
+//                                         </td>
+//                                         <td className="p-2">
+//                                             <input type="checkbox" />
+//                                         </td>
+//                                     </tr>
+//                                 ))}
+//                             </tbody>
+//                         </table>
+//                     </div>
 
-                    {/* Right: Group form */}
-                    <div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <Label>Marks</Label>
-                                <input type="number" className="w-full border px-2 py-1" value={marks} onChange={(e) => setMarks(Number(e.target.value))} />
-                            </div>
-                            <div>
-                                <Label>Max Off</Label>
-                                <input type="number" className="w-full border px-2 py-1" value={maxOff} onChange={(e) => setMaxOff(Number(e.target.value))} />
-                            </div>
+//                     {/* Right: Group form */}
+//                     <div>
+//                         <div className="grid grid-cols-2 gap-2">
+//                             <div>
+//                                 <Label>Marks</Label>
+//                                 <input type="number" className="w-full border px-2 py-1" value={marks} onChange={(e) => setMarks(Number(e.target.value))} />
+//                             </div>
+//                             <div>
+//                                 <Label>Max Off</Label>
+//                                 <input type="number" className="w-full border px-2 py-1" value={maxOff} onChange={(e) => setMaxOff(Number(e.target.value))} />
+//                             </div>
 
-                            <div>
-                                <Label>Percentage *</Label>
-                                <input type="number" className="w-full border px-2 py-1" value={percentage} onChange={(e) => setPercentage(Number(e.target.value))} />
-                            </div>
-                            <div>
-                                <Label>Best Off *</Label>
-                                <input type="number" className="w-full border px-2 py-1" value={bestOff} onChange={(e) => setBestOff(Number(e.target.value))} />
-                            </div>
+//                             <div>
+//                                 <Label>Percentage *</Label>
+//                                 <input type="number" className="w-full border px-2 py-1" value={percentage} onChange={(e) => setPercentage(Number(e.target.value))} />
+//                             </div>
+//                             <div>
+//                                 <Label>Best Off *</Label>
+//                                 <input type="number" className="w-full border px-2 py-1" value={bestOff} onChange={(e) => setBestOff(Number(e.target.value))} />
+//                             </div>
 
-                            <div>
-                                <Label>Group Name *</Label>
-                                <input className="w-full border px-2 py-1" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
-                            </div>
-                            <div>
-                                <Label>Display Name *</Label>
-                                <input className="w-full border px-2 py-1" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-                            </div>
+//                             <div>
+//                                 <Label>Group Name *</Label>
+//                                 <input className="w-full border px-2 py-1" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
+//                             </div>
+//                             <div>
+//                                 <Label>Display Name *</Label>
+//                                 <input className="w-full border px-2 py-1" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+//                             </div>
 
-                            <div>
-                                <Label>Group Order *</Label>
-                                <input type="number" className="w-full border px-2 py-1" value={groupOrder} onChange={(e) => setGroupOrder(Number(e.target.value))} />
-                            </div>
+//                             <div>
+//                                 <Label>Group Order *</Label>
+//                                 <input type="number" className="w-full border px-2 py-1" value={groupOrder} onChange={(e) => setGroupOrder(Number(e.target.value))} />
+//                             </div>
 
-                            <div className="flex items-center gap-2 mt-6">
-                                <input type="checkbox" checked={roundOff} onChange={() => setRoundOff(!roundOff)} />
-                                <label>Round Off Required</label>
-                            </div>
-                        </div>
+//                             <div className="flex items-center gap-2 mt-6">
+//                                 <input type="checkbox" checked={roundOff} onChange={() => setRoundOff(!roundOff)} />
+//                                 <label>Round Off Required</label>
+//                             </div>
+//                         </div>
 
-                        <div className="mt-4 flex gap-3">
-                            <Button type="button" onClick={handleAdd}>
-                                <Plus className="h-4 w-4 mr-2" /> ADD
-                            </Button>
-                            <Button type="button" variant="outline" onClick={() => {
-                                setGroupName('');
-                                setDisplayName('');
-                                setSelectedExamIds({});
-                                setPercentage(0);
-                            }}>
-                                CLEAR
-                            </Button>
-                        </div>
-                    </div>
-                </div>
+//                         <div className="mt-4 flex gap-3">
+//                             <Button type="button" onClick={handleAdd}>
+//                                 <Plus className="h-4 w-4 mr-2" /> ADD
+//                             </Button>
+//                             <Button type="button" variant="outline" onClick={() => {
+//                                 setGroupName('');
+//                                 setDisplayName('');
+//                                 setSelectedExamIds({});
+//                                 setPercentage(0);
+//                             }}>
+//                                 CLEAR
+//                             </Button>
+//                         </div>
+//                     </div>
+//                 </div>
 
-                {/* Group list */}
-                <div className="p-4 border-t">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full border">
-                            <thead className="bg-blue-600 text-white">
-                                <tr>
-                                    <th className="p-2 w-12">SLNO</th>
-                                    <th className="p-2">Group Name</th>
-                                    <th className="p-2">Display Name</th>
-                                    <th className="p-2 w-24">Percentage</th>
-                                    <th className="p-2 w-20">Marks</th>
-                                    <th className="p-2 w-20">Max. Off</th>
-                                    <th className="p-2 w-20">Best. Off</th>
-                                    <th className="p-2 w-16">Order</th>
-                                    <th className="p-2 w-28">View Exams</th>
-                                    <th className="p-2 w-20">Round Off Flag</th>
-                                    <th className="p-2 w-24">Remove</th>
-                                </tr>
-                            </thead>
+//                 {/* Group list */}
+//                 <div className="p-4 border-t">
+//                     <div className="overflow-x-auto">
+//                         <table className="min-w-full border">
+//                             <thead className="bg-blue-600 text-white">
+//                                 <tr>
+//                                     <th className="p-2 w-12">SLNO</th>
+//                                     <th className="p-2">Group Name</th>
+//                                     <th className="p-2">Display Name</th>
+//                                     <th className="p-2 w-24">Percentage</th>
+//                                     <th className="p-2 w-20">Marks</th>
+//                                     <th className="p-2 w-20">Max. Off</th>
+//                                     <th className="p-2 w-20">Best. Off</th>
+//                                     <th className="p-2 w-16">Order</th>
+//                                     <th className="p-2 w-28">View Exams</th>
+//                                     <th className="p-2 w-20">Round Off Flag</th>
+//                                     <th className="p-2 w-24">Remove</th>
+//                                 </tr>
+//                             </thead>
 
-                            <tbody>
-                                {groups.length === 0 ? (
-                                    <tr>
-                                        <td className="p-4 text-center" colSpan={11}>No groups added</td>
-                                    </tr>
-                                ) : (
-                                    groups.map((g, i) => (
-                                        <tr key={g.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                            <td className="p-2 text-center">{i + 1}</td>
-                                            <td className="p-2">{g.groupName}</td>
-                                            <td className="p-2">{g.displayName}</td>
-                                            <td className="p-2 text-center">{g.percentage}</td>
-                                            <td className="p-2 text-center">{g.marks}</td>
-                                            <td className="p-2 text-center">{g.maxOff}</td>
-                                            <td className="p-2 text-center">{g.bestOff}</td>
-                                            <td className="p-2 text-center">{g.order}</td>
-                                            <td className="p-2 text-center">
-                                                <button className="p-1 rounded hover:bg-gray-100" onClick={() => onOpenExams(g)} title="View Exams">
-                                                    <Eye className="h-4 w-4 text-blue-600" />
-                                                </button>
-                                            </td>
-                                            <td className="p-2 text-center">{g.roundOffFlag ? '✔' : ''}</td>
-                                            <td className="p-2 text-center">
-                                                <button className="p-1 rounded hover:bg-red-50" onClick={() => handleRemoveGroup(g.id)} title="Remove">
-                                                    <X className="h-4 w-4 text-red-600" />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+//                             <tbody>
+//                                 {groups.length === 0 ? (
+//                                     <tr>
+//                                         <td className="p-4 text-center" colSpan={11}>No groups added</td>
+//                                     </tr>
+//                                 ) : (
+//                                     groups.map((g, i) => (
+//                                         <tr key={g.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+//                                             <td className="p-2 text-center">{i + 1}</td>
+//                                             <td className="p-2">{g.groupName}</td>
+//                                             <td className="p-2">{g.displayName}</td>
+//                                             <td className="p-2 text-center">{g.percentage}</td>
+//                                             <td className="p-2 text-center">{g.marks}</td>
+//                                             <td className="p-2 text-center">{g.maxOff}</td>
+//                                             <td className="p-2 text-center">{g.bestOff}</td>
+//                                             <td className="p-2 text-center">{g.order}</td>
+//                                             <td className="p-2 text-center">
+//                                                 <button className="p-1 rounded hover:bg-gray-100" onClick={() => onOpenExams(g)} title="View Exams">
+//                                                     <Eye className="h-4 w-4 text-blue-600" />
+//                                                 </button>
+//                                             </td>
+//                                             <td className="p-2 text-center">{g.roundOffFlag ? '✔' : ''}</td>
+//                                             <td className="p-2 text-center">
+//                                                 <button className="p-1 rounded hover:bg-red-50" onClick={() => handleRemoveGroup(g.id)} title="Remove">
+//                                                     <X className="h-4 w-4 text-red-600" />
+//                                                 </button>
+//                                             </td>
+//                                         </tr>
+//                                     ))
+//                                 )}
+//                             </tbody>
+//                         </table>
+//                     </div>
 
-                    <div className="flex justify-center mt-4">
-                        <Button type="button" onClick={onClose}>
-                            ADD & CLOSE
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+//                     <div className="flex justify-center mt-4">
+//                         <Button type="button" onClick={onClose}>
+//                             ADD & CLOSE
+//                         </Button>
+//                     </div>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// }
 
-/**
- * ViewExamsModal - shows exams mapped under a specific group (simple table)
- */
-export function ViewExamsModal({ group, onClose }: { group: GroupItem; onClose: () => void }) {
-    return (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-6">
-            <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-            <div className="relative z-10 w-[86%] max-w-2xl bg-white rounded shadow-lg">
-                <div className="flex items-center justify-between border-b p-3 bg-blue-800 text-white rounded-t">
-                    <h3 className="text-lg font-semibold">{group.displayName} GROUP MAPPED EXAMS</h3>
-                    <button onClick={onClose} className="p-1 rounded hover:bg-white/10">
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
+// export function ViewExamsModal({ group, onClose }: { group: GroupItem; onClose: () => void }) {
+//     return (
+//         <div className="fixed inset-0 z-60 flex items-center justify-center p-6">
+//             <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+//             <div className="relative z-10 w-[86%] max-w-2xl bg-white rounded shadow-lg">
+//                 <div className="flex items-center justify-between border-b p-3 bg-blue-800 text-white rounded-t">
+//                     <h3 className="text-lg font-semibold">{group.displayName} GROUP MAPPED EXAMS</h3>
+//                     <button onClick={onClose} className="p-1 rounded hover:bg-white/10">
+//                         <X className="h-5 w-5" />
+//                     </button>
+//                 </div>
 
-                <div className="p-4">
-                    <table className="min-w-full border">
-                        <thead className="bg-blue-600 text-white">
-                            <tr>
-                                <th className="p-2 w-12">SL.No</th>
-                                <th className="p-2">Exam Name</th>
-                                <th className="p-2 w-24">Marks</th>
-                                <th className="p-2 w-36">Conversion Req Or Not</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {group.exams.length === 0 ? (
-                                <tr>
-                                    <td className="p-4 text-center" colSpan={4}>No exams mapped</td>
-                                </tr>
-                            ) : (
-                                group.exams.map((e, i) => (
-                                    <tr key={e.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                        <td className="p-2 text-center">{i + 1}</td>
-                                        <td className="p-2">{e.name}</td>
-                                        <td className="p-2 text-center">{e.marks}</td>
-                                        <td className="p-2 text-center">{e.conversionRequired ? '✔' : '✖'}</td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+//                 <div className="p-4">
+//                     <table className="min-w-full border">
+//                         <thead className="bg-blue-600 text-white">
+//                             <tr>
+//                                 <th className="p-2 w-12">SL.No</th>
+//                                 <th className="p-2">Exam Name</th>
+//                                 <th className="p-2 w-24">Marks</th>
+//                                 <th className="p-2 w-36">Conversion Req Or Not</th>
+//                             </tr>
+//                         </thead>
+//                         <tbody>
+//                             {group.exams.length === 0 ? (
+//                                 <tr>
+//                                     <td className="p-4 text-center" colSpan={4}>No exams mapped</td>
+//                                 </tr>
+//                             ) : (
+//                                 group.exams.map((e, i) => (
+//                                     <tr key={e.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+//                                         <td className="p-2 text-center">{i + 1}</td>
+//                                         <td className="p-2">{e.name}</td>
+//                                         <td className="p-2 text-center">{e.marks}</td>
+//                                         <td className="p-2 text-center">{e.conversionRequired ? '✔' : '✖'}</td>
+//                                     </tr>
+//                                 ))
+//                             )}
+//                         </tbody>
+//                     </table>
 
-                    <div className="mt-4 flex justify-end">
-                        <Button onClick={onClose}>Close</Button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+//                     <div className="mt-4 flex justify-end">
+//                         <Button onClick={onClose}>Close</Button>
+//                     </div>
+//                 </div>
+//             </div>
+//         </div>
+//     );
+// }
