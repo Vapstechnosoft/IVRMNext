@@ -135,7 +135,6 @@ export const departmentSalaryReportSchema = z.object({
 
 export type DepartmentSalaryReportFormFields = z.infer<typeof departmentSalaryReportSchema>;
 
-
 // Schema for Employee Strength report (same fields as department salary report)
 export const EmployeeStrengthReportSchema = z.object({
     // Selection fields present on the UI - month/year are not used on this page
@@ -322,3 +321,23 @@ export const ReportSchema = z
 
 export type ReportFormFields = z.infer<typeof ReportSchema>;
 
+export const PFform6aSchema = z.object({
+    fromDate: z.string().optional(),
+    toDate: z.string().optional()
+});
+
+export type PFform6aFields = z.infer<typeof PFform6aSchema>;
+
+export const PFForm3aSchema = z.object({
+    year: z.string().min(1, 'Year is required'),
+    employee: z.string().min(1, 'Employee is required')
+});
+
+export type PFForm3aFields = z.infer<typeof PFForm3aSchema>;
+
+export const PFChallenSchema = z.object({
+    month: z.string().min(1, 'Month is required'),
+    year: z.string().min(1, 'Year is required')
+});
+
+export type PFChallenFields = z.infer<typeof PFChallenSchema>;
