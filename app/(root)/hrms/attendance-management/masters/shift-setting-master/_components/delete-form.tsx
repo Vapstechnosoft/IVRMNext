@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
@@ -8,16 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { ShiftSetting } from './columns';
-
 interface DeleteShiftSettingMasterFormProps {
     rowData: ShiftSetting;
     onClose: () => void;
 }
-
 export default function DeleteShiftSettingMasterForm({ rowData, onClose }: DeleteShiftSettingMasterFormProps) {
     const { refetchAll } = useShiftSettingMaster();
     const { mutate: deleteShiftSetting, isPending } = useDeleteShiftSettingMaster();
-
     const {
         register,
         handleSubmit,
@@ -27,12 +23,10 @@ export default function DeleteShiftSettingMasterForm({ rowData, onClose }: Delet
         resolver: zodResolver(z.object({ id: z.number() })),
         mode: 'onChange'
     });
-
     function closeDialog() {
         onClose();
         reset();
     }
-
     const onSubmit: SubmitHandler<{ id: number }> = async () => {
         deleteShiftSetting(rowData.id, {
             onSuccess: () => {
@@ -41,7 +35,6 @@ export default function DeleteShiftSettingMasterForm({ rowData, onClose }: Delet
             }
         });
     };
-
     return (
         <AdaptiveDialog title='Delete Shift Setting' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>

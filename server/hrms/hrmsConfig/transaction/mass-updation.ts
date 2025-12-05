@@ -1,12 +1,9 @@
 'use server';
-
 import { api } from '@/lib/apiService';
 import type { MassUpdationOnloadRequest, MassUpdationOnloadResponse, MassUpdationSaveRequest, MassUpdationSearchRequest } from '@/types/hrms/mass-updation';
-
 // Helper function to create a complete nested object structure matching API requirements
 function createCompleteRequestBody(baseFields: any): any {
     const now = new Date().toISOString();
-
     return {
         MI_Id: baseFields.MI_Id || 30,
         retrunMsg: baseFields.retrunMsg || 'string',
@@ -45,14 +42,12 @@ function createCompleteRequestBody(baseFields: any): any {
         groupTypeIdList: baseFields.groupTypeIdList || [0]
     };
 }
-
 /**
  * Get onload details for mass updation
  * POST /api/massUpdationFacade/onloadgetdetails
  */
 export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest) {
     const url = '/api/massUpdationFacade/onloadgetdetails';
-    
     // Prepare request body matching the exact API structure
     const requestBody = {
         MI_Id: payload.MI_Id || 30,
@@ -91,16 +86,13 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest) 
         hrmdeS_IdList: [0],
         groupTypeIdList: [0]
     };
-    
     const response = await api.post<MassUpdationOnloadResponse>('hrms', url, requestBody);
-    
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response;
     }
-    
     // Wrap raw response data
     return {
         success: true,
@@ -108,14 +100,12 @@ export async function getMassUpdationOnload(payload: MassUpdationOnloadRequest) 
         data: response as unknown as MassUpdationOnloadResponse
     };
 }
-
 /**
  * Save/Update mass updation (Facade)
  * POST /api/massUpdationFacade
  */
 export async function saveMassUpdation(data: MassUpdationSaveRequest) {
     const url = '/api/massUpdationFacade';
-    
     // Prepare request body with proper structure - use actual values from data or defaults
     const requestBody = {
         MI_Id: data.MI_Id || 30,
@@ -154,23 +144,13 @@ export async function saveMassUpdation(data: MassUpdationSaveRequest) {
         hrmdeS_IdList: data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [0],
         groupTypeIdList: data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [0]
     };
-    
     try {
-        const response = await api.post<MassUpdationOnloadResponse>('hrms', url, requestBody);
-        
-        console.log('✅ [MASS UPDATION - BACKEND] API Response received');
-        console.log('📤 [MASS UPDATION - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-        
+        const response = await api.post<MassUpdationOnloadResponse>('hrms', url, requestBody        );
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as MassUpdationOnloadResponse;
-            console.log('✅ [MASS UPDATION - BACKEND] Response already wrapped, returning as-is');
             console.log('📊 [MASS UPDATION - BACKEND] Response data summary:', {
                 hasEmployeeDropdown: !!responseData?.employeedropdown,
                 employeeCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
@@ -180,29 +160,19 @@ export async function saveMassUpdation(data: MassUpdationSaveRequest) {
                 designationCount: Array.isArray(responseData?.designationdropdown) ? responseData.designationdropdown.length : 0,
                 retrunMsg: responseData?.retrunMsg
             });
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Mass updation completed successfully',
                 data: responseData
             };
         }
-        
         // Wrap raw response data
-        console.log('⚠️ [MASS UPDATION - BACKEND] Response not wrapped, wrapping it');
         return {
             success: true,
             message: 'Mass updation completed successfully',
             data: response as unknown as MassUpdationOnloadResponse
         };
     } catch (error: any) {
-        console.error('❌ [MASS UPDATION - BACKEND] Error in getEmployeeDetailsBySelection:', error);
-        console.error('❌ [MASS UPDATION - BACKEND] Error details:', {
-            message: error?.message,
-            stack: error?.stack,
-            response: error?.response
-        });
-        
         return {
             success: false,
             message: error?.message || 'Failed to get employee details by selection',
@@ -210,20 +180,13 @@ export async function saveMassUpdation(data: MassUpdationSaveRequest) {
         };
     }
 }
-
 /**
  * Search employees by selection criteria
  * POST /api/massUpdationFacade/FilterEmployeeData
  */
 export async function searchMassUpdationEmployees(data: MassUpdationSearchRequest) {
-    console.log('🔵 [MASS UPDATION - BACKEND] searchMassUpdationEmployees - START');
     console.log('📥 [MASS UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
-    
     const url = '/api/massUpdationFacade/FilterEmployeeData';
-    console.log('🌐 [MASS UPDATION - BACKEND] API URL:', url);
-    console.log('🌐 [MASS UPDATION - BACKEND] API Base: hrms');
-    console.log('🌐 [MASS UPDATION - BACKEND] Method: POST');
-    
     // Prepare request body matching the API specification exactly
     const requestBody = {
         MI_Id: data.MI_Id || 30,
@@ -262,26 +225,14 @@ export async function searchMassUpdationEmployees(data: MassUpdationSearchReques
         hrmdeS_IdList: data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [0],
         groupTypeIdList: data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [0]
     };
-    
     console.log('📤 [MASS UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    console.log('📊 [MASS UPDATION - BACKEND] Request body summary:', {
-        MI_Id: requestBody.MI_Id,
-        roleId: requestBody.roleId,
-        groupTypeCount: requestBody.groupTypeselected.length,
-        departmentCount: requestBody.departmentselected.length,
-        designationCount: requestBody.designationselected.length,
-        LogInUserId: requestBody.LogInUserId
-    });
-    
     const response = await api.post<MassUpdationOnloadResponse>('hrms', url, requestBody);
-    
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response;
     }
-    
     // Wrap raw response data
     return {
         success: true,
@@ -289,20 +240,13 @@ export async function searchMassUpdationEmployees(data: MassUpdationSearchReques
         data: response as unknown as MassUpdationOnloadResponse
     };
 }
-
 /**
  * Get employee details by selection criteria (for save operation)
  * POST /api/massUpdationFacade/getEmployeedetailsBySelection
  */
 export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequest) {
-    console.log('🔵 [MASS UPDATION - BACKEND] getEmployeeDetailsBySelection - START');
     console.log('📥 [MASS UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
-    
     const url = '/api/massUpdationFacade/getEmployeedetailsBySelection';
-    console.log('🌐 [MASS UPDATION - BACKEND] API URL:', url);
-    console.log('🌐 [MASS UPDATION - BACKEND] API Base: hrms');
-    console.log('🌐 [MASS UPDATION - BACKEND] Method: POST');
-    
     // Prepare request body matching the API specification exactly
     // This function is used for save operations, so it receives the full payload from the UI
     const requestBody = {
@@ -342,38 +286,14 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequ
         hrmdeS_IdList: data.hrmdeS_IdList && data.hrmdeS_IdList.length > 0 ? data.hrmdeS_IdList : [0],
         groupTypeIdList: data.groupTypeIdList && data.groupTypeIdList.length > 0 ? data.groupTypeIdList : [0]
     };
-    
     console.log('📤 [MASS UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    console.log('📊 [MASS UPDATION - BACKEND] Request body summary:', {
-        MI_Id: requestBody.MI_Id,
-        roleId: requestBody.roleId,
-        groupTypeCount: requestBody.groupTypeselected.length,
-        departmentCount: requestBody.departmentselected.length,
-        designationCount: requestBody.designationselected.length,
-        employeeSelectedCount: requestBody.employeeselected.length,
-        EarningDeduction: requestBody.EarningDeduction,
-        AmountPercentage: requestBody.AmountPercentage,
-        HRMED_Id: requestBody.HRMED_Id,
-        AddRemove: requestBody.AddRemove,
-        LogInUserId: requestBody.LogInUserId
-    });
-    
     try {
-        const response = await api.post<MassUpdationOnloadResponse>('hrms', url, requestBody);
-        
-        console.log('✅ [MASS UPDATION - BACKEND] API Response received');
-        console.log('📤 [MASS UPDATION - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            responseKeys: Object.keys(response || {})
-        });
-        
+        const response = await api.post<MassUpdationOnloadResponse>('hrms', url, requestBody        );
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as unknown as MassUpdationOnloadResponse;
-            console.log('✅ [MASS UPDATION - BACKEND] Response already wrapped, returning as-is');
             console.log('📊 [MASS UPDATION - BACKEND] Response data summary:', {
                 hasEmployeeDropdown: !!responseData?.employeedropdown,
                 employeeCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
@@ -383,29 +303,19 @@ export async function getEmployeeDetailsBySelection(data: MassUpdationSearchRequ
                 designationCount: Array.isArray(responseData?.designationdropdown) ? responseData.designationdropdown.length : 0,
                 retrunMsg: responseData?.retrunMsg
             });
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Employee details loaded successfully',
                 data: responseData
             };
         }
-        
         // Wrap raw response data
-        console.log('⚠️ [MASS UPDATION - BACKEND] Response not wrapped, wrapping it');
         return {
             success: true,
             message: 'Employee details loaded successfully',
             data: response as unknown as MassUpdationOnloadResponse
         };
     } catch (error: any) {
-        console.error('❌ [MASS UPDATION - BACKEND] Error in getEmployeeDetailsBySelection:', error);
-        console.error('❌ [MASS UPDATION - BACKEND] Error details:', {
-            message: error?.message,
-            stack: error?.stack,
-            response: error?.response
-        });
-        
         return {
             success: false,
             message: error?.message || 'Failed to get employee details by selection',

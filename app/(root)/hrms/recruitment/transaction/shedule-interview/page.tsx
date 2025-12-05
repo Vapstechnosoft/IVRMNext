@@ -4,9 +4,7 @@
 // 2. Import form from _components/schedule-interview-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,7 +26,6 @@ import { Calendar as CalendarIcon, Edit, Plus, RefreshCw, Save, Trash2, X } from
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface Interview extends BaseEntity {
     candidateName: string;
     candidateId: number;
@@ -45,7 +42,6 @@ interface Interview extends BaseEntity {
     createdDate: string;
     updatedDate?: string;
 }
-
 interface Candidate extends BaseEntity {
     firstName: string;
     middleName?: string;
@@ -55,14 +51,12 @@ interface Candidate extends BaseEntity {
     jobTitle: string;
     status: string;
 }
-
 interface Interviewer extends BaseEntity {
     name: string;
     email: string;
     department: string;
     designation: string;
 }
-
 type InterviewForm = {
     candidateId: string;
     interviewDate: Date | undefined;
@@ -75,7 +69,6 @@ type InterviewForm = {
     notifyBySMS: boolean;
     remarks?: string;
 };
-
 export default function ScheduleInterviewPage() {
     const [interviews, setInterviews] = useState<Interview[]>([]);
     const [candidates, setCandidates] = useState<Candidate[]>([]);
@@ -84,11 +77,9 @@ export default function ScheduleInterviewPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingInterview, setEditingInterview] = useState<Interview | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-
     const interviewDB = createLocalCrud<Interview>('recruitment:interview');
     const candidateDB = createLocalCrud<Candidate>('recruitment:candidate');
     const interviewerDB = createLocalCrud<Interviewer>('recruitment:interviewer');
-
     const {
         register,
         handleSubmit,
@@ -106,17 +97,14 @@ export default function ScheduleInterviewPage() {
             notifyBySMS: false
         }
     });
-
     // Load data on component mount
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = async () => {
         try {
             setInterviews(interviewDB.list());
             setCandidates(candidateDB.list());
-
             // Create sample interviewers if none exist
             const existingInterviewers = interviewerDB.list();
             if (existingInterviewers.length === 0) {
@@ -126,7 +114,6 @@ export default function ScheduleInterviewPage() {
                     { name: 'Mike Wilson', email: 'mike.w@company.com', department: 'Engineering', designation: 'Senior Developer' },
                     { name: 'Lisa Brown', email: 'lisa.b@company.com', department: 'Operations', designation: 'Operations Manager' }
                 ];
-
                 sampleInterviewers.forEach((interviewer) => {
                     interviewerDB.create(interviewer);
                 });
@@ -138,14 +125,12 @@ export default function ScheduleInterviewPage() {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setTimeout(() => {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingInterview(null);
@@ -157,22 +142,18 @@ export default function ScheduleInterviewPage() {
             notifyBySMS: false
         });
     };
-
     const onSubmit: SubmitHandler<InterviewForm> = async (data: InterviewForm) => {
         try {
             if (!data.interviewDate) {
                 toast.error('Please select an interview date');
                 return;
             }
-
             const candidate = candidates.find((c) => c.id.toString() === data.candidateId);
             const interviewer = interviewers.find((i) => i.id.toString() === data.interviewerId);
-
             if (!candidate || !interviewer) {
                 toast.error('Please select valid candidate and interviewer');
                 return;
             }
-
             const interviewData: Omit<Interview, 'id' | 'createdAt'> = {
                 candidateName: `${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim(),
                 candidateId: candidate.id,
@@ -189,7 +170,6 @@ export default function ScheduleInterviewPage() {
                 createdDate: new Date().toISOString(),
                 updatedDate: editingInterview ? new Date().toISOString() : undefined
             };
-
             if (editingInterview) {
                 interviewDB.update(editingInterview.id, interviewData);
                 toast.success('Interview updated successfully');
@@ -197,19 +177,16 @@ export default function ScheduleInterviewPage() {
                 interviewDB.create(interviewData);
                 toast.success('Interview scheduled successfully');
             }
-
             handleFormClose();
             loadData();
         } catch (error: any) {
             toast.error(error.message || 'Operation failed');
         }
     };
-
     const handleClear = () => {
         handleFormClose();
         toast.info('Form cleared');
     };
-
     const handleEdit = (interview: Interview) => {
         setEditingInterview(interview);
         reset({
@@ -229,7 +206,6 @@ export default function ScheduleInterviewPage() {
             formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     };
-
     const handleDelete = async (interview: Interview) => {
         try {
             interviewDB.remove(interview.id);
@@ -239,17 +215,14 @@ export default function ScheduleInterviewPage() {
             toast.error('Failed to delete interview');
         }
     };
-
     const getCandidateName = (candidateId: number) => {
         const candidate = candidates.find((c) => c.id === candidateId);
         return candidate ? `${candidate.firstName} ${candidate.middleName || ''} ${candidate.lastName}`.trim() : 'Unknown';
     };
-
     const getInterviewerName = (interviewerId: number) => {
         const interviewer = interviewers.find((i) => i.id === interviewerId);
         return interviewer?.name || 'Unknown';
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -267,7 +240,6 @@ export default function ScheduleInterviewPage() {
                         Schedule Interview
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     title='Scheduled Interviews'
@@ -286,7 +258,6 @@ export default function ScheduleInterviewPage() {
                         getInterviewerName={getInterviewerName}
                     />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef}>
@@ -323,7 +294,6 @@ export default function ScheduleInterviewPage() {
                                         </Select>
                                         {errors.candidateId && <FormError>Candidate is required</FormError>}
                                     </div>
-
                                     {/* Interview Date */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -360,7 +330,6 @@ export default function ScheduleInterviewPage() {
                                         />
                                         {errors.interviewDate && <FormError>{errors.interviewDate.message}</FormError>}
                                     </div>
-
                                     {/* Interview Time */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -372,7 +341,6 @@ export default function ScheduleInterviewPage() {
                                             error={errors.interviewTime?.message}
                                         />
                                     </div>
-
                                     {/* Interview Rounds */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -392,7 +360,6 @@ export default function ScheduleInterviewPage() {
                                         </Select>
                                         {errors.interviewRounds && <FormError>Interview rounds selection is required</FormError>}
                                     </div>
-
                                     {/* Interviewer Name */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -412,7 +379,6 @@ export default function ScheduleInterviewPage() {
                                         </Select>
                                         {errors.interviewerId && <FormError>Interviewer is required</FormError>}
                                     </div>
-
                                     {/* Interview Venue */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -424,7 +390,6 @@ export default function ScheduleInterviewPage() {
                                             error={errors.interviewVenue?.message}
                                         />
                                     </div>
-
                                     {/* Status */}
                                     <div className='space-y-2'>
                                         <span className='font-medium text-gray-700 text-sm'>
@@ -444,7 +409,6 @@ export default function ScheduleInterviewPage() {
                                         {errors.status && <FormError>Status is required</FormError>}
                                     </div>
                                 </div>
-
                                 {/* Notify Candidate By */}
                                 <div className='space-y-4'>
                                     <span className='font-medium text-gray-700 text-sm'>Notify Candidate By</span>
@@ -463,7 +427,6 @@ export default function ScheduleInterviewPage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 {/* Remarks */}
                                 <div className='space-y-2'>
                                     <span className='font-medium text-gray-700 text-sm'>Remarks</span>
@@ -473,7 +436,6 @@ export default function ScheduleInterviewPage() {
                                         {...register('remarks')}
                                     />
                                 </div>
-
                                 {/* Form Actions */}
                                 <div className='flex justify-center gap-4 border-t pt-6'>
                                     <Button type='button' variant='outline' onClick={handleClear}>
@@ -502,7 +464,6 @@ export default function ScheduleInterviewPage() {
         </div>
     );
 }
-
 interface InterviewTableProps {
     interviews: Interview[];
     isLoading: boolean;
@@ -511,7 +472,6 @@ interface InterviewTableProps {
     getCandidateName: (candidateId: number) => string;
     getInterviewerName: (interviewerId: number) => string;
 }
-
 function InterviewTable({
     interviews,
     isLoading,
@@ -589,7 +549,6 @@ function InterviewTable({
             }
         }
     ];
-
     return (
         <GenericDataTable
             isLoading={isLoading}

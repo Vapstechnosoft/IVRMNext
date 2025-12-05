@@ -1,12 +1,10 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-
 export interface ShiftSetting {
     id: number;
     shiftName: string;
@@ -21,7 +19,6 @@ export interface ShiftSetting {
     earlyPerShift: string;
     isActive: boolean;
 }
-
 export const shiftSettingColumns: ColumnDef<ShiftSetting>[] = [
     {
         id: 'serialNumber',
@@ -74,24 +71,20 @@ export const shiftSettingColumns: ColumnDef<ShiftSetting>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: ShiftSetting }) {
     const { openEditForm, openDeleteForm } = useFormContext<ShiftSetting>();
-
     const handleEdit = useCallback(
         (data: ShiftSetting) => {
             openEditForm(data);
         },
         [openEditForm]
     );
-
     const handleDelete = useCallback(
         (data: ShiftSetting) => {
             openDeleteForm(data);
         },
         [openDeleteForm]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

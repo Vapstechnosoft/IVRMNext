@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
@@ -8,16 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { EmployeeShiftMapping } from './columns';
-
 interface DeleteEmployeeShiftMappingFormProps {
     rowData: EmployeeShiftMapping;
     onClose: () => void;
 }
-
 export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: DeleteEmployeeShiftMappingFormProps) {
     const { refetchAll } = useEmployeeShiftMapping();
     const { mutate: deleteMapping, isPending } = useDeleteEmployeeShiftMapping();
-
     const {
         register,
         handleSubmit,
@@ -27,12 +23,10 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
         resolver: zodResolver(z.object({ id: z.number() })),
         mode: 'onChange'
     });
-
     function closeDialog() {
         onClose();
         reset();
     }
-
     const onSubmit: SubmitHandler<{ id: number }> = async () => {
         deleteMapping(rowData.id, {
             onSuccess: () => {
@@ -41,7 +35,6 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
             }
         });
     };
-
     return (
         <AdaptiveDialog title='Delete Employee Shift Mapping' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>

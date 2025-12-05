@@ -99,3 +99,9 @@ export interface SaveDepartmentRequest {
     HRMD_InternalTrainingMinimumHrs: number;
     DeraptmentDTO: any[];
 }
+
+export interface DepartmentSetOrderList {
+    HRMD_Id: number;
+    HRMD_DepartmentName: string;
+    HRMD_Order: number;
+}

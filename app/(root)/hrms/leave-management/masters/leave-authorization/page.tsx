@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -10,20 +9,16 @@ import { use } from 'react';
 import AddLeaveAuthorizationForm from './_components/add-form';
 import { type LeaveAuthorization, getLeaveAuthorizationColumns } from './_components/columns';
 import UpdateLeaveAuthorizationForm from './_components/update-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function LeaveAuthorizationPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useLeaveAuthorization();
-
     return (
         <FormProvider<LeaveAuthorization>>
             <LeaveAuthorizationPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function LeaveAuthorizationPageContent({
     response,
     isLoading,
@@ -36,7 +31,6 @@ function LeaveAuthorizationPageContent({
     const { openAddForm } = useFormContext<LeaveAuthorization>();
     const { openEditForm, openDeleteForm } = useFormContext<LeaveAuthorization>();
     const tableProps = useDataTableProps(response);
-
     const columns = getLeaveAuthorizationColumns({
         onEdit: openEditForm,
         onDelete: (id: number) => {
@@ -47,7 +41,6 @@ function LeaveAuthorizationPageContent({
             }
         }
     });
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -61,7 +54,6 @@ function LeaveAuthorizationPageContent({
                         Add Leave Authorization
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -81,14 +73,12 @@ function LeaveAuthorizationPageContent({
                         errorTitle='Error Loading Leave Authorizations'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -102,13 +92,11 @@ function FormSections() {
         editFormRef
     } = useFormContext<LeaveAuthorization>();
     const { mutate: deleteLeaveAuthorization, isPending: isDeleting } = useDeleteLeaveAuthorization();
-
     const handleDelete = () => {
         if (selectedRow) {
             // Extract HRLA_Id from the row data if available, otherwise use 0
             const HRLA_Id = (selectedRow as any)._HRLA_Id || 0;
             const HRLAON_Id = selectedRow.id || 0;
-
             deleteLeaveAuthorization(
                 {
                     HRLA_Id: HRLA_Id,
@@ -122,7 +110,6 @@ function FormSections() {
             );
         }
     };
-
     return (
         <>
             {/* Add Form */}
@@ -149,7 +136,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -173,7 +159,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && (
                 <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>

@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface MRF {
     id: number;
     requestedBy?: string;
@@ -26,15 +24,12 @@ export interface MRF {
     country: string;
     state: string;
     reason: string;
-
     createdAt: string;
 }
-
 interface MRFColumnsProps {
     onEdit: (row: MRF) => void;
     onDelete: (row: MRF) => void;
 }
-
 export const getMRFColumns = ({ onEdit, onDelete }: MRFColumnsProps): ColumnDef<MRF>[] => [
     {
         id: 'sl',

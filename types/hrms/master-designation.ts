@@ -112,3 +112,9 @@ export interface SaveDesignationRequest {
     roleId: number;
     DesignationDTO: any[];
 }
+
+export interface DesignationSetOrderList {
+    HRMDES_Id: number;
+    HRMDES_DesignationName: string;
+    HRMDES_Order: number;
+}

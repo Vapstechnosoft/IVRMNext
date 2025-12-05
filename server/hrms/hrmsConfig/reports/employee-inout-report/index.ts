@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
@@ -13,7 +12,6 @@ import type {
     EmployeeInOutReportEmployeeRequest,
     EmployeeInOutReportEmployee
 } from '@/types/hrms/reports/employee-inout-report';
-
 /**
  * Get onload data for employee in-out report
  * This endpoint returns filter dropdowns (types/group types)
@@ -25,7 +23,6 @@ export async function getEmployeeInOutReportOnload(
     UserRole = ''
 ): Promise<ApiResponse<EmployeeInOutReportOnloadResponse>> {
     const url = '/api/EmployeeInOutReportFacade/getdata';
-    
     // Build request body
     const requestBody: EmployeeInOutReportOnloadRequest = {
         page: 1,
@@ -39,14 +36,11 @@ export async function getEmployeeInOutReportOnload(
         loginUserId: LoginUserId,
         userRole: UserRole
     };
-    
     const response = await api.post<EmployeeInOutReportGetDataResponse>('hrmsfrontoffice', url, requestBody);
-    
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "OK", data: { types: [...], lieo: null, lateInApproval: null }, total: 0, page: 1, page_size: 10 }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const responseData = response.data;
-        
         if (responseData) {
             const data = responseData as any;
             return {
@@ -60,7 +54,6 @@ export async function getEmployeeInOutReportOnload(
             };
         }
     }
-    
     // Return empty data if response structure is unexpected
     return {
         success: false,
@@ -72,7 +65,6 @@ export async function getEmployeeInOutReportOnload(
         }
     };
 }
-
 /**
  * Get employee in-out report data with pagination, search, and sort
  * TODO: Replace this with the actual search endpoint once provided
@@ -98,7 +90,6 @@ export async function getEmployeeInOutReportList(
 ): Promise<ApiResponse<any>> {
     // TODO: Replace this URL with the actual search endpoint
     const _url = '/api/EmployeeInOutReportFacade/search'; // PLACEHOLDER - update when search endpoint is provided
-    
     // Build request body with pagination, search, sort, and filter params
     const requestBody: any = {
         page: searchParams?.page || 1,
@@ -112,7 +103,6 @@ export async function getEmployeeInOutReportList(
         loginUserId: filterParams?.LoginUserId || 0,
         userRole: filterParams?.UserRole || ''
     };
-    
     // Add filter parameters
     if (filterParams?.fromDate) {
         requestBody.fromDate = filterParams.fromDate;
@@ -138,10 +128,8 @@ export async function getEmployeeInOutReportList(
     if (filterParams?.timeInTimeOut) {
         requestBody.timeInTimeOut = filterParams.timeInTimeOut;
     }
-    
     // TODO: Uncomment and update when search endpoint is available
     // const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-    
     // For now, return empty response until search endpoint is provided
     return {
         success: false,
@@ -154,7 +142,6 @@ export async function getEmployeeInOutReportList(
         }
     };
 }
-
 /**
  * Get departments based on selected types
  * POST /api/EmployeeInOutReportFacade/get_departments
@@ -166,25 +153,20 @@ export async function getEmployeeInOutReportDepartments(
     multipletype = ''
 ): Promise<ApiResponse<EmployeeInOutReportDepartment[]>> {
     const url = '/api/EmployeeInOutReportFacade/get_departments';
-    
     const requestBody: EmployeeInOutReportDepartmentRequest = {
         MI_Id,
         UserId,
         IVRMRT_Id,
         multipletype
     };
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
         // Debug logging (remove in production if needed)
         if (process.env.NODE_ENV === 'development') {
             console.log('📋 [getEmployeeInOutReportDepartments] Response:', JSON.stringify(response, null, 2));
         }
-        
         if (response && typeof response === 'object') {
             let dataArray: any[] = [];
-            
             // Handle case where response itself is an array
             if (Array.isArray(response)) {
                 dataArray = response;
@@ -219,21 +201,18 @@ export async function getEmployeeInOutReportDepartments(
                     dataArray = (response as any).data;
                 }
             }
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Data loaded successfully',
                 data: dataArray
             };
         }
-        
         return {
             success: false,
             message: 'Failed to load departments - unexpected response format',
             data: []
         };
     } catch (error) {
-        console.error('❌ [getEmployeeInOutReportDepartments] Error:', error);
         return {
             success: false,
             message: 'Error loading departments',
@@ -241,7 +220,6 @@ export async function getEmployeeInOutReportDepartments(
         };
     }
 }
-
 /**
  * Get designations based on selected departments
  * POST /api/EmployeeInOutReportFacade/get_designation
@@ -251,23 +229,18 @@ export async function getEmployeeInOutReportDesignations(
     multipledep = ''
 ): Promise<ApiResponse<EmployeeInOutReportDesignation[]>> {
     const url = '/api/EmployeeInOutReportFacade/get_designation';
-    
     const requestBody: EmployeeInOutReportDesignationRequest = {
         MI_Id,
         multipledep
     };
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
         // Debug logging (remove in production if needed)
         if (process.env.NODE_ENV === 'development') {
             console.log('📋 [getEmployeeInOutReportDesignations] Response:', JSON.stringify(response, null, 2));
         }
-        
         if (response && typeof response === 'object') {
             let dataArray: any[] = [];
-            
             // Handle case where response itself is an array
             if (Array.isArray(response)) {
                 dataArray = response;
@@ -304,21 +277,18 @@ export async function getEmployeeInOutReportDesignations(
                     dataArray = (response as any).data;
                 }
             }
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Data loaded successfully',
                 data: dataArray
             };
         }
-        
         return {
             success: false,
             message: 'Failed to load designations - unexpected response format',
             data: []
         };
     } catch (error) {
-        console.error('❌ [getEmployeeInOutReportDesignations] Error:', error);
         return {
             success: false,
             message: 'Error loading designations',
@@ -326,7 +296,6 @@ export async function getEmployeeInOutReportDesignations(
         };
     }
 }
-
 /**
  * Get employees based on selected types, departments, and designations
  * POST /api/EmployeeInOutReportFacade/get_employee
@@ -338,25 +307,20 @@ export async function getEmployeeInOutReportEmployees(
     multipletype = ''
 ): Promise<ApiResponse<EmployeeInOutReportEmployee[]>> {
     const url = '/api/EmployeeInOutReportFacade/get_employee';
-    
     const requestBody: EmployeeInOutReportEmployeeRequest = {
         MI_Id,
         multipledes,
         multipledep,
         multipletype
     };
-    
     try {
         const response = await api.post<any>('hrmsfrontoffice', url, requestBody);
-        
         // Debug logging (remove in production if needed)
         if (process.env.NODE_ENV === 'development') {
             console.log('📋 [getEmployeeInOutReportEmployees] Response:', JSON.stringify(response, null, 2));
         }
-        
         if (response && typeof response === 'object') {
             let dataArray: any[] = [];
-            
             // Handle case where response itself is an array
             if (Array.isArray(response)) {
                 dataArray = response;
@@ -389,21 +353,18 @@ export async function getEmployeeInOutReportEmployees(
                     dataArray = (response as any).data;
                 }
             }
-            
             return {
                 success: response.success ?? true,
                 message: response.message || 'Data loaded successfully',
                 data: dataArray
             };
         }
-        
         return {
             success: false,
             message: 'Failed to load employees - unexpected response format',
             data: []
         };
     } catch (error) {
-        console.error('❌ [getEmployeeInOutReportEmployees] Error:', error);
         return {
             success: false,
             message: 'Error loading employees',
@@ -411,4 +372,3 @@ export async function getEmployeeInOutReportEmployees(
         };
     }
 }
-

@@ -1,12 +1,10 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 // Report filters
 export interface BankCashReportFilters {
     selectedTypes: string[];
@@ -16,7 +14,6 @@ export interface BankCashReportFilters {
     month: string;
     year: string;
 }
-
 interface BankCashReportFiltersProps {
     filters: BankCashReportFilters;
     groupTypes: Array<{ id: number; groupType: string }>;
@@ -29,7 +26,6 @@ interface BankCashReportFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function BankCashReportFilters({
     filters,
     groupTypes,
@@ -46,7 +42,6 @@ export function BankCashReportFilters({
         const newFilters = { ...filters, [key]: value };
         onFilterChange(newFilters);
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -81,7 +76,6 @@ export function BankCashReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Department Section */}
                     <div className='space-y-2'>
                         <Label htmlFor='department' className='font-medium text-foreground text-sm'>
@@ -107,7 +101,6 @@ export function BankCashReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Designation Section */}
                     <div className='space-y-2'>
                         <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
@@ -134,7 +127,6 @@ export function BankCashReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Additional Filters */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     {/* Payment Mode */}
@@ -154,7 +146,6 @@ export function BankCashReportFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Month Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='month' className='font-medium text-foreground text-sm'>
@@ -181,7 +172,6 @@ export function BankCashReportFilters({
                             </Select>
                         )}
                     </div>
-
                     {/* Year Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -209,7 +199,6 @@ export function BankCashReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex justify-center gap-2 pt-4'>
                     <Button onClick={onSearch}>

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -18,19 +17,15 @@ import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
 type FormFields = z.infer<typeof salaryIncrementSchema.addOrUpdate>;
-
 interface UpdateFormProps {
     selectedRow: SalaryIncrementGridItem | null;
     onloadData: SalaryIncrementOnloadResponse | undefined;
     onSuccess: () => void;
     className?: string;
 }
-
 export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onSuccess, className = '' }: UpdateFormProps) {
     const { mutate: saveIncrement, isPending } = useSaveSalaryIncrement();
-
     const {
         control,
         register,
@@ -52,7 +47,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
             LogInUserId: 2
         }
     });
-
     useEffect(() => {
         if (selectedRow?.HRME_Id) {
             reset({
@@ -68,13 +62,11 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
             });
         }
     }, [selectedRow, reset]);
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         if (!selectedRow) {
             toast.error('No row selected for update');
             return;
         }
-
         const payload = {
             HREIC_Id: data.HRESI_Id || selectedRow.HREIC_Id || 0,
             MI_Id: data.MI_Id,
@@ -90,7 +82,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
             roleId: data.LogInUserId || 2,
             UserId: data.LogInUserId || 2
         };
-
         saveIncrement(payload as any, {
             onSuccess: (response) => {
                 toast.success(response?.retrunMsg || 'Salary increment updated successfully');
@@ -101,11 +92,9 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
             }
         });
     };
-
     // Memoize arrays to prevent unnecessary re-renders
     const employees = useMemo(() => onloadData?.employeelist || [], [onloadData?.employeelist]);
     const _earningDeductions = useMemo(() => onloadData?.earningdeductiontype || [], [onloadData?.earningdeductiontype]);
-
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -129,9 +118,9 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                                         <SelectContent>
                                             {Array.isArray(employees) && employees.length > 0
                                                 ? employees.map((emp: any) => (
-                                                <SelectItem key={emp.HRME_Id} value={String(emp.HRME_Id)}>
-                                                    {emp.HRME_EmployeeCode} - {emp.HRME_EmployeeFirstName} {emp.HRME_EmployeeLastName}
-                                                </SelectItem>
+                                                      <SelectItem key={emp.HRME_Id} value={String(emp.HRME_Id)}>
+                                                          {emp.HRME_EmployeeCode} - {emp.HRME_EmployeeFirstName} {emp.HRME_EmployeeLastName}
+                                                      </SelectItem>
                                                   ))
                                                 : null}
                                         </SelectContent>
@@ -140,7 +129,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                             />
                             {errors.HRME_Id && <FormError>{errors.HRME_Id.message}</FormError>}
                         </div>
-
                         {/* Earning/Deduction Head - Commented out as not in schema */}
                         {/* <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMED_Id'>
@@ -168,7 +156,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                             />
                             {errors.HRMED_Id && <FormError>{errors.HRMED_Id.message}</FormError>}
                         </div> */}
-
                         {/* Increment Date */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRESI_EffectiveDate'>
@@ -203,7 +190,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                             />
                             {errors.HRESI_EffectiveDate && <FormError>{errors.HRESI_EffectiveDate.message}</FormError>}
                         </div>
-
                         {/* Amount */}
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRESI_IncrementAmount'>
@@ -223,7 +209,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                                 )}
                             />
                         </div>
-
                         {/* Percentage */}
                         <InputText
                             label='Percentage'
@@ -232,7 +217,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                             error={errors.HRESI_IncrementPercentage?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         {/* Arrear fields commented out - not in schema */}
                         {/* <InputNumber
                             label='Arrear Months'
@@ -241,7 +225,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                             error={errors.HREIC_ArrearMonths?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         /> */}
-
                         {/* <div className='group flex flex-col gap-1.5'>
                             <div className='flex items-center space-x-3 rounded-md border p-4'>
                                 <Controller
@@ -257,7 +240,6 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                             </div>
                             {errors.HREIC_ArrearApplicableFlg && <FormError>{errors.HREIC_ArrearApplicableFlg.message}</FormError>}
                         </div> */}
-
                         {/* <div className='group flex flex-col gap-1.5'>
                             <div className='flex items-center space-x-3 rounded-md border p-4'>
                                 <Controller
@@ -274,10 +256,8 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
                             {errors.HREIC_ArrearGivenFlg && <FormError>{errors.HREIC_ArrearGivenFlg.message}</FormError>}
                         </div> */}
                     </div>
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

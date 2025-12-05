@@ -1,16 +1,11 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
-import type { EmployeeTypeDetail, MasterEmployeeTypeResponse } from '@/types/hrms/master-employee-type';
+import type { IMasterEmployeeTypeList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
-
-export const columns: ColumnDef<EmployeeTypeDetail>[] = [
+export const columns: ColumnDef<IMasterEmployeeTypeList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
@@ -24,7 +19,7 @@ export const columns: ColumnDef<EmployeeTypeDetail>[] = [
         size: 60
     },
     {
-        accessorKey: 'HRMET_EmployeeType',
+        accessorKey: 'hrmeT_EmployeeType',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Type' />
     },
     {
@@ -34,32 +29,21 @@ export const columns: ColumnDef<EmployeeTypeDetail>[] = [
         enableSorting: false
     }
 ];
-
-function ActionButtonsCell({ rowData }: { rowData: EmployeeTypeDetail }) {
-    const { openEditForm } = useFormContext<MasterEmployeeTypeResponse>();
-    const { toggleMutation } = useMasterEmployeeType(HRMS_MI_ID);
+function ActionButtonsCell({ rowData }: { rowData: IMasterEmployeeTypeList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterEmployeeTypeList>();
 
     const handleEdit = useCallback(
-        (data: EmployeeTypeDetail) => {
+        (data: IMasterEmployeeTypeList) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        async (data: EmployeeTypeDetail, newState: boolean) => {
-            try {
-                await toggleMutation.mutateAsync({
-                    HRMET_Id: data.HRMET_Id,
-                    HRMET_ActiveFlag: newState,
-                    MI_Id: HRMS_MI_ID
-                });
-                toast.success(`Employee Type ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} employee type`);
-            }
+        (data: IMasterEmployeeTypeList) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
 
     return (
@@ -68,7 +52,7 @@ function ActionButtonsCell({ rowData }: { rowData: EmployeeTypeDetail }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='HRMET_ActiveFlag'
+            toggleConditionKey='hrmeT_ActiveFlag'
         />
     );
 }

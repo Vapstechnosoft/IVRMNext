@@ -1,9 +1,4 @@
 'use client';
-
-import { Save, X } from 'lucide-react';
-import { useEffect } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -12,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveCreditDetails, useSaveLeaveCreditDetails } from '@/hooks/hrms/leave-management/useTransactions';
-
+import { Save, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { type LeaveCreditDetail, MONTHS } from './columns';
-
 // Mapping of leave names to leave codes
 const leaveNameToCodeMap: Record<string, string> = {
     'Casual Leave': 'CL',
@@ -24,13 +20,11 @@ const leaveNameToCodeMap: Record<string, string> = {
     'Optional Leave': 'OL',
     'Emergency Leave': 'EL'
 };
-
 interface AddLeaveCreditDetailsFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-
 const typeOptions = [
     { label: 'VKS', value: 'VKS' },
     { label: 'Permanent', value: 'Permanent' },
@@ -55,11 +49,9 @@ const designationOptions = [
     { label: 'Sr HR Executive', value: 'Sr HR Executive' },
     { label: 'Manager HR', value: 'Manager HR' }
 ];
-
 export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, className = '' }: AddLeaveCreditDetailsFormProps) {
     const { refetchAll } = useLeaveCreditDetails();
     const { mutate: saveDetails, isPending } = useSaveLeaveCreditDetails();
-
     const {
         register,
         handleSubmit,
@@ -89,7 +81,6 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
             )
         }
     });
-
     // Auto-fill leave code when leave name changes
     const leaveName = watch('leaveName');
     useEffect(() => {
@@ -99,7 +90,6 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
             setValue('leaveCode', '');
         }
     }, [leaveName, setValue]);
-
     const onSubmit: SubmitHandler<LeaveCreditDetail> = async (data) => {
         // Map LeaveCreditDetail to the expected API format
         const apiData = {
@@ -126,7 +116,6 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
                 : [],
             ...data
         };
-
         saveDetails(apiData, {
             onSuccess: () => {
                 reset();
@@ -135,11 +124,9 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
             }
         });
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
@@ -200,7 +187,6 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
                             />
                         </div>
                     </div>
-
                     <div className='space-y-4'>
                         <Controller
                             name='leaveName'
@@ -317,7 +303,6 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
                             </div>
                         </div>
                     </div>
-
                     {/* Monthly Credits - Dynamically rendered when Leave Credit MonthWise is checked */}
                     {watch('leaveCreditMonthWise') && (
                         <div className='space-y-3'>
@@ -347,7 +332,6 @@ export default function AddLeaveCreditDetailsForm({ onSuccess, onCancel, classNa
                         </div>
                     )}
                 </div>
-
                 <div className='flex justify-end gap-2'>
                     {onCancel && (
                         <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>

@@ -1,18 +1,14 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Mail, MessageSquare, Printer, X } from 'lucide-react';
-
 interface EarningsItem {
     name: string;
     amount: number;
 }
-
 interface DeductionsItem {
     name: string;
     amount: number;
 }
-
 interface LeaveDetail {
     serialNo: number;
     leaveName: string;
@@ -20,7 +16,6 @@ interface LeaveDetail {
     availedLeaves: number;
     balanceLeaves: number;
 }
-
 interface SalarySlipData {
     // Employee Information
     employeeName: string;
@@ -31,7 +26,6 @@ interface SalarySlipData {
     pfNo?: string;
     esiNo?: string;
     lopDays: number;
-
     // Financial Details
     earnings: EarningsItem[];
     deductions: DeductionsItem[];
@@ -39,11 +33,9 @@ interface SalarySlipData {
     totalDeduction: number;
     netPayable: number;
     amountInWords: string;
-
     // Leave Details
     leaveDetails: LeaveDetail[];
 }
-
 interface SalarySlipTemplateProps {
     schoolName?: string;
     schoolAddress?: string;
@@ -61,7 +53,6 @@ interface SalarySlipTemplateProps {
     onSendSMS: () => void;
     onCancel: () => void;
 }
-
 export function SalarySlipTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -84,11 +75,9 @@ export function SalarySlipTemplate({
         if (value === null || value === undefined) return '0.00';
         return value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
-
     // Get month name
     const monthName = month ? month.toUpperCase() : '';
     const yearValue = year || '';
-
     return (
         <div className='mx-auto w-full max-w-[900px] bg-white p-6 print:p-4'>
             {/* School Header with Logo */}
@@ -101,14 +90,12 @@ export function SalarySlipTemplate({
                 <h1 className='font-bold text-gray-900 text-xl'>{schoolName || 'Institution Name'}</h1>
                 {schoolAddress && <div className='text-gray-600 text-sm'>{schoolAddress}</div>}
             </div>
-
             {/* Report Title */}
             <div className='mb-6 text-center'>
                 <h2 className='font-semibold text-gray-800 text-lg'>
                     PAY SLIP FOR THE MONTH OF {monthName} {yearValue}
                 </h2>
             </div>
-
             {/* Employee Information */}
             {isLoading ? (
                 <div className='py-12 text-center text-gray-500'>Loading salary slip...</div>
@@ -142,7 +129,6 @@ export function SalarySlipTemplate({
                                 </>
                             )}
                         </div>
-
                         {/* Right Column */}
                         <div className='space-y-3 text-sm'>
                             {salarySlipData.pfNo && (
@@ -165,7 +151,6 @@ export function SalarySlipTemplate({
                             )}
                         </div>
                     </div>
-
                     {/* Financial Details Table */}
                     <div className='mb-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Pay and Allowance */}
@@ -188,7 +173,6 @@ export function SalarySlipTemplate({
                                 </div>
                             </div>
                         </div>
-
                         {/* Deductions */}
                         <div>
                             <h3 className='mb-3 border-gray-300 border-b pb-2 font-semibold text-gray-900'>Deductions</h3>
@@ -214,19 +198,16 @@ export function SalarySlipTemplate({
                             </div>
                         </div>
                     </div>
-
                     {/* Amount in Words */}
                     {salarySlipData.amountInWords && (
                         <div className='mb-6 text-center'>
                             <p className='text-gray-700 text-sm italic'>({salarySlipData.amountInWords})</p>
                         </div>
                     )}
-
                     {/* Disclaimer */}
                     <div className='mb-6 text-center'>
                         <p className='text-gray-500 text-xs'>*This is a Computer generated payslip, does not require any signature.</p>
                     </div>
-
                     {/* Leave Details */}
                     {showLeaveDetails && (
                         <div className='mb-6'>
@@ -305,7 +286,6 @@ export function SalarySlipTemplate({
                                 </>
                             )}
                         </div>
-
                         {/* Right Column */}
                         <div className='space-y-3 text-sm'>
                             <div>
@@ -324,7 +304,6 @@ export function SalarySlipTemplate({
                             )}
                         </div>
                     </div>
-
                     {/* Financial Details Table - Empty */}
                     <div className='mb-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
                         {/* Pay and Allowance */}
@@ -336,7 +315,6 @@ export function SalarySlipTemplate({
                                 <span>0.00</span>
                             </div>
                         </div>
-
                         {/* Deductions */}
                         <div>
                             <h3 className='mb-3 border-gray-300 border-b pb-2 font-semibold text-gray-900'>Deductions</h3>
@@ -351,7 +329,6 @@ export function SalarySlipTemplate({
                             </div>
                         </div>
                     </div>
-
                     {/* Leave Details - Empty */}
                     {showLeaveDetails && (
                         <div className='mb-6'>
@@ -380,7 +357,6 @@ export function SalarySlipTemplate({
                     )}
                 </>
             )}
-
             {/* Action Buttons */}
             <div className='flex flex-wrap justify-end gap-3 border-gray-300 border-t pt-4 print:hidden'>
                 <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>

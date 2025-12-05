@@ -1,23 +1,19 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Check, X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveApprovalRow } from './columns';
-
 export type LeaveApprovalFormData = {
     remark?: string;
     action: 'approve' | 'reject';
 };
-
 interface LeaveApprovalFormProps {
     leaveRequest: LeaveApprovalRow;
     onSubmit: (data: LeaveApprovalFormData) => void;
     onCancel: () => void;
 }
-
 export function LeaveApprovalForm({ leaveRequest, onSubmit, onCancel }: LeaveApprovalFormProps) {
     const {
         register,
@@ -29,23 +25,19 @@ export function LeaveApprovalForm({ leaveRequest, onSubmit, onCancel }: LeaveApp
             action: 'approve'
         }
     });
-
     const handleFormSubmit: SubmitHandler<LeaveApprovalFormData> = async (data) => {
         onSubmit(data);
     };
-
     const handleApprove = () => {
         handleSubmit((data) => {
             onSubmit({ ...data, action: 'approve' });
         })();
     };
-
     const handleReject = () => {
         handleSubmit((data) => {
             onSubmit({ ...data, action: 'reject' });
         })();
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='flex flex-col gap-4'>
             <AdaptiveBody className='flex flex-col gap-5'>
@@ -83,7 +75,6 @@ export function LeaveApprovalForm({ leaveRequest, onSubmit, onCancel }: LeaveApp
                         </div>
                     </div>
                 </div>
-
                 {/* Remark */}
                 <div>
                     <label htmlFor='remark-textarea' className='mb-2 block font-medium text-sm'>

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -11,7 +10,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type RetirementRecord as RetirementRecordColumn, getRetirementColumns, headerFields } from './_components/columns';
 import { type RetirementFilters, RetirementReportFilters } from './_components/filters';
-
 // Retirement Report data structure
 interface RetirementRecord extends BaseEntity {
     employeeCode: string;
@@ -36,7 +34,6 @@ interface RetirementRecord extends BaseEntity {
     status: 'Working' | 'Left' | 'Retired';
     retirementEligible: boolean;
 }
-
 // Retirement Summary
 interface RetirementSummary {
     totalEmployees: number;
@@ -49,17 +46,14 @@ interface RetirementSummary {
     totalGratuityAmount: number;
     averageServiceYears: number;
 }
-
 export default function RetirementReportPage() {
     // Database instances
     const retirementDB = createLocalCrud<RetirementRecord>('report:retirement');
-
     // State
     const [retirementRecords, setRetirementRecords] = useState<RetirementRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<RetirementRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
-
     const [filters, setFilters] = useState<RetirementFilters>({
         selectedHeaders: [],
         format: 'format1',
@@ -73,12 +67,10 @@ export default function RetirementReportPage() {
         selectedDepartments: [],
         selectedDesignations: []
     });
-
     // Load data on mount
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = () => {
         try {
             // Load Retirement records
@@ -95,7 +87,6 @@ export default function RetirementReportPage() {
             setIsLoading(false);
         }
     };
-
     // Generate mock Retirement data
     const generateMockRetirementData = (): Omit<RetirementRecord, 'id' | 'createdAt'>[] => {
         const employees = [
@@ -172,9 +163,7 @@ export default function RetirementReportPage() {
                 desig: 'Art Teacher'
             }
         ];
-
         const mockRecords: Omit<RetirementRecord, 'id' | 'createdAt'>[] = [];
-
         employees.forEach((emp) => {
             const dobDate = new Date(emp.dob);
             const joiningDate = new Date(emp.joining);
@@ -182,20 +171,17 @@ export default function RetirementReportPage() {
             const retirementAge = 60; // Assuming retirement age is 60
             const retirementDate = new Date(dobDate);
             retirementDate.setFullYear(dobDate.getFullYear() + retirementAge);
-
             const currentAge = differenceInYears(currentDate, dobDate);
             const serviceYears = differenceInYears(currentDate, joiningDate);
             const yearsToRetirement = Math.max(0, differenceInYears(retirementDate, currentDate));
             const retirementEligible = currentAge >= 58; // Eligible 2 years before retirement
             const hasLeft = Math.random() > 0.8; // 20% chance of having left
             const hasRetired = currentAge >= retirementAge;
-
             const status: 'Working' | 'Left' | 'Retired' = hasRetired ? 'Retired' : hasLeft ? 'Left' : 'Working';
             const basicSalary = 45000 + Math.random() * 25000;
             const pfBalance = serviceYears * 50000 + Math.random() * 100000;
             const gratuityAmount = serviceYears > 5 ? (serviceYears * basicSalary * 15) / 26 : 0;
             const leaveBalance = Math.floor(Math.random() * 30);
-
             mockRecords.push({
                 employeeCode: emp.code,
                 employeeName: emp.name,
@@ -220,26 +206,21 @@ export default function RetirementReportPage() {
                 retirementEligible: retirementEligible
             });
         });
-
         return mockRecords;
     };
-
     // Filter records based on selected criteria
     useEffect(() => {
         let filtered = retirementRecords;
-
         // Filter by employee status
         if (filters.employeeStatus === 'working') {
             filtered = filtered.filter((record) => record.status === 'Working');
         } else if (filters.employeeStatus === 'left') {
             filtered = filtered.filter((record) => record.status === 'Left' || record.status === 'Retired');
         }
-
         // Filter by date range
         if (filters.fromDate && filters.toDate) {
             filtered = filtered.filter((record) => {
                 let compareDate: Date;
-
                 switch (filters.dateFilter) {
                     case 'dateOfBirth':
                         compareDate = new Date(record.dateOfBirth);
@@ -254,36 +235,29 @@ export default function RetirementReportPage() {
                     default:
                         compareDate = new Date(record.dateOfBirth);
                 }
-
                 return compareDate >= filters.fromDate! && compareDate <= filters.toDate!;
             });
         }
-
         setFilteredRecords(filtered);
     }, [filters, retirementRecords]);
-
     const handleHeaderChange = (header: string, checked: boolean) => {
         setFilters((prev) => ({
             ...prev,
             selectedHeaders: checked ? [...prev.selectedHeaders, header] : prev.selectedHeaders.filter((h) => h !== header)
         }));
     };
-
     const handleHeaderSelectAll = (checked: boolean) => {
         setFilters((prev) => ({
             ...prev,
             selectedHeaders: checked ? headerFields : []
         }));
     };
-
     const handleFilterChange = (key: keyof RetirementFilters, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
     };
-
     const handleDateChange = (key: 'fromDate' | 'toDate', date: Date | undefined) => {
         setFilters((prev) => ({ ...prev, [key]: date }));
     };
-
     const handleSearch = () => {
         if (filters.selectedHeaders.length === 0) {
             toast.error('Please select at least one header field');
@@ -296,7 +270,6 @@ export default function RetirementReportPage() {
         setShowReport(true);
         toast.success('Retirement Report generated');
     };
-
     const handleCancel = () => {
         setFilters({
             selectedHeaders: [],
@@ -316,16 +289,13 @@ export default function RetirementReportPage() {
         setShowReport(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Retirement Report exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate Retirement summary
     const retirementSummary: RetirementSummary = useMemo(() => {
         const workingEmployees = filteredRecords.filter((record) => record.status === 'Working').length;
@@ -333,7 +303,6 @@ export default function RetirementReportPage() {
         const retiredEmployees = filteredRecords.filter((record) => record.status === 'Retired').length;
         const eligibleForRetirement = filteredRecords.filter((record) => record.retirementEligible).length;
         const retiringThisYear = filteredRecords.filter((record) => record.yearsToRetirement <= 1 && record.yearsToRetirement >= 0).length;
-
         const summary = filteredRecords.reduce(
             (acc, record) => ({
                 totalEmployees: filteredRecords.length,
@@ -358,18 +327,14 @@ export default function RetirementReportPage() {
                 averageServiceYears: 0
             }
         );
-
         summary.averageServiceYears =
             filteredRecords.length > 0
                 ? Math.round(filteredRecords.reduce((sum, record) => sum + record.serviceYears, 0) / filteredRecords.length)
                 : 0;
-
         return summary;
     }, [filteredRecords]);
-
     // Dynamic table columns based on selected headers
     const columns = useMemo(() => getRetirementColumns(filters.selectedHeaders), [filters.selectedHeaders]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -388,7 +353,6 @@ export default function RetirementReportPage() {
                 onCancel={handleCancel}
                 isLoading={isLoading}
             />
-
             {/* Report Results */}
             {showReport && (
                 <div className='space-y-4'>
@@ -412,7 +376,6 @@ export default function RetirementReportPage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -457,7 +420,6 @@ export default function RetirementReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Detailed Summary */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <Card>
@@ -488,7 +450,6 @@ export default function RetirementReportPage() {
                                 </div>
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className='flex items-center gap-2 text-sm'>
@@ -520,7 +481,6 @@ export default function RetirementReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}

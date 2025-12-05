@@ -1,11 +1,9 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { SalaryUpdationItem } from '@/types/hrms/salary-updation';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { ActionsCell } from './actions-cell';
-
 export const salaryUpdationColumns: ColumnDef<SalaryUpdationItem>[] = [
     {
         accessorKey: 'HRME_EmployeeCode',

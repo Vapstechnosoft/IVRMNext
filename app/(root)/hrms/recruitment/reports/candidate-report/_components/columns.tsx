@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface Candidate {
     id: number;
     firstName: string;
@@ -16,15 +14,12 @@ export interface Candidate {
     lastCTC?: string;
     expectedCTC?: string;
     resumeCV?: string; // url
-
     createdAt: string;
 }
-
 interface CandidateColumnsProps {
     onEdit: (row: Candidate) => void;
     onDelete: (row: Candidate) => void;
 }
-
 export const getCandidateColumns = ({ onEdit, onDelete }: CandidateColumnsProps): ColumnDef<Candidate>[] => [
     {
         id: 'sl',

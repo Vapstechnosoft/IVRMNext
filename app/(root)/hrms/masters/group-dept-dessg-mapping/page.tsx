@@ -1,7 +1,6 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
@@ -9,14 +8,13 @@ import type { ApiSearchparams } from '@/types';
 import type { GroupDeptDessgMappingDetail } from '@/types/hrms/group-dept-dessg-mapping';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
+import AddGroupDeptDessgMappingForm from './_components/add-form';
 import { groupDeptDessgMappingColumns } from './_components/columns';
-import MappingForm from './_components/mapping-form';
-
+import ToggleGroupDeptDessgMappingForm from './_components/toggle-form';
+import UpdateGroupDeptDessgMappingForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function GroupDeptDessgMappingPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
-
     // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
     // This matches how preadmission handles it
     const searchParams: ApiSearchparams = {
@@ -61,16 +59,13 @@ export default function GroupDeptDessgMappingPage(props: { searchParams: SearchP
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     const { data: response, isLoading, error, refetch } = useGroupDeptDessgMapping(searchParams);
-
     return (
         <FormProvider<GroupDeptDessgMappingDetail>>
             <GroupDeptDessgMappingPageContent response={response} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
-
 function GroupDeptDessgMappingPageContent({
     response,
     isLoading,
@@ -83,10 +78,10 @@ function GroupDeptDessgMappingPageContent({
     refetch: () => void;
 }) {
     const { openAddForm } = useFormContext<GroupDeptDessgMappingDetail>();
-
+    const tableProps = useDataTableProps(response);
     return (
         <div className='min-h-screen'>
-            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
+            <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex justify-end'>
                     <Button
@@ -97,7 +92,6 @@ function GroupDeptDessgMappingPageContent({
                         Add Group-Dept-Dessg Mapping
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -105,24 +99,11 @@ function GroupDeptDessgMappingPageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable<GroupDeptDessgMappingDetail>
-                        data={
-                            Array.isArray(response?.data?.data?.gridviewdata)
-                                ? response.data.data.gridviewdata
-                                : Array.isArray(response?.data?.gridviewdata)
-                                  ? response.data.gridviewdata
-                                  : []
-                        }
-                        totalItems={
-                            response?.data?.total ??
-                            (Array.isArray(response?.data?.data?.gridviewdata)
-                                ? response.data.data.gridviewdata.length
-                                : Array.isArray(response?.data?.gridviewdata)
-                                  ? response.data.gridviewdata.length
-                                  : 0)
-                        }
+                        {...tableProps}
                         columns={groupDeptDessgMappingColumns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading group-dept-dessg mappings...'
                         noDataTitle='No Group-Dept-Dessg Mappings Found'
@@ -130,18 +111,24 @@ function GroupDeptDessgMappingPageContent({
                         errorTitle='Error Loading Group-Dept-Dessg Mappings'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections refetch={refetch} />
             </div>
         </div>
     );
 }
-
 function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<GroupDeptDessgMappingDetail>();
-
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<GroupDeptDessgMappingDetail>();
     return (
         <>
             {isAddFormOpen && (
@@ -162,7 +149,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <MappingForm
+                            <AddGroupDeptDessgMappingForm
                                 onSuccess={() => {
                                     closeAddForm();
                                     refetch();
@@ -172,7 +159,6 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
-
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -190,7 +176,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <MappingForm
+                            <UpdateGroupDeptDessgMappingForm
                                 selectedRow={selectedRow}
                                 onSuccess={() => {
                                     closeEditForm();
@@ -201,6 +187,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleGroupDeptDessgMappingForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

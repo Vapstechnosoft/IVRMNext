@@ -1,5 +1,4 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { getLeaveCredit, addOrUpdateLeaveCredit, deleteLeaveCredit } from '@/server/hrms/leave-management/transactions/leave-credit';
@@ -18,11 +17,9 @@ import type { LeaveCreditDetail } from '@/app/(root)/hrms/leave-management/trans
 import type { LeaveCreditDeduction, LeaveCreditAddition, LeaveCarryForward } from '@/types/hrms/leave-management/leave-credit-types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-
 // Leave Credit Hooks
 export const useLeaveCredit = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT],
@@ -36,10 +33,8 @@ export const useLeaveCredit = () => {
         }
     };
 };
-
 export const useSaveLeaveCredit = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (credit: LeaveCredit) => addOrUpdateLeaveCredit(credit),
         onSuccess: (response) => {
@@ -51,10 +46,8 @@ export const useSaveLeaveCredit = () => {
         }
     });
 };
-
 export const useUpdateLeaveCredit = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (credit: LeaveCredit) => addOrUpdateLeaveCredit(credit),
         onSuccess: (response) => {
@@ -66,10 +59,8 @@ export const useUpdateLeaveCredit = () => {
         }
     });
 };
-
 export const useDeleteLeaveCredit = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (id: number) => deleteLeaveCredit(id),
         onSuccess: (response) => {
@@ -81,11 +72,9 @@ export const useDeleteLeaveCredit = () => {
         }
     });
 };
-
 // Leave Credit Transaction Hooks
 export const useLeaveCreditTransaction = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION],
@@ -99,10 +88,8 @@ export const useLeaveCreditTransaction = () => {
         }
     };
 };
-
 export const useSaveLeaveCreditTransaction = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (transaction: LeaveCreditTransaction) => addOrUpdateLeaveCreditTransaction(transaction),
         onSuccess: (response) => {
@@ -114,10 +101,8 @@ export const useSaveLeaveCreditTransaction = () => {
         }
     });
 };
-
 export const useUpdateLeaveCreditTransaction = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (transaction: LeaveCreditTransaction) => addOrUpdateLeaveCreditTransaction(transaction),
         onSuccess: (response) => {
@@ -129,10 +114,8 @@ export const useUpdateLeaveCreditTransaction = () => {
         }
     });
 };
-
 export const useDeleteLeaveCreditTransaction = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (id: number) => deleteLeaveCreditTransaction(id),
         onSuccess: (response) => {
@@ -144,7 +127,6 @@ export const useDeleteLeaveCreditTransaction = () => {
         }
     });
 };
-
 /**
  * Hook to fetch leave transactions
  * POST /api/LeaveTransactionManualWrapperFacade/GetLeavetransm
@@ -157,7 +139,6 @@ export const useLeavetransm = (request?: {
     EmployeeIds?: number[];
 }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'leavetransm', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
@@ -170,17 +151,13 @@ export const useLeavetransm = (request?: {
                         DesignationIds: request?.DesignationIds || [],
                         EmployeeIds: request?.EmployeeIds || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave transactions');
                     }
-
                     // Extract leave transaction list from API response
                     const data = response.data;
-                    
                     // Map GridviewDetails, leaveTransactionList, transactionList, or leaveTransmList to transactionList
                     let transactionList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         transactionList = data.GridviewDetails;
                     } else if (data.leaveTransactionList && Array.isArray(data.leaveTransactionList)) {
@@ -192,7 +169,6 @@ export const useLeavetransm = (request?: {
                     } else if (Array.isArray(data)) {
                         transactionList = data;
                     }
-
                     return {
                         success: true,
                         data: {
@@ -215,7 +191,6 @@ export const useLeavetransm = (request?: {
         }
     };
 };
-
 /**
  * Hook to fetch departments for leave transaction
  * POST /api/LeaveTransactionManualWrapperFacade/GetDepartments
@@ -228,7 +203,6 @@ export const useLeaveTransactionDepartments = (request?: {
     EmployeeIds?: number[];
 }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'departments', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
@@ -241,20 +215,16 @@ export const useLeaveTransactionDepartments = (request?: {
                         DesignationIds: request?.DesignationIds || [],
                         EmployeeIds: request?.EmployeeIds || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch departments');
                     }
-
                     // Extract and map department options from API response
                     const data = response.data;
-                    
                     // Map DepartmentTempDto to departmentOptions
                     const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
                         label: item.HRMD_DepartmentName || item.label || '',
                         value: String(item.HRMD_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check other possible locations
                     if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
                         const mapped = data.departmentdropdownlist.map((item: any) => ({
@@ -265,7 +235,6 @@ export const useLeaveTransactionDepartments = (request?: {
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     // Check GridviewDetails as fallback
                     if (departmentOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         const mapped = data.GridviewDetails.map((item: any) => ({
@@ -276,7 +245,6 @@ export const useLeaveTransactionDepartments = (request?: {
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     // Check departmentList or departments as fallback
                     if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
                         const mapped = data.departmentList.map((item: any) => ({
@@ -287,7 +255,6 @@ export const useLeaveTransactionDepartments = (request?: {
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
                         const mapped = data.departments.map((item: any) => ({
                             label: item.HRMD_DepartmentName || item.label || item.name || '',
@@ -297,7 +264,6 @@ export const useLeaveTransactionDepartments = (request?: {
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -320,7 +286,6 @@ export const useLeaveTransactionDepartments = (request?: {
         }
     };
 };
-
 /**
  * Hook to fetch designations for leave transaction
  * POST /api/LeaveTransactionManualWrapperFacade/GetDesignation
@@ -333,7 +298,6 @@ export const useLeaveTransactionDesignation = (request?: {
     EmployeeIds?: number[];
 }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'designation', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
@@ -346,20 +310,16 @@ export const useLeaveTransactionDesignation = (request?: {
                         DesignationIds: request?.DesignationIds || [],
                         EmployeeIds: request?.EmployeeIds || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch designations');
                     }
-
                     // Extract and map designation options from API response
                     const data = response.data;
-                    
                     // Map DesignationTempDto to designationOptions
                     const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
                         label: item.HRMDES_DesignationName || item.label || '',
                         value: String(item.HRMDES_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check designationarray
                     if (designationOptions.length === 0 && data.designationarray && Array.isArray(data.designationarray)) {
                         const mapped = data.designationarray.map((item: any) => ({
@@ -370,7 +330,6 @@ export const useLeaveTransactionDesignation = (request?: {
                             designationOptions.push(...mapped);
                         }
                     }
-
                     // Also check designationdropdownlist as fallback
                     if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
                         const mapped = data.designationdropdownlist.map((item: any) => ({
@@ -381,7 +340,6 @@ export const useLeaveTransactionDesignation = (request?: {
                             designationOptions.push(...mapped);
                         }
                     }
-
                     // Check GridviewDetails as fallback
                     if (designationOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         const mapped = data.GridviewDetails.map((item: any) => ({
@@ -392,7 +350,6 @@ export const useLeaveTransactionDesignation = (request?: {
                             designationOptions.push(...mapped);
                         }
                     }
-
                     // Check designationList or designations as fallback
                     if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
                         const mapped = data.designationList.map((item: any) => ({
@@ -403,7 +360,6 @@ export const useLeaveTransactionDesignation = (request?: {
                             designationOptions.push(...mapped);
                         }
                     }
-
                     if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
                         const mapped = data.designations.map((item: any) => ({
                             label: item.HRMDES_DesignationName || item.label || item.name || '',
@@ -413,7 +369,6 @@ export const useLeaveTransactionDesignation = (request?: {
                             designationOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -436,7 +391,6 @@ export const useLeaveTransactionDesignation = (request?: {
         }
     };
 };
-
 /**
  * Hook to fetch employee LOP (Loss of Pay) for leave transaction
  * POST /api/LeaveTransactionManualWrapperFacade/GetEmpLop
@@ -449,7 +403,6 @@ export const useLeaveTransactionEmpLop = (request?: {
     EmployeeIds?: number[];
 }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_TRANSACTION, 'empLop', request?.MI_Id, request?.EmpTypeIds, request?.DepartmentIds, request?.DesignationIds, request?.EmployeeIds],
@@ -462,17 +415,13 @@ export const useLeaveTransactionEmpLop = (request?: {
                         DesignationIds: request?.DesignationIds || [],
                         EmployeeIds: request?.EmployeeIds || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch employee LOP');
                     }
-
                     // Extract employee LOP list from API response
                     const data = response.data;
-                    
                     // Map EmpLopTempDto, empLopList, empLopdropdownlist, employeeLopList, or GridviewDetails to lopList
                     let lopList: any[] = [];
-                    
                     if (data.EmpLopTempDto && Array.isArray(data.EmpLopTempDto)) {
                         lopList = data.EmpLopTempDto;
                     } else if (data.empLopList && Array.isArray(data.empLopList)) {
@@ -486,7 +435,6 @@ export const useLeaveTransactionEmpLop = (request?: {
                     } else if (Array.isArray(data)) {
                         lopList = data;
                     }
-
                     // Map to LOP options format
                     const lopOptions = lopList.map((item: any) => ({
                         id: item.HRME_Id || item.id || 0,
@@ -500,7 +448,6 @@ export const useLeaveTransactionEmpLop = (request?: {
                         lopDate: item.LOPDate || item.lopDate || '',
                         lopReason: item.LOPReason || item.lopReason || ''
                     }));
-
                     return {
                         success: true,
                         data: {
@@ -524,14 +471,12 @@ export const useLeaveTransactionEmpLop = (request?: {
         }
     };
 };
-
 /**
  * Hook to save leave transaction data
  * POST /api/LeaveTransactionManualWrapperFacade/SaveData
  */
 export const useSaveLeaveTransactionManual = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (data: {
             MI_Id?: number;
@@ -556,11 +501,9 @@ export const useSaveLeaveTransactionManual = () => {
                     HRELT_Id: data.HRELT_Id || 0,
                     HRELTD_Id: data.HRELTD_Id || 0
                 });
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to save leave transaction');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave transaction saved successfully',
@@ -586,23 +529,19 @@ export const useSaveLeaveTransactionManual = () => {
         }
     });
 };
-
 /**
  * Hook to delete leave transaction details
  * POST /api/LeaveTransactionManualWrapperFacade/DeleteDetails
  */
 export const useDeleteLeaveTransactionManual = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (HRELT_Id: number) => {
             try {
                 const response = await deleteLeaveTransactionDetails({ HRELT_Id });
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to delete leave transaction');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave transaction deleted successfully'
@@ -627,11 +566,9 @@ export const useDeleteLeaveTransactionManual = () => {
         }
     });
 };
-
 // Leave Credit Details Hooks
 export const useLeaveCreditDetails = (request?: { MI_Id?: number }) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, request?.MI_Id],
@@ -655,13 +592,11 @@ export const useLeaveCreditDetails = (request?: { MI_Id?: number }) => {
         }
     };
 };
-
 /**
  * Hook to save leave credit details using the API
  */
 export const useSaveLeaveCreditDetails = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (data: {
             MI_Id?: number;
@@ -700,11 +635,9 @@ export const useSaveLeaveCreditDetails = () => {
                     selectedcarryMonthList: data.selectedcarryMonthList || [],
                     selectedMonthList: data.selectedMonthList || []
                 });
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to save leave credit details');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave credit details saved successfully',
@@ -728,10 +661,8 @@ export const useSaveLeaveCreditDetails = () => {
         }
     });
 };
-
 export const useUpdateLeaveCreditDetails = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (detail: LeaveCreditDetail) => addOrUpdateLeaveCreditDetails(detail),
         onSuccess: (response) => {
@@ -743,10 +674,8 @@ export const useUpdateLeaveCreditDetails = () => {
         }
     });
 };
-
 export const useDeleteLeaveCreditDetails = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (id: number) => deleteLeaveCreditDetails(id),
         onSuccess: (response) => {
@@ -758,13 +687,11 @@ export const useDeleteLeaveCreditDetails = () => {
         }
     });
 };
-
 /**
  * Hook to fetch leave code
  */
 export const useLeaveCode = (leavecode: number, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveCode', leavecode],
@@ -774,11 +701,9 @@ export const useLeaveCode = (leavecode: number, enabled: boolean = true) => {
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave code');
                     }
-
                     // Extract leave code list from response
                     const data = response.data;
                     let codeList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         codeList = data.GridviewDetails;
                     } else if (data.leaveCodeList && Array.isArray(data.leaveCodeList)) {
@@ -790,7 +715,6 @@ export const useLeaveCode = (leavecode: number, enabled: boolean = true) => {
                     } else if (Array.isArray(data)) {
                         codeList = data;
                     }
-
                     return {
                         success: true,
                         data: codeList,
@@ -811,14 +735,12 @@ export const useLeaveCode = (leavecode: number, enabled: boolean = true) => {
         }
     };
 };
-
 /**
  * Hook to fetch departments for leave credit details based on selected employee types
  * This is typically called when employee types are selected to filter departments
  */
 export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'departments', request?.MI_Id, request?.emptypes],
@@ -828,20 +750,16 @@ export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?:
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         emptypes: request?.emptypes || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch departments');
                     }
-
                     // Extract and map department options from API response
                     const data = response.data;
-                    
                     // Map DepartmentTempDto to departmentOptions
                     const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
                         label: item.HRMD_DepartmentName || item.label || '',
                         value: String(item.HRMD_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check other possible locations
                     if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
                         const mapped = data.departmentdropdownlist.map((item: any) => ({
@@ -852,7 +770,6 @@ export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?:
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     // Check GridviewDetails as fallback
                     if (departmentOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         const mapped = data.GridviewDetails.map((item: any) => ({
@@ -863,7 +780,6 @@ export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?:
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -886,14 +802,12 @@ export const useLeaveCreditDepartments = (request?: { MI_Id?: number; emptypes?:
         }
     };
 };
-
 /**
  * Hook to fetch designations for leave credit details based on selected employee types
  * This is typically called when employee types are selected to filter designations
  */
 export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'designations', request?.MI_Id, request?.emptypes],
@@ -903,20 +817,16 @@ export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         emptypes: request?.emptypes || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch designations');
                     }
-
                     // Extract and map designation options from API response
                     const data = response.data;
-                    
                     // Map DesignationTempDto to designationOptions
                     const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
                         label: item.HRMDES_DesignationName || item.label || '',
                         value: String(item.HRMDES_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check designationarray
                     if (designationOptions.length === 0 && data.designationarray && Array.isArray(data.designationarray)) {
                         const mapped = data.designationarray.map((item: any) => ({
@@ -927,7 +837,6 @@ export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?
                             designationOptions.push(...mapped);
                         }
                     }
-
                     // Also check designationdropdownlist as fallback
                     if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
                         const mapped = data.designationdropdownlist.map((item: any) => ({
@@ -938,7 +847,6 @@ export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?
                             designationOptions.push(...mapped);
                         }
                     }
-
                     // Check GridviewDetails as fallback
                     if (designationOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         const mapped = data.GridviewDetails.map((item: any) => ({
@@ -949,7 +857,6 @@ export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?
                             designationOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -972,14 +879,12 @@ export const useLeaveCreditDesignations = (request?: { MI_Id?: number; emptypes?
         }
     };
 };
-
 /**
  * Hook to fetch grades for leave credit details based on selected employee types
  * This is typically called when employee types are selected to filter grades
  */
 export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'grades', request?.MI_Id, request?.emptypes],
@@ -989,20 +894,16 @@ export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         emptypes: request?.emptypes || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch grades');
                     }
-
                     // Extract and map grade options from API response
                     const data = response.data;
-                    
                     // Map GradeTempDto to gradeOptions
                     const gradeOptions = (data.GradeTempDto || []).map((item: any) => ({
                         label: item.HRMG_GradeName || item.HRMG_GradeDisplayName || item.label || '',
                         value: String(item.HRMG_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check gradeList
                     if (gradeOptions.length === 0 && data.gradeList && Array.isArray(data.gradeList)) {
                         const mapped = data.gradeList.map((item: any) => ({
@@ -1013,7 +914,6 @@ export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[
                             gradeOptions.push(...mapped);
                         }
                     }
-
                     // Check GridviewDetails as fallback
                     if (gradeOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         const mapped = data.GridviewDetails.map((item: any) => ({
@@ -1024,7 +924,6 @@ export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[
                             gradeOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -1047,14 +946,12 @@ export const useLeaveCreditGrades = (request?: { MI_Id?: number; emptypes?: any[
         }
     };
 };
-
 /**
  * Hook to fetch leave details credit month data
  * This is typically called when HRMLDCM_Id or HRMLDCM_LCMonthCode is provided
  */
 export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRMLDCM_LCMonthCode?: string }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCreditMonth', request?.HRMLDCM_Id, request?.HRMLDCM_LCMonthCode],
@@ -1064,17 +961,13 @@ export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRML
                         HRMLDCM_Id: request?.HRMLDCM_Id || 0,
                         HRMLDCM_LCMonthCode: request?.HRMLDCM_LCMonthCode || ''
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave details credit month');
                     }
-
                     // Extract leave details credit month list from API response
                     const data = response.data;
-                    
                     // Map leaveCM, GridviewDetails, creditMonthList, or leaveDetailsCreditMonthList to monthOptions
                     let monthList: any[] = [];
-                    
                     if (data.leaveCM && Array.isArray(data.leaveCM)) {
                         monthList = data.leaveCM;
                     } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
@@ -1086,7 +979,6 @@ export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRML
                     } else if (Array.isArray(data)) {
                         monthList = data;
                     }
-
                     // Map to month options format
                     const monthOptions = monthList.map((item: any) => ({
                         id: item.HRMLDCM_Id || item.id || 0,
@@ -1096,7 +988,6 @@ export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRML
                         HRMLD_Id: item.HRMLD_Id || item.leaveDetailId || 0,
                         HRML_Id: item.HRML_Id || item.leaveId || 0
                     })).filter((item: { id: number; monthCode: string }) => item.id && item.monthCode);
-
                     return {
                         success: true,
                         data: {
@@ -1120,14 +1011,12 @@ export const useLeaveDetailsCreditMonth = (request?: { HRMLDCM_Id?: number; HRML
         }
     };
 };
-
 /**
  * Hook to fetch leave details CF (Carry Forward) data
  * This is typically called when HRMLDCF_Id or HRMLDCF_MaxLeaveAplFlg is provided
  */
 export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLeaveAplFlg?: boolean }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCF', request?.HRMLDCF_Id, request?.HRMLDCF_MaxLeaveAplFlg],
@@ -1137,17 +1026,13 @@ export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLe
                         HRMLDCF_Id: request?.HRMLDCF_Id || 0,
                         HRMLDCF_MaxLeaveAplFlg: request?.HRMLDCF_MaxLeaveAplFlg ?? true
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave details CF');
                     }
-
                     // Extract leave details CF list from API response
                     const data = response.data;
-                    
                     // Map leaveCf, GridviewDetails, carryForwardList, or leaveDetailsCFList to cfOptions
                     let cfList: any[] = [];
-                    
                     if (data.leaveCf && Array.isArray(data.leaveCf)) {
                         cfList = data.leaveCf;
                     } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
@@ -1159,7 +1044,6 @@ export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLe
                     } else if (Array.isArray(data)) {
                         cfList = data;
                     }
-
                     // Map to carry forward options format
                     const cfOptions = cfList.map((item: any) => ({
                         id: item.HRMLDCF_Id || item.id || 0,
@@ -1170,7 +1054,6 @@ export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLe
                         monthId: item.monthId || item.id || 0,
                         monthName: item.monthName || ''
                     }));
-
                     return {
                         success: true,
                         data: {
@@ -1194,14 +1077,12 @@ export const useLeaveDetailsCF = (request?: { HRMLDCF_Id?: number; HRMLDCF_MaxLe
         }
     };
 };
-
 /**
  * Hook to fetch leave details CF Month (Carry Forward Month) data
  * This is typically called when HRMLDCFM_Id or HRMLDCFM_MonthId is provided
  */
 export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCFM_MonthId?: number }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsCFMonth', request?.HRMLDCFM_Id, request?.HRMLDCFM_MonthId],
@@ -1211,17 +1092,13 @@ export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCF
                         HRMLDCFM_Id: request?.HRMLDCFM_Id || 0,
                         HRMLDCFM_MonthId: request?.HRMLDCFM_MonthId || 0
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave details CF month');
                     }
-
                     // Extract leave details CF month list from API response
                     const data = response.data;
-                    
                     // Map leaveCf, GridviewDetails, carryForwardMonthList, or leaveDetailsCFMonthList to cfMonthOptions
                     let cfMonthList: any[] = [];
-                    
                     if (data.leaveCf && Array.isArray(data.leaveCf)) {
                         cfMonthList = data.leaveCf;
                     } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
@@ -1233,7 +1110,6 @@ export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCF
                     } else if (Array.isArray(data)) {
                         cfMonthList = data;
                     }
-
                     // Map to carry forward month options format
                     const cfMonthOptions = cfMonthList.map((item: any) => ({
                         id: item.HRMLDCFM_Id || item.id || 0,
@@ -1244,7 +1120,6 @@ export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCF
                         HRMLD_Id: item.HRMLD_Id || item.leaveDetailId || 0,
                         HRML_Id: item.HRML_Id || item.leaveId || 0
                     }));
-
                     return {
                         success: true,
                         data: {
@@ -1268,7 +1143,6 @@ export const useLeaveDetailsCFMonth = (request?: { HRMLDCFM_Id?: number; HRMLDCF
         }
     };
 };
-
 /**
  * Hook to fetch leave details EnCash (Encashment) data
  * This is typically called when encashment details are needed
@@ -1288,7 +1162,6 @@ export const useLeaveDetailsEnCash = (request?: {
     HRMLDEC_ScheduleMonth?: string;
 }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DETAILS, 'leaveDetailsEnCash', request?.HRMLDEC_Id, request?.HRMLDEC_ServiceAplFlg],
@@ -1308,17 +1181,13 @@ export const useLeaveDetailsEnCash = (request?: {
                         HRMLDEC_ScheduleYear: request?.HRMLDEC_ScheduleYear || '',
                         HRMLDEC_ScheduleMonth: request?.HRMLDEC_ScheduleMonth || ''
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave details encash');
                     }
-
                     // Extract leave details encash list from API response
                     const data = response.data;
-                    
                     // Map encashList, GridviewDetails, encashmentList, or leaveDetailsEnCashList to encashOptions
                     let encashList: any[] = [];
-                    
                     if (data.encashList && Array.isArray(data.encashList)) {
                         encashList = data.encashList;
                     } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
@@ -1330,7 +1199,6 @@ export const useLeaveDetailsEnCash = (request?: {
                     } else if (Array.isArray(data)) {
                         encashList = data;
                     }
-
                     // Map to encashment options format
                     const encashOptions = encashList.map((item: any) => ({
                         id: item.HRMLDEC_Id || item.id || 0,
@@ -1350,7 +1218,6 @@ export const useLeaveDetailsEnCash = (request?: {
                         variableFixedFlg: item.HRMLDEC_VariableFixedFlg ?? item.variableFixedFlg ?? false,
                         fixedAmount: item.HRMLDEC_FixedAmount || item.fixedAmount || 0
                     }));
-
                     return {
                         success: true,
                         data: {
@@ -1374,11 +1241,9 @@ export const useLeaveDetailsEnCash = (request?: {
         }
     };
 };
-
 // Leave Credit Deduction Hooks
 export const useLeaveCreditDeduction = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_DEDUCTION],
@@ -1392,10 +1257,8 @@ export const useLeaveCreditDeduction = () => {
         }
     };
 };
-
 export const useSaveLeaveCreditDeduction = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (deduction: LeaveCreditDeduction) => addOrUpdateLeaveCreditDeduction(deduction),
         onSuccess: (response) => {
@@ -1407,10 +1270,8 @@ export const useSaveLeaveCreditDeduction = () => {
         }
     });
 };
-
 export const useUpdateLeaveCreditDeduction = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (deduction: LeaveCreditDeduction) => addOrUpdateLeaveCreditDeduction(deduction),
         onSuccess: (response) => {
@@ -1422,10 +1283,8 @@ export const useUpdateLeaveCreditDeduction = () => {
         }
     });
 };
-
 export const useDeleteLeaveCreditDeduction = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (id: number) => deleteLeaveCreditDeduction(id),
         onSuccess: (response) => {
@@ -1437,11 +1296,9 @@ export const useDeleteLeaveCreditDeduction = () => {
         }
     });
 };
-
 // Leave Credit Addition Hooks
 export const useLeaveCreditAddition = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CREDIT_ADDITION],
@@ -1455,10 +1312,8 @@ export const useLeaveCreditAddition = () => {
         }
     };
 };
-
 export const useSaveLeaveCreditAddition = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (addition: LeaveCreditAddition) => addOrUpdateLeaveCreditAddition(addition),
         onSuccess: (response) => {
@@ -1470,10 +1325,8 @@ export const useSaveLeaveCreditAddition = () => {
         }
     });
 };
-
 export const useUpdateLeaveCreditAddition = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (addition: LeaveCreditAddition) => addOrUpdateLeaveCreditAddition(addition),
         onSuccess: (response) => {
@@ -1485,10 +1338,8 @@ export const useUpdateLeaveCreditAddition = () => {
         }
     });
 };
-
 export const useDeleteLeaveCreditAddition = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (id: number) => deleteLeaveCreditAddition(id),
         onSuccess: (response) => {
@@ -1500,11 +1351,9 @@ export const useDeleteLeaveCreditAddition = () => {
         }
     });
 };
-
 // Leave Carry Forward Hooks
 export const useLeaveCarryForward = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_CARRYFORWARD],
@@ -1518,10 +1367,8 @@ export const useLeaveCarryForward = () => {
         }
     };
 };
-
 export const useSaveLeaveCarryForward = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (carryForward: LeaveCarryForward) => addOrUpdateLeaveCarryForward(carryForward),
         onSuccess: (response) => {
@@ -1533,10 +1380,8 @@ export const useSaveLeaveCarryForward = () => {
         }
     });
 };
-
 export const useUpdateLeaveCarryForward = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (carryForward: LeaveCarryForward) => addOrUpdateLeaveCarryForward(carryForward),
         onSuccess: (response) => {
@@ -1548,10 +1393,8 @@ export const useUpdateLeaveCarryForward = () => {
         }
     });
 };
-
 export const useDeleteLeaveCarryForward = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (id: number) => deleteLeaveCarryForward(id),
         onSuccess: (response) => {
@@ -1563,11 +1406,9 @@ export const useDeleteLeaveCarryForward = () => {
         }
     });
 };
-
 // Comp Off Approval Hooks
 export const useCompOffApproval = () => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.COMP_OFF_APPROVAL],
@@ -1581,10 +1422,8 @@ export const useCompOffApproval = () => {
         }
     };
 };
-
 export const useUpdateCompOffApprovalStatus = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async ({ id, hrStatus, approverRemarks }: { id: number; hrStatus: 'Approved' | 'Rejected'; approverRemarks?: string }) =>
             updateCompOffApprovalStatus(id, hrStatus, approverRemarks),
@@ -1597,11 +1436,9 @@ export const useUpdateCompOffApprovalStatus = () => {
         }
     });
 };
-
 // Comp Off Request Hooks
 export const useCompOffRequest = (employeeId?: number) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.COMP_OFF_REQUEST, employeeId],
@@ -1615,10 +1452,8 @@ export const useCompOffRequest = (employeeId?: number) => {
         }
     };
 };
-
 export const useSubmitCompOffRequest = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (selectedIds: number[]) => submitCompOffRequest(selectedIds),
         onSuccess: (response) => {
@@ -1630,10 +1465,8 @@ export const useSubmitCompOffRequest = () => {
         }
     });
 };
-
 export const useCancelCompOffRequest = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (selectedIds: number[]) => cancelCompOffRequest(selectedIds),
         onSuccess: (response) => {
@@ -1645,11 +1478,9 @@ export const useCancelCompOffRequest = () => {
         }
     });
 };
-
 // Leave Transfer Hooks
 export const useLeaveTransferBasicData = (request?: { MI_Id?: number }) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'basicData', request?.MI_Id],
@@ -1658,44 +1489,36 @@ export const useLeaveTransferBasicData = (request?: { MI_Id?: number }) => {
                     const response = await getLeaveTransferBasicData({
                         MI_Id: request?.MI_Id || HRMS_MI_ID
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave transfer basic data');
                     }
-
                     // Extract and map dropdown options from API response
                     const data = response.data;
-                    
                     // Map GroupTypeTempDto to typeOptions
                     const typeOptions = (data.GroupTypeTempDto || []).map((item: any) => ({
                         label: item.HRMGT_EmployeeGroupType || item.label || '',
                         value: String(item.HRMGT_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Map DepartmentTempDto to departmentOptions
                     const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
                         label: item.HRMD_DepartmentName || item.label || '',
                         value: String(item.HRMD_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Map DesignationTempDto to designationOptions
                     const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
                         label: item.HRMDES_DesignationName || item.label || '',
                         value: String(item.HRMDES_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Map leavearrayyear to leaveYearOptions
                     const leaveYearOptions = (data.leavearrayyear || []).map((item: any) => ({
                         label: item.HRMLY_LeaveYear || item.label || '',
                         value: String(item.HRMLY_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Map master_eventlist to leaveNameOptions
                     const leaveNameOptions = (data.master_eventlist || []).map((item: any) => ({
                         label: item.HRML_LeaveName || item.label || '',
                         value: String(item.HRML_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     return {
                         success: true,
                         data: {
@@ -1720,14 +1543,12 @@ export const useLeaveTransferBasicData = (request?: { MI_Id?: number }) => {
         }
     };
 };
-
 /**
  * Hook to fetch leave OB (Outstanding Balance) data
  * This can be used to fetch employee leave balance data
  */
 export const useLeaveOB = (request?: { MI_Id?: number }) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'leaveOB', request?.MI_Id],
@@ -1736,17 +1557,13 @@ export const useLeaveOB = (request?: { MI_Id?: number }) => {
                     const response = await getLeaveOB({
                         MI_Id: request?.MI_Id || HRMS_MI_ID
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave OB data');
                     }
-
                     // Extract leave OB data from response
                     const data = response.data;
-                    
                     // The API might return list in GridviewDetails, leaveOBList, or other fields
                     let leaveOBList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         leaveOBList = data.GridviewDetails;
                     } else if (data.leaveOBList && Array.isArray(data.leaveOBList)) {
@@ -1758,7 +1575,6 @@ export const useLeaveOB = (request?: { MI_Id?: number }) => {
                     } else if (Array.isArray(data)) {
                         leaveOBList = data;
                     }
-
                     return {
                         success: true,
                         data: leaveOBList,
@@ -1778,14 +1594,12 @@ export const useLeaveOB = (request?: { MI_Id?: number }) => {
         }
     };
 };
-
 /**
  * Hook to fetch departments based on selected employee types
  * This is typically called when employee types are selected to filter departments
  */
 export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'departments', request?.MI_Id, request?.emptypes],
@@ -1795,20 +1609,16 @@ export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, e
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         emptypes: request?.emptypes || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch departments');
                     }
-
                     // Extract and map department options from API response
                     const data = response.data;
-                    
                     // Map DepartmentTempDto to departmentOptions
                     const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
                         label: item.HRMD_DepartmentName || item.label || '',
                         value: String(item.HRMD_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check other possible locations
                     if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
                         const mapped = data.departmentdropdownlist.map((item: any) => ({
@@ -1819,7 +1629,6 @@ export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, e
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -1842,14 +1651,12 @@ export const useDepartments = (request?: { MI_Id?: number; emptypes?: any[] }, e
         }
     };
 };
-
 /**
  * Hook to fetch designations based on selected employee types
  * This is typically called when employee types are selected to filter designations
  */
 export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_TRANSFER, 'designations', request?.MI_Id, request?.emptypes],
@@ -1859,20 +1666,16 @@ export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, 
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         emptypes: request?.emptypes || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch designations');
                     }
-
                     // Extract and map designation options from API response
                     const data = response.data;
-                    
                     // Map DesignationTempDto to designationOptions
                     const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
                         label: item.HRMDES_DesignationName || item.label || '',
                         value: String(item.HRMDES_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check designationarray
                     if (designationOptions.length === 0 && data.designationarray && Array.isArray(data.designationarray)) {
                         const mapped = data.designationarray.map((item: any) => ({
@@ -1883,7 +1686,6 @@ export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, 
                             designationOptions.push(...mapped);
                         }
                     }
-
                     // Also check designationdropdownlist as fallback
                     if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
                         const mapped = data.designationdropdownlist.map((item: any) => ({
@@ -1894,7 +1696,6 @@ export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, 
                             designationOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -1917,13 +1718,11 @@ export const useDesignations = (request?: { MI_Id?: number; emptypes?: any[] }, 
         }
     };
 };
-
 /**
  * Hook to save leave transfer details
  */
 export const useSaveLeaveTransferDetails = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (data: {
             MI_Id?: number;
@@ -1954,11 +1753,9 @@ export const useSaveLeaveTransferDetails = () => {
         }) => {
             try {
                 const response = await saveLeaveTransferDetails(data as any);
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to save leave transfer details');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave transfer details saved successfully'
@@ -1983,13 +1780,11 @@ export const useSaveLeaveTransferDetails = () => {
         }
     });
 };
-
 /**
  * Hook to process leave carry forward for Leave Transfer
  */
 export const useProcessLeaveTransferCarryForward = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (data: {
             MI_Id?: number;
@@ -2005,11 +1800,9 @@ export const useProcessLeaveTransferCarryForward = () => {
         }) => {
             try {
                 const response = await leaveCarryForward(data as any);
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to process leave carry forward');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave carry forward processed successfully'
@@ -2034,22 +1827,18 @@ export const useProcessLeaveTransferCarryForward = () => {
         }
     });
 };
-
 /**
  * Hook to delete leave transfer record
  */
 export const useDeleteLeaveTransfer = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (HRELS_Id: number) => {
             try {
                 const response = await deleteLeaveTransfer({ HRELS_Id });
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to delete leave transfer');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave transfer deleted successfully'
@@ -2074,7 +1863,6 @@ export const useDeleteLeaveTransfer = () => {
         }
     });
 };
-
 // Leave Opening Balance Hooks
 /**
  * Hook to fetch leave opening balance data
@@ -2082,7 +1870,6 @@ export const useDeleteLeaveTransfer = () => {
  */
 export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_OPENING_BALANCE, request?.MI_Id],
@@ -2091,17 +1878,13 @@ export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled: bo
                     const response = await getLeaveOpeningBalanceOB({
                         MI_Id: request?.MI_Id || HRMS_MI_ID
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave opening balance');
                     }
-
                     // Extract leave opening balance list from API response
                     const data = response.data;
-                    
                     // Map GridviewDetails, leaveOBList, openingBalanceList, or leaveOpeningBalanceList to obList
                     let obList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         obList = data.GridviewDetails;
                     } else if (data.leaveOBList && Array.isArray(data.leaveOBList)) {
@@ -2113,7 +1896,6 @@ export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled: bo
                     } else if (Array.isArray(data)) {
                         obList = data;
                     }
-
                     // Map to leave opening balance format
                     const openingBalanceList = obList.map((item: any) => ({
                         id: item.HREOBL_Id || item.id || 0,
@@ -2132,7 +1914,6 @@ export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled: bo
                         leaveYearId: item.HRMLY_Id || item.leaveYearId || 0,
                         leaveYear: item.HRMLY_LeaveYear || item.leaveYear || ''
                     }));
-
                     return {
                         success: true,
                         data: {
@@ -2155,14 +1936,12 @@ export const useLeaveOpeningBalance = (request?: { MI_Id?: number }, enabled: bo
         }
     };
 };
-
 /**
  * Hook to fetch departments for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetDepartments
  */
 export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_OPENING_BALANCE, 'departments', request?.MI_Id],
@@ -2171,20 +1950,16 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
                     const response = await getLeaveOpeningBalanceDepartments({
                         MI_Id: request?.MI_Id || HRMS_MI_ID
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch departments');
                     }
-
                     // Extract and map department options from API response
                     const data = response.data;
-                    
                     // Map DepartmentTempDto to departmentOptions
                     const departmentOptions = (data.DepartmentTempDto || []).map((item: any) => ({
                         label: item.HRMD_DepartmentName || item.label || '',
                         value: String(item.HRMD_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check other possible locations
                     if (departmentOptions.length === 0 && data.departmentdropdownlist && Array.isArray(data.departmentdropdownlist)) {
                         const mapped = data.departmentdropdownlist.map((item: any) => ({
@@ -2195,7 +1970,6 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     // Check GridviewDetails as fallback
                     if (departmentOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         const mapped = data.GridviewDetails.map((item: any) => ({
@@ -2206,7 +1980,6 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     // Check departmentList or departments as fallback
                     if (departmentOptions.length === 0 && data.departmentList && Array.isArray(data.departmentList)) {
                         const mapped = data.departmentList.map((item: any) => ({
@@ -2217,7 +1990,6 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     if (departmentOptions.length === 0 && data.departments && Array.isArray(data.departments)) {
                         const mapped = data.departments.map((item: any) => ({
                             label: item.HRMD_DepartmentName || item.label || item.name || '',
@@ -2227,7 +1999,6 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
                             departmentOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -2250,14 +2021,12 @@ export const useLeaveOpeningBalanceDepartments = (request?: { MI_Id?: number }, 
         }
     };
 };
-
 /**
  * Hook to fetch designations for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetDesignation
  */
 export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_OPENING_BALANCE, 'designations', request?.MI_Id],
@@ -2266,20 +2035,16 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
                     const response = await getLeaveOpeningBalanceDesignation({
                         MI_Id: request?.MI_Id || HRMS_MI_ID
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch designations');
                     }
-
                     // Extract and map designation options from API response
                     const data = response.data;
-                    
                     // Map DesignationTempDto to designationOptions
                     const designationOptions = (data.DesignationTempDto || []).map((item: any) => ({
                         label: item.HRMDES_DesignationName || item.label || '',
                         value: String(item.HRMDES_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     // Also check other possible locations
                     if (designationOptions.length === 0 && data.designationdropdownlist && Array.isArray(data.designationdropdownlist)) {
                         const mapped = data.designationdropdownlist.map((item: any) => ({
@@ -2290,7 +2055,6 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
                             designationOptions.push(...mapped);
                         }
                     }
-
                     // Check GridviewDetails as fallback
                     if (designationOptions.length === 0 && data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         const mapped = data.GridviewDetails.map((item: any) => ({
@@ -2301,7 +2065,6 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
                             designationOptions.push(...mapped);
                         }
                     }
-
                     // Check designationList or designations as fallback
                     if (designationOptions.length === 0 && data.designationList && Array.isArray(data.designationList)) {
                         const mapped = data.designationList.map((item: any) => ({
@@ -2312,7 +2075,6 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
                             designationOptions.push(...mapped);
                         }
                     }
-
                     if (designationOptions.length === 0 && data.designations && Array.isArray(data.designations)) {
                         const mapped = data.designations.map((item: any) => ({
                             label: item.HRMDES_DesignationName || item.label || item.name || '',
@@ -2322,7 +2084,6 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
                             designationOptions.push(...mapped);
                         }
                     }
-
                     return {
                         success: true,
                         data: {
@@ -2345,14 +2106,12 @@ export const useLeaveOpeningBalanceDesignation = (request?: { MI_Id?: number }, 
         }
     };
 };
-
 /**
  * Hook to fetch OB (Opening Balance) details
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetOBDetails
  */
 export const useOBDetails = (request?: { MI_Id?: number }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_OPENING_BALANCE, 'ob-details', request?.MI_Id],
@@ -2361,17 +2120,13 @@ export const useOBDetails = (request?: { MI_Id?: number }, enabled: boolean = tr
                     const response = await getOBDetails({
                         MI_Id: request?.MI_Id || HRMS_MI_ID
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch OB details');
                     }
-
                     // Extract OB details list from API response
                     const data = response.data;
-                    
                     // Map GridviewDetails, obDetailsList, openingBalanceDetailsList, or detailsList to obDetailsList
                     let obDetailsList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         obDetailsList = data.GridviewDetails;
                     } else if (data.obDetailsList && Array.isArray(data.obDetailsList)) {
@@ -2383,7 +2138,6 @@ export const useOBDetails = (request?: { MI_Id?: number }, enabled: boolean = tr
                     } else if (Array.isArray(data)) {
                         obDetailsList = data;
                     }
-
                     // Map to OB details format
                     const detailsList = obDetailsList.map((item: any) => ({
                         id: item.HREOBL_Id || item.id || 0,
@@ -2402,7 +2156,6 @@ export const useOBDetails = (request?: { MI_Id?: number }, enabled: boolean = tr
                         leaveYearId: item.HRMLY_Id || item.leaveYearId || 0,
                         leaveYear: item.HRMLY_LeaveYear || item.leaveYear || ''
                     }));
-
                     return {
                         success: true,
                         data: {
@@ -2425,14 +2178,12 @@ export const useOBDetails = (request?: { MI_Id?: number }, enabled: boolean = tr
         }
     };
 };
-
 /**
  * Hook to fetch employee opening balance data
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetEmployeOB
  */
 export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empdept?: any[]; empdesg?: any[] }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_OPENING_BALANCE, 'employee-ob', request?.MI_Id, request?.emptypes, request?.empdept, request?.empdesg],
@@ -2444,17 +2195,13 @@ export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empde
                         empdept: request?.empdept || [],
                         empdesg: request?.empdesg || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch employee OB');
                     }
-
                     // Extract employee OB list from API response
                     const data = response.data;
-                    
                     // Map GridviewDetails, employeeOBList, employeOBList, or employeeList to employeeOBList
                     let employeeOBList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         employeeOBList = data.GridviewDetails;
                     } else if (data.employeeOBList && Array.isArray(data.employeeOBList)) {
@@ -2466,7 +2213,6 @@ export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empde
                     } else if (Array.isArray(data)) {
                         employeeOBList = data;
                     }
-
                     // Map to employee OB format
                     const mappedEmployeeOBList = employeeOBList.map((item: any) => ({
                         id: item.HREOBL_Id || item.id || 0,
@@ -2486,24 +2232,20 @@ export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empde
                         leaveYearId: item.HRMLY_Id || item.leaveYearId || 0,
                         leaveYear: item.HRMLY_LeaveYear || item.leaveYear || ''
                     }));
-
                     // Also extract filter dropdowns if available
                     const dataAny = data as any;
                     const departmentOptions = (dataAny.DepartmentTempDto || []).map((item: any) => ({
                         label: item.HRMD_DepartmentName || item.label || '',
                         value: String(item.HRMD_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     const designationOptions = (dataAny.DesignationTempDto || []).map((item: any) => ({
                         label: item.HRMDES_DesignationName || item.label || '',
                         value: String(item.HRMDES_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     const groupTypeOptions = (dataAny.GroupTypeTempDto || []).map((item: any) => ({
                         label: item.HRMGT_EmployeeGroupType || item.label || '',
                         value: String(item.HRMGT_Id || item.value || '')
                     })).filter((item: { label: string; value: string }) => item.label && item.value);
-
                     return {
                         success: true,
                         data: {
@@ -2532,14 +2274,12 @@ export const useEmployeOB = (request?: { MI_Id?: number; emptypes?: any[]; empde
         }
     };
 };
-
 /**
  * Hook to save leave opening balance data
  * POST /api/LeaveOpeningBalanceWrapperFacade/Save
  */
 export const useSaveLeaveOpeningBalance = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (data: { MI_Id?: number; HRME_Id?: number; HRMLY_Id?: number; temp_table_data?: any[]; [key: string]: any }) => {
             try {
@@ -2550,11 +2290,9 @@ export const useSaveLeaveOpeningBalance = () => {
                     temp_table_data: data.temp_table_data || [],
                     ...data // Include any additional fields
                 });
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to save leave opening balance');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave opening balance saved successfully',
@@ -2579,23 +2317,19 @@ export const useSaveLeaveOpeningBalance = () => {
         }
     });
 };
-
 /**
  * Hook to delete leave opening balance record
  * POST /api/LeaveOpeningBalanceWrapperFacade/DeletePages
  */
 export const useDeleteLeaveOpeningBalance = () => {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (data: { HREOBL_Id: number }) => {
             try {
                 const response = await deleteLeaveOpeningBalance({ HREOBL_Id: data.HREOBL_Id || 0 });
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to delete leave opening balance');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave opening balance deleted successfully'
@@ -2619,14 +2353,12 @@ export const useDeleteLeaveOpeningBalance = () => {
         }
     });
 };
-
 /**
  * Hook to fetch page details for leave opening balance
  * POST /api/LeaveOpeningBalanceWrapperFacade/GetPageDetails
  */
 export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, enabled: boolean = true) => {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_OPENING_BALANCE, 'page-details', request?.Id],
@@ -2635,17 +2367,13 @@ export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, ena
                     const response = await getLeaveOpeningBalancePageDetails({
                         Id: request?.Id || 0
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch page details');
                     }
-
                     // Extract page details from API response
                     const data = response.data;
-                    
                     // Map pageDetails, details, data, or first item from GridviewDetails
                     let pageDetails: any = null;
-                    
                     if (data.pageDetails) {
                         pageDetails = data.pageDetails;
                     } else if (data.details) {
@@ -2655,7 +2383,6 @@ export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, ena
                     } else if (data.GridviewDetails && Array.isArray(data.GridviewDetails) && data.GridviewDetails.length > 0) {
                         pageDetails = data.GridviewDetails[0];
                     }
-
                     // Map to page details format
                     const mappedPageDetails = pageDetails ? {
                         id: pageDetails.HREOBL_Id || pageDetails.id || 0,
@@ -2675,7 +2402,6 @@ export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, ena
                         designationId: pageDetails.HRMDES_Id || pageDetails.designationId || 0,
                         designationName: pageDetails.HRMDES_DesignationName || pageDetails.designationName || ''
                     } : null;
-
                     return {
                         success: true,
                         data: {
@@ -2698,4 +2424,3 @@ export const useLeaveOpeningBalancePageDetails = (request?: { Id?: number }, ena
         }
     };
 };
-

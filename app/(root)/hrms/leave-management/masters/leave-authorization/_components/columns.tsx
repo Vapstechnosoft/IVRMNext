@@ -1,11 +1,9 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2, X } from 'lucide-react';
-
 export interface LeaveAuthorization extends BaseEntity {
     institution: string;
     gradeName: string;
@@ -17,12 +15,10 @@ export interface LeaveAuthorization extends BaseEntity {
     approvalPerson: string;
     finalFlag: boolean;
 }
-
 interface LeaveAuthorizationColumnsProps {
     onEdit: (row: LeaveAuthorization) => void;
     onDelete: (id: number) => void;
 }
-
 export const getLeaveAuthorizationColumns = ({ onEdit, onDelete }: LeaveAuthorizationColumnsProps): ColumnDef<LeaveAuthorization>[] => [
     {
         accessorKey: 'id',

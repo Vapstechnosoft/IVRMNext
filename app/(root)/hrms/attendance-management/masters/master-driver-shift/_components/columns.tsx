@@ -1,12 +1,10 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { useCallback } from 'react';
-
 export interface DriverShift {
     id: number;
     shift: string;
@@ -18,7 +16,6 @@ export interface DriverShift {
     sundayWorking: boolean;
     isActive?: boolean;
 }
-
 export const driverShiftColumns: ColumnDef<DriverShift>[] = [
     {
         id: 'sl',
@@ -127,24 +124,20 @@ export const driverShiftColumns: ColumnDef<DriverShift>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: DriverShift }) {
     const { openEditForm, openDeleteForm } = useFormContext<DriverShift>();
-
     const handleEdit = useCallback(
         (data: DriverShift) => {
             openEditForm(data);
         },
         [openEditForm]
     );
-
     const handleDelete = useCallback(
         (data: DriverShift) => {
             openDeleteForm(data);
         },
         [openDeleteForm]
     );
-
     return (
         <ActionButtons
             rowData={rowData}

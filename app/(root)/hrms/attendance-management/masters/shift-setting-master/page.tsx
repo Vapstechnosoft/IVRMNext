@@ -1,25 +1,21 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
 import type { ApiSearchparams } from '@/types';
 import type { ShiftSettingMasterReportListItem } from '@/types/hrms/attendance-management/shift-setting-master';
 import { Plus, X } from 'lucide-react';
 import { use, useMemo } from 'react';
+import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
 import AddShiftSettingMasterForm from './_components/add-form';
 import { type ShiftSetting, shiftSettingColumns } from './_components/columns';
 import DeleteShiftSettingMasterForm from './_components/delete-form';
 import UpdateShiftSettingMasterForm from './_components/update-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function ShiftSettingMasterPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
-
     // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
     const searchParams: ApiSearchparams = useMemo(
         () => ({
@@ -66,16 +62,13 @@ export default function ShiftSettingMasterPage(props: { searchParams: SearchPara
         }),
         [rawSearchParams]
     );
-
     const { data: response, isLoading, error } = useShiftSettingMaster(searchParams);
-
     return (
         <FormProvider<ShiftSetting>>
             <ShiftSettingMasterPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function ShiftSettingMasterPageContent({
     response,
     isLoading,
@@ -86,7 +79,6 @@ function ShiftSettingMasterPageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<ShiftSetting>();
-
     // Transform API response to ShiftSetting format
     const transformedData = useMemo(() => {
         if (!response?.data?.report_list) {
@@ -110,11 +102,9 @@ function ShiftSettingMasterPageContent({
             isActive: item.isActive ?? true
         })) as ShiftSetting[];
     }, [response]);
-
     // Create a response object that useDataTableProps expects
     const tableResponse = useMemo(() => {
         const total = response?.total || 0;
-
         return {
             data: transformedData,
             total: total,
@@ -122,9 +112,7 @@ function ShiftSettingMasterPageContent({
             message: response?.message || ''
         };
     }, [transformedData, response]);
-
     const tableProps = useDataTableProps(tableResponse);
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -139,7 +127,6 @@ function ShiftSettingMasterPageContent({
                         Add Shift Setting
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -160,14 +147,12 @@ function ShiftSettingMasterPageContent({
                         errorTitle='Error Loading Shift Settings'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -180,7 +165,6 @@ function FormSections() {
         addFormRef,
         editFormRef
     } = useFormContext<ShiftSetting>();
-
     return (
         <>
             {/* Add Form */}
@@ -206,7 +190,6 @@ function FormSections() {
                     </HRMSCollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -230,7 +213,6 @@ function FormSections() {
                     </HRMSCollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && <DeleteShiftSettingMasterForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>

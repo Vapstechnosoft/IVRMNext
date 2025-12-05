@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -10,7 +9,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type MonthlyTransaction, form3AColumns } from './_components/columns';
 import { type Form3AFilters, PFForm3AFilters } from './_components/filters';
-
 // Form 3A data structure (Individual Employee Account Card)
 interface Form3ARecord {
     id?: string;
@@ -27,7 +25,6 @@ interface Form3ARecord {
     year: string;
     employeeId?: number;
 }
-
 interface YearlyTotals {
     totalBasicSalary: number;
     totalPFEligibleSalary: number;
@@ -39,24 +36,19 @@ interface YearlyTotals {
     openingBalance: number;
     closingBalance: number;
 }
-
 export default function PFForm3APage() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm3AReportOnload(roleId);
     const _filterMutation = useFilterPFForm3AEmployeeData();
     const searchMutation = useSearchPFForm3AReport();
-
     // State
     const [selectedRecord, setSelectedRecord] = useState<Form3ARecord | null>(null);
     const [showForm, setShowForm] = useState(false);
-
     const [filters, setFilters] = useState<Form3AFilters>({
         year: '',
         employeeCode: ''
     });
-
     // Memoize dropdown data from API
     const years = useMemo(() => {
         const data = onloadData?.data;
@@ -64,7 +56,6 @@ export default function PFForm3APage() {
         const yearDropdown = (data as any).leaveyeardropdown || [];
         return yearDropdown.map((item: any) => item.HRMLY_LeaveYear || item.leaveYear || item).filter(Boolean);
     }, [onloadData?.data]);
-
     const employees = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
@@ -80,14 +71,12 @@ export default function PFForm3APage() {
                 pfNumber: emp.HRME_PFAccNo || emp.HRME_PFuAN || ''
             }));
     }, [onloadData?.data]);
-
     // Get institution details from API
     const institutionDetails = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return null;
         return (data as any).institutionDetails || null;
     }, [onloadData?.data]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -98,38 +87,32 @@ export default function PFForm3APage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     const handleFilterChange = (newFilters: Form3AFilters) => {
         setFilters(newFilters);
     };
-
     const handleGenerate = () => {
         if (!filters.year || !filters.employeeCode) {
             toast.error('Please select both year and employee');
             return;
         }
-
         // Find employee ID from selected employee code
         const selectedEmployee = employees.find((emp: any) => emp.code === filters.employeeCode);
         if (!selectedEmployee) {
             toast.error('Selected employee not found');
             return;
         }
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
             HRME_Id: selectedEmployee.id,
             HRES_Year: filters.year
         };
-
         // Call search API to get PF Form 3A data
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
                     // Extract PF Form 3A data from response
                     const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
-
                     if (Array.isArray(pfData) && pfData.length > 0) {
                         // Group data by month and calculate monthly transactions
                         const monthlyMap = new Map<string, any[]>();
@@ -140,16 +123,13 @@ export default function PFForm3APage() {
                             }
                             monthlyMap.get(month)!.push(item);
                         });
-
                         // Calculate opening balance (from previous year or first month)
                         const sortedMonths = Array.from(monthlyMap.keys()).sort();
                         const firstMonthData = monthlyMap.get(sortedMonths[0])?.[0];
                         const openingBalance = firstMonthData?.openingBalance || 0;
-
                         // Build monthly transactions
                         const monthlyTransactions: MonthlyTransaction[] = [];
                         let runningBalance = openingBalance;
-
                         sortedMonths.forEach((month) => {
                             const monthData = monthlyMap.get(month) || [];
                             const monthTotal = monthData.reduce(
@@ -176,12 +156,10 @@ export default function PFForm3APage() {
                                     withdrawalAmount: 0
                                 }
                             );
-
                             // Calculate interest (8.5% on running balance + contributions)
                             const monthlyInterest =
                                 ((runningBalance + monthTotal.employeeContribution + monthTotal.employerContribution) * 0.085) / 12;
                             monthTotal.interestEarned = monthTotal.interestEarned || monthlyInterest;
-
                             // Update running balance
                             runningBalance =
                                 runningBalance +
@@ -190,7 +168,6 @@ export default function PFForm3APage() {
                                 monthTotal.vpfContribution +
                                 monthTotal.interestEarned -
                                 monthTotal.withdrawalAmount;
-
                             monthlyTransactions.push({
                                 month: month,
                                 basicSalary: Math.round(monthTotal.basicSalary),
@@ -203,7 +180,6 @@ export default function PFForm3APage() {
                                 runningBalance: Math.round(runningBalance)
                             });
                         });
-
                         // Calculate yearly totals
                         const yearlyTotals: YearlyTotals = monthlyTransactions.reduce(
                             (acc, transaction) => ({
@@ -229,14 +205,12 @@ export default function PFForm3APage() {
                                 closingBalance: 0
                             }
                         );
-
                         // Get employee details from first record
                         const firstRecord = pfData[0];
                         const employeeName =
                             `${firstRecord.HRME_EmployeeFirstName || ''} ${firstRecord.HRME_EmployeeMiddleName || ''} ${firstRecord.HRME_EmployeeLastName || ''}`.trim() ||
                             firstRecord.EmployeeName ||
                             selectedEmployee.name;
-
                         const form3ARecord: Form3ARecord = {
                             id: `form3a-${selectedEmployee.id}-${filters.year}`,
                             employeeCode: firstRecord.HRME_EmployeeCode || firstRecord.EmployeeCode || selectedEmployee.code,
@@ -256,7 +230,6 @@ export default function PFForm3APage() {
                             year: filters.year,
                             employeeId: selectedEmployee.id
                         };
-
                         setSelectedRecord(form3ARecord);
                         setShowForm(true);
                         toast.success('PF Form 3A generated successfully');
@@ -271,12 +244,10 @@ export default function PFForm3APage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching PF Form 3A report:', error);
                 toast.error(error.message || 'Failed to generate PF Form 3A');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             year: '',
@@ -286,16 +257,13 @@ export default function PFForm3APage() {
         setShowForm(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('PF Form 3A exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -308,7 +276,6 @@ export default function PFForm3APage() {
                 isLoading={isLoadingOnload}
                 years={years}
             />
-
             {/* Form 3A Results */}
             {showForm && selectedRecord && (
                 <div className='space-y-4'>
@@ -332,7 +299,6 @@ export default function PFForm3APage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Employee Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -387,7 +353,6 @@ export default function PFForm3APage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Employee Details */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <Card>
@@ -428,7 +393,6 @@ export default function PFForm3APage() {
                                 </div>
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className='flex items-center gap-2 text-sm'>
@@ -474,7 +438,6 @@ export default function PFForm3APage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Monthly Transactions Table */}
                     <Card>
                         <CardHeader>
@@ -494,7 +457,6 @@ export default function PFForm3APage() {
                             />
                         </CardContent>
                     </Card>
-
                     {/* Official Form 3A Format */}
                     <div className='rounded-lg border bg-card p-8'>
                         <div className='space-y-6 text-center'>
@@ -503,7 +465,6 @@ export default function PFForm3APage() {
                                 <h2 className='font-semibold text-foreground text-lg'>FORM 3A - INDIVIDUAL ACCOUNT CARD</h2>
                                 <h3 className='font-medium text-base text-foreground'>Under the Employees' Provident Fund Scheme, 1952</h3>
                             </div>
-
                             <div className='mx-auto max-w-6xl space-y-4 text-left'>
                                 <div className='grid grid-cols-2 gap-8 text-sm'>
                                     <div className='space-y-2'>
@@ -545,10 +506,8 @@ export default function PFForm3APage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className='space-y-4 rounded-lg border p-4'>
                                     <h3 className='text-center font-semibold'>ANNUAL ACCOUNT SUMMARY - {filters.year}</h3>
-
                                     <div className='grid grid-cols-2 gap-8 text-sm'>
                                         <div className='space-y-2'>
                                             <h4 className='text-center font-semibold underline'>RECEIPTS</h4>
@@ -601,7 +560,6 @@ export default function PFForm3APage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className='space-y-2 text-sm'>
                                     <div>
                                         <strong>Certification:</strong>
@@ -612,7 +570,6 @@ export default function PFForm3APage() {
                                         with the provisions of the Employees' Provident Funds and Miscellaneous Provisions Act, 1952.
                                     </p>
                                 </div>
-
                                 <div className='flex justify-between pt-8'>
                                     <div className='text-sm'>
                                         <div className='font-semibold'>Prepared By</div>

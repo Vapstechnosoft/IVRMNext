@@ -1,9 +1,7 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface LeaveReportRow {
     slNo: number;
     employeeCode: string;
@@ -15,7 +13,6 @@ export interface LeaveReportRow {
     leaveStatus: 'Approved' | 'Pending' | 'Rejected';
     leaveBalance: number;
 }
-
 export const leaveReportColumns: ColumnDef<LeaveReportRow>[] = [
     {
         accessorKey: 'slNo',

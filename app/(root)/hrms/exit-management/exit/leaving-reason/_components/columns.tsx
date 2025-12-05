@@ -1,5 +1,4 @@
 'use client';
-
 export type LeavingReason = {
     id: string;
     company: string;

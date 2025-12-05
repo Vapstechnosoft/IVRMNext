@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
@@ -15,9 +14,7 @@ import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type EmployeeInOutReportFilters = z.infer<typeof employeeInOutReportFilterSchema>;
-
 interface EmployeeInOutReportFiltersProps {
     filters: EmployeeInOutReportFilters;
     branches: string[];
@@ -37,7 +34,6 @@ interface EmployeeInOutReportFiltersProps {
     isLoadingDesignations?: boolean;
     isLoadingEmployees?: boolean;
 }
-
 export function EmployeeInOutReportFilters({
     filters,
     branches: _branches,
@@ -67,17 +63,14 @@ export function EmployeeInOutReportFilters({
         defaultValues: filters,
         mode: 'onChange'
     });
-
     // Watch the allOrIndividual and query fields to reactively show/hide employee dropdown
     // Use watch to get the current form value, which updates immediately when changed
     const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
     const queryValue = watch('query') || filters.query || '';
-
     // Watch form values for MultiSelect defaultValue to prevent reset issues
     const typeValue = watch('type') || filters.type || [];
     const departmentValue = watch('department') || filters.department || [];
     const designationValue = watch('designation') || filters.designation || [];
-
     // Sync form when filters prop changes from parent
     useEffect(() => {
         setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
@@ -99,18 +92,15 @@ export function EmployeeInOutReportFilters({
         filters.toDate,
         filters.timeInTimeOut
     ]);
-
     const handleFilterChange = (key: keyof EmployeeInOutReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const onSubmit = (data: EmployeeInOutReportFilters) => {
         onFilterChange(data);
         onSearch();
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -204,7 +194,6 @@ export function EmployeeInOutReportFilters({
                         />
                         {errors.designation && <FormError>{errors.designation.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='allOrIndividual'>
                             All / Individual <span className='text-red-500'>*</span>
@@ -281,7 +270,6 @@ export function EmployeeInOutReportFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='md:col-span-3'>
                         <label className='font-medium text-sm' htmlFor='fromDate'>
                             From Date <span className='text-red-500'>*</span>

@@ -1,14 +1,11 @@
 'use client';
-
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useMemo } from 'react';
 import PayrollStandardForm from './_components/payroll-standard-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterPayrollStandardPage(_props: {
     searchParams: SearchParams;
 }) {
@@ -16,13 +13,10 @@ export default function MasterPayrollStandardPage(_props: {
     const { listQuery } = useMasterPayrollStandard(roleId);
     // Memoize array to prevent unnecessary re-renders
     const hrStandardList = useMemo(() => (listQuery.data?.hrStandardList || []) as any[], [listQuery.data?.hrStandardList]);
-
     // Get the first (and only) payroll standard record
     const existingData = hrStandardList[0];
-
     const isLoading = listQuery.isLoading;
     const error = listQuery.error;
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -33,7 +27,6 @@ export default function MasterPayrollStandardPage(_props: {
                         <span className='ml-2 text-muted-foreground'>Loading payroll configuration...</span>
                     </div>
                 )}
-
                 {/* Error State */}
                 {error && !isLoading && (
                     <div className='flex items-center justify-center py-12'>
@@ -44,7 +37,6 @@ export default function MasterPayrollStandardPage(_props: {
                         </div>
                     </div>
                 )}
-
                 {/* Form - Always Visible (No Table) */}
                 {!isLoading && !error && (
                     <CollapsibleSection

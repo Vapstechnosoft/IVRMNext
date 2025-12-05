@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -10,7 +9,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type Form5Record as Form5RecordColumn, form5Columns } from './_components/columns';
 import { type Form5Filters, PFForm5Filters } from './_components/filters';
-
 // Form 5 data structure (Register of Employees)
 interface Form5Record {
     id?: string;
@@ -34,7 +32,6 @@ interface Form5Record {
     month: string;
     year: string;
 }
-
 // Form 5 summary
 interface Form5Summary {
     totalEmployees: number;
@@ -45,45 +42,37 @@ interface Form5Summary {
     totalPFEligibleSalary: number;
     averageSalary: number;
 }
-
 export default function Form5Page() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFForm5ReportOnload(roleId);
     const _filterMutation = useFilterPFForm5EmployeeData();
     const searchMutation = useSearchPFForm5Report();
-
     // State
     const [form5Records, setForm5Records] = useState<Form5Record[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<Form5Record[]>([]);
     const [showForm, setShowForm] = useState(false);
-
     const [filters, setFilters] = useState<Form5Filters>({
         month: '',
         year: ''
     });
-
     // Memoize dropdown data from API
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     // Get institution details from API
     const institutionDetails = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return null;
         return (data as any).institutionDetails || null;
     }, [onloadData?.data]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -94,50 +83,40 @@ export default function Form5Page() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Filter Form 5 records based on selected month/year
     useEffect(() => {
         let filtered = form5Records;
-
         if (filters.month) {
             filtered = filtered.filter((record) => record.month === filters.month);
         }
-
         if (filters.year) {
             filtered = filtered.filter((record) => record.year === filters.year);
         }
-
         setFilteredRecords(filtered);
     }, [filters, form5Records]);
-
     const handleFilterChange = (newFilters: Form5Filters) => {
         setFilters(newFilters);
     };
-
     const handleGenerate = () => {
         if (!filters.month || !filters.year) {
             toast.error('Please select month and year');
             return;
         }
-
         // Find month name from selected month
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
             HRES_Month: monthName,
             HRES_Year: filters.year
         };
-
         // Call search API to get PF Form 5 data
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
                     // Extract PF Form 5 data from response
                     const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
-
                     if (Array.isArray(pfData) && pfData.length > 0) {
                         // Map API response to Form5Record format
                         const mappedRecords: Form5Record[] = pfData.map((item: any, index: number) => {
@@ -146,7 +125,6 @@ export default function Form5Page() {
                             const employeePFRate = 12; // 12% employee PF rate
                             const employerPFRate = 12; // 12% employer PF rate
                             const vpfRate = item.VPFAmount ? 5 : 0; // 5% VPF if VPF amount exists
-
                             // Determine status based on leaving date
                             let status: 'Active' | 'Left' | 'Resigned' | 'Terminated' = 'Active';
                             if (item.HRME_DOL || item.dateOfLeaving) {
@@ -160,7 +138,6 @@ export default function Form5Page() {
                                           : 'Left';
                                 }
                             }
-
                             return {
                                 id: `form5-${item.HRME_Id || item.HRES_Id || index}`,
                                 serialNo: index + 1,
@@ -191,7 +168,6 @@ export default function Form5Page() {
                                 year: filters.year
                             };
                         });
-
                         setForm5Records(mappedRecords);
                         setShowForm(true);
                         toast.success('Form 5 generated successfully');
@@ -206,12 +182,10 @@ export default function Form5Page() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching PF Form 5 report:', error);
                 toast.error(error.message || 'Failed to generate Form 5');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             month: '',
@@ -222,16 +196,13 @@ export default function Form5Page() {
         setShowForm(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Form 5 exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate Form 5 summary
     const form5Summary: Form5Summary = useMemo(() => {
         const activeEmployees = filteredRecords.filter((record) => record.status === 'Active').length;
@@ -242,7 +213,6 @@ export default function Form5Page() {
             const filterMonth = new Date(`${filters.month} 1, ${filters.year}`);
             return joiningDate.getMonth() === filterMonth.getMonth() && joiningDate.getFullYear() === filterMonth.getFullYear();
         }).length;
-
         return filteredRecords.reduce(
             (acc, record) => ({
                 totalEmployees: filteredRecords.length,
@@ -264,10 +234,8 @@ export default function Form5Page() {
             }
         );
     }, [filteredRecords, filters.month, filters.year]);
-
     // Calculate average salary
     form5Summary.averageSalary = filteredRecords.length > 0 ? Math.round(form5Summary.totalBasicSalary / filteredRecords.length) : 0;
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -280,7 +248,6 @@ export default function Form5Page() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Form 5 Results */}
             {showForm && (
                 <div className='space-y-4'>
@@ -304,7 +271,6 @@ export default function Form5Page() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Form 5 Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -346,7 +312,6 @@ export default function Form5Page() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Form 5 Statistics */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <Card>
@@ -375,7 +340,6 @@ export default function Form5Page() {
                                 </div>
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className='flex items-center gap-2 text-sm'>
@@ -405,7 +369,6 @@ export default function Form5Page() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoadingOnload}
@@ -415,7 +378,6 @@ export default function Form5Page() {
                         showViewOptions={true}
                         columnPinning={{ left: ['serialNo'] }}
                     />
-
                     {/* Official Form 5 Format */}
                     <div className='rounded-lg border bg-card p-8'>
                         <div className='space-y-6 text-center'>
@@ -424,7 +386,6 @@ export default function Form5Page() {
                                 <h2 className='font-semibold text-foreground text-lg'>FORM 5 - REGISTER OF EMPLOYEES</h2>
                                 <h3 className='font-medium text-base text-foreground'>Under the Employees' Provident Fund Scheme, 1952</h3>
                             </div>
-
                             <div className='mx-auto max-w-6xl space-y-4 text-left'>
                                 <div className='grid grid-cols-2 gap-8 text-sm'>
                                     <div className='space-y-2'>
@@ -458,10 +419,8 @@ export default function Form5Page() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className='space-y-4 rounded-lg border p-4'>
                                     <h3 className='text-center font-semibold'>EMPLOYEE REGISTER SUMMARY</h3>
-
                                     <div className='overflow-x-auto'>
                                         <table className='w-full border-collapse border border-gray-300 text-xs'>
                                             <thead>
@@ -500,14 +459,12 @@ export default function Form5Page() {
                                             </tbody>
                                         </table>
                                     </div>
-
                                     {filteredRecords.length > 10 && (
                                         <div className='text-center text-muted-foreground text-sm'>
                                             ... and {filteredRecords.length - 10} more employees
                                         </div>
                                     )}
                                 </div>
-
                                 <div className='space-y-2 text-sm'>
                                     <div>
                                         <strong>Important Information:</strong>
@@ -525,7 +482,6 @@ export default function Form5Page() {
                                         <li>This register should be maintained and updated regularly as per EPFO guidelines.</li>
                                     </ul>
                                 </div>
-
                                 <div className='flex justify-between pt-8'>
                                     <div className='text-sm'>
                                         <div className='font-semibold'>Prepared By</div>

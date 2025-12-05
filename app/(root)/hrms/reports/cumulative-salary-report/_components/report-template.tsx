@@ -1,9 +1,7 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Download, Printer, X } from 'lucide-react';
 import type { CumulativeSalaryRecord } from './columns';
-
 interface ReportTemplateProps {
     schoolName?: string;
     schoolAddress?: string;
@@ -30,7 +28,6 @@ interface ReportTemplateProps {
     onExport: () => void;
     onCancel: () => void;
 }
-
 export function CumulativeSalaryReportTemplate({
     schoolName = '',
     schoolAddress = '',
@@ -47,11 +44,9 @@ export function CumulativeSalaryReportTemplate({
     const formatCurrency = (value: number) => {
         return value.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     };
-
     // Get month name in uppercase
     const monthName = month ? month.toUpperCase() : '';
     const yearValue = year || '';
-
     return (
         <div className='mx-auto w-full max-w-[1400px] bg-white p-6 print:p-4'>
             {/* Report Header */}
@@ -63,7 +58,6 @@ export function CumulativeSalaryReportTemplate({
                     CUMULATIVE SALARY REPORT FOR THE MONTH OF {monthName} - {yearValue}
                 </div>
             </div>
-
             {/* Report Table */}
             <div className='mb-6 overflow-x-auto'>
                 <table className='w-full border-collapse border border-gray-300 text-sm'>
@@ -130,7 +124,6 @@ export function CumulativeSalaryReportTemplate({
                                     record.HRME_EmployeeMiddleName || ''
                                 } ${record.HRME_EmployeeLastName || ''}`.trim();
                                 const designation = record.HRMDES_DesignationName || record.designation || '';
-
                                 return (
                                     <tr key={record.HRME_Id || index} className='hover:bg-gray-50'>
                                         <td className='border border-gray-300 px-2 py-2 text-center'>{index + 1}</td>
@@ -199,7 +192,6 @@ export function CumulativeSalaryReportTemplate({
                     </tbody>
                 </table>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
                 <Button variant='outline' onClick={onPrint} prefix={<Printer className='size-4' />}>

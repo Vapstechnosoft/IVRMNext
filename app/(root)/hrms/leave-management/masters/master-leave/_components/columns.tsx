@@ -1,11 +1,9 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Check, Edit, Trash2, X } from 'lucide-react';
-
 export interface MasterLeave extends BaseEntity {
     leaveName: string;
     leaveCode: string;
@@ -20,15 +18,12 @@ export interface MasterLeave extends BaseEntity {
     leaveOrder: number;
     isActive: boolean;
 }
-
 export type Leave = MasterLeave;
-
 interface MasterLeaveColumnsProps {
     onEdit: (row: MasterLeave) => void;
     onDelete: (id: number) => void;
     onToggleStatus: (row: MasterLeave) => void;
 }
-
 export const getMasterLeaveColumns = ({ onEdit, onDelete, onToggleStatus }: MasterLeaveColumnsProps): ColumnDef<MasterLeave>[] => [
     {
         accessorKey: 'leaveName',

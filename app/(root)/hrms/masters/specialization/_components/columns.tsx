@@ -1,16 +1,11 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterSpecialization } from '@/hooks/hrms/useMasters';
-import type { MasterSpecializationResponse, SpecializationItem } from '@/types/hrms/master-specialization';
+import type { IMasterSpecializationList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
-
-export const columns: ColumnDef<SpecializationItem>[] = [
+export const columns: ColumnDef<IMasterSpecializationList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
@@ -24,7 +19,7 @@ export const columns: ColumnDef<SpecializationItem>[] = [
         size: 60
     },
     {
-        accessorKey: 'HRMSPL_SpecialisationName',
+        accessorKey: 'hrmspL_SpecialisationName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Specialization' />
     },
     {
@@ -34,38 +29,21 @@ export const columns: ColumnDef<SpecializationItem>[] = [
         enableSorting: false
     }
 ];
-
-function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
-    const { openEditForm } = useFormContext<MasterSpecializationResponse>();
-    const { toggleMutation } = useMasterSpecialization(HRMS_MI_ID);
+function ActionButtonsCell({ rowData }: { rowData: IMasterSpecializationList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterSpecializationList>();
 
     const handleEdit = useCallback(
-        (data: SpecializationItem) => {
+        (data: IMasterSpecializationList) => {
             openEditForm(data as any);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        async (data: SpecializationItem, newState: boolean) => {
-            try {
-                const res = await toggleMutation.mutateAsync({
-                    HRMSPL_Id: data.HRMSPL_Id,
-                    HRMSPL_ActiveFlg: newState,
-                    MI_Id: HRMS_MI_ID
-                });
-                if (res?.success) {
-                    toast.success(res?.message || `Specialization ${newState ? 'activated' : 'deactivated'} successfully`);
-                } else {
-                    toast.error(res?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`);
-                }
-            } catch (error: any) {
-                const errorMessage =
-                    error?.response?.data?.message || error?.message || `Failed to ${newState ? 'activate' : 'deactivate'} specialization`;
-                toast.error(errorMessage);
-            }
+        (data: IMasterSpecializationList) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
 
     return (
@@ -74,7 +52,7 @@ function ActionButtonsCell({ rowData }: { rowData: SpecializationItem }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='HRMSPL_ActiveFlg'
+            toggleConditionKey='hrmspL_ActiveFlg'
         />
     );
 }

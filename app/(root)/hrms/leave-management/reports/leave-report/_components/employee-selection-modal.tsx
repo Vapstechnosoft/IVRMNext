@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
@@ -7,7 +6,6 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-
 export interface Employee {
     id: number;
     employeeCode: string;
@@ -15,7 +13,6 @@ export interface Employee {
     designation?: string;
     department?: string;
 }
-
 interface EmployeeSelectionModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -24,7 +21,6 @@ interface EmployeeSelectionModalProps {
     onSelect: (employeeIds: number[]) => void;
     isLoading?: boolean;
 }
-
 export function EmployeeSelectionModal({
     isOpen,
     onClose,
@@ -35,12 +31,10 @@ export function EmployeeSelectionModal({
 }: EmployeeSelectionModalProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [localSelectedIds, setLocalSelectedIds] = useState<number[]>(selectedEmployeeIds);
-
     // Sync local state with prop
     useEffect(() => {
         setLocalSelectedIds(selectedEmployeeIds);
     }, [selectedEmployeeIds, isOpen]);
-
     // Filter employees based on search query
     const filteredEmployees = employees.filter((emp) => {
         const query = searchQuery.toLowerCase();
@@ -51,7 +45,6 @@ export function EmployeeSelectionModal({
             emp.department?.toLowerCase().includes(query)
         );
     });
-
     const handleToggleEmployee = (employeeId: number) => {
         setLocalSelectedIds((prev) => {
             if (prev.includes(employeeId)) {
@@ -60,7 +53,6 @@ export function EmployeeSelectionModal({
             return [...prev, employeeId];
         });
     };
-
     const handleSelectAll = () => {
         if (localSelectedIds.length === filteredEmployees.length) {
             setLocalSelectedIds([]);
@@ -68,15 +60,12 @@ export function EmployeeSelectionModal({
             setLocalSelectedIds(filteredEmployees.map((emp) => emp.id));
         }
     };
-
     const handleSubmit = () => {
         onSelect(localSelectedIds);
         onClose();
     };
-
     const isAllSelected = filteredEmployees.length > 0 && localSelectedIds.length === filteredEmployees.length;
     const isIndeterminate = localSelectedIds.length > 0 && localSelectedIds.length < filteredEmployees.length;
-
     return (
         <AdaptiveDialog
             isOpen={isOpen}
@@ -108,7 +97,6 @@ export function EmployeeSelectionModal({
                             className='w-full'
                         />
                     </div>
-
                     {isLoading ? (
                         <div className='flex flex-col items-center justify-center py-8 text-center'>
                             <div className='mb-2 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
@@ -160,7 +148,6 @@ export function EmployeeSelectionModal({
                     )}
                 </div>
             </AdaptiveBody>
-
             <AdaptiveFooter className='flex w-full justify-end gap-4'>
                 <Button variant='outline' className='w-fit' onClick={onClose}>
                     Cancel

@@ -1,25 +1,20 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface MasterJob {
     id: number;
     jobCode: string;
     jobTitle: string;
     jobLocation: string;
     isActive: boolean;
-
     createdAt: string;
 }
-
 interface MasterJobColumnsProps {
     onEdit: (row: MasterJob) => void;
     onDelete: (row: MasterJob) => void;
 }
-
 export const getMasterJobColumns = ({ onEdit, onDelete }: MasterJobColumnsProps): ColumnDef<MasterJob>[] => [
     {
         id: 'sl',

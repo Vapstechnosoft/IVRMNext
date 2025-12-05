@@ -1,9 +1,7 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Printer, X } from 'lucide-react';
-
 interface MemberLeavingService {
     serialNo: number;
     accountNo: string;
@@ -13,7 +11,6 @@ interface MemberLeavingService {
     reasonForLeaving: string;
     remarks: string;
 }
-
 interface PFForm10TemplateProps {
     establishmentName?: string;
     establishmentCode?: string;
@@ -25,7 +22,6 @@ interface PFForm10TemplateProps {
     onPrint: () => void;
     onCancel: () => void;
 }
-
 export function PFForm10Template({
     establishmentName = '',
     establishmentCode = '',
@@ -46,28 +42,24 @@ export function PFForm10Template({
             return dateString;
         }
     };
-
     return (
         <div className='mx-auto w-full max-w-[1200px] bg-white p-6 print:p-4'>
             {/* Main Title */}
             <div className='mb-6 text-center'>
                 <h1 className='mb-4 font-bold text-2xl text-gray-900 uppercase'>PF FORM 10</h1>
             </div>
-
             {/* Scheme Information */}
             <div className='mb-6 space-y-2 text-center text-sm'>
                 <p className='font-semibold text-gray-800'>THE EMPLOYEES' PROVIDENT FUND SCHEME, 1952[ PARAGRAPH 36 (2) (A)]</p>
                 <p className='font-semibold text-gray-800'>AND</p>
                 <p className='font-semibold text-gray-800'>THE EMPLOYEES' PENSION FUND SCHEME, 1995[ PARA 20 (4)]</p>
             </div>
-
             {/* Return Title */}
             <div className='mb-6 text-center'>
                 <p className='font-semibold text-base text-gray-800'>
                     Return of Members Leaving Service during the month of {month} - {year}
                 </p>
             </div>
-
             {/* Establishment Details */}
             <div className='mb-6 space-y-3 text-sm'>
                 <div>
@@ -84,7 +76,6 @@ export function PFForm10Template({
                     <span className='text-gray-900'>{establishmentAddress || '-'}</span>
                 </div>
             </div>
-
             {/* Members Leaving Service Table */}
             <div className='mb-6 overflow-x-auto'>
                 <table className='w-full border-collapse border border-gray-300 text-xs'>
@@ -142,20 +133,17 @@ export function PFForm10Template({
                     </tbody>
                 </table>
             </div>
-
             {/* Instructions and Certifications Section */}
             <div className='mb-6 space-y-4 text-xs'>
                 <div>
                     <span className='font-medium text-gray-700'>Date: </span>
                     <div className='mt-1 inline-block h-6 w-32 border border-gray-300 bg-white' />
                 </div>
-
                 <div className='space-y-3 text-justify text-gray-800 leading-relaxed'>
                     <p>
                         The reasons for leaving service may be stated as under: (i) Retiring, (ii) Leaving India, (iii) Retrenched, (iv)
                         Dismissed, (v) Discharged, (vi) Resigning, (vii) Taking up employment elsewhere, (viii) Dead.
                     </p>
-
                     <div className='space-y-2'>
                         <p>
                             (1) In case of deduction from the accounts of members dismissed for misconduct, the following certificate should
@@ -169,7 +157,6 @@ export function PFForm10Template({
                                 order of dismissal is enclosed.
                             </p>
                         </div>
-
                         <p>(2) In case of discharge from service, the following certificate should be filled in:</p>
                         <div className='ml-4 space-y-1'>
                             <p>
@@ -179,13 +166,11 @@ export function PFForm10Template({
                             </p>
                         </div>
                     </div>
-
                     <p>
                         I certify that the difference in contribution, if any, is due to rounding off of the contribution to the nearest
                         rupee.
                     </p>
                 </div>
-
                 {/* Signature Section */}
                 <div className='mt-8'>
                     <div className='mb-2'>
@@ -193,7 +178,6 @@ export function PFForm10Template({
                     </div>
                     <div className='h-16 w-full border border-gray-300 bg-white' />
                 </div>
-
                 {/* Note */}
                 <div className='mt-4 rounded-md border border-gray-300 bg-gray-50 p-3'>
                     <p className='font-semibold text-gray-900'>Note:</p>
@@ -203,7 +187,6 @@ export function PFForm10Template({
                     </p>
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-3 print:hidden'>
                 <Button variant='outline' onClick={onCancel} prefix={<X className='size-4' />}>

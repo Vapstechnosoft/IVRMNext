@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
@@ -14,44 +13,34 @@ import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-m
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-
 type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> & {
     selectDay: boolean;
     department: string;
     isActive: boolean;
 };
-
 interface AddMasterHolidayFormProps {
     onSuccess?: () => void;
     className?: string;
     dropdownData?: MasterHolidayGetDataResponseData;
 }
-
 export default function AddMasterHolidayForm({ onSuccess, className = '', dropdownData }: AddMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
     const { mutate: saveMasterHoliday, isPending } = useSaveMasterHoliday();
-
-    // Debug: Log dropdown data structure
-    React.useEffect(() => {}, [dropdownData]);
-
     // Extract dropdown data from API response
     // API field names are uppercase: HRMLY_LeaveYear, HRMD_DepartmentName, FOHTWD_HolidayWDType, FOMD_DayCode, FOMD_DayName
     const calendarYears = useMemo(() => {
         if (!dropdownData?.yeardropdown) {
-            console.warn('⚠️ [ADD FORM] No yeardropdown in dropdownData');
             return [];
         }
         const years = dropdownData.yeardropdown.map((year: any) => year.HRMLY_LeaveYear || year.hrmlY_LeaveYear || '').filter(Boolean);
         return years;
     }, [dropdownData?.yeardropdown]);
-
     const departments = useMemo(() => {
         if (!dropdownData?.departmentType) {
-            console.warn('⚠️ [ADD FORM] No departmentType in dropdownData');
             return [];
         }
         const depts = dropdownData.departmentType
@@ -59,10 +48,8 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
             .filter(Boolean);
         return depts;
     }, [dropdownData?.departmentType]);
-
     const holidayTypes = useMemo(() => {
         if (!dropdownData?.holidayType) {
-            console.warn('⚠️ [ADD FORM] No holidayType in dropdownData');
             return [];
         }
         const types = dropdownData.holidayType
@@ -70,10 +57,8 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
             .filter(Boolean);
         return types;
     }, [dropdownData?.holidayType]);
-
     const weekDays = useMemo(() => {
         if (!dropdownData?.dayslist) {
-            console.warn('⚠️ [ADD FORM] No dayslist in dropdownData');
             return [];
         }
         const days = dropdownData.dayslist
@@ -84,7 +69,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
             .filter((day: { value: string; label: string }) => day.value && day.label);
         return days;
     }, [dropdownData?.dayslist]);
-
     const {
         register,
         handleSubmit,
@@ -109,51 +93,41 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
             remarks: ''
         }
     });
-
     const calendarYear = watch('calendarYear');
     const department = watch('department');
     const holidayType = watch('holidayType');
     const selectDay = watch('selectDay');
     const selectedDays = watch('selectedDays');
     const fromDate = watch('fromDate');
-
     const handleDayToggle = (day: string) => {
         const currentDays = selectedDays || [];
         const newDays = currentDays.includes(day) ? currentDays.filter((d) => d !== day) : [...currentDays, day];
         setValue('selectedDays', newDays);
     };
-
     const onSubmit: SubmitHandler<MasterHolidayForm> = async (data) => {
         try {
             // Date validation - only for PUBLIC HOLIDAY and WEEK END
             // WEEK DAY doesn't require dates, so skip validation for it
             const requiresDates = data.holidayType === 'PUBLIC HOLIDAY' || data.holidayType === 'WEEK END';
             const isWeekDay = data.holidayType === 'WEEK DAY';
-
             // For WEEK DAY, validate that at least one day is selected and department is provided
             if (isWeekDay) {
                 if (!data.selectedDays || data.selectedDays.length === 0) {
-                    console.error('❌ [CLIENT] Validation failed: No days selected for WEEK DAY');
                     toast.error('At least one day must be selected for WEEK DAY holiday type');
                     return;
                 }
-
                 if (!data.department || data.department.trim() === '') {
-                    console.error('❌ [CLIENT] Validation failed: Department required for WEEK DAY');
                     toast.error('Department is required for WEEK DAY holiday type');
                     return;
                 }
             }
-
             if (requiresDates && data.fromDate) {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 today.setMinutes(0, 0, 0);
-
                 // Parse date string with explicit time to avoid timezone issues
                 const fromDateStr = data.fromDate.includes('T') ? data.fromDate : `${data.fromDate}T00:00:00`;
                 const toDateStr = data.toDate?.includes('T') ? data.toDate : data.toDate ? `${data.toDate}T00:00:00` : null;
-
                 const fromDateObj = new Date(fromDateStr);
                 fromDateObj.setHours(0, 0, 0, 0);
                 const toDateObj = toDateStr ? new Date(toDateStr) : null;
@@ -161,7 +135,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                     toDateObj.setHours(0, 0, 0, 0);
                 }
                 const selectedYear = Number.parseInt(data.calendarYear);
-
                 if (fromDateObj < today) {
                     console.error('❌ [CLIENT] Validation failed: Start date is in the past', {
                         fromDate: fromDateObj.toISOString(),
@@ -174,13 +147,10 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                     toast.error('Start date cannot be in the past');
                     return;
                 }
-
                 if (toDateObj && toDateObj < fromDateObj) {
-                    console.error('❌ [CLIENT] Validation failed: End date is before start date');
                     toast.error('End date must be after start date');
                     return;
                 }
-
                 if (fromDateObj.getFullYear() !== selectedYear || (toDateObj && toDateObj.getFullYear() !== selectedYear)) {
                     console.error('❌ [CLIENT] Validation failed: Dates not in selected year', {
                         fromDateYear: fromDateObj.getFullYear(),
@@ -191,18 +161,14 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                     return;
                 }
             } else if (requiresDates && !data.fromDate) {
-                console.error('❌ [CLIENT] Validation failed: Date required for this holiday type');
                 toast.error('Start date is required for this holiday type');
                 return;
             }
-
             // Check if dropdown data is available
             if (!dropdownData) {
-                console.error('❌ [CLIENT] Dropdown data not available');
                 toast.error('Dropdown data not loaded. Please wait and try again.');
                 return;
             }
-
             const submitData = {
                 calendarYear: data.calendarYear,
                 department: data.department,
@@ -214,7 +180,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                 toDate: requiresDates ? data.toDate || '' : '', // Only include dates if required
                 isActive: data.isActive
             };
-
             saveMasterHoliday(
                 {
                     data: submitData,
@@ -224,17 +189,13 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                     onSuccess: (response) => {
                         // Check if mutation hook already handled success/error
                         const isSuccess = response?.success === true;
-
                         if (isSuccess) {
                             reset();
                             refetchAll();
                             onSuccess?.();
-                        } else {
                         }
                     },
                     onError: (error) => {
-                        console.error('🔴 ========== FORM onError CALLBACK ==========');
-                        console.error('❌ [CLIENT] Form onError callback called');
                         console.error('💥 [CLIENT] Error in form callback:', {
                             message: error?.message,
                             error: error,
@@ -243,25 +204,20 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                         });
                         console.error('💥 [CLIENT] Full error in form:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
                         // Don't show toast here as mutation hook should handle it
-                        console.error('🔴 ========== END FORM onError CALLBACK ==========');
                     }
                 }
             );
         } catch (error: any) {
-            console.error('Form submission error:', error);
             toast.error(error.message || 'An error occurred while submitting the form');
         }
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form
                 onSubmit={handleSubmit(onSubmit, (errors) => {
-                    console.error('Form validation errors:', errors);
                     const firstError = Object.values(errors)[0];
                     if (firstError?.message) {
                         toast.error(firstError.message);
@@ -304,7 +260,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             )}
                             {errors.calendarYear && <FormError>{errors.calendarYear.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='department'>
                                 Department <span className='text-red-500'>*</span>
@@ -337,7 +292,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             )}
                             {errors.department && <FormError>{errors.department.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='holidayType'>
                                 Holiday Type <span className='text-red-500'>*</span>
@@ -371,14 +325,12 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             {errors.holidayType && <FormError>{errors.holidayType.message}</FormError>}
                         </div>
                     </div>
-
                     <div className='flex items-center space-y-2'>
                         <Checkbox id='selectDay' checked={selectDay} onCheckedChange={(checked) => setValue('selectDay', !!checked)} />
                         <label htmlFor='selectDay' className='ml-2 font-medium text-foreground text-sm'>
                             Select Day
                         </label>
                     </div>
-
                     {selectDay && (
                         <div className='space-y-2'>
                             <span className='font-medium text-sm'>Select Days:</span>
@@ -397,7 +349,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             </div>
                         </div>
                     )}
-
                     {(holidayType === 'PUBLIC HOLIDAY' || holidayType === 'WEEK END') && (
                         <>
                             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
@@ -412,7 +363,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                                             const selectedDate = field.value ? new Date(field.value) : undefined;
                                             const minDate = new Date();
                                             minDate.setHours(0, 0, 0, 0);
-
                                             return (
                                                 <Popover>
                                                     <PopoverTrigger asChild>
@@ -448,7 +398,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                                     />
                                     {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                                 </div>
-
                                 <div className='space-y-2'>
                                     <label className='font-medium text-sm' htmlFor='toDate'>
                                         End Date <span className='text-red-500'>*</span>
@@ -460,7 +409,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                                             const selectedDate = field.value ? new Date(field.value) : undefined;
                                             const minDate = fromDate ? new Date(fromDate) : new Date();
                                             minDate.setHours(0, 0, 0, 0);
-
                                             return (
                                                 <Popover>
                                                     <PopoverTrigger asChild>
@@ -497,7 +445,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                                     {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                                 </div>
                             </div>
-
                             <div className='grid grid-cols-1 gap-4'>
                                 <InputText
                                     label='Holiday Name'
@@ -509,7 +456,6 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                                     maxLength={100}
                                 />
                             </div>
-
                             <div className='space-y-2'>
                                 <label className='font-medium text-sm' htmlFor='remarks'>
                                     Remarks
@@ -526,10 +472,8 @@ export default function AddMasterHolidayForm({ onSuccess, className = '', dropdo
                             </div>
                         </>
                     )}
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

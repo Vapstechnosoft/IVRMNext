@@ -1,17 +1,14 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface EmployeeAbsentReportRow extends BaseEntity {
     employeeCode: string;
     employeeName: string;
     designation: string;
     totalAbsent: number;
 }
-
 export const employeeAbsentReportColumns: ColumnDef<EmployeeAbsentReportRow>[] = [
     {
         id: 'select',

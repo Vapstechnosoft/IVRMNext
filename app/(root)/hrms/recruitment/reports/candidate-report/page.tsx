@@ -1,14 +1,11 @@
 'use client';
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { useSession } from 'next-auth/react';
 import { use, useEffect, useState } from 'react';
 import CandidateReportForm from './_components/report-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 interface Candidate {
     id: number;
     firstName: string;
@@ -23,30 +20,25 @@ interface Candidate {
     expectedCTC?: string;
     resumeCV?: string;
 }
-
 export default function CandidateReportPage(props: {
     searchParams: SearchParams;
 }) {
     const _searchParams = use(props.searchParams);
     const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-
     const handleGenerateReport = async (_filters: { institution: string; candidateId: string }) => {
         setIsLoading(true);
         try {
             // TODO: Replace with actual API call
             // const response = await getCandidateReport(filters);
             // setSelectedCandidate(response.data);
-
             // Mock data for now
             setSelectedCandidate(null);
-        } catch (error: any) {
-            console.error('Failed to generate report:', error);
+        } catch (_error: any) {
         } finally {
             setIsLoading(false);
         }
     };
-
     return (
         <FormProvider<any>>
             <CandidateReportPageContent
@@ -57,7 +49,6 @@ export default function CandidateReportPage(props: {
         </FormProvider>
     );
 }
-
 function CandidateReportPageContent({
     selectedCandidate,
     isLoading,
@@ -68,13 +59,11 @@ function CandidateReportPageContent({
     onGenerateReport: (filters: { institution: string; candidateId: string }) => void;
 }) {
     const session = useSession();
-
     useEffect(() => {
         if (session?.data?.role === undefined) {
             window.location.reload();
         }
     }, [session?.data?.role]);
-
     return (
         <div className='min-h-screen'>
             <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
@@ -88,7 +77,6 @@ function CandidateReportPageContent({
                     className='shadow-lg duration-300'>
                     <CandidateReportForm onGenerateReport={onGenerateReport} isLoading={isLoading} />
                 </CollapsibleSection>
-
                 {/* Candidate Details View */}
                 <CollapsibleSection
                     title='Candidate Details View'
@@ -111,32 +99,24 @@ function CandidateReportPageContent({
                                             <div>
                                                 {`${selectedCandidate.firstName} ${selectedCandidate.middleName || ''} ${selectedCandidate.lastName}`.trim()}
                                             </div>
-
                                             <div className='font-medium'>Mobile No:</div>
                                             <div>{selectedCandidate.mobileNo}</div>
-
                                             <div className='font-medium'>Email Id:</div>
                                             <div>{selectedCandidate.emailId}</div>
-
                                             <div className='font-medium'>Experience (Year):</div>
                                             <div>{selectedCandidate.experience || '-'}</div>
-
                                             <div className='font-medium'>Current Company:</div>
                                             <div>{selectedCandidate.currentCompany || '-'}</div>
-
                                             <div className='font-medium'>Reference Code:</div>
                                             <div>{selectedCandidate.referenceCode || '-'}</div>
-
                                             <div className='font-medium'>Last CTC:</div>
                                             <div>{selectedCandidate.lastCTC || '-'}</div>
-
                                             <div className='font-medium'>Expected CTC:</div>
                                             <div>{selectedCandidate.expectedCTC || '-'}</div>
                                         </div>
                                     </CardContent>
                                 </Card>
                             </div>
-
                             {/* Right: Resume Display */}
                             <div className='flex flex-col items-center justify-start gap-3'>
                                 <div className='flex h-48 w-full items-center justify-center rounded-lg border-2 border-gray-300 border-dashed bg-gray-50'>

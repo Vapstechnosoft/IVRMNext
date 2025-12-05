@@ -1,18 +1,15 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { EmployeeDetail } from '@/types/hrms/salary-approval';
 import type { ColumnDef } from '@tanstack/react-table';
-
 interface SalaryApprovalColumnsProps {
     employees: EmployeeDetail[];
     selectedEmployees: number[];
     onEmployeeSelect: (employeeId: number, selected: boolean) => void;
     onSelectAll: (selected: boolean) => void;
 }
-
 export function getSalaryApprovalColumns({
     employees,
     selectedEmployees,

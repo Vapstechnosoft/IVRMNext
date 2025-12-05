@@ -1,12 +1,10 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface LeaveCreditDetail extends BaseEntity {
     type: string[];
     department: string[];
@@ -22,7 +20,6 @@ export interface LeaveCreditDetail extends BaseEntity {
     creditMonths?: string[];
     months?: Record<string, number>;
 }
-
 export const MONTHS = [
     'January',
     'February',
@@ -37,12 +34,10 @@ export const MONTHS = [
     'November',
     'December'
 ];
-
 interface LeaveCreditDetailColumnsProps {
     onEdit: (row: LeaveCreditDetail) => void;
     onDelete: (id: number) => void;
 }
-
 export const getLeaveCreditDetailColumns = ({ onEdit, onDelete }: LeaveCreditDetailColumnsProps): ColumnDef<LeaveCreditDetail>[] => [
     {
         id: 'select',

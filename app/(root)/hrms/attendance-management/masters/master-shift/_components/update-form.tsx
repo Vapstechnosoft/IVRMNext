@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -13,19 +12,15 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import type { MasterShift } from './columns';
 import { TimePicker12Hour } from './time-picker-12hour';
-
 type FormFields = z.infer<typeof masterShiftSchema.addOrUpdate>;
-
 interface UpdateMasterShiftFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: MasterShift;
 }
-
 export default function UpdateMasterShiftForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterShiftFormProps) {
     const { refetchAll } = useMasterShift();
     const { mutate: saveMasterShift, isPending } = useSaveMasterShift();
-
     const {
         register,
         handleSubmit,
@@ -38,7 +33,6 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
         resolver: zodResolver(masterShiftSchema.addOrUpdate),
         mode: 'onChange'
     });
-
     useEffect(() => {
         if (row) {
             reset({
@@ -50,7 +44,6 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
             });
         }
     }, [row, reset]);
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         saveMasterShift(
             {
@@ -70,11 +63,9 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
             }
         );
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -89,7 +80,6 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                             maxLength={100}
                         />
-
                         <InputText
                             label='Remarks'
                             required
@@ -100,7 +90,6 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
                             maxLength={250}
                         />
                     </div>
-
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <div className='space-y-2'>
                             <label htmlFor='startTime' className='font-medium text-sm'>
@@ -115,7 +104,6 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
                             />
                             {errors.startTime && <FormError>{errors.startTime.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label htmlFor='endTime' className='font-medium text-sm'>
                                 Shift End Time <span className='text-red-500'>*</span>
@@ -130,7 +118,6 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
                             {errors.endTime && <FormError>{errors.endTime.message}</FormError>}
                         </div>
                     </div>
-
                     <div className='flex items-center gap-8'>
                         <div className='flex items-center gap-2 text-sm'>
                             <Checkbox checked={watch('specificDay')} onCheckedChange={(v) => setValue('specificDay', Boolean(v))} />
@@ -138,7 +125,6 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
                         </div>
                     </div>
                 </div>
-
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
@@ -148,7 +134,6 @@ export default function UpdateMasterShiftForm({ onSuccess, className = '', selec
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
-
                     <Button
                         type='submit'
                         disabled={isSubmitting || isPending}

@@ -1,16 +1,13 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 export interface Form5Filters {
     month: string;
     year: string;
 }
-
 interface PFForm5FiltersProps {
     filters: Form5Filters;
     months: any[];
@@ -20,12 +17,10 @@ interface PFForm5FiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function PFForm5Filters({ filters, months, years, onFilterChange, onGenerate, onCancel, isLoading = false }: PFForm5FiltersProps) {
     const handleSelectChange = (key: keyof Form5Filters, value: string) => {
         onFilterChange({ ...filters, [key]: value });
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -60,7 +55,6 @@ export function PFForm5Filters({ filters, months, years, onFilterChange, onGener
                         </Select>
                     )}
                 </div>
-
                 {/* Year Filter */}
                 <div className='space-y-2'>
                     <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -88,7 +82,6 @@ export function PFForm5Filters({ filters, months, years, onFilterChange, onGener
                     )}
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-2 pt-4'>
                 <Button onClick={onGenerate}>

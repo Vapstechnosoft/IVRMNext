@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,7 +8,6 @@ import { Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { ApplyLeaveForm } from './_components/apply-leave-form';
 import { type ApplyLeave, type LeaveHistoryRow, leaveHistoryColumns } from './_components/columns';
-
 type DefaultEmployee = {
     name: string;
     designation: string;
@@ -17,7 +15,6 @@ type DefaultEmployee = {
     email: string;
     phone: string;
 };
-
 const defaultEmployee: DefaultEmployee = {
     name: 'R Siddesh Kumar',
     designation: 'Sr. HR Executive',
@@ -25,10 +22,8 @@ const defaultEmployee: DefaultEmployee = {
     email: 'rsiddesh.kumar@example.com',
     phone: '9876543210'
 };
-
 export default function ApplyLeavePage() {
     const { data: response, isLoading, error } = useLeaveHistory();
-
     // Create response for useDataTableProps
     const mockResponse = {
         data: response?.data || [],
@@ -36,14 +31,12 @@ export default function ApplyLeavePage() {
         page: 1,
         pageSize: 10
     };
-
     return (
         <FormProvider<LeaveHistoryRow>>
             <ApplyLeavePageContent response={response} isLoading={isLoading} error={error} mockResponse={mockResponse} />
         </FormProvider>
     );
 }
-
 function ApplyLeavePageContent({
     response: _response,
     isLoading,
@@ -59,7 +52,6 @@ function ApplyLeavePageContent({
     const { mutate: applyLeave, isPending: _isApplying } = useApplyLeave();
     const tableProps = useDataTableProps(mockResponse);
     const todayISO = new Date().toISOString().slice(0, 10);
-
     const handleFormSubmit = (data: ApplyLeave) => {
         // Validate dates are not in the past
         if (data.fromDate && data.toDate) {
@@ -76,7 +68,6 @@ function ApplyLeavePageContent({
             toast.error('Reasons for Leave is required');
             return;
         }
-
         // Apply leave via API
         applyLeave(
             {
@@ -90,7 +81,6 @@ function ApplyLeavePageContent({
             }
         );
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -104,7 +94,6 @@ function ApplyLeavePageContent({
                         Apply Leave
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     title='EMPLOYEE LEAVE DETAILS'
@@ -124,14 +113,12 @@ function ApplyLeavePageContent({
                         errorTitle='Error Loading Leave History'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections defaultEmployee={defaultEmployee} onSubmit={handleFormSubmit} />
             </div>
         </div>
     );
 }
-
 function FormSections({
     defaultEmployee,
     onSubmit
@@ -140,7 +127,6 @@ function FormSections({
     onSubmit: (data: ApplyLeave) => void;
 }) {
     const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext();
-
     return (
         <>
             {/* Add Form */}

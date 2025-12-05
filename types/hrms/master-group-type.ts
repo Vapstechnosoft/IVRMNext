@@ -30,3 +30,9 @@ export interface MasterGroupTypeInput {
     HRMGT_Order?: number;
     HRMGT_ActiveFlag: boolean;
 }
+
+export interface GroupTypeSetOrderList {
+    HRMGT_Id: number;
+    HRMGT_EmployeeGroupType: string;
+    HRMGT_Order: number;
+}

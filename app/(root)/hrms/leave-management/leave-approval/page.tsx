@@ -1,5 +1,4 @@
 'use client';
-
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,13 +8,10 @@ import { use, useMemo } from 'react';
 import { toast } from 'sonner';
 import { type LeaveApprovalRow, getLeaveApprovalColumns } from './_components/columns';
 import { LeaveApprovalForm, type LeaveApprovalFormData } from './_components/leave-approval-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function LeaveApprovalPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useLeaveApprovalStatus();
-
     // Create response for useDataTableProps
     const mockResponse = {
         data: response?.data || [],
@@ -23,14 +19,12 @@ export default function LeaveApprovalPage(props: { searchParams: SearchParams })
         page: 1,
         pageSize: 10
     };
-
     return (
         <FormProvider<LeaveApprovalRow>>
             <LeaveApprovalPageContent response={response} isLoading={isLoading} error={error} mockResponse={mockResponse} />
         </FormProvider>
     );
 }
-
 function LeaveApprovalPageContent({
     response,
     isLoading,
@@ -45,22 +39,17 @@ function LeaveApprovalPageContent({
     const { openEditForm } = useFormContext<LeaveApprovalRow>();
     const tableProps = useDataTableProps(mockResponse);
     const { refetchAll: _refetchApprovalStatus } = useLeaveApprovalStatus();
-
     const handleApprove = (row: LeaveApprovalRow) => {
         openEditForm(row);
     };
-
     const handleReject = (row: LeaveApprovalRow) => {
         openEditForm(row);
     };
-
     const columns = useMemo(() => getLeaveApprovalColumns({ onApprove: handleApprove, onReject: handleReject }), []);
-
     // Filter pending leaves
     const pendingLeaves = (response?.data || []).filter(
         (item: LeaveApprovalRow) => item.leaveStatus === 'Applied' || item.leaveStatus === 'Pending'
     );
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -84,7 +73,6 @@ function LeaveApprovalPageContent({
                         </div>
                     )}
                 </CollapsibleSection>
-
                 {/* LEAVE APPROVAL DETAILS Section */}
                 <CollapsibleSection
                     title='LEAVE APPROVAL DETAILS'
@@ -106,28 +94,23 @@ function LeaveApprovalPageContent({
                         errorTitle='Error Loading Leave Approvals'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<LeaveApprovalRow>();
     const { refetchAll } = useLeaveApprovalStatus();
-
     const handleFormSubmit = (formData: LeaveApprovalFormData) => {
         if (!selectedRow) return;
-
         // TODO: Call approve/reject API endpoint when available
         // For now, just show success message and refresh data
         toast.success(`Leave ${formData.action === 'approve' ? 'approved' : 'rejected'} successfully`);
         refetchAll();
         closeEditForm();
     };
-
     return (
         <>
             {/* Approval/Rejection Dialog */}

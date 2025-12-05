@@ -1,12 +1,10 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-
 export interface MissingLog {
     id: number;
     employeeName: string;
@@ -17,10 +15,8 @@ export interface MissingLog {
     remarks?: string;
     reportedBy?: string;
     status: 'Pending' | 'Approved' | 'Rejected';
-
     createdAt: Date;
 }
-
 export const missingLogColumns: ColumnDef<MissingLog>[] = [
     {
         id: 'sl',
@@ -110,16 +106,13 @@ export const missingLogColumns: ColumnDef<MissingLog>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: MissingLog }) {
     const { openEditForm } = useFormContext<MissingLog>();
-
     const handleEdit = useCallback(
         (data: MissingLog) => {
             openEditForm(data);
         },
         [openEditForm]
     );
-
     return <ActionButtons rowData={rowData} buttons={{ edit: true, toggle: false, delete: false }} onEdit={handleEdit} />;
 }

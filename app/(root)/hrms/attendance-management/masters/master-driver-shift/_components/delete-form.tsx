@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
@@ -8,16 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
 import type { DriverShift } from './columns';
-
 interface DeleteMasterDriverShiftFormProps {
     rowData: DriverShift;
     onClose: () => void;
 }
-
 export default function DeleteMasterDriverShiftForm({ rowData, onClose }: DeleteMasterDriverShiftFormProps) {
     const { refetchAll } = useMasterDriverShift();
     const { mutate: deleteMasterDriverShift, isPending } = useDeleteMasterDriverShift();
-
     const {
         register,
         handleSubmit,
@@ -27,12 +23,10 @@ export default function DeleteMasterDriverShiftForm({ rowData, onClose }: Delete
         resolver: zodResolver(z.object({ id: z.number() })),
         mode: 'onChange'
     });
-
     function closeDialog() {
         onClose();
         reset();
     }
-
     const onSubmit: SubmitHandler<{ id: number }> = async () => {
         deleteMasterDriverShift(rowData.id, {
             onSuccess: () => {
@@ -41,7 +35,6 @@ export default function DeleteMasterDriverShiftForm({ rowData, onClose }: Delete
             }
         });
     };
-
     return (
         <AdaptiveDialog title='Delete Master Driver Shift' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>

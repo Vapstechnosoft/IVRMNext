@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
@@ -10,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Search, X } from 'lucide-react';
-
 export interface StrengthReportFilters {
     groupType: string;
     department: string;
@@ -23,7 +21,6 @@ export interface StrengthReportFilters {
     fromDate: Date | null;
     toDate: Date | null;
 }
-
 interface EmployeeStrengthFiltersProps {
     filters: StrengthReportFilters;
     groupTypes: Array<{ id: number; groupType: string }>;
@@ -37,7 +34,6 @@ interface EmployeeStrengthFiltersProps {
     onExport: () => void;
     onPrint: () => void;
 }
-
 export function EmployeeStrengthFilters({
     filters,
     groupTypes,
@@ -79,7 +75,6 @@ export function EmployeeStrengthFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Department Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='department' className='font-medium text-foreground text-sm'>
@@ -99,7 +94,6 @@ export function EmployeeStrengthFilters({
                             </SelectContent>
                         </Select>
                     </div>
-
                     {/* Designation Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
@@ -120,7 +114,6 @@ export function EmployeeStrengthFilters({
                         </Select>
                     </div>
                 </div>
-
                 {/* Filter Section - Row 2: Employee Categories */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                     <div className='flex items-center gap-2 text-sm'>
@@ -154,7 +147,6 @@ export function EmployeeStrengthFilters({
                         </Label>
                     </div>
                 </div>
-
                 {/* Date Range Selection - Hide when "All Employee" is selected */}
                 {!filters.employeeCategories.allEmployee && (
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -184,7 +176,6 @@ export function EmployeeStrengthFilters({
                                 </PopoverContent>
                             </Popover>
                         </div>
-
                         <div className='space-y-2'>
                             <span className='font-medium text-foreground text-sm'>
                                 To Date: <span className='text-red-500'>*</span>
@@ -213,7 +204,6 @@ export function EmployeeStrengthFilters({
                         </div>
                     </div>
                 )}
-
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button onClick={onSearch}>

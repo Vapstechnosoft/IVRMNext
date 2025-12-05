@@ -4,11 +4,7 @@
 // 2. Import form from _components/filters.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
-import { useState } from 'react';
-
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,8 +15,8 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { BarChart3, CalendarIcon, Search, X } from 'lucide-react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-
 type ReportFormData = {
     departments: string[];
     designations: string[];
@@ -28,7 +24,6 @@ type ReportFormData = {
     toDate: Date;
     status: string[];
 };
-
 const departmentOptions = [
     'IT Education',
     'Sales and Marketing',
@@ -38,7 +33,6 @@ const departmentOptions = [
     'Customer Support',
     'Research and Development'
 ];
-
 const designationOptions = [
     'E-learning coordinator',
     'Client Acquisition',
@@ -51,20 +45,17 @@ const designationOptions = [
     'Director',
     'CEO'
 ];
-
 const statusOptions = [
     { value: 'ALL', label: 'ALL' },
     { value: 'APPROVED', label: 'APPROVED' },
     { value: 'REJECTED', label: 'REJECTED' },
     { value: 'PENDING', label: 'PENDING' }
 ];
-
 export default function EmployeeExitReportPage() {
     const [departmentDropdownOpen, setDepartmentDropdownOpen] = useState(false);
     const [designationDropdownOpen, setDesignationDropdownOpen] = useState(false);
     const [fromDateOpen, setFromDateOpen] = useState(false);
     const [toDateOpen, setToDateOpen] = useState(false);
-
     const { handleSubmit, setValue, watch } = useForm<ReportFormData>({
         defaultValues: {
             departments: ['ALL'],
@@ -74,13 +65,11 @@ export default function EmployeeExitReportPage() {
             status: ['ALL', 'APPROVED', 'REJECTED', 'PENDING']
         }
     });
-
     const watchedDepartments = watch('departments');
     const watchedDesignations = watch('designations');
     const watchedFromDate = watch('fromDate');
     const watchedToDate = watch('toDate');
     const watchedStatus = watch('status');
-
     const handleDepartmentToggle = (dept: string) => {
         const current = watchedDepartments || [];
         if (dept === 'ALL') {
@@ -92,7 +81,6 @@ export default function EmployeeExitReportPage() {
             setValue('departments', newSelection.length === 0 ? ['ALL'] : newSelection);
         }
     };
-
     const handleDesignationToggle = (desig: string) => {
         const current = watchedDesignations || [];
         if (desig === 'ALL') {
@@ -104,7 +92,6 @@ export default function EmployeeExitReportPage() {
             setValue('designations', newSelection.length === 0 ? ['ALL'] : newSelection);
         }
     };
-
     const handleStatusToggle = (status: string) => {
         const current = watchedStatus || [];
         if (status === 'ALL') {
@@ -116,16 +103,13 @@ export default function EmployeeExitReportPage() {
             setValue('status', newSelection.length === 0 ? ['ALL'] : newSelection);
         }
     };
-
     const onSubmit = (_data: ReportFormData) => {
         // Handle report generation
     };
-
     const getDisplayText = (items: string[], allText: string) => {
         if (items.includes('ALL') || items.length === 0) return allText;
         return items.length === 1 ? items[0] : `${items.length} selected`;
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-6 p-1'>
@@ -138,7 +122,6 @@ export default function EmployeeExitReportPage() {
                         />
                     </div>
                 </div>
-
                 {/* Report Form Section */}
                 <Card className='shadow-lg'>
                     <CardHeader>
@@ -182,7 +165,6 @@ export default function EmployeeExitReportPage() {
                                         </PopoverContent>
                                     </Popover>
                                 </div>
-
                                 {/* Designation Filter */}
                                 <div className='space-y-2'>
                                     <Label>
@@ -218,7 +200,6 @@ export default function EmployeeExitReportPage() {
                                         </PopoverContent>
                                     </Popover>
                                 </div>
-
                                 {/* From Date */}
                                 <div className='space-y-2'>
                                     <Label>From Date</Label>
@@ -242,7 +223,6 @@ export default function EmployeeExitReportPage() {
                                         </PopoverContent>
                                     </Popover>
                                 </div>
-
                                 {/* To Date */}
                                 <div className='space-y-2'>
                                     <Label>To Date</Label>
@@ -267,7 +247,6 @@ export default function EmployeeExitReportPage() {
                                     </Popover>
                                 </div>
                             </div>
-
                             {/* Status Checkboxes */}
                             <div className='space-y-3'>
                                 <Label>Status</Label>
@@ -288,7 +267,6 @@ export default function EmployeeExitReportPage() {
                                     ))}
                                 </div>
                             </div>
-
                             {/* Action Buttons */}
                             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-end'>
                                 <Button

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -8,7 +7,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-
 export interface LeaveOpeningBalanceFormData {
     selectedTypes: number[];
     selectedDepartments: number[];
@@ -16,7 +14,6 @@ export interface LeaveOpeningBalanceFormData {
     selectedEmployeeId: number | null;
     leaveBalances: Record<string, number>; // leaveName -> balance
 }
-
 interface LeaveOpeningBalanceFormProps {
     types: Array<{ id: number; name: string }>;
     departments: Array<{ id: number; name: string }>;
@@ -31,7 +28,6 @@ interface LeaveOpeningBalanceFormProps {
     isLoadingDesignations?: boolean;
     isLoadingEmployees?: boolean;
 }
-
 export function LeaveOpeningBalanceForm({
     types,
     departments,
@@ -60,13 +56,10 @@ export function LeaveOpeningBalanceForm({
             leaveBalances: {}
         }
     });
-
     const _selectedEmployeeId = watch('selectedEmployeeId');
-
     const onSubmitForm: SubmitHandler<LeaveOpeningBalanceFormData> = (data) => {
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmitForm)} className='space-y-6'>
             {/* Filters Section - Type, Department, Designation */}
@@ -98,7 +91,6 @@ export function LeaveOpeningBalanceForm({
                     )}
                     {errors.selectedTypes && <FormError>{errors.selectedTypes.message}</FormError>}
                 </div>
-
                 {/* Department */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>
@@ -126,7 +118,6 @@ export function LeaveOpeningBalanceForm({
                     )}
                     {errors.selectedDepartments && <FormError>{errors.selectedDepartments.message}</FormError>}
                 </div>
-
                 {/* Designation */}
                 <div className='space-y-2'>
                     <Label className='font-medium text-sm'>
@@ -155,7 +146,6 @@ export function LeaveOpeningBalanceForm({
                     {errors.selectedDesignations && <FormError>{errors.selectedDesignations.message}</FormError>}
                 </div>
             </div>
-
             {/* Employee Selection */}
             <div className='space-y-2'>
                 <Label htmlFor='employee-select' className='font-medium text-sm'>
@@ -192,7 +182,6 @@ export function LeaveOpeningBalanceForm({
                 )}
                 {errors.selectedEmployeeId && <FormError>{errors.selectedEmployeeId.message}</FormError>}
             </div>
-
             {/* Leave Opening Balance Table */}
             <div className='space-y-3'>
                 <Label className='font-medium text-sm'>Leave Opening Balance</Label>
@@ -248,7 +237,6 @@ export function LeaveOpeningBalanceForm({
                     )}
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-center gap-2 border-t pt-4'>
                 <Button type='submit' variant='default' className='min-w-[120px]'>

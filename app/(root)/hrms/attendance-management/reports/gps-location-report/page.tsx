@@ -5,7 +5,6 @@ import { createLocalCrud } from '@/lib/localdb';
 import { useMemo, useState } from 'react';
 import { type GPSLog, gpsLocationReportColumns } from './_components/columns';
 import { type GPSLocationReportFilters, GPSLocationReportFilters as GPSLocationReportFiltersComponent } from './_components/filters';
-
 export default function GPSLocationReportPage() {
     const db = createLocalCrud<GPSLog>('attendance:gps-location-attendance'); // reuse same storage
     const [showReport, setShowReport] = useState(false);
@@ -16,11 +15,8 @@ export default function GPSLocationReportPage() {
         toDate: '',
         employee: ''
     });
-
     const data = useMemo(() => db.list(), []);
-
     const employees = useMemo(() => [...new Set(data.map((d) => d.employeeName))], [data]);
-
     const filtered = useMemo(() => {
         return data.filter((r) => {
             if (filters.filterType === 'Employee Wise') {
@@ -31,11 +27,9 @@ export default function GPSLocationReportPage() {
             return okFrom && okTo;
         });
     }, [data, filters]);
-
     const handleSearch = () => {
         setShowReport(true);
     };
-
     const handleCancel = () => {
         setFilters({
             filterType: 'Between Date',
@@ -46,13 +40,10 @@ export default function GPSLocationReportPage() {
         setShowReport(false);
         setSelectedRows([]);
     };
-
     const handleExport = () => {};
-
     const _handleRowSelectionChange = (rows: GPSLog[]) => {
         setSelectedRows(rows);
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -65,7 +56,6 @@ export default function GPSLocationReportPage() {
                     onExport={handleExport}
                     onPrint={() => window.print()}
                 />
-
                 {showReport && (
                     <CollapsibleSection
                         title='Attendance GPS Location Report'

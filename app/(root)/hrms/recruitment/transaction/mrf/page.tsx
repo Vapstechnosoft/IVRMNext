@@ -4,9 +4,7 @@
 // 2. Import form from _components/mrf-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +20,6 @@ import { Edit, Plus, RefreshCw, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface MRF extends BaseEntity {
     department: string;
     position: string;
@@ -46,7 +43,6 @@ interface MRF extends BaseEntity {
     tests: { written: boolean; online: boolean; technical: boolean };
     status: 'Pending' | 'Approved' | 'Rejected';
 }
-
 type MRFForm = {
     department: string;
     position: string;
@@ -68,7 +64,6 @@ type MRFForm = {
     remark?: string;
     reason: string;
 };
-
 export default function MRFPage() {
     const [mrfList, setMrfList] = useState<MRF[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -76,9 +71,7 @@ export default function MRFPage() {
     const [editingMRF, setEditingMRF] = useState<MRF | null>(null);
     const [tests, setTests] = useState({ written: false, online: false, technical: false });
     const formRef = useRef<HTMLDivElement>(null);
-
     const mrfDB = createLocalCrud<MRF>('recruitment:mrf');
-
     const {
         register,
         handleSubmit,
@@ -87,11 +80,9 @@ export default function MRFPage() {
         watch,
         formState: { errors, isSubmitting }
     } = useForm<MRFForm>({ mode: 'onChange' });
-
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = () => {
         try {
             setMrfList(mrfDB.list());
@@ -101,7 +92,6 @@ export default function MRFPage() {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
@@ -112,7 +102,6 @@ export default function MRFPage() {
         reset();
         setTests({ written: false, online: false, technical: false });
     };
-
     const onSubmit: SubmitHandler<MRFForm> = async (data) => {
         try {
             const mrf: Omit<MRF, 'id' | 'createdAt'> = {
@@ -138,7 +127,6 @@ export default function MRFPage() {
                 tests,
                 status: 'Pending'
             };
-
             if (editingMRF) {
                 mrfDB.update(editingMRF.id, mrf);
                 toast.success('MRF updated');
@@ -152,7 +140,6 @@ export default function MRFPage() {
             toast.error(e.message || 'Operation failed');
         }
     };
-
     const handleEdit = (m: MRF) => {
         setEditingMRF(m);
         reset({
@@ -180,13 +167,11 @@ export default function MRFPage() {
         setIsFormOpen(true);
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     };
-
     const handleDelete = (m: MRF) => {
         mrfDB.remove(m.id);
         toast.success('MRF deleted');
         loadData();
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -203,7 +188,6 @@ export default function MRFPage() {
                         New MRF
                     </Button>
                 </div>
-
                 <CollapsibleSection
                     title='MRF Requisition Details'
                     description='Search and manage MRF records'
@@ -214,7 +198,6 @@ export default function MRFPage() {
                     headerClassName=''>
                     <MRFTable data={mrfList} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
                 </CollapsibleSection>
-
                 {isFormOpen && (
                     <div ref={formRef}>
                         <CollapsibleSection
@@ -241,7 +224,6 @@ export default function MRFPage() {
                                                 <SelectItem value='Operations'>Operations</SelectItem>
                                             </SelectContent>
                                         </Select>
-
                                         <span className='font-medium text-sm'>
                                             Position <span className='text-red-500'>*</span>
                                         </span>
@@ -255,7 +237,6 @@ export default function MRFPage() {
                                                 <SelectItem value='HR Executive'>HR Executive</SelectItem>
                                             </SelectContent>
                                         </Select>
-
                                         <span className='font-medium text-sm'>
                                             Priority <span className='text-red-500'>*</span>
                                         </span>
@@ -270,7 +251,6 @@ export default function MRFPage() {
                                                 <SelectItem value='Low'>Low</SelectItem>
                                             </SelectContent>
                                         </Select>
-
                                         <span className='font-medium text-sm'>
                                             Position Type <span className='text-red-500'>*</span>
                                         </span>
@@ -284,7 +264,6 @@ export default function MRFPage() {
                                                 <SelectItem value='Contract'>Contract</SelectItem>
                                             </SelectContent>
                                         </Select>
-
                                         <span className='font-medium text-sm'>
                                             Qualification <span className='text-red-500'>*</span>
                                         </span>
@@ -298,7 +277,6 @@ export default function MRFPage() {
                                                 <SelectItem value='MBA'>MBA</SelectItem>
                                             </SelectContent>
                                         </Select>
-
                                         <span className='font-medium text-sm'>
                                             No of Position <span className='text-red-500'>*</span>
                                         </span>
@@ -307,7 +285,6 @@ export default function MRFPage() {
                                             {...register('noOfPosition', { required: 'Required' })}
                                             error={errors.noOfPosition?.message}
                                         />
-
                                         <span className='font-medium text-sm'>
                                             Age <span className='text-red-500'>*</span>
                                         </span>
@@ -316,7 +293,6 @@ export default function MRFPage() {
                                             {...register('age', { required: 'Required' })}
                                             error={errors.age?.message}
                                         />
-
                                         <span className='font-medium text-sm'>
                                             Gender <span className='text-red-500'>*</span>
                                         </span>
@@ -330,7 +306,6 @@ export default function MRFPage() {
                                                 <SelectItem value='Any'>Any</SelectItem>
                                             </SelectContent>
                                         </Select>
-
                                         <span className='font-medium text-sm'>
                                             Experience <span className='text-red-500'>*</span>
                                         </span>
@@ -347,7 +322,6 @@ export default function MRFPage() {
                                                 error={errors.expTo?.message}
                                             />
                                         </div>
-
                                         <span className='font-medium text-sm'>Pay Scale</span>
                                         <div className='grid grid-cols-3 items-center gap-2'>
                                             <InputText placeholder='From' {...register('payScaleFrom')} />
@@ -355,7 +329,6 @@ export default function MRFPage() {
                                             <InputText placeholder='To' {...register('payScaleTo')} />
                                         </div>
                                     </div>
-
                                     <div className='space-y-3'>
                                         <span className='font-medium text-sm'>
                                             Skill <span className='text-red-500'>*</span>
@@ -365,7 +338,6 @@ export default function MRFPage() {
                                             {...register('skill', { required: 'Required' })}
                                             error={errors.skill?.message}
                                         />
-
                                         <span className='font-medium text-sm'>
                                             Job Description <span className='text-red-500'>*</span>
                                         </span>
@@ -374,7 +346,6 @@ export default function MRFPage() {
                                             {...register('jobDescription', { required: 'Required' })}
                                             error={errors.jobDescription?.message}
                                         />
-
                                         <span className='font-medium text-sm'>
                                             Location <span className='text-red-500'>*</span>
                                         </span>
@@ -410,7 +381,6 @@ export default function MRFPage() {
                                                 </label>
                                             </div>
                                         </div>
-
                                         <span className='font-medium text-sm'>
                                             Country <span className='text-red-500'>*</span>
                                         </span>
@@ -424,7 +394,6 @@ export default function MRFPage() {
                                                 <SelectItem value='UK'>UK</SelectItem>
                                             </SelectContent>
                                         </Select>
-
                                         <span className='font-medium text-sm'>
                                             State <span className='text-red-500'>*</span>
                                         </span>
@@ -438,10 +407,8 @@ export default function MRFPage() {
                                                 <SelectItem value='Tamil Nadu'>Tamil Nadu</SelectItem>
                                             </SelectContent>
                                         </Select>
-
                                         <span className='font-medium text-sm'>Remark</span>
                                         <InputText placeholder='Enter remark' {...register('remark')} />
-
                                         <span className='font-medium text-sm'>
                                             Reason <span className='text-red-500'>*</span>
                                         </span>
@@ -450,7 +417,6 @@ export default function MRFPage() {
                                             {...register('reason', { required: 'Required' })}
                                             error={errors.reason?.message}
                                         />
-
                                         <div className='flex gap-6 pt-2'>
                                             <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
@@ -485,7 +451,6 @@ export default function MRFPage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className='flex justify-center gap-4 border-t pt-6'>
                                     <Button type='button' variant='outline' onClick={handleFormClose}>
                                         <X className='mr-2 h-4 w-4' />
@@ -513,14 +478,12 @@ export default function MRFPage() {
         </div>
     );
 }
-
 interface MRFTableProps {
     data: MRF[];
     isLoading: boolean;
     onEdit: (m: MRF) => void;
     onDelete: (m: MRF) => void;
 }
-
 function MRFTable({ data, isLoading, onEdit, onDelete }: MRFTableProps) {
     const columns: ColumnDef<MRF>[] = [
         {
@@ -567,6 +530,5 @@ function MRFTable({ data, isLoading, onEdit, onDelete }: MRFTableProps) {
             }
         }
     ];
-
     return <GenericDataTable isLoading={isLoading} columns={columns} data={data} totalItems={data.length} showViewOptions />;
 }

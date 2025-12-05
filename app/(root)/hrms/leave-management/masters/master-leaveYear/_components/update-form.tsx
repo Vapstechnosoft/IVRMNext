@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -9,17 +8,14 @@ import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import type { LeaveYear } from './columns';
-
 interface UpdateMasterLeaveYearFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: LeaveYear;
 }
-
 export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterLeaveYearFormProps) {
     const { refetchAll } = useMasterLeaveYear();
     const { mutate: updateMasterLeaveYear, isPending } = useUpdateMasterLeaveYear();
-
     const {
         register,
         handleSubmit,
@@ -32,24 +28,20 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
     } = useForm<LeaveYear>({
         mode: 'onChange'
     });
-
     // Watch dates for cross-validation
     const fromDate = useWatch({ control, name: 'fromDate' });
     const toDate = useWatch({ control, name: 'toDate' });
-
     // Trigger validation when dates change
     useEffect(() => {
         if (fromDate && toDate) {
             trigger('toDate');
         }
     }, [fromDate, trigger]);
-
     useEffect(() => {
         if (toDate && fromDate) {
             trigger('fromDate');
         }
     }, [toDate, trigger]);
-
     useEffect(() => {
         if (row) {
             reset({
@@ -60,7 +52,6 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
             });
         }
     }, [row, reset]);
-
     const onSubmit: SubmitHandler<LeaveYear> = async (data) => {
         updateMasterLeaveYear(
             {
@@ -76,11 +67,9 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
             }
         );
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -94,7 +83,6 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
                             error={errors.leaveYear?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <InputText
                             label='From Date'
                             required
@@ -115,7 +103,6 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
                             error={errors.fromDate?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <InputText
                             label='To Date'
                             required
@@ -137,7 +124,6 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-
                     <div className='flex items-center space-x-2'>
                         <Controller
                             name='isActive'
@@ -149,7 +135,6 @@ export default function UpdateMasterLeaveYearForm({ onSuccess, className = '', s
                         </label>
                     </div>
                 </div>
-
                 <div className='flex justify-end gap-2'>
                     <Button type='button' variant='outline' onClick={handleReset} disabled={isPending || isSubmitting}>
                         Reset

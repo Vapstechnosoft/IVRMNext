@@ -1,5 +1,4 @@
 'use server';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
@@ -8,7 +7,6 @@ import type {
     SaveOnlineLeaveRequest,
     SaveOnlineLeaveResponse
 } from '@/types/hrms/leave-management/apply-leave';
-
 /**
  * Get online leave applications
  * POST /api/OnlineLeaveApplicationWrapperFacade/GetOnlineLeave
@@ -18,27 +16,17 @@ import type {
  */
 export async function getOnlineLeave(request: GetOnlineLeaveRequest): Promise<ApiResponse<GetOnlineLeaveResponseData>> {
     const url = '/api/OnlineLeaveApplicationWrapperFacade/GetOnlineLeave';
-
     const requestBody: GetOnlineLeaveRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         UserId: request.UserId || 0
     };
-
-    console.log('🔵 ========== GET ONLINE LEAVE ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetOnlineLeaveResponseData>('hmslms', url, requestBody);
-        
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetOnlineLeaveResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -47,21 +35,15 @@ export async function getOnlineLeave(request: GetOnlineLeaveRequest): Promise<Ap
             data: response as unknown as GetOnlineLeaveResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch online leave data';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Save or update online leave application
  * POST /api/OnlineLeaveApplicationWrapperFacade/SaveOnlineLeave
@@ -71,7 +53,6 @@ export async function getOnlineLeave(request: GetOnlineLeaveRequest): Promise<Ap
  */
 export async function saveOnlineLeave(data: SaveOnlineLeaveRequest): Promise<ApiResponse<GetOnlineLeaveResponseData>> {
     const url = '/api/OnlineLeaveApplicationWrapperFacade/SaveOnlineLeave';
-
     const requestBody: SaveOnlineLeaveRequest = {
         MI_Id: data.MI_Id || HRMS_MI_ID,
         UserId: data.UserId || 0,
@@ -82,27 +63,17 @@ export async function saveOnlineLeave(data: SaveOnlineLeaveRequest): Promise<Api
         HRELT_SupportingDocument: data.HRELT_SupportingDocument || '',
         asmay_id: data.asmay_id || 0
     };
-
-    console.log('🟠 ========== SAVE ONLINE LEAVE ==========');
-    console.log('🟠 [SERVER] Request URL:', url);
-    console.log('🟠 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<SaveOnlineLeaveResponse>('hmslms', url, requestBody);
-        
-        console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Extract return message from response
         const responseData = response as any;
         const retrunMsg = responseData?.retrunMsg || 
                          responseData?.data?.retrunMsg || 
                          responseData?.message || 
                          '';
-
         // Check for duplicate
         const isDuplicate = retrunMsg === 'Duplicate' || 
                            (retrunMsg && retrunMsg.toLowerCase().includes('duplicate'));
-
         if (isDuplicate) {
             return {
                 success: false,
@@ -110,7 +81,6 @@ export async function saveOnlineLeave(data: SaveOnlineLeaveRequest): Promise<Api
                 data: responseData?.data || null
             };
         }
-
         // Check for success indicators
         const isUpdateSuccess = retrunMsg === 'Update' || 
                                retrunMsg === 'Saved' || 
@@ -119,32 +89,23 @@ export async function saveOnlineLeave(data: SaveOnlineLeaveRequest): Promise<Api
                                responseData?.returnval_Update === true ||
                                responseData?.returnval_add === true ||
                                responseData?.returnval === true;
-
         const isSuccess = isUpdateSuccess || 
                          ((response as any)?.success === true);
-
         let message = retrunMsg || 'Failed to save leave application';
         if (isSuccess) {
             message = retrunMsg || 'Leave application saved successfully';
         }
-
         return {
             success: isSuccess,
             message: message,
             data: responseData?.data || null
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to save leave application';
-
         throw new Error(errorMessage);
     }
 }
-

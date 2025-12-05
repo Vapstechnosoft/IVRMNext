@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -16,14 +15,12 @@ import { Save, X } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
-
 interface UpdateLeaveAuthorizationFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
     selectedRow: LeaveAuthorization;
 }
-
 export default function UpdateLeaveAuthorizationForm({
     onSuccess,
     onCancel,
@@ -33,10 +30,8 @@ export default function UpdateLeaveAuthorizationForm({
     const { refetchAll } = useLeaveAuthorization();
     const { mutate: updateLeaveAuthorization, isPending } = useUpdateLeaveAuthorization();
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useLeaveAuthorizationDropdowns();
-
     // Fetch leave authorization data for editing from API
     const { data: editData, isLoading: isLoadingEditData, error: editError } = useLeaveAuthorizationForEdit(row?.id || null);
-
     // Extract dropdown options from API
     const gradeOptions = useMemo(() => {
         if (!dropdownData?.data?.grades || !Array.isArray(dropdownData.data.grades)) {
@@ -44,42 +39,36 @@ export default function UpdateLeaveAuthorizationForm({
         }
         return dropdownData.data.grades;
     }, [dropdownData]);
-
     const groupTypeOptions = useMemo(() => {
         if (!dropdownData?.data?.groupTypes || !Array.isArray(dropdownData.data.groupTypes)) {
             return [];
         }
         return dropdownData.data.groupTypes;
     }, [dropdownData]);
-
     const departmentOptions = useMemo(() => {
         if (!dropdownData?.data?.departments || !Array.isArray(dropdownData.data.departments)) {
             return [];
         }
         return dropdownData.data.departments;
     }, [dropdownData]);
-
     const designationOptions = useMemo(() => {
         if (!dropdownData?.data?.designations || !Array.isArray(dropdownData.data.designations)) {
             return [];
         }
         return dropdownData.data.designations;
     }, [dropdownData]);
-
     const leaveTypeOptions = useMemo(() => {
         if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
             return [];
         }
         return dropdownData.data.leaveTypes;
     }, [dropdownData]);
-
     const approvalPersonOptions = useMemo(() => {
         if (!dropdownData?.data?.approvalPersons || !Array.isArray(dropdownData.data.approvalPersons)) {
             return [];
         }
         return dropdownData.data.approvalPersons;
     }, [dropdownData]);
-
     const {
         register,
         handleSubmit,
@@ -91,7 +80,6 @@ export default function UpdateLeaveAuthorizationForm({
     } = useForm<LeaveAuthorization>({
         mode: 'onChange'
     });
-
     // Load data from API when edit data is fetched
     useEffect(() => {
         if (editData?.data) {
@@ -122,7 +110,6 @@ export default function UpdateLeaveAuthorizationForm({
             });
         }
     }, [editData, row, reset, isLoadingEditData]);
-
     const onSubmit: SubmitHandler<LeaveAuthorization> = async (data) => {
         updateLeaveAuthorization(
             {
@@ -138,11 +125,9 @@ export default function UpdateLeaveAuthorizationForm({
             }
         );
     };
-
     const handleReset = () => {
         reset();
     };
-
     // Show loading state while fetching edit data
     if (isLoadingEditData) {
         return (
@@ -153,7 +138,6 @@ export default function UpdateLeaveAuthorizationForm({
             </div>
         );
     }
-
     // Show error state if edit data failed to load
     if (editError) {
         return (
@@ -170,7 +154,6 @@ export default function UpdateLeaveAuthorizationForm({
             </div>
         );
     }
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -183,7 +166,6 @@ export default function UpdateLeaveAuthorizationForm({
                         {watch('institution')}
                     </div>
                 </div>
-
                 {/* Form Fields Grid */}
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Left Column */}
@@ -219,7 +201,6 @@ export default function UpdateLeaveAuthorizationForm({
                                 </div>
                             )}
                         />
-
                         <Controller
                             name='groupTypeName'
                             control={control}
@@ -251,7 +232,6 @@ export default function UpdateLeaveAuthorizationForm({
                                 </div>
                             )}
                         />
-
                         <Controller
                             name='departmentName'
                             control={control}
@@ -283,7 +263,6 @@ export default function UpdateLeaveAuthorizationForm({
                                 </div>
                             )}
                         />
-
                         <Controller
                             name='designationName'
                             control={control}
@@ -316,7 +295,6 @@ export default function UpdateLeaveAuthorizationForm({
                             )}
                         />
                     </div>
-
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <Controller
@@ -350,7 +328,6 @@ export default function UpdateLeaveAuthorizationForm({
                                 </div>
                             )}
                         />
-
                         <InputText
                             label='Order of Approval'
                             required
@@ -360,7 +337,6 @@ export default function UpdateLeaveAuthorizationForm({
                             error={errors.orderOfApproval?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <Controller
                             name='approvalPerson'
                             control={control}
@@ -394,7 +370,6 @@ export default function UpdateLeaveAuthorizationForm({
                                 </div>
                             )}
                         />
-
                         <div className='flex items-center space-x-2'>
                             <Controller
                                 name='finalFlag'
@@ -407,7 +382,6 @@ export default function UpdateLeaveAuthorizationForm({
                         </div>
                     </div>
                 </div>
-
                 {/* Action Buttons */}
                 <div className='flex justify-end gap-2'>
                     {onCancel && (

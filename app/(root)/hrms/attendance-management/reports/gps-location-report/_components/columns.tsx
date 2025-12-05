@@ -1,10 +1,8 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface GPSLog extends BaseEntity {
     employeeName: string;
     clientName: string;
@@ -13,7 +11,6 @@ export interface GPSLog extends BaseEntity {
     address: string;
     remarks?: string;
 }
-
 export const gpsLocationReportColumns: ColumnDef<GPSLog>[] = [
     {
         id: 'select',

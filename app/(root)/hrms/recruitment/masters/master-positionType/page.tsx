@@ -4,7 +4,6 @@
 // 2. Import form from _components/position-type-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,32 +20,26 @@ import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-r
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface MasterPositionType extends BaseEntity {
     institution: string;
     positionType: string;
     description: string;
     isActive: boolean;
 }
-
 type MasterPositionTypeForm = {
     institution: string;
     positionType: string;
     description: string;
     isActive: boolean;
 };
-
 const institutions = ['VAPS School', 'VAPS College', 'VAPS University', 'VAPS Institute', 'VAPS Academy'];
-
 export default function MasterPositionTypePage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [positionTypes, setPositionTypes] = useState<MasterPositionType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const formRef = useRef<HTMLDivElement>(null);
-
     const positionTypeDB = createLocalCrud<MasterPositionType>('master:positionType');
-
     const {
         register,
         handleSubmit,
@@ -60,14 +53,11 @@ export default function MasterPositionTypePage() {
             isActive: true
         }
     });
-
     const institution = watch('institution');
-
     // Load data on component mount
     useEffect(() => {
         loadPositionTypes();
     }, []);
-
     const loadPositionTypes = () => {
         try {
             setPositionTypes(positionTypeDB.list());
@@ -77,7 +67,6 @@ export default function MasterPositionTypePage() {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
@@ -90,13 +79,11 @@ export default function MasterPositionTypePage() {
             });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
         reset({ isActive: true });
     };
-
     const onSubmit: SubmitHandler<MasterPositionTypeForm> = async (data: MasterPositionTypeForm) => {
         try {
             if (editingId) {
@@ -112,7 +99,6 @@ export default function MasterPositionTypePage() {
             toast.error(error.message || 'Operation failed');
         }
     };
-
     const handleEdit = (positionType: MasterPositionType) => {
         setEditingId(positionType.id);
         setValue('institution', positionType.institution);
@@ -120,7 +106,6 @@ export default function MasterPositionTypePage() {
         setValue('description', positionType.description);
         setValue('isActive', positionType.isActive);
         setIsFormOpen(true);
-
         // Scroll to form after state update
         setTimeout(() => {
             formRef.current?.scrollIntoView({
@@ -129,7 +114,6 @@ export default function MasterPositionTypePage() {
             });
         }, 100);
     };
-
     const handleDelete = (id: number) => {
         try {
             positionTypeDB.remove(id);
@@ -139,7 +123,6 @@ export default function MasterPositionTypePage() {
             toast.error('Failed to delete position type');
         }
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -160,7 +143,6 @@ export default function MasterPositionTypePage() {
                         Add Master Position Type
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     // title='Master Position Types Data'
@@ -172,7 +154,6 @@ export default function MasterPositionTypePage() {
                     headerClassName=''>
                     <PositionTypeTable positionTypes={positionTypes} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -222,7 +203,6 @@ export default function MasterPositionTypePage() {
                                                 )}
                                                 {errors.institution && <FormError>{errors.institution.message}</FormError>}
                                             </div>
-
                                             <InputText
                                                 label='Description'
                                                 required
@@ -232,7 +212,6 @@ export default function MasterPositionTypePage() {
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                         </div>
-
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                             <InputText
                                                 label='Position Type'
@@ -242,7 +221,6 @@ export default function MasterPositionTypePage() {
                                                 error={errors.positionType?.message}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
-
                                             <div className='flex items-center space-y-2 pt-6'>
                                                 <input
                                                     type='checkbox'
@@ -255,11 +233,9 @@ export default function MasterPositionTypePage() {
                                                 </label>
                                             </div>
                                         </div>
-
                                         {/* Root Error */}
                                         {errors.root && <FormError>{errors.root.message}</FormError>}
                                     </div>
-
                                     {/* Action Buttons */}
                                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                                         <Button
@@ -296,14 +272,12 @@ export default function MasterPositionTypePage() {
         </div>
     );
 }
-
 interface PositionTypeTableProps {
     positionTypes: MasterPositionType[];
     isLoading: boolean;
     onEdit: (positionType: MasterPositionType) => void;
     onDelete: (id: number) => void;
 }
-
 function PositionTypeTable({ positionTypes, isLoading, onEdit, onDelete }: PositionTypeTableProps) {
     const positionTypeColumns: ColumnDef<MasterPositionType>[] = [
         {
@@ -362,7 +336,6 @@ function PositionTypeTable({ positionTypes, isLoading, onEdit, onDelete }: Posit
             }
         }
     ];
-
     return (
         <GenericDataTable
             isLoading={isLoading}

@@ -1,5 +1,4 @@
 'use client';
-
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useEmployeeYearlyReportList, useEmployeeYearlyReportOnload } from '@/hooks/hrms/useReports';
@@ -10,13 +9,10 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { employeeYearlyReportColumns } from './_components/columns';
 import { EmployeeYearlyReportFilters, type EmployeeYearlyReportFilters as ReportFilters } from './_components/filters';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function EmployeeYearlyReportPage(props: { searchParams: SearchParams }) {
     const rawSearchParams = use(props.searchParams);
     const router = useRouter();
-
     // Convert Next.js searchParams to ApiSearchparams format
     const searchParams: ApiSearchparams = {
         page:
@@ -60,7 +56,6 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
                   ? rawSearchParams.sort_direction[0]
                   : undefined
     };
-
     // Extract filter params from URL
     const MI_Id = 30;
     const LoginUserId = 0;
@@ -113,13 +108,10 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
             : Array.isArray(rawSearchParams?.mode)
               ? (rawSearchParams.mode.filter(Boolean) as ('Date Of Joining' | 'Show Holiday Punch' | 'Total working Day')[])
               : [];
-
     // Check if we have search criteria (fromDate and toDate are required)
     const hasSearchCriteria = !!(fromDate && toDate);
-
     // React Query hook for dropdowns - always enabled to get filter options
     const { data: onloadData, isLoading: onloadLoading } = useEmployeeYearlyReportOnload(MI_Id, LoginUserId, UserRole);
-
     // Memoize arrays to prevent unnecessary re-renders
     const groupTypesData = useMemo(() => onloadData?.data?.types || [], [onloadData?.data?.types]);
     const groupTypesOptions = useMemo(
@@ -130,7 +122,6 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
             })),
         [groupTypesData]
     );
-
     // React Query hook for report data - only enabled when search criteria are present
     const reportListQuery = useEmployeeYearlyReportList(
         searchParams,
@@ -150,7 +141,6 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
         },
         hasSearchCriteria // Only fetch when fromDate and toDate are selected
     );
-
     // Form for filters
     const { handleSubmit, reset, watch, control, setValue } = useForm<ReportFilters>({
         mode: 'onChange',
@@ -165,7 +155,6 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
             mode: []
         }
     });
-
     // Sync form with URL params - use useEffect instead of useMemo to avoid render issues
     // Only update when URL params actually change, not on every render
     useEffect(() => {
@@ -179,16 +168,13 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
         setValue('mode', mode, { shouldDirty: false, shouldValidate: false });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [type.join(','), department.join(','), designation.join(','), allOrIndividual, employee, fromDate, toDate, mode.join(',')]);
-
     const onSubmit = (data: ReportFilters) => {
         if (!data.fromDate || !data.toDate) {
             toast.error('Please select from date and to date to generate report');
             return;
         }
-
         // Build URL params
         const params = new URLSearchParams();
-
         // Add filter params
         if (data.type && data.type.length > 0) {
             params.set('type', data.type.join(','));
@@ -210,31 +196,25 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
         if (data.mode && data.mode.length > 0) {
             params.set('mode', data.mode.join(','));
         }
-
         // Reset pagination when filters change
         params.set('page', '1');
-
         // Navigate with new params
         router.push(`/hrms/attendance-management/reports/employee-yearly-report?${params.toString()}`);
     };
-
     const handleCancel = () => {
         reset();
         router.push('/hrms/attendance-management/reports/employee-yearly-report');
     };
-
     // Transform API response to table data
     const transformedData = useMemo(() => {
         const responseData = reportListQuery.data?.data;
         if (!responseData || !Array.isArray(responseData?.rows)) {
             return [];
         }
-
         // TODO: Map API response rows to YearRow format when search endpoint is available
         // For now, return empty array
         return [];
     }, [reportListQuery.data]);
-
     // Prepare data table props
     const tableProps = useDataTableProps({
         data: transformedData,
@@ -243,7 +223,6 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
         searchParams,
         onSearchParamsChange: (newParams: any) => {
             const params = new URLSearchParams();
-
             // Preserve existing filter params
             if (type.length > 0) params.set('type', type.join(','));
             if (department.length > 0) params.set('department', department.join(','));
@@ -253,21 +232,17 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
             if (fromDate) params.set('fromDate', fromDate);
             if (toDate) params.set('toDate', toDate);
             if (mode.length > 0) params.set('mode', mode.join(','));
-
             // Add/update pagination and sort params
             Object.entries(newParams).forEach(([key, value]) => {
                 if (value !== undefined && value !== null && value !== '') {
                     params.set(key, String(value));
                 }
             });
-
             router.push(`/hrms/attendance-management/reports/employee-yearly-report?${params.toString()}`);
         }
     });
-
     // Determine if we should show the report
     const showReport = hasSearchCriteria && reportListQuery.data?.success && transformedData.length > 0;
-
     // Memoize filters object to prevent unnecessary re-renders
     const filtersForComponent = useMemo(
         () => ({
@@ -282,7 +257,6 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
         }),
         [type, department, designation, allOrIndividual, employee, fromDate, toDate, mode]
     );
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -308,7 +282,6 @@ export default function EmployeeYearlyReportPage(props: { searchParams: SearchPa
                         onPrint={() => window.print()}
                     />
                 )}
-
                 {showReport && (
                     <CollapsibleSection
                         title='Employee Yearly Report'
