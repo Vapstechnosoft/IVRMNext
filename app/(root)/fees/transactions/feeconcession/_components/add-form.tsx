@@ -29,7 +29,9 @@ const MI_ID = 30;
 
 interface StudentRow {
     amst_Id: number;
-    studentName: string;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
     registrationNo: string;
     admNo: string;
     rollNo: number;
@@ -51,7 +53,9 @@ interface HeadRow {
 
 export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => void }) {
     const { control, watch, reset, setValue } = useForm();
-    const [selectionType, setSelectionType] = useState<'C' | 'A' | 'L' | 'F' | 'S'>('C');
+    const [selectionType, setSelectionType] = useState<
+        'classwise' | 'categorywise' | 'leftstudent' | 'feecategorywise' | 'Admissionnosearch'
+    >('classwise');
     const [searchValue, setSearchValue] = useState('');
     const [students, setStudents] = useState<StudentRow[]>([]);
     const [heads, setHeads] = useState<HeadRow[]>([]);
@@ -68,43 +72,44 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
     const { data: classes, isLoading: loadingClasses } = useFeeConcessionClassDropdowndata(MI_ID);
     const { data: categories, isLoading: loadingCategories } = useopeningCategorydropdowndatafee();
 
-    // Determine if we have the required filter (class or category)
     const hasFilterId =
-        selectionType === 'C' || selectionType === 'L'
+        selectionType === 'classwise' || selectionType === 'leftstudent'
             ? !!classId
-            : selectionType === 'A' || selectionType === 'F'
+            : selectionType === 'categorywise' || selectionType === 'feecategorywise'
               ? !!categoryId
-              : selectionType === 'S'
+              : selectionType === 'Admissionnosearch'
                 ? !!admissionNo
                 : false;
 
     const filterId =
-        selectionType === 'C' || selectionType === 'L'
+        selectionType === 'classwise' || selectionType === 'leftstudent'
             ? classId
-            : selectionType === 'A' || selectionType === 'F'
+            : selectionType === 'categorywise' || selectionType === 'feecategorywise'
               ? categoryId
-              : selectionType === 'S'
+              : selectionType === 'Admissionnosearch'
                 ? admissionNo
                 : undefined;
 
     const shouldFetchStudents = !!academicYearId && hasFilterId;
 
     const studentQuery = useFeeConcessionStudentList(
-        MI_ID,
+        String(selectionType || ''),
         Number(academicYearId || 0),
-        selectionType === 'S' ? 0 : Number(filterId || 0),
-        selectionType as any
+        Number(classId || 0),
+        Number(categoryId || 0),
+        Number(categoryId || 0)
     );
 
     const headQuery = useFeeConcessionHeadList(MI_ID, Number(academicYearId || 0), Number(classId || 0));
 
-    // Load students
     useEffect(() => {
         if (studentQuery.data?.data && shouldFetchStudents) {
             setStudents(
                 studentQuery.data.data.map((s: any) => ({
                     amst_Id: s.amsT_Id,
-                    studentName: s.studentName || '—',
+                    amsT_FirstName: s.amsT_FirstName,
+                    amsT_MiddleName: s.amsT_MiddleName,
+                    amsT_LastName: s.amsT_LastName,
                     registrationNo: s.amsT_RegistrationNo || '—',
                     admNo: s.amsT_AdmNo || '—',
                     rollNo: s.amaY_RollNo || 0,
@@ -149,11 +154,26 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
         setSearchValue('');
     }, [selectionType, setValue]);
 
-    const filteredStudents = students.filter(
-        (s) =>
-            (s.studentName || '').toLowerCase().includes(searchValue.toLowerCase()) ||
-            (s.admNo || '').toLowerCase().includes(searchValue.toLowerCase())
-    );
+    // Filtered Students
+    const filteredStudents = useMemo(() => {
+        return students.filter((s) => {
+            const fullName = `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.toLowerCase();
+            const search = searchValue.toLowerCase();
+            return fullName.includes(search) || (s.admNo || '').toLowerCase().includes(search);
+        });
+    }, [students, searchValue]);
+
+    // Filtered Heads
+    const filteredHeads = useMemo(() => {
+        return heads.filter((h) => {
+            const search = searchValue.toLowerCase();
+            return (
+                h.fmH_FeeName.toLowerCase().includes(search) ||
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                (h.fmI_Name && h.fmI_Name.toLowerCase().includes(search))
+            );
+        });
+    }, [heads, searchValue]);
 
     const allStudentsChecked = students.length > 0 && students.every((s) => s.checked);
     const someStudentsChecked = students.some((s) => s.checked) && !allStudentsChecked;
@@ -184,37 +204,30 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                 size: 50
             },
             {
-                accessorKey: 'studentName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-                size: 320
+                accessorKey: 'slno',
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+                cell: ({ row, table }) => {
+                    const pageIndex = table.getState().pagination.pageIndex;
+                    const pageSize = table.getState().pagination.pageSize;
+                    const continuousIndex = pageIndex * pageSize + row.index + 1;
+                    return <div className='pl-6'>{continuousIndex}</div>;
+                },
+                enableSorting: true,
+                enableHiding: false
             },
             { accessorKey: 'admNo', header: 'Adm No', size: 140 },
-            { accessorKey: 'registrationNo', header: 'Reg No', size: 160 },
+            { accessorKey: 'registrationNo', header: 'Reg No', size: 140 },
+            {
+                accessorFn: (row) => [row.amsT_FirstName, row.amsT_MiddleName, row.amsT_LastName].filter(Boolean).join(' '),
+                id: 'fullName',
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+                cell: ({ row }) => row.getValue('fullName')
+            },
             {
                 accessorKey: 'rollNo',
                 header: 'Roll No',
-                size: 100,
+                size: 50,
                 cell: ({ row }) => <div className='text-center font-medium'>{row.original.rollNo || '-'}</div>
-            },
-            {
-                id: 'amount',
-                header: 'Concession Amount',
-                size: 200,
-                cell: ({ row }) => (
-                    <Input
-                        type='number'
-                        min='0'
-                        placeholder='0'
-                        className='text-right font-medium'
-                        value={row.original.concessionAmount}
-                        onChange={(e) => {
-                            const val = Number(e.target.value) || 0;
-                            setStudents((prev) =>
-                                prev.map((s) => (s.amst_Id === row.original.amst_Id ? { ...s, concessionAmount: val } : s))
-                            );
-                        }}
-                    />
-                )
             }
         ],
         [allStudentsChecked, someStudentsChecked]
@@ -321,10 +334,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
         onSuccess?.();
     };
 
-    // Show Term only when required fields are filled (except for 'S')
-    const showTermField = selectionType === 'S' ? !!academicYearId : !!academicYearId && hasFilterId;
-
-    // Show Student Table only when Term is selected
+    const showTermField = selectionType === 'Admissionnosearch' ? !!academicYearId : !!academicYearId && hasFilterId;
     const showStudentTable = students.length > 0 && termIds.length > 0;
 
     return (
@@ -337,11 +347,11 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                             onValueChange={(v) => setSelectionType(v as any)}
                             className='flex flex-wrap justify-center gap-4 rounded-2xl p-4'>
                             {[
-                                { value: 'C', label: 'Class Wise' },
-                                { value: 'A', label: 'Adm Category Wise' },
-                                { value: 'L', label: 'Left Student' },
-                                { value: 'F', label: 'Fee Concession Category' },
-                                { value: 'S', label: 'Admission No Search' }
+                                { value: 'classwise', label: 'Class Wise' },
+                                { value: 'categorywise', label: 'Adm Category Wise' },
+                                { value: 'leftstudent', label: 'Left Student' },
+                                { value: 'feecategorywise', label: 'Fee Concession Category' },
+                                { value: 'Admissionnosearch', label: 'Admission No Search' }
                             ].map((item) => (
                                 <div key={item.value} className='flex items-center space-x-4'>
                                     <RadioGroupItem value={item.value} id={item.value} className='h-6 w-6 border-2' />
@@ -358,7 +368,6 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
 
                 <CardContent className='space-y-6 pt-6'>
                     <div className='grid gap-6 md:grid-cols-2'>
-                        {/* Academic Year - Always */}
                         <div className='flex flex-col gap-2'>
                             <Label className='font-medium'>
                                 Academic Year <span className='text-red-500'>*</span>
@@ -383,8 +392,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                             />
                         </div>
 
-                        {/* Class - For C & L */}
-                        {(selectionType === 'C' || selectionType === 'L') && (
+                        {(selectionType === 'classwise' || selectionType === 'leftstudent') && (
                             <div className='flex flex-col gap-2'>
                                 <Label className='font-medium'>
                                     Class <span className='text-red-500'>*</span>
@@ -410,11 +418,11 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                             </div>
                         )}
 
-                        {/* Category - For A & F */}
-                        {(selectionType === 'A' || selectionType === 'F') && (
+                        {(selectionType === 'categorywise' || selectionType === 'feecategorywise') && (
                             <div className='flex flex-col gap-2'>
                                 <Label className='font-medium'>
-                                    {selectionType === 'A' ? 'Category' : 'Fee Concession Category'} <span className='text-red-500'>*</span>
+                                    {selectionType === 'categorywise' ? 'Category' : 'Fee Concession Category'}{' '}
+                                    <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     control={control}
@@ -437,8 +445,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                             </div>
                         )}
 
-                        {/* Admission No Search */}
-                        {selectionType === 'S' && (
+                        {selectionType === 'Admissionnosearch' && (
                             <div className='flex flex-col gap-2'>
                                 <Label className='font-medium'>
                                     Admission No <span className='text-red-500'>*</span>
@@ -458,7 +465,6 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                             </div>
                         )}
 
-                        {/* Term - Conditionally Visible */}
                         {showTermField && (
                             <div className='flex flex-col gap-2'>
                                 <Label className='font-medium'>
@@ -483,11 +489,19 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                 </CardContent>
             </Card>
 
-            {/* Student Table - Only after Term is selected */}
+            {/* Student Table with Search */}
             {showStudentTable && (
                 <Card className='shadow-xl'>
                     <CardHeader className='text-black'>
-                        <CardTitle className='text-2xl'>Student List ({selectedStudentsCount} selected)</CardTitle>
+                        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                            <CardTitle className='text-2xl'>Student List ({selectedStudentsCount} selected)</CardTitle>
+                            <Input
+                                placeholder='Search by name or admission no...'
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                className='h-10 w-full sm:max-w-sm'
+                            />
+                        </div>
                     </CardHeader>
                     <CardContent className='p-6'>
                         <div className='overflow-hidden rounded-lg border bg-white'>
@@ -496,27 +510,37 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                 data={filteredStudents}
                                 isLoading={studentQuery.isLoading}
                                 totalItems={filteredStudents.length}
-                                isPaginationRequired={true}
+                                isPaginationRequired={false}
+                                isSearchRequired={false}
                             />
                         </div>
                     </CardContent>
                 </Card>
             )}
 
-            {/* Fee Heads */}
+            {/* Fee Heads Table with Search */}
             {shouldShowHeads && heads.length > 0 && (
                 <Card className='shadow-xl'>
                     <CardHeader className='text-black'>
-                        <CardTitle className='text-2xl'>Fee Head List</CardTitle>
+                        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                            <CardTitle className='text-2xl'>Fee Head List</CardTitle>
+                            <Input
+                                placeholder='Search fee head or installment...'
+                                value={searchValue}
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                className='h-10 w-full sm:max-w-sm'
+                            />
+                        </div>
                     </CardHeader>
-                    <CardContent className='p-0'>
+                    <CardContent className='p-6'>
                         <div className='overflow-hidden rounded-lg border bg-white'>
                             <GenericDataTable
                                 columns={headColumns}
-                                data={heads}
+                                data={filteredHeads}
                                 isLoading={false}
-                                totalItems={heads.length}
+                                totalItems={filteredHeads.length}
                                 isPaginationRequired={false}
+                                isSearchRequired={false}
                             />
                         </div>
                     </CardContent>
