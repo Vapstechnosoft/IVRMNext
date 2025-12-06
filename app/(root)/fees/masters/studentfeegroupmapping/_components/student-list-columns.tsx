@@ -4,7 +4,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { useFormContext } from '@/components/ui/form/form-provider';
+import { useSecondaryFormContext } from '@/components/ui/form/secondary-form-provider';
 import type { IMasterStudentClassMappingList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
@@ -106,9 +106,9 @@ function ActionButtonsCell({
 }: {
     rowData: IMasterStudentClassMappingList;
 }) {
-    const { openOrderDetails } = useFormContext<IMasterStudentClassMappingList>();
+    const { openEditForm } = useSecondaryFormContext<IMasterStudentClassMappingList>();
 
-    const handleView = useCallback((data: IMasterStudentClassMappingList) => openOrderDetails?.(data), [openOrderDetails]);
+    const handleView = useCallback((data: IMasterStudentClassMappingList) => openEditForm?.(data), [openEditForm]);
 
     return <ActionButtons rowData={rowData} buttons={{ delete: false, edit: true }} onEdit={handleView} />;
 }

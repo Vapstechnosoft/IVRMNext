@@ -9,6 +9,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useSecondaryFormContext } from '@/components/ui/form/secondary-form-provider';
 import { useStudentFeeGroupMapping } from '@/hooks/fees/useMasters';
 import { getStudentFeeSummaryById, updtaeStudentFeeGroupMapping } from '@/server/fees/masters/student_fee_group_mapping';
 import type {
@@ -120,7 +121,6 @@ function MasterStudentFeeGroupMapping({
 function FormSections() {
     const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
         useFormContext<IMasterStudentFeeGroupMappingList>();
-    const { isOrderDetailsOpen, closeOrderDetails } = useFormContext<IMasterStudentClassMappingList>();
     return (
         <>
             {/* Add Form */}
@@ -149,7 +149,7 @@ function FormSections() {
                 </div>
             )}
 
-            {isOrderDetailsOpen && <MasterViewDetail onSuccess={closeOrderDetails} />}
+            {/* {isOrderDetailsOpen && <MasterViewDetail onSuccess={closeOrderDetails} />} */}
 
             {isDeleteFormOpen && selectedRow && (
                 <DeleteStudentFeeGroupMappingForm
@@ -166,9 +166,9 @@ function FormSections() {
 interface MasterViewDetailProps {
     onSuccess?: () => void;
 }
-function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
+export function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
     const { refetchAll } = useStudentFeeGroupMapping();
-    const { isOrderDetailsOpen, closeOrderDetails, selectedRow } = useFormContext<any>();
+    const { isEditFormOpen, closeEditForm, selectedRow } = useSecondaryFormContext<IMasterStudentClassMappingList>();
 
     const [loading, setLoading] = useState(false);
     const [collapsedGroups, setCollapsedGroups] = useState<Record<number, boolean>>({});
@@ -177,7 +177,7 @@ function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
     const [isSubmitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!isOrderDetailsOpen || !selectedRow) {
+        if (!isEditFormOpen || !selectedRow) {
             setFeeGroups([]);
             return;
         }
@@ -200,7 +200,7 @@ function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
         };
 
         fetchData();
-    }, [isOrderDetailsOpen, selectedRow]);
+    }, [isEditFormOpen, selectedRow]);
 
     const submit = async () => {
         setSubmitting(true);
@@ -222,8 +222,8 @@ function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
 
             return {
                 mI_Id: 30,
-                asmaY_Id: selectedRow.academicYearId,
-                amsT_Id: selectedRow.studentId,
+                asmaY_Id: selectedRow?.academicYearId,
+                amsT_Id: selectedRow?.studentId,
                 // userId: 21602,
                 mappings
             };
@@ -348,7 +348,7 @@ function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
     };
 
     return (
-        <Dialog open={isOrderDetailsOpen} onOpenChange={closeOrderDetails}>
+        <Dialog open={isEditFormOpen} onOpenChange={closeEditForm}>
             <DialogContent className='flex max-h-[70vh] max-w-3xl flex-col'>
                 <DialogHeader>
                     <DialogTitle>Group List</DialogTitle>
@@ -433,7 +433,7 @@ function MasterViewDetail({ onSuccess }: MasterViewDetailProps) {
                 </div>
 
                 <DialogFooter className='border-t pt-4'>
-                    <Button variant='outline' onClick={closeOrderDetails}>
+                    <Button variant='outline' onClick={closeEditForm}>
                         Cancel
                     </Button>
                     <Button
