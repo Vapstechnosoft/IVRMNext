@@ -369,22 +369,22 @@ export async function getUserAccessibleModules() {
                 {
                     id: 2,
                     name: 'Fees Management',
-                    icon: 'Settings',
+                    icon: 'BadgeIndianRupee',
                     menu: [
                         {
                             id: 2,
                             name: 'Fees',
-                            icon: 'Settings',
+                            icon: 'BadgeIndianRupee',
                             sub_menu: [
                                 {
                                     id: 4,
                                     name: 'Configuration',
-                                    icon: 'Settings',
+                                    icon: 'BadgeIndianRupee',
                                     pages: [
                                         {
                                             id: 21,
                                             name: 'Fee configuration',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/configuration/masterfeeconfig',
                                             title: 'Fee configuration',
                                             description: 'Fee configuration'
@@ -394,12 +394,12 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 5,
                                     name: 'Masters',
-                                    icon: 'Settings',
+                                    icon: 'BadgeIndianRupee',
                                     pages: [
                                         {
                                             id: 22,
                                             name: 'Master Fee Head',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feehead',
                                             title: 'Master Fee Head',
                                             description: 'Manage Master Fee Head Details'
@@ -407,7 +407,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 23,
                                             name: 'Master Mode Of Payment',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/modeofpayment',
                                             title: 'Master Mode Of Payment',
                                             description: 'Manage Master Mode Of Payment Details'
@@ -415,7 +415,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 24,
                                             name: 'Master Payment Gateway Details',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/paymentGatewayDetails',
                                             title: 'Master Payment Gateway Details',
                                             description: 'Manage Master Payment Gateway Details'
@@ -423,7 +423,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 25,
                                             name: 'Master Fine Slab',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfineslab',
                                             title: 'Master Fine Slab',
                                             description: 'Manage Master Fine Slab Details'
@@ -431,7 +431,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 26,
                                             name: 'Master Fee Master Concession',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
                                             title: 'Fee Master Concession',
                                             description: 'Manage Master Fee Concession Details'
@@ -440,7 +440,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 600,
                                             name: 'Master Concession Category Details',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcessiondetails',
                                             title: 'Master Concession Category Details',
                                             description: 'Master Master Concession Category Details'
@@ -448,7 +448,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 650,
                                             name: 'Master Concession Category Group Head Mapping',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/concessioncategorygroupheadmapping',
                                             title: 'Master Concession Category Group Head Mapping',
                                             description: 'Master Master Concession Category Group Head Mapping'
@@ -456,7 +456,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 27,
                                             name: 'Master Fee Terms',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feemasterterms',
                                             title: 'Master Fee Terms',
                                             description: 'Manage Master Fee Terms Details'
@@ -464,7 +464,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 28,
                                             name: 'Master Term Fee Head',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/mastertermfeehead',
                                             title: 'Master Term Fee Head',
                                             description: 'Manage Master Term Fee Head Details'
@@ -472,7 +472,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 601,
                                             name: 'Master Term Fee Head Due Date',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/mastertermfeeheadduedate',
                                             title: 'Master Term Fee Head Due Date',
                                             description: 'Manage Master Term Fee Head Due Date'
@@ -480,7 +480,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 2001,
                                             name: 'Master Terms Period',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterTermsPeriod',
                                             title: 'Master Terms Period',
                                             description: 'Manage Master Terms Period'
@@ -488,7 +488,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 29,
                                             name: 'Master Class Category',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/classcategory',
                                             title: ' Master Class Category',
                                             description: 'Manage Master Class Category'
@@ -496,7 +496,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 30,
                                             name: 'Master Yearly Category',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/category',
                                             title: 'Master Yearly Category',
                                             description: 'Manage Master Yearly Category'
@@ -504,7 +504,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 31,
                                             name: 'Master Fee Installment',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feesinstallment',
                                             title: 'Master Fee Installment',
                                             description: 'Manage Master Fee Installment'
@@ -512,7 +512,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 32,
                                             name: 'Master Installment due date',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feesinstallmentduedate',
                                             title: 'Master Installment due date',
                                             description: 'Manage Master Installment due date'
@@ -520,7 +520,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 33,
                                             name: 'Master Fee Group Grouping',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/groupsgrouping',
                                             title: 'Master Fee Group Grouping',
                                             description: 'Manage Master Fee Group Grouping'
@@ -528,7 +528,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 34,
                                             name: 'Master Fee Groups',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/mastergroup',
                                             title: 'Master Fee Groups',
                                             description: 'Manage Master Fee Groups'
@@ -536,7 +536,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 35,
                                             name: 'Master Fee Yearly Groups',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/yearlygroup',
                                             title: 'Master Fee Yearly Groups',
                                             description: 'Manage Master Fee Yearly Groups'
@@ -545,7 +545,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 36,
                                             name: 'Master Fee Yearly Groups Mapping',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/yearlygroupmapping',
                                             title: 'Master Fee Yearly Groups Mapping',
                                             description: 'Manage Master Fee Yearly Groups Mapping'
@@ -553,7 +553,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 37,
                                             name: 'Master Fee Group wise Auto Receipt',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/groupwiseautoreceipt',
                                             title: 'Master Fee Group wise Auto Receipt',
                                             description: 'Manage Master Fee Group wise Auto Receipt'
@@ -561,7 +561,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 38,
                                             name: 'Master Fee Yearly Rebate Settings',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/yearlyrebatesetting',
                                             title: 'Master Yearly Rebate Settings',
                                             description: 'Manage Master Yeary Rebate Settings'
@@ -569,7 +569,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 39,
                                             name: 'Master Fee Privilege',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feeprevilege',
                                             title: 'Master Fee Privilege',
                                             description: 'Manage Master Fee Privilege Details'
@@ -577,7 +577,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 40,
                                             name: 'Master Online Payment Head Group',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/onlinepaymentheadgroupmapping',
                                             title: 'Master Online Payment Head Group',
                                             description: 'Manage Master Online Payment Head Group Mapping Details'
@@ -585,7 +585,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 900,
                                             name: 'Master Student Fee Group Mapping',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/studentfeegroupmapping',
                                             title: 'Master Student Fee Group Mapping',
                                             description: 'Manage Master Student Fee Group Mapping Details'
@@ -593,7 +593,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 501,
                                             name: 'Master Fee Other Student',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/feeotherstudent',
                                             title: 'Master Fee Other Student',
                                             description: 'Manage Master Fee Other Student Details'
@@ -601,7 +601,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 502,
                                             name: 'Master Special Fee Head',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/specialFeeHead',
                                             title: 'Master Special Fee Head',
                                             description: 'Manage Master Special Fee Head Details'
@@ -611,12 +611,12 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 6,
                                     name: 'Transactions',
-                                    icon: 'Settings',
+                                    icon: 'BadgeIndianRupee',
                                     pages: [
                                         {
                                             id: 40,
                                             name: 'Fee Amount Entry',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/feeamountentry',
                                             title: 'Fee Amount Entry',
                                             description: 'Manage Fee Amount Entry Details'
@@ -624,7 +624,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 41,
                                             name: 'Third Party Transaction',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/thirdPartyTransaction',
                                             title: 'Third Party Transaction',
                                             description: 'Manage Third Party Transaction'
@@ -632,7 +632,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 42,
                                             name: 'Fee Opening Balance',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/feeopeningbalance',
                                             title: 'Fee Opening Balance',
                                             description: 'Manage Fee Opening Balance'
@@ -640,7 +640,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 43,
                                             name: 'Fee Waivedoff',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/waivedoff',
                                             title: 'Fee Waivedoff',
                                             description: 'Manage Fee Waivedoff'
@@ -648,7 +648,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 500,
                                             name: 'Fee Preadmission Transaction',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/feepreadmissiontrasaction',
                                             title: 'Fee Preadmission Transaction',
                                             description: 'Manage Fee Preadmission Transaction'
@@ -657,7 +657,7 @@ export async function getUserAccessibleModules() {
                                         // {
                                         //     id: 508,
                                         //     name: 'Fee Refundable',
-                                        //     icon: 'Settings',
+                                        //     icon: 'BadgeIndianRupee',
                                         //     url: '/fees/transactions/feerefundable',
                                         //     title: 'Fee Refundable',
                                         //     description: 'Manage Fee Refundable'
@@ -666,7 +666,7 @@ export async function getUserAccessibleModules() {
                                         // {
                                         //     id: 505,
                                         //     name: 'Fee Transaction',
-                                        //     icon: 'Settings',
+                                        //     icon: 'BadgeIndianRupee',
                                         //     url: '/fees/transactions/feetransaction',
                                         //     title: 'Fee Transaction',
                                         //     description: 'Fee Transaction'
@@ -675,7 +675,7 @@ export async function getUserAccessibleModules() {
                                         //  {
                                         //     id: 506,
                                         //     name: 'Fee Adjustment',
-                                        //     icon: 'Settings',
+                                        //     icon: 'BadgeIndianRupee',
                                         //     url: '/fees/transactions/feeadjustment',
                                         //     title: 'Fee Adjustment',
                                         //     description: 'Manage Fee Adjustment'
@@ -683,7 +683,7 @@ export async function getUserAccessibleModules() {
                                         //  {
                                         //     id: 507,
                                         //     name: 'Fee Concession',
-                                        //     icon: 'Settings',
+                                        //     icon: 'BadgeIndianRupee',
                                         //     url: '/fees/transactions/feeconcession',
                                         //     title: 'Fee Concession',
                                         //     description: 'Manage Fee Concession'
@@ -693,12 +693,12 @@ export async function getUserAccessibleModules() {
                                 {
                                     id: 2001,
                                     name: 'Reports',
-                                    icon: 'Settings',
+                                    icon: 'BadgeIndianRupee',
                                     pages: [
                                         {
                                             id: 10011,
                                             name: 'Fee Defaulter report',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feedefaulterreport',
                                             title: 'Fee Defaulter Report',
                                             description: 'Fee Defaulter Report'
@@ -706,7 +706,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 10012,
                                             name: 'Daily Fee Collection Report',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/dailyfeecollectionreport',
                                             title: 'Daily Fee Collection Report',
                                             description: 'Manage Daily Fee Collection Report Details'
@@ -714,7 +714,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 10013,
                                             name: 'Yearly Fee Collection Report',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/yearlyfeecollectionreport',
                                             title: 'Yearly Fee Collection Report',
                                             description: 'Manage Yearly Fee Collection Report Details'
@@ -722,7 +722,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 10014,
                                             name: 'Audit Report',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/auditreport',
                                             title: 'Audit Report',
                                             description: 'Manage Audit Report Details'
@@ -730,7 +730,7 @@ export async function getUserAccessibleModules() {
                                         {
                                             id: 10015,
                                             name: 'Fee Concession Report',
-                                            icon: 'Settings',
+                                            icon: 'BadgeIndianRupee',
                                             url: '/fees/feereports/feeconcessionreport',
                                             title: 'Fee Concession Report',
                                             description: 'Manage Fee Concession Report Details'

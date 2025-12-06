@@ -41,7 +41,8 @@ import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { MasterViewDetail } from '../page';
+
+import { MasterViewDetail } from './masterViewDetails';
 import { masterFeeStudentClassMapping } from './student-list-columns';
 
 type FormFields = z.infer<typeof masterStudentFeeGroupMappingSchema.addOrUpdate>;

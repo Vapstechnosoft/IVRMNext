@@ -8,6 +8,7 @@ import {
     ArrowRight,
     ArrowUp,
     Award,
+    BadgeIndianRupee,
     BarChart3,
     Battery,
     Bell,
@@ -173,6 +174,8 @@ export const lucideIcons: IconOption[] = [
     { name: 'CalendarDays', icon: CalendarDays, category: 'interface' },
     { name: 'BookOpen', icon: BookOpen, category: 'interface' },
     { name: 'BookOpen', icon: BookOpen, category: 'interface' },
+    { name: 'BadgeIndianRupee', icon: BadgeIndianRupee, category: 'interface' },
+
     { name: 'ClipboardList', icon: ClipboardList, category: 'interface' },
     { name: 'Search', icon: Search, category: 'interface' },
     { name: 'Filter', icon: Filter, category: 'interface' },
