@@ -75,13 +75,7 @@ import {
 import {
     getMasterDepartments,
     getMasterDesignations,
-
     getMasterEmployeeTypes,
-    getMasterGroupTypes,
-    getMasterMonths,
-
-    getMasterGroupTypes,
-    getMasterMonths,
     getMasterPaymentModeList,
     getMasterYears
 } from '@/server/hrms/master';
@@ -2166,7 +2160,10 @@ export const useMasterEmployeeTypes = () => {
         refetchAll: () => {
             return _queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_EMPLOYEE_TYPES]
-
+            });
+        }
+    };
+};
 
 export const useMasterPaymentModeList = () => {
     const queryClient = useQueryClient();
@@ -2180,7 +2177,6 @@ export const useMasterPaymentModeList = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_PAYMENT_MODE_LIST]
-
             });
         }
     };
