@@ -32,6 +32,29 @@ interface FeestudentTrasactionsFormProps {
     onSuccess?: () => void;
 }
 
+const payDetails = [
+    {
+        fmB_Id: 1,
+        bank: 'Cash'
+    },
+    {
+        fmB_Id: 2,
+        bank: 'Bank'
+    },
+    {
+        fmB_Id: 3,
+        bank: 'RTGS/NEFT'
+    },
+    {
+        fmB_Id: 4,
+        bank: 'Swipe/Card'
+    },
+    {
+        fmB_Id: 5,
+        bank: 'UPI'
+    }
+];
+
 export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactionsFormProps) {
     const {
         handleSubmit,
@@ -232,6 +255,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
 
                 setFeeHeads(feeDetails || []);
+                setBankDetails(payDetails);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setFeeHeads([]);
@@ -977,7 +1001,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                 />
                                             )}
                                         </td>
-                                        <td className='border p-2'>{f.bank}</td>
+                                        <td className='border p-2 font-semibold'>{f.bank}</td>
                                         <td className='border p-2'>
                                             {payType !== 'Cash' && modeType === 'Single' && (
                                                 <Popover>
@@ -1069,25 +1093,27 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         </td>
 
                                         <td className='border p-2'>
-                                            <Select
-                                                value={selectedBanks[f.fmB_Id] || ''} // get value for this row
-                                                onValueChange={(val) =>
-                                                    setSelectedBanks((prev) => ({
-                                                        ...prev,
-                                                        [f.fmB_Id]: val // update only this row
-                                                    }))
-                                                }>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder='Select Bank' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                    <SelectItem value='canara'>Canara Bank</SelectItem>
-                                                    <SelectItem value='ka'>Karnataka Bank</SelectItem>
-                                                    <SelectItem value='hdfc'>HDFC</SelectItem>
-                                                    <SelectItem value='unionBank'>Union Bank</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            {f[0] ? (
+                                                <Select
+                                                    value={selectedBanks[f.fmB_Id] || ''} // get value for this row
+                                                    onValueChange={(val) =>
+                                                        setSelectedBanks((prev) => ({
+                                                            ...prev,
+                                                            [f.fmB_Id]: val // update only this row
+                                                        }))
+                                                    }>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Bank' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value='sbi'>State Bank Of India</SelectItem>
+                                                        <SelectItem value='canara'>Canara Bank</SelectItem>
+                                                        <SelectItem value='ka'>Karnataka Bank</SelectItem>
+                                                        <SelectItem value='hdfc'>HDFC</SelectItem>
+                                                        <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            ) : null}
                                         </td>
                                         <td className='border p-2'>
                                             <input
