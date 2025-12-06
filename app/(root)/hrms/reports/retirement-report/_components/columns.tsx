@@ -1,9 +1,7 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface RetirementRecord {
     id?: number;
     createdAt?: string;
@@ -29,7 +27,6 @@ export interface RetirementRecord {
     status: 'Working' | 'Left' | 'Retired';
     retirementEligible: boolean;
 }
-
 // Header fields for selection
 export const headerFields = [
     'Employee Code',
@@ -49,7 +46,6 @@ export const headerFields = [
     'PF Balance',
     'Gratuity Amount'
 ];
-
 // Function to generate columns based on selected headers
 export const getRetirementColumns = (selectedHeaders: string[]): ColumnDef<RetirementRecord>[] => {
     const baseColumns: ColumnDef<RetirementRecord>[] = [
@@ -67,7 +63,6 @@ export const getRetirementColumns = (selectedHeaders: string[]): ColumnDef<Retir
             size: 80
         }
     ];
-
     // Add selected header columns
     selectedHeaders.forEach((header) => {
         switch (header) {
@@ -220,7 +215,6 @@ export const getRetirementColumns = (selectedHeaders: string[]): ColumnDef<Retir
                 break;
         }
     });
-
     // Always add status column
     baseColumns.push({
         accessorKey: 'status',
@@ -233,6 +227,5 @@ export const getRetirementColumns = (selectedHeaders: string[]): ColumnDef<Retir
         enableSorting: true,
         enableHiding: true
     });
-
     return baseColumns;
 };

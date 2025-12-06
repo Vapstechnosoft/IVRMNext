@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFilterEmployeeOfferAndExperienceData, useGetEmployeeDetailsBySelection } from '@/hooks/hrms/useReports';
@@ -16,18 +15,15 @@ import {
     type GroupType,
     type OfferLetterFilters
 } from './_components/filters';
-
 export default function EmployeeOfferLetterPage() {
     // API hooks
     const filterMutation = useFilterEmployeeOfferAndExperienceData();
     const searchMutation = useGetEmployeeDetailsBySelection();
-
     // Database instances (for dropdowns - group types, departments, designations)
     const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
     const departmentDB = createLocalCrud<Department>('master:department');
     const designationDB = createLocalCrud<Designation>('master:designation');
     const employeeDB = createLocalCrud<Employee>('master:employee');
-
     // State
     const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
@@ -36,7 +32,6 @@ export default function EmployeeOfferLetterPage() {
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [_isLoading, setIsLoading] = useState(true);
     const [showReport, setShowReport] = useState(false);
-
     const [filters, setFilters] = useState<OfferLetterFilters>({
         type: '',
         department: '',
@@ -45,12 +40,10 @@ export default function EmployeeOfferLetterPage() {
         currentDate: new Date(),
         reportType: 'Experience Certificate'
     });
-
     // Load data on mount
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = () => {
         try {
             // Load master data
@@ -61,7 +54,6 @@ export default function EmployeeOfferLetterPage() {
                 groupList = groupTypeDB.list();
             }
             setGroupTypes(groupList.filter((g) => g.isActive));
-
             let deptList = departmentDB.list();
             if (deptList.length === 0) {
                 const mockData = generateMockDepartments();
@@ -69,7 +61,6 @@ export default function EmployeeOfferLetterPage() {
                 deptList = departmentDB.list();
             }
             setDepartments(deptList.filter((d) => d.isActive));
-
             let desigList = designationDB.list();
             if (desigList.length === 0) {
                 const mockData = generateMockDesignations();
@@ -77,7 +68,6 @@ export default function EmployeeOfferLetterPage() {
                 desigList = designationDB.list();
             }
             setDesignations(desigList.filter((d) => d.isActive));
-
             // Load employees
             let empList = employeeDB.list();
             if (empList.length === 0) {
@@ -93,7 +83,6 @@ export default function EmployeeOfferLetterPage() {
             setIsLoading(false);
         }
     };
-
     // Generate mock data
     const generateMockGroupTypes = (): Omit<GroupType, 'id' | 'createdAt'>[] => {
         return [
@@ -102,7 +91,6 @@ export default function EmployeeOfferLetterPage() {
             { groupType: 'Administrative', groupCode: 'ADM', order: 3, isActive: true }
         ];
     };
-
     const generateMockDepartments = (): Omit<Department, 'id' | 'createdAt'>[] => {
         return [
             { departmentName: 'Teaching', internalTrainingHours: '40', order: 1, isActive: true },
@@ -111,7 +99,6 @@ export default function EmployeeOfferLetterPage() {
             { departmentName: 'OFFICE STAFF', internalTrainingHours: '40', order: 4, isActive: true }
         ];
     };
-
     const generateMockDesignations = (): Omit<Designation, 'id' | 'createdAt'>[] => {
         return [
             {
@@ -148,7 +135,6 @@ export default function EmployeeOfferLetterPage() {
             }
         ];
     };
-
     const generateMockEmployees = (): Omit<Employee, 'id' | 'createdAt'>[] => {
         return [
             {
@@ -168,7 +154,6 @@ export default function EmployeeOfferLetterPage() {
             }
         ];
     };
-
     // Filter employees using API when filters change
     useEffect(() => {
         // Only call API if we have at least one filter selected
@@ -177,12 +162,10 @@ export default function EmployeeOfferLetterPage() {
             setEmployees([]);
             return;
         }
-
         // Find IDs for selected filters
         const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
         const selectedDept = departments.find((d) => d.departmentName === filters.department);
         const selectedDesig = designations.find((d) => d.designationName === filters.designation);
-
         const filterRequest = {
             MI_Id: 30,
             HRMGT_Id: selectedType?.id || 0,
@@ -190,7 +173,6 @@ export default function EmployeeOfferLetterPage() {
             HRMDES_Id: selectedDesig?.id || 0,
             LogInUserId: 0
         };
-
         filterMutation.mutate(filterRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -223,7 +205,6 @@ export default function EmployeeOfferLetterPage() {
                             | 'Other'
                             | undefined
                     }));
-
                     setEmployees(mappedEmployees);
                     setFilteredEmployees(mappedEmployees);
                 } else {
@@ -239,32 +220,26 @@ export default function EmployeeOfferLetterPage() {
             }
         });
     }, [filters.type, filters.department, filters.designation, groupTypes, departments, designations]);
-
     const handleFilterChange = (key: keyof OfferLetterFilters, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
-
         // Reset employee when filters change
         if (key !== 'selectedEmployee' && key !== 'currentDate' && key !== 'reportType') {
             setFilters((prev) => ({ ...prev, selectedEmployee: '' }));
         }
     };
-
     const handleSearch = () => {
         if (!filters.selectedEmployee) {
             toast.error('Please select an employee');
             return;
         }
-
         if (!filters.type || !filters.department || !filters.designation) {
             toast.error('Please select Type, Department, and Designation');
             return;
         }
-
         // Find IDs for selected filters
         const selectedType = groupTypes.find((gt) => gt.groupType === filters.type);
         const selectedDept = departments.find((d) => d.departmentName === filters.department);
         const selectedDesig = designations.find((d) => d.designationName === filters.designation);
-
         const searchRequest = {
             MI_Id: 30,
             HRMGT_Id: selectedType?.id || 0,
@@ -272,7 +247,6 @@ export default function EmployeeOfferLetterPage() {
             HRMDES_Id: selectedDesig?.id || 0,
             LogInUserId: 0
         };
-
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -305,7 +279,6 @@ export default function EmployeeOfferLetterPage() {
                             | 'Other'
                             | undefined
                     }));
-
                     // Update employees list and find selected employee
                     setEmployees(mappedEmployees);
                     const selectedEmp = mappedEmployees.find((emp) => emp.id.toString() === filters.selectedEmployee);
@@ -324,7 +297,6 @@ export default function EmployeeOfferLetterPage() {
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             type: '',
@@ -337,18 +309,15 @@ export default function EmployeeOfferLetterPage() {
         setShowReport(false);
         toast.info('Filters cleared');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Get selected employee details
     const selectedEmployeeDetails = useMemo(() => {
         if (!filters.selectedEmployee) return null;
         return employees.find((emp) => emp.id.toString() === filters.selectedEmployee) || null;
     }, [filters.selectedEmployee, employees]);
-
     // Format employee name with title (Mr/Ms)
     const getEmployeeNameWithTitle = (employee: Employee | null) => {
         if (!employee) return '';
@@ -356,7 +325,6 @@ export default function EmployeeOfferLetterPage() {
         const fullName = `${employee.employeeFirstName} ${employee.employeeMiddleName || ''} ${employee.employeeLastName || ''}`.trim();
         return `${title}.${fullName}`;
     };
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -370,7 +338,6 @@ export default function EmployeeOfferLetterPage() {
                 onSearch={handleSearch}
                 onCancel={handleCancel}
             />
-
             {/* Report Results */}
             {showReport && selectedEmployeeDetails && (
                 <CollapsibleSection
@@ -389,12 +356,10 @@ export default function EmployeeOfferLetterPage() {
                                     <div className='text-right text-sm'>
                                         <span className='font-semibold'>DATE: {format(filters.currentDate, 'dd-MM-yyyy')}</span>
                                     </div>
-
                                     {/* Heading */}
                                     <div className='text-center'>
                                         <h2 className='font-bold text-lg uppercase'>TO WHOMSOEVER IT MAY CONCERN</h2>
                                     </div>
-
                                     {/* Certificate Content */}
                                     <div className='mx-auto max-w-3xl space-y-4 text-sm leading-relaxed'>
                                         <p className='text-justify'>
@@ -410,7 +375,6 @@ export default function EmployeeOfferLetterPage() {
                                             <strong>{selectedEmployeeDetails.designationName}</strong> since{' '}
                                             <strong>{format(new Date(selectedEmployeeDetails.dateOfJoining), 'dd-MM-yyyy')}</strong>.
                                         </p>
-
                                         {selectedEmployeeDetails.dateOfLeaving && (
                                             <p className='text-justify'>
                                                 The employee served from{' '}
@@ -419,7 +383,6 @@ export default function EmployeeOfferLetterPage() {
                                             </p>
                                         )}
                                     </div>
-
                                     {/* Signature Section */}
                                     <div className='mt-12 flex flex-col items-end space-y-2 text-sm'>
                                         <div className='font-semibold'>Mrs. Phebe Sheela Rani</div>
@@ -428,7 +391,6 @@ export default function EmployeeOfferLetterPage() {
                                 </div>
                             </div>
                         )}
-
                         {/* Offer Letter */}
                         {filters.reportType === 'Offer Letter' && (
                             <div className='rounded-lg border bg-white p-8'>
@@ -437,7 +399,6 @@ export default function EmployeeOfferLetterPage() {
                                     <div className='text-right text-sm'>
                                         <span className='font-semibold'>DATE: {format(filters.currentDate, 'dd-MM-yyyy')}</span>
                                     </div>
-
                                     {/* Employee Details */}
                                     <div className='space-y-1 text-sm'>
                                         <div>
@@ -446,37 +407,30 @@ export default function EmployeeOfferLetterPage() {
                                         <div>Employee Code: {selectedEmployeeDetails.employeeCode}</div>
                                         {selectedEmployeeDetails.departmentName && <div>{selectedEmployeeDetails.departmentName}</div>}
                                     </div>
-
                                     {/* Subject */}
                                     <div className='space-y-2 text-sm'>
                                         <div>
                                             <strong>Subject: Offer of Employment</strong>
                                         </div>
                                     </div>
-
                                     {/* Letter Content */}
                                     <div className='mx-auto max-w-3xl space-y-4 text-sm leading-relaxed'>
                                         <p className='text-justify'>Dear {selectedEmployeeDetails.employeeFirstName},</p>
-
                                         <p className='text-justify'>
                                             We are pleased to offer you the position of{' '}
                                             <strong>{selectedEmployeeDetails.designationName}</strong> in the{' '}
                                             <strong>{selectedEmployeeDetails.departmentName}</strong> department at our institution.
                                         </p>
-
                                         <p className='text-justify'>
                                             Your employment will commence from <strong>{format(filters.currentDate, 'dd-MM-yyyy')}</strong>.
                                             We are confident that your skills and experience will be a valuable addition to our team.
                                         </p>
-
                                         <p className='text-justify'>
                                             Please confirm your acceptance of this offer by signing and returning a copy of this letter
                                             within 7 days.
                                         </p>
-
                                         <p className='text-justify'>We look forward to welcoming you to our organization.</p>
                                     </div>
-
                                     {/* Signature Section */}
                                     <div className='mt-12 flex flex-col items-end space-y-2 text-sm'>
                                         <div className='font-semibold'>Mrs. Phebe Sheela Rani</div>
@@ -486,7 +440,6 @@ export default function EmployeeOfferLetterPage() {
                                 </div>
                             </div>
                         )}
-
                         {/* Action Buttons */}
                         <div className='flex justify-center gap-2 border-t pt-4'>
                             <Button variant='outline' onClick={handlePrint}>

@@ -4,9 +4,7 @@
 // 2. Import form from _components/job-posting-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +21,6 @@ import { Edit, Plus, RefreshCw, Save, Trash2, Upload, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface JobPosting extends BaseEntity {
     position: string;
     location: string;
@@ -49,7 +46,6 @@ interface JobPosting extends BaseEntity {
     };
     status: 'Draft' | 'Published' | 'Closed';
 }
-
 type JobPostingForm = {
     position: string;
     location: string;
@@ -68,16 +64,13 @@ type JobPostingForm = {
     age: string;
     reason: string;
 };
-
 export default function JobPostingPage() {
     const [postings, setPostings] = useState<JobPosting[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingPosting, setEditingPosting] = useState<JobPosting | null>(null);
     const formRef = useRef<HTMLDivElement>(null);
-
     const postingDB = createLocalCrud<JobPosting>('recruitment:job-posting');
-
     const {
         register,
         handleSubmit,
@@ -86,13 +79,10 @@ export default function JobPostingPage() {
         formState: { errors, isSubmitting },
         watch
     } = useForm<JobPostingForm>({ mode: 'onChange' });
-
     const [tests, setTests] = useState({ written: false, online: false, technical: false });
-
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = () => {
         try {
             setPostings(postingDB.list());
@@ -102,19 +92,16 @@ export default function JobPostingPage() {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingPosting(null);
         reset();
         setTests({ written: false, online: false, technical: false });
     };
-
     const onSubmit: SubmitHandler<JobPostingForm> = async (data) => {
         try {
             const posting: Omit<JobPosting, 'id' | 'createdAt'> = {
@@ -137,7 +124,6 @@ export default function JobPostingPage() {
                 tests,
                 status: 'Draft'
             };
-
             if (editingPosting) {
                 postingDB.update(editingPosting.id, posting);
                 toast.success('Job posting updated');
@@ -151,7 +137,6 @@ export default function JobPostingPage() {
             toast.error(e.message || 'Operation failed');
         }
     };
-
     const handleEdit = (p: JobPosting) => {
         setEditingPosting(p);
         reset({
@@ -176,13 +161,11 @@ export default function JobPostingPage() {
         setIsFormOpen(true);
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     };
-
     const handleDelete = (p: JobPosting) => {
         postingDB.remove(p.id);
         toast.success('Job posting deleted');
         loadData();
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -200,7 +183,6 @@ export default function JobPostingPage() {
                         New Job Posting
                     </Button>
                 </div>
-
                 {/* Table */}
                 <CollapsibleSection
                     title='New Job Posting List'
@@ -212,7 +194,6 @@ export default function JobPostingPage() {
                     headerClassName=''>
                     <JobPostingTable postings={postings} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
                 </CollapsibleSection>
-
                 {/* Form */}
                 {isFormOpen && (
                     <div ref={formRef}>
@@ -243,7 +224,6 @@ export default function JobPostingPage() {
                                             </Select>
                                             {errors.position && <FormError>Position is required</FormError>}
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Priority <span className='text-red-500'>*</span>
@@ -259,7 +239,6 @@ export default function JobPostingPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Qualification <span className='text-red-500'>*</span>
@@ -277,7 +256,6 @@ export default function JobPostingPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 No. of Position <span className='text-red-500'>*</span>
@@ -288,7 +266,6 @@ export default function JobPostingPage() {
                                                 error={errors.noOfPositions?.message}
                                             />
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Job Description <span className='text-red-500'>*</span>
@@ -299,7 +276,6 @@ export default function JobPostingPage() {
                                                 error={errors.jobDescription?.message}
                                             />
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Age <span className='text-red-500'>*</span>
@@ -310,7 +286,6 @@ export default function JobPostingPage() {
                                                 error={errors.age?.message}
                                             />
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Reason <span className='text-red-500'>*</span>
@@ -321,7 +296,6 @@ export default function JobPostingPage() {
                                                 error={errors.reason?.message}
                                             />
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>Job Attachment</span>
                                             <Button type='button' variant='outline' size='sm'>
@@ -330,7 +304,6 @@ export default function JobPostingPage() {
                                             </Button>
                                         </div>
                                     </div>
-
                                     <div className='space-y-4'>
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
@@ -374,7 +347,6 @@ export default function JobPostingPage() {
                                                 </div>
                                             </div>
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Department <span className='text-red-500'>*</span>
@@ -391,7 +363,6 @@ export default function JobPostingPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Position Type <span className='text-red-500'>*</span>
@@ -407,7 +378,6 @@ export default function JobPostingPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 MRF No. <span className='text-red-500'>*</span>
@@ -418,7 +388,6 @@ export default function JobPostingPage() {
                                                 error={errors.mrfNo?.message}
                                             />
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Skill <span className='text-red-500'>*</span>
@@ -429,7 +398,6 @@ export default function JobPostingPage() {
                                                 error={errors.skill?.message}
                                             />
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Experience (Year) <span className='text-red-500'>*</span>
@@ -448,7 +416,6 @@ export default function JobPostingPage() {
                                                 />
                                             </div>
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>
                                                 Gender <span className='text-red-500'>*</span>
@@ -464,12 +431,10 @@ export default function JobPostingPage() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-
                                         <div className='space-y-2'>
                                             <span className='font-medium text-sm'>Remark</span>
                                             <InputText placeholder='Remark' {...register('reason')} />
                                         </div>
-
                                         <div className='flex gap-6 pt-2'>
                                             <div className='flex items-center gap-2 text-sm'>
                                                 <Checkbox
@@ -504,7 +469,6 @@ export default function JobPostingPage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className='flex justify-center gap-4 border-t pt-6'>
                                     <Button type='button' variant='outline' onClick={handleFormClose}>
                                         <X className='mr-2 h-4 w-4' />
@@ -532,14 +496,12 @@ export default function JobPostingPage() {
         </div>
     );
 }
-
 interface JobPostingTableProps {
     postings: JobPosting[];
     isLoading: boolean;
     onEdit: (p: JobPosting) => void;
     onDelete: (p: JobPosting) => void;
 }
-
 function JobPostingTable({ postings, isLoading, onEdit, onDelete }: JobPostingTableProps) {
     const columns: ColumnDef<JobPosting>[] = [
         {
@@ -584,6 +546,5 @@ function JobPostingTable({ postings, isLoading, onEdit, onDelete }: JobPostingTa
             }
         }
     ];
-
     return <GenericDataTable isLoading={isLoading} columns={columns} data={postings} totalItems={postings.length} showViewOptions />;
 }

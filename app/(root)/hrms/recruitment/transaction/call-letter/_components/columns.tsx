@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface CallLetter {
     id: number;
     candidateFirstName: string;
@@ -25,15 +23,12 @@ export interface CallLetter {
     status: 'Draft' | 'Generated' | 'Sent';
     generatedDate?: string;
     sentDate?: string;
-
     createdAt: string;
 }
-
 interface CallLetterColumnsProps {
     onEdit: (row: CallLetter) => void;
     onDelete: (row: CallLetter) => void;
 }
-
 export const getCallLetterColumns = ({ onEdit, onDelete }: CallLetterColumnsProps): ColumnDef<CallLetter>[] => [
     {
         id: 'sl',

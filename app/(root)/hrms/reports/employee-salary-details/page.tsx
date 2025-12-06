@@ -1,5 +1,4 @@
 'use client';
-
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -10,15 +9,12 @@ import { BarChart3 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type MonthlySalaryDetail, getMonthlySalaryDetailColumns } from './_components/columns';
-
 export default function EmployeeSalaryDetailsReportPage() {
     // Database instances
     const salaryDetailsDB = createLocalCrud<MonthlySalaryDetail>('report:employee-salary-details');
-
     // State
     const [currentYear, setCurrentYear] = useState<number | null>(null);
     const [salaryDetails, setSalaryDetails] = useState<MonthlySalaryDetail[]>([]);
-
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
     }, []);
@@ -26,12 +22,10 @@ export default function EmployeeSalaryDetailsReportPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedFinancialYear, setSelectedFinancialYear] = useState('2030');
-
     // Load data on mount
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = () => {
         try {
             // Load salary details
@@ -49,7 +43,6 @@ export default function EmployeeSalaryDetailsReportPage() {
             setIsLoading(false);
         }
     };
-
     // Generate mock salary details data
     const generateMockSalaryDetails = (): Omit<MonthlySalaryDetail, 'id' | 'createdAt'>[] => {
         const months = [
@@ -66,13 +59,11 @@ export default function EmployeeSalaryDetailsReportPage() {
             { name: 'NOVEMBER', netSalary: 46900 },
             { name: 'DECEMBER', netSalary: 48700 }
         ];
-
         return months.map((month, index) => {
             const basicSalary = month.netSalary / 0.85; // Assuming net is ~85% of basic
             const allowances = basicSalary * 0.3;
             const grossSalary = basicSalary + allowances;
             const deductions = grossSalary - month.netSalary;
-
             return {
                 month: month.name,
                 year: '2030',
@@ -93,22 +84,17 @@ export default function EmployeeSalaryDetailsReportPage() {
             };
         });
     };
-
     // Filter salary details based on search term and financial year
     useEffect(() => {
         let filtered = salaryDetails.filter((detail) => detail.year === selectedFinancialYear);
-
         if (searchTerm) {
             filtered = filtered.filter((detail) => detail.month.toLowerCase().includes(searchTerm.toLowerCase()));
         }
-
         setFilteredDetails(filtered);
     }, [searchTerm, selectedFinancialYear, salaryDetails]);
-
     const handleViewDetails = useCallback((monthData: MonthlySalaryDetail) => {
         toast.info(`Viewing details for ${monthData.month} ${monthData.year}`);
     }, []);
-
     // Calculate yearly totals
     const yearlyTotals = useMemo(() => {
         return filteredDetails.reduce(
@@ -136,7 +122,6 @@ export default function EmployeeSalaryDetailsReportPage() {
             }
         );
     }, [filteredDetails]);
-
     // Prepare chart data
     const chartData = useMemo(() => {
         return filteredDetails.map((detail) => ({
@@ -144,10 +129,8 @@ export default function EmployeeSalaryDetailsReportPage() {
             netSalary: detail.netSalary
         }));
     }, [filteredDetails]);
-
     // Table columns
     const columns = useMemo(() => getMonthlySalaryDetailColumns(handleViewDetails), [handleViewDetails]);
-
     return (
         <div className='space-y-6'>
             {/* Salary Details Section */}
@@ -179,7 +162,6 @@ export default function EmployeeSalaryDetailsReportPage() {
                     </div>
                 </div>
             </CollapsibleSection>
-
             {/* Monthwise Salary Details Section */}
             <CollapsibleSection
                 defaultOpen={true}
@@ -195,7 +177,6 @@ export default function EmployeeSalaryDetailsReportPage() {
                             className='w-64'
                         />
                     </div>
-
                     {/* Summary Cards */}
                     <div className='mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -231,7 +212,6 @@ export default function EmployeeSalaryDetailsReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoading}
@@ -242,20 +222,17 @@ export default function EmployeeSalaryDetailsReportPage() {
                         columnPinning={{ left: ['id'], right: ['viewDetails'] }}
                     />
                 </div>
-
                 {/* Graph Section */}
                 <div className='space-y-4 rounded-lg border bg-card p-4'>
                     <div className='flex items-center gap-2 font-semibold text-foreground text-lg'>
                         <BarChart3 className='h-5 w-5' />
                         GRAPH
                     </div>
-
                     {/* Simple Chart Representation */}
                     <div className='space-y-4'>
                         <div className='text-center text-muted-foreground text-sm'>
                             Monthly Net Salary Trend for Financial Year {selectedFinancialYear}
                         </div>
-
                         {/* Chart Container */}
                         <div className='h-64 rounded-lg border bg-background p-4'>
                             <div className='flex h-full items-end justify-around gap-2'>
@@ -264,7 +241,6 @@ export default function EmployeeSalaryDetailsReportPage() {
                                     const height = (data.netSalary / maxSalary) * 100;
                                     const colors = ['#0ea5e9', '#ef4444', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899'];
                                     const color = colors[index % colors.length];
-
                                     return (
                                         <div key={data.month} className='flex flex-1 flex-col items-center gap-2'>
                                             <div className='text-muted-foreground text-xs'>₹{(data.netSalary / 1000).toFixed(0)}K</div>
@@ -283,7 +259,6 @@ export default function EmployeeSalaryDetailsReportPage() {
                                 })}
                             </div>
                         </div>
-
                         {/* Chart Legend */}
                         <div className='flex items-center justify-center gap-4'>
                             <div className='flex items-center gap-2'>
@@ -293,7 +268,6 @@ export default function EmployeeSalaryDetailsReportPage() {
                         </div>
                     </div>
                 </div>
-
                 {/* Detailed Salary Breakdown (shown when View Details is clicked) */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                     <Card>
@@ -319,7 +293,6 @@ export default function EmployeeSalaryDetailsReportPage() {
                             </div>
                         </CardContent>
                     </Card>
-
                     <Card>
                         <CardHeader>
                             <CardTitle className='text-sm'>Deductions Breakdown</CardTitle>
@@ -343,7 +316,6 @@ export default function EmployeeSalaryDetailsReportPage() {
                             </div>
                         </CardContent>
                     </Card>
-
                     <Card>
                         <CardHeader>
                             <CardTitle className='text-sm'>Annual Summary</CardTitle>

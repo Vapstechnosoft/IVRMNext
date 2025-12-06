@@ -1,10 +1,8 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface LIEORow extends BaseEntity {
     type: string;
     department: string;
@@ -15,7 +13,6 @@ export interface LIEORow extends BaseEntity {
     lateBy?: string; // mm:ss
     earlyOut?: string; // mm:ss
 }
-
 export const employeeLateInEarlyOutReportColumns: ColumnDef<LIEORow>[] = [
     {
         id: 'select',

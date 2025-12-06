@@ -292,12 +292,12 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
             const response = await addMasterOnlinePaymentHeadGroup(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Online Payment Head Group added successfully');
+                toast.success(response.message);
                 await refetchAll();
                 handleReset();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to add Online Payment Head Group');
+                toast.error(response.message);
             }
         } catch (error: any) {
             console.error('Error submitting form:', error);

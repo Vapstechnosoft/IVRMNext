@@ -1,15 +1,12 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 export interface Form3AFilters {
     year: string;
     employeeCode: string;
 }
-
 interface PFForm3AFiltersProps {
     filters: Form3AFilters;
     employees: Array<{ id?: number; code: string; name: string; pfNumber?: string }>;
@@ -19,7 +16,6 @@ interface PFForm3AFiltersProps {
     isLoading?: boolean;
     years?: string[];
 }
-
 export function PFForm3AFilters({
     filters,
     employees,
@@ -32,7 +28,6 @@ export function PFForm3AFilters({
     const handleSelectChange = (key: keyof Form3AFilters, value: string) => {
         onFilterChange({ ...filters, [key]: value });
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -69,7 +64,6 @@ export function PFForm3AFilters({
                         </SelectContent>
                     </Select>
                 </div>
-
                 {/* Employee Filter */}
                 <div className='space-y-2'>
                     <label htmlFor='employee-select' className='font-medium text-foreground text-sm'>
@@ -99,7 +93,6 @@ export function PFForm3AFilters({
                     </Select>
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-2 pt-4'>
                 <Button onClick={onGenerate}>

@@ -1,12 +1,10 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { getApprovalStatus, getStatusAsync, rejectStatusAsync, getApprovedLeave, viewLeaveBalanceHistory, getRequestStatus, getApproveStatusAsync, getPeriodApprovalStatus, periodLeaveStatus } from '@/server/hrms/leave-management/leave-approval';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { LeaveApprovalRow } from '@/app/(root)/hrms/leave-management/leave-approval/_components/columns';
-
 /**
  * Map API response data to LeaveApprovalRow format
  */
@@ -14,7 +12,6 @@ function mapApiDataToLeaveApproval(apiData: any): LeaveApprovalRow | null {
     if (!apiData) {
         return null;
     }
-
     return {
         id: apiData.HRELAP_Id || apiData.id || apiData.HRELS_Id || 0,
         employeeCode: apiData.HRME_EmployeeCode || apiData.employeeCode || apiData.EmployeeCode || '',
@@ -30,13 +27,11 @@ function mapApiDataToLeaveApproval(apiData: any): LeaveApprovalRow | null {
         remark: apiData.HRELAP_LeaveReason || apiData.remark || apiData.Remark || ''
     };
 }
-
 /**
  * Hook to fetch leave approval status
  */
 export function useLeaveApprovalStatus(request?: { MI_Id?: number }) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, request?.MI_Id],
@@ -45,17 +40,13 @@ export function useLeaveApprovalStatus(request?: { MI_Id?: number }) {
                     const response = await getApprovalStatus({
                         MI_Id: request?.MI_Id || HRMS_MI_ID
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave approval status');
                     }
-
                     // Extract leave approval list from response
                     // The API might return list in GridviewDetails, approvalList, or other fields
                     let approvalList: LeaveApprovalRow[] = [];
-                    
                     const data = response.data;
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         approvalList = data.GridviewDetails
                             .map((item: any) => mapApiDataToLeaveApproval(item))
@@ -77,7 +68,6 @@ export function useLeaveApprovalStatus(request?: { MI_Id?: number }) {
                             .map((item: any) => mapApiDataToLeaveApproval(item))
                             .filter((item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null);
                     }
-
                     return {
                         success: true,
                         data: approvalList,
@@ -96,7 +86,6 @@ export function useLeaveApprovalStatus(request?: { MI_Id?: number }) {
         }
     };
 }
-
 /**
  * Hook to fetch leave status async (for filtering/searching)
  * This can be used to filter leave approvals by various criteria
@@ -113,7 +102,6 @@ export function useLeaveStatusAsync(request?: {
     get_leave_status?: any[];
 }, enabled: boolean = true) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, 'statusAsync', request?.MI_Id, request?.HRME_Id, request?.HRELT_Status],
@@ -130,15 +118,12 @@ export function useLeaveStatusAsync(request?: {
                         HRELAPA_Remarks: request?.HRELAPA_Remarks || '',
                         get_leave_status: request?.get_leave_status || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave status');
                     }
-
                     // Extract leave approval list from response
                     const data = response.data;
                     let approvalList: LeaveApprovalRow[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         approvalList = data.GridviewDetails
                             .map((item: any) => mapApiDataToLeaveApproval(item))
@@ -164,7 +149,6 @@ export function useLeaveStatusAsync(request?: {
                             .map((item: any) => mapApiDataToLeaveApproval(item))
                             .filter((item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null);
                     }
-
                     return {
                         success: true,
                         data: approvalList,
@@ -185,13 +169,11 @@ export function useLeaveStatusAsync(request?: {
         }
     };
 }
-
 /**
  * Hook to reject leave status
  */
 export function useRejectLeaveStatus() {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (data: {
             MI_Id?: number;
@@ -206,11 +188,9 @@ export function useRejectLeaveStatus() {
                     HRELAPA_Remarks: data.HRELAPA_Remarks || '',
                     get_leave_status: data.get_leave_status || []
                 });
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to reject leave');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Leave rejected successfully'
@@ -235,13 +215,11 @@ export function useRejectLeaveStatus() {
         }
     });
 }
-
 /**
  * Hook to fetch approved leave
  */
 export function useApprovedLeave(request?: { MI_Id?: number; LoginId?: number }) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, 'approved', request?.MI_Id, request?.LoginId],
@@ -251,15 +229,12 @@ export function useApprovedLeave(request?: { MI_Id?: number; LoginId?: number })
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         LoginId: request?.LoginId || 0
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch approved leave');
                     }
-
                     // Extract approved leave list from response
                     const data = response.data;
                     let approvedList: LeaveApprovalRow[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         approvedList = data.GridviewDetails
                             .map((item: any) => mapApiDataToLeaveApproval(item))
@@ -281,7 +256,6 @@ export function useApprovedLeave(request?: { MI_Id?: number; LoginId?: number })
                             .map((item: any) => mapApiDataToLeaveApproval(item))
                             .filter((item: LeaveApprovalRow | null): item is LeaveApprovalRow => item !== null);
                     }
-
                     return {
                         success: true,
                         data: approvedList,
@@ -301,13 +275,11 @@ export function useApprovedLeave(request?: { MI_Id?: number; LoginId?: number })
         }
     };
 }
-
 /**
  * Hook to fetch leave balance history
  */
 export function useLeaveBalanceHistory(HRME_Id: number, enabled: boolean = true) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, 'balanceHistory', HRME_Id],
@@ -316,15 +288,12 @@ export function useLeaveBalanceHistory(HRME_Id: number, enabled: boolean = true)
                     const response = await viewLeaveBalanceHistory({
                         HRME_Id: HRME_Id || 0
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch leave balance history');
                     }
-
                     // Extract leave balance history list from response
                     const data = response.data;
                     let historyList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         historyList = data.GridviewDetails;
                     } else if (data.leaveBalanceHistory && Array.isArray(data.leaveBalanceHistory)) {
@@ -338,7 +307,6 @@ export function useLeaveBalanceHistory(HRME_Id: number, enabled: boolean = true)
                     } else if (Array.isArray(data)) {
                         historyList = data;
                     }
-
                     return {
                         success: true,
                         data: historyList,
@@ -359,13 +327,11 @@ export function useLeaveBalanceHistory(HRME_Id: number, enabled: boolean = true)
         }
     };
 }
-
 /**
  * Hook to fetch request status
  */
 export function useRequestStatus(request?: { MI_Id?: number; LoginId?: number }) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, 'requestStatus', request?.MI_Id, request?.LoginId],
@@ -375,15 +341,12 @@ export function useRequestStatus(request?: { MI_Id?: number; LoginId?: number })
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         LoginId: request?.LoginId || 0
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch request status');
                     }
-
                     // Extract request status list from response
                     const data = response.data;
                     let statusList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         statusList = data.GridviewDetails;
                     } else if (data.requestStatusList && Array.isArray(data.requestStatusList)) {
@@ -395,7 +358,6 @@ export function useRequestStatus(request?: { MI_Id?: number; LoginId?: number })
                     } else if (Array.isArray(data)) {
                         statusList = data;
                     }
-
                     return {
                         success: true,
                         data: statusList,
@@ -415,7 +377,6 @@ export function useRequestStatus(request?: { MI_Id?: number; LoginId?: number })
         }
     };
 }
-
 /**
  * Hook to fetch approve status async
  */
@@ -432,7 +393,6 @@ export function useApproveStatusAsync(request?: {
     }>;
 }, enabled: boolean = true) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, 'approveStatusAsync', request?.MI_Id, request?.LoginId, request?.doc_list2],
@@ -443,15 +403,12 @@ export function useApproveStatusAsync(request?: {
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         doc_list2: request?.doc_list2 || []
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch approve status');
                     }
-
                     // Extract approve status list from response
                     const data = response.data;
                     let statusList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         statusList = data.GridviewDetails;
                     } else if (data.approveStatusList && Array.isArray(data.approveStatusList)) {
@@ -465,7 +422,6 @@ export function useApproveStatusAsync(request?: {
                     } else if (Array.isArray(data)) {
                         statusList = data;
                     }
-
                     return {
                         success: true,
                         data: statusList,
@@ -486,13 +442,11 @@ export function useApproveStatusAsync(request?: {
         }
     };
 }
-
 /**
  * Hook to fetch period approval status
  */
 export function usePeriodApprovalStatus(request?: { MI_Id?: number; LoginId?: number }) {
     const queryClient = useQueryClient();
-
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.LEAVE_APPROVAL, 'periodApprovalStatus', request?.MI_Id, request?.LoginId],
@@ -502,15 +456,12 @@ export function usePeriodApprovalStatus(request?: { MI_Id?: number; LoginId?: nu
                         MI_Id: request?.MI_Id || HRMS_MI_ID,
                         LoginId: request?.LoginId || 0
                     });
-
                     if (!response.success || !response.data) {
                         throw new Error(response.message || 'Failed to fetch period approval status');
                     }
-
                     // Extract period approval status list from response
                     const data = response.data;
                     let statusList: any[] = [];
-                    
                     if (data.GridviewDetails && Array.isArray(data.GridviewDetails)) {
                         statusList = data.GridviewDetails;
                     } else if (data.periodApprovalStatus && Array.isArray(data.periodApprovalStatus)) {
@@ -522,7 +473,6 @@ export function usePeriodApprovalStatus(request?: { MI_Id?: number; LoginId?: nu
                     } else if (Array.isArray(data)) {
                         statusList = data;
                     }
-
                     return {
                         success: true,
                         data: statusList,
@@ -542,13 +492,11 @@ export function usePeriodApprovalStatus(request?: { MI_Id?: number; LoginId?: nu
         }
     };
 }
-
 /**
  * Hook to process period leave status
  */
 export function usePeriodLeaveStatus() {
     const queryClient = useQueryClient();
-
     return useMutation({
         mutationFn: async (data: {
             HRELAPDD_ApprovalFlg: string;
@@ -563,11 +511,9 @@ export function usePeriodLeaveStatus() {
                     LoginId: data.LoginId || 0,
                     get_leave_status: data.get_leave_status || []
                 });
-                
                 if (!response.success) {
                     throw new Error(response.message || 'Failed to process period leave status');
                 }
-
                 return {
                     success: true,
                     message: response.message || 'Period leave status processed successfully'
@@ -592,4 +538,3 @@ export function usePeriodLeaveStatus() {
         }
     });
 }
-

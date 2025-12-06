@@ -4,7 +4,6 @@
 // 2. Import form from _components/job-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,32 +20,26 @@ import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-r
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface MasterJob extends BaseEntity {
     jobCode: string;
     jobTitle: string;
     jobLocation: string;
     isActive: boolean;
 }
-
 type MasterJobForm = {
     jobCode: string;
     jobTitle: string;
     jobLocation: string;
     isActive: boolean;
 };
-
 const jobLocations = ['Bangalore', 'coimbatore', 'Chennai', 'Mumbai', 'Delhi', 'Hyderabad', 'Pune', 'Kolkata'];
-
 export default function MasterJobPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [jobs, setJobs] = useState<MasterJob[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const formRef = useRef<HTMLDivElement>(null);
-
     const jobDB = createLocalCrud<MasterJob>('master:job');
-
     const {
         register,
         handleSubmit,
@@ -60,14 +53,11 @@ export default function MasterJobPage() {
             isActive: true
         }
     });
-
     const jobLocation = watch('jobLocation');
-
     // Load data on component mount
     useEffect(() => {
         loadJobs();
     }, []);
-
     const loadJobs = () => {
         try {
             setJobs(jobDB.list());
@@ -77,7 +67,6 @@ export default function MasterJobPage() {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
@@ -90,13 +79,11 @@ export default function MasterJobPage() {
             });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
         reset({ isActive: true });
     };
-
     const onSubmit: SubmitHandler<MasterJobForm> = async (data: MasterJobForm) => {
         try {
             if (editingId) {
@@ -112,7 +99,6 @@ export default function MasterJobPage() {
             toast.error(error.message || 'Operation failed');
         }
     };
-
     const handleEdit = (job: MasterJob) => {
         setEditingId(job.id);
         setValue('jobCode', job.jobCode);
@@ -120,7 +106,6 @@ export default function MasterJobPage() {
         setValue('jobLocation', job.jobLocation);
         setValue('isActive', job.isActive);
         setIsFormOpen(true);
-
         // Scroll to form after state update
         setTimeout(() => {
             formRef.current?.scrollIntoView({
@@ -129,7 +114,6 @@ export default function MasterJobPage() {
             });
         }, 100);
     };
-
     const handleDelete = (id: number) => {
         try {
             jobDB.remove(id);
@@ -139,7 +123,6 @@ export default function MasterJobPage() {
             toast.error('Failed to delete job');
         }
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -154,7 +137,6 @@ export default function MasterJobPage() {
                         Add Master Job
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     // title='Master Jobs Data'
@@ -166,7 +148,6 @@ export default function MasterJobPage() {
                     headerClassName=''>
                     <JobTable jobs={jobs} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -207,7 +188,6 @@ export default function MasterJobPage() {
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                         </div>
-
                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                             <div className='space-y-2'>
                                                 <span className='font-medium text-sm'>
@@ -236,11 +216,9 @@ export default function MasterJobPage() {
                                                 {errors.jobLocation && <FormError>{errors.jobLocation.message}</FormError>}
                                             </div>
                                         </div>
-
                                         {/* Root Error */}
                                         {errors.root && <FormError>{errors.root.message}</FormError>}
                                     </div>
-
                                     {/* Action Buttons */}
                                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                                         <Button
@@ -277,14 +255,12 @@ export default function MasterJobPage() {
         </div>
     );
 }
-
 interface JobTableProps {
     jobs: MasterJob[];
     isLoading: boolean;
     onEdit: (job: MasterJob) => void;
     onDelete: (id: number) => void;
 }
-
 function JobTable({ jobs, isLoading, onEdit, onDelete }: JobTableProps) {
     const jobColumns: ColumnDef<MasterJob>[] = [
         {
@@ -342,6 +318,5 @@ function JobTable({ jobs, isLoading, onEdit, onDelete }: JobTableProps) {
             }
         }
     ];
-
     return <GenericDataTable isLoading={isLoading} columns={jobColumns} data={jobs} totalItems={jobs.length} showViewOptions={true} />;
 }

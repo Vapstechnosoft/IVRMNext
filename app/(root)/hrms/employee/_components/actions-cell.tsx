@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -13,23 +12,18 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 import type { EmployeeListItem } from '@/types/hrms/employee';
 import type { Row } from '@tanstack/react-table';
 import { Edit, MoreHorizontal, Power } from 'lucide-react';
-
 interface ActionsCellProps {
     row: Row<EmployeeListItem>;
 }
-
 export function ActionsCell({ row }: ActionsCellProps) {
     const employee = row.original;
     const { openEditForm, openToggleForm } = useFormContext<EmployeeListItem>();
-
     const handleEdit = () => {
         openEditForm(employee);
     };
-
     const handleToggle = () => {
         openToggleForm(employee);
     };
-
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

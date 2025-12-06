@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import type {
@@ -26,7 +25,6 @@ import type {
     GetLeaveReportYearwiseRequest,
     GetLeaveReportYearwiseResponseData
 } from '@/types/hrms/leave-management/leave-report';
-
 /**
  * Get leave report data
  * POST /api/LeaveReportWrapperFacade/GetLeaveReport
@@ -36,26 +34,18 @@ import type {
  */
 export async function getLeaveReport(request: GetLeaveReportRequest): Promise<ApiResponse<GetLeaveReportResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/GetLeaveReport';
-
     const requestBody: GetLeaveReportRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID
     };
-
-    console.log('📊 ========== GET LEAVE REPORT ==========');
-    console.log('📊 [SERVER] Request URL:', url);
     console.log('📊 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetLeaveReportResponseData>('hmslms', url, requestBody);
-        
         console.log('📊 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetLeaveReportResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -64,21 +54,15 @@ export async function getLeaveReport(request: GetLeaveReportRequest): Promise<Ap
             data: response as unknown as GetLeaveReportResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch leave report';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get departments for leave report
  * POST /api/LeaveReportWrapperFacade/GetDepartments
@@ -88,28 +72,20 @@ export async function getLeaveReport(request: GetLeaveReportRequest): Promise<Ap
  */
 export async function getLeaveReportDepartments(request: GetLeaveReportDepartmentsRequest): Promise<ApiResponse<GetLeaveReportDepartmentsResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/GetDepartments';
-
     const requestBody: GetLeaveReportDepartmentsRequest = {
         ...request, // Include any additional fields first
         MI_Id: request.MI_Id || HRMS_MI_ID,
         emptypes: request.emptypes || []
     };
-
-    console.log('🏢 ========== GET LEAVE REPORT DEPARTMENTS ==========');
-    console.log('🏢 [SERVER] Request URL:', url);
     console.log('🏢 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetLeaveReportDepartmentsResponseData>('hmslms', url, requestBody);
-        
         console.log('🏢 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetLeaveReportDepartmentsResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -118,21 +94,15 @@ export async function getLeaveReportDepartments(request: GetLeaveReportDepartmen
             data: response as unknown as GetLeaveReportDepartmentsResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch departments';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get leave report data with filters
  * POST /api/LeaveReportWrapperFacade/GetReport
@@ -142,7 +112,6 @@ export async function getLeaveReportDepartments(request: GetLeaveReportDepartmen
  */
 export async function getLeaveReportData(request: GetLeaveReportDataRequest): Promise<ApiResponse<GetLeaveReportDataResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/GetReport';
-
     const requestBody: GetLeaveReportDataRequest = {
         ...request, // Include any additional fields first
         MI_Id: request.MI_Id || HRMS_MI_ID,
@@ -154,22 +123,15 @@ export async function getLeaveReportData(request: GetLeaveReportDataRequest): Pr
         selectedreport: request.selectedreport || [],
         UserId: request.UserId || 0
     };
-
-    console.log('📊 ========== GET LEAVE REPORT DATA ==========');
-    console.log('📊 [SERVER] Request URL:', url);
     console.log('📊 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetLeaveReportDataResponseData>('hmslms', url, requestBody);
-        
         console.log('📊 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetLeaveReportDataResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -178,21 +140,15 @@ export async function getLeaveReportData(request: GetLeaveReportDataRequest): Pr
             data: response as unknown as GetLeaveReportDataResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch leave report data';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get period leave report data
  * POST /api/LeaveReportWrapperFacade/PeriodGetLeaveReport
@@ -202,27 +158,19 @@ export async function getLeaveReportData(request: GetLeaveReportDataRequest): Pr
  */
 export async function getPeriodLeaveReport(request: GetPeriodLeaveReportRequest): Promise<ApiResponse<GetPeriodLeaveReportResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetLeaveReport';
-
     const requestBody: GetPeriodLeaveReportRequest = {
         ...request, // Include any additional fields first
         MI_Id: request.MI_Id || HRMS_MI_ID
     };
-
-    console.log('📅 ========== GET PERIOD LEAVE REPORT ==========');
-    console.log('📅 [SERVER] Request URL:', url);
     console.log('📅 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetPeriodLeaveReportResponseData>('hmslms', url, requestBody);
-        
         console.log('📅 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetPeriodLeaveReportResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -231,21 +179,15 @@ export async function getPeriodLeaveReport(request: GetPeriodLeaveReportRequest)
             data: response as unknown as GetPeriodLeaveReportResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch period leave report';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get departments for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetDepartments
@@ -255,28 +197,20 @@ export async function getPeriodLeaveReport(request: GetPeriodLeaveReportRequest)
  */
 export async function getPeriodLeaveReportDepartments(request: GetPeriodLeaveReportDepartmentsRequest): Promise<ApiResponse<GetPeriodLeaveReportDepartmentsResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetDepartments';
-
     const requestBody: GetPeriodLeaveReportDepartmentsRequest = {
         ...request, // Include any additional fields first
         MI_Id: request.MI_Id || HRMS_MI_ID,
         emptypes: request.emptypes || []
     };
-
-    console.log('🏢 ========== GET PERIOD LEAVE REPORT DEPARTMENTS ==========');
-    console.log('🏢 [SERVER] Request URL:', url);
     console.log('🏢 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetPeriodLeaveReportDepartmentsResponseData>('hmslms', url, requestBody);
-        
         console.log('🏢 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetPeriodLeaveReportDepartmentsResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -285,21 +219,15 @@ export async function getPeriodLeaveReportDepartments(request: GetPeriodLeaveRep
             data: response as unknown as GetPeriodLeaveReportDepartmentsResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch departments for period leave report';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get designations for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetDesignation
@@ -309,28 +237,20 @@ export async function getPeriodLeaveReportDepartments(request: GetPeriodLeaveRep
  */
 export async function getPeriodLeaveReportDesignation(request: GetPeriodLeaveReportDesignationRequest): Promise<ApiResponse<GetPeriodLeaveReportDesignationResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetDesignation';
-
     const requestBody: GetPeriodLeaveReportDesignationRequest = {
         ...request, // Include any additional fields first
         MI_Id: request.MI_Id || HRMS_MI_ID,
         emptypes: request.emptypes || []
     };
-
-    console.log('💼 ========== GET PERIOD LEAVE REPORT DESIGNATION ==========');
-    console.log('💼 [SERVER] Request URL:', url);
     console.log('💼 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetPeriodLeaveReportDesignationResponseData>('hmslms', url, requestBody);
-        
         console.log('💼 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetPeriodLeaveReportDesignationResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -339,21 +259,15 @@ export async function getPeriodLeaveReportDesignation(request: GetPeriodLeaveRep
             data: response as unknown as GetPeriodLeaveReportDesignationResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch designations for period leave report';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get employees for period leave report
  * POST /api/LeaveReportWrapperFacade/PeriodGetEmployees
@@ -363,29 +277,21 @@ export async function getPeriodLeaveReportDesignation(request: GetPeriodLeaveRep
  */
 export async function getPeriodLeaveReportEmployees(request: GetPeriodLeaveReportEmployeesRequest): Promise<ApiResponse<GetPeriodLeaveReportEmployeesResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetEmployees';
-
     const requestBody: GetPeriodLeaveReportEmployeesRequest = {
         ...request, // Include any additional fields first
         MI_Id: request.MI_Id || HRMS_MI_ID,
         emptypes: request.emptypes || [],
         empdept: request.empdept || []
     };
-
-    console.log('👤 ========== GET PERIOD LEAVE REPORT EMPLOYEES ==========');
-    console.log('👤 [SERVER] Request URL:', url);
     console.log('👤 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetPeriodLeaveReportEmployeesResponseData>('hmslms', url, requestBody);
-        
         console.log('👤 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetPeriodLeaveReportEmployeesResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -394,21 +300,15 @@ export async function getPeriodLeaveReportEmployees(request: GetPeriodLeaveRepor
             data: response as unknown as GetPeriodLeaveReportEmployeesResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch employees for period leave report';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get period leave report data with filters
  * POST /api/LeaveReportWrapperFacade/PeriodGetReport
@@ -418,7 +318,6 @@ export async function getPeriodLeaveReportEmployees(request: GetPeriodLeaveRepor
  */
 export async function getPeriodLeaveReportData(request: GetPeriodLeaveReportDataRequest): Promise<ApiResponse<GetPeriodLeaveReportDataResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/PeriodGetReport';
-
     const requestBody: GetPeriodLeaveReportDataRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         selectedLeave: request.selectedLeave || '',
@@ -429,22 +328,15 @@ export async function getPeriodLeaveReportData(request: GetPeriodLeaveReportData
         selectedreport: request.selectedreport || [],
         UserId: request.UserId || 0
     };
-
-    console.log('📅 ========== GET PERIOD LEAVE REPORT DATA ==========');
-    console.log('📅 [SERVER] Request URL:', url);
     console.log('📅 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetPeriodLeaveReportDataResponseData>('hmslms', url, requestBody);
-        
         console.log('📅 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetPeriodLeaveReportDataResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -453,21 +345,15 @@ export async function getPeriodLeaveReportData(request: GetPeriodLeaveReportData
             data: response as unknown as GetPeriodLeaveReportDataResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch period leave report data';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get yearwise leave report data with filters
  * POST /api/LeaveReportWrapperFacade/GetReportYearwise
@@ -477,7 +363,6 @@ export async function getPeriodLeaveReportData(request: GetPeriodLeaveReportData
  */
 export async function getLeaveReportYearwise(request: GetLeaveReportYearwiseRequest): Promise<ApiResponse<GetLeaveReportYearwiseResponseData>> {
     const url = '/api/LeaveReportWrapperFacade/GetReportYearwise';
-
     const requestBody: GetLeaveReportYearwiseRequest = {
         ...request, // Include any additional fields first
         MI_Id: request.MI_Id || HRMS_MI_ID,
@@ -490,22 +375,15 @@ export async function getLeaveReportYearwise(request: GetLeaveReportYearwiseRequ
         UserId: request.UserId || 0,
         valreturn: request.valreturn || ''
     };
-
-    console.log('📅 ========== GET LEAVE REPORT YEARWISE ==========');
-    console.log('📅 [SERVER] Request URL:', url);
     console.log('📅 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetLeaveReportYearwiseResponseData>('hmslms', url, requestBody);
-        
         console.log('📅 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetLeaveReportYearwiseResponseData>;
         }
-
         // Wrap raw response data
         const responseData = response as any;
         return {
@@ -514,18 +392,12 @@ export async function getLeaveReportYearwise(request: GetLeaveReportYearwiseRequ
             data: response as unknown as GetLeaveReportYearwiseResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch yearwise leave report data';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -12,18 +11,15 @@ import { Save, X } from 'lucide-react';
 import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
-
 interface AddMasterLeaveFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-
 export default function AddMasterLeaveForm({ onSuccess, onCancel, className = '' }: AddMasterLeaveFormProps) {
     const { refetchAll } = useMasterLeave();
     const { mutate: saveMasterLeave, isPending } = useSaveMasterLeave();
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useMasterLeaveDropdowns();
-
     // Extract leave type options from API
     const leaveTypeOptions = useMemo(() => {
         if (!dropdownData?.data?.leaveTypes || !Array.isArray(dropdownData.data.leaveTypes)) {
@@ -31,7 +27,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
         }
         return dropdownData.data.leaveTypes;
     }, [dropdownData]);
-
     const {
         register,
         handleSubmit,
@@ -53,7 +48,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
             isActive: true
         }
     });
-
     const onSubmit: SubmitHandler<MasterLeave> = async (data) => {
         saveMasterLeave(
             {
@@ -69,11 +63,9 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
             }
         );
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -87,7 +79,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             error={errors.leaveName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <InputText
                             label='Leave Code'
                             required
@@ -96,7 +87,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             error={errors.leaveCode?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                         <Controller
                             name='leaveType'
                             control={control}
@@ -129,7 +119,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             )}
                         />
                     </div>
-
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-1'>
                         <InputTextarea
                             label='Leave Details'
@@ -141,7 +130,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <div className='flex items-center space-x-2'>
                             <Controller
@@ -153,7 +141,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                                 Leave Credit
                             </label>
                         </div>
-
                         <div className='flex items-center space-x-2'>
                             <Controller
                                 name='lateDeduct'
@@ -164,7 +151,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                                 Late Deduct
                             </label>
                         </div>
-
                         <InputText
                             label='Leave Order'
                             id='leaveOrder'
@@ -175,7 +161,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                         />
                     </div>
                 </div>
-
                 <div className='flex justify-end gap-2'>
                     {onCancel && (
                         <Button type='button' variant='outline' onClick={onCancel} disabled={isPending || isSubmitting}>

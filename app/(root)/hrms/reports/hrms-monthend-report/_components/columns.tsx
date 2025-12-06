@@ -1,9 +1,7 @@
 'use client';
-
 import { Badge } from '@/components/ui/badge';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface MonthEndRecord {
     id?: number;
     createdAt?: string;
@@ -31,7 +29,6 @@ export interface MonthEndRecord {
     year: string;
     ieName: string;
 }
-
 export const monthEndReportColumns: ColumnDef<MonthEndRecord>[] = [
     {
         accessorKey: 'id',

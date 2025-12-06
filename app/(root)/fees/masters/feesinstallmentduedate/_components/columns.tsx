@@ -65,9 +65,21 @@ export const masterInstallmentColumns: ColumnDef<IMasterFeesInstallmentDuedateLi
     }
 ];
 
+// function formatDate(dateString: string) {
+//     if (!dateString || dateString === '0001-01-01T00:00:00') return '-';
+//     return new Date(dateString).toLocaleDateString();
+// }
+
 function formatDate(dateString: string) {
     if (!dateString || dateString === '0001-01-01T00:00:00') return '-';
-    return new Date(dateString).toLocaleDateString();
+
+    const date = new Date(dateString);
+
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // MM
+    const day = String(date.getDate()).padStart(2, '0'); // DD
+    const year = date.getFullYear(); // YYYY
+
+    return `${month}/${day}/${year}`;
 }
 
 function ActionButtonsCell({

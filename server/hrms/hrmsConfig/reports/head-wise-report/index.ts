@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     HeadWiseReportOnloadRequest,
@@ -7,7 +6,6 @@ import type {
     HeadWiseReportSearchRequest,
     HeadWiseReportSearchResponse
 } from '@/types/hrms/reports/head-wise-report';
-
 /**
  * Get onload data for Head Wise Report
  * POST /api/HeadwiseReportsFacade/onloadgetdetails
@@ -19,22 +17,16 @@ export async function getHeadWiseReportOnload(
     LogInUserId = 0
 ): Promise<ApiResponse<HeadWiseReportOnloadResponse>> {
     const url = '/api/HeadwiseReportsFacade/onloadgetdetails';
-
     const requestBody: HeadWiseReportOnloadRequest = {
         MI_Id,
         LogInUserId
     };
-
-    console.log('🔵 ========== HEAD WISE REPORT ONLOAD ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<HeadWiseReportOnloadResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to load head wise report data',
@@ -71,14 +63,12 @@ export async function getHeadWiseReportOnload(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<HeadWiseReportOnloadResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as HeadWiseReportOnloadResponse;
     return {
@@ -87,7 +77,6 @@ export async function getHeadWiseReportOnload(
         data: rawResponse
     };
 }
-
 /**
  * Search Head Wise report by selection criteria
  * POST /api/HeadwiseReportsFacade/getEmployeedetailsBySelection
@@ -98,7 +87,6 @@ export async function searchHeadWiseReport(
     request: HeadWiseReportSearchRequest
 ): Promise<ApiResponse<HeadWiseReportSearchResponse>> {
     const url = '/api/HeadwiseReportsFacade/getEmployeedetailsBySelection';
-
     const requestBody: HeadWiseReportSearchRequest = {
         MI_Id: request.MI_Id || 30,
         groupTypeselected: request.groupTypeselected || [],
@@ -107,17 +95,12 @@ export async function searchHeadWiseReport(
         HRES_Year: request.HRES_Year || '',
         HRES_Month: request.HRES_Month || ''
     };
-
-    console.log('🔵 ========== HEAD WISE REPORT SEARCH ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     let response: any;
     try {
         response = await api.post<HeadWiseReportSearchResponse>('hrms', url, requestBody);
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to search head wise report',
@@ -128,14 +111,12 @@ export async function searchHeadWiseReport(
             }
         };
     }
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<HeadWiseReportSearchResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as HeadWiseReportSearchResponse;
     return {
@@ -144,4 +125,3 @@ export async function searchHeadWiseReport(
         data: rawResponse
     };
 }
-

@@ -1,23 +1,19 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface LeaveYear extends BaseEntity {
     leaveYear: string;
     fromDate: string;
     toDate: string;
     isActive: boolean;
 }
-
 interface LeaveYearColumnsProps {
     onEdit: (row: LeaveYear) => void;
     onDelete: (id: number) => void;
 }
-
 export const getLeaveYearColumns = ({ onEdit, onDelete }: LeaveYearColumnsProps): ColumnDef<LeaveYear>[] => [
     {
         accessorKey: 'leaveYear',

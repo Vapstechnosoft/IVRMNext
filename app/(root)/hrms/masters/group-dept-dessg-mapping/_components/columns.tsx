@@ -1,14 +1,10 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { useGroupDeptDessgMappingCRUD } from '@/hooks/hrms/useMasters';
 import type { GroupDeptDessgMappingDetail, GroupDeptDessgMappingResponse } from '@/types/hrms/group-dept-dessg-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-import { toast } from 'sonner';
-
 export const groupDeptDessgMappingColumns: ColumnDef<GroupDeptDessgMappingDetail>[] = [
     {
         id: 'slNo',
@@ -57,10 +53,8 @@ export const groupDeptDessgMappingColumns: ColumnDef<GroupDeptDessgMappingDetail
         enableSorting: false
     }
 ];
-
 function ActionButtonsCell({ rowData }: { rowData: GroupDeptDessgMappingDetail }) {
-    const { openEditForm } = useFormContext<GroupDeptDessgMappingResponse>();
-    const { toggleMutation } = useGroupDeptDessgMappingCRUD();
+    const { openEditForm, openToggleForm } = useFormContext<GroupDeptDessgMappingResponse>();
 
     const handleEdit = useCallback(
         (data: GroupDeptDessgMappingDetail) => {
@@ -70,18 +64,10 @@ function ActionButtonsCell({ rowData }: { rowData: GroupDeptDessgMappingDetail }
     );
 
     const handleToggle = useCallback(
-        async (data: GroupDeptDessgMappingDetail, newState: boolean) => {
-            try {
-                const _result = await toggleMutation.mutateAsync({
-                    ...data,
-                    HRGTDDS_ActiveFlg: newState
-                });
-                toast.success(`Mapping ${newState ? 'activated' : 'deactivated'} successfully`);
-            } catch (_error: any) {
-                toast.error(`Failed to ${newState ? 'activate' : 'deactivate'} mapping`);
-            }
+        (data: GroupDeptDessgMappingDetail) => {
+            openToggleForm(data);
         },
-        [toggleMutation]
+        [openToggleForm]
     );
 
     return (

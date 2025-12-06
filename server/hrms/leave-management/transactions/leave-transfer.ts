@@ -1,5 +1,4 @@
 'use server';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
@@ -18,7 +17,6 @@ import type {
     DeleteLeaveTransferRequest,
     DeleteLeaveTransferResponseData
 } from '@/types/hrms/leave-management/leave-transfer';
-
 /**
  * Get basic data for leave transfer page
  * POST /api/LeaveTransferWrapperFacade/GetBasicData
@@ -28,26 +26,16 @@ import type {
  */
 export async function getLeaveTransferBasicData(request: GetLeaveTransferBasicDataRequest): Promise<ApiResponse<GetLeaveTransferBasicDataResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/GetBasicData';
-
     const requestBody: GetLeaveTransferBasicDataRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID
     };
-
-    console.log('🔵 ========== GET LEAVE TRANSFER BASIC DATA ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
-    console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetLeaveTransferBasicDataResponseData>('hmslms', url, requestBody);
-        
-        console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetLeaveTransferBasicDataResponseData>;
         }
-
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
@@ -55,21 +43,15 @@ export async function getLeaveTransferBasicData(request: GetLeaveTransferBasicDa
             data: response as unknown as GetLeaveTransferBasicDataResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch leave transfer basic data';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get leave OB (Outstanding Balance) data
  * POST /api/LeaveTransferWrapperFacade/GetLeaveOB
@@ -79,26 +61,18 @@ export async function getLeaveTransferBasicData(request: GetLeaveTransferBasicDa
  */
 export async function getLeaveOB(request: GetLeaveOBRequest): Promise<ApiResponse<GetLeaveOBResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/GetLeaveOB';
-
     const requestBody: GetLeaveOBRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID
     };
-
-    console.log('🔵 ========== GET LEAVE OB ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetLeaveOBResponseData>('hmslms', url, requestBody);
-        
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetLeaveOBResponseData>;
         }
-
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
@@ -106,21 +80,15 @@ export async function getLeaveOB(request: GetLeaveOBRequest): Promise<ApiRespons
             data: response as unknown as GetLeaveOBResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch leave OB data';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get departments based on selected employee types
  * POST /api/LeaveTransferWrapperFacade/GetDepartments
@@ -130,27 +98,19 @@ export async function getLeaveOB(request: GetLeaveOBRequest): Promise<ApiRespons
  */
 export async function getDepartments(request: GetDepartmentsRequest): Promise<ApiResponse<GetDepartmentsResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/GetDepartments';
-
     const requestBody: GetDepartmentsRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         emptypes: request.emptypes || []
     };
-
-    console.log('🔵 ========== GET DEPARTMENTS ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetDepartmentsResponseData>('hmslms', url, requestBody);
-        
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetDepartmentsResponseData>;
         }
-
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
@@ -158,21 +118,15 @@ export async function getDepartments(request: GetDepartmentsRequest): Promise<Ap
             data: response as unknown as GetDepartmentsResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch departments';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Get designations based on selected employee types
  * POST /api/LeaveTransferWrapperFacade/GetDesignation
@@ -182,27 +136,19 @@ export async function getDepartments(request: GetDepartmentsRequest): Promise<Ap
  */
 export async function getDesignation(request: GetDesignationRequest): Promise<ApiResponse<GetDesignationResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/GetDesignation';
-
     const requestBody: GetDesignationRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         emptypes: request.emptypes || []
     };
-
-    console.log('🔵 ========== GET DESIGNATION ==========');
-    console.log('🔵 [SERVER] Request URL:', url);
     console.log('🔵 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<GetDesignationResponseData>('hmslms', url, requestBody);
-        
         console.log('🔵 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Handle the response structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped in ApiResponse format
             return response as ApiResponse<GetDesignationResponseData>;
         }
-
         // Wrap raw response data
         return {
             success: (response as any)?.success ?? true,
@@ -210,21 +156,15 @@ export async function getDesignation(request: GetDesignationRequest): Promise<Ap
             data: response as unknown as GetDesignationResponseData
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to fetch designations';
-
         // Throw error so hooks can catch and display it
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Save leave transfer details
  * POST /api/LeaveTransferWrapperFacade/SaveDetails
@@ -234,7 +174,6 @@ export async function getDesignation(request: GetDesignationRequest): Promise<Ap
  */
 export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsRequest): Promise<ApiResponse<SaveLeaveTransferDetailsResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/SaveDetails';
-
     const requestBody: SaveLeaveTransferDetailsRequest = {
         MI_Id: data.MI_Id || HRMS_MI_ID,
         HRME_SubstituteFlag: data.HRME_SubstituteFlag || '',
@@ -254,27 +193,19 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
         HRELS_EncashedLeaves: data.HRELS_EncashedLeaves || 0,
         HRELS_CBLeaves: data.HRELS_CBLeaves || 0
     };
-
-    console.log('🟠 ========== SAVE LEAVE TRANSFER DETAILS ==========');
-    console.log('🟠 [SERVER] Request URL:', url);
     console.log('🟠 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<SaveLeaveTransferDetailsResponseData>('hmslms', url, requestBody);
-        
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Extract return message from response
         const responseData = response as any;
         const retrunMsg = responseData?.retrunMsg || 
                          responseData?.data?.retrunMsg || 
                          responseData?.message || 
                          '';
-
         // Check for duplicate
         const isDuplicate = retrunMsg === 'Duplicate' || 
-                           (retrunMsg && retrunMsg.toLowerCase().includes('duplicate'));
-
+                           (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
         if (isDuplicate) {
             return {
                 success: false,
@@ -282,7 +213,6 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
                 data: responseData?.data || null
             };
         }
-
         // Check for success indicators
         const isUpdateSuccess = retrunMsg === 'Update' || 
                                retrunMsg === 'Saved' || 
@@ -291,35 +221,26 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
                                responseData?.returnval_Update === true ||
                                responseData?.returnval_add === true ||
                                responseData?.returnval === true;
-
         const isSuccess = isUpdateSuccess || 
                          (response?.success === true);
-
         let message = retrunMsg || 'Failed to save leave transfer details';
         if (isSuccess) {
             message = retrunMsg || 'Leave transfer details saved successfully';
         }
-
         return {
             success: isSuccess,
             message: message,
             data: responseData?.data || null
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to save leave transfer details';
-
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Process leave carry forward
  * POST /api/LeaveTransferWrapperFacade/LeaveCarryForward
@@ -329,32 +250,23 @@ export async function saveLeaveTransferDetails(data: SaveLeaveTransferDetailsReq
  */
 export async function leaveCarryForward(request: LeaveCarryForwardRequest): Promise<ApiResponse<LeaveCarryForwardResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/LeaveCarryForward';
-
     const requestBody: LeaveCarryForwardRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,
         emplist: request.emplist || []
     };
-
-    console.log('🟠 ========== LEAVE CARRY FORWARD ==========');
-    console.log('🟠 [SERVER] Request URL:', url);
     console.log('🟠 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<LeaveCarryForwardResponseData>('hmslms', url, requestBody);
-        
         console.log('🟢 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Extract return message from response
         const responseData = response as any;
         const retrunMsg = responseData?.retrunMsg || 
                          responseData?.data?.retrunMsg || 
                          responseData?.message || 
                          '';
-
         // Check for duplicate
         const isDuplicate = retrunMsg === 'Duplicate' || 
-                           (retrunMsg && retrunMsg.toLowerCase().includes('duplicate'));
-
+                           (retrunMsg?.toLowerCase().includes('duplicate') ?? false);
         if (isDuplicate) {
             return {
                 success: false,
@@ -362,7 +274,6 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
                 data: responseData?.data || null
             };
         }
-
         // Check for success indicators
         const isUpdateSuccess = retrunMsg === 'Update' || 
                                retrunMsg === 'Saved' || 
@@ -373,35 +284,26 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
                                responseData?.returnval_Update === true ||
                                responseData?.returnval_add === true ||
                                responseData?.returnval === true;
-
         const isSuccess = isUpdateSuccess || 
                          (response?.success === true);
-
         let message = retrunMsg || 'Failed to process leave carry forward';
         if (isSuccess) {
             message = retrunMsg || 'Leave carry forward processed successfully';
         }
-
         return {
             success: isSuccess,
             message: message,
             data: responseData?.data || null
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to process leave carry forward';
-
         throw new Error(errorMessage);
     }
 }
-
 /**
  * Delete leave transfer record
  * POST /api/LeaveTransferWrapperFacade/DeletePages
@@ -411,56 +313,40 @@ export async function leaveCarryForward(request: LeaveCarryForwardRequest): Prom
  */
 export async function deleteLeaveTransfer(request: DeleteLeaveTransferRequest): Promise<ApiResponse<DeleteLeaveTransferResponseData>> {
     const url = '/api/LeaveTransferWrapperFacade/DeletePages';
-
     const requestBody: DeleteLeaveTransferRequest = {
         HRELS_Id: request.HRELS_Id || 0
     };
-
-    console.log('🔴 ========== DELETE LEAVE TRANSFER ==========');
-    console.log('🔴 [SERVER] Request URL:', url);
     console.log('🔴 [SERVER] Request Body:', JSON.stringify(requestBody, null, 2));
-
     try {
         const response = await api.post<DeleteLeaveTransferResponseData>('hmslms', url, requestBody);
-        
         console.log('🔴 [SERVER] Response:', JSON.stringify(response, null, 2));
-
         // Extract return message from response
         const responseData = response as any;
         const retrunMsg = responseData?.retrunMsg || 
                          responseData?.data?.retrunMsg || 
                          responseData?.message || 
                          '';
-
         // Check for success indicators
         const isSuccess = retrunMsg === 'Delete' || 
                          retrunMsg === 'Deleted' ||
                          retrunMsg === 'Success' ||
                          responseData?.returnval === true ||
                          response?.success === true;
-
         let message = retrunMsg || 'Failed to delete leave transfer';
         if (isSuccess) {
             message = retrunMsg || 'Leave transfer deleted successfully';
         }
-
         return {
             success: isSuccess,
             message: message,
             data: responseData?.data || null
         };
     } catch (error: any) {
-        console.error('🔴 [SERVER] Error:', error);
-        console.error('🔴 [SERVER] Error message:', error?.message);
-        console.error('🔴 [SERVER] Error response:', error?.response?.data);
-
         // Extract error message from API response
         const errorMessage = error?.response?.data?.message || 
                            error?.response?.data?.retrunMsg || 
                            error?.message || 
                            'Failed to delete leave transfer';
-
         throw new Error(errorMessage);
     }
 }
-

@@ -1,5 +1,4 @@
 'use server';
-
 import { api } from '@/lib/apiService';
 import type { ApiResponse } from '@/lib/apiService';
 import type {
@@ -8,7 +7,6 @@ import type {
     LoanReportResponse,
     LoanReportSearchRequest
 } from '@/types/hrms/reports/loan-report';
-
 /**
  * Get basic data for loan report (onload)
  * POST /api/EmployeeLoanReport/getBasicData
@@ -20,20 +18,13 @@ export async function getLoanReportBasicData(MI_Id = 30, roleId = 0, LogInUserId
             roleId,
             LogInUserId
         };
-
-        console.log('/api/EmployeeLoanReport/getBasicData request', requestBody);
-
         const response = await api.post<LoanReportResponse>('hrms', '/api/EmployeeLoanReport/getBasicData', requestBody);
-
-        console.log('/api/EmployeeLoanReport/getBasicData response', response);
-
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             return response as ApiResponse<LoanReportResponse>;
         }
-
         // Wrap raw response data
         return {
             success: true,
@@ -41,7 +32,6 @@ export async function getLoanReportBasicData(MI_Id = 30, roleId = 0, LogInUserId
             data: response as unknown as LoanReportResponse
         };
     } catch (error: any) {
-        console.error('Error fetching loan report onload data:', error);
         return {
             success: false,
             data: null,
@@ -49,7 +39,6 @@ export async function getLoanReportBasicData(MI_Id = 30, roleId = 0, LogInUserId
         };
     }
 }
-
 /**
  * Get employee dropdown based on filters
  * POST /api/EmployeeLoanReport/getAllDropdownAndDatatableDetails
@@ -65,20 +54,13 @@ export async function filterEmployeesForLoanReport(requestBody: LoanReportFilter
             hrmD_IdList: requestBody.hrmD_IdList || [],
             hrmdeS_IdList: requestBody.hrmdeS_IdList || []
         };
-
-        console.log('/api/EmployeeLoanReport/getAllDropdownAndDatatableDetails request', request);
-
         const response = await api.post<LoanReportResponse>('hrms', '/api/EmployeeLoanReport/getAllDropdownAndDatatableDetails', request);
-
-        console.log('/api/EmployeeLoanReport/getAllDropdownAndDatatableDetails response', response);
-
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             return response as ApiResponse<LoanReportResponse>;
         }
-
         // Wrap raw response data
         const rawResponse = response as unknown as LoanReportResponse;
         return {
@@ -87,7 +69,6 @@ export async function filterEmployeesForLoanReport(requestBody: LoanReportFilter
             data: rawResponse
         };
     } catch (error: any) {
-        console.error('Error filtering employees for loan report:', error);
         return {
             success: false,
             data: null,
@@ -95,7 +76,6 @@ export async function filterEmployeesForLoanReport(requestBody: LoanReportFilter
         };
     }
 }
-
 /**
  * Get employee loan details by selection
  * POST /api/EmployeeLoanReport/getEmployeedetailsBySelection
@@ -112,20 +92,13 @@ export async function getEmployeeLoanDetails(requestBody: LoanReportSearchReques
             hrmdeS_IdList: requestBody.hrmdeS_IdList || [],
             hrmE_Id: requestBody.hrmE_Id || 0
         };
-
-        console.log('/api/EmployeeLoanReport/getEmployeedetailsBySelection request', request);
-
         const response = await api.post<LoanReportResponse>('hrms', '/api/EmployeeLoanReport/getEmployeedetailsBySelection', request);
-
-        console.log('/api/EmployeeLoanReport/getEmployeedetailsBySelection response', response);
-
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             return response as ApiResponse<LoanReportResponse>;
         }
-
         // Wrap raw response data
         const rawResponse = response as unknown as LoanReportResponse;
         return {
@@ -134,7 +107,6 @@ export async function getEmployeeLoanDetails(requestBody: LoanReportSearchReques
             data: rawResponse
         };
     } catch (error: any) {
-        console.error('Error getting employee loan details:', error);
         return {
             success: false,
             data: null,

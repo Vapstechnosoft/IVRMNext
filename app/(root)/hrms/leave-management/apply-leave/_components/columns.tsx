@@ -1,14 +1,11 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 // Leave Balance Row
 export interface LeaveBalanceRow {
     leaveType: string;
     balance: number;
 }
-
 // Leave History Row
 export interface LeaveHistoryRow {
     leaveType: string;
@@ -20,7 +17,6 @@ export interface LeaveHistoryRow {
     remark?: string;
     document?: string;
 }
-
 // Apply Leave Form Data
 export type ApplyLeave = {
     employeeName: string;
@@ -35,7 +31,6 @@ export type ApplyLeave = {
     dateReportingBack?: string;
     file?: FileList;
 };
-
 // Table columns for Leave Balance
 export const leaveBalanceColumns: ColumnDef<
     LeaveBalanceRow & { slNo?: number; total?: number; fromDate?: string; toDate?: string; noOfDays?: number }
@@ -66,7 +61,6 @@ export const leaveBalanceColumns: ColumnDef<
         cell: ({ row }) => <div className='text-center'>{row.getValue('balance')}</div>
     }
 ];
-
 // Table columns for Leave History
 export const leaveHistoryColumns: ColumnDef<LeaveHistoryRow>[] = [
     {

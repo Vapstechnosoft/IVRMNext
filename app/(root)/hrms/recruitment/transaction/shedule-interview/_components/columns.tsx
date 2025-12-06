@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface Interview {
     id: number;
     candidateName: string;
@@ -21,15 +19,12 @@ export interface Interview {
     remarks?: string;
     createdDate: string;
     updatedDate?: string;
-
     createdAt: string;
 }
-
 interface InterviewColumnsProps {
     onEdit: (row: Interview) => void;
     onDelete: (row: Interview) => void;
 }
-
 export const getInterviewColumns = ({ onEdit, onDelete }: InterviewColumnsProps): ColumnDef<Interview>[] => [
     {
         id: 'sl',

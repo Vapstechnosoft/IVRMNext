@@ -1,7 +1,5 @@
 'use server';
-
 import { createLocalCrud } from '@/lib/localdb';
-
 export interface MasterShift {
     id: number;
     shiftName: string;
@@ -11,9 +9,7 @@ export interface MasterShift {
     specificDay: boolean;
     createdAt: Date;
 }
-
 const store = createLocalCrud<MasterShift>('attendance:master-shift');
-
 // Initialize with sample data if empty
 function initializeSampleData() {
     const shifts = store.list();
@@ -55,13 +51,11 @@ function initializeSampleData() {
                 specificDay: false
             }
         ];
-
         sampleShifts.forEach((shift) => {
             store.create(shift);
         });
     }
 }
-
 export async function getMasterShift() {
     initializeSampleData();
     return {
@@ -70,7 +64,6 @@ export async function getMasterShift() {
         message: 'Master shift retrieved successfully'
     };
 }
-
 export async function addOrUpdateMasterShift(data: {
     id?: number;
     shiftName: string;
@@ -85,14 +78,12 @@ export async function addOrUpdateMasterShift(data: {
         const duplicateShift = existingShifts.find(
             (shift) => shift.id !== data.id && shift.shiftName.toLowerCase().trim() === data.shiftName.toLowerCase().trim()
         );
-
         if (duplicateShift) {
             return {
                 success: false,
                 message: 'Shift Name must be unique. A shift with this name already exists.'
             };
         }
-
         if (data.id) {
             const updated = store.update(data.id, {
                 shiftName: data.shiftName,
@@ -133,7 +124,6 @@ export async function addOrUpdateMasterShift(data: {
         };
     }
 }
-
 export async function deleteMasterShift(id: number) {
     try {
         const removed = store.remove(id);
@@ -154,4 +144,3 @@ export async function deleteMasterShift(id: number) {
         };
     }
 }
-

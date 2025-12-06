@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -14,20 +13,16 @@ import { use, useState } from 'react';
 import { toast } from 'sonner';
 import { type LeaveCreditDetail, getLeaveCreditDetailColumns } from './_components/columns';
 import { LeaveCreditDetailsForm } from './_components/leave-credit-details-form';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function LeaveCreditDetailsPage(props: { searchParams: SearchParams }) {
     const _searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useLeaveCreditDetails();
-
     return (
         <FormProvider<LeaveCreditDetail>>
             <LeaveCreditDetailsPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function LeaveCreditDetailsPageContent({
     response,
     isLoading,
@@ -40,7 +35,6 @@ function LeaveCreditDetailsPageContent({
     const { openAddForm } = useFormContext<LeaveCreditDetail>();
     const { openEditForm, openDeleteForm } = useFormContext<LeaveCreditDetail>();
     const tableProps = useDataTableProps(response);
-
     const columns = getLeaveCreditDetailColumns({
         onEdit: openEditForm,
         onDelete: (id: number) => {
@@ -50,7 +44,6 @@ function LeaveCreditDetailsPageContent({
             }
         }
     });
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -64,7 +57,6 @@ function LeaveCreditDetailsPageContent({
                         Add Leave Credit Details
                     </Button>
                 </div>
-
                 {/* Data Table Section */}
                 <CollapsibleSection
                     title='LEAVE TRANSFER REPORT'
@@ -86,14 +78,12 @@ function LeaveCreditDetailsPageContent({
                         errorTitle='Error Loading Leave Credit Details'
                     />
                 </CollapsibleSection>
-
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
-
 function FormSections() {
     const {
         isAddFormOpen,
@@ -110,7 +100,6 @@ function FormSections() {
     const { mutate: saveCreditDetails } = useSaveLeaveCreditDetails();
     const { mutate: deleteCreditDetails } = useDeleteLeaveCreditDetails();
     const [activeTab, _setActiveTab] = useState('Leave Credit');
-
     const handleFormSubmit = (formData: LeaveCreditDetail) => {
         // Map LeaveCreditDetail to the expected API format
         const apiData = {
@@ -151,7 +140,6 @@ function FormSections() {
                 : [],
             ...formData
         };
-
         saveCreditDetails(apiData, {
             onSuccess: () => {
                 toast.success(selectedRow ? 'Leave credit details updated successfully' : 'Leave credit details saved successfully');
@@ -164,7 +152,6 @@ function FormSections() {
             }
         });
     };
-
     const handleDelete = () => {
         if (selectedRow) {
             deleteCreditDetails(selectedRow.id, {
@@ -179,7 +166,6 @@ function FormSections() {
             });
         }
     };
-
     return (
         <>
             {/* Add Form */}
@@ -206,7 +192,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
@@ -250,7 +235,6 @@ function FormSections() {
                     </CollapsibleSection>
                 </div>
             )}
-
             {/* Delete Form */}
             {isDeleteFormOpen && selectedRow && (
                 <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50'>

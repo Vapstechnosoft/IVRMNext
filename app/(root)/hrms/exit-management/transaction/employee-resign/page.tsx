@@ -4,11 +4,7 @@
 // 2. Import form from _components/resignation-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
-import { useState } from 'react';
-
 import { Heading } from '@/components/layout/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,9 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, FileText, UserMinus } from 'lucide-react';
+import { useState } from 'react';
 // import { Alert, AlertDescription } from '@/components/ui/alert'; // Component not found
 import { useForm } from 'react-hook-form';
-
 type ResignationFormData = {
     hrManagerName: string;
     hrManagerEmail: string;
@@ -29,13 +25,10 @@ type ResignationFormData = {
     departmentHeadEmail: string;
     resignationRemark: string;
 };
-
 // type RelievingFormData = Record<string, unknown>;
-
 export default function EmployeeResignPage() {
     const [activeTab, setActiveTab] = useState('resignation');
     const [showNOCError, setShowNOCError] = useState(false);
-
     const {
         register,
         handleSubmit,
@@ -46,23 +39,19 @@ export default function EmployeeResignPage() {
     } = useForm<ResignationFormData>({
         mode: 'onChange'
     });
-
     const onSubmitResignation = (_data: ResignationFormData) => {
         // Handle resignation submission
     };
-
     const onSubmitRelieving = () => {
         // Check NOC approval status
         setShowNOCError(true);
         // Handle relieving submission
     };
-
     const handleTabChange = (value: string) => {
         setActiveTab(value);
         setShowNOCError(false);
         reset();
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-6 p-1'>
@@ -75,7 +64,6 @@ export default function EmployeeResignPage() {
                         />
                     </div>
                 </div>
-
                 {/* Main Application Section */}
                 <Card className='shadow-lg'>
                     <CardHeader>
@@ -93,7 +81,6 @@ export default function EmployeeResignPage() {
                                     Relieving Apply
                                 </TabsTrigger>
                             </TabsList>
-
                             {/* Resignation Apply Tab */}
                             <TabsContent value='resignation' className='space-y-6'>
                                 <Card>
@@ -115,7 +102,6 @@ export default function EmployeeResignPage() {
                                                         error={errors.hrManagerName?.message}
                                                     />
                                                 </div>
-
                                                 {/* HR Manager Email */}
                                                 <div className='space-y-2'>
                                                     <label htmlFor='hr-manager-email-input' className='font-medium text-gray-700 text-sm'>
@@ -134,7 +120,6 @@ export default function EmployeeResignPage() {
                                                         error={errors.hrManagerEmail?.message}
                                                     />
                                                 </div>
-
                                                 {/* Reason */}
                                                 <div className='space-y-2'>
                                                     <label htmlFor='reason-select' className='font-medium text-gray-700 text-sm'>
@@ -155,7 +140,6 @@ export default function EmployeeResignPage() {
                                                     </Select>
                                                     {errors.reason && <p className='text-red-500 text-sm'>{errors.reason.message}</p>}
                                                 </div>
-
                                                 {/* Notice Period */}
                                                 <div className='space-y-2'>
                                                     <label htmlFor='notice-period-input' className='font-medium text-gray-700 text-sm'>
@@ -173,7 +157,6 @@ export default function EmployeeResignPage() {
                                                         error={errors.noticePeriodInDays?.message}
                                                     />
                                                 </div>
-
                                                 {/* Department Head Name */}
                                                 <div className='space-y-2'>
                                                     <label htmlFor='dept-head-name-input' className='font-medium text-gray-700 text-sm'>
@@ -186,7 +169,6 @@ export default function EmployeeResignPage() {
                                                         error={errors.departmentHeadName?.message}
                                                     />
                                                 </div>
-
                                                 {/* Department Head Email */}
                                                 <div className='space-y-2'>
                                                     <label htmlFor='dept-head-email-input' className='font-medium text-gray-700 text-sm'>
@@ -206,7 +188,6 @@ export default function EmployeeResignPage() {
                                                     />
                                                 </div>
                                             </div>
-
                                             {/* Resignation Remark */}
                                             <div className='space-y-2'>
                                                 <label htmlFor='resignation-remark-textarea' className='font-medium text-gray-700 text-sm'>
@@ -220,7 +201,6 @@ export default function EmployeeResignPage() {
                                                     className='resize-none'
                                                 />
                                             </div>
-
                                             {/* Form Actions */}
                                             <div className='flex justify-end gap-3 pt-4'>
                                                 <Button type='button' variant='outline' onClick={() => reset()}>
@@ -234,7 +214,6 @@ export default function EmployeeResignPage() {
                                     </CardContent>
                                 </Card>
                             </TabsContent>
-
                             {/* Relieving Apply Tab */}
                             <TabsContent value='relieving' className='space-y-6'>
                                 <Card>

@@ -1,12 +1,10 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
-
 export interface CompOffApproval extends BaseEntity {
     employeeName: string;
     date: string;
@@ -17,12 +15,10 @@ export interface CompOffApproval extends BaseEntity {
     approverRemarks?: string;
     remark?: string;
 }
-
 interface CompOffApprovalColumnsProps {
     onApprove: (row: CompOffApproval) => void;
     onReject: (row: CompOffApproval) => void;
 }
-
 export const getCompOffApprovalColumns = ({ onApprove, onReject }: CompOffApprovalColumnsProps): ColumnDef<CompOffApproval>[] => [
     {
         accessorKey: 'employeeName',

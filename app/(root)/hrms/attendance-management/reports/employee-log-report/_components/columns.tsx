@@ -1,10 +1,8 @@
 'use client';
-
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface LogRow extends BaseEntity {
     type: string;
     department: string;
@@ -16,7 +14,6 @@ export interface LogRow extends BaseEntity {
     lateIn?: string;
     earlyOut?: string;
 }
-
 export const logReportColumns: ColumnDef<LogRow>[] = [
     {
         id: 'select',

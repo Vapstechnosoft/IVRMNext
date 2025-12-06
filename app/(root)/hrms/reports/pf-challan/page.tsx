@@ -1,12 +1,10 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { usePFChallanReportOnload, useSearchPFChallanReport } from '@/hooks/hrms/useReports';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { PFChallanFilters, type PFChallanFilters as PFChallanFiltersType } from './_components/filters';
 import { PFChallanTemplate } from './_components/pf-challan-template';
-
 // PF challan data structure
 interface PFChallanRecord {
     id?: string;
@@ -24,39 +22,32 @@ interface PFChallanRecord {
     month: string;
     year: string;
 }
-
 export default function PFChallanPage() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = usePFChallanReportOnload(roleId);
     const searchMutation = useSearchPFChallanReport();
-
     // State
     const [pfRecords, setPFRecords] = useState<PFChallanRecord[]>([]);
     const [showChallan, setShowChallan] = useState(false);
     const [establishmentName, setEstablishmentName] = useState<string>('');
     const [establishmentAddress, setEstablishmentAddress] = useState<string>('');
     const [pincode, setPincode] = useState<string>('');
-
     const [filters, setFilters] = useState<PFChallanFiltersType>({
         month: '',
         year: ''
     });
-
     // Memoize dropdown data from API
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     // Extract institution details from onload data
     useEffect(() => {
         if (onloadData?.data) {
@@ -72,7 +63,6 @@ export default function PFChallanPage() {
             }
         }
     }, [onloadData]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -83,31 +73,25 @@ export default function PFChallanPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     const handleFilterChange = (newFilters: PFChallanFiltersType) => {
         setFilters(newFilters);
     };
-
     const handleGenerate = () => {
         // Always show challan template when generate is clicked, even without data or on errors
         setShowChallan(true);
-
         if (!filters.month || !filters.year) {
             toast.error('Please select month and year');
             return;
         }
-
         // Find month ID from selected month name
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
             HRES_Month: monthName,
             HRES_Year: filters.year
         };
-
         // Call search API to get PF challan data
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
@@ -123,10 +107,8 @@ export default function PFChallanPage() {
                         setEstablishmentAddress(addressParts.join(', ') || '');
                         setPincode(institutionDetails.MI_Pincode || '');
                     }
-
                     // Extract PF challan data from response
                     const pfData = response.data.getpfgriddata || response.data.pfreport || response.data.employeeDetails || [];
-
                     if (Array.isArray(pfData) && pfData.length > 0) {
                         // Map API response to PFChallanRecord format
                         const mappedRecords: PFChallanRecord[] = pfData.map((item: any, index: number) => {
@@ -138,7 +120,6 @@ export default function PFChallanPage() {
                             const pensionContribution = pfEligibleSalary * 0.0833; // 8.33% pension
                             const administrationCharges = pfEligibleSalary * 0.005; // 0.5% admin charges
                             const totalPF = employeePF + employerPF + vpfContribution + pensionContribution + administrationCharges;
-
                             return {
                                 id: `pf-${item.HRME_Id || item.HRES_Id || index}`,
                                 employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
@@ -163,7 +144,6 @@ export default function PFChallanPage() {
                                 year: filters.year
                             };
                         });
-
                         setPFRecords(mappedRecords);
                         toast.success('PF Challan generated successfully');
                     } else {
@@ -176,12 +156,10 @@ export default function PFChallanPage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching PF challan report:', error);
                 toast.error(error.message || 'Failed to generate PF challan');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             month: '',
@@ -191,12 +169,10 @@ export default function PFChallanPage() {
         setShowChallan(false);
         toast.info('Filters cleared');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate PF summary for challan template
     // A/C NO.1 = Employee Share + Employer Share (EPF contributions)
     // A/C NO.21 = Pension contribution (from employer share)
@@ -209,12 +185,10 @@ export default function PFChallanPage() {
                 const employerShare = record.employerPF;
                 const pensionContribution = record.pensionContribution;
                 const adminCharges = record.administrationCharges;
-
                 // A/C NO.1: Employee Share + Employer Share (excluding pension which goes to A/C 21)
                 const account1EmployeeShare = employeeShare;
                 const account1EmployerShare = employerShare - pensionContribution; // Employer share minus pension
                 const account1Total = account1EmployeeShare + account1EmployerShare;
-
                 return {
                     totalEmployeeShare: acc.totalEmployeeShare + account1EmployeeShare,
                     totalEmployerShare: acc.totalEmployerShare + account1EmployerShare,
@@ -238,7 +212,6 @@ export default function PFChallanPage() {
             }
         );
     }, [pfRecords]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -251,7 +224,6 @@ export default function PFChallanPage() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Challan Results */}
             {showChallan && (
                 <PFChallanTemplate

@@ -1,9 +1,7 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Download, Printer } from 'lucide-react';
 import type { EmployeeLoanRecord } from './columns';
-
 interface PrintableSheetProps {
     records: EmployeeLoanRecord[];
     institutionName?: string;
@@ -15,7 +13,6 @@ interface PrintableSheetProps {
     onPrint: () => void;
     onExport: () => void;
 }
-
 export function PrintableLoanSheet({
     records,
     institutionName,
@@ -46,14 +43,12 @@ export function PrintableLoanSheet({
             remainingAmount: 0
         }
     );
-
     const reportPeriod =
         reportScope === 'all' && month && year
             ? `FOR THE MONTH OF ${month.toUpperCase()} - ${year}`
             : reportScope === 'individual' && employeeName
               ? `FOR EMPLOYEE: ${employeeName.toUpperCase()}`
               : '';
-
     return (
         <div className='print:bg-white print:p-8'>
             {/* Action Buttons - Hidden in print */}
@@ -65,7 +60,6 @@ export function PrintableLoanSheet({
                     EXPORT TO EXCEL
                 </Button>
             </div>
-
             {/* Report Sheet */}
             <div className='print-sheet rounded-lg border bg-white p-6 shadow-sm'>
                 {/* Institution Header */}
@@ -73,13 +67,11 @@ export function PrintableLoanSheet({
                     <h1 className='font-bold text-2xl uppercase'>{institutionName || 'INSTITUTION NAME'}</h1>
                     {institutionAddress && <p className='mt-2 text-sm'>{institutionAddress}</p>}
                 </div>
-
                 {/* Report Title */}
                 <div className='mb-4 text-center'>
                     <h2 className='font-bold text-xl uppercase'>EMPLOYEE LOAN REPORT</h2>
                     {reportPeriod && <p className='mt-2 font-semibold text-sm'>{reportPeriod}</p>}
                 </div>
-
                 {/* Loan Details Table */}
                 <div className='overflow-x-auto'>
                     <table className='print-table w-full border-collapse border border-gray-300 text-sm'>
@@ -163,7 +155,6 @@ export function PrintableLoanSheet({
                         )}
                     </table>
                 </div>
-
                 {/* Summary Section */}
                 {records.length > 0 && (
                     <div className='mt-6 grid grid-cols-2 gap-4 border-t pt-4'>

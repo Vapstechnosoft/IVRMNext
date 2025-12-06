@@ -1,12 +1,10 @@
 'use client';
-
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useHeadWiseReportOnload, useSearchHeadWiseReport } from '@/hooks/hrms/useReports';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type HeadWiseReportFilters as HeadWiseFilters, HeadWiseReportFilters } from './_components/filters';
 import { HeadWiseReportTemplate } from './_components/report-template';
-
 // Head wise report data structure
 interface HeadWiseRecord {
     id?: string;
@@ -16,46 +14,38 @@ interface HeadWiseRecord {
     totalDeduction: number;
     netSalary: number;
 }
-
 export default function HeadWiseReportPage() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useHeadWiseReportOnload(roleId, 0);
     const searchMutation = useSearchHeadWiseReport();
-
     // State
     const [headWiseRecords, setHeadWiseRecords] = useState<HeadWiseRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<HeadWiseRecord[]>([]);
     const [showReport, setShowReport] = useState(false);
     const [schoolName, setSchoolName] = useState<string>('');
     const [schoolAddress, setSchoolAddress] = useState<string>('');
-
     const [filters, setFilters] = useState<HeadWiseFilters>({
         selectedGroupTypes: [],
         month: '',
         year: ''
     });
-
     // Memoize dropdown data from API
     const groupTypes = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).groupTypedropdown || [];
     }, [onloadData?.data]);
-
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -66,7 +56,6 @@ export default function HeadWiseReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Memoize mapped data
     const mappedGroupTypes = useMemo(() => {
         return groupTypes.map((gt: any) => ({
@@ -77,21 +66,17 @@ export default function HeadWiseReportPage() {
             isActive: gt.HRMGT_ActiveFlag !== false
         }));
     }, [groupTypes]);
-
     // Filter head wise records based on selected criteria
     useEffect(() => {
         // For now, show all records as filtering is done on the API side
         setFilteredRecords(headWiseRecords);
     }, [headWiseRecords]);
-
     const handleFilterChange = (newFilters: HeadWiseFilters) => {
         setFilters(newFilters);
     };
-
     const handleSearch = () => {
         // Always show report template when search is clicked, even without data or on errors
         setShowReport(true);
-
         if (!filters.month || !filters.year) {
             toast.error('Please select month and year');
             return;
@@ -100,11 +85,9 @@ export default function HeadWiseReportPage() {
             toast.error('Please select at least one group type');
             return;
         }
-
         // Find month ID from selected month name
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || '';
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
@@ -114,7 +97,6 @@ export default function HeadWiseReportPage() {
             HRES_Year: filters.year || '',
             HRES_Month: monthId || ''
         };
-
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -129,7 +111,6 @@ export default function HeadWiseReportPage() {
                         if (institutionDetails.MI_Pincode) addressParts.push(institutionDetails.MI_Pincode);
                         setSchoolAddress(addressParts.join(', ') || '');
                     }
-
                     // Map API response to HeadWiseRecord format
                     // The API returns employee details with EmployeeName, DesignationName, TotalEarning, TotalDeduction, NetSalary
                     const employeeDetails = response.data.employeeDetails || [];
@@ -141,7 +122,6 @@ export default function HeadWiseReportPage() {
                         totalDeduction: emp.TotalDeduction || emp.totalDeduction || 0,
                         netSalary: emp.NetSalary || emp.netSalary || 0
                     }));
-
                     setHeadWiseRecords(mappedRecords);
                     toast.success('Header wise report generated successfully');
                 } else {
@@ -149,12 +129,10 @@ export default function HeadWiseReportPage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching head wise report:', error);
                 toast.error(error.message || 'Failed to generate header wise report');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             selectedGroupTypes: [],
@@ -168,16 +146,13 @@ export default function HeadWiseReportPage() {
         setSchoolAddress('');
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Header wise report exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Extract institution details from onload data if available
     useEffect(() => {
         if (onloadData?.data) {
@@ -193,7 +168,6 @@ export default function HeadWiseReportPage() {
             }
         }
     }, [onloadData]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -207,7 +181,6 @@ export default function HeadWiseReportPage() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Report Results */}
             {showReport && (
                 <HeadWiseReportTemplate

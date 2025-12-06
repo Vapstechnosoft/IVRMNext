@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -7,7 +6,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { X } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import type { LeaveAuthorization } from './columns';
-
 const institutions = [
     'Vaps Knowledge Services Pvt Ltd',
     'VAPS Institute',
@@ -16,13 +14,11 @@ const institutions = [
     'VAPS College',
     'VAPS University'
 ];
-
 interface LeaveAuthorizationFormProps {
     editingLeaveAuthorization: LeaveAuthorization | null;
     onSubmit: (data: LeaveAuthorization) => void;
     onCancel: () => void;
 }
-
 export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, onCancel }: LeaveAuthorizationFormProps) {
     const {
         register,
@@ -43,11 +39,9 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
             finalFlag: false
         }
     });
-
     const handleFormSubmit: SubmitHandler<LeaveAuthorization> = (data) => {
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
             {/* Institution Field */}
@@ -69,7 +63,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                 </Select>
                 {errors.institution && <FormError>{errors.institution.message}</FormError>}
             </div>
-
             {/* Form Fields Grid */}
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 {/* Left Column */}
@@ -91,7 +84,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         </Select>
                         {errors.gradeName && <FormError>{errors.gradeName.message}</FormError>}
                     </div>
-
                     <div>
                         <label htmlFor='group-type-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Group Type <span className='text-red-500'>*</span>
@@ -109,7 +101,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         </Select>
                         {errors.groupTypeName && <FormError>{errors.groupTypeName.message}</FormError>}
                     </div>
-
                     <div>
                         <label htmlFor='department-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Department Type <span className='text-red-500'>*</span>
@@ -128,7 +119,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         </Select>
                         {errors.departmentName && <FormError>{errors.departmentName.message}</FormError>}
                     </div>
-
                     <div>
                         <label htmlFor='designation-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Designation Type <span className='text-red-500'>*</span>
@@ -150,7 +140,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         {errors.designationName && <FormError>{errors.designationName.message}</FormError>}
                     </div>
                 </div>
-
                 {/* Right Column */}
                 <div className='space-y-4'>
                     <div>
@@ -172,7 +161,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         </Select>
                         {errors.leaveType && <FormError>{errors.leaveType.message}</FormError>}
                     </div>
-
                     <div>
                         <label htmlFor='order-approval-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Order Of Approval <span className='text-red-500'>*</span>
@@ -191,7 +179,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         </Select>
                         {errors.orderOfApproval && <FormError>{errors.orderOfApproval.message}</FormError>}
                     </div>
-
                     <div>
                         <label htmlFor='approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                             Approval Person <span className='text-red-500'>*</span>
@@ -209,7 +196,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                         </Select>
                         {errors.approvalPerson && <FormError>{errors.approvalPerson.message}</FormError>}
                     </div>
-
                     <div className='flex items-center space-x-2'>
                         <Checkbox
                             id='finalFlag'
@@ -222,7 +208,6 @@ export function LeaveAuthorizationForm({ editingLeaveAuthorization, onSubmit, on
                     </div>
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-4 pt-4'>
                 <Button type='submit' variant='default'>

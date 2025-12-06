@@ -4,9 +4,7 @@
 // 2. Import form from _components/staff-user-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +20,6 @@ import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, UserPlus, X } from
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface StaffUser {
     id: number;
     roleType: string;
@@ -33,21 +30,18 @@ interface StaffUser {
     createdAt: string;
     lastLogin?: string;
 }
-
 type StaffUserForm = {
     roleType: string;
     institutionName: string;
     userName: string;
     modules: string[];
 };
-
 export default function StaffUserCreationPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [staffUsers, setStaffUsers] = useState<StaffUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const formRef = useRef<HTMLDivElement>(null);
-
     // Mock data for dropdowns
     const roleTypes = ['COORDINATOR', 'ADMIN', 'TEACHER', 'STAFF', 'MANAGER'];
     const institutions = ['VAPS SCHOOL', 'VAPS COLLEGE', 'VAPS UNIVERSITY'];
@@ -65,7 +59,6 @@ export default function StaffUserCreationPage() {
         'Leave Management',
         'Recruitment'
     ];
-
     const {
         register,
         handleSubmit,
@@ -79,14 +72,11 @@ export default function StaffUserCreationPage() {
             modules: []
         }
     });
-
     const watchedModules = watch('modules');
-
     // Load mock data on component mount
     useEffect(() => {
         loadStaffUsers();
     }, []);
-
     const loadStaffUsers = async () => {
         try {
             setIsLoading(true);
@@ -123,18 +113,15 @@ export default function StaffUserCreationPage() {
                     lastLogin: '2024-09-15'
                 }
             ];
-
             setStaffUsers(mockData);
             toast.success(`Loaded ${mockData.length} staff users`);
-        } catch (error) {
-            console.error('Error loading staff users:', error);
+        } catch (_error) {
             toast.error('Failed to load staff users');
             setStaffUsers([]);
         } finally {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
@@ -149,7 +136,6 @@ export default function StaffUserCreationPage() {
             });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
@@ -157,14 +143,12 @@ export default function StaffUserCreationPage() {
             modules: []
         });
     };
-
     const onSubmit: SubmitHandler<StaffUserForm> = async (data: StaffUserForm) => {
         try {
             if (!data.roleType || !data.institutionName || !data.userName || data.modules.length === 0) {
                 toast.error('Please fill in all required fields');
                 return;
             }
-
             const newStaffUser: StaffUser = {
                 id: editingId || Date.now(),
                 roleType: data.roleType,
@@ -175,7 +159,6 @@ export default function StaffUserCreationPage() {
                 createdAt: new Date().toISOString().split('T')[0],
                 lastLogin: undefined
             };
-
             if (editingId) {
                 setStaffUsers((prev) => prev.map((user) => (user.id === editingId ? newStaffUser : user)));
                 toast.success('Staff user updated successfully');
@@ -183,14 +166,11 @@ export default function StaffUserCreationPage() {
                 setStaffUsers((prev) => [...prev, newStaffUser]);
                 toast.success('Staff user created successfully');
             }
-
             handleFormClose();
         } catch (error: any) {
-            console.error('Save error:', error);
             toast.error(error.message || 'Failed to save staff user');
         }
     };
-
     const handleModuleChange = (module: string, checked: boolean) => {
         const currentModules = watchedModules || [];
         if (checked) {
@@ -202,7 +182,6 @@ export default function StaffUserCreationPage() {
             );
         }
     };
-
     const handleEdit = (user: StaffUser) => {
         setEditingId(user.id);
         setValue('roleType', user.roleType);
@@ -218,7 +197,6 @@ export default function StaffUserCreationPage() {
             });
         }, 100);
     };
-
     const handleDelete = async (id: number) => {
         try {
             setStaffUsers((prev) => prev.filter((user) => user.id !== id));
@@ -227,7 +205,6 @@ export default function StaffUserCreationPage() {
             toast.error('Failed to delete staff user');
         }
     };
-
     const handleToggleActive = async (id: number, currentStatus: boolean) => {
         try {
             const newStatus = !currentStatus;
@@ -237,7 +214,6 @@ export default function StaffUserCreationPage() {
             toast.error('Failed to toggle user status');
         }
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -269,7 +245,6 @@ export default function StaffUserCreationPage() {
                         </Button>
                     </div>
                 </div>
-
                 {/* Data Table Section - Always visible */}
                 <CollapsibleSection
                     title='Staff Users Data'
@@ -287,7 +262,6 @@ export default function StaffUserCreationPage() {
                         onToggleActive={handleToggleActive}
                     />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -330,7 +304,6 @@ export default function StaffUserCreationPage() {
         </div>
     );
 }
-
 interface StaffUserFormProps {
     onSubmit: any;
     onCancel: () => void;
@@ -346,7 +319,6 @@ interface StaffUserFormProps {
     institutions: string[];
     modules: string[];
 }
-
 interface StaffUserTableProps {
     staffUsers: StaffUser[];
     isLoading: boolean;
@@ -354,7 +326,6 @@ interface StaffUserTableProps {
     onDelete: (id: number) => void;
     onToggleActive: (id: number, currentStatus: boolean) => void;
 }
-
 function StaffUserForm({
     onSubmit,
     onCancel,
@@ -392,7 +363,6 @@ function StaffUserForm({
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div className='space-y-2'>
                         <span className='font-medium text-sm'>
                             Institution Name :<span className='text-red-500'>*</span>
@@ -411,7 +381,6 @@ function StaffUserForm({
                         </Select>
                     </div>
                 </div>
-
                 {/* Right Column */}
                 <div className='space-y-4'>
                     <InputText
@@ -424,7 +393,6 @@ function StaffUserForm({
                         })}
                         error={errors.userName?.message}
                     />
-
                     {/* Role Type Display */}
                     {formData.roleType && (
                         <div className='rounded-md border border-blue-200 bg-blue-50 p-3'>
@@ -436,7 +404,6 @@ function StaffUserForm({
                     )}
                 </div>
             </div>
-
             {/* Module Selection */}
             <div className='space-y-2'>
                 <span className='font-medium text-sm'>
@@ -457,7 +424,6 @@ function StaffUserForm({
                     ))}
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-3 border-t pt-4'>
                 <Button type='submit' disabled={isSubmitting} className='bg-blue-600 hover:bg-blue-700'>
@@ -485,7 +451,6 @@ function StaffUserForm({
         </form>
     );
 }
-
 function StaffUserTable({ staffUsers, isLoading, onEdit, onDelete, onToggleActive }: StaffUserTableProps) {
     const staffUserColumns: ColumnDef<StaffUser>[] = [
         {
@@ -622,7 +587,6 @@ function StaffUserTable({ staffUsers, isLoading, onEdit, onDelete, onToggleActiv
             }
         }
     ];
-
     return (
         <div className='overflow-hidden rounded-lg bg-card'>
             <GenericDataTable

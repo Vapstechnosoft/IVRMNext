@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -10,7 +9,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type MonthEndRecord as MonthEndRecordColumn, monthEndReportColumns } from './_components/columns';
 import { type FilterOptions, HRMSMonthEndFilters, type MonthEndFilters } from './_components/filters';
-
 // Month End Report data structure
 interface MonthEndRecord {
     id?: string;
@@ -38,7 +36,6 @@ interface MonthEndRecord {
     year: string;
     ieName: string;
 }
-
 // Month End Summary
 interface MonthEndSummary {
     totalEmployees: number;
@@ -51,19 +48,15 @@ interface MonthEndSummary {
     totalNetSalary: number;
     averageNetSalary: number;
 }
-
 export default function HRMSMonthEndReportPage() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useMonthEndReportOnload(roleId);
     const searchMutation = useSearchMonthEndReport();
-
     // State
     const [monthEndRecords, setMonthEndRecords] = useState<MonthEndRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<MonthEndRecord[]>([]);
     const [showReport, setShowReport] = useState(false);
-
     const [filters, setFilters] = useState<MonthEndFilters>({
         selectedGroupTypes: [],
         selectedDepartments: [],
@@ -72,45 +65,38 @@ export default function HRMSMonthEndReportPage() {
         year: '',
         ieName: ''
     });
-
     // Memoize dropdown data from API
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     const groupTypes = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).groupTypedropdown || [];
     }, [onloadData?.data]);
-
     const departments = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).departmentdropdown || [];
     }, [onloadData?.data]);
-
     const designations = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).designationdropdown || [];
     }, [onloadData?.data]);
-
     // Get institution details from API
     const institutionDetails = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return null;
         return (data as any).institutionDetails || null;
     }, [onloadData?.data]);
-
     // Filter options for filters component
     const filterOptions: FilterOptions = useMemo(() => {
         return {
@@ -134,7 +120,6 @@ export default function HRMSMonthEndReportPage() {
                 }))
         };
     }, [groupTypes, departments, designations]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -145,36 +130,29 @@ export default function HRMSMonthEndReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Filter records based on selected filters
     useEffect(() => {
         let filtered = monthEndRecords;
-
         // Filter by group types
         if (filters.selectedGroupTypes.length > 0) {
             filtered = filtered.filter((record) => filters.selectedGroupTypes.includes(record.groupType));
         }
-
         // Filter by departments
         if (filters.selectedDepartments.length > 0) {
             filtered = filtered.filter((record) => filters.selectedDepartments.includes(record.department));
         }
-
         // Filter by designations
         if (filters.selectedDesignations.length > 0) {
             filtered = filtered.filter((record) => filters.selectedDesignations.includes(record.designation));
         }
-
         // Filter by month
         if (filters.month) {
             filtered = filtered.filter((record) => record.month === filters.month);
         }
-
         // Filter by year
         if (filters.year) {
             filtered = filtered.filter((record) => record.year === filters.year);
         }
-
         // Filter by IE Name
         if (filters.ieName) {
             filtered = filtered.filter(
@@ -183,24 +161,19 @@ export default function HRMSMonthEndReportPage() {
                     record.employeeName.toLowerCase().includes(filters.ieName.toLowerCase())
             );
         }
-
         setFilteredRecords(filtered);
     }, [filters, monthEndRecords]);
-
     const handleFilterChange = (newFilters: MonthEndFilters) => {
         setFilters(newFilters);
     };
-
     const handleSearch = () => {
         if (!filters.month || !filters.year) {
             toast.error('Please select both month and year');
             return;
         }
-
         // Find month name from selected month
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthName = selectedMonthObj?.IVRM_Month_Name?.trim() || filters.month;
-
         // Find selected group type IDs
         const selectedGroupTypeIds = filters.selectedGroupTypes
             .map((name) => {
@@ -208,7 +181,6 @@ export default function HRMSMonthEndReportPage() {
                 return groupType?.hrmgT_Id;
             })
             .filter((id): id is number => id !== undefined);
-
         // Find selected department IDs
         const selectedDepartmentIds = filters.selectedDepartments
             .map((name) => {
@@ -216,7 +188,6 @@ export default function HRMSMonthEndReportPage() {
                 return dept?.hrmD_Id;
             })
             .filter((id): id is number => id !== undefined);
-
         // Find selected designation IDs
         const selectedDesignationIds = filters.selectedDesignations
             .map((name) => {
@@ -224,7 +195,6 @@ export default function HRMSMonthEndReportPage() {
                 return desg?.hrmdeS_Id;
             })
             .filter((id): id is number => id !== undefined);
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
@@ -240,14 +210,12 @@ export default function HRMSMonthEndReportPage() {
             hrmdeS_IdList: selectedDesignationIds.length > 0 ? selectedDesignationIds : [],
             empid: []
         };
-
         // Call search API to get month end report data
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
                     // Extract employee details from response
                     const employeeData = response.data.employeeDetails || [];
-
                     if (Array.isArray(employeeData) && employeeData.length > 0) {
                         // Map API response to MonthEndRecord format
                         const mappedRecords: MonthEndRecord[] = employeeData.map((item: any, index: number) => {
@@ -260,7 +228,6 @@ export default function HRMSMonthEndReportPage() {
                             const otherDeductions = item.otherDeductions || 0;
                             const totalDeductions = pfContribution + esiContribution + incomeTax + otherDeductions;
                             const netSalary = item.netsalary || item.netSalary || grossSalary - totalDeductions;
-
                             // Determine status
                             let status: 'Active' | 'On Leave' | 'Absent' | 'Resigned' = 'Active';
                             if (item.HRME_DOL || item.dateOfLeaving) {
@@ -268,7 +235,6 @@ export default function HRMSMonthEndReportPage() {
                             } else if (item.status) {
                                 status = item.status;
                             }
-
                             return {
                                 id: `monthend-${item.HRME_Id || item.HRES_Id || index}`,
                                 employeeCode: item.HRME_EmployeeCode || item.EmployeeCode || item.employeeCode || '',
@@ -299,7 +265,6 @@ export default function HRMSMonthEndReportPage() {
                                 ieName: filters.ieName || 'HR Department'
                             };
                         });
-
                         setMonthEndRecords(mappedRecords);
                         setShowReport(true);
                         toast.success('Month End Report generated successfully');
@@ -314,12 +279,10 @@ export default function HRMSMonthEndReportPage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching month end report:', error);
                 toast.error(error.message || 'Failed to generate Month End Report');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             selectedGroupTypes: [],
@@ -334,22 +297,18 @@ export default function HRMSMonthEndReportPage() {
         setShowReport(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Month End Report exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate Month End summary
     const monthEndSummary: MonthEndSummary = useMemo(() => {
         const activeEmployees = filteredRecords.filter((record) => record.status === 'Active').length;
         const onLeaveEmployees = filteredRecords.filter((record) => record.status === 'On Leave').length;
         const absentEmployees = filteredRecords.filter((record) => record.status === 'Absent').length;
-
         const summary = filteredRecords.reduce(
             (acc, record) => ({
                 totalEmployees: filteredRecords.length,
@@ -374,12 +333,9 @@ export default function HRMSMonthEndReportPage() {
                 averageNetSalary: 0
             }
         );
-
         summary.averageNetSalary = filteredRecords.length > 0 ? Math.round(summary.totalNetSalary / filteredRecords.length) : 0;
-
         return summary;
     }, [filteredRecords]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -393,7 +349,6 @@ export default function HRMSMonthEndReportPage() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Report Results */}
             {showReport && (
                 <div className='space-y-4'>
@@ -417,7 +372,6 @@ export default function HRMSMonthEndReportPage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -466,7 +420,6 @@ export default function HRMSMonthEndReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Detailed Summary */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <Card>
@@ -501,7 +454,6 @@ export default function HRMSMonthEndReportPage() {
                                 </div>
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className='flex items-center gap-2 text-sm'>
@@ -539,7 +491,6 @@ export default function HRMSMonthEndReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoadingOnload}

@@ -84,11 +84,12 @@ export interface ApiResponse<T> {
 
 // Save Personal Details Request (Employee + Address tabs combined)
 // Note: Optional string fields should be null (not empty string) when not provided
+// Note: MI_Id is extracted from JWT by backend, so it's optional in the request
 export interface SavePersonalDetailsRequest {
     CreatedDate: string;
     UpdatedDate: string;
     HRME_Id: number;
-    MI_Id: number;
+    MI_Id?: number; // Optional - backend extracts from JWT
     dmoObj?: any; // Required by API but unclear structure
     HRMET_Id: number;
     HRMGT_Id: number;

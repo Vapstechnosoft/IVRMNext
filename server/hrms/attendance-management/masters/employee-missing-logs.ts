@@ -1,7 +1,5 @@
 'use server';
-
 import { createLocalCrud } from '@/lib/localdb';
-
 export interface EmployeeMissingLog {
     id: number;
     employeeName: string;
@@ -14,9 +12,7 @@ export interface EmployeeMissingLog {
     status: 'Pending' | 'Approved' | 'Rejected';
     createdAt: Date;
 }
-
 const store = createLocalCrud<EmployeeMissingLog>('employeeMissingLogs');
-
 export async function getEmployeeMissingLogs() {
     return {
         success: true,
@@ -24,7 +20,6 @@ export async function getEmployeeMissingLogs() {
         message: 'Employee missing logs retrieved successfully'
     };
 }
-
 export async function addOrUpdateEmployeeMissingLog(data: {
     id?: number;
     employeeName: string;
@@ -83,7 +78,6 @@ export async function addOrUpdateEmployeeMissingLog(data: {
         };
     }
 }
-
 export async function deleteEmployeeMissingLog(id: number) {
     try {
         const removed = store.remove(id);
@@ -104,4 +98,3 @@ export async function deleteEmployeeMissingLog(id: number) {
         };
     }
 }
-

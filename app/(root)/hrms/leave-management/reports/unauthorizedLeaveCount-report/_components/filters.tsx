@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -7,7 +6,6 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X } from 'lucide-react';
-
 export interface UnauthorizedLeaveCountFilters {
     mode: 'Company Wise' | 'Department Wise';
     detailLevel: 'Only Count' | 'Overall Details';
@@ -22,14 +20,12 @@ export interface UnauthorizedLeaveCountFilters {
     fromDate: string;
     toDate: string;
 }
-
 interface UnauthorizedLeaveCountFiltersProps {
     filters: UnauthorizedLeaveCountFilters;
     onFilterChange: (key: keyof UnauthorizedLeaveCountFilters, value: any) => void;
     onReport: () => void;
     onCancel: () => void;
 }
-
 const availableCompanies = ['All', 'Vaps Knowledge Services Pvt Ltd', 'Vaps Infotech Pvt Ltd', 'Unnathi Marketing'];
 const availableCompaniesWithoutAll = ['Vaps Knowledge Services Pvt Ltd', 'Vaps Infotech Pvt Ltd', 'Unnathi Marketing'];
 const availableDepartments = [
@@ -42,7 +38,6 @@ const availableDepartments = [
     'Operations',
     'Administration'
 ];
-
 export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onReport, onCancel }: UnauthorizedLeaveCountFiltersProps) {
     return (
         <CollapsibleSection
@@ -72,7 +67,6 @@ export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onRepor
                         Department Wise
                     </label>
                 </div>
-
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Company/Department Selection */}
                     {filters.mode === 'Company Wise' ? (
@@ -154,7 +148,6 @@ export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onRepor
                             </div>
                         </>
                     )}
-
                     {/* Detail Level Selection */}
                     <div className='flex items-center gap-6'>
                         <label className='flex items-center gap-2 text-sm'>
@@ -175,7 +168,6 @@ export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onRepor
                         </label>
                     </div>
                 </div>
-
                 {/* Range Mode Selection */}
                 <div className='flex items-center gap-6'>
                     <label className='flex items-center gap-2 text-sm'>
@@ -195,7 +187,6 @@ export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onRepor
                         Date Wise
                     </label>
                 </div>
-
                 {/* Date/Year Selection */}
                 <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-3'>
                     <div>
@@ -215,7 +206,6 @@ export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onRepor
                             </SelectContent>
                         </Select>
                     </div>
-
                     {filters.rangeMode === 'Month Wise' ? (
                         <div>
                             <label htmlFor='month-select' className='font-medium text-sm'>
@@ -273,7 +263,6 @@ export function UnauthorizedLeaveCountFilters({ filters, onFilterChange, onRepor
                             </div>
                         </div>
                     )}
-
                     {/* Action Buttons */}
                     <div className='flex gap-2 md:col-span-3'>
                         <Button onClick={onReport} variant='default'>

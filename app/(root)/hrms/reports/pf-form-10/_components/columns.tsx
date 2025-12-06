@@ -1,8 +1,6 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface Form10Record {
     id?: number;
     createdAt?: string;
@@ -24,7 +22,6 @@ export interface Form10Record {
     year: string;
     financialYear: string;
 }
-
 export const form10Columns: ColumnDef<Form10Record>[] = [
     {
         accessorKey: 'id',

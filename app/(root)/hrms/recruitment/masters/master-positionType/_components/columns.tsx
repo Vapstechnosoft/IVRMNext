@@ -1,25 +1,20 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface MasterPositionType {
     id: number;
     institution: string;
     positionType: string;
     description: string;
     isActive: boolean;
-
     createdAt: string;
 }
-
 interface MasterPositionTypeColumnsProps {
     onEdit: (row: MasterPositionType) => void;
     onDelete: (row: MasterPositionType) => void;
 }
-
 export const getMasterPositionTypeColumns = ({ onEdit, onDelete }: MasterPositionTypeColumnsProps): ColumnDef<MasterPositionType>[] => [
     {
         id: 'sl',

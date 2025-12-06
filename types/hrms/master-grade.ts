@@ -70,3 +70,9 @@ export interface OnchangeGradeDetailsRequest {
     roleId: number;
     GradeDTO: any[];
 }
+
+export interface GradeSetOrderList {
+    HRMG_Id: number;
+    HRMG_GradeName: string;
+    HRMG_Order: number;
+}

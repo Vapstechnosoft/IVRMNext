@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
@@ -15,13 +14,11 @@ import { CalendarIcon, RefreshCw, Save } from 'lucide-react';
 import React from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> & {
     selectDay: boolean;
     department: string;
     isActive: boolean;
 };
-
 interface HolidayFormProps {
     editingHoliday: MasterHolidayForm | null;
     calendarYears: string[];
@@ -31,7 +28,6 @@ interface HolidayFormProps {
     onSubmit: (data: MasterHolidayForm) => void;
     onCancel: () => void;
 }
-
 export function HolidayForm({ editingHoliday, calendarYears, departments, holidayTypes, weekDays, onSubmit, onCancel }: HolidayFormProps) {
     const {
         register,
@@ -57,14 +53,12 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
             remarks: ''
         }
     });
-
     const calendarYear = watch('calendarYear');
     const department = watch('department');
     const holidayType = watch('holidayType');
     const selectDay = watch('selectDay');
     const selectedDays = watch('selectedDays');
     const fromDate = watch('fromDate');
-
     // Update form when editingHoliday changes
     React.useEffect(() => {
         if (editingHoliday) {
@@ -79,17 +73,14 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
             });
         }
     }, [editingHoliday, reset]);
-
     const handleDayToggle = (day: string) => {
         const currentDays = selectedDays || [];
         const newDays = currentDays.includes(day) ? currentDays.filter((d) => d !== day) : [...currentDays, day];
         setValue('selectedDays', newDays);
     };
-
     const handleFormSubmit: SubmitHandler<MasterHolidayForm> = (data) => {
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='max-w-full space-y-6'>
             {/* Primary Information Section */}
@@ -121,7 +112,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                         )}
                         {errors.calendarYear && <FormError>{errors.calendarYear.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='department'>
                             Department <span className='text-red-500'>*</span>
@@ -148,7 +138,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                         )}
                         {errors.department && <FormError>{errors.department.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='holidayType'>
                             Holiday Type <span className='text-red-500'>*</span>
@@ -176,7 +165,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                         {errors.holidayType && <FormError>{errors.holidayType.message}</FormError>}
                     </div>
                 </div>
-
                 {/* Select Day Checkbox - Always visible */}
                 <div className='flex items-center space-y-2'>
                     <Checkbox id='selectDay' checked={selectDay} onCheckedChange={(checked) => setValue('selectDay', !!checked)} />
@@ -184,7 +172,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                         Select Day
                     </label>
                 </div>
-
                 {/* Day Selection */}
                 {selectDay && (
                     <div className='space-y-2'>
@@ -204,7 +191,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                         </div>
                     </div>
                 )}
-
                 {/* Holiday Date - Always Required */}
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <div className='space-y-2'>
@@ -218,7 +204,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                                 const selectedDate = field.value ? new Date(field.value) : undefined;
                                 const minDate = new Date();
                                 minDate.setHours(0, 0, 0, 0);
-
                                 return (
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -254,7 +239,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                         />
                         {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='toDate'>
                             End Date
@@ -266,7 +250,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                                 const selectedDate = field.value ? new Date(field.value) : undefined;
                                 const minDate = fromDate ? new Date(fromDate) : new Date();
                                 minDate.setHours(0, 0, 0, 0);
-
                                 return (
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -303,7 +286,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                         {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                     </div>
                 </div>
-
                 {/* Holiday Name - Always Required */}
                 <div className='grid grid-cols-1 gap-4'>
                     <InputText
@@ -316,7 +298,6 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                         maxLength={100}
                     />
                 </div>
-
                 {/* Remarks - Optional */}
                 <div className='space-y-2'>
                     <label className='font-medium text-sm' htmlFor='remarks'>
@@ -332,11 +313,9 @@ export function HolidayForm({ editingHoliday, calendarYears, departments, holida
                     />
                     {errors.remarks && <FormError>{errors.remarks.message}</FormError>}
                 </div>
-
                 {/* Root Error */}
                 {errors.root && <FormError>{errors.root.message}</FormError>}
             </div>
-
             {/* Action Buttons */}
             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                 <Button

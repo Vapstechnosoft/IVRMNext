@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     SalarySlipFilterRequest,
@@ -10,7 +9,6 @@ import type {
     SalarySlipOnloadResponse,
     SalarySlipResponse
 } from '@/types/hrms/reports/salary-slip-report';
-
 /**
  * Get onload details for salary slip report
  * POST /api/EmployeeSalarySlipGenerationFacade/GetAllDropdownAndDatatableDetailsNew
@@ -29,14 +27,12 @@ export async function getSalarySlipOnload(
         '/api/EmployeeSalarySlipGenerationFacade/GetAllDropdownAndDatatableDetailsNew',
         requestBody
     );
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<SalarySlipResponse>;
     }
-
     // Wrap raw response data
     return {
         success: true,
@@ -44,7 +40,6 @@ export async function getSalarySlipOnload(
         data: response as unknown as SalarySlipResponse
     };
 }
-
 /**
  * Filter employees by year and month
  * POST /api/EmployeeSalarySlipGenerationFacade/GetEmployeeDetailsByLeaveYearAndMonthNew
@@ -59,14 +54,12 @@ export async function filterEmployeesByYearMonth(
         '/api/EmployeeSalarySlipGenerationFacade/GetEmployeeDetailsByLeaveYearAndMonthNew',
         requestBody
     );
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<SalarySlipResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as SalarySlipResponse;
     return {
@@ -75,7 +68,6 @@ export async function filterEmployeesByYearMonth(
         data: rawResponse
     };
 }
-
 /**
  * Generate employee salary slip
  * POST /api/EmployeeSalarySlipGenerationFacade/GenerateEmployeeSalarySlipNew
@@ -90,14 +82,12 @@ export async function generateSalarySlip(
         '/api/EmployeeSalarySlipGenerationFacade/GenerateEmployeeSalarySlipNew',
         requestBody
     );
-
     // The backend returns raw data, not wrapped in ApiResponse format
     // Wrap it to match the expected ApiResponse structure
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         // Already wrapped
         return response as ApiResponse<SalarySlipResponse>;
     }
-
     // Wrap raw response data
     const rawResponse = response as unknown as SalarySlipResponse;
     return {
@@ -106,4 +96,3 @@ export async function generateSalarySlip(
         data: rawResponse
     };
 }
-

@@ -1,5 +1,4 @@
 'use server';
-
 import { api, type ApiResponse } from '@/lib/apiService';
 import type {
     SalaryIncrementDeleteRequest,
@@ -9,20 +8,13 @@ import type {
     SalaryIncrementSaveRequest,
     SalaryIncrementSaveResponse
 } from '@/types/hrms/salary-increment';
-
 /**
  * Get salary increment onload details
  * POST /api/EmployeeSalaryIncreementProcessFacade/onloadgetdetails
  */
 export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadRequest): Promise<ApiResponse<SalaryIncrementOnloadResponse> & { total?: number | null; page?: number | null; page_size?: number | null }> {
-    console.log('🔵 [SALARY INCREMENT - BACKEND] getSalaryIncrementOnload - START');
     console.log('📥 [SALARY INCREMENT - BACKEND] Request payload:', JSON.stringify(payload, null, 2));
-    
     const url = '/api/EmployeeSalaryIncreementProcessFacade/onloadgetdetails';
-    console.log('🌐 [SALARY INCREMENT - BACKEND] API URL:', url);
-    console.log('🌐 [SALARY INCREMENT - BACKEND] API Base: hrms');
-    console.log('🌐 [SALARY INCREMENT - BACKEND] Method: POST');
-    
     // Prepare request body - support both new and legacy formats
     const requestBody = {
         page: payload.page ?? 1,
@@ -36,34 +28,13 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
         LoginUserId: payload.LoginUserId ?? payload.roleId ?? 0,
         UserRole: payload.UserRole ?? ''
     };
-    
     console.log('📤 [SALARY INCREMENT - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    console.log('📊 [SALARY INCREMENT - BACKEND] Request body summary:', {
-        page: requestBody.page,
-        page_size: requestBody.page_size,
-        MIID: requestBody.MIID,
-        LoginUserId: requestBody.LoginUserId,
-        UserRole: requestBody.UserRole,
-        hasSearchQuery: !!requestBody.search_query,
-        searchQuery: requestBody.search_query
-    });
-    
     try {
-        const response = await api.post<{ success: boolean; message?: string; data?: SalaryIncrementOnloadResponse; total?: number | null; page?: number | null; page_size?: number | null }>('hrms', url, requestBody);
-        
-        console.log('✅ [SALARY INCREMENT - BACKEND] API Response received');
-        console.log('📤 [SALARY INCREMENT - BACKEND] Response structure:', {
-            hasSuccess: 'success' in response,
-            hasData: 'data' in response,
-            hasTotal: 'total' in response,
-            responseKeys: Object.keys(response || {})
-        });
-        
+        const response = await api.post<{ success: boolean; message?: string; data?: SalaryIncrementOnloadResponse; total?: number | null; page?: number | null; page_size?: number | null }>('hrms', url, requestBody        );
         // The backend returns data wrapped in ApiResponse format
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             const responseData = response.data as any;
-            
             // Map monthlydata to leaveyeardropdown if monthlydata exists
             if (responseData?.monthlydata && !responseData?.leaveyeardropdown) {
                 responseData.leaveyeardropdown = responseData.monthlydata.map((item: any) => ({
@@ -73,9 +44,7 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
                     HRMLY_ToDate: item.HRMLY_ToDate
                 }));
             }
-            
             const mappedData = responseData as SalaryIncrementOnloadResponse;
-            console.log('✅ [SALARY INCREMENT - BACKEND] Response already wrapped, mapping data');
             console.log('📊 [SALARY INCREMENT - BACKEND] Response data summary:', {
                 hasMonths: !!(mappedData?.monthdropdown?.length),
                 monthsCount: mappedData?.monthdropdown?.length || 0,
@@ -99,10 +68,8 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
                 data: mappedData
             } as ApiResponse<SalaryIncrementOnloadResponse> & { total?: number | null; page?: number | null; page_size?: number | null };
         }
-        
         // Wrap raw response data (fallback for unexpected format)
         const rawData = response as any;
-        
         // Map monthlydata to leaveyeardropdown if monthlydata exists
         if (rawData?.monthlydata && !rawData?.leaveyeardropdown) {
             rawData.leaveyeardropdown = rawData.monthlydata.map((item: any) => ({
@@ -112,7 +79,6 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
                 HRMLY_ToDate: item.HRMLY_ToDate
             }));
         }
-        
         const wrappedResponse = {
             success: true,
             message: 'Data loaded successfully',
@@ -121,8 +87,6 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
             page: undefined,
             page_size: undefined
         };
-        
-        console.log('✅ [SALARY INCREMENT - BACKEND] Response wrapped successfully');
         console.log('📊 [SALARY INCREMENT - BACKEND] Response data summary:', {
             hasMonths: !!(wrappedResponse.data?.monthdropdown?.length),
             monthsCount: wrappedResponse.data?.monthdropdown?.length || 0,
@@ -140,48 +104,29 @@ export async function getSalaryIncrementOnload(payload: SalaryIncrementOnloadReq
         console.log('🔵 [SALARY INCREMENT - BACKEND] getSalaryIncrementOnload - END (Success)');
         return wrappedResponse as unknown as ApiResponse<SalaryIncrementOnloadResponse> & { total?: number | null; page?: number | null; page_size?: number | null };
     } catch (error) {
-        console.error('❌ [SALARY INCREMENT - BACKEND] getSalaryIncrementOnload - ERROR');
-        console.error('💥 [SALARY INCREMENT - BACKEND] Error details:', error);
         console.error('💥 [SALARY INCREMENT - BACKEND] Error message:', error instanceof Error ? error.message : String(error));
-        console.error('💥 [SALARY INCREMENT - BACKEND] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
         throw error;
     }
 }
-
 export async function saveSalaryIncrement(payload: SalaryIncrementSaveRequest) {
     const url = '/api/EmployeeSalaryIncreementProcessFacade';
     return await api.post<SalaryIncrementSaveResponse>('hrms', url, payload);
 }
-
 /**
  * Deactivate salary increment record by ID
  * POST /api/EmployeeSalaryIncreementProcessFacade/deactivateRecordById?id={id}
  */
 export async function deleteSalaryIncrement(id: number): Promise<ApiResponse<SalaryIncrementDeleteResponse>> {
-    console.log('🔵 [SALARY INCREMENT - BACKEND] deleteSalaryIncrement - START');
-    console.log('📥 [SALARY INCREMENT - BACKEND] Request ID:', id);
-    
     const url = '/api/EmployeeSalaryIncreementProcessFacade/deactivateRecordById';
-    console.log('🌐 [SALARY INCREMENT - BACKEND] API URL:', url);
-    console.log('🌐 [SALARY INCREMENT - BACKEND] API Base: hrms');
-    console.log('🌐 [SALARY INCREMENT - BACKEND] Method: POST');
-    console.log('📤 [SALARY INCREMENT - BACKEND] Query parameter - id:', id);
-    
     try {
         const response = await api.post<SalaryIncrementDeleteResponse>('hrms', url, undefined, {
             params: { id }
         });
-        
-        console.log('✅ [SALARY INCREMENT - BACKEND] API Response received');
         console.log('📤 [SALARY INCREMENT - BACKEND] Response:', JSON.stringify(response, null, 2));
         console.log('🔵 [SALARY INCREMENT - BACKEND] deleteSalaryIncrement - END (Success)');
-        
         return response;
     } catch (error) {
-        console.error('❌ [SALARY INCREMENT - BACKEND] deleteSalaryIncrement - ERROR');
-        console.error('💥 [SALARY INCREMENT - BACKEND] Error details:', error);
         console.error('💥 [SALARY INCREMENT - BACKEND] Error message:', error instanceof Error ? error.message : String(error));
-        console.error('💥 [SALARY INCREMENT - BACKEND] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
         throw error;
     }
 }

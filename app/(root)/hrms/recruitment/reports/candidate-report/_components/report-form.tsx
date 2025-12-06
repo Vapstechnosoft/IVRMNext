@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -8,20 +7,16 @@ import { BarChart3, Printer, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-
 const candidateReportSchema = z.object({
     institution: z.string().min(1, 'Institution is required'),
     candidateId: z.string().min(1, 'Candidate Name is required')
 });
-
 type FormFields = z.infer<typeof candidateReportSchema>;
-
 interface CandidateReportFormProps {
     onGenerateReport?: (filters: FormFields) => void;
     isLoading?: boolean;
     className?: string;
 }
-
 // Mock data - replace with actual API calls
 const institutions = ['Global Quality Training & Assessors PVT LTD', 'VAPS Technologies', 'ANI Technologies'];
 const candidates = [
@@ -29,7 +24,6 @@ const candidates = [
     { id: '2', name: 'John Doe' },
     { id: '3', name: 'Jane Smith' }
 ];
-
 export default function CandidateReportForm({ onGenerateReport, isLoading = false, className = '' }: CandidateReportFormProps) {
     const {
         control,
@@ -39,7 +33,6 @@ export default function CandidateReportForm({ onGenerateReport, isLoading = fals
         resolver: zodResolver(candidateReportSchema),
         mode: 'onChange'
     });
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // Call the parent handler to generate report
@@ -49,11 +42,9 @@ export default function CandidateReportForm({ onGenerateReport, isLoading = fals
             toast.error(error.message || 'Failed to generate report');
         }
     };
-
     const handlePrint = () => {
         window.print();
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
             <div className='flex flex-col gap-5'>
@@ -83,7 +74,6 @@ export default function CandidateReportForm({ onGenerateReport, isLoading = fals
                         />
                         {errors.institution && <FormError>{errors.institution.message}</FormError>}
                     </div>
-
                     {/* Candidate Name */}
                     <div className='space-y-2'>
                         <label className='block font-medium text-sm'>

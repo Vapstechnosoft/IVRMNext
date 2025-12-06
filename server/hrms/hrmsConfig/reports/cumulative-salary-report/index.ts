@@ -1,5 +1,4 @@
 'use server';
-
 import { type ApiResponse, api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
@@ -11,7 +10,6 @@ import type {
     DesignationDropdown,
     SalaryReportRecord
 } from '@/types/hrms/reports/cumulative-salary-report';
-
 /**
  * Get onload data for cumulative salary report
  * POST /api/CumulativeSalaryReportFacade/onloadgetdetails
@@ -26,7 +24,6 @@ export async function getCumulativeSalaryReportOnload(
     page_size = 10
 ): Promise<ApiResponse<CumulativeSalaryReportOnloadResponse>> {
     const url = '/api/CumulativeSalaryReportFacade/onloadgetdetails';
-
     // Build request body matching the exact API structure
     const requestBody: CumulativeSalaryReportListRequest = {
         page,
@@ -40,14 +37,11 @@ export async function getCumulativeSalaryReportOnload(
         LoginUserId,
         UserRole
     };
-
     const response = await api.post<any>('hrms', url, requestBody);
-
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "Success", data: { dropdown: {...}, rows: [...] }, total, page, page_size }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const dropdownData = response.data?.dropdown;
-
         if (dropdownData) {
             return {
                 success: response.success,
@@ -63,7 +57,6 @@ export async function getCumulativeSalaryReportOnload(
             };
         }
     }
-
     // Return empty dropdowns if response structure is unexpected
     return {
         success: false,
@@ -78,7 +71,6 @@ export async function getCumulativeSalaryReportOnload(
         }
     };
 }
-
 /**
  * Get full onload data for cumulative salary report including rows
  * POST /api/CumulativeSalaryReportFacade/onloadgetdetails
@@ -93,7 +85,6 @@ export async function getCumulativeSalaryReportOnloadFull(
     page_size = 10
 ): Promise<ApiResponse<CumulativeSalaryReportListResponse>> {
     const url = '/api/CumulativeSalaryReportFacade/onloadgetdetails';
-
     // Build request body matching the exact API structure
     const requestBody: CumulativeSalaryReportListRequest = {
         page,
@@ -107,15 +98,12 @@ export async function getCumulativeSalaryReportOnloadFull(
         LoginUserId,
         UserRole
     };
-
     const response = await api.post<any>('hrms', url, requestBody);
-
     // The backend returns data in ApiResponse format
     // Structure: { success: true, message: "Success", data: { dropdown: {...}, rows: [...] }, total, page, page_size }
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         const dropdownData = response.data?.dropdown;
         const rows = response.data?.rows || [];
-
         if (dropdownData) {
             return {
                 success: response.success,
@@ -139,7 +127,6 @@ export async function getCumulativeSalaryReportOnloadFull(
             };
         }
     }
-
     // Return empty response if structure is unexpected
     return {
         success: false,
@@ -162,7 +149,6 @@ export async function getCumulativeSalaryReportOnloadFull(
         }
     };
 }
-
 /**
  * Search cumulative salary report by selection criteria
  * POST /api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelection
@@ -172,7 +158,6 @@ export async function searchCumulativeSalaryReport(
     requestBody: CumulativeSalaryReportSearchRequest
 ): Promise<ApiResponse<CumulativeSalaryReportSearchResponse>> {
     const url = '/api/CumulativeSalaryReportFacade/GetEmployeedetailsBySelection';
-
     // Prepare request body - ensure arrays are [0] when empty, as API expects
     const request: CumulativeSalaryReportSearchRequest = {
         MI_Id: requestBody.MI_Id || 30,
@@ -183,30 +168,25 @@ export async function searchCumulativeSalaryReport(
         groupTypeIdList: requestBody.groupTypeIdList && requestBody.groupTypeIdList.length > 0 ? requestBody.groupTypeIdList : [],
         LogInUserId: requestBody.LogInUserId || 0
     };
-
     console.log('🔵 [CUMULATIVE SALARY] Server action - searchCumulativeSalaryReport called', {
         url,
         request,
         timestamp: new Date().toISOString()
     });
-
     try {
         const response = await api.post<CumulativeSalaryReportSearchResponse>('hrms', url, request);
-
         console.log('🔵 [CUMULATIVE SALARY] Server action - API response received', {
             hasResponse: !!response,
             responseType: typeof response,
             hasSuccess: response && typeof response === 'object' && 'success' in response,
             timestamp: new Date().toISOString()
         });
-
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
             // Already wrapped
             return response as ApiResponse<CumulativeSalaryReportSearchResponse>;
         }
-
         // Wrap raw response data
         const rawResponse = response as unknown as CumulativeSalaryReportSearchResponse;
         return {
@@ -227,7 +207,6 @@ export async function searchCumulativeSalaryReport(
             },
             timestamp: new Date().toISOString()
         });
-
         // Return error response
         return {
             success: false,
@@ -236,7 +215,6 @@ export async function searchCumulativeSalaryReport(
         };
     }
 }
-
 /**
  * Get cumulative salary report data with pagination, search, and sort
  * This function provides a wrapper around searchCumulativeSalaryReport for compatibility
@@ -266,10 +244,8 @@ export async function getCumulativeSalaryReportList(
         groupTypeIdList: filterParams?.groupTypeIdList || [],
         LogInUserId: filterParams?.LoginUserId || 0
     };
-
     // Call the search endpoint
     const searchResponse = await searchCumulativeSalaryReport(searchRequest);
-
     // Transform the search response to match CumulativeSalaryReportListResponse format
     if (searchResponse.success && searchResponse.data) {
         return {
@@ -293,7 +269,6 @@ export async function getCumulativeSalaryReportList(
             }
         };
     }
-
     // Return empty response on error
     return {
         success: false,

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -12,15 +11,12 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import type { MasterShift } from './columns';
 import { TimePicker12Hour } from './time-picker-12hour';
-
 export type MasterShiftFormData = z.infer<typeof masterShiftSchema.addOrUpdate>;
-
 interface ShiftFormProps {
     editingShift: MasterShift | null;
     onSubmit: (data: MasterShiftFormData) => void;
     onCancel: () => void;
 }
-
 export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) {
     const {
         register,
@@ -49,7 +45,6 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                   specificDay: false
               }
     });
-
     // Reset form when editing changes
     useEffect(() => {
         if (editingShift) {
@@ -70,7 +65,6 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
             });
         }
     }, [editingShift, reset]);
-
     const handleFormSubmit: SubmitHandler<MasterShiftFormData> = async (data) => {
         onSubmit(data);
         // Reset form after submit only if adding new (not editing)
@@ -84,7 +78,6 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
             });
         }
     };
-
     const handleCancel = () => {
         reset({
             shiftName: '',
@@ -95,7 +88,6 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
         });
         onCancel();
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='grid grid-cols-1 gap-6 md:grid-cols-2'>
             <div className='space-y-2'>
@@ -110,14 +102,12 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                     maxLength={100}
                 />
             </div>
-
             <div className='space-y-2'>
                 <label className='font-medium text-sm' htmlFor='remarks'>
                     Remark <span className='text-red-500'>*</span>
                 </label>
                 <InputText id='remarks' placeholder='Enter Name' {...register('remarks')} error={errors.remarks?.message} maxLength={250} />
             </div>
-
             <div className='space-y-2'>
                 <label htmlFor='startTime' className='font-medium text-sm'>
                     Shift Start Time <span className='text-red-500'>*</span>
@@ -129,7 +119,6 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                 />
                 {errors.startTime && <FormError>{errors.startTime.message}</FormError>}
             </div>
-
             <div className='space-y-2'>
                 <label htmlFor='endTime' className='font-medium text-sm'>
                     Shift End Time <span className='text-red-500'>*</span>
@@ -141,14 +130,12 @@ export function ShiftForm({ editingShift, onSubmit, onCancel }: ShiftFormProps) 
                 />
                 {errors.endTime && <FormError>{errors.endTime.message}</FormError>}
             </div>
-
             <div className='flex items-center gap-8'>
                 <div className='flex items-center gap-2 text-sm'>
                     <Checkbox checked={watch('specificDay')} onCheckedChange={(v) => setValue('specificDay', Boolean(v))} />
                     <span>On Specific Day</span>
                 </div>
             </div>
-
             <div className='flex justify-end gap-4 border-t pt-6 md:col-span-2'>
                 <Button type='button' variant='outline' onClick={handleCancel}>
                     <RefreshCw className='mr-2 h-4 w-4' />

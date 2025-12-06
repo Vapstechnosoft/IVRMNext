@@ -1,8 +1,6 @@
 'use client';
-
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
-
 export interface InterviewRecord {
     id: number;
     candidateName: string;
@@ -14,12 +12,10 @@ export interface InterviewRecord {
     candidateStatus: 'Short Listed' | 'Selected' | 'Rejected' | 'In Progress';
     createdAt: string;
 }
-
 interface InterviewRecordColumnsProps {
     onEdit?: (row: InterviewRecord) => void;
     onDelete?: (row: InterviewRecord) => void;
 }
-
 export const getInterviewRecordColumns = ({ onEdit, onDelete }: InterviewRecordColumnsProps = {}): ColumnDef<InterviewRecord>[] => [
     {
         id: 'sl',
@@ -71,5 +67,4 @@ export const getInterviewRecordColumns = ({ onEdit, onDelete }: InterviewRecordC
         cell: ({ row }) => <div>{row.getValue('candidateStatus')}</div>
     }
 ];
-
 export const interviewReportColumns = getInterviewRecordColumns();

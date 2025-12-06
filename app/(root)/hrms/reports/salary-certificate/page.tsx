@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type BaseEntity, createLocalCrud } from '@/lib/localdb';
@@ -14,7 +13,6 @@ import {
     SalaryCertificateFilters,
     type SalaryCertificateFilters as SalaryCertificateFiltersType
 } from './_components/filters';
-
 // Salary certificate data structure
 interface SalaryCertificate extends BaseEntity {
     employeeId: number;
@@ -32,7 +30,6 @@ interface SalaryCertificate extends BaseEntity {
     certificateDate: string;
     certificateNumber: string;
 }
-
 export default function SalaryCertificatePage() {
     // Database instances
     const groupTypeDB = createLocalCrud<GroupType>('master:group-type');
@@ -40,7 +37,6 @@ export default function SalaryCertificatePage() {
     const designationDB = createLocalCrud<Designation>('master:designation');
     const employeeDB = createLocalCrud<Employee>('employee:register');
     const _certificateDB = createLocalCrud<SalaryCertificate>('report:salary-certificate');
-
     // State
     const [groupTypes, setGroupTypes] = useState<GroupType[]>([]);
     const [departments, setDepartments] = useState<Department[]>([]);
@@ -49,7 +45,6 @@ export default function SalaryCertificatePage() {
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [_isLoading, setIsLoading] = useState(true);
     const [showCertificate, setShowCertificate] = useState(false);
-
     const [filters, setFilters] = useState<SalaryCertificateFiltersType>({
         groupType: 'All',
         department: 'All',
@@ -58,12 +53,10 @@ export default function SalaryCertificatePage() {
         year: '',
         selectedEmployee: ''
     });
-
     // Load data on mount
     useEffect(() => {
         loadData();
     }, []);
-
     const loadData = () => {
         try {
             // Load master data
@@ -74,7 +67,6 @@ export default function SalaryCertificatePage() {
                 groupList = groupTypeDB.list(); // Reload data after creating mock records
             }
             setGroupTypes(groupList.filter((g) => g.isActive));
-
             let deptList = departmentDB.list();
             if (deptList.length === 0) {
                 const mockData = generateMockDepartments();
@@ -82,7 +74,6 @@ export default function SalaryCertificatePage() {
                 deptList = departmentDB.list(); // Reload data after creating mock records
             }
             setDepartments(deptList.filter((d) => d.isActive));
-
             let desigList = designationDB.list();
             if (desigList.length === 0) {
                 const mockData = generateMockDesignations();
@@ -90,7 +81,6 @@ export default function SalaryCertificatePage() {
                 desigList = designationDB.list(); // Reload data after creating mock records
             }
             setDesignations(desigList.filter((d) => d.isActive));
-
             // Load employees
             let empList = employeeDB.list();
             if (empList.length === 0) {
@@ -106,7 +96,6 @@ export default function SalaryCertificatePage() {
             setIsLoading(false);
         }
     };
-
     // Generate mock data
     const generateMockGroupTypes = (): Omit<GroupType, 'id' | 'createdAt'>[] => {
         return [
@@ -139,7 +128,6 @@ export default function SalaryCertificatePage() {
             { groupType: 'test', groupCode: 'TST', order: 7, isActive: true }
         ];
     };
-
     const generateMockDepartments = (): Omit<Department, 'id' | 'createdAt'>[] => {
         return [
             {
@@ -192,7 +180,6 @@ export default function SalaryCertificatePage() {
             }
         ];
     };
-
     const generateMockDesignations = (): Omit<Designation, 'id' | 'createdAt'>[] => {
         return [
             {
@@ -261,7 +248,6 @@ export default function SalaryCertificatePage() {
             }
         ];
     };
-
     const generateMockEmployees = (): Omit<Employee, 'id' | 'createdAt'>[] => {
         return [
             {
@@ -341,51 +327,42 @@ export default function SalaryCertificatePage() {
             }
         ];
     };
-
     // Cascading filter logic
     const availableDepartments = useMemo(() => {
         if (filters.groupType === 'All') return departments;
         // In a real app, departments would be filtered by groupType relationship
         return departments;
     }, [filters.groupType, departments]);
-
     const availableDesignations = useMemo(() => {
         if (filters.department === 'All') return designations;
         // In a real app, designations would be filtered by department relationship
         return designations;
     }, [filters.department, designations]);
-
     // Filter employees based on selected criteria
     useEffect(() => {
         let filtered = employees;
-
         if (filters.groupType !== 'All') {
             const selectedGroupType = groupTypes.find((g) => g.groupType === filters.groupType);
             if (selectedGroupType) {
                 filtered = filtered.filter((emp) => emp.groupTypeId === selectedGroupType.id);
             }
         }
-
         if (filters.department !== 'All') {
             const selectedDepartment = departments.find((d) => d.departmentName === filters.department);
             if (selectedDepartment) {
                 filtered = filtered.filter((emp) => emp.departmentId === selectedDepartment.id);
             }
         }
-
         if (filters.designation !== 'All') {
             const selectedDesignation = designations.find((d) => d.designationName === filters.designation);
             if (selectedDesignation) {
                 filtered = filtered.filter((emp) => emp.designationId === selectedDesignation.id);
             }
         }
-
         setFilteredEmployees(filtered);
     }, [filters.groupType, filters.department, filters.designation, employees, groupTypes, departments, designations]);
-
     const handleFilterChange = (key: keyof SalaryCertificateFilters, value: string) => {
         const newFilters = { ...filters, [key]: value };
-
         // Reset dependent filters when parent changes
         if (key === 'groupType') {
             newFilters.department = 'All';
@@ -397,10 +374,8 @@ export default function SalaryCertificatePage() {
         } else if (key === 'designation') {
             newFilters.selectedEmployee = '';
         }
-
         setFilters(newFilters);
     };
-
     const handleGenerateSlip = () => {
         if (!filters.month || !filters.year || !filters.selectedEmployee) {
             toast.error('Please select month, year, and employee');
@@ -409,7 +384,6 @@ export default function SalaryCertificatePage() {
         setShowCertificate(true);
         toast.success('Salary certificate generated');
     };
-
     const handleCancel = () => {
         setFilters({
             groupType: 'All',
@@ -422,22 +396,18 @@ export default function SalaryCertificatePage() {
         setShowCertificate(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Salary certificate exported');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Get selected employee details
     const selectedEmployeeDetails = useMemo(() => {
         if (!filters.selectedEmployee) return null;
         return employees.find((emp) => emp.id.toString() === filters.selectedEmployee);
     }, [filters.selectedEmployee, employees]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -451,7 +421,6 @@ export default function SalaryCertificatePage() {
                 onGenerate={handleGenerateSlip}
                 onCancel={handleCancel}
             />
-
             {/* Certificate Results */}
             {showCertificate && selectedEmployeeDetails && (
                 <div className='space-y-4'>
@@ -474,7 +443,6 @@ export default function SalaryCertificatePage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Salary Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -518,7 +486,6 @@ export default function SalaryCertificatePage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Salary Certificate */}
                     <div className='rounded-lg border bg-card p-8'>
                         <div className='space-y-6 text-center'>
@@ -526,19 +493,16 @@ export default function SalaryCertificatePage() {
                                 <h1 className='font-bold text-2xl text-foreground'>VAPS SCHOOL</h1>
                                 <h2 className='font-semibold text-foreground text-xl'>SALARY CERTIFICATE</h2>
                             </div>
-
                             <div className='mx-auto max-w-2xl space-y-4 text-left'>
                                 <p className='text-sm'>
                                     <strong>Certificate No:</strong> SC/{filters.year}/{String(selectedEmployeeDetails.id).padStart(4, '0')}
                                 </p>
-
                                 <p className='text-sm'>
                                     This is to certify that <strong>{selectedEmployeeDetails.employeeName}</strong>
                                     (Employee Code: <strong>{selectedEmployeeDetails.employeeCode}</strong>) is employed with our
                                     organization as <strong>{selectedEmployeeDetails.designationName}</strong>
                                     in the <strong>{selectedEmployeeDetails.departmentName}</strong> department.
                                 </p>
-
                                 <div className='space-y-2 border-t border-b py-4'>
                                     <h3 className='font-semibold text-sm'>
                                         Salary Details for {filters.month} {filters.year}:
@@ -570,15 +534,12 @@ export default function SalaryCertificatePage() {
                                         </div>
                                     </div>
                                 </div>
-
                                 <p className='text-sm'>This certificate is issued for official purposes as requested by the employee.</p>
-
                                 <div className='pt-6'>
                                     <p className='text-sm'>
                                         Date: <strong>{new Date().toLocaleDateString()}</strong>
                                     </p>
                                 </div>
-
                                 <div className='flex justify-between pt-8'>
                                     <div className='text-sm'>
                                         <div className='font-semibold'>Employee Signature</div>

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
@@ -11,16 +10,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type FOMonthEndReportFilters = z.infer<typeof foMonthEndReportFilterSchema>;
-
 interface FOMonthEndReportFiltersProps {
     filters: FOMonthEndReportFilters;
     onFilterChange: (filters: FOMonthEndReportFilters) => void;
     onSearch: () => void;
     onCancel: () => void;
 }
-
 export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onCancel }: FOMonthEndReportFiltersProps) {
     const {
         handleSubmit,
@@ -31,21 +27,17 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
         defaultValues: filters,
         mode: 'onChange'
     });
-
     // Fetch dropdown data from API
     const { data: onloadData, isLoading: isLoadingOnload } = useFOMonthEndReportOnload();
-
     const handleFilterChange = (key: keyof FOMonthEndReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const onSubmit = (data: FOMonthEndReportFilters) => {
         onFilterChange(data);
         onSearch();
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -75,7 +67,6 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
                         </Select>
                         {errors.year && <FormError>{errors.year.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label htmlFor='month-select' className='font-medium text-sm'>
                             Month <span className='text-red-500'>*</span>
@@ -97,7 +88,6 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
                         </Select>
                         {errors.month && <FormError>{errors.month.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label htmlFor='ie-name-input' className='font-medium text-sm'>
                             IE Name <span className='text-red-500'>*</span>
@@ -110,7 +100,6 @@ export function FOMonthEndReportFilters({ filters, onFilterChange, onSearch, onC
                             error={errors.ieName?.message}
                         />
                     </div>
-
                     <div className='flex items-end gap-2 md:col-span-12'>
                         <Button type='submit' variant='default'>
                             <RefreshCw className='mr-2 h-4 w-4' /> REPORT

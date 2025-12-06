@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,28 +8,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type LeaveYear, getLeaveYearColumns } from './_components/columns';
 import { LeaveYearForm } from './_components/leave-year-form';
-
 const leaveYearDB = createLocalCrud<LeaveYear>('leaveYear');
-
 export default function MasterLeaveYearPage() {
     const [data, setData] = useState<LeaveYear[]>([]);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingLeaveYear, setEditingLeaveYear] = useState<LeaveYear | null>(null);
-
     const loadData = () => {
         try {
             const result = leaveYearDB.list();
             setData(result);
-        } catch (error) {
-            console.error('Error loading leave years:', error);
+        } catch (_error) {
             toast.error('Failed to load leave years');
         }
     };
-
     useEffect(() => {
         loadData();
     }, []);
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingLeaveYear(null);
@@ -42,12 +35,10 @@ export default function MasterLeaveYearPage() {
             }
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingLeaveYear(null);
     };
-
     const handleFormSubmit = (formData: LeaveYear) => {
         try {
             if (editingLeaveYear) {
@@ -59,12 +50,10 @@ export default function MasterLeaveYearPage() {
             }
             loadData();
             handleFormClose();
-        } catch (error) {
-            console.error('Error saving leave year:', error);
+        } catch (_error) {
             toast.error('Failed to save leave year');
         }
     };
-
     const handleEdit = (leaveYear: LeaveYear) => {
         setEditingLeaveYear(leaveYear);
         setIsFormOpen(true);
@@ -76,22 +65,18 @@ export default function MasterLeaveYearPage() {
             }
         }, 100);
     };
-
     const handleDelete = (id: number) => {
         if (window.confirm('Are you sure you want to delete this leave year?')) {
             try {
                 leaveYearDB.remove(id);
                 toast.success('Leave year deleted successfully');
                 loadData();
-            } catch (error) {
-                console.error('Error deleting leave year:', error);
+            } catch (_error) {
                 toast.error('Failed to delete leave year');
             }
         }
     };
-
     const columns = useMemo(() => getLeaveYearColumns({ onEdit: handleEdit, onDelete: handleDelete }), [handleEdit, handleDelete]);
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -101,7 +86,6 @@ export default function MasterLeaveYearPage() {
                         Add Leave Year
                     </Button>
                 </div>
-
                 {/* Table Section */}
                 <CollapsibleSection
                     title='Master Leave Year Details'
@@ -112,7 +96,6 @@ export default function MasterLeaveYearPage() {
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <GenericDataTable data={data} columns={columns} totalItems={data.length} isLoading={false} />
                 </CollapsibleSection>
-
                 {/* Form Section */}
                 {isFormOpen && (
                     <div id='leave-year-form'>

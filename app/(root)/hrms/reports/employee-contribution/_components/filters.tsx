@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -10,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { CalendarIcon, Search, X } from 'lucide-react';
-
 export interface ContributionReportFilters {
     groupType: number[];
     department: number[];
@@ -26,7 +24,6 @@ export interface ContributionReportFilters {
     selectedEarningHead: number;
     selectedDeductionHead: number;
 }
-
 interface EmployeeContributionFiltersProps {
     filters: ContributionReportFilters;
     groupTypes: any[];
@@ -42,7 +39,6 @@ interface EmployeeContributionFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function EmployeeContributionFilters({
     filters,
     groupTypes,
@@ -60,7 +56,6 @@ export function EmployeeContributionFilters({
 }: EmployeeContributionFiltersProps) {
     const handleInternalFilterChange = (key: keyof ContributionReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
-
         // Reset dependent filters when parent changes
         if (key === 'groupType') {
             newFilters.department = [];
@@ -78,10 +73,8 @@ export function EmployeeContributionFilters({
             newFilters.selectedEarningHead = 0;
             newFilters.selectedDeductionHead = 0;
         }
-
         onFilterChange(key, value);
     };
-
     // Map months for display - filter out items with empty values or labels
     const monthOptions = months
         .filter((month) => month.IVRM_Month_Id != null && month.IVRM_Month_Name)
@@ -90,7 +83,6 @@ export function EmployeeContributionFilters({
             value: month.IVRM_Month_Id.toString()
         }))
         .filter((m) => m.label && m.value && m.value.trim() !== '');
-
     // Map years for display - filter out items with empty values or labels
     const yearOptions = years
         .filter((year) => year.HRMLY_LeaveYear != null && year.HRMLY_LeaveYear !== '')
@@ -99,7 +91,6 @@ export function EmployeeContributionFilters({
             value: year.HRMLY_LeaveYear
         }))
         .filter((y) => y.label && y.value && y.value.trim() !== '');
-
     return (
         <CollapsibleSection
             defaultOpen={true}
@@ -139,7 +130,6 @@ export function EmployeeContributionFilters({
                             />
                         )}
                     </div>
-
                     {/* Department Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='department' className='font-medium text-foreground text-sm'>
@@ -170,7 +160,6 @@ export function EmployeeContributionFilters({
                             />
                         )}
                     </div>
-
                     {/* Designation Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
@@ -202,7 +191,6 @@ export function EmployeeContributionFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Filter Section - Row 2: Contribution Type and Head Selection */}
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Earning/Deduction Selection */}
@@ -233,7 +221,6 @@ export function EmployeeContributionFilters({
                             </label>
                         </div>
                     </div>
-
                     {/* Earning Head - Only show when Earning is selected */}
                     {filters.contributionType === 'Earning' && (
                         <div className='space-y-2'>
@@ -266,7 +253,6 @@ export function EmployeeContributionFilters({
                             )}
                         </div>
                     )}
-
                     {/* Deduction Head - Only show when Deduction is selected */}
                     {filters.contributionType === 'Deduction' && (
                         <div className='space-y-2'>
@@ -300,7 +286,6 @@ export function EmployeeContributionFilters({
                         </div>
                     )}
                 </div>
-
                 {/* Filter Section - Row 3: Date Type and Report Type Selection */}
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Date Type Selection */}
@@ -331,7 +316,6 @@ export function EmployeeContributionFilters({
                             </label>
                         </div>
                     </div>
-
                     {/* Report Type Selection */}
                     <div className='space-y-3'>
                         <span className='font-medium text-foreground text-sm'>Report Type:</span>
@@ -361,7 +345,6 @@ export function EmployeeContributionFilters({
                         </div>
                     </div>
                 </div>
-
                 {/* Employee Selection - Only show when Individual is selected */}
                 {filters.reportType === 'Individual' && (
                     <div className='space-y-2'>
@@ -397,7 +380,6 @@ export function EmployeeContributionFilters({
                         )}
                     </div>
                 )}
-
                 {/* Conditional Date Selection */}
                 {filters.dateType === 'Month' ? (
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -504,7 +486,6 @@ export function EmployeeContributionFilters({
                         </div>
                     </div>
                 )}
-
                 {/* Action Buttons */}
                 <div className='flex gap-2 pt-4'>
                     <Button onClick={onSearch}>

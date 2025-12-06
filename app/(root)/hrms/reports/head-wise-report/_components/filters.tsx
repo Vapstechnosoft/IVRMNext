@@ -1,18 +1,15 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, X } from 'lucide-react';
-
 export interface HeadWiseReportFilters {
     selectedGroupTypes: string[];
     month: string;
     year: string;
 }
-
 interface HeadWiseReportFiltersProps {
     filters: HeadWiseReportFilters;
     groupTypes: Array<{ id: number; groupType: string }>;
@@ -23,7 +20,6 @@ interface HeadWiseReportFiltersProps {
     onCancel: () => void;
     isLoading?: boolean;
 }
-
 export function HeadWiseReportFilters({
     filters,
     groupTypes,
@@ -73,7 +69,6 @@ export function HeadWiseReportFilters({
                             />
                         )}
                     </div>
-
                     {/* Month Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='month' className='font-medium text-foreground text-sm'>
@@ -100,7 +95,6 @@ export function HeadWiseReportFilters({
                             </Select>
                         )}
                     </div>
-
                     {/* Year Filter */}
                     <div className='space-y-2'>
                         <Label htmlFor='year' className='font-medium text-foreground text-sm'>
@@ -128,7 +122,6 @@ export function HeadWiseReportFilters({
                         )}
                     </div>
                 </div>
-
                 {/* Selected Group Types Display */}
                 {filters.selectedGroupTypes.length > 0 && (
                     <div className='space-y-2'>
@@ -137,7 +130,6 @@ export function HeadWiseReportFilters({
                     </div>
                 )}
             </div>
-
             {/* Action Buttons */}
             <div className='flex gap-2 pt-4'>
                 <Button onClick={onSearch}>

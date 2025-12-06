@@ -635,13 +635,13 @@ export const useFeeConcessionHeadList = (mi_Id: number, asmaY_Id: number, asmcL_
     };
 };
 
-export const useFeeConcessionStudentList = (mi_Id: number, asmaY_Id: number, asmcL_Id: number, searchParams?: ApiSearchparams) => {
+export const useFeeConcessionStudentList = (radiobtnvalue: string, asmaY_Id: number, asmcL_Id: number, amcId: number, fmccId: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_LIST, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
-            queryFn: async () => getConcessionStudentList(mi_Id, asmaY_Id, asmcL_Id),
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_LIST, radiobtnvalue, asmaY_Id, asmcL_Id, amcId, fmccId, {}],
+            queryFn: async () => getConcessionStudentList(radiobtnvalue, asmaY_Id, asmcL_Id, amcId, fmccId),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -663,12 +663,14 @@ export const useFeeConcessionStudentConcessionGrid = (
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
-            queryFn: async () => getConcessionStudentConcessionGrid(mi_Id, asmaY_Id, asmcL_Id),
-            staleTime: 0
+            queryFn: () => getConcessionStudentConcessionGrid(mi_Id, asmaY_Id, asmcL_Id, searchParams),
+            staleTime: 0,
+            enabled: !!mi_Id && !!asmaY_Id
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID]
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID],
+                exact: false
             });
         }
     };

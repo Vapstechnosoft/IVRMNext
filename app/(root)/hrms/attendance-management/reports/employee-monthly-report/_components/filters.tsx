@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,9 +17,7 @@ import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type EmployeeMonthlyReportFilters = z.infer<typeof employeeMonthlyReportFilterSchema>;
-
 interface EmployeeMonthlyReportFiltersProps {
     filters: EmployeeMonthlyReportFilters;
     branches: string[];
@@ -34,7 +31,6 @@ interface EmployeeMonthlyReportFiltersProps {
     onExport: () => void;
     onPrint: () => void;
 }
-
 export function EmployeeMonthlyReportFilters({
     filters,
     branches,
@@ -58,12 +54,10 @@ export function EmployeeMonthlyReportFilters({
         defaultValues: filters,
         mode: 'onChange'
     });
-
     // Watch the allOrIndividual field to reactively show/hide employee dropdown
     const allOrIndividualValue = watch('allOrIndividual') || filters.allOrIndividual;
     const employeeNameValue = watch('employeeName') || filters.employeeName || '';
     const reportOptionsValue = watch('reportOptions') || filters.reportOptions || [];
-
     // Sync form when filters prop changes from parent
     useEffect(() => {
         setValue('allOrIndividual', filters.allOrIndividual, { shouldDirty: false, shouldValidate: false });
@@ -85,13 +79,11 @@ export function EmployeeMonthlyReportFilters({
         filters.toDate,
         filters.reportOptions?.join(',')
     ]);
-
     const handleFilterChange = (key: keyof EmployeeMonthlyReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const handleReportOptionToggle = (
         option: 'Total Working Days' | 'Show Holiday Punch' | 'Format One' | 'Date Of Joining' | 'Total Absent Days'
     ) => {
@@ -99,12 +91,10 @@ export function EmployeeMonthlyReportFilters({
         const newOptions = currentOptions.includes(option) ? currentOptions.filter((o) => o !== option) : [...currentOptions, option];
         handleFilterChange('reportOptions', newOptions);
     };
-
     const onSubmit = (data: EmployeeMonthlyReportFilters) => {
         onFilterChange(data);
         onSearch();
     };
-
     const reportOptionsList: Array<{
         label: string;
         value: 'Total Working Days' | 'Show Holiday Punch' | 'Format One' | 'Date Of Joining' | 'Total Absent Days';
@@ -115,7 +105,6 @@ export function EmployeeMonthlyReportFilters({
         { label: 'Date Of Joining', value: 'Date Of Joining' },
         { label: 'Total Absent Days', value: 'Total Absent Days' }
     ];
-
     return (
         <CollapsibleSection
             title='EMPLOYEE MONTHLY REPORT'
@@ -175,7 +164,6 @@ export function EmployeeMonthlyReportFilters({
                         />
                         {errors.designation && <FormError>{errors.designation.message}</FormError>}
                     </div>
-
                     <div className='md:col-span-3'>
                         <label className='mb-2 block font-medium text-sm'>
                             Employee <span className='text-red-500'>*</span>
@@ -199,7 +187,6 @@ export function EmployeeMonthlyReportFilters({
                         </RadioGroup>
                         {errors.allOrIndividual && <FormError>{errors.allOrIndividual.message}</FormError>}
                     </div>
-
                     {/* Employee Dropdown - Only show when Individual is selected */}
                     {allOrIndividualValue === 'Individual' && (
                         <div className='md:col-span-3'>
@@ -231,7 +218,6 @@ export function EmployeeMonthlyReportFilters({
                             {errors.employeeName && <FormError>{errors.employeeName.message}</FormError>}
                         </div>
                     )}
-
                     <div className='md:col-span-3'>
                         <label htmlFor='from-date-input' className='font-medium text-sm'>
                             From Date <span className='text-red-500'>*</span>
@@ -301,7 +287,6 @@ export function EmployeeMonthlyReportFilters({
                         </Popover>
                         {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                     </div>
-
                     {/* Report Options Checkboxes */}
                     <div className='md:col-span-12'>
                         <label className='mb-2 block font-medium text-sm'>Report Options</label>
@@ -320,7 +305,6 @@ export function EmployeeMonthlyReportFilters({
                             ))}
                         </div>
                     </div>
-
                     <div className='flex items-end gap-2 md:col-span-12'>
                         <Button type='submit' variant='default'>
                             <RefreshCw className='mr-2 h-4 w-4' /> REPORT

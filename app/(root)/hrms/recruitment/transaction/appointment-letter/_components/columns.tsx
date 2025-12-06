@@ -1,24 +1,20 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Trash2 } from 'lucide-react';
-
 export interface EarningDetail {
     id: number;
     earningHead: string;
     amount: number;
     percentage: number;
 }
-
 export interface DeductionDetail {
     id: number;
     deductionHead: string;
     amount: number;
     percentage: number;
 }
-
 export interface AppointmentLetter {
     id: number;
     candidateName: string;
@@ -32,13 +28,10 @@ export interface AppointmentLetter {
     dateOfJoining: string;
     probationPeriod: number;
     basicSalary: number;
-
     // Salary Details - Earning Head
     earningDetails: EarningDetail[];
-
     // Salary Details - Deduction Head
     deductionDetails: DeductionDetail[];
-
     // Document Details
     firstDocumentName: string;
     firstDocumentDate: string;
@@ -47,24 +40,19 @@ export interface AppointmentLetter {
     annualCTC: number;
     companyOwnerName: string;
     monthlyCTC: number;
-
     // Letter Generation Details
     secondDocumentName: string;
     secondDocumentDate: string;
-
     status: 'Draft' | 'Generated' | 'Sent' | 'Acknowledged';
     letterGeneratedDate?: string;
     letterSentDate?: string;
     acknowledgedDate?: string;
-
     createdAt: string;
 }
-
 interface AppointmentLetterColumnsProps {
     onEdit: (row: AppointmentLetter) => void;
     onDelete: (row: AppointmentLetter) => void;
 }
-
 export const getAppointmentLetterColumns = ({ onEdit, onDelete }: AppointmentLetterColumnsProps): ColumnDef<AppointmentLetter>[] => [
     {
         id: 'sl',

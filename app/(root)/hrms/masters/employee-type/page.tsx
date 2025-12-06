@@ -1,107 +1,42 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEmployeeType } from '@/hooks/hrms/useMasters';
-import type { ApiSearchparams } from '@/types';
-import type { EmployeeTypeDetail } from '@/types/hrms/master-employee-type';
+import type { IMasterEmployeeTypeList } from '@/types/hrms/hrms-config/master';
 import { Plus, X } from 'lucide-react';
-import { use, useMemo } from 'react';
+import { use } from 'react';
+import AddEmployeeTypeForm from './_components/add-form';
 import { columns } from './_components/columns';
-import EmployeeTypeForm from './_components/employee-type-form';
-
+import ToggleMasterEmployeeTypeForm from './_components/toggle-form';
+import UpdateEmployeeTypeForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-
 export default function MasterEmployeeTypePage(props: { searchParams: SearchParams }) {
-    const rawSearchParams = use(props.searchParams);
-
-    // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
-    // This matches how preadmission handles it
-    const searchParams: ApiSearchparams = {
-        page:
-            typeof rawSearchParams?.page === 'string'
-                ? Number.parseInt(rawSearchParams.page, 10)
-                : Array.isArray(rawSearchParams?.page)
-                  ? Number.parseInt(rawSearchParams.page[0], 10)
-                  : typeof rawSearchParams?.page === 'number'
-                    ? rawSearchParams.page
-                    : undefined,
-        page_size:
-            typeof rawSearchParams?.page_size === 'string'
-                ? Number.parseInt(rawSearchParams.page_size, 10)
-                : Array.isArray(rawSearchParams?.page_size)
-                  ? Number.parseInt(rawSearchParams.page_size[0], 10)
-                  : typeof rawSearchParams?.page_size === 'number'
-                    ? rawSearchParams.page_size
-                    : undefined,
-        search_query:
-            typeof rawSearchParams?.search_query === 'string'
-                ? rawSearchParams.search_query
-                : Array.isArray(rawSearchParams?.search_query)
-                  ? rawSearchParams.search_query[0]
-                  : undefined,
-        search_column:
-            typeof rawSearchParams?.search_column === 'string'
-                ? rawSearchParams.search_column
-                : Array.isArray(rawSearchParams?.search_column)
-                  ? rawSearchParams.search_column[0]
-                  : undefined,
-        sort_column:
-            typeof rawSearchParams?.sort_column === 'string'
-                ? rawSearchParams.sort_column
-                : Array.isArray(rawSearchParams?.sort_column)
-                  ? rawSearchParams.sort_column[0]
-                  : undefined,
-        sort_direction:
-            typeof rawSearchParams?.sort_direction === 'string'
-                ? rawSearchParams.sort_direction
-                : Array.isArray(rawSearchParams?.sort_direction)
-                  ? rawSearchParams.sort_direction[0]
-                  : undefined
-    };
-
-    const roleId = HRMS_MI_ID;
-    const { listQuery, refetchAll } = useMasterEmployeeType(roleId, searchParams);
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useMasterEmployeeType(searchParams);
 
     return (
-        <FormProvider<EmployeeTypeDetail>>
-            <MasterEmployeeTypePageContent
-                response={listQuery.data}
-                isLoading={listQuery.isLoading}
-                error={listQuery.error}
-                refetch={refetchAll}
-            />
+        <FormProvider<IMasterEmployeeTypeList>>
+            <MasterEmployeeTypePageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-
 function MasterEmployeeTypePageContent({
     response,
     isLoading,
-    error,
-    refetch
+    error
 }: {
     response: any;
     isLoading: boolean;
     error: any;
-    refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<EmployeeTypeDetail>();
-    // Memoize array to prevent unnecessary re-renders
-    // API now returns data as an array directly, or in employeeTypeList for backward compatibility
-    const rows: EmployeeTypeDetail[] = useMemo(() => {
-        if (Array.isArray(response?.data)) {
-            return response.data;
-        }
-        return response?.employeeTypeList ?? [];
-    }, [response?.data, response?.employeeTypeList]);
-
+    const { openAddForm } = useFormContext<IMasterEmployeeTypeList>();
+    const tableProps = useDataTableProps(response);
     return (
         <div className='min-h-screen'>
-            <div className='container mx-auto space-y-6 px-4 py-6 md:px-6 lg:px-8'>
+            <div className='container space-y-4 p-1'>
+                {/* Header */}
                 <div className='flex justify-end'>
                     <Button
                         type='button'
@@ -111,18 +46,18 @@ function MasterEmployeeTypePageContent({
                         Add Employee Type
                     </Button>
                 </div>
-
+                {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<EmployeeTypeDetail>
-                        data={rows}
-                        totalItems={response?.total ?? rows.length}
+                    <GenericDataTable<IMasterEmployeeTypeList>
+                        {...tableProps}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}
+                        showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading employee types...'
                         noDataTitle='No Employee Types Found'
@@ -130,19 +65,28 @@ function MasterEmployeeTypePageContent({
                         errorTitle='Error Loading Employee Types'
                     />
                 </CollapsibleSection>
-
-                <FormSections refetch={refetch} />
+                {/* Forms */}
+                <FormSections />
             </div>
         </div>
     );
 }
-
-function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
-        useFormContext<EmployeeTypeDetail>();
+function FormSections() {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterEmployeeTypeList>();
 
     return (
         <>
+            {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
@@ -161,17 +105,13 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EmployeeTypeForm
-                                onSuccess={() => {
-                                    closeAddForm();
-                                    refetch();
-                                }}
-                            />
+                            <AddEmployeeTypeForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
+            {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -189,17 +129,14 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <EmployeeTypeForm
-                                selectedRow={selectedRow}
-                                onSuccess={() => {
-                                    closeEditForm();
-                                    refetch();
-                                }}
-                            />
+                            <UpdateEmployeeTypeForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterEmployeeTypeForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

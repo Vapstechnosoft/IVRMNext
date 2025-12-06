@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,7 +8,6 @@ import { useState } from 'react';
 import { foMonthEndReportColumns } from './_components/columns';
 import type { FOMonthEndReportRow } from './_components/columns';
 import { type FOMonthEndReportFilters, FOMonthEndReportFilters as FOMonthEndReportFiltersComponent } from './_components/filters';
-
 export default function FOMonthEndReportPage() {
     const [showReport, setShowReport] = useState(false);
     const [selectedRows, setSelectedRows] = useState<FOMonthEndReportRow[]>([]);
@@ -18,17 +16,14 @@ export default function FOMonthEndReportPage() {
         month: '',
         ieName: ''
     });
-
     // Fetch onload data from API
     const { data: onloadData, isLoading: isLoadingOnload } = useFOMonthEndReportOnload();
-
     const filtered: FOMonthEndReportRow[] = [];
     const handleSearch = () => {
         // TODO: Implement search functionality when the search endpoint is available
         // For now, just show the report section
         setShowReport(true);
     };
-
     const handleCancel = () => {
         setFilters({
             year: '',
@@ -38,13 +33,10 @@ export default function FOMonthEndReportPage() {
         setShowReport(false);
         setSelectedRows([]);
     };
-
     const handleExport = () => {};
-
     const _handleRowSelectionChange = (rows: FOMonthEndReportRow[]) => {
         setSelectedRows(rows);
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -54,7 +46,6 @@ export default function FOMonthEndReportPage() {
                     onSearch={handleSearch}
                     onCancel={handleCancel}
                 />
-
                 {showReport && (
                     <CollapsibleSection
                         defaultOpen={true}

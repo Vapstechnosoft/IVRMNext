@@ -4,9 +4,7 @@
 // 2. Import form from _components/job-post-list-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
-
 import { Heading } from '@/components/layout/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,7 +16,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import MRFPage from '../mrf/page';
-
 interface MRF extends BaseEntity {
     department: string;
     position: string;
@@ -42,25 +39,21 @@ interface MRF extends BaseEntity {
     tests: { written: boolean; online: boolean; technical: boolean };
     status: 'Pending' | 'Approved' | 'Rejected';
 }
-
 export default function JobPostListPage() {
     const [list, setList] = useState<MRF[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const formRef = useRef<HTMLDivElement>(null);
     const mrfDB = createLocalCrud<MRF>('recruitment:mrf');
-
     useEffect(() => {
         setList(mrfDB.list());
         setIsLoading(false);
     }, []);
-
     const handleAdd = () => {
         setShowForm(true);
         setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     };
     const handleRefresh = () => setList(mrfDB.list());
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -77,7 +70,6 @@ export default function JobPostListPage() {
                         Add Job
                     </Button>
                 </div>
-
                 <CollapsibleSection
                     title='Job Posting List'
                     description='All job postings'
@@ -96,7 +88,6 @@ export default function JobPostListPage() {
                         }}
                     />
                 </CollapsibleSection>
-
                 {showForm && (
                     <div ref={formRef}>
                         {/* Reuse the same MRF page (form + logic). Users can create or edit, stored in same local DB. */}
@@ -107,14 +98,12 @@ export default function JobPostListPage() {
         </div>
     );
 }
-
 interface TableProps {
     data: MRF[];
     isLoading: boolean;
     onEdit: (m: MRF) => void;
     onDelete: (m: MRF) => void;
 }
-
 function JobPostTable({ data, isLoading, onEdit, onDelete }: TableProps) {
     const columns: ColumnDef<MRF>[] = [
         {

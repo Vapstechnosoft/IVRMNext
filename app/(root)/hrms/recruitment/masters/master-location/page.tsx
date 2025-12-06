@@ -4,7 +4,6 @@
 // 2. Import form from _components/location-form.tsx
 // 3. Extract column definitions and form to the respective files
 // 4. Update handlers to use the new structure
-
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,32 +20,26 @@ import { Edit, MoreHorizontal, Plus, RefreshCw, Save, Trash2, X } from 'lucide-r
 import { useEffect, useRef, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-
 interface MasterLocation extends BaseEntity {
     institution: string;
     locationName: string;
     locationDesc: string;
     isActive: boolean;
 }
-
 type MasterLocationForm = {
     institution: string;
     locationName: string;
     locationDesc: string;
     isActive: boolean;
 };
-
 const institutions = ['VAPS School', 'VAPS College', 'VAPS University', 'VAPS Institute', 'VAPS Academy'];
-
 export default function MasterLocationPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [locations, setLocations] = useState<MasterLocation[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const formRef = useRef<HTMLDivElement>(null);
-
     const locationDB = createLocalCrud<MasterLocation>('master:location');
-
     const {
         register,
         handleSubmit,
@@ -60,14 +53,11 @@ export default function MasterLocationPage() {
             isActive: true
         }
     });
-
     const institution = watch('institution');
-
     // Load data on component mount
     useEffect(() => {
         loadLocations();
     }, []);
-
     const loadLocations = () => {
         try {
             setLocations(locationDB.list());
@@ -77,7 +67,6 @@ export default function MasterLocationPage() {
             setIsLoading(false);
         }
     };
-
     const handleAddClick = () => {
         setIsFormOpen(true);
         setEditingId(null);
@@ -90,13 +79,11 @@ export default function MasterLocationPage() {
             });
         }, 100);
     };
-
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingId(null);
         reset({ isActive: true });
     };
-
     const onSubmit: SubmitHandler<MasterLocationForm> = async (data: MasterLocationForm) => {
         try {
             if (editingId) {
@@ -112,7 +99,6 @@ export default function MasterLocationPage() {
             toast.error(error.message || 'Operation failed');
         }
     };
-
     const handleEdit = (location: MasterLocation) => {
         setEditingId(location.id);
         setValue('institution', location.institution);
@@ -120,7 +106,6 @@ export default function MasterLocationPage() {
         setValue('locationDesc', location.locationDesc);
         setValue('isActive', location.isActive);
         setIsFormOpen(true);
-
         // Scroll to form after state update
         setTimeout(() => {
             formRef.current?.scrollIntoView({
@@ -129,7 +114,6 @@ export default function MasterLocationPage() {
             });
         }, 100);
     };
-
     const handleDelete = (id: number) => {
         try {
             locationDB.remove(id);
@@ -139,7 +123,6 @@ export default function MasterLocationPage() {
             toast.error('Failed to delete location');
         }
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -157,7 +140,6 @@ export default function MasterLocationPage() {
                         Add Master Location
                     </Button>
                 </div>
-
                 {/* Data Table Section - Collapsible but default open */}
                 <CollapsibleSection
                     // title='Master Locations Data'
@@ -169,7 +151,6 @@ export default function MasterLocationPage() {
                     headerClassName=''>
                     <LocationTable locations={locations} isLoading={isLoading} onEdit={handleEdit} onDelete={handleDelete} />
                 </CollapsibleSection>
-
                 {/* Add Form Section - Conditionally Rendered */}
                 {isFormOpen && (
                     <div ref={formRef} className='slide-in-from-top-4 animate-in duration-300'>
@@ -219,7 +200,6 @@ export default function MasterLocationPage() {
                                                 )}
                                                 {errors.institution && <FormError>{errors.institution.message}</FormError>}
                                             </div>
-
                                             <InputText
                                                 label='Location Name'
                                                 required
@@ -229,7 +209,6 @@ export default function MasterLocationPage() {
                                                 className='mt-0 transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                         </div>
-
                                         <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-2'>
                                             <InputText
                                                 label='Location Desc.'
@@ -239,7 +218,6 @@ export default function MasterLocationPage() {
                                                 error={errors.locationDesc?.message}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
-
                                             <div className='group flex flex-col gap-1.5'>
                                                 <Label htmlFor='isActive' className='invisible'>
                                                     Location Desc. <span className='ml-1 text-red-500'>*</span>
@@ -257,11 +235,9 @@ export default function MasterLocationPage() {
                                                 </div>
                                             </div>
                                         </div>
-
                                         {/* Root Error */}
                                         {errors.root && <FormError>{errors.root.message}</FormError>}
                                     </div>
-
                                     {/* Action Buttons */}
                                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                                         <Button
@@ -298,14 +274,12 @@ export default function MasterLocationPage() {
         </div>
     );
 }
-
 interface LocationTableProps {
     locations: MasterLocation[];
     isLoading: boolean;
     onEdit: (location: MasterLocation) => void;
     onDelete: (id: number) => void;
 }
-
 function LocationTable({ locations, isLoading, onEdit, onDelete }: LocationTableProps) {
     const locationColumns: ColumnDef<MasterLocation>[] = [
         {
@@ -364,7 +338,6 @@ function LocationTable({ locations, isLoading, onEdit, onDelete }: LocationTable
             }
         }
     ];
-
     return (
         <GenericDataTable
             isLoading={isLoading}

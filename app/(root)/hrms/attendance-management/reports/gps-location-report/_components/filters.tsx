@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
@@ -13,9 +12,7 @@ import { format } from 'date-fns';
 import { CalendarIcon, RefreshCw, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type GPSLocationReportFilters = z.infer<typeof gpsLocationReportFilterSchema>;
-
 interface GPSLocationReportFiltersProps {
     filters: GPSLocationReportFilters;
     employees: string[];
@@ -25,7 +22,6 @@ interface GPSLocationReportFiltersProps {
     onExport: () => void;
     onPrint: () => void;
 }
-
 export function GPSLocationReportFilters({
     filters,
     employees,
@@ -44,18 +40,15 @@ export function GPSLocationReportFilters({
         defaultValues: filters,
         mode: 'onChange'
     });
-
     const handleFilterChange = (key: keyof GPSLocationReportFilters, value: any) => {
         const newFilters = { ...filters, [key]: value };
         setValue(key, value as any);
         onFilterChange(newFilters);
     };
-
     const onSubmit = (data: GPSLocationReportFilters) => {
         onFilterChange(data);
         onSearch();
     };
-
     return (
         <CollapsibleSection
             defaultOpen={true}

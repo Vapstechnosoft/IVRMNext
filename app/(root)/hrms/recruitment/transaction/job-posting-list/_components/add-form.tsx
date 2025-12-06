@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError } from '@/components/ui/extension/field';
@@ -12,7 +11,6 @@ import { Save, Upload, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-
 const jobPostingSchema = z.object({
     position: z.string().min(1, 'Position is required'),
     priority: z.string().min(1, 'Priority is required'),
@@ -34,15 +32,12 @@ const jobPostingSchema = z.object({
     technicalInterview: z.boolean().optional(),
     onlineTest: z.boolean().optional()
 });
-
 type FormFields = z.infer<typeof jobPostingSchema>;
-
 interface AddJobPostingFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
     className?: string;
 }
-
 export default function AddJobPostingForm({ onSuccess, onCancel, className = '' }: AddJobPostingFormProps) {
     const {
         control,
@@ -60,7 +55,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
             location: 'HO'
         }
     });
-
     const onSubmit: SubmitHandler<FormFields> = async (_data) => {
         try {
             // TODO: Replace with actual API call
@@ -71,7 +65,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
             toast.error(error.message || 'Failed to add job posting');
         }
     };
-
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`flex flex-col gap-4 ${className}`}>
             <div className='flex flex-col gap-5'>
@@ -101,7 +94,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             />
                             {errors.position && <FormError>{errors.position.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Priority:<span className='text-red-500'>*</span>
@@ -124,7 +116,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             />
                             {errors.priority && <FormError>{errors.priority.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Qualification:<span className='text-red-500'>*</span>
@@ -148,7 +139,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             />
                             {errors.qualification && <FormError>{errors.qualification.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 No. of Position:<span className='text-red-500'>*</span>
@@ -160,7 +150,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 error={errors.noOfPosition?.message}
                             />
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Job Description:<span className='text-red-500'>*</span>
@@ -168,7 +157,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             <InputTextarea placeholder='Enter job description' rows={4} {...register('jobDescription')} />
                             {errors.jobDescription && <FormError>{errors.jobDescription.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Gender:<span className='text-red-500'>*</span>
@@ -191,13 +179,11 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             />
                             {errors.gender && <FormError>{errors.gender.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>Remark:</label>
                             <InputTextarea placeholder='Enter remarks' rows={3} {...register('remark')} />
                         </div>
                     </div>
-
                     {/* Right Column */}
                     <div className='space-y-4'>
                         <div className='space-y-2'>
@@ -232,7 +218,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             />
                             {errors.location && <FormError>{errors.location.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Department:<span className='text-red-500'>*</span>
@@ -256,7 +241,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             />
                             {errors.department && <FormError>{errors.department.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Position Type:<span className='text-red-500'>*</span>
@@ -279,21 +263,18 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                             />
                             {errors.positionType && <FormError>{errors.positionType.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 MRF No.:<span className='text-red-500'>*</span>
                             </label>
                             <InputText placeholder='Enter MRF number' {...register('mrfNo')} error={errors.mrfNo?.message} />
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Skill:<span className='text-red-500'>*</span>
                             </label>
                             <InputText placeholder='Enter required skills' {...register('skill')} error={errors.skill?.message} />
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Experience:<span className='text-red-500'>*</span>
@@ -316,21 +297,18 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                                 />
                             </div>
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Age:<span className='text-red-500'>*</span>
                             </label>
                             <InputText type='number' placeholder='Enter age requirement' {...register('age')} error={errors.age?.message} />
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>
                                 Reason:<span className='text-red-500'>*</span>
                             </label>
                             <InputText placeholder='Enter reason' {...register('reason')} error={errors.reason?.message} />
                         </div>
-
                         <div className='space-y-2'>
                             <label className='block font-medium text-sm'>Attachment:</label>
                             <Button type='button' variant='outline' className='w-full justify-start'>
@@ -340,7 +318,6 @@ export default function AddJobPostingForm({ onSuccess, onCancel, className = '' 
                         </div>
                     </div>
                 </div>
-
                 {/* Bottom Section - Checkboxes */}
                 <div className='flex items-center gap-6 border-t pt-4'>
                     <div className='flex items-center space-x-2'>

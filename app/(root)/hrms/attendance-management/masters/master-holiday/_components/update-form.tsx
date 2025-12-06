@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
@@ -18,20 +17,17 @@ import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import type { MasterHoliday } from './columns';
-
 type MasterHolidayForm = z.infer<typeof holidayMasterSchema.addOrUpdate> & {
     selectDay: boolean;
     department: string;
     isActive: boolean;
 };
-
 interface UpdateMasterHolidayFormProps {
     onSuccess?: () => void;
     className?: string;
     selectedRow: MasterHoliday;
     dropdownData?: MasterHolidayGetDataResponseData;
 }
-
 export default function UpdateMasterHolidayForm({
     onSuccess,
     className = '',
@@ -40,24 +36,20 @@ export default function UpdateMasterHolidayForm({
 }: UpdateMasterHolidayFormProps) {
     const { refetchAll } = useMasterHoliday();
     const { mutate: saveMasterHoliday, isPending } = useSaveMasterHoliday();
-
     // Extract dropdown data from API response
     // API field names are uppercase: HRMLY_LeaveYear, HRMD_DepartmentName, FOHTWD_HolidayWDType, FOMD_DayCode, FOMD_DayName
     const calendarYears = useMemo(() => {
         if (!dropdownData?.yeardropdown) return [];
         return dropdownData.yeardropdown.map((year: any) => year.HRMLY_LeaveYear || year.hrmlY_LeaveYear || '').filter(Boolean);
     }, [dropdownData?.yeardropdown]);
-
     const departments = useMemo(() => {
         if (!dropdownData?.departmentType) return [];
         return dropdownData.departmentType.map((dept: any) => dept.HRMD_DepartmentName || dept.hrmD_DepartmentName || '').filter(Boolean);
     }, [dropdownData?.departmentType]);
-
     const holidayTypes = useMemo(() => {
         if (!dropdownData?.holidayType) return [];
         return dropdownData.holidayType.map((type: any) => type.FOHTWD_HolidayWDType || type.fohtwD_HolidayWDType || '').filter(Boolean);
     }, [dropdownData?.holidayType]);
-
     const weekDays = useMemo(() => {
         if (!dropdownData?.dayslist) return [];
         return dropdownData.dayslist
@@ -67,7 +59,6 @@ export default function UpdateMasterHolidayForm({
             }))
             .filter((day: { value: string; label: string }) => day.value && day.label);
     }, [dropdownData?.dayslist]);
-
     const {
         register,
         handleSubmit,
@@ -80,7 +71,6 @@ export default function UpdateMasterHolidayForm({
         resolver: zodResolver(holidayMasterSchema.addOrUpdate),
         mode: 'onChange'
     });
-
     useEffect(() => {
         if (row) {
             reset({
@@ -97,20 +87,17 @@ export default function UpdateMasterHolidayForm({
             });
         }
     }, [row, reset]);
-
     const calendarYear = watch('calendarYear');
     const department = watch('department');
     const holidayType = watch('holidayType');
     const selectDay = watch('selectDay');
     const selectedDays = watch('selectedDays');
     const fromDate = watch('fromDate');
-
     const handleDayToggle = (day: string) => {
         const currentDays = selectedDays || [];
         const newDays = currentDays.includes(day) ? currentDays.filter((d) => d !== day) : [...currentDays, day];
         setValue('selectedDays', newDays);
     };
-
     const onSubmit: SubmitHandler<MasterHolidayForm> = async (data) => {
         saveMasterHoliday(
             {
@@ -136,11 +123,9 @@ export default function UpdateMasterHolidayForm({
             }
         );
     };
-
     const handleReset = () => {
         reset();
     };
-
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
@@ -172,7 +157,6 @@ export default function UpdateMasterHolidayForm({
                             )}
                             {errors.calendarYear && <FormError>{errors.calendarYear.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='department'>
                                 Department <span className='text-red-500'>*</span>
@@ -199,7 +183,6 @@ export default function UpdateMasterHolidayForm({
                             )}
                             {errors.department && <FormError>{errors.department.message}</FormError>}
                         </div>
-
                         <div className='space-y-2'>
                             <label className='font-medium text-sm' htmlFor='holidayType'>
                                 Holiday Type <span className='text-red-500'>*</span>
@@ -227,14 +210,12 @@ export default function UpdateMasterHolidayForm({
                             {errors.holidayType && <FormError>{errors.holidayType.message}</FormError>}
                         </div>
                     </div>
-
                     <div className='flex items-center space-y-2'>
                         <Checkbox id='selectDay' checked={selectDay} onCheckedChange={(checked) => setValue('selectDay', !!checked)} />
                         <label htmlFor='selectDay' className='ml-2 font-medium text-foreground text-sm'>
                             Select Day
                         </label>
                     </div>
-
                     {selectDay && (
                         <div className='space-y-2'>
                             <span className='font-medium text-sm'>Select Days:</span>
@@ -253,7 +234,6 @@ export default function UpdateMasterHolidayForm({
                             </div>
                         </div>
                     )}
-
                     {(holidayType === 'PUBLIC HOLIDAY' || holidayType === 'WEEK END') && (
                         <>
                             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
@@ -268,7 +248,6 @@ export default function UpdateMasterHolidayForm({
                                             const selectedDate = field.value ? new Date(field.value) : undefined;
                                             const minDate = new Date();
                                             minDate.setHours(0, 0, 0, 0);
-
                                             return (
                                                 <Popover>
                                                     <PopoverTrigger asChild>
@@ -304,7 +283,6 @@ export default function UpdateMasterHolidayForm({
                                     />
                                     {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                                 </div>
-
                                 <div className='space-y-2'>
                                     <label className='font-medium text-sm' htmlFor='toDate'>
                                         End Date <span className='text-red-500'>*</span>
@@ -316,7 +294,6 @@ export default function UpdateMasterHolidayForm({
                                             const selectedDate = field.value ? new Date(field.value) : undefined;
                                             const minDate = fromDate ? new Date(fromDate) : new Date();
                                             minDate.setHours(0, 0, 0, 0);
-
                                             return (
                                                 <Popover>
                                                     <PopoverTrigger asChild>
@@ -353,7 +330,6 @@ export default function UpdateMasterHolidayForm({
                                     {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                                 </div>
                             </div>
-
                             <div className='grid grid-cols-1 gap-4'>
                                 <InputText
                                     label='Holiday Name'
@@ -365,7 +341,6 @@ export default function UpdateMasterHolidayForm({
                                     maxLength={100}
                                 />
                             </div>
-
                             <div className='space-y-2'>
                                 <label className='font-medium text-sm' htmlFor='remarks'>
                                     Remarks
@@ -382,10 +357,8 @@ export default function UpdateMasterHolidayForm({
                             </div>
                         </>
                     )}
-
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
-
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'

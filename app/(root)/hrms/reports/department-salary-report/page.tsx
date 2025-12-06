@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -13,7 +12,6 @@ import {
     departmentSummaryColumns
 } from './_components/columns';
 import { type DepartmentSalaryFilters, DepartmentSalaryReportFilters } from './_components/filters';
-
 // Overall Summary
 interface OverallSummary {
     totalEmployees: number;
@@ -27,14 +25,12 @@ interface OverallSummary {
     totalBonusAmount: number;
     totalIncrementAmount: number;
 }
-
 export default function DepartmentSalaryReportPage() {
     // State
     const [salaryRecords, setSalaryRecords] = useState<DepartmentSalaryRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<DepartmentSalaryRecord[]>([]);
     const [isLoading, _setIsLoading] = useState(false);
     const [showReport, setShowReport] = useState(false);
-
     const [filters, setFilters] = useState<DepartmentSalaryFilters>({
         selectedGroupTypes: [],
         selectedDepartments: [],
@@ -42,18 +38,15 @@ export default function DepartmentSalaryReportPage() {
         month: '',
         year: ''
     });
-
     // TODO: Will be populated from API when available
     const groupTypes = useMemo(() => [], []);
     const departments = useMemo(() => [], []);
     const designations = useMemo(() => [], []);
     const months = useMemo(() => [], []);
     const years = useMemo(() => [], []);
-
     // Filter records based on selected criteria
     useMemo(() => {
         let filtered = salaryRecords;
-
         // Filter by group types (by ID)
         if (filters.selectedGroupTypes.length > 0) {
             filtered = filtered.filter((record) => {
@@ -61,7 +54,6 @@ export default function DepartmentSalaryReportPage() {
                 return filters.selectedGroupTypes.includes(record.groupType);
             });
         }
-
         // Filter by departments (by ID)
         if (filters.selectedDepartments.length > 0) {
             filtered = filtered.filter((record) => {
@@ -69,7 +61,6 @@ export default function DepartmentSalaryReportPage() {
                 return filters.selectedDepartments.includes(record.department);
             });
         }
-
         // Filter by designations (by ID)
         if (filters.selectedDesignations.length > 0) {
             filtered = filtered.filter((record) => {
@@ -77,36 +68,29 @@ export default function DepartmentSalaryReportPage() {
                 return filters.selectedDesignations.includes(record.designation);
             });
         }
-
         // Filter by month
         if (filters.month) {
             filtered = filtered.filter((record) => record.month === filters.month);
         }
-
         // Filter by year
         if (filters.year) {
             filtered = filtered.filter((record) => record.year === filters.year);
         }
-
         setFilteredRecords(filtered);
     }, [filters, salaryRecords]);
-
     const handleFilterChange = (newFilters: DepartmentSalaryFilters) => {
         setFilters(newFilters);
     };
-
     const handleSearch = () => {
         if (!filters.month || !filters.year) {
             toast.error('Please select both month and year');
             return;
         }
-
         // TODO: Call API when available
         // For now, just show the report structure
         setShowReport(true);
         toast.success('Department Salary Report generated');
     };
-
     const handleCancel = () => {
         setFilters({
             selectedGroupTypes: [],
@@ -120,20 +104,16 @@ export default function DepartmentSalaryReportPage() {
         setShowReport(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('Department Salary Report exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate Overall summary
     const overallSummary: OverallSummary = useMemo(() => {
         const uniqueDepartments = [...new Set(filteredRecords.map((record) => record.department))];
-
         const summary = filteredRecords.reduce(
             (acc, record) => ({
                 totalEmployees: filteredRecords.length,
@@ -160,23 +140,18 @@ export default function DepartmentSalaryReportPage() {
                 totalIncrementAmount: 0
             }
         );
-
         summary.averageNetSalary = filteredRecords.length > 0 ? Math.round(summary.totalNetSalary / filteredRecords.length) : 0;
-
         return summary;
     }, [filteredRecords]);
-
     // Calculate Department-wise summary
     const departmentSummaries: DepartmentSummary[] = useMemo(() => {
         const departmentMap = new Map<string, DepartmentSalaryRecord[]>();
-
         filteredRecords.forEach((record) => {
             if (!departmentMap.has(record.department)) {
                 departmentMap.set(record.department, []);
             }
             departmentMap.get(record.department)!.push(record);
         });
-
         return Array.from(departmentMap.entries())
             .map(([department, records]) => {
                 const totalBasicSalary = records.reduce((sum, r) => sum + r.basicSalary, 0);
@@ -184,7 +159,6 @@ export default function DepartmentSalaryReportPage() {
                 const totalDeductions = records.reduce((sum, r) => sum + r.totalDeductions, 0);
                 const totalNetSalary = records.reduce((sum, r) => sum + r.netSalary, 0);
                 const salaries = records.map((r) => r.netSalary);
-
                 return {
                     department,
                     totalEmployees: records.length,
@@ -199,7 +173,6 @@ export default function DepartmentSalaryReportPage() {
             })
             .sort((a, b) => b.totalNetSalary - a.totalNetSalary);
     }, [filteredRecords]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -215,7 +188,6 @@ export default function DepartmentSalaryReportPage() {
                 onCancel={handleCancel}
                 isLoading={isLoading}
             />
-
             {/* Report Results */}
             {showReport && (
                 <div className='space-y-4'>
@@ -239,7 +211,6 @@ export default function DepartmentSalaryReportPage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                         <Card>
@@ -291,7 +262,6 @@ export default function DepartmentSalaryReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Department Summary Table */}
                     <Card>
                         <CardHeader>
@@ -311,7 +281,6 @@ export default function DepartmentSalaryReportPage() {
                             />
                         </CardContent>
                     </Card>
-
                     {/* Detailed Summary */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <Card>
@@ -344,7 +313,6 @@ export default function DepartmentSalaryReportPage() {
                                 </div>
                             </CardContent>
                         </Card>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle className='flex items-center gap-2 text-sm'>
@@ -384,7 +352,6 @@ export default function DepartmentSalaryReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Employee Details Table */}
                     <Card>
                         <CardHeader>

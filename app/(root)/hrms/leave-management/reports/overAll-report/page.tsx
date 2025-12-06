@@ -1,11 +1,9 @@
 'use client';
-
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useState } from 'react';
 import { type OverallReportRow, overallReportColumns } from './_components/columns';
 import { type OverallReportFilters as FiltersType, OverallReportFilters } from './_components/filters';
-
 export default function LeaveOverallReportPage() {
     const [rows, setRows] = useState<OverallReportRow[]>([]);
     const [filters, setFilters] = useState<FiltersType>({
@@ -17,11 +15,9 @@ export default function LeaveOverallReportPage() {
         fromDate: undefined,
         toDate: undefined
     });
-
     const handleFilterChange = (key: keyof FiltersType, value: any) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
     };
-
     const handleReport = () => {
         // Demo rows; hook to API later
         setRows([
@@ -41,7 +37,6 @@ export default function LeaveOverallReportPage() {
             }
         ]);
     };
-
     const handleClear = () => {
         setFilters({
             status: 'Applied',
@@ -54,7 +49,6 @@ export default function LeaveOverallReportPage() {
         });
         setRows([]);
     };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -64,7 +58,6 @@ export default function LeaveOverallReportPage() {
                     onReport={handleReport}
                     onCancel={handleClear}
                 />
-
                 <CollapsibleSection
                     title='Report Result'
                     description=''

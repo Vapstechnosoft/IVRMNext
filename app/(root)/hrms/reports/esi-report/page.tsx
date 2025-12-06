@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
@@ -10,7 +9,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { type ESIRecord as ESIRecordColumn, esiReportColumns } from './_components/columns';
 import { type ESIReportFilters as ESIFilters, ESIReportFilters } from './_components/filters';
-
 // ESI report data structure
 interface ESIRecord {
     id?: string;
@@ -33,19 +31,15 @@ interface ESIRecord {
     presentDays: number;
     esiStatus: 'Active' | 'Inactive' | 'Exempted';
 }
-
 export default function ESIReportPage() {
     const roleId = HRMS_MI_ID;
-
     // React Query hooks
     const { data: onloadData, isLoading: isLoadingOnload, error: onloadError } = useESIReportOnload(roleId, 0);
     const searchMutation = useSearchESIReport();
-
     // State
     const [esiRecords, setESIRecords] = useState<ESIRecord[]>([]);
     const [filteredRecords, setFilteredRecords] = useState<ESIRecord[]>([]);
     const [showReport, setShowReport] = useState(false);
-
     const [filters, setFilters] = useState<ESIFilters>({
         groupType: 'All',
         department: 'All',
@@ -53,38 +47,32 @@ export default function ESIReportPage() {
         month: '',
         year: ''
     });
-
     // Memoize dropdown data from API
     const groupTypes = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).groupTypedropdown || [];
     }, [onloadData?.data]);
-
     const departments = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).departmentdropdown || [];
     }, [onloadData?.data]);
-
     const designations = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).designationdropdown || [];
     }, [onloadData?.data]);
-
     const months = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).monthdropdown || [];
     }, [onloadData?.data]);
-
     const years = useMemo(() => {
         const data = onloadData?.data;
         if (!data) return [];
         return (data as any).leaveyeardropdown || [];
     }, [onloadData?.data]);
-
     // Show error if API fails
     useEffect(() => {
         if (onloadError || (!isLoadingOnload && onloadData && !onloadData.success)) {
@@ -95,7 +83,6 @@ export default function ESIReportPage() {
             toast.error(errorMessage);
         }
     }, [onloadError, isLoadingOnload, onloadData]);
-
     // Map API data to component format
     const mappedGroupTypes = useMemo(() => {
         return groupTypes.map((gt: any) => ({
@@ -106,7 +93,6 @@ export default function ESIReportPage() {
             isActive: gt.HRMGT_ActiveFlag !== false
         }));
     }, [groupTypes]);
-
     const mappedDepartments = useMemo(() => {
         return departments.map((dept: any) => ({
             id: dept.HRMD_Id,
@@ -116,7 +102,6 @@ export default function ESIReportPage() {
             isActive: dept.HRMD_ActiveFlag !== false
         }));
     }, [departments]);
-
     const mappedDesignations = useMemo(() => {
         return designations.map((desig: any) => ({
             id: desig.HRMDES_Id,
@@ -128,70 +113,57 @@ export default function ESIReportPage() {
             isActive: desig.HRMDES_ActiveFlag !== false
         }));
     }, [designations]);
-
     // Cascading filter logic
     const availableDepartments = useMemo(() => {
         if (filters.groupType === 'All') return mappedDepartments;
         // In a real app, departments would be filtered by groupType relationship
         return mappedDepartments;
     }, [filters.groupType, mappedDepartments]);
-
     const availableDesignations = useMemo(() => {
         if (filters.department === 'All') return mappedDesignations;
         // In a real app, designations would be filtered by department relationship
         return mappedDesignations;
     }, [filters.department, mappedDesignations]);
-
     // Filter ESI records based on selected criteria
     useEffect(() => {
         let filtered = esiRecords;
-
         if (filters.groupType !== 'All') {
             const selectedGroupType = mappedGroupTypes.find((g: any) => g.groupType === filters.groupType);
             if (selectedGroupType) {
                 filtered = filtered.filter((record) => record.groupTypeId === selectedGroupType.id);
             }
         }
-
         if (filters.department !== 'All') {
             const selectedDepartment = mappedDepartments.find((d: any) => d.departmentName === filters.department);
             if (selectedDepartment) {
                 filtered = filtered.filter((record) => record.departmentId === selectedDepartment.id);
             }
         }
-
         if (filters.designation !== 'All') {
             const selectedDesignation = mappedDesignations.find((d: any) => d.designationName === filters.designation);
             if (selectedDesignation) {
                 filtered = filtered.filter((record) => record.designationId === selectedDesignation.id);
             }
         }
-
         if (filters.month) {
             filtered = filtered.filter((record) => record.month === filters.month);
         }
-
         if (filters.year) {
             filtered = filtered.filter((record) => record.year === filters.year);
         }
-
         setFilteredRecords(filtered);
     }, [filters, esiRecords, mappedGroupTypes, mappedDepartments, mappedDesignations]);
-
     const handleFilterChange = (newFilters: ESIFilters) => {
         setFilters(newFilters);
     };
-
     const handleSearch = () => {
         if (!filters.month || !filters.year) {
             toast.error('Please select month and year');
             return;
         }
-
         // Find month ID from selected month name
         const selectedMonthObj = months.find((m: any) => m.IVRM_Month_Name?.trim() === filters.month);
         const monthId = selectedMonthObj?.IVRM_Month_Id?.toString() || '';
-
         // Prepare search request
         const searchRequest = {
             MI_Id: roleId,
@@ -210,7 +182,6 @@ export default function ESIReportPage() {
             HRES_Year: filters.year || '',
             HRES_Month: monthId || ''
         };
-
         searchMutation.mutate(searchRequest, {
             onSuccess: (response) => {
                 if (response.success && response.data) {
@@ -237,7 +208,6 @@ export default function ESIReportPage() {
                         presentDays: emp.presentDays || 0,
                         esiStatus: emp.HRME_ESIAccNo ? 'Active' : ('Inactive' as 'Active' | 'Inactive' | 'Exempted')
                     }));
-
                     setESIRecords(mappedRecords);
                     setShowReport(true);
                     toast.success('ESI report generated successfully');
@@ -246,12 +216,10 @@ export default function ESIReportPage() {
                 }
             },
             onError: (error: Error) => {
-                console.error('Error searching ESI report:', error);
                 toast.error(error.message || 'Failed to generate ESI report');
             }
         });
     };
-
     const handleCancel = () => {
         setFilters({
             groupType: 'All',
@@ -265,16 +233,13 @@ export default function ESIReportPage() {
         setShowReport(false);
         toast.info('Filters cleared');
     };
-
     const handleExport = () => {
         toast.success('ESI report exported successfully');
     };
-
     const handlePrint = () => {
         window.print();
         toast.success('Print dialog opened');
     };
-
     // Calculate ESI totals
     const esiTotals = useMemo(() => {
         return filteredRecords.reduce(
@@ -294,7 +259,6 @@ export default function ESIReportPage() {
             }
         );
     }, [filteredRecords]);
-
     return (
         <div className='space-y-6'>
             {/* Report Configuration Section */}
@@ -310,7 +274,6 @@ export default function ESIReportPage() {
                 onCancel={handleCancel}
                 isLoading={isLoadingOnload}
             />
-
             {/* Report Results */}
             {showReport && (
                 <div className='space-y-4'>
@@ -334,7 +297,6 @@ export default function ESIReportPage() {
                             </Button>
                         </div>
                     </div>
-
                     {/* ESI Summary Cards */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5'>
                         <Card>
@@ -378,7 +340,6 @@ export default function ESIReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* ESI Status Summary */}
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <Card>
@@ -412,7 +373,6 @@ export default function ESIReportPage() {
                             </CardContent>
                         </Card>
                     </div>
-
                     {/* Data Table */}
                     <DataTable
                         isLoading={isLoadingOnload}

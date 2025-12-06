@@ -1,10 +1,8 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye, Trash2 } from 'lucide-react';
-
 export interface CandidateInterviewListItem {
     id: number;
     candidateName: string;
@@ -15,7 +13,6 @@ export interface CandidateInterviewListItem {
     interviewVenue: string;
     status: string;
 }
-
 export const candidateInterviewListColumns: ColumnDef<CandidateInterviewListItem>[] = [
     {
         id: 'serialNumber',

@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePickerWithYear } from '@/components/ui/date-picker-year';
@@ -15,19 +14,15 @@ import { CalendarIcon, RefreshCw, Save, X } from 'lucide-react';
 import React from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { z } from 'zod';
-
 export type DriverShiftForm = z.infer<typeof masterDriverShiftSchema.addOrUpdate>;
-
 interface DriverShiftFormProps {
     editingShift: DriverShiftForm | null;
     onSubmit: (data: DriverShiftForm) => void;
     onCancel: () => void;
 }
-
 // Mock data - replace with actual data source
 const shiftOptions = ['Morning Shift', 'Afternoon Shift', 'Evening Shift', 'Night Shift', 'Ghoshala Shift'];
 const driverOptions = ['Arun A', 'Arun R', 'Ashok R', 'Driver 1', 'Driver 2', 'Driver 3'];
-
 export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShiftFormProps) {
     const {
         register,
@@ -60,9 +55,7 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                   sundayWorking: false
               }
     });
-
     const fromDate = watch('fromDate');
-
     // Update form when editingShift changes
     React.useEffect(() => {
         if (editingShift) {
@@ -87,11 +80,9 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
             });
         }
     }, [editingShift, reset]);
-
     const handleFormSubmit: SubmitHandler<DriverShiftForm> = (data) => {
         onSubmit(data);
     };
-
     return (
         <form onSubmit={handleSubmit(handleFormSubmit)} className='space-y-6'>
             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -115,7 +106,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                         </Select>
                         {errors.shift && <FormError>{errors.shift.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='fromDate'>
                             From Date <span className='text-red-500'>*</span>
@@ -127,7 +117,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                                 const selectedDate = field.value ? new Date(field.value) : undefined;
                                 const minDate = new Date();
                                 minDate.setHours(0, 0, 0, 0);
-
                                 return (
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -163,7 +152,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                         />
                         {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='remarks'>
                             Remarks <span className='text-red-500'>*</span>
@@ -177,7 +165,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                         />
                     </div>
                 </div>
-
                 {/* Right Column */}
                 <div className='space-y-6'>
                     <div className='space-y-2'>
@@ -198,7 +185,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                         </Select>
                         {errors.driver && <FormError>{errors.driver.message}</FormError>}
                     </div>
-
                     <div className='space-y-2'>
                         <label className='font-medium text-sm' htmlFor='toDate'>
                             To Date <span className='text-red-500'>*</span>
@@ -210,7 +196,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                                 const selectedDate = field.value ? new Date(field.value) : undefined;
                                 const minDate = fromDate ? new Date(fromDate) : new Date();
                                 minDate.setHours(0, 0, 0, 0);
-
                                 return (
                                     <Popover>
                                         <PopoverTrigger asChild>
@@ -246,7 +231,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                         />
                         {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                     </div>
-
                     <div className='space-y-4'>
                         <div className='flex items-center gap-2'>
                             <Checkbox
@@ -258,7 +242,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                                 Saturday Off Flag
                             </label>
                         </div>
-
                         <div className='flex items-center gap-2'>
                             <Checkbox
                                 id='sundayWorking'
@@ -272,7 +255,6 @@ export function DriverShiftForm({ editingShift, onSubmit, onCancel }: DriverShif
                     </div>
                 </div>
             </div>
-
             {/* Action Buttons */}
             <div className='flex justify-end gap-4 border-t pt-6'>
                 <Button type='button' variant='outline' onClick={onCancel}>

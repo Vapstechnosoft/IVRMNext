@@ -1,11 +1,9 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { cn } from '@/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
-
 // Leave Approval Row
 export interface LeaveApprovalRow {
     id?: string | number;
@@ -19,12 +17,10 @@ export interface LeaveApprovalRow {
     leaveStatus: 'Applied' | 'Approved' | 'Rejected' | 'Pending';
     remark?: string;
 }
-
 interface LeaveApprovalColumnsProps {
     onApprove: (row: LeaveApprovalRow) => void;
     onReject: (row: LeaveApprovalRow) => void;
 }
-
 export const getLeaveApprovalColumns = ({ onApprove, onReject }: LeaveApprovalColumnsProps): ColumnDef<LeaveApprovalRow>[] => [
     {
         accessorKey: 'slNo',

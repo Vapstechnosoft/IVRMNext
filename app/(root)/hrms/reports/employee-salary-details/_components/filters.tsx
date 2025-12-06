@@ -1,17 +1,14 @@
 'use client';
-
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEffect, useState } from 'react';
-
 interface EmployeeSalaryDetailsFiltersProps {
     selectedFinancialYear: string;
     searchTerm: string;
     onFinancialYearChange: (year: string) => void;
     onSearchTermChange: (term: string) => void;
 }
-
 export function EmployeeSalaryDetailsFilters({
     selectedFinancialYear,
     searchTerm,
@@ -19,11 +16,9 @@ export function EmployeeSalaryDetailsFilters({
     onSearchTermChange
 }: EmployeeSalaryDetailsFiltersProps) {
     const [currentYear, setCurrentYear] = useState<number | null>(null);
-
     useEffect(() => {
         setCurrentYear(new Date().getFullYear());
     }, []);
-
     return (
         <>
             {/* Salary Details Section */}
@@ -55,7 +50,6 @@ export function EmployeeSalaryDetailsFilters({
                     </div>
                 </div>
             </CollapsibleSection>
-
             {/* Monthwise Salary Details Section */}
             <CollapsibleSection
                 defaultOpen={true}
