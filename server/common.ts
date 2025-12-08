@@ -312,6 +312,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/attendance-absent-sms',
                                             title: 'Admission Register Report',
                                             description: 'Admission Register Report '
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Student Search',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-search',
+                                            title: 'Student Search',
+                                            description: 'Student Search'
                                         }
                                     ]
                                 }

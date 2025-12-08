@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { TotalStrengthSchema } from '@/schemas/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Square } from 'lucide-react';
-import { Fragment, useState } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
@@ -50,11 +50,12 @@ export default function TotalStrengthPage() {
     const [searchParams, setSearchParams] = useState<any>(null);
     const [selectAll, setSelectAll] = useState(false);
 
-    useStudentCountReport(searchParams);
+    const { data: response, isLoading, error } = useStudentCountReport(searchParams);
 
     const {
         control,
         watch,
+        setValue,
         reset,
         trigger,
         formState: { errors }
@@ -168,7 +169,10 @@ export default function TotalStrengthPage() {
                                             name='reportType'
                                             control={control}
                                             render={({ field }) => (
-                                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex space-x-6'>
+                                                <RadioGroup
+                                                    value={field.value}
+                                                    onValueChange={field.onChange}
+                                                    className='flex items-center justify-center space-x-6'>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='All' id='all-type' />
                                                         <label htmlFor='all-type' className='cursor-pointer text-sm'>
@@ -191,7 +195,10 @@ export default function TotalStrengthPage() {
                                             name='status'
                                             control={control}
                                             render={({ field }) => (
-                                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex space-x-6'>
+                                                <RadioGroup
+                                                    value={field.value}
+                                                    onValueChange={field.onChange}
+                                                    className='flex items-center justify-center space-x-6'>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='Present' id='present' />
                                                         <label htmlFor='present' className='cursor-pointer text-sm'>
@@ -219,7 +226,7 @@ export default function TotalStrengthPage() {
                                     {/* Row 3: Checkboxes */}
                                     {showCheckboxes && (
                                         <div className='space-y-2'>
-                                            <div className='flex space-x-6'>
+                                            <div className='flex items-center justify-center space-x-6'>
                                                 <Controller
                                                     name='withTc'
                                                     control={control}
@@ -417,7 +424,7 @@ export default function TotalStrengthPage() {
                                         </thead>
                                         <tbody>
                                             {CLASS_OPTIONS.map((className, classIndex) => (
-                                                <Fragment key={className}>
+                                                <>
                                                     {classData[className].map((item, sectionIndex) => (
                                                         <tr key={`${className}-${item.section}`} className='hover:bg-gray-50'>
                                                             <td className='border border-gray-300 px-4 py-2'>
@@ -433,6 +440,7 @@ export default function TotalStrengthPage() {
                                                             </td>
                                                         </tr>
                                                     ))}
+                                                    {/* biome-ignore lint/correctness/useJsxKeyInIterable: <explanation> */}
                                                     <tr className='bg-blue-50 font-semibold'>
                                                         <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
                                                             Total {className}
@@ -444,7 +452,7 @@ export default function TotalStrengthPage() {
                                                             {calculateClassNewAdmissions(className)}
                                                         </td>
                                                     </tr>
-                                                </Fragment>
+                                                </>
                                             ))}
                                             <tr className='bg-green-100 font-bold'>
                                                 <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>

@@ -119,7 +119,7 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
         accessorKey: 'amsT_MobileNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile' />,
         cell: ({ row }) => {
-            const mobile = row.getValue('amsT_MobileNo');
+            const mobile: string | undefined = row.getValue('amsT_MobileNo');
             return <div>{mobile || 'N/A'}</div>;
         },
         enableSorting: true,
@@ -129,7 +129,7 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
         accessorKey: 'amsT_emailId',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Email' />,
         cell: ({ row }) => {
-            const email = row.getValue('amsT_emailId');
+            const email: string | undefined = row.getValue('amsT_emailId');
             return <div>{email || 'N/A'}</div>;
         },
         enableSorting: true,

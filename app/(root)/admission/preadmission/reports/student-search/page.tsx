@@ -346,7 +346,7 @@ export default function StudentSearchPage() {
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <div className='p-4'>
-                            <GenericDataTable data={tableData} columns={studentSearchColumns} />
+                            <GenericDataTable data={tableData} isLoading={!showReport} columns={studentSearchColumns} />
                         </div>
                     </CollapsibleSection>
                 )}
