@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { List } from 'lucide-react';
+import { GitCompareArrows, List } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -677,11 +677,9 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                         <Button type='button' variant='ghost' onClick={() => onClose(subject.ISMS_Id)}>
                             Cancel
                         </Button>
-                        <Button type='button' variant='secondary' onClick={handleSetOrder}>
-                            <div className='flex items-center'>
-                                <List className='mr-2 h-4 w-4' />
-                                Set Order
-                            </div>
+                        <Button type='button' onClick={handleSetOrder} className='w-fit transition-all duration-200 hover:scale-90'>
+                            <GitCompareArrows className='h-4 w-4 transition-transform duration-200 group-hover:rotate-90' />
+                            Set Order
                         </Button>
                         <Button type='button' className='w-fit' onClick={handleSave}>
                             Save & Close

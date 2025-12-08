@@ -92,7 +92,7 @@ export const masterExamPaperSchema = {
         user_id: z.number().optional(),
         empatY_PaperTypeName: createCustomStringSchema('Paper Type Name', 1, 100),
         empatY_Color: createCustomStringSchema('Color', 1, 50),
-        empatY_PaperTypeDescription: createStringSchema('Paper Type Description', 1, 200)
+        empatY_PaperTypeDescription: createCustomStringSchema('Paper Type Description', 1, 200)
     }),
 
     delete: z.object({
@@ -134,23 +134,36 @@ export const gradeDetailsSchema = z
         emgR_Id: z.number().default(0),
         emgD_Name: createCustomStringSchema('Grade Name', 1, 100),
         emgD_From: z.preprocess(
-            (val) => (val === '' || val === undefined ? 0 : Number(val)),
-            z.number().min(0, { message: 'From must be at least 0' }).max(100, { message: 'From cannot exceed 100' })
+            (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
+            z
+                .number()
+                .min(0, { message: 'From must be at least 0' })
+                .max(100, { message: 'From cannot exceed 100' })
+                .nullable()
+                .default(null)
         ),
         emgD_To: z.preprocess(
-            (val) => (val === '' || val === undefined ? 0 : Number(val)),
-            z.number().min(0, { message: 'To must be at least 0' }).max(100, { message: 'To cannot exceed 100' })
+            (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
+            z.number().min(0, { message: 'To must be at least 0' }).max(100, { message: 'To cannot exceed 100' }).nullable().default(null)
         ),
-        emgD_GradePoints: z.preprocess((val) => (val === '' || val === undefined ? 0 : Number(val)), z.number().min(0).max(10)),
+        emgD_GradePoints: z.preprocess(
+            (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
+            z
+                .number()
+                .min(0, { message: 'Grade points must be at least 0' })
+                .max(10, { message: 'Grade points cannot exceed 10' })
+                .nullable()
+                .default(null)
+        ),
         emgD_Remarks: z.string().optional(),
         emgD_ActiveFlag: z.boolean().default(true)
     })
-    // ✅ Add mutual validation between From and To
-    .refine((data) => data.emgD_From <= data.emgD_To, {
+    // ✅ Add mutual validation between From and To (only when both are not null)
+    .refine((data) => data.emgD_From === null || data.emgD_To === null || data.emgD_From <= data.emgD_To, {
         path: ['emgD_From'],
         message: "'From' value cannot be greater than 'To' value"
     })
-    .refine((data) => data.emgD_To >= data.emgD_From, {
+    .refine((data) => data.emgD_From === null || data.emgD_To === null || data.emgD_To >= data.emgD_From, {
         path: ['emgD_To'],
         message: "'To' value cannot be less than 'From' value"
     });
@@ -185,66 +198,50 @@ export const masterSubjectGroupSchema = {
             mI_Id: z.number().optional(),
             emG_GroupName: createCustomStringSchema('Subject Group Name', 1, 100),
 
-            emG_TotSubjects: z
-                .number({ required_error: 'Total Subjects is required' })
-                .min(1, { message: 'Total Subjects must be at least 1' }),
+            emG_TotSubjects: z.number({ required_error: 'Total Subjects is required' }).min(1, 'Total Subjects must be at least 1'),
 
             emG_MaxAplSubjects: z
                 .number({ required_error: 'Max Applicable Subjects is required' })
-                .min(1, { message: 'Max Applicable Subjects must be at least 1' }),
+                .min(1, 'Max Applicable Subjects must be at least 1'),
 
             emG_MinAplSubjects: z
                 .number({ required_error: 'Min Applicable Subjects is required' })
-                .min(1, { message: 'Min Applicable Subjects must be at least 1' }),
+                .min(1, 'Min Applicable Subjects must be at least 1'),
 
-            emG_BestOff: z
-                .number({ required_error: 'Best Off Subjects is required' })
-                .min(0, { message: 'Best Off Subjects must be 0 or greater' }),
+            emG_BestOff: z.number({ required_error: 'Best Off Subjects is required' }).min(0, 'Best Off Subjects must be 0 or greater'),
 
             subject_list: z.array(subjectGroupDetailSchema).optional()
         })
-        .superRefine((d, ctx) => {
-            const { emG_TotSubjects, emG_MaxAplSubjects, emG_MinAplSubjects, emG_BestOff } = d;
-
-            // RULE 1: Max <= Total
-            if (emG_MaxAplSubjects > emG_TotSubjects) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ['emG_MaxAplSubjects'],
-                    message: `Max Applicable Subjects must be less than or equal to Total Subjects [${emG_TotSubjects}]`
-                });
-            }
-
-            // RULE 2: Min <= Max
-            if (emG_MinAplSubjects > emG_MaxAplSubjects) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ['emG_MinAplSubjects'],
-                    message: `Min Applicable Subjects must be less than or equal to Max Applicable Subjects [${emG_MaxAplSubjects}]`
-                });
-            }
-
-            // RULE 3: BestOff > Max → ERROR
-            if (emG_BestOff > emG_MaxAplSubjects) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ['emG_BestOff'],
-                    message: `U can't set Best Off Subjects More Than Max. Applicable Subjects [${emG_MaxAplSubjects}]`
-                });
-            }
-
-            // RULE 4: BestOff < Min → ERROR
-            if (emG_BestOff < emG_MinAplSubjects) {
-                ctx.addIssue({
-                    code: z.ZodIssueCode.custom,
-                    path: ['emG_BestOff'],
-                    message: `U can't set Best Off Subjects Less Than Min. Applicable Subjects [${emG_MinAplSubjects}]`
-                });
-            }
-        }),
-
+        .refine(
+            (d) => d.emG_MaxAplSubjects <= d.emG_TotSubjects,
+            (d) => ({
+                message: `Max Applicable Subjects must be <= Total Subjects (${d.emG_TotSubjects})`,
+                path: ['emG_MaxAplSubjects']
+            })
+        )
+        .refine(
+            (d) => d.emG_MinAplSubjects <= d.emG_MaxAplSubjects,
+            (d) => ({
+                message: `Min Applicable Subjects must be <= Max Applicable Subjects (${d.emG_MaxAplSubjects})`,
+                path: ['emG_MinAplSubjects']
+            })
+        )
+        .refine(
+            (d) => d.emG_BestOff <= d.emG_MaxAplSubjects,
+            (d) => ({
+                message: `Best Off cannot exceed Max Applicable Subjects (${d.emG_MaxAplSubjects})`,
+                path: ['emG_BestOff']
+            })
+        )
+        .refine(
+            (d) => d.emG_BestOff >= d.emG_MinAplSubjects,
+            (d) => ({
+                message: `Best Off must be >= Min Applicable Subjects (${d.emG_MinAplSubjects})`,
+                path: ['emG_BestOff']
+            })
+        ),
     delete: z.object({
-        emG_Id: z.number({ required_error: 'emG_Id is required' })
+        emG_Id: z.number({ required_error: 'Exam Group Id is required' })
     })
 };
 
@@ -339,10 +336,7 @@ export const lifeSkillAreaSchema = {
                     ecsA_SkillOrder: z
                         .number({ invalid_type_error: 'Skill Order must be a number' })
                         .min(1, { message: 'Skill Order is required' }),
-                    ecsA_SkillArea: z
-                        .string()
-                        .min(1, { message: 'Skill Area is required' })
-                        .max(100, { message: 'Skill Area must be less than 100 characters' })
+                    ecsA_SkillArea: createCustomStringSchema('Life Skill Area Name', 1, 100)
                 })
             )
             .min(1, { message: 'At least one skill area is required' }),

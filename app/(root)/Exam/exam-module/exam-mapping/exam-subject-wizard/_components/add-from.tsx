@@ -481,6 +481,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             setSubSubjectSubExamModalState({ open: true, subject });
             const { data: list } = await getSubSubjectSubExamList(30);
             const safeList = Array.isArray(list) ? list : [];
+            console.log('safeList', safeList);
 
             // Use existing config instead of mapped API call
             const safeConfigList = Array.isArray(subject.subSubjectSubExamConfig) ? subject.subSubjectSubExamConfig : [];

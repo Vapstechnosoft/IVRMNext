@@ -9,7 +9,7 @@ import { masterGradeSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterGrade } from '@/server/exam/exam-module/masters/grade';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -40,9 +40,9 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                     emgD_Id: 0,
                     emgR_Id: 0,
                     emgD_Name: '',
-                    emgD_From: 0,
-                    emgD_To: 0,
-                    emgD_GradePoints: 0,
+                    emgD_From: null,
+                    emgD_To: null,
+                    emgD_GradePoints: null,
                     emgD_Remarks: '',
                     emgD_ActiveFlag: true
                 }
@@ -92,6 +92,18 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
             toast.error(error.message || 'Failed to save');
         }
     };
+    const tableRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (fields.length > 0 || isDetailsOpen) {
+            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            setTimeout(scrollToBottom, 50);
+        }
+    }, [fields.length, isDetailsOpen]);
+    const scrollToBottom = () => {
+        if (tableRef.current) {
+            tableRef.current.scrollTop = tableRef.current.scrollHeight;
+        }
+    };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
@@ -125,7 +137,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
             {/* Grade Details */}
             {isDetailsOpen && (
                 <CollapsibleSection title='Grade Details' defaultOpen>
-                    <div className='overflow-x-auto'>
+                    <div className='overflow-x-auto' ref={tableRef}>
                         <table className='w-full border border-gray-200'>
                             <thead className='bg-gray-100'>
                                 <tr>
@@ -142,33 +154,54 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                 {fields.map((item, index) => (
                                     <tr key={item.id}>
                                         <td className='border text-center'>{index + 1}</td>
+
+                                        {/* Grade Name */}
                                         <td className='border'>
                                             <InputText
                                                 {...register(`grade_list.${index}.emgD_Name` as const)}
+                                                placeholder="Enter grade name"
                                                 error={errors.grade_list?.[index]?.emgD_Name?.message}
                                             />
                                         </td>
+
+                                        {/* From Marks */}
                                         <td className='border'>
                                             <InputText
-                                                {...register(`grade_list.${index}.emgD_From` as const, { valueAsNumber: true })}
+                                                {...register(`grade_list.${index}.emgD_From` as const, {
+                                                    setValueAs: v => v === "" ? null : Number(v)
+                                                })}
+                                                placeholder="Enter marks"
                                                 error={errors.grade_list?.[index]?.emgD_From?.message}
                                             />
                                         </td>
+
+                                        {/* To Marks */}
                                         <td className='border'>
                                             <InputText
-                                                {...register(`grade_list.${index}.emgD_To` as const, { valueAsNumber: true })}
+                                                {...register(`grade_list.${index}.emgD_To` as const, {
+                                                    setValueAs: v => v === "" ? null : Number(v)
+                                                })}
+                                                placeholder="Enter marks"
                                                 error={errors.grade_list?.[index]?.emgD_To?.message}
                                             />
                                         </td>
+
+                                        {/* Grade Points */}
                                         <td className='border'>
                                             <InputText
-                                                {...register(`grade_list.${index}.emgD_GradePoints` as const, { valueAsNumber: true })}
+                                                {...register(`grade_list.${index}.emgD_GradePoints` as const, {
+                                                    setValueAs: v => v === "" ? null : Number(v)
+                                                })}
+                                                placeholder="Enter points"
                                                 error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                             />
                                         </td>
+
+                                        {/* Remarks */}
                                         <td className='border'>
                                             <InputText
                                                 {...register(`grade_list.${index}.emgD_Remarks` as const)}
+                                                placeholder="Remarks"
                                                 error={errors.grade_list?.[index]?.emgD_Remarks?.message}
                                             />
                                         </td>
@@ -176,20 +209,34 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                             <Button
                                                 type='button'
                                                 size='sm'
-                                                onClick={() =>
+                                                onClick={() => {
+                                                    const last = watch('grade_list')[index];
+                                                    if (
+                                                        last.emgD_Name.trim() === "" ||
+                                                        last.emgD_From === null ||
+                                                        last.emgD_To === null ||
+                                                        last.emgD_GradePoints === null
+                                                    ) {
+                                                        toast.error("Please fill the current row before adding a new one.");
+                                                        return;
+                                                    }
+
                                                     append({
                                                         emgD_Id: 0,
                                                         emgR_Id: 0,
                                                         emgD_Name: '',
-                                                        emgD_From: 0,
-                                                        emgD_To: 0,
-                                                        emgD_GradePoints: 0,
+                                                        emgD_From: null,
+                                                        emgD_To: null,
+                                                        emgD_GradePoints: null,
                                                         emgD_Remarks: '',
                                                         emgD_ActiveFlag: true
-                                                    })
-                                                }>
+                                                    });
+                                                }}
+                                            >
                                                 <Plus className='h-3 w-3' />
                                             </Button>
+
+                                            {/* Remove row */}
                                             {fields.length > 1 && (
                                                 <Button type='button' size='sm' variant='destructive' onClick={() => remove(index)}>
                                                     <Trash className='h-3 w-3' />
@@ -199,10 +246,11 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                     </tr>
                                 ))}
                             </tbody>
+
                         </table>
                     </div>
 
-                    <div className='flex gap-3 border-t pt-4'>
+                    <div className='w-fit flex gap-3 border-t pt-4'>
                         <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting}>
                             Cancel
                         </Button>
