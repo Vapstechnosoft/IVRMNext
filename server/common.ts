@@ -301,7 +301,7 @@ export async function getUserAccessibleModules() {
                                             id: 6,
                                             name: 'Admission Register Report',
                                             icon: 'Settings',
-                                            url: '/admission/preadmission/reports/admission-register-report',
+                                            url: '/admission/preadmission/reports/admission-register',
                                             title: 'Admission Register Report',
                                             description: 'Admission Register Report '
                                         },
