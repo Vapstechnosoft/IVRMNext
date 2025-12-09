@@ -117,13 +117,17 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     }>({});
     const [summary, setSummary] = useState<any | null>(null);
     const [bankDetails, setBankDetails] = useState<any[]>([]);
-    const [chequeNo, setChequeNo] = useState('');
-    const [amount, setAmount] = useState('');
+    const [chequeNo, setChequeNo] = useState<{
+        [key: number]: string;
+    }>({});
+    const [chequedates, setchepueDates] = useState<Record<number, Date | null>>({});
+    const [amount, setAmount] = useState<{
+        [key: number]: string;
+    }>({});
     const [filterType, setFilterType] = useState('regular');
     const [payType, setPayType] = useState<string>('Bank');
     const [modeType, setModeType] = useState<string>('Single');
     const [checkPayType, setCheckPayType] = useState<string[]>([]);
-    const [dates, setDates] = useState<Record<number, Date | null>>({});
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
 
     const [left, setLeft] = useState(false);
@@ -161,6 +165,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         SetStudentDetails([]);
         SetFeeDetails([]);
         // setFeeHeads([]);
+        setBankDetails(payDetails);
     }, [selectedAsmayId, selectedclassId, selectedSectionId]);
 
     const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(classs);
@@ -255,7 +260,6 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
 
                 setFeeHeads(feeDetails || []);
-                setBankDetails(payDetails);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setFeeHeads([]);
@@ -889,258 +893,295 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 ) : (
                     <Card className='p-4 text-center'>No Results Found</Card>
                 )}
-
-                {/* -------- SUMMARY -------- */}
                 {selectedTerm.length > 0 && (
-                    <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-3'>
-                        <div>
-                            Current Fee: <b>{1000}</b>
-                        </div>
-                        <div>
-                            Concession: <b>{0}</b>
-                        </div>
-                        <div>
-                            Outstanding: <b>{300}</b>
-                        </div>
-                        <div>
-                            Fine: <b>{200}</b>
-                        </div>
-                        <div>
-                            Now Paying: <b>{200}</b>
-                        </div>
-                    </Card>
-                )}
-
-                {selectedTerm.length > 0 && (
-                    <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-3'>
-                        <div>
-                            Total Payable: <b>{2000}</b>
-                        </div>
-                        <div>
-                            Total Concession: <b>{3000}</b>
-                        </div>
-                        <div>
-                            Total Waived off: <b>{40000}</b>
-                        </div>
-                        <div>
-                            Overall Outstanding: <b>{40000}</b>
-                        </div>
-                    </Card>
-                )}
-                {selectedTerm.length > 0 && (
-                    <Card className='p-4'>
-                        <div className='flex items-center gap-6'>
-                            {' '}
-                            <label className='inline-flex cursor-pointer items-center space-x-2'>
-                                <input
-                                    type='radio'
-                                    value='Single'
-                                    className='form-radio h-4 w-4 text-blue-600'
-                                    checked={modeType === 'Single'}
-                                    onChange={(e) => {
-                                        setModeType(e.target.value);
-                                        setDates({});
+                    <div className='flex gap-8'>
+                        <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
+                            <Card className='mb-5 p-4'>
+                                <RadioGroup
+                                    value={modeType}
+                                    onValueChange={(v) => {
+                                        setModeType(v);
+                                        setchepueDates({});
                                     }}
-                                />
-                                <span className='text-gray-900 text-sm'>Single</span>
-                            </label>
-                            <label className='inline-flex cursor-pointer items-center space-x-2'>
-                                <input
-                                    type='radio'
-                                    value='Multiple'
-                                    className='form-radio h-4 w-4 text-gray-600'
-                                    checked={modeType === 'Multiple'}
-                                    onChange={(e) => {
-                                        setModeType(e.target.value);
-                                        setDates({});
-                                    }}
-                                />
-                                <span className='text-gray-900 text-sm'>Multiple</span>
-                            </label>
+                                    className='flex items-center gap-6'>
+                                    <div className='flex cursor-pointer items-center space-x-2'>
+                                        <RadioGroupItem value='Single' id='single' />
+                                        <Label htmlFor='single' className='text-sm'>
+                                            Single
+                                        </Label>
+                                    </div>
+
+                                    <div className='flex cursor-pointer items-center space-x-2'>
+                                        <RadioGroupItem value='Multiple' id='multiple' />
+                                        <Label htmlFor='multiple' className='text-sm'>
+                                            Multiple
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </Card>
+
+                            <Card className='p-4'>
+                                <table className='w-full border text-sm'>
+                                    <thead className='bg-gray-100'>
+                                        <tr>
+                                            <th className='border p-2'> </th>
+                                            <th className='border p-2'>Type</th>
+                                            <th className='border p-2'>Cheque/DD Date</th>
+                                            <th className='border p-2'>Cheque/DD No./Card No</th>
+                                            <th className='border p-2'>Bank Name</th>
+                                            <th className='border p-2'>Amount</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {bankDetails?.map((f) => (
+                                            <tr key={f.fmB_Id}>
+                                                <td className='border p-2'>
+                                                    {modeType === 'Single' && (
+                                                        // <input
+                                                        //     type='radio'
+                                                        //     value={f.bank}
+                                                        //     className='form-radio h-4 w-4 text-gray-600'
+                                                        //     checked={payType === f.bank}
+                                                        //     onChange={(e) => setPayType(e.target.value)}
+                                                        // />
+                                                        <RadioGroup value={payType} onValueChange={setPayType}>
+                                                            <RadioGroupItem value={f.bank} id={f.bank} />
+                                                        </RadioGroup>
+                                                    )}
+                                                    {modeType === 'Multiple' && (
+                                                        <Checkbox
+                                                            checked={checkPayType.includes(f.bank)}
+                                                            onCheckedChange={(value) => {
+                                                                if (value) {
+                                                                    setCheckPayType((prev) => [...prev, f.bank]);
+                                                                } else {
+                                                                    setCheckPayType((prev) => prev.filter((b) => b !== f.bank));
+                                                                }
+                                                            }}
+                                                            aria-label='Select row'
+                                                        />
+                                                    )}
+                                                </td>
+                                                <td className='border p-2 font-semibold'>{f.bank}</td>
+                                                <td className='border p-2'>
+                                                    {payType !== 'Cash' && modeType === 'Single' && (
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <Button
+                                                                    variant='outline'
+                                                                    className='w-full justify-start text-left font-normal'
+                                                                    disabled={payType !== f.bank && modeType === 'Single'}>
+                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                    {chequedates[f.fmB_Id]
+                                                                        ? format(chequedates[f.fmB_Id]!, 'PPP')
+                                                                        : 'Select Date'}
+                                                                </Button>
+                                                            </PopoverTrigger>
+
+                                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                                <Calendar
+                                                                    mode='single'
+                                                                    selected={chequedates[f.fmB_Id] ?? undefined}
+                                                                    onSelect={(date) =>
+                                                                        setchepueDates((prev) => ({
+                                                                            ...prev,
+                                                                            [f.fmB_Id]: date ?? null
+                                                                        }))
+                                                                    }
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    )}
+                                                    {checkPayType.includes(f.bank) && modeType === 'Multiple' && (
+                                                        <Popover>
+                                                            <PopoverTrigger asChild>
+                                                                <Button
+                                                                    variant='outline'
+                                                                    className='w-full justify-start text-left font-normal'>
+                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                    {chequedates[f.fmB_Id]
+                                                                        ? format(chequedates[f.fmB_Id]!, 'PPP')
+                                                                        : 'Select Date'}
+                                                                </Button>
+                                                            </PopoverTrigger>
+
+                                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                                <Calendar
+                                                                    mode='single'
+                                                                    selected={chequedates[f.fmB_Id] ?? undefined}
+                                                                    onSelect={(date) =>
+                                                                        setchepueDates((prev) => ({
+                                                                            ...prev,
+                                                                            [f.fmB_Id]: date ?? null
+                                                                        }))
+                                                                    }
+                                                                />
+                                                            </PopoverContent>
+                                                        </Popover>
+                                                    )}
+                                                </td>
+                                                <td className='border p-2'>
+                                                    {payType !== 'Cash' && modeType === 'Single' && (
+                                                        <input
+                                                            type='number'
+                                                            value={chequeNo[f.fmB_Id]}
+                                                            onChange={(e) => {
+                                                                const v = e.target.value;
+                                                                if (v === '') {
+                                                                    setChequeNo((prev) => ({
+                                                                        ...prev,
+                                                                        [f.fmG_Id]: ''
+                                                                    }));
+                                                                    return;
+                                                                }
+                                                                if (/^\d*\.?\d*$/.test(v)) {
+                                                                    setChequeNo((prev) => ({
+                                                                        ...prev,
+                                                                        [f.fmG_Id]: v
+                                                                    }));
+                                                                }
+                                                            }}
+                                                            className='w-full rounded border px-2 py-1 text-sm'
+                                                            disabled={payType !== f.bank}
+                                                        />
+                                                    )}
+                                                    {checkPayType.includes(f.bank) && modeType === 'Multiple' && (
+                                                        <input
+                                                            type='number'
+                                                            value={chequeNo[f.fmB_Id]}
+                                                            onChange={(e) => {
+                                                                const v = e.target.value;
+                                                                if (v === '') {
+                                                                    setChequeNo((prev) => ({
+                                                                        ...prev,
+                                                                        [f.fmG_Id]: ''
+                                                                    }));
+                                                                    return;
+                                                                }
+                                                                if (/^\d*\.?\d*$/.test(v)) {
+                                                                    setChequeNo((prev) => ({
+                                                                        ...prev,
+                                                                        [f.fmG_Id]: v
+                                                                    }));
+                                                                }
+                                                            }}
+                                                            className='w-full rounded border px-2 py-1 text-sm'
+                                                            // disabled={payType !== f.bank}
+                                                        />
+                                                    )}
+                                                </td>
+
+                                                <td className='border p-2'>
+                                                    {payType !== 'Cash' && modeType === 'Single' && (
+                                                        <Select
+                                                            value={selectedBanks[f.fmB_Id] || ''} // get value for this row
+                                                            onValueChange={(val) =>
+                                                                setSelectedBanks((prev) => ({
+                                                                    ...prev,
+                                                                    [f.fmB_Id]: val // update only this row
+                                                                }))
+                                                            }>
+                                                            <SelectTrigger className='w-full'>
+                                                                <SelectValue placeholder='Select Bank' />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value='sbi'>State Bank Of India</SelectItem>
+                                                                <SelectItem value='canara'>Canara Bank</SelectItem>
+                                                                <SelectItem value='ka'>Karnataka Bank</SelectItem>
+                                                                <SelectItem value='hdfc'>HDFC</SelectItem>
+                                                                <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                    {modeType === 'Multiple' && (
+                                                        <Select
+                                                            value={selectedBanks[f.fmB_Id] || ''} // get value for this row
+                                                            onValueChange={(val) =>
+                                                                setSelectedBanks((prev) => ({
+                                                                    ...prev,
+                                                                    [f.fmB_Id]: val // update only this row
+                                                                }))
+                                                            }>
+                                                            <SelectTrigger className='w-full'>
+                                                                <SelectValue placeholder='Select Bank' />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value='sbi'>State Bank Of India</SelectItem>
+                                                                <SelectItem value='canara'>Canara Bank</SelectItem>
+                                                                <SelectItem value='ka'>Karnataka Bank</SelectItem>
+                                                                <SelectItem value='hdfc'>HDFC</SelectItem>
+                                                                <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                </td>
+                                                <td className='border p-2'>
+                                                    <input
+                                                        type='number'
+                                                        value={amount[f.fmB_Id]}
+                                                        onChange={(e) => {
+                                                            const v = e.target.value;
+                                                            if (v === '') {
+                                                                setAmount((prev) => ({
+                                                                    ...prev,
+                                                                    [f.fmG_Id]: ''
+                                                                }));
+                                                                return;
+                                                            }
+                                                            if (/^\d*\.?\d*$/.test(v)) {
+                                                                setAmount((prev) => ({
+                                                                    ...prev,
+                                                                    [f.fmG_Id]: v
+                                                                }));
+                                                            }
+                                                        }}
+                                                        className='w-full rounded border px-2 py-1 text-sm'
+                                                    />
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </Card>
                         </div>
-                    </Card>
-                )}
-                {selectedTerm.length > 0 && (
-                    <Card className='p-4'>
-                        <table className='w-full border text-sm'>
-                            <thead className='bg-gray-100'>
-                                <tr>
-                                    <th className='border p-2'> </th>
-                                    <th className='border p-2'>Type</th>
-                                    <th className='border p-2'>Cheque/DD Date</th>
-                                    <th className='border p-2'>Cheque/DD No./Card No</th>
-                                    <th className='border p-2'>Bank Name</th>
-                                    <th className='border p-2'>Amount</th>
-                                </tr>
-                            </thead>
+                        <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
+                            <Card className='mb-5 grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-2'>
+                                <div>
+                                    Current Fee: <b>{1000}</b>
+                                </div>
+                                <div>
+                                    Concession: <b>{0}</b>
+                                </div>
+                                <div>
+                                    Outstanding: <b>{300}</b>
+                                </div>
+                                <div>
+                                    Fine: <b>{200}</b>
+                                </div>
+                                <div>
+                                    Now Paying: <b>{200}</b>
+                                </div>
+                            </Card>
 
-                            <tbody>
-                                {bankDetails?.map((f) => (
-                                    <tr key={f.fmB_Id}>
-                                        <td className='border p-2'>
-                                            {modeType === 'Single' && (
-                                                <input
-                                                    type='radio'
-                                                    value={f.bank}
-                                                    className='form-radio h-4 w-4 text-gray-600'
-                                                    checked={payType === f.bank}
-                                                    onChange={(e) => setPayType(e.target.value)}
-                                                />
-                                            )}
-                                            {modeType === 'Multiple' && (
-                                                <Checkbox
-                                                    checked={checkPayType.includes(f.bank)}
-                                                    onCheckedChange={(value) => {
-                                                        if (value) {
-                                                            setCheckPayType((prev) => [...prev, f.bank]);
-                                                        } else {
-                                                            setCheckPayType((prev) => prev.filter((b) => b !== f.bank));
-                                                        }
-                                                    }}
-                                                    aria-label='Select row'
-                                                />
-                                            )}
-                                        </td>
-                                        <td className='border p-2 font-semibold'>{f.bank}</td>
-                                        <td className='border p-2'>
-                                            {payType !== 'Cash' && modeType === 'Single' && (
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button
-                                                            variant='outline'
-                                                            className='w-full justify-start text-left font-normal'
-                                                            disabled={payType !== f.bank && modeType === 'Single'}>
-                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                            {dates[f.fmB_Id] ? format(dates[f.fmB_Id]!, 'PPP') : 'Select Date'}
-                                                        </Button>
-                                                    </PopoverTrigger>
-
-                                                    <PopoverContent className='w-auto p-0' align='start'>
-                                                        <Calendar
-                                                            mode='single'
-                                                            selected={dates[f.fmB_Id] ?? undefined}
-                                                            onSelect={(date) =>
-                                                                setDates((prev) => ({
-                                                                    ...prev,
-                                                                    [f.fmB_Id]: date ?? null
-                                                                }))
-                                                            }
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            )}
-                                            {checkPayType.includes(f.bank) && modeType === 'Multiple' && (
-                                                <Popover>
-                                                    <PopoverTrigger asChild>
-                                                        <Button variant='outline' className='w-full justify-start text-left font-normal'>
-                                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                                            {dates[f.fmB_Id] ? format(dates[f.fmB_Id]!, 'PPP') : 'Select Date'}
-                                                        </Button>
-                                                    </PopoverTrigger>
-
-                                                    <PopoverContent className='w-auto p-0' align='start'>
-                                                        <Calendar
-                                                            mode='single'
-                                                            selected={dates[f.fmB_Id] ?? undefined}
-                                                            onSelect={(date) =>
-                                                                setDates((prev) => ({
-                                                                    ...prev,
-                                                                    [f.fmB_Id]: date ?? null
-                                                                }))
-                                                            }
-                                                        />
-                                                    </PopoverContent>
-                                                </Popover>
-                                            )}
-                                        </td>
-                                        <td className='border p-2'>
-                                            {payType !== 'Cash' && modeType === 'Single' && (
-                                                <input
-                                                    type='number'
-                                                    value={chequeNo}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setChequeNo('');
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setChequeNo(v);
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 text-sm'
-                                                    disabled={payType !== f.bank}
-                                                />
-                                            )}
-                                            {checkPayType.includes(f.bank) && modeType === 'Multiple' && (
-                                                <input
-                                                    type='number'
-                                                    value={chequeNo}
-                                                    onChange={(e) => {
-                                                        const v = e.target.value;
-                                                        if (v === '') {
-                                                            setChequeNo('');
-                                                            return;
-                                                        }
-                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                            setChequeNo(v);
-                                                        }
-                                                    }}
-                                                    className='w-full rounded border px-2 py-1 text-sm'
-                                                    // disabled={payType !== f.bank}
-                                                />
-                                            )}
-                                        </td>
-
-                                        <td className='border p-2'>
-                                            {f[0] ? (
-                                                <Select
-                                                    value={selectedBanks[f.fmB_Id] || ''} // get value for this row
-                                                    onValueChange={(val) =>
-                                                        setSelectedBanks((prev) => ({
-                                                            ...prev,
-                                                            [f.fmB_Id]: val // update only this row
-                                                        }))
-                                                    }>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select Bank' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                        <SelectItem value='canara'>Canara Bank</SelectItem>
-                                                        <SelectItem value='ka'>Karnataka Bank</SelectItem>
-                                                        <SelectItem value='hdfc'>HDFC</SelectItem>
-                                                        <SelectItem value='unionBank'>Union Bank</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            ) : null}
-                                        </td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={amount}
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setAmount('');
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setAmount(v);
-                                                    }
-                                                }}
-                                                //  onBlur={handleBlur}
-                                                className='w-full rounded border px-2 py-1 text-sm'
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </Card>
+                            <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-2'>
+                                <div>
+                                    Total Payable: <b>{2000}</b>
+                                </div>
+                                <div>
+                                    Total Concession: <b>{3000}</b>
+                                </div>
+                                <div>
+                                    Total Waived off: <b>{40000}</b>
+                                </div>
+                                <div>
+                                    Overall Outstanding: <b>{40000}</b>
+                                </div>
+                            </Card>
+                        </div>
+                    </div>
                 )}
 
-                {/* -------- ACTION BUTTONS -------- */}
                 <div className='flex justify-end gap-3 border-t pt-4'>
                     <Button type='button' variant='outline' className='flex items-center gap-2' onClick={handleReset}>
                         <RotateCcw className='h-4 w-4' /> Reset
