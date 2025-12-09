@@ -118,7 +118,8 @@ export const masterClassCategorySchema = {
         asmcC_Id: z.number().int({ message: 'ASMCC_ID is required' }).optional(),
         asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
         amC_Id: z.number().int({ message: 'Category is required' }),
-        class_ids: z.array(z.string()).min(1, 'Please select at least one class')
+        category_classes: z.array(z.string()).min(1, 'Please select at least one class'),
+        category_class_sections: z.array(z.string()).min(1, 'Please select at least one class')
     }),
     delete: z.object({
         asmcC_Id: deleteIdSchema('asmcC_Id')

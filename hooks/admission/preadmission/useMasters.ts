@@ -6,10 +6,12 @@ import { getMasterCategory } from '@/server/admission/preadmission/masters/categ
 import { getClassSetOrder, getMasterClass } from '@/server/admission/preadmission/masters/class';
 import {
     getAcademicYearDropdown,
+    getClassCategorySection,
     getMasterCategoryDropdown,
     getMasterClassCategory,
     getMasterClassDropdown,
-    getMasterSectionDropdown
+    getMasterSectionDropdown,
+    getMasterUnmappedClassDropdown
 } from '@/server/admission/preadmission/masters/class_category';
 import { getMasterMonthDropDownList, getMasterSectionHeld } from '@/server/admission/preadmission/masters/class_held';
 import { getEmployeeDrowpDown, getMasterClassTeacher, getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
@@ -460,17 +462,30 @@ export const useMasterMonthDropDownList = () => {
         }
     };
 };
-export const useMasterStudentList = (amst_sol?: string, asmay_id?: number, asmcl_id?: number, asms_id?: number) => {
+export const useMasterStudentList = (
+    amst_sol?: string,
+    asmay_id?: number,
+    asmcl_id?: number,
+    asms_id?: number,
+    searchParams?: ApiSearchparams
+) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ACTIVE_DEACTIVE_STUDENTS, amst_sol ?? {}, asmay_id ?? {}, asmcl_id ?? {}, asms_id ?? {}],
+            queryKey: [
+                ADMISSION_QUERY_KEYS.ACTIVE_DEACTIVE_STUDENTS,
+                amst_sol ?? {},
+                asmay_id ?? {},
+                asmcl_id ?? {},
+                asms_id ?? {},
+                searchParams ?? {}
+            ],
             queryFn: async () => {
                 if (!amst_sol || !asmay_id || asmay_id <= 0 || !asmcl_id || asmcl_id <= 0 || !asms_id || asms_id <= 0) {
                     return { data: [] } as any;
                 }
-                return await getMasterStudentList(amst_sol, asmay_id, asmcl_id, asms_id);
+                return await getMasterStudentList(amst_sol, asmay_id, asmcl_id, asms_id, searchParams);
             },
             enabled: Boolean(amst_sol && asmay_id && asmay_id > 0 && asmcl_id && asmcl_id > 0 && asms_id && asms_id > 0),
             staleTime: 0
@@ -478,6 +493,45 @@ export const useMasterStudentList = (amst_sol?: string, asmay_id?: number, asmcl
         refetchAll: (amst_solArg?: string, year?: number, clazz?: number, section?: number) => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.ACTIVE_DEACTIVE_STUDENTS, amst_solArg ?? {}, year ?? {}, clazz ?? {}, section ?? {}]
+            });
+        }
+    };
+};
+export const useMasterClassCategorySection = (asmcc_id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_CATEGORY_SECTION, asmcc_id ?? {}],
+            queryFn: async () => {
+                if (!asmcc_id || Number(asmcc_id) <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getClassCategorySection(Number(asmcc_id));
+            },
+            enabled: Boolean(asmcc_id && Number(asmcc_id) > 0),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_CATEGORY_SECTION]
+            });
+        }
+    };
+};
+
+export const useMasterUnMappedClassDropdown = (asmaY_Id?: number, amC_Id?: number) => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.MASTER_UNMAPPED_CLASS_DROPDOWN, asmaY_Id, amC_Id],
+            queryFn: async () => getMasterUnmappedClassDropdown(asmaY_Id, amC_Id),
+            staleTime: 0,
+            enabled: !!asmaY_Id && !!amC_Id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.MASTER_UNMAPPED_CLASS_DROPDOWN]
             });
         }
     };

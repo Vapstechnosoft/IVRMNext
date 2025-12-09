@@ -1,20 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Trash2 } from 'lucide-react';
-import { use, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import type { z } from 'zod';
-
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
     useAcademicYearDropdown,
     useMasterClass,
@@ -23,6 +15,14 @@ import {
 } from '@/hooks/admission/preadmission/useMasters';
 import { masterActiveDeactiveStudentSchema } from '@/schemas/admission/preadmission/masters';
 import { ActiveDeactive } from '@/server/admission/preadmission/masters/active_deactive_student';
+import type { ApiSearchparams } from '@/types';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { use, useRef, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
+import { UpdateStudentStatusDialog } from './_components/active-deactive-student-update';
+import { activedeactiveColumns } from './_components/columns';
 
 type FormFields = z.infer<typeof masterActiveDeactiveStudentSchema>;
 
@@ -47,25 +47,19 @@ interface StudentData {
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-const REASON_OPTIONS = [
-    { value: 'Fee Due', label: 'Fee Due' },
-    { value: 'Long Absent', label: 'Long Absent' },
-    { value: 'Medical', label: 'Medical' }
-];
-
 export default function MasterActiveDeactiveStudentPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
+    const tableRef = useRef<any>(null);
 
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [amst_sol, setAmst_sol] = useState<string>('S');
     const [classId, setClassId] = useState<number>(0);
     const [sectionId, setSectionId] = useState<number>(0);
-    const [showTable, setShowTable] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
-    const [selectAll, setSelectAll] = useState(false);
     const [studentData, setStudentData] = useState<Map<number, StudentData>>(new Map());
+    const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
 
@@ -73,10 +67,9 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
     const {
         control,
-        handleSubmit,
         reset,
         setValue,
-        formState: { errors, isSubmitting }
+        formState: { errors }
     } = useForm<FormFields>({
         resolver: zodResolver(masterActiveDeactiveStudentSchema),
         defaultValues: {
@@ -90,20 +83,24 @@ export default function MasterActiveDeactiveStudentPage(props: {
     });
 
     const { data: SectionData, isLoading: SectionLoading, isError: SectionError } = useMasterSectionDropdown();
+    const apiSearchParams: ApiSearchparams | undefined = searchParams
+        ? {
+              page: Number(searchParams.page) || 1,
+              page_size: Number(searchParams.page_size) || 10,
+              sort_column: String(searchParams.sort_column || ''),
+              sort_direction: String(searchParams.sort_direction || 'asc'),
+              search_query: String(searchParams.search_query || ''),
+              search_columns: String(searchParams.search_columns || '')
+          }
+        : undefined;
 
     const {
         data: StudentListData,
         isLoading: StudentListLoading,
         isError: StudentListError
-    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId);
+    } = useMasterStudentList(amst_sol, academicYearId, classId, sectionId, apiSearchParams);
 
-    const students = StudentListData?.data || [];
-
-    useEffect(() => {
-        if (students.length > 0) {
-            setSelectAll(selectedStudents.size === students.length);
-        }
-    }, [selectedStudents, students]);
+    const students = StudentListData?.data;
 
     const handleAcademicYearChange = (value: string) => {
         const numValue = Number(value);
@@ -112,11 +109,9 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
         setClassId(0);
         setSectionId(0);
-        setShowTable(false);
         setValue('asmcL_Id', 0);
         setValue('asmS_Id', 0);
         setSelectedStudents(new Set());
-        setSelectAll(false);
         setStudentData(new Map());
     };
 
@@ -126,10 +121,8 @@ export default function MasterActiveDeactiveStudentPage(props: {
         setValue('asmcL_Id', numValue);
 
         setSectionId(0);
-        setShowTable(false);
         setValue('asmS_Id', 0);
         setSelectedStudents(new Set());
-        setSelectAll(false);
         setStudentData(new Map());
     };
 
@@ -137,171 +130,40 @@ export default function MasterActiveDeactiveStudentPage(props: {
         const numValue = Number(value);
         setSectionId(numValue);
         setValue('asmS_Id', numValue);
-        setShowTable(true);
         setSelectedStudents(new Set());
-        setSelectAll(false);
         setStudentData(new Map());
     };
 
     const handleStatus = (value: string) => {
         setAmst_sol(value);
-        // keep form field in sync so validation and payload use the selected status
         setValue('amsT_SOL', value as any);
     };
 
-    const handleSelectAll = (checked: boolean) => {
-        setSelectAll(checked);
-        if (checked) {
-            const allIds = new Set(students.map((s: Student) => s.student_id));
-            setSelectedStudents(allIds as any);
-            // populate form students array for submission
-            const ids = Array.from(allIds) as number[];
-            const studentsArray = ids.map((id) => {
-                const sd = studentData.get(id) || {
-                    student_id: id,
-                    reason: '',
-                    remark: ''
-                };
-                return {
-                    amsT_Id: id,
-                    reason: sd.reason || '',
-                    remarks: sd.remark || ''
-                };
-            });
-            setValue('students', studentsArray as any);
-        } else {
-            setSelectedStudents(new Set());
-            setStudentData(new Map());
-            setValue('students', [] as any);
-        }
-    };
+    const handleSelectStudent = (selectedRows: Student[]) => {
+        const selectedIds = new Set(selectedRows.map((student) => student.student_id));
 
-    const handleSelectStudent = (student_id: number, checked: boolean) => {
-        setSelectedStudents((prev) => {
-            const newSelected = new Set(prev);
-            if (checked) {
-                newSelected.add(student_id);
-            } else {
-                newSelected.delete(student_id);
-                // Remove student data when unchecked
-                setStudentData((prevData) => {
-                    const newStudentData = new Map(prevData);
-                    newStudentData.delete(student_id);
-                    return newStudentData;
-                });
-            }
+        setSelectedStudents(selectedIds);
 
-            // immediately populate form students array to keep resolver and payload in-sync
-            const ids = Array.from(newSelected) as number[];
-            const studentsArray = ids.map((id) => {
-                const sd = studentData.get(id) || {
-                    student_id: id,
-                    reason: '',
-                    remark: ''
-                };
-                return {
-                    amsT_Id: id,
-                    reason: sd.reason || '',
-                    remarks: sd.remark || ''
-                };
-            });
-            setValue('students', studentsArray as any);
-
-            if (process.env.NODE_ENV === 'development') {
-                console.debug('[ActiveDeactive] selectedStudents size:', newSelected.size);
-            }
-
-            return newSelected;
-        });
-    };
-
-    const handleReasonChange = (student_id: number, reason: string) => {
-        setStudentData((prev) => {
-            const newStudentData = new Map(prev);
-            const existing = newStudentData.get(student_id) || {
-                student_id,
+        // Update form students array
+        const studentsArray = selectedRows.map((student) => {
+            const sd = studentData.get(student.student_id) || {
+                student_id: student.student_id,
                 reason: '',
                 remark: ''
             };
-            newStudentData.set(student_id, { ...existing, reason });
-            return newStudentData;
-        });
-    };
-
-    const handleRemarkChange = (student_id: number, remark: string) => {
-        setStudentData((prev) => {
-            const newStudentData = new Map(prev);
-            const existing = newStudentData.get(student_id) || {
-                student_id,
-                reason: '',
-                remark: ''
+            return {
+                amsT_Id: student.student_id,
+                reason: sd.reason || '',
+                remarks: sd.remark || ''
             };
-            newStudentData.set(student_id, { ...existing, remark });
-            return newStudentData;
         });
+        setValue('students', studentsArray as any);
     };
 
-    const onSubmit = async (data: FormFields) => {
-        if (selectedStudents.size === 0) {
-            toast.error('Please select at least one student ');
-            return;
-        }
-        const invalidStudents = Array.from(selectedStudents).filter((student_id) => {
-            const data = studentData.get(student_id);
-            return !data?.reason || !data?.remark?.trim();
-        });
-
-        if (invalidStudents.length > 0) {
-            toast.error('Please provide reason and remark for all selected students');
-            return;
-        }
-
-        try {
-            const ActiveDeactivestudents = Array.from(selectedStudents).map((student_id) => {
-                const student = students.find((s: Student) => s.student_id === student_id);
-                const data = studentData.get(student_id);
-                return {
-                    amsT_Id: student?.student_id || 0,
-                    reason: data?.reason || '',
-                    remarks: data?.remark || ''
-                };
-            });
-
-            const payload = {
-                amsT_SOL: data.amsT_SOL,
-                asmaY_Id: data.asmaY_Id,
-                asmcL_Id: classId,
-                asmS_Id: sectionId,
-                students: ActiveDeactivestudents
-            };
-
-            const response = await ActiveDeactive(payload);
-            if (response.success) {
-                toast.success(response.message || 'Save Student successfully!');
-                handleReset();
-            } else {
-                toast.error(response.message);
-            }
-        } catch (_error: any) {
-            toast.error('Failed to Save students');
-        }
-    };
-
-    const handleReset = () => {
-        reset({
-            amsT_SOL: 'S' as any,
-            asmaY_Id: 0,
-            asmcL_Id: 0,
-            asmS_Id: 0,
-            students: []
-        });
-        setAcademicYearId(0);
-        setClassId(0);
-        setSectionId(0);
-        setShowTable(false);
-        setSelectedStudents(new Set());
-        setSelectAll(false);
-        setStudentData(new Map());
+    const tableProps = {
+        data: students,
+        enableRowSelection: true,
+        getRowId: (row: Student) => row.student_id.toString()
     };
 
     return (
@@ -450,118 +312,58 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
                     <CollapsibleSection
                         title='Student List'
-                        description='Select students and provide reason and remark for deletion'
+                        description='Select students to activate/deactivate'
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        {selectedStudents.size > 0 && (
+                            <div className='mb-3 flex justify-end'>
+                                <Button onClick={() => setIsUpdateDialogOpen(true)} className='w-fit'>
+                                    Update Selected ({selectedStudents.size})
+                                </Button>
+                            </div>
+                        )}
                         <div className='space-y-4'>
-                            <div className='overflow-x-auto rounded-lg border'>
-                                <table className='w-full'>
-                                    <thead className='border-b bg-gray-50'>
-                                        <tr>
-                                            <th className='p-3 text-left font-semibold'>SI. No</th>
-                                            <th className='w-12 p-3 text-left font-semibold'>
-                                                <Checkbox
-                                                    checked={selectAll}
-                                                    onCheckedChange={handleSelectAll}
-                                                    className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                />
-                                            </th>
-                                            <th className='p-3 text-left font-semibold'>Student Name</th>
-                                            <th className='p-3 text-left font-semibold'>Registration No</th>
-                                            <th className='p-3 text-left font-semibold'>Admission No</th>
-                                            <th className='p-3 text-left font-semibold'>
-                                                Reason <span className='text-red-500'>*</span>
-                                            </th>
-                                            <th className='p-3 text-left font-semibold'>
-                                                Remark <span className='text-red-500'>*</span>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className='divide-y'>
-                                        {students.map((student: Student, index: number) => (
-                                            <tr key={student.student_id} className='hover:bg-gray-50'>
-                                                <td className='p-3'>{index + 1}</td>
-                                                <td className='p-3'>
-                                                    <Checkbox
-                                                        checked={selectedStudents.has(student.student_id)}
-                                                        onCheckedChange={(checked) =>
-                                                            handleSelectStudent(student.student_id, checked as boolean)
-                                                        }
-                                                        className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                    />
-                                                </td>
-                                                <td className='p-3 font-medium'>{student.student_name}</td>
-                                                <td className='p-3'>{student.registration_no}</td>
-                                                <td className='p-3'>{student.admission_no}</td>
-                                                <td className='p-3'>
-                                                    <Select
-                                                        value={studentData.get(student.student_id)?.reason || ''}
-                                                        onValueChange={(value) => handleReasonChange(student.student_id, value)}
-                                                        disabled={!selectedStudents.has(student.student_id)}>
-                                                        <SelectTrigger className='w-[180px]'>
-                                                            <SelectValue placeholder='Select Reason' />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {REASON_OPTIONS.map((option) => (
-                                                                <SelectItem key={option.value} value={option.value}>
-                                                                    {option.label}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </td>
-                                                <td className='p-3'>
-                                                    <Input
-                                                        type='text'
-                                                        placeholder='Enter remark'
-                                                        value={studentData.get(student.student_id)?.remark || ''}
-                                                        onChange={(e) => handleRemarkChange(student.student_id, e.target.value)}
-                                                        disabled={!selectedStudents.has(student.student_id)}
-                                                        className='w-[200px]'
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                {StudentListLoading && (
-                                    <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                                        <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
-                                        <p className='text-muted-foreground text-sm'>Loading students...</p>
-                                    </div>
-                                )}
-                                {!StudentListLoading && students.length === 0 && showTable && (
-                                    <div className='flex flex-col items-center justify-center py-12'>
-                                        <p className='text-muted-foreground text-sm'>No students found</p>
-                                    </div>
-                                )}
-                            </div>
+                            <GenericDataTable<Student>
+                                {...tableProps}
+                                ref={tableRef}
+                                columns={activedeactiveColumns}
+                                isLoading={StudentListLoading}
+                                error={StudentListError ? new Error('Failed to load students') : null}
+                                showViewOptions={false}
+                                loadingMessage='Loading students...'
+                                noDataTitle='No Students Found'
+                                noDataDescription='Try adjusting your filters.'
+                                onRowSelectionChange={handleSelectStudent}
+                            />
+                            <UpdateStudentStatusDialog
+                                isOpen={isUpdateDialogOpen}
+                                onClose={() => setIsUpdateDialogOpen(false)}
+                                selectedStudents={Array.from(selectedStudents)
+                                    .map((id) => students.find((s: Student) => s.student_id === id))
+                                    .filter(Boolean)}
+                                amsT_SOL={amst_sol}
+                                asmaY_Id={academicYearId}
+                                asmcL_Id={classId}
+                                asmS_Id={sectionId}
+                                onSubmit={async (updates) => {
+                                    // Your API call here
 
-                            {errors.students && <FormError>{errors.students.message}</FormError>}
-
-                            <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                                <Button
-                                    type='button'
-                                    variant='outline'
-                                    onClick={handleReset}
-                                    disabled={isSubmitting}
-                                    className='w-fit transition-all duration-200 hover:scale-105'>
-                                    Reset
-                                </Button>
-                                <Button
-                                    type='button'
-                                    variant='destructive'
-                                    onClick={handleSubmit(onSubmit)}
-                                    disabled={selectedStudents.size === 0 || isSubmitting}
-                                    className='w-fit transition-all duration-200 hover:scale-105'>
-                                    <div className='flex items-center'>
-                                        <Trash2 className='mr-2 h-4 w-4' />
-                                        {isSubmitting ? 'Save' : 'Save Students'}
-                                    </div>
-                                </Button>
-                            </div>
+                                    try {
+                                        const response = await ActiveDeactive(updates);
+                                        if (response.success) {
+                                            toast.success(response.message || 'Students updated successfully!');
+                                        } else {
+                                            toast.error(response.message || 'Failed to update students');
+                                        }
+                                    } catch (error: any) {
+                                        toast.error(error.message || 'Failed to update students');
+                                    }
+                                    setIsUpdateDialogOpen(false);
+                                    setSelectedStudents(new Set());
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
