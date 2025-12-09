@@ -11,10 +11,10 @@ import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import AddFeeOpeningBalanceForm from './_components/add-form';
-import DeleteOpeningBalanceForm from './_components/delete-form';
 
 import type { IFeeConcessionStudentConcessionGrid } from '@/types/fees/transactions/transactions';
 import { concessionColumns } from './_components/columns';
+import DeleteFeeConcessionForm from './_components/delete-form';
 
 export default function FeeConcessionPage() {
     const searchParams = useSearchParams();
@@ -205,7 +205,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
             )}
 
             {isDeleteFormOpen && selectedRow && (
-                <DeleteOpeningBalanceForm
+                <DeleteFeeConcessionForm
                     rowData={selectedRow}
                     onClose={closeDeleteForm}
                     onSuccess={() => {
