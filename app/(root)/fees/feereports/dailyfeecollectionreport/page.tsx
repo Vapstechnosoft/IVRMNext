@@ -37,10 +37,12 @@ export default function DailyFeeCollectionReportForm() {
         reset,
         register,
         setValue,
+
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(dailyFeeCollectionSchema),
         mode: 'all',
+
         defaultValues: {
             report: 'students',
             rpttyp: 'Individual',
@@ -72,6 +74,9 @@ export default function DailyFeeCollectionReportForm() {
     const enableAllClasses = useWatch({ control, name: 'enableAllClasses' });
     const Fmc_allorcorddorop = useWatch({ control, name: 'Fmc_allorcorddorop' });
     const selectedGroupIds = useWatch({ control, name: 'groupIds' }) || [];
+
+    const [refreshAY, setRefreshAY] = useState(0);
+
     const handleGroupChange = (values: string[]) => {
         const ids = values.map(Number);
         setValue('groupIds', ids, { shouldValidate: true });
@@ -82,20 +87,69 @@ export default function DailyFeeCollectionReportForm() {
     const [groupManualLoading, setGroupManualLoading] = useState(false);
     const [classes, setClasses] = useState<any[]>([]);
 
-    const { data: academicData, error: academicError } = useAcademicYearDropdown();
+    const {
+        data: academicData,
+        error: academicError,
+        isLoading: loadingAcademic,
+        refetch: refetchAcademicYears
+    } = useAcademicYearDropdown();
     const { data: classData, error: classError } = useClassDropdownDropdown();
+
+    // useEffect(() => {
+    //     if (academicError) toast.error('Failed to load academic years');
+    //     if (academicData?.data) {
+    //         setAcademicYears(
+    //             academicData.data.map((i: any) => ({
+    //                 asmaY_Id: i.asmaY_Id,
+    //                 asmaY_Year: i.asmaY_Year
+    //             }))
+    //         );
+    //     }
+    // }, [academicData, academicError]);
+
+    // useEffect(() => {
+    //     if (academicError) toast.error('Failed to load academic years');
+    //     if (academicData?.data) {
+    //         const years = academicData.data.map((i: any) => ({
+    //             asmaY_Id: i.asmaY_Id,
+    //             asmaY_Year: i.asmaY_Year
+    //         }));
+
+    //         setAcademicYears(years);
+
+    //         // ⭐ AUTO-SELECT FIRST YEAR
+    //         if (years.length > 0) {
+    //             const firstYearId = years[0].asmaY_Id;
+    //             setValue('asmaY_Id', firstYearId, { shouldValidate: true });
+
+    //             // ⭐ Trigger loading of groups immediately
+    //             onYearChange(firstYearId);
+    //         }
+    //     }
+    // }, [academicData, academicError]);
 
     useEffect(() => {
         if (academicError) toast.error('Failed to load academic years');
+
         if (academicData?.data) {
-            setAcademicYears(
-                academicData.data.map((i: any) => ({
-                    asmaY_Id: i.asmaY_Id,
-                    asmaY_Year: i.asmaY_Year
-                }))
-            );
+            const years = academicData.data.map((i: any) => ({
+                asmaY_Id: i.asmaY_Id,
+                asmaY_Year: i.asmaY_Year
+            }));
+
+            setAcademicYears(years);
+
+            if (years.length > 0) {
+                const firstYearId = years[0].asmaY_Id;
+
+                // ⭐ ALWAYS PICK FIRST YEAR
+                setValue('asmaY_Id', firstYearId, { shouldValidate: true });
+
+                // ⭐ ALWAYS reload groups for first year
+                onYearChange(firstYearId);
+            }
         }
-    }, [academicData, academicError]);
+    }, [academicData, academicError, refreshAY]);
 
     useEffect(() => {
         if (classError) toast.error('Failed to load Class dropdown');
@@ -112,19 +166,45 @@ export default function DailyFeeCollectionReportForm() {
     // ---------------------------------------
     // LOAD GROUPS WHEN YEAR CHANGES
     // ---------------------------------------
+    // const onYearChange = async (yearId: number) => {
+    //     try {
+    //         setGroupManualLoading(true);
+    //         const res = await getGroupsDropdown(yearId);
+
+    //         setFeeGroups(
+    //             res?.data?.map((i: any) => ({
+    //                 fmG_Id: i.fmG_Id,
+    //                 fmG_GroupName: i.fmG_GroupName
+    //             })) ?? []
+    //         );
+
+    //         setValue('groupIds', []);
+    //     } catch {
+    //         toast.error('Failed to load groups');
+    //     } finally {
+    //         setGroupManualLoading(false);
+    //     }
+    // };
+
     const onYearChange = async (yearId: number) => {
         try {
             setGroupManualLoading(true);
             const res = await getGroupsDropdown(yearId);
 
-            setFeeGroups(
+            const groups =
                 res?.data?.map((i: any) => ({
                     fmG_Id: i.fmG_Id,
                     fmG_GroupName: i.fmG_GroupName
-                })) ?? []
-            );
+                })) ?? [];
 
-            setValue('groupIds', []);
+            setFeeGroups(groups);
+
+            // ⭐ AUTO-SELECT ALL GROUP IDs
+            setValue(
+                'groupIds',
+                groups.map((g) => g.fmG_Id),
+                { shouldValidate: true }
+            );
         } catch {
             toast.error('Failed to load groups');
         } finally {
@@ -165,10 +245,10 @@ export default function DailyFeeCollectionReportForm() {
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setSubmitClicked(true);
 
-        if (isClassRequired && !data.asmcL_Id) {
-            toast.error('Please select Class');
-            return;
-        }
+        // if (isClassRequired && !data.asmcL_Id) {
+        //     toast.error('Please select Class');
+        //     return;
+        // }
 
         // -------------------------------
         // BASE PARAMS (ALWAYS SENT)
@@ -260,7 +340,11 @@ export default function DailyFeeCollectionReportForm() {
                 Paymentwise: false
             };
 
+            console.log('tempParams', tempParams);
+
             const { data: resp } = await getDailyFeeCollectionReport(tempParams);
+
+            console.log('resp', resp);
 
             const list = resp?.data?.list ?? [];
 
@@ -293,7 +377,11 @@ export default function DailyFeeCollectionReportForm() {
         setTableColumns([]);
         setTableRows([]);
         setShowTable(false);
+        refetchAcademicYears();
+        setRefreshAY((n) => n + 1); // ⭐ force re-run useEffect
     };
+
+    const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
 
     // ===================================================
     // MAIN UI
@@ -307,7 +395,7 @@ export default function DailyFeeCollectionReportForm() {
                     <div className='space-y-6'>
                         {/* REPORT TYPE */}
                         <div className='space-y-3 rounded-lg border p-4'>
-                            <Label className='font-semibold'>Report For</Label>
+                            {/* <Label className='font-semibold'>Report For</Label> */}
                             <div className='flex flex-wrap gap-6'>
                                 {['All', 'students', 'staff', 'others'].map((val) => (
                                     <label key={val} className='flex items-center gap-2'>
@@ -320,9 +408,9 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* CATEGORY */}
                         <div className='rounded-lg border p-4'>
-                            <Label className='mb-2 block font-semibold'>
+                            {/* <Label className='mb-2 block font-semibold'>
                                 Report Category <span className='text-red-500'>*</span>
-                            </Label>
+                            </Label> */}
                             <div className='flex gap-6'>
                                 <label className='flex items-center gap-2'>
                                     <input type='radio' value='All' {...register('rpttyp')} />
@@ -337,7 +425,7 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* DATE TYPE */}
                         <div className='space-y-2 rounded-lg border p-4'>
-                            <Label className='font-semibold'>Date Basis</Label>
+                            {/* <Label className='font-semibold'>Date Basis</Label> */}
                             <label className='flex items-center gap-2'>
                                 <input type='radio' value='transdate' {...register('reportdate')} />
                                 <span>Transaction Date</span>
@@ -361,8 +449,44 @@ export default function DailyFeeCollectionReportForm() {
                                     <Label className='w-40 font-medium'>
                                         Academic Year <span className='text-red-500'>*</span>
                                     </Label>
+                                    <Controller
+                                        name='asmaY_Id'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                value={field.value?.toString()}
+                                                onValueChange={(v) => {
+                                                    const num = Number(v);
+                                                    field.onChange(num);
+                                                    onYearChange(num);
+                                                }}>
+                                                <SelectTrigger className='w-full'>
+                                                    <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
+                                                </SelectTrigger>
 
-                                    <div className='flex-1'>
+                                                <SelectContent>
+                                                    <SelectItem value='all'>All</SelectItem>
+                                                    {loadingAcademic ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : academicError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Failed to load years
+                                                        </SelectItem>
+                                                    ) : (
+                                                        academicYears.map((item) => (
+                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                                {item.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+
+                                    {/* <div className='flex-1'>
                                         <Select
                                             value={field.value?.toString()}
                                             onValueChange={(v) => {
@@ -383,7 +507,7 @@ export default function DailyFeeCollectionReportForm() {
                                         </Select>
 
                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div>
+                                    </div> */}
                                 </div>
                             )}
                         />
@@ -416,94 +540,107 @@ export default function DailyFeeCollectionReportForm() {
                         {/* SPECIAL CHECKBOXES */}
                         <div className='space-y-3 text-sm'>
                             <div className='flex items-center gap-2'>
-                                <Checkbox id='acdmyr-1' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                <label htmlFor='acdmyr-1'>Cheque Date</label>
+                                <Checkbox id='acdmyr-1' checked={chequeDate} onCheckedChange={(v) => setValue('chequeDate', !!v)} />
+                                <Label htmlFor='acdmyr-1'>Cheque Date</Label>
                             </div>
 
                             <div className='flex items-center gap-2'>
                                 <Checkbox id='acdmyr-2' checked={acdmyr} onCheckedChange={(v) => setValue('acdmyr', !!v)} />
-                                <label htmlFor='acdmyr-2'>Acd Year Wise Report</label>
+                                <Label htmlFor='acdmyr-2'>Acd Year Wise Report</Label>
                             </div>
 
                             {showHeadPaymentBlock && (
                                 <>
-                                    <label htmlFor='headwise-checkbox' className='flex items-center gap-2'>
+                                    <Label htmlFor='headwise-checkbox' className='flex items-center gap-2'>
                                         <Checkbox
                                             id='headwise-checkbox'
                                             checked={headwise}
                                             onCheckedChange={(v) => setValue('headwise', !!v)}
                                         />
                                         <span>Head Wise Report</span>
-                                    </label>
+                                    </Label>
 
-                                    <label htmlFor='paymentwise-checkbox' className='flex items-center gap-2'>
+                                    <Label htmlFor='paymentwise-checkbox' className='flex items-center gap-2'>
                                         <Checkbox
                                             id='paymentwise-checkbox'
                                             checked={paymentwise}
                                             onCheckedChange={(v) => setValue('paymentwise', !!v)}
                                         />
                                         <span>Payment Mode</span>
-                                    </label>
+                                    </Label>
                                 </>
                             )}
+
+                            {/* ERROR MESSAGE */}
+                            {reportdate === 'transdate' &&
+                                rpttyp === 'All' &&
+                                (report === 'All' || report === 'students') &&
+                                !chequeDate &&
+                                !acdmyr &&
+                                !headwise &&
+                                !paymentwise && <div className='text-red-500 text-sm'>Please select at least one checkbox</div>}
                         </div>
                     </div>
 
                     {/* ================= RIGHT BLOCK ================= */}
                     <div className='space-y-6'>
                         {/* DETAILS FOR */}
-                        {reportdate === 'transdate' && (
+                        {reportdate === 'transdate' && rpttyp === 'Individual' && (
                             <div className='space-y-2 rounded-lg border p-4'>
-                                <Label className='font-semibold'>Details For</Label>
+                                {/* <Label className='font-semibold'>Details For</Label> */}
 
                                 <div className='flex flex-wrap gap-4 text-sm'>
                                     {['All', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode'].map((val) => (
-                                        <label key={val} className='flex items-center gap-2'>
+                                        <Label key={val} className='flex items-center gap-2'>
                                             <input type='radio' value={val} {...register('Fmc_allorsudentorother')} />
                                             <span>
-                                                {val === 'stud'
-                                                    ? 'Student'
-                                                    : val === 'preadm'
-                                                      ? 'Preadmission'
-                                                      : val === 'other'
-                                                        ? 'Others'
-                                                        : val === 'Trpt'
-                                                          ? 'Transport'
-                                                          : val === 'thirdparty'
-                                                            ? 'Third Party'
-                                                            : 'Multiple Payment'}
+                                                {val === 'All'
+                                                    ? 'All'
+                                                    : val === 'stud'
+                                                      ? 'Student'
+                                                      : val === 'preadm'
+                                                        ? 'Preadmission'
+                                                        : val === 'other'
+                                                          ? 'Others'
+                                                          : val === 'Trpt'
+                                                            ? 'Transport'
+                                                            : val === 'thirdparty'
+                                                              ? 'Third Party'
+                                                              : 'Multiple Payment'}
                                             </span>
-                                        </label>
+                                        </Label>
                                     ))}
                                 </div>
                             </div>
                         )}
 
                         {/* PAYMENT MODE */}
-                        {reportdate === 'transdate' && (
+                        {reportdate === 'transdate' && rpttyp === 'Individual' && (
                             <div className='space-y-2 rounded-lg border p-4'>
-                                <Label className='font-semibold'>Payment Mode</Label>
+                                {/* <Label className='font-semibold'>Payment Mode</Label> */}
 
                                 <div className='grid grid-cols-3 gap-3 text-sm'>
                                     {['All', 'C', 'B', 'O', 'Ecs', 'S', 'R', 'BT', 'U'].map((val) => (
                                         <label key={val} className='flex items-center gap-2'>
                                             <input type='radio' value={val} {...register('Fmc_allorcorddorop')} />
                                             <span>
-                                                {val === 'C'
-                                                    ? 'Cash'
-                                                    : val === 'B'
-                                                      ? 'Cheque/DD'
-                                                      : val === 'O'
-                                                        ? 'Online'
-                                                        : val === 'Ecs'
-                                                          ? 'ECS'
-                                                          : val === 'S'
-                                                            ? 'Card'
-                                                            : val === 'R'
-                                                              ? 'RTGS'
-                                                              : val === 'BT'
-                                                                ? 'Bank Transfer'
-                                                                : 'UPI'}
+                                                {val === 'All'
+                                                    ? 'All'
+                                                    : val === 'C'
+                                                      ? 'Cash'
+                                                      : val === 'B'
+                                                        ? 'Cheque/DD'
+                                                        : val === 'O'
+                                                          ? 'Online'
+                                                          : val === 'Ecs'
+                                                            ? 'ECS'
+                                                            : val === 'S'
+                                                              ? 'Card'
+                                                              : val === 'R'
+                                                                ? 'RTGS'
+                                                                : val === 'BT'
+                                                                  ? 'Bank Transfer'
+                                                                  : 'UPI'}
                                             </span>
                                         </label>
                                     ))}
@@ -532,31 +669,47 @@ export default function DailyFeeCollectionReportForm() {
                             </div>
 
                             {/* CLASS */}
-                            <div className='flex items-center gap-4'>
-                                <Label>Class {isClassRequired && <span className='text-red-500'>*</span>}</Label>
 
-                                {/* <label className='flex w-32 items-center gap-2'>
-                                    <Checkbox checked={enableAllClasses} onCheckedChange={(v) => setValue('enableAllClasses', !!v)} />
-                                    <Label>Class {isClassRequired && <span className='text-red-500'>*</span>}</Label>
-                                </label> */}
+                            {rpttyp === 'Individual' && (
+                                <div className='flex items-center gap-4'>
+                                    {/* Checkbox + Label */}
+                                    <Label className='flex w-40 items-center gap-2'>
+                                        <Checkbox
+                                            checked={enableAllClasses}
+                                            onCheckedChange={(checked) => {
+                                                const v = !!checked;
+                                                setValue('enableAllClasses', v);
 
-                                <Select
-                                    disabled={enableAllClasses}
-                                    onValueChange={(v) => setValue('asmcL_Id', Number(v))}
-                                    value={!enableAllClasses ? useWatch({ control, name: 'asmcL_Id' })?.toString() : undefined}>
-                                    <SelectTrigger className='flex-1'>
-                                        <SelectValue placeholder='Select Class' />
-                                    </SelectTrigger>
+                                                // clear value when disabled
+                                                if (!v) {
+                                                    setValue('asmcL_Id', undefined);
+                                                }
+                                            }}
+                                        />
+                                        <span>Class {isClassRequired && <span className='text-red-500'>*</span>}</span>
+                                    </Label>
 
-                                    <SelectContent>
-                                        {classes.map((c) => (
-                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                {c.asmcL_ClassName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                    {/* Dropdown controlled by checkbox */}
+                                    <div className='flex-1'>
+                                        <Select
+                                            disabled={!enableAllClasses} // <-- enable only when checkbox checked
+                                            onValueChange={(v) => setValue('asmcL_Id', Number(v))}
+                                            value={enableAllClasses ? asmcL_Id?.toString() : undefined}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select' />
+                                            </SelectTrigger>
+
+                                            <SelectContent>
+                                                {classes.map((c) => (
+                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                        {c.asmcL_ClassName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
