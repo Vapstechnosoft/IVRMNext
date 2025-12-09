@@ -44,7 +44,7 @@ export const masterCasteCategoryColumns: ColumnDef<IMasterCasteCategoryList>[] =
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterCasteCategoryList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterCasteCategoryList>();
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IMasterCasteCategoryList>();
 
     const handleEdit = useCallback(
         (data: IMasterCasteCategoryList) => {
@@ -60,12 +60,20 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterCasteCategoryList }) {
         [openToggleForm]
     );
 
+    const handleDelete = useCallback(
+        (data: IMasterCasteCategoryList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
+            onDelete={handleDelete}
             toggleConditionKey='fmcC_ActiveFlag'
         />
     );

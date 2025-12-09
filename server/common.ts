@@ -661,6 +661,14 @@ export async function getUserAccessibleModules() {
                                         //     url: '/fees/transactions/feerefundable',
                                         //     title: 'Fee Refundable',
                                         //     description: 'Manage Fee Refundable'
+                                        // },
+                                        // {
+                                        //     id: 511,
+                                        //     name: 'Fee OnlinePayment',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/transactions/feeOnlinePayment',
+                                        //     title: 'Fee OnlinePayment',
+                                        //     description: 'Manage Fee OnlinePayment'
                                         // }
                                         // ,
                                         // {
@@ -679,7 +687,8 @@ export async function getUserAccessibleModules() {
                                         //     url: '/fees/transactions/feeadjustment',
                                         //     title: 'Fee Adjustment',
                                         //     description: 'Manage Fee Adjustment'
-                                        // },
+                                        // }
+                                        //,
                                         //  {
                                         //     id: 507,
                                         //     name: 'Fee Concession',

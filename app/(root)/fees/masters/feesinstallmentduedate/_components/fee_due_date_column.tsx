@@ -183,8 +183,20 @@ function CalendarCell({
             if (selected < fromDate || selected > maxDate) return;
         }
 
+        // selected.setHours(0, 0, 0, 0);
+        // row.original[field] = selected.toISOString();
+        // setDate(selected);
+
         selected.setHours(0, 0, 0, 0);
-        row.original[field] = selected.toISOString();
+
+        const yyyy = selected.getFullYear();
+        const mm = String(selected.getMonth() + 1).padStart(2, '0');
+        const dd = String(selected.getDate()).padStart(2, '0');
+
+        // Save as local date (no timezone shift)
+        const localDate = `${yyyy}-${mm}-${dd}`;
+
+        row.original[field] = localDate;
         setDate(selected);
     };
 

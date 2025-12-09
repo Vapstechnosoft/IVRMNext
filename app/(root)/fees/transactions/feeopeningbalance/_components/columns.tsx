@@ -38,11 +38,18 @@ export const openingBalanceColumns: ColumnDef<OpeningBalanceRow>[] = [
     //         return <div className='font-medium'>{fullName || '—'}</div>;
     //     }
     // },
+    // {
+    //     accessorFn: (row) => [row.amsT_FirstName, row.amsT_MiddleName, row.amsT_LastName].filter(Boolean).join(' '),
+    //     id: 'studentName',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+    //     cell: ({ row }) => row.getValue('studentName')
+    // },
     {
-        accessorFn: (row) => [row.amsT_FirstName, row.amsT_MiddleName, row.amsT_LastName].filter(Boolean).join(' '),
-        id: 'fullName',
+        accessorKey: 'studentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => row.getValue('fullName')
+        cell: ({ row }) => <div>{row.getValue('studentName')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     // {
     //     accessorKey: 'asmcL_ClassName',
@@ -56,11 +63,25 @@ export const openingBalanceColumns: ColumnDef<OpeningBalanceRow>[] = [
     //         );
     //     }
     // },
+    // {
+    //     accessorFn: (row) => `${row.asmcL_ClassName ?? ''}${row.asmC_SectionName ? ' - ' + row.asmC_SectionName : ''}`,
+    //     id: 'classSection',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Class - Section' />,
+    //     cell: ({ row }) => row.getValue('classSection')
+    // },
     {
-        accessorFn: (row) => `${row.asmcL_ClassName ?? ''}${row.asmC_SectionName ? ' - ' + row.asmC_SectionName : ''}`,
-        id: 'classSection',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Class - Section' />,
-        cell: ({ row }) => row.getValue('classSection')
+        accessorKey: 'asmcL_ClassName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' />,
+        cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'asmC_SectionName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Section Name' />,
+        cell: ({ row }) => <div>{row.getValue('asmC_SectionName')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
 
     {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createOptionalStringSchema, createStringOnlySchema, createStringSchema, deleteIdSchema } from '../validationSchemas';
+import { createNumberOnlyStringSchema, createStringOnlySchema, createStringSchema, deleteIdSchema } from '../validationSchemas';
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),
     password: createStringSchema('Password', 6, 50)
@@ -574,8 +574,8 @@ export const feePrivilegeSchema = {
 
 export const masterOnlinePaymentHeadGroupSchema = {
     addOrUpdate: z.object({
-        mI_Id: z.string().min(1, { message: 'Institution is required' }),
-        institutionName: z.string().min(1, { message: 'Institution Name is required' }),
+        mI_Id: z.string().min(1, { message: 'Institution is required' }).optional(),
+        institutionName: z.string().min(1, { message: 'Institution Name is required' }).optional(),
         asmaY_Id: z.number().int({ message: 'Academic Year is required' }).optional(),
         classCategory: z.string().min(1, { message: 'Class is required' }),
         subMerchantId: z.string().min(1, { message: 'Sub Merchant Id is required' }),
@@ -609,11 +609,20 @@ export const masterClassFeeMasterGroupwiseAutoReceipt = {
             useSuffix: z.boolean().optional(),
             prefixValue: z.string().optional(),
             suffixValue: z.string().optional(),
-            startingNumber: z.string().min(1, { message: 'Starting Number is required' }),
+            //startingNumber: z.string().min(1, { message: 'Starting Number is required' }),
+            startingNumber: createNumberOnlyStringSchema('Starting Number', 1, 100),
             groups: z.array(z.string().min(1)).min(1, { message: 'At least one group must be selected' }),
-            autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
+            //autoGroupName: z.string().min(1, { message: 'Auto Group Name is required' }),
+
+            autoGroupName: createStringOnlySchema('Auto Group Name', 1, 100),
             address: z.string().min(1, { message: 'Address is required' }),
-            receiptTemplateFormat: z.string().min(1, { message: 'Receipt Template Format is required' })
+            //receiptTemplateFormat: z.string().min(1, { message: 'Receipt Template Format is required' })
+            receiptTemplateFormat: z
+                .string()
+                .min(1, { message: 'Receipt Template Format is required' })
+                .regex(/<([a-z]+)([^<]+)*(?:>(.*)<\/\1>|\s*\/>)/i, {
+                    message: 'Please enter valid HTML format'
+                })
         })
         .refine(
             (data) => {

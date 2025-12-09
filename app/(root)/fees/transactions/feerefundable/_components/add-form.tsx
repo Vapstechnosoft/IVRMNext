@@ -1,10 +1,10 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -14,21 +14,22 @@ import {
     useopeningacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
 import { cn } from '@/lib/utils';
-import { feeOpeningBalanceSchema } from '@/schemas/fees/trasactions';
+import { feesRefundableSchema } from '@/schemas/fees/trasactions';
 import {
+    addOrUpdateFeeRefundableDetails,
     getFeeRefundableGroupDropdownDetails,
     getFeeRefundableHeadDetails,
     getFeeRefundableStudentDropdownDetails
 } from '@/server/fees/trasactions/fee_refundable';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, CheckSquare, Save, Square } from 'lucide-react';
+import { CheckSquare, Save, Square } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof feeOpeningBalanceSchema.addOrUpdate>;
+type FormFields = z.infer<typeof feesRefundableSchema.addOrUpdate>;
 
 interface StudentRow {
     amst_Id: number;
@@ -60,15 +61,23 @@ export default function AddFeeRefundableForm({
 }) {
     const { refetchAll } = useMasterFeeOpeningBalance();
 
-    const { control, reset, setValue, watch, register } = useForm<FormFields>({
-        resolver: zodResolver(feeOpeningBalanceSchema.addOrUpdate),
+    const {
+        control,
+        reset,
+        setValue,
+        watch,
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(feesRefundableSchema.addOrUpdate),
         defaultValues: {
-            academicYearId: undefined,
-            classId: undefined,
-            sectionId: undefined,
-            headId: undefined,
-            groupId: undefined,
-            installmentId: undefined
+            academicYearId: undefined
+            // classId: undefined,
+            // sectionId: undefined,
+            // headId: undefined,
+            // groupId: undefined,
+            // installmentId: undefined
         }
     });
 
@@ -81,9 +90,7 @@ export default function AddFeeRefundableForm({
     const academicYearId = useWatch({ control, name: 'academicYearId' });
     const classId = useWatch({ control, name: 'classId' });
     const sectionId = useWatch({ control, name: 'sectionId' });
-    const headId = useWatch({ control, name: 'headId' });
-    const groupId = useWatch({ control, name: 'groupId' });
-    const installmentId = useWatch({ control, name: 'installmentId' });
+    //const headId = useWatch({ control, name: 'headId' });
 
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [selectionType, setSelectionType] = useState<'T' | 'G' | 'C'>('T');
@@ -109,6 +116,10 @@ export default function AddFeeRefundableForm({
 
     const [headLoading, setHeadLoading] = useState(false);
     const [headError, setHeadError] = useState('');
+
+    const today = new Date().toISOString().split('T')[0];
+    const [chequeDate, setChequeDate] = useState(today);
+    const [refunddate, setRefundDate] = useState(today);
 
     // Data Hooks
     const { data: academicYearData, isLoading: loadingAcademicYear } = useopeningacademicyerdropdowndatafee();
@@ -248,10 +259,10 @@ export default function AddFeeRefundableForm({
 
     // CRITICAL FIX: Clear dependent fields when refundableType or headId changes
 
-    useEffect(() => {
-        setValue('groupId', undefined);
-        setValue('installmentId', undefined);
-    }, [headId, setValue]);
+    // useEffect(() => {
+    //     setValue('groupId', undefined);
+
+    // }, [headId, setValue]);
 
     // Convert Heads API to { label, id }
     const groupOptions =
@@ -304,7 +315,7 @@ export default function AddFeeRefundableForm({
     const toggleGroup = (id: string) => {
         const updated = fmG_Ids.includes(id) ? fmG_Ids.filter((v) => v !== id) : [...fmG_Ids, id];
 
-        setValue('groups', updated.length ? updated : undefined, { shouldValidate: true });
+        setValue('groups', updated.length ? (updated as [string, ...string[]]) : (undefined as any), { shouldValidate: true });
         setSelectedGroupItems(updated.map((x) => ({ fmG_Id: x })));
     };
 
@@ -315,11 +326,13 @@ export default function AddFeeRefundableForm({
     useEffect(() => {
         const fetchGroupsForStudent = async () => {
             if (!selectedStudentId || !academicYearId || !refundableType) {
-                setValue('groups', undefined);
+                setValue('groups', undefined as any);
                 setSelectedGroupItems([]);
                 setGroupData([]);
                 return;
             }
+
+            console.log('selectedStudentId', selectedStudentId);
 
             try {
                 setLoadingGroups(true); // start loading
@@ -420,12 +433,12 @@ export default function AddFeeRefundableForm({
     // FULL RESET FUNCTION
     const resetAllFormState = useCallback(() => {
         reset({
-            academicYearId: undefined,
-            classId: undefined,
-            sectionId: undefined,
-            headId: undefined,
-            groupId: undefined,
-            installmentId: undefined
+            academicYearId: undefined
+            // classId: undefined,
+            // sectionId: undefined,
+            // headId: undefined,
+            // groupId: undefined,
+            // installmentId: undefined
         });
         setSelectedDate(new Date());
         setRefundableType('Refunable');
@@ -459,21 +472,36 @@ export default function AddFeeRefundableForm({
             try {
                 const res = await getFeeRefundableStudentDropdownDetails(Number(academicYearId), Number(classId), Number(sectionId));
 
+                console.log('res', res);
+
                 if (res?.data && Array.isArray(res.data)) {
                     // const list = res.data.map((s: any) => ({
                     //     value: String(s.amst_Id || s.AMST_Id),
                     //     label: s.studentName
                     // }));
 
-                    const list = res.data.map((s: any) => ({
-                        value:
-                            s.amst_Id !== undefined && s.amst_Id !== null
-                                ? String(s.amst_Id)
-                                : s.AMST_Id !== undefined && s.AMST_Id !== null
-                                  ? String(s.AMST_Id)
-                                  : crypto.randomUUID(), // fallback to UNIQUE value
-                        label: s.studentName || 'Unknown'
-                    }));
+                    // const list = res.data.map((s: any) => ({
+                    //     value:
+                    //         s.amst_Id !== undefined && s.amst_Id !== null
+                    //             ? String(s.amst_Id)
+                    //             : s.AMST_Id !== undefined && s.AMST_Id !== null
+                    //               ? String(s.AMST_Id)
+                    //               : crypto.randomUUID(), // fallback to UNIQUE value
+                    //     label: s.studentName || 'Unknown'
+                    // }));
+
+                    const list = res.data
+                        .map((s: any) => {
+                            const id = s.amsT_Id ?? s.amst_Id ?? s.AMST_Id;
+
+                            if (!id) return null; // skip broken records
+
+                            return {
+                                value: String(id), // always string
+                                label: s.studentName || 'Unknown' // always string
+                            };
+                        })
+                        .filter(Boolean) as { value: string; label: string }[];
 
                     setStudentDropdownList(list);
                 } else {
@@ -490,36 +518,59 @@ export default function AddFeeRefundableForm({
         loadStudentsByClass();
     }, [academicYearId, classId, sectionId, activeType, nameType]);
 
-    const onSubmit = async () => {
+    //const onSubmit = async () => {
+
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         // const selected = students.filter((s) => s.checked);
         // if (selected.length === 0) return toast.error('Please select at least one student');
 
-        setSaving(true);
+        if (!paymentMode) {
+            toast.error('Please select a payment mode (Cash, Bank, or Online)');
+            return;
+        }
+
+        // ---------------------------
+        // 2) HEAD DATA EXISTS
+        // ---------------------------
+        if (!headData || headData.length === 0) {
+            toast.error('No head details available to save.');
+            return;
+        }
+
+        const refundItems = headData
+            .filter((h) => h.Selected) // Only selected rows
+            .map((h) => ({
+                fsS_Id: h.fsS_Id,
+                fR_RefundAmount: Number(h.FR_RefundAmount) || 0,
+                setRefundOverFlag: data.refundableflag === '1'
+            }));
+
+        //setSaving(true);
         try {
-            // const payload = {
-            //     Asmay_Id: Number(academicYearId),
-            //     Fmg_Id: groupId ? Number(groupId) : 0,
-            //     Fmh_Id: Number(headId),
-            //     FillBusRouteStudents: activefee === 'Fee' ? 'fees' : '',
-            //     filterrefund: refundableType,
-            //     FMOB_Entry_Date: format(selectedDate, "yyyy-MM-dd'T'HH:mm:ss"),
-            //     SaveTmpData: selected.map((s) => ({
-            //         Amst_Id: s.amst_Id,
-            //         FMOB_Student_Due: s.fmoB_Student_Due,
-            //         FMOB_Institution_Due: s.fmoB_Institution_Due,
-            //         checkedvalue: true
-            //     })),
-            //     TempHeadList: [{ FTI_Id: installmentId ? Number(installmentId) : 0 }]
-            // };
-            // const res = await addOrUpdateFeeOpeningBalance(payload);
-            // if (res.success || res.returnval) {
-            //     toast.success('Opening balance saved successfully!');
-            //     resetAllFormState();
-            //     refetchAll();
-            //     onSuccess?.();
-            // } else {
-            //     toast.error(res.message || 'Failed to save');
-            // }
+            const payload = {
+                asmaY_Id: Number(academicYearId),
+                amsT_Id: Number(selectedStudentId),
+                FmfR_Date: format(refunddate, "yyyy-MM-dd'T'HH:mm:ss"),
+                fR_RefundNo: data.REF_REC_No,
+                fR_RefundRemarks: narration,
+                fR_BANK_CASH: paymentMode,
+                fR_CheqDate: format(chequeDate, "yyyy-MM-dd'T'HH:mm:ss"),
+                fR_BankName: data.fR_BankName,
+                fR_CheqNo: data.fR_CheqNo,
+                refundItems: refundItems
+            };
+
+            const jsondata = JSON.stringify(payload);
+            console.log('payload in onSubmit', jsondata);
+            const res = await addOrUpdateFeeRefundableDetails(payload);
+            if (res.success || res.returnval) {
+                toast.success(res.message);
+                resetAllFormState();
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(res.message);
+            }
         } catch {
             // toast.error('Error saving data');
         } finally {
@@ -529,321 +580,346 @@ export default function AddFeeRefundableForm({
 
     return (
         <div className={`space-y-6 ${className}`} key={formKey}>
-            {/* Main Form Grid */}
-            <div className='grid gap-8 lg:grid-cols-2'>
-                <div className='space-y-5'>
-                    {/* Academic Year */}
-                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                        <Label className='w-44 text-right sm:w-44'>
-                            Academic Year <span className='text-red-500'>*</span>
-                        </Label>
-                        <div className='w-full sm:w-96'>
-                            <Controller
-                                name='academicYearId'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                        value={field.value?.toString()}
-                                        disabled={loadingAcademicYear}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={loadingAcademicYear ? 'Loading...' : 'Select Academic Year'} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {academicYearData?.data?.map((item: any) => (
-                                                <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                    {item.asmaY_Year}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
-                        </div>
-                    </div>
-
-                    <>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+                {/* Main Form Grid */}
+                <div className='grid gap-8 lg:grid-cols-2'>
+                    <div className='space-y-5'>
+                        {/* Academic Year */}
                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                            <Label className='w-44 text-right'>
-                                Class <span className='text-red-500'>*</span>
+                            <Label className='w-44 text-right sm:w-44'>
+                                Academic Year <span className='text-red-500'>*</span>
                             </Label>
                             <div className='w-full sm:w-96'>
                                 <Controller
-                                    name='classId'
+                                    name='academicYearId'
                                     control={control}
                                     render={({ field }) => (
                                         <Select
                                             onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
                                             value={field.value?.toString()}
-                                            disabled={loadingClasses}>
+                                            disabled={loadingAcademicYear}>
                                             <SelectTrigger>
-                                                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
+                                                <SelectValue placeholder={loadingAcademicYear ? 'Loading...' : 'Select Academic Year'} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {classData?.data?.map((item: any) => (
-                                                    <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
-                                                        {item.asmcL_ClassName}
+                                                {academicYearData?.data?.map((item: any) => (
+                                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                                        {item.asmaY_Year}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
+                                {errors.academicYearId && <FormError>{errors.academicYearId.message}</FormError>}
                             </div>
                         </div>
 
+                        <>
+                            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                <Label className='w-44 text-right'>
+                                    Class <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='w-full sm:w-96'>
+                                    <Controller
+                                        name='classId'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                                value={field.value?.toString()}
+                                                disabled={loadingClasses}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {classData?.data?.map((item: any) => (
+                                                        <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
+                                                            {item.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.classId && <FormError>{errors.classId.message}</FormError>}
+                                </div>
+                            </div>
+
+                            <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                <Label className='w-44 text-right'>
+                                    Section <span className='text-red-500'>*</span>
+                                </Label>
+                                <div className='w-full sm:w-96'>
+                                    <Controller
+                                        name='sectionId'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                // disabled={!classId || loadingSections}
+                                                onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                                value={field.value?.toString()}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder={loadingSections ? 'Loading ...' : 'Select Section'} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {sectionData?.data?.map((item: any) => (
+                                                        <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
+                                                            {item.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                    {errors.sectionId && <FormError>{errors.sectionId.message}</FormError>}
+                                </div>
+                            </div>
+                        </>
+
+                        {/* Refundable / Non-Refundable - FIXED */}
+
+                        {/* Fee Head - FIXED with key */}
                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
                             <Label className='w-44 text-right'>
-                                Section <span className='text-red-500'>*</span>
+                                Student Name <span className='text-red-500'>*</span>
                             </Label>
                             <div className='w-full sm:w-96'>
                                 <Controller
-                                    name='sectionId'
+                                    name='studentWise'
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            disabled={!classId || loadingSections}
-                                            onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
-                                            value={field.value?.toString()}>
+                                            //value={field.value?.toString()}
+                                            value={field.value ?? ''}
+                                            onValueChange={(v) => field.onChange(v)}
+                                            //onValueChange={(v) => field.onChange(Number(v))}
+                                        >
                                             <SelectTrigger>
-                                                <SelectValue placeholder={loadingSections ? 'Loading ...' : 'Select Section'} />
+                                                <SelectValue placeholder='Select Student' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {sectionData?.data?.map((item: any) => (
-                                                    <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                        {item.asmC_SectionName}
+                                                {studentDropdownList.map((item) => (
+                                                    <SelectItem key={item.value} value={item.value}>
+                                                        {item.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
                                     )}
                                 />
+                                {errors.studentWise && <FormError>{errors.studentWise.message}</FormError>}
                             </div>
                         </div>
-                    </>
-
-                    {/* Refundable / Non-Refundable - FIXED */}
-
-                    {/* Fee Head - FIXED with key */}
-                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                        <Label className='w-44 text-right'>
-                            Student Name <span className='text-red-500'>*</span>
-                        </Label>
-                        <div className='w-full sm:w-96'>
-                            <Controller
-                                name='studentWise'
-                                control={control}
-                                render={({ field }) => (
-                                    <Select value={field.value?.toString()} onValueChange={(v) => field.onChange(v)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Student' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {studentDropdownList.map((item) => (
-                                                <SelectItem key={item.value} value={item.value}>
-                                                    {item.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                )}
-                            />
+                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                            <Button onClick={fetchFeeDetails} className='w-96'>
+                                View Fee Details
+                            </Button>
                         </div>
-                    </div>
-                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                        <Button onClick={fetchFeeDetails} className='w-96'>
-                            View Fee Details
-                        </Button>
-                    </div>
 
-                    {showFeeDetailsModal && feeDetails && (
-                        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
-                            <div className='w-[40rem] rounded-lg bg-white p-6 shadow-lg'>
-                                <h2 className='mb-4 font-semibold text-lg'>Fee Details</h2>
-                                <table className='w-full border-collapse border border-gray-300 text-sm'>
-                                    <thead>
-                                        <tr>
-                                            <th className='border border-gray-300 px-2 py-1'>SLNO</th>
-                                            <th className='border border-gray-300 px-2 py-1'>Date</th>
-                                            <th className='border border-gray-300 px-2 py-1'>Receipt No</th>
-                                            <th className='border border-gray-300 px-2 py-1'>Total Paid Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {feeDetails.map((item) => (
-                                            <tr key={item.slno}>
-                                                <td className='border border-gray-300 px-2 py-1 text-center'>{item.slno}</td>
-                                                <td className='border border-gray-300 px-2 py-1 text-center'>{item.date}</td>
-                                                <td className='border border-gray-300 px-2 py-1 text-center'>{item.receiptNo}</td>
-                                                <td className='border border-gray-300 px-2 py-1 text-right'>{item.totalPaidAmount}</td>
+                        {showFeeDetailsModal && feeDetails && (
+                            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50'>
+                                <div className='w-[40rem] rounded-lg bg-white p-6 shadow-lg'>
+                                    <h2 className='mb-4 font-semibold text-lg'>Fee Details</h2>
+                                    <table className='w-full border-collapse border border-gray-300 text-sm'>
+                                        <thead>
+                                            <tr>
+                                                <th className='border border-gray-300 px-2 py-1'>SLNO</th>
+                                                <th className='border border-gray-300 px-2 py-1'>Date</th>
+                                                <th className='border border-gray-300 px-2 py-1'>Receipt No</th>
+                                                <th className='border border-gray-300 px-2 py-1'>Total Paid Amount</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                <div className='mt-4 text-right'>
-                                    <Button variant='outline' onClick={() => setShowFeeDetailsModal(false)}>
-                                        Close
-                                    </Button>
+                                        </thead>
+                                        <tbody>
+                                            {feeDetails.map((item) => (
+                                                <tr key={item.slno}>
+                                                    <td className='border border-gray-300 px-2 py-1 text-center'>{item.slno}</td>
+                                                    <td className='border border-gray-300 px-2 py-1 text-center'>{item.date}</td>
+                                                    <td className='border border-gray-300 px-2 py-1 text-center'>{item.receiptNo}</td>
+                                                    <td className='border border-gray-300 px-2 py-1 text-right'>{item.totalPaidAmount}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                    <div className='mt-4 text-right'>
+                                        <Button variant='outline' onClick={() => setShowFeeDetailsModal(false)}>
+                                            Close
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    <div className='flex flex-wrap items-center gap-4 rounded border p-3'>
-                        {/* Checkbox + Label */}
-                        <label className='flex items-center space-x-2'>
-                            <input
-                                type='checkbox'
-                                checked={instantRefundChecked}
-                                onChange={() => setInstantRefundChecked(!instantRefundChecked)}
-                                className='h-5 w-5'
-                            />
-                            <span className='font-medium text-gray-700'>Instant Refund</span>
-                        </label>
+                        <div className='flex flex-wrap items-center gap-4 rounded border p-3'>
+                            {/* <label className='flex items-center space-x-2'>
+                                <input
+                                    type='checkbox'
+                                    checked={instantRefundChecked}
+                                    onChange={() => setInstantRefundChecked(!instantRefundChecked)}
+                                    className='h-5 w-5'
+                                />
+                                <span className='font-medium text-gray-700'>Instant Refund</span>
+                            </label> */}
 
-                        {/* Info Text */}
-                        <span className='whitespace-nowrap text-gray-600'>For Instant refund Extra charges are applicable</span>
-
-                        {/* View Charges Button */}
-                        <Button onClick={() => setShowChargesModal(true)}>View Charges</Button>
-                    </div>
-
-                    {/* Modal */}
-                    {showChargesModal && (
-                        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4'>
-                            <div className='max-h-[80vh] w-full max-w-2xl overflow-auto rounded-lg bg-white shadow-lg'>
-                                <div className='flex items-center justify-between rounded-t-lg bg-blue-600 px-6 py-3'>
-                                    <h4 className='font-semibold text-lg text-white'>PAYMENT GATE WAY REFUND CHARGES</h4>
-                                    <Button variant='outline' onClick={() => setShowChargesModal(false)}>
-                                        Close
-                                    </Button>
-                                </div>
-
-                                <div className='p-6 text-gray-800'>
-                                    <h4 className='mb-4 ml-14 font-semibold text-xl'>Online Payment Refund Charges as Follows</h4>
-
-                                    <h3 className='mb-3 font-semibold'>1) RazorPay</h3>
-
-                                    <p className='mb-4 pl-4 font-bold'>For less than 1000 Rs Refund charges is Rs 3.</p>
-                                    <p className='mb-4 pl-4 font-bold'>For less than 1000 - 25000 Rs Refund charges is Rs 5.</p>
-                                    <p className='mb-4 pl-4 font-bold'>For greater than 25000 Rs Refund charges is Rs 8.</p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Right Column - UNCHANGED */}
-                <div className='space-y-5'>
-                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                        <Label className='w-40'>
-                            Type <span className='text-red-500'>*</span>
-                        </Label>
-                        <div className='flex flex-wrap gap-6 rounded-lg border bg-white p-3'>
-                            {(['Refunable', 'NonRefunable'] as const).map((val) => {
-                                const displayLabel = val === 'Refunable' ? 'Refundable' : 'Non-Refundable';
-                                return (
-                                    <label key={val} className='flex cursor-pointer items-center gap-3'>
-                                        <input
-                                            type='radio'
-                                            name='refundableType'
-                                            value={val}
-                                            checked={refundableType === val}
-                                            onChange={(e) => {
-                                                const newType = e.target.value as 'Refunable' | 'NonRefunable';
-                                                setRefundableType(newType);
-
-                                                // Clear fee-related fields
-                                                // setValue('headId', undefined);
-                                                // setValue('groupId', undefined);
-                                                //  setValue('installmentId', undefined);
-                                            }}
-                                            className='h-5 w-5 text-blue-600'
-                                        />
-                                        <span className='font-medium text-sm'>{displayLabel}</span>
-                                    </label>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    <div className='group flex items-start gap-3'>
-                        {/* Label */}
-                        <Label aria-label='groups' htmlFor='fmH_Id' className='mt-2 whitespace-nowrap font-medium'>
-                            Fee Group <span className='ml-1 text-red-500'>*</span>
-                        </Label>
-
-                        {/* Selection & Search */}
-                        <div className='flex-1 rounded-md border border-gray-300 bg-white p-3'>
-                            <InputText
-                                placeholder='Search Fee Group...'
-                                value={groupSearch}
-                                onChange={(e) => setgroupSearch(e.target.value)}
-                                className='mb-3'
-                            />
-
-                            {/* Select All Users */}
-                            {groupData && (
-                                <div
-                                    onClick={selectAllGroup}
-                                    className={cn(
-                                        'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                        fmG_Ids.length === groupOptions.length && groupOptions.length
-                                            ? 'border-primary bg-primary/5 text-primary'
-                                            : 'border-gray-300 hover:border-primary/40'
-                                    )}>
-                                    {fmG_Ids.length === groupOptions.length && groupOptions.length ? (
-                                        <CheckSquare className='h-4 w-4 text-primary' />
-                                    ) : (
-                                        <Square className='h-4 w-4 text-gray-400' />
+                            <div className='group flex flex-row gap-6'>
+                                <Controller
+                                    name='refundableflag'
+                                    control={control}
+                                    defaultValue='0'
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                checked={field.value === '1'}
+                                                onCheckedChange={(checked) => field.onChange(checked ? '1' : '0')}
+                                                id='refundableflag'
+                                            />
+                                            <Label htmlFor='refundableflag'>Instant Refund</Label>
+                                        </div>
                                     )}
-                                    <span>Select All</span>
-                                </div>
-                            )}
-
-                            <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
-                                {loadingGroups ? (
-                                    <div className='py-4 text-center text-gray-500 text-sm'>Loading Groups...</div>
-                                ) : groupData.length === 0 ? (
-                                    <div className='py-4 text-center text-gray-500 text-sm'>No groups found</div>
-                                ) : (
-                                    filteredGroups.map((u) => {
-                                        const id = u.fmG_Id.toString();
-                                        const selected = fmG_Ids.includes(id);
-
-                                        return (
-                                            <div
-                                                key={u.fmG_Id}
-                                                onClick={() => toggleGroup(id)}
-                                                className={cn(
-                                                    'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
-                                                    selected
-                                                        ? 'border-primary bg-primary/5 text-primary'
-                                                        : 'border-gray-300 hover:border-primary/40'
-                                                )}>
-                                                {selected ? (
-                                                    <CheckSquare className='h-4 w-4 text-primary' />
-                                                ) : (
-                                                    <Square className='h-4 w-4 text-gray-400' />
-                                                )}
-                                                <span>{u.fmG_GroupName}</span>
-                                            </div>
-                                        );
-                                    })
-                                )}
+                                />
                             </div>
+
+                            {/* Info Text */}
+                            <span className='whitespace-nowrap text-gray-600'>For Instant refund Extra charges are applicable</span>
+
+                            {/* View Charges Button */}
+                            <Button onClick={() => setShowChargesModal(true)}>View Charges</Button>
                         </div>
+
+                        {/* Modal */}
+                        {showChargesModal && (
+                            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4'>
+                                <div className='max-h-[80vh] w-full max-w-2xl overflow-auto rounded-lg bg-white shadow-lg'>
+                                    <div className='flex items-center justify-between rounded-t-lg bg-blue-600 px-6 py-3'>
+                                        <h4 className='font-semibold text-lg text-white'>PAYMENT GATE WAY REFUND CHARGES</h4>
+                                        <Button variant='outline' onClick={() => setShowChargesModal(false)}>
+                                            Close
+                                        </Button>
+                                    </div>
+
+                                    <div className='p-6 text-gray-800'>
+                                        <h4 className='mb-4 ml-14 font-semibold text-xl'>Online Payment Refund Charges as Follows</h4>
+
+                                        <h3 className='mb-3 font-semibold'>1) RazorPay</h3>
+
+                                        <p className='mb-4 pl-4 font-bold'>For less than 1000 Rs Refund charges is Rs 3.</p>
+                                        <p className='mb-4 pl-4 font-bold'>For less than 1000 - 25000 Rs Refund charges is Rs 5.</p>
+                                        <p className='mb-4 pl-4 font-bold'>For greater than 25000 Rs Refund charges is Rs 8.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                        <Label className='w-40'>
-                            Voucher No <span className='text-red-500'>*</span>
-                        </Label>
-                        <InputText
-                            {...register('chequeNo')}
-                            // error={errors.chequeNo?.message}
-                        />
-                        {/* <InputText
+                    {/* Right Column - UNCHANGED */}
+                    <div className='space-y-5'>
+                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                            <Label className='w-40'>
+                                Type <span className='text-red-500'>*</span>
+                            </Label>
+                            <div className='flex flex-wrap gap-6 rounded-lg border bg-white p-3'>
+                                {(['Refunable', 'NonRefunable'] as const).map((val) => {
+                                    const displayLabel = val === 'Refunable' ? 'Refundable' : 'Non-Refundable';
+                                    return (
+                                        <label key={val} className='flex cursor-pointer items-center gap-3'>
+                                            <input
+                                                type='radio'
+                                                name='refundableType'
+                                                value={val}
+                                                checked={refundableType === val}
+                                                onChange={(e) => {
+                                                    const newType = e.target.value as 'Refunable' | 'NonRefunable';
+                                                    setRefundableType(newType);
+
+                                                    // Clear fee-related fields
+                                                    // setValue('headId', undefined);
+                                                    // setValue('groupId', undefined);
+                                                    //  setValue('installmentId', undefined);
+                                                }}
+                                                className='h-5 w-5 text-blue-600'
+                                            />
+                                            <span className='font-medium text-sm'>{displayLabel}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className='group flex items-start gap-3'>
+                            {/* Label */}
+                            <Label aria-label='groups' htmlFor='fmH_Id' className='mt-2 whitespace-nowrap font-medium'>
+                                Fee Group <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+
+                            {/* Selection & Search */}
+                            <div className='flex-1 rounded-md border border-gray-300 bg-white p-3'>
+                                <InputText
+                                    placeholder='Search Fee Group...'
+                                    value={groupSearch}
+                                    onChange={(e) => setgroupSearch(e.target.value)}
+                                    className='mb-3'
+                                />
+
+                                {/* Select All Users */}
+                                {groupData && (
+                                    <div
+                                        onClick={selectAllGroup}
+                                        className={cn(
+                                            'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
+                                            fmG_Ids.length === groupOptions.length && groupOptions.length
+                                                ? 'border-primary bg-primary/5 text-primary'
+                                                : 'border-gray-300 hover:border-primary/40'
+                                        )}>
+                                        {fmG_Ids.length === groupOptions.length && groupOptions.length ? (
+                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                        ) : (
+                                            <Square className='h-4 w-4 text-gray-400' />
+                                        )}
+                                        <span>Select All</span>
+                                    </div>
+                                )}
+
+                                <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
+                                    {loadingGroups ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>Loading Groups...</div>
+                                    ) : groupData.length === 0 ? (
+                                        <div className='py-4 text-center text-gray-500 text-sm'>No groups found</div>
+                                    ) : (
+                                        filteredGroups.map((u) => {
+                                            const id = u.fmG_Id.toString();
+                                            const selected = fmG_Ids.includes(id);
+
+                                            return (
+                                                <div
+                                                    key={u.fmG_Id}
+                                                    onClick={() => toggleGroup(id)}
+                                                    className={cn(
+                                                        'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
+                                                        selected
+                                                            ? 'border-primary bg-primary/5 text-primary'
+                                                            : 'border-gray-300 hover:border-primary/40'
+                                                    )}>
+                                                    {selected ? (
+                                                        <CheckSquare className='h-4 w-4 text-primary' />
+                                                    ) : (
+                                                        <Square className='h-4 w-4 text-gray-400' />
+                                                    )}
+                                                    <span>{u.fmG_GroupName}</span>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            </div>
+                            {errors.groups && <FormError>{errors.groups.message}</FormError>}
+                        </div>
+
+                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                            <Label className='w-40'>
+                                Voucher No <span className='text-red-500'>*</span>
+                            </Label>
+                            <InputText {...register('REF_REC_No')} error={errors.REF_REC_No?.message} />
+                            {/* <InputText
                                                         {...register('chequeNo', {
                                                             onChange: (e) => {
                                                                 const onlyNumbers = e.target.value.replace(/[^0-9]/g, '');
@@ -853,27 +929,29 @@ export default function AddFeeRefundableForm({
                                                         placeholder='Enter Card Number'
                                                         error={errors.chequeNo?.message}
                                                     /> */}
-                    </div>
+                        </div>
 
-                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                        <Label className='w-40'>
-                            Refund Date <span className='text-red-500'>*</span>
-                        </Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant='outline' className='w-full justify-start text-left font-normal sm:w-96'>
-                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                    {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-auto p-0'>
-                                <Calendar mode='single' selected={selectedDate} onSelect={(d) => d && setSelectedDate(d)} />
-                            </PopoverContent>
-                        </Popover>
+                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                            {/* <Label className='w-40'>
+                                Refund Date <span className='text-red-500'>*</span>
+                            </Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant='outline' className='w-full justify-start text-left font-normal sm:w-96'>
+                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                        {selectedDate ? format(selectedDate, 'PPP') : 'Pick a date'}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className='w-auto p-0'>
+                                    <Calendar mode='single' selected={selectedDate} onSelect={(d) => d && setSelectedDate(d)} />
+                                </PopoverContent>
+                            </Popover> */}
+                            <Label className='w-40'>Refund Date:</Label>
+                            <Input className='flex-1' type='date' value={chequeDate} onChange={(e) => setRefundDate(e.target.value)} />
+                        </div>
                     </div>
                 </div>
-            </div>
-            {/* <div className='mt-6 space-y-5 rounded border bg-white p-5 shadow'>
+                {/* <div className='mt-6 space-y-5 rounded border bg-white p-5 shadow'>
               
                 <div className='flex items-center justify-between border-b pb-3'>
                     <h3 className='font-semibold text-xl'>Fee Head List</h3>
@@ -1042,41 +1120,41 @@ export default function AddFeeRefundableForm({
                 </div>
             </div> */}
 
-            {headLoading && <div className='mt-6 text-center font-semibold text-blue-600'>Loading head details...</div>}
+                {headLoading && <div className='mt-6 text-center font-semibold text-blue-600'>Loading head details...</div>}
 
-            {!headLoading && headError && <div className='mt-6 text-center font-semibold text-red-600'>{headError}</div>}
+                {!headLoading && headError && <div className='mt-6 text-center font-semibold text-red-600'>{headError}</div>}
 
-            {!headLoading && headData.length > 0 && (
-                <div className='mt-6 space-y-5 rounded border bg-white p-5 shadow'>
-                    {/* HEADER */}
-                    <div className='flex items-center justify-between border-b pb-3'>
-                        <h3 className='font-semibold text-xl'>Fee Head List</h3>
+                {!headLoading && headData.length > 0 && (
+                    <div className='mt-6 space-y-5 rounded border bg-white p-5 shadow'>
+                        {/* HEADER */}
+                        <div className='flex items-center justify-between border-b pb-3'>
+                            <h3 className='font-semibold text-xl'>Fee Head List</h3>
 
-                        {/* Search */}
-                        {/* <div className='w-64'>
+                            {/* Search */}
+                            {/* <div className='w-64'>
                             <Input placeholder='Search here...' value={search} onChange={(e) => setSearch(e.target.value)} />
                         </div> */}
-                    </div>
+                        </div>
 
-                    {/* TABLE */}
-                    <div className='overflow-auto'>
-                        <table className='w-full border text-sm'>
-                            <thead>
-                                <tr className='bg-gray-100 text-center'>
-                                    <th className='border p-2'>SLNO</th>
-                                    <th className='border p-2'>
-                                        <input type='checkbox' className='h-4 w-4' checked={selectedAll} onChange={toggleAllHeads} />
-                                    </th>
-                                    <th className='border p-2'>Fee Head</th>
-                                    <th className='border p-2'>Installment</th>
-                                    <th className='border p-2'>Excess Amount</th>
-                                    <th className='border p-2'>Refund Amount</th>
-                                    <th className='border p-2'>Balance Amount</th>
-                                    <th className='border p-2'>Refund Over</th>
-                                </tr>
-                            </thead>
+                        {/* TABLE */}
+                        <div className='overflow-auto'>
+                            <table className='w-full border text-sm'>
+                                <thead>
+                                    <tr className='bg-gray-100 text-center'>
+                                        <th className='border p-2'>SLNO</th>
+                                        <th className='border p-2'>
+                                            <input type='checkbox' className='h-4 w-4' checked={selectedAll} onChange={toggleAllHeads} />
+                                        </th>
+                                        <th className='border p-2'>Fee Head</th>
+                                        <th className='border p-2'>Installment</th>
+                                        <th className='border p-2'>Excess Amount</th>
+                                        <th className='border p-2'>Refund Amount</th>
+                                        <th className='border p-2'>Balance Amount</th>
+                                        <th className='border p-2'>Refund Over</th>
+                                    </tr>
+                                </thead>
 
-                            {/* <tbody>
+                                {/* <tbody>
                                 {headData
                                     .filter((x) => x.fmH_FeeName.toLowerCase().includes(search.toLowerCase()))
                                     .map((row, i) => (
@@ -1133,155 +1211,203 @@ export default function AddFeeRefundableForm({
                                         </tr>
                                     ))}
                             </tbody> */}
-                            <tbody>
-                                {headData.map((row, i) => (
-                                    <tr key={i} className='text-center odd:bg-gray-50'>
-                                        <td>{i + 1}</td>
+                                <tbody>
+                                    {headData.map((row, i) => (
+                                        <tr key={i} className='text-center odd:bg-gray-50'>
+                                            <td>{i + 1}</td>
 
-                                        {/* SELECT ROW */}
-                                        <td>
-                                            <input
-                                                type='checkbox'
-                                                checked={row.Selected}
-                                                onChange={() => toggleHead(row)}
-                                                className='h-4 w-4'
-                                            />
-                                        </td>
+                                            {/* SELECT ROW */}
+                                            <td>
+                                                <input
+                                                    type='checkbox'
+                                                    checked={row.Selected}
+                                                    onChange={() => toggleHead(row)}
+                                                    className='h-4 w-4'
+                                                />
+                                            </td>
 
-                                        <td>{row.fmH_FeeName}</td>
-                                        <td>{row.ftI_Name}</td>
-                                        <td>{row.Amountall}</td>
+                                            <td>{row.fmH_FeeName}</td>
+                                            <td>{row.ftI_Name}</td>
+                                            <td>{row.Amountall}</td>
 
-                                        {/* REFUND AMOUNT */}
-                                        <td className='w-40'>
-                                            <Input
-                                                type='number'
-                                                min={0}
-                                                max={row.Amountall}
-                                                value={row.FR_RefundAmount ?? ''} // <-- FIX #1
-                                                onChange={(e) => updateRefund(row, Number(e.target.value))}
-                                            />
-                                            {row.FR_RefundAmount > row.Amountall && (
-                                                <p className='text-red-600 text-xs'>Refund cannot exceed Excess</p>
-                                            )}
-                                        </td>
+                                            {/* REFUND AMOUNT */}
+                                            <td className='w-40'>
+                                                <Input
+                                                    type='number'
+                                                    min={0}
+                                                    max={row.Amountall}
+                                                    value={row.FR_RefundAmount ?? ''} // <-- FIX #1
+                                                    onChange={(e) => updateRefund(row, Number(e.target.value))}
+                                                />
+                                                {row.FR_RefundAmount > row.Amountall && (
+                                                    <p className='text-red-600 text-xs'>Refund cannot exceed Excess</p>
+                                                )}
+                                            </td>
 
-                                        <td>{row.balamt}</td>
+                                            <td>{row.balamt}</td>
 
-                                        {/* SELECTED1 */}
-                                        <td>
-                                            <input
-                                                type='checkbox'
-                                                checked={row.Selected1}
-                                                onChange={(e) => {
-                                                    const updated = headData.map((h) =>
-                                                        h === row ? { ...h, Selected1: e.target.checked } : h
-                                                    ); // <-- FIX #2
-                                                    setheadData(updated);
-                                                }}
-                                                className='h-4 w-4'
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* NARRATION */}
-                    <div className='mt-6 flex justify-center'>
-                        <div className='flex w-full max-w-xl items-start gap-4'>
-                            <Label className='mt-1 whitespace-nowrap font-medium'>Narration:</Label>
-                            <Textarea
-                                className='min-h-[50px] w-full resize rounded border p-3'
-                                value={narration}
-                                onChange={(e) => setNarration(e.target.value)}
-                                placeholder='Enter your narration here...'
-                            />
+                                            {/* SELECTED1 */}
+                                            <td>
+                                                <input
+                                                    type='checkbox'
+                                                    checked={row.Selected1}
+                                                    onChange={(e) => {
+                                                        const updated = headData.map((h) =>
+                                                            h === row ? { ...h, Selected1: e.target.checked } : h
+                                                        ); // <-- FIX #2
+                                                        setheadData(updated);
+                                                    }}
+                                                    className='h-4 w-4'
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
 
-                    {/* PAYMENT MODE */}
-                    <div className='mt-6 flex justify-center'>
-                        <div className='w-full max-w-xl rounded border bg-gray-50 p-6 text-center'>
-                            <div className='mb-4 flex justify-center gap-10'>
-                                <Label className='flex items-center gap-2'>
-                                    <input
-                                        type='radio'
-                                        value='C'
-                                        checked={paymentMode === 'C'}
-                                        onChange={() => setPaymentMode('C')}
-                                        className='h-4 w-4'
-                                    />
-                                    Cash
-                                </Label>
-
-                                <Label className='flex items-center gap-2'>
-                                    <input
-                                        type='radio'
-                                        value='B'
-                                        checked={paymentMode === 'B'}
-                                        onChange={() => setPaymentMode('B')}
-                                        className='h-4 w-4'
-                                    />
-                                    Bank
-                                </Label>
-
-                                <Label className='flex items-center gap-2'>
-                                    <input
-                                        type='radio'
-                                        value='O'
-                                        checked={paymentMode === 'O'}
-                                        onChange={() => setPaymentMode('O')}
-                                        className='h-4 w-4'
-                                    />
-                                    Online
-                                </Label>
+                        {/* NARRATION */}
+                        <div className='mt-6 flex justify-center'>
+                            <div className='flex w-full max-w-xl items-start gap-4'>
+                                <Label className='mt-1 whitespace-nowrap font-medium'>Narration:</Label>
+                                <Textarea
+                                    className='min-h-[50px] w-full resize rounded border p-3'
+                                    value={narration}
+                                    onChange={(e) => setNarration(e.target.value)}
+                                    placeholder='Enter your narration here...'
+                                />
                             </div>
+                        </div>
 
-                            {/* BANK FIELDS */}
-                            {paymentMode === 'B' && (
-                                <div className='mt-5 space-y-4'>
-                                    <div className='flex items-center gap-4'>
-                                        <Label className='w-40 text-right font-medium'>Bank Name:</Label>
-                                        <Input className='flex-1' placeholder='Enter bank name' />
-                                    </div>
+                        {/* PAYMENT MODE */}
+                        <div className='mt-6 flex justify-center'>
+                            <div className='w-full max-w-xl rounded border bg-gray-50 p-6 text-center'>
+                                <div className='mb-4 flex justify-center gap-10'>
+                                    <Label className='flex items-center gap-2'>
+                                        <input
+                                            type='radio'
+                                            value='C'
+                                            checked={paymentMode === 'C'}
+                                            onChange={() => setPaymentMode('C')}
+                                            className='h-4 w-4'
+                                        />
+                                        Cash
+                                    </Label>
 
-                                    <div className='flex items-center gap-4'>
-                                        <Label className='w-40 text-right font-medium'>Cheque/DD No:</Label>
-                                        <Input className='flex-1' placeholder='Enter cheque number' />
-                                    </div>
+                                    <Label className='flex items-center gap-2'>
+                                        <input
+                                            type='radio'
+                                            value='B'
+                                            checked={paymentMode === 'B'}
+                                            onChange={() => setPaymentMode('B')}
+                                            className='h-4 w-4'
+                                        />
+                                        Bank
+                                    </Label>
 
-                                    <div className='flex items-center gap-4'>
-                                        <Label className='w-40 text-right font-medium'>Cheque/DD Date:</Label>
-                                        <Input className='flex-1' type='date' />
-                                    </div>
+                                    <Label className='flex items-center gap-2'>
+                                        <input
+                                            type='radio'
+                                            value='O'
+                                            checked={paymentMode === 'O'}
+                                            onChange={() => setPaymentMode('O')}
+                                            className='h-4 w-4'
+                                        />
+                                        Online
+                                    </Label>
                                 </div>
-                            )}
+
+                                {/* BANK FIELDS */}
+                                {paymentMode === 'B' && (
+                                    <div className='mt-5 space-y-4'>
+                                        <div className='flex items-center gap-4'>
+                                            <InputText
+                                                label='Fee Bank Name'
+                                                id='fR_BankName'
+                                                {...register('fR_BankName')}
+                                                error={errors.fR_BankName?.message}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                        </div>
+
+                                        <div className='flex items-center gap-4'>
+                                            <Label className='w-40 text-right font-medium'>Cheque/DD Date:</Label>
+                                            <Input
+                                                className='flex-1'
+                                                type='date'
+                                                value={chequeDate}
+                                                onChange={(e) => setChequeDate(e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className='flex items-center gap-4'>
+                                            {/* <Label className='w-40 text-right font-medium'>
+                                                Cheque/DD No:<span className='text-red-500'>*</span>
+                                            </Label>
+                                            <Input className='flex-1' placeholder='Enter cheque number' /> */}
+                                            <InputText
+                                                label='Cheque/DD No'
+                                                required
+                                                id='fR_CheqNo'
+                                                {...register('fR_CheqNo')}
+                                                error={errors.fR_CheqNo?.message}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
 
-            <div className='flex flex-col-reverse gap-4 border-t pt-6 sm:flex-row sm:justify-start'>
-                <Button
-                    type='button'
-                    variant='outline'
-                    size='lg'
-                    onClick={resetAllFormState}
-                    className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
-                    Reset
-                </Button>
-                <Button
-                    type='button'
-                    size='lg'
-                    onClick={onSubmit}
-                    isLoading={saving}
-                    className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
-                    <Save className='mr-2 h-5 w-5' />
-                    Save
-                </Button>
-            </div>
+                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+                    {/* <Button
+                        type='button'
+                        variant='outline'
+                        size='lg'
+                        onClick={resetAllFormState}
+                        className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
+                        Reset
+                    </Button>
+                    <Button
+                        type='button'
+                        size='lg'
+                        onClick={onSubmit}
+                        isLoading={saving}
+                        className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
+                        <Save className='mr-2 h-5 w-5' />
+                        Save
+                    </Button> */}
+                    <Button
+                        type='button'
+                        variant='outline'
+                        size='lg'
+                        onClick={resetAllFormState}
+                        className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
+                        Reset
+                    </Button>
+
+                    {/* <Button
+                        type='submit'
+                        disabled={isSubmitting}
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
+                        isLoading={isSubmitting}
+                        loadingText='Saving...'>
+                        <div className='flex items-center'>
+                            <Save className='mr-2 h-4 w-4' />
+                            Save
+                        </div>
+                    </Button> */}
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting || headData.length === 0 || headData.every((h) => !h.Selected) || !paymentMode}
+                        className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
+                        <Save className='mr-2 h-5 w-5' />
+                        Save
+                    </Button>
+                </div>
+            </form>
         </div>
     );
 }

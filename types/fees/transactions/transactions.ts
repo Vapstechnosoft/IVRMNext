@@ -557,6 +557,7 @@ export interface IFeeOpeningPDA {
     fillmastergroup: string;
     fillmasterhead: string;
     fillinstallment: string;
+    studentName: string;
 }
 export interface IFeeOpeningRefundable {
     fmH_Id: number;
@@ -577,6 +578,7 @@ export interface IFeeOpeningBalanceList {
     asmC_SectionName: string;
 
     fmC_Id?: number;
+    studentName: string;
 }
 
 export type OpeningBalanceRow = {
@@ -680,15 +682,28 @@ export interface IFeeConcessionCategoryDropDownList {
     fmcC_ConcessionName: string;
 }
 
+// export interface IFeeConcessionHeadList {
+//     slno: number;
+//     fmH_Id: number;
+//     fmH_FeeName: string;
+//     fmI_Id: number;
+//     fmI_Name: string;
+//     fmA_Amount: number;
+//     isSelected: boolean;
+// }
+
 export interface IFeeConcessionHeadList {
-    slno: number;
-    fmH_Id: number;
     fmH_FeeName: string;
-    fmI_Id: number;
-    fmI_Name: string;
+    ftI_Name: string;
+    ftI_Id: number;
+    fmH_Id: number;
     fmA_Amount: number;
-    isSelected: boolean;
+    fmA_Id: number;
+    fmG_Id: number;
+    amsT_Id: number;
+    fmT_Id: number;
 }
+
 export interface IFeeConcessionStudentList {
     slno: number;
     amsT_Id: number;
@@ -722,10 +737,10 @@ export interface IFeeRefundableStudentDropDownList {
     amsT_Id: number;
     studentName: string;
     amsT_AdmNo: string;
-    amsT_RegistrationNo: string;
+    // amsT_RegistrationNo: string;
 
-    amsT_MobileNo: string;
-    amsT_emailId: string;
+    // amsT_MobileNo: string;
+    // amsT_emailId: string;
 }
 
 export interface IFeeRefundableGroupDropDownList {

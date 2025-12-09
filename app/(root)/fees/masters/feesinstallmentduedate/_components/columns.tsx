@@ -58,7 +58,7 @@ export const masterInstallmentColumns: ColumnDef<IMasterFeesInstallmentDuedateLi
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { deleteIdSchema } from '../validationSchemas';
+import { createNumberOnlyStringSchema, createOptionalStringSchema, deleteIdSchema } from '../validationSchemas';
 
 export const amountEntrySchema = {
     addOrUpdate: z.object({
@@ -174,7 +174,14 @@ export const feeTransactionWaivedOffSchema = {
         student: z.number({ message: 'Student Name is required.' }),
         remarks: z.string().min(1, 'Remarks are required.'),
         date: z.date({ required_error: 'Date is required' }),
-        uploadedPhotoPath: z.string().optional()
+        uploadedPhotoPath: z.string().optional(),
+        feeGroupIds: z
+            .array(
+                z.object({
+                    ismS_Id: z.number({ required_error: 'Group is required' })
+                })
+            )
+            .min(1, { message: 'At least one Group must be selected' })
     }),
 
     delete: z.object({
@@ -334,7 +341,20 @@ export const feesStudentTransactionSchema = {
 
 export const feesRefundableSchema = {
     addOrUpdate: z.object({
-        ivrmmoD_Id: z.number().int({ message: 'ivrmmoD_Id is required' }).optional()
+        refundableflag: z.string().optional(),
+        academicYearId: z.number().int({ message: 'Academic Year is required' }),
+        sectionId: z.number().int({ message: 'Section is required' }),
+        fR_BankName: createOptionalStringSchema('Bank Name', 1, 100),
+        fR_CheqNo: createNumberOnlyStringSchema('Cheque No.', 13, 100),
+
+        fR_Date: z.string().min(1, 'Refund date is required').optional(),
+
+        // headId: z.number().int({ message: 'Head is required' }),
+        //  groupId: z.number().int({ message: 'Group is required' }).optional(),
+        classId: z.number().int({ message: 'Class is required' }),
+        studentWise: z.string().min(1, 'Select at least one student'),
+        REF_REC_No: z.string().min(13, 'Voucher is required').max(19, 'Voucher Number is too long'),
+        groups: z.array(z.string()).min(1, 'Select at least one group')
     }),
     delete: z.object({
         fR_Id: deleteIdSchema('fR_Id')

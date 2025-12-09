@@ -19,7 +19,7 @@ export async function getFeeRefundableDetails(asmay_id: number, searchParams?: A
 }
 
 export async function addOrUpdateFeeRefundableDetails(data: any) {
-    const url = '/fee_amount_entry';
+    const url = '/FeeRefundableFacade/saveOrUpdateFeeRefund';
     return await api.post<any>('fees', url, data);
 }
 
@@ -30,11 +30,13 @@ export async function deleteFeeRefundableDetails(fr_id: number) {
 
 export async function getFeeRefundableStudentDropdownDetails(asmay_id: number, ASMCL_Id: number, ASMS_Id: number) {
     const url = `/FeeRefundableFacade/getStudentNamesBySection?ASMAY_Id=${asmay_id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}`;
+    console.info('getStudentNamesBySection', url);
     return await api.get<IFeeRefundableStudentDropDownList[]>('fees', url);
 }
 
 export async function getFeeRefundableGroupDropdownDetails(ASMAY_Id: number, amsT_Id: number, IsRefundable: boolean) {
-    const url = `/FeeRefundableFacade/getFeeGroupsByStudent?AMST_Id=16211&ASMAY_ID=${ASMAY_Id}&IsRefundable=${IsRefundable}`;
+    const url = `/FeeRefundableFacade/getFeeGroupsByStudent?AMST_Id=${amsT_Id}&ASMAY_ID=${ASMAY_Id}&IsRefundable=${IsRefundable}`;
+    console.info('getFeeGroupsByStudent', url);
     return await api.get<IFeeRefundableGroupDropDownList[]>('fees', url);
 }
 
@@ -42,7 +44,7 @@ export async function getFeeRefundableHeadDetails(ASMAY_Id: number, amsT_Id: num
     const params = new URLSearchParams();
 
     params.append('ASMAY_Id', String(ASMAY_Id));
-    params.append('AMST_Id', '16857');
+    params.append('AMST_Id', String(amsT_Id));
     params.append('IsRefundable', String(IsRefundable));
     const feeGroupIdsToUse = [374];
 

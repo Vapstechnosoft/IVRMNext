@@ -635,12 +635,19 @@ export const useFeeConcessionHeadList = (mi_Id: number, asmaY_Id: number, asmcL_
     };
 };
 
-export const useFeeConcessionStudentList = (radiobtnvalue: string, asmaY_Id: number, asmcL_Id: number, amcId: number, fmccId: number) => {
+export const useFeeConcessionStudentList = (
+    radiobtnvalue: string,
+    asmaY_Id: number,
+    asmcL_Id: number,
+    amcId: number,
+    fmccId: number,
+    searchParams?: ApiSearchparams
+) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_LIST, radiobtnvalue, asmaY_Id, asmcL_Id, amcId, fmccId, {}],
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_LIST, radiobtnvalue, asmaY_Id, asmcL_Id, amcId, fmccId, searchParams ?? {}],
             queryFn: async () => getConcessionStudentList(radiobtnvalue, asmaY_Id, asmcL_Id, amcId, fmccId),
             staleTime: 0
         }),
@@ -671,6 +678,29 @@ export const useFeeConcessionStudentConcessionGrid = (
             queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID],
                 exact: false
+            });
+        }
+    };
+};
+
+export const useFeeConcessionHeadDetailsList = (
+    asmaY_Id: number,
+    amsT_Id: number,
+    fmT_Id: number,
+    configSet: string,
+    searchParams?: ApiSearchparams
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST, asmaY_Id, amsT_Id, fmT_Id, configSet, searchParams ?? {}],
+            queryFn: async () => getConcessionHeadDetailsList(asmaY_Id, amsT_Id, fmT_Id, configSet),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST]
             });
         }
     };
