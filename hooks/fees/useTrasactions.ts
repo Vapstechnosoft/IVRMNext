@@ -9,6 +9,7 @@ import {
     getConcessionAcademicDropdownData,
     getConcessionCategoryDropdownData,
     getConcessionClassesDropdownData,
+    getConcessionHeadDetailsList,
     getConcessionHeadList,
     getConcessionStudentConcessionGrid,
     getConcessionStudentList,
