@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Trash } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 
@@ -203,8 +203,11 @@ export const UpdateStudentStatusDialog: React.FC<UpdateStudentStatusDialogProps>
                                 </div>
                             </div>
                         </div>
-                        <Button onClick={onClose} className='text-gray-400 transition-colors hover:text-gray-600' disabled={isSubmitting}>
-                            <X className='h-6 w-6' />
+                        <Button
+                            onClick={onClose}
+                            className='w-fit text-gray-400 transition-colors hover:text-gray-600'
+                            disabled={isSubmitting}>
+                            <Trash className='h-6 w-6' />
                         </Button>
                     </div>
                 </div>
@@ -270,7 +273,7 @@ export const UpdateStudentStatusDialog: React.FC<UpdateStudentStatusDialogProps>
                                                     onClick={() => removeStudent(u.amsT_Id)}
                                                     className='rounded p-2 text-red-600 transition-colors hover:bg-red-50'
                                                     disabled={isSubmitting}>
-                                                    <X className='h-4 w-4' />
+                                                    <Trash className='h-4 w-4' />
                                                 </Button>
                                             </td>
                                         </tr>
@@ -283,10 +286,13 @@ export const UpdateStudentStatusDialog: React.FC<UpdateStudentStatusDialogProps>
 
                 {/* Footer */}
                 <div className='flex justify-end gap-3 border-t bg-gray-50 p-6'>
-                    <Button variant='outline' onClick={onClose} disabled={isSubmitting}>
+                    <Button className='w-fit' variant='outline' onClick={onClose} disabled={isSubmitting}>
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit} disabled={!allValid || isSubmitting || Object.keys(updates).length === 0}>
+                    <Button
+                        className='w-fit'
+                        onClick={handleSubmit}
+                        disabled={!allValid || isSubmitting || Object.keys(updates).length === 0}>
                         {isSubmitting ? (
                             <>
                                 <span className='mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent' />
