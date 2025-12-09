@@ -145,15 +145,18 @@ export const masterClassCategorySchema = {
         mI_Id: z.number().optional(),
         fmcC_ActiveFlag: z.boolean().optional()
     }),
-
     delete: z.object({
-        fmcC_Id: z
-            .number({
-                required_error: 'Class Category ID (fmcC_Id) is required',
-                invalid_type_error: 'Class Category ID must be a number'
-            })
-            .positive('Class Category ID must be positive')
+        fmcC_Id: deleteIdSchema('fmcC_Id')
     })
+
+    // delete: z.object({
+    //     fmcC_Id: z
+    //         .number({
+    //             required_error: 'Class Category ID (fmcC_Id) is required',
+    //             invalid_type_error: 'Class Category ID must be a number'
+    //         })
+    //         .positive('Class Category ID must be positive')
+    // })
 };
 export const masterClassSchema = {
     addOrUpdate: z.object({

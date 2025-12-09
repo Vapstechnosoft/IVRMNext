@@ -305,6 +305,9 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
                                         <td key={key} className='border px-3 py-2'>
                                             <input
                                                 type='date'
+                                                onKeyDown={(e) => e.preventDefault()} // BLOCK ALL TYPING
+                                                min='1900-01-01'
+                                                max='2100-12-31'
                                                 value={(item as any)[key]?.split('T')[0] || ''}
                                                 onChange={(e) => {
                                                     const updated = [...gridData];

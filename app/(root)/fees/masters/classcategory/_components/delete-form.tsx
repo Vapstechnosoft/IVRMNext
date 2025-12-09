@@ -55,7 +55,7 @@ export default function DelteClassCategoryForm({ rowData, onClose }: DelteClassC
     };
 
     return (
-        <AdaptiveDialog title='Delete Master Concession' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Delete Class Category' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('fmcC_Id')} defaultValue={rowData.fmcC_Id} />

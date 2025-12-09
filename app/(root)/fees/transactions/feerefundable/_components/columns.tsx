@@ -89,8 +89,14 @@ function ActionButtonsCell({ rowData }: { rowData: IFeeRefundableList }) {
 
     const handleEdit = useCallback((data: IFeeRefundableList) => openEditForm(data), [openEditForm]);
 
-    const handleDelete = useCallback((data: IFeeRefundableList) => openDeleteForm(data), [openDeleteForm]);
+    //const handleDelete = useCallback((data: IFeeRefundableList) => openDeleteForm(data), [openDeleteForm]);
 
+    const handleDelete = useCallback(
+        (data: IFeeRefundableList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
     const handleView = useCallback(() => {
         openDetailsView(rowData);
     }, [openDetailsView, rowData]);

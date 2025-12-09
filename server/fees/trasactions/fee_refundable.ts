@@ -24,7 +24,9 @@ export async function addOrUpdateFeeRefundableDetails(data: any) {
 }
 
 export async function deleteFeeRefundableDetails(fr_id: number) {
-    const url = `/FeeRefundableFacade/deleteRefund?FR_ID=${fr_id}/755242`;
+    const url = `/FeeRefundableFacade/deleteRefund?FR_ID=${fr_id}`;
+
+    console.info('deleteFeeRefundableDetails', url);
     return await api.delete('fees', url);
 }
 
