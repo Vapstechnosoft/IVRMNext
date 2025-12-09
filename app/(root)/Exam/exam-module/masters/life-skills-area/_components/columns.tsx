@@ -35,7 +35,7 @@ export const LifeSkillAreaColumns: ColumnDef<ILifeSkillArea>[] = [
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         enableHiding: false,

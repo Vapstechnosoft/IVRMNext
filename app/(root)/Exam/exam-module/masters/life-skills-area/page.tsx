@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import { useMasterLifeSkillArea } from '@/hooks/exam/exammodule/usemasters';
 import type { ILifeSkill, ILifeSkillArea } from '@/types/exam/exam-module/masters';
-import { List, Plus, X } from 'lucide-react';
+import { GitCompareArrows, List, Plus, X } from 'lucide-react';
 import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddLifeSkillForm from './_components/add-form';
@@ -92,15 +92,9 @@ function LifeSkillPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
-                    <Button
-                        type='button'
-                        variant='secondary'
-                        onClick={handleSetOrder}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-3'>
-                        <div className='flex items-center'>
-                            <List className='mr-2 h-4 w-4' />
-                            Set Order
-                        </div>
+                    <Button type='button' onClick={handleSetOrder} className='w-fit transition-all duration-200 hover:scale-90'>
+                        <GitCompareArrows className='h-4 w-4 transition-transform duration-200 group-hover:rotate-90' />
+                        Set Order
                     </Button>
                     <Button
                         type='button'

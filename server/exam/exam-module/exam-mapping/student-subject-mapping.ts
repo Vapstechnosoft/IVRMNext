@@ -29,8 +29,23 @@ export async function getStudentsForSubjectMapping(params: {
         Deactive_Flag: String(params.Deactive_Flag),
         EMG_Id: String(params.EMG_Id)
     }).toString();
+    const url = `student_mapping/student_details?${query}`;
+    // const url = `student_mapping/student_details?MI_Id=30&ASMAY_Id=231&ASMCL_Id=414&ASMS_Id=164&EME_Id=0&EMCA_Id=213&Left_Flag=true&Deactive_Flag=true&EMG_Id=118`;
+    return await api.get<StudentSubjectData>('exam', url);
+}
+export interface StudentSubjectData {
+    amsT_Id?: number;
+    amsT_FirstName?: string;
+    amsT_AdmNo?: string;
+    amaY_RollNo?: number;
+    sub_list?: SubjectItem[];
+    xyz?: boolean;
+    sub_list_view?: SubjectItem[];
+    remove_flag?: number;
+}
 
-    const url = `student_mapping/student_details/30?${query}`;
-
-    return await api.get<IExamSubjectWizard>('exam', url);
+export interface SubjectItem {
+    id?: number;
+    name?: string;
+    abc?: boolean;
 }

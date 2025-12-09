@@ -11,7 +11,7 @@ import { addOrUpdateMasterGrade, getGradeDetailsById } from '@/server/exam/exam-
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -32,6 +32,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         handleSubmit,
         reset,
         trigger,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<z.infer<typeof masterGradeSchema.addOrUpdate>>({
         resolver: zodResolver(masterGradeSchema.addOrUpdate),
@@ -61,15 +62,15 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                 if (result?.data) {
                     const data = Array.isArray(result.data)
                         ? result.data.map((g: any) => ({
-                              emgD_Id: Number(g.emgD_Id ?? 0),
-                              emgR_Id: Number(g.emgR_Id ?? 0),
-                              emgD_Name: g.emgD_Name || '',
-                              emgD_From: Number(g.emgD_From ?? 0),
-                              emgD_To: Number(g.emgD_To ?? 0),
-                              emgD_GradePoints: Number(g.emgD_GradePoints ?? 0),
-                              emgD_Remarks: g.emgD_Remarks || '',
-                              emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
-                          }))
+                            emgD_Id: Number(g.emgD_Id ?? 0),
+                            emgR_Id: Number(g.emgR_Id ?? 0),
+                            emgD_Name: g.emgD_Name || '',
+                            emgD_From: Number(g.emgD_From ?? null),
+                            emgD_To: Number(g.emgD_To ?? null),
+                            emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                            emgD_Remarks: g.emgD_Remarks || '',
+                            emgD_ActiveFlag: g.emgD_ActiveFlag ?? true
+                        }))
                         : [];
 
                     reset(
@@ -137,7 +138,18 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
     };
 
     if (isLoading) return <div>Loading grade details...</div>;
-
+    const tableRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (fields.length > 0) {
+            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            setTimeout(scrollToBottom, 50);
+        }
+    }, [fields.length]);
+    const scrollToBottom = () => {
+        if (tableRef.current) {
+            tableRef.current.scrollTop = tableRef.current.scrollHeight;
+        }
+    };
     return (
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`} noValidate>
             {/* Grade Info */}
@@ -187,76 +199,88 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                 <tr key={item.id}>
                                     <td className='border text-center'>{index + 1}</td>
 
+                                    {/* Grade Name */}
                                     <td className='border'>
                                         <InputText
                                             {...register(`grade_list.${index}.emgD_Name` as const)}
+                                            placeholder="Enter grade name"
                                             error={errors.grade_list?.[index]?.emgD_Name?.message}
                                         />
                                     </td>
 
+                                    {/* From Marks */}
                                     <td className='border'>
-                                        <Controller
-                                            control={control}
-                                            name={`grade_list.${index}.emgD_From` as const}
-                                            render={({ field }) => (
-                                                <InputText
-                                                    {...field}
-                                                    type='number'
-                                                    error={errors.grade_list?.[index]?.emgD_From?.message}
-                                                />
-                                            )}
+                                        <InputText
+                                            {...register(`grade_list.${index}.emgD_From` as const, {
+                                                setValueAs: v => v === "" ? null : Number(v)
+                                            })}
+                                            placeholder="Enter marks"
+                                            error={errors.grade_list?.[index]?.emgD_From?.message}
                                         />
                                     </td>
 
+                                    {/* To Marks */}
                                     <td className='border'>
-                                        <Controller
-                                            control={control}
-                                            name={`grade_list.${index}.emgD_To` as const}
-                                            render={({ field }) => (
-                                                <InputText {...field} type='number' error={errors.grade_list?.[index]?.emgD_To?.message} />
-                                            )}
+                                        <InputText
+                                            {...register(`grade_list.${index}.emgD_To` as const, {
+                                                setValueAs: v => v === "" ? null : Number(v)
+                                            })}
+                                            placeholder="Enter marks"
+                                            error={errors.grade_list?.[index]?.emgD_To?.message}
                                         />
                                     </td>
 
+                                    {/* Grade Points */}
                                     <td className='border'>
-                                        <Controller
-                                            control={control}
-                                            name={`grade_list.${index}.emgD_GradePoints` as const}
-                                            render={({ field }) => (
-                                                <InputText
-                                                    {...field}
-                                                    type='number'
-                                                    error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
-                                                />
-                                            )}
+                                        <InputText
+                                            {...register(`grade_list.${index}.emgD_GradePoints` as const, {
+                                                setValueAs: v => v === "" ? null : Number(v)
+                                            })}
+                                            placeholder="Enter points"
+                                            error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                         />
                                     </td>
 
+                                    {/* Remarks */}
                                     <td className='border'>
                                         <InputText
                                             {...register(`grade_list.${index}.emgD_Remarks` as const)}
+                                            placeholder="Remarks"
                                             error={errors.grade_list?.[index]?.emgD_Remarks?.message}
                                         />
                                     </td>
-
                                     <td className='flex justify-center gap-2 border px-2 py-1'>
                                         <Button
                                             type='button'
                                             size='sm'
-                                            onClick={() =>
+                                            onClick={() => {
+                                                const last = watch('grade_list')[index];
+                                                if (
+                                                    last.emgD_Name.trim() === "" ||
+                                                    last.emgD_From === null ||
+                                                    last.emgD_To === null ||
+                                                    last.emgD_GradePoints === null
+                                                ) {
+                                                    toast.error("Please fill the current row before adding a new one.");
+                                                    return;
+                                                }
+
                                                 append({
-                                                    emgR_Id: gradeData.emgR_Id ?? 0,
                                                     emgD_Id: 0,
+                                                    emgR_Id: 0,
                                                     emgD_Name: '',
-                                                    emgD_From: 0,
-                                                    emgD_To: 0,
-                                                    emgD_GradePoints: 0,
+                                                    emgD_From: null,
+                                                    emgD_To: null,
+                                                    emgD_GradePoints: null,
                                                     emgD_Remarks: '',
                                                     emgD_ActiveFlag: true
-                                                })
-                                            }>
+                                                });
+                                            }}
+                                        >
                                             <Plus className='h-3 w-3' />
                                         </Button>
+
+                                        {/* Remove row */}
                                         {fields.length > 1 && (
                                             <Button type='button' size='sm' variant='destructive' onClick={() => remove(index)}>
                                                 <Trash className='h-3 w-3' />

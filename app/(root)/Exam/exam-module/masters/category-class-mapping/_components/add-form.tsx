@@ -152,8 +152,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         const cls = Number(watch('asmcL_Id') || 0);
         const secs = (watch('section_list') || []) as { asmS_Id: number; asmC_SectionName: string }[];
 
-        if (!year || !cat || !cls || !secs || secs.length === 0) {
-            toast.error('All fields are required to add a mapping');
+        if (!year || !cat || !cls || secs.length === 0) {
+            toast.error('All fields are required to add/update a mapping');
             return;
         }
 
@@ -161,20 +161,23 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
             asmaY_Id: year,
             emcA_Id: cat,
             asmcL_Id: cls,
-            section_list: secs.map((s) => ({ asmS_Id: Number(s.asmS_Id), asmC_SectionName: s.asmC_SectionName }))
+            section_list: secs.map((s) => ({
+                asmS_Id: Number(s.asmS_Id),
+                asmC_SectionName: s.asmC_SectionName
+            }))
         };
 
         if (editIndex !== null) {
-            // update existing row
+            // ✔ UPDATE existing row inside update modal
             setMappingList((prev) => {
                 const updated = [...prev];
                 updated[editIndex] = newEntry;
                 return updated;
             });
-            setEditIndex(null);
+
             toast.info('Mapping updated');
         } else {
-            // if exact combination already exists, update that row instead of adding duplicate
+            // ✔ ADD or replace if combination already exists
             const existingIndex = mappingList.findIndex(
                 (m) => Number(m.asmaY_Id) === year && Number(m.emcA_Id) === cat && Number(m.asmcL_Id) === cls
             );
@@ -185,18 +188,28 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     updated[existingIndex] = newEntry;
                     return updated;
                 });
-                toast.info('Existing mapping updated with selected sections');
+                toast.info('Existing mapping updated');
             } else {
                 setMappingList((prev) => [...prev, newEntry]);
                 toast.success('Mapping added');
             }
         }
 
-        // After adding/updating: retain Academic Year & Category, but clear Class & Sections
-        setValue('asmcL_Id', 0);
-        setValue('section_list', []);
+        // ❌ DO NOT reset class in update form
+        // In update page: keep user’s selected class & sections stable
+
+        setEditIndex(null);
         setTimeout(scrollToBottom, 50);
+        setValue('section_list', []);
+        setValue('asmcL_Id', 0);
+        setSections([]);
     };
+    useEffect(() => {
+        if (mappingList.length > 0) {
+            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [mappingList]);  // <-- Watch this
+
 
     const handleEdit = (index: number) => {
         const row = mappingList[index];
@@ -515,12 +528,15 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                             type='button'
                             variant='outline'
                             onClick={() => {
+                                setValue('ecaC_Id', 0);
+                                setValue('asmaY_Id', 0);
                                 setValue('asmcL_Id', 0);
                                 setValue('section_list', []);
-                                setValue('ecaC_Id', 0);
+                                setValue('emcA_Id', 0);
                                 setValue('asmcL_Id', 0);
                                 setSections([]);
                                 setEditIndex(null);
+                                setMappingList([]);
                             }}
                             disabled={isSubmitting}
                             className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>

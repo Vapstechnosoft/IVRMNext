@@ -1,21 +1,19 @@
-// app/exam/student-subject-mapping/_components/StudentSubjectMappingTable.tsx
+// app/exam/student-subject-mapping/_components/student-mapping-table.tsx
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 
-/* -------------------------
-   Reusable Table Cells
-   ------------------------- */
+/* Reusable Cells */
 const TableCell = forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
     ({ className, ...props }, ref) => (
         <td
             ref={ref}
             className={cn(
-                'p-2 align-middle border-t border-b border-gray-300 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap text-[#0C0A09] text-[14px]',
+                'p-2 align-middle border-t border-b border-gray-300 whitespace-nowrap text-[#0C0A09] text-[14px]',
                 className
             )}
             {...props}
@@ -30,7 +28,6 @@ const TableHeaderCell = forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
             ref={ref}
             className={cn(
                 'p-2 align-middle text-center border border-gray-300 bg-[hsl(277_90%_52%)] text-white text-sm font-medium',
-                '[&:has([role=checkbox])]:pr-0',
                 className
             )}
             {...props}
@@ -39,156 +36,161 @@ const TableHeaderCell = forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
 );
 TableHeaderCell.displayName = 'TableHeaderCell';
 
-/* -------------------------
-   Types
-   ------------------------- */
-interface Student {
-    studentID: number;
+/* ================== TYPES ================== */
+interface Subject {
+    id: number;
     name: string;
-    admNo: string;
-    rollNo: number;
-    [key: string]: any;
 }
 
-interface Subject {
-    subjectId: number;
-    subjectName: string;
+interface Student {
+    amsT_Id?: number;
+    studentId?: number;
+    amsT_FirstName?: string;
+    name?: string;
+    amsT_AdmNo?: string;
+    admNo?: string;
+    amaY_RollNo?: number;
+    rollNo?: number;
+    sub_list?: { id: number; name: string; abc: boolean }[];
+    subjects?: { id: number; name: string; abc: boolean }[];
 }
 
 interface Props {
     students: Student[];
     subjects: Subject[];
     isloading?: boolean;
-    onUpdateMapping: (studentID: number, subjectName: string, checked: boolean) => void;
+    onUpdateMapping: (studentId: number, subjectId: number, checked: boolean) => void;
 }
 
-/* -------------------------
-   Component
-   ------------------------- */
+/* ================== MAIN COMPONENT ================== */
 export default function StudentSubjectMappingTable({
     students,
     subjects,
     onUpdateMapping,
-    isloading = false,
+    isloading = false
 }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [headerCheckState, setHeaderCheckState] = useState<Record<string, boolean | 'indeterminate'>>({});
 
+    // Normalize student data to handle both old and new structures
+    const normalizedStudents = useMemo(() => {
+        return students.map(s => ({
+            id: s.amsT_Id ?? s.studentId ?? 0,
+            name: s.amsT_FirstName ?? s.name ?? '',
+            admNo: s.amsT_AdmNo ?? s.admNo ?? '',
+            rollNo: s.amaY_RollNo ?? s.rollNo ?? 0,
+            subList: s.sub_list ?? s.subjects ?? []
+        }));
+    }, [students]);
+
+    /** 🔍 SEARCH FILTER */
     const filteredStudents = useMemo(() => {
-        if (!searchTerm) return students;
-        const lower = searchTerm.toLowerCase();
-        return students.filter(
+        if (!searchTerm) return normalizedStudents;
+        const q = searchTerm.toLowerCase();
+        return normalizedStudents.filter(
             (s) =>
-                s.name.toLowerCase().includes(lower) ||
-                s.admNo.toLowerCase().includes(lower) ||
-                String(s.rollNo).includes(searchTerm)
+                s.name.toLowerCase().includes(q) ||
+                s.admNo.toLowerCase().includes(q) ||
+                String(s.rollNo).includes(q)
         );
-    }, [students, searchTerm]);
+    }, [normalizedStudents, searchTerm]);
 
-    // Update header checkbox states whenever data or filtered students change
-    useEffect(() => {
-        const newState: Record<string, boolean | 'indeterminate'> = {};
-        subjects.forEach((sub) => {
-            const values = filteredStudents.map((s) => !!s[sub.subjectName]);
-            const allTrue = values.every((v) => v === true);
-            const someTrue = values.some((v) => v === true);
-            newState[sub.subjectName] = allTrue ? true : someTrue ? 'indeterminate' : false;
-        });
-        setHeaderCheckState(newState);
-    }, [filteredStudents, subjects]);
-
-    const toggleSubjectAll = (subjectName: string, checked: boolean) => {
+    /**  Toggle All for one subject */
+    const toggleSubjectAll = (subjectId: number, checked: boolean) => {
         filteredStudents.forEach((student) => {
-            onUpdateMapping(student.studentID, subjectName, checked);
+            onUpdateMapping(student.id, subjectId, checked);
         });
     };
 
-    const handleIndividualChange = (studentID: number, subjectName: string, checked: boolean) => {
-        onUpdateMapping(studentID, subjectName, checked);
-        // No need to manually update header state — useEffect will handle it
+    /**  Single Student → Single Subject update */
+    const handleIndividualChange = (studentId: number, subjectId: number, checked: boolean) => {
+        onUpdateMapping(studentId, subjectId, checked);
     };
 
-    if (isloading) {
-        return <div className="p-8 text-center text-gray-600">Loading students...</div>;
+    /**  Check if all students have this subject checked */
+    const isSubjectAllChecked = (subjectId: number): boolean => {
+        if (filteredStudents.length === 0) return false;
+        return filteredStudents.every((student) => {
+            const matched = student.subList.find((x) => x.id === subjectId);
+            return matched?.abc ?? false;
+        });
+    };
+
+    if (isloading) return <div className='p-8 text-center'>Loading...</div>;
+
+    if (!subjects || subjects.length === 0) {
+        return <div className='p-8 text-center text-gray-500'>No subjects available</div>;
     }
 
     return (
-        <div className="overflow-x-auto bg-white border rounded shadow-sm">
-            {/* Search Bar */}
-            <div className="px-4 py-3 border-b bg-gray-50 flex justify-end">
+        <div className='overflow-x-auto bg-white border rounded shadow-sm'>
+            {/* 🔎 SEARCH */}
+            <div className='p-3 border-b bg-gray-50 flex justify-end'>
                 <Input
-                    placeholder="search here..."
+                    placeholder='Search student...'
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-xs"
+                    className='w-60'
                 />
             </div>
 
-            <table className="min-w-full table-fixed border-collapse border border-gray-300 [&_th]:border [&_td]:border [&_td]:border-gray-300">
+            <table className='min-w-full border-collapse border border-gray-300'>
                 <thead>
                     <tr>
-                        <TableHeaderCell rowSpan={2}>Sl No.</TableHeaderCell>
-                        <TableHeaderCell rowSpan={2}>
-                            <Checkbox className="border-white data-[state=checked]:bg-white data-[state=checked]:text-purple-700" />
-                        </TableHeaderCell>
-                        <TableHeaderCell rowSpan={2} className="text-left">
-                            Student List
-                        </TableHeaderCell>
+                        <TableHeaderCell rowSpan={2}>Sl No</TableHeaderCell>
+                        <TableHeaderCell rowSpan={2}>Student</TableHeaderCell>
+
                         {subjects.map((sub) => (
-                            <TableHeaderCell key={sub.subjectId} className="whitespace-nowrap">
-                                <div className="flex flex-col items-center gap-1">
-                                    <span>
-                                        {sub.subjectName.charAt(0).toUpperCase() +
-                                            sub.subjectName.slice(1).replace('-iit', ' IIT')}
-                                    </span>
+                            <TableHeaderCell key={`subject-header-${sub.id}`}>
+                                <div className='flex flex-col items-center'>
+                                    <span className='mb-2'>{sub.name}</span>
+
+                                    {/* TOGGLE ALL Column for this Subject */}
                                     <Checkbox
-                                        checked={headerCheckState[sub.subjectName] === true}
-                                        //indeterminate={headerCheckState[sub.subjectName] === 'indeterminate'}
-                                        onCheckedChange={(checked) => toggleSubjectAll(sub.subjectName, !!checked)}
-                                        className="border-white data-[state=checked]:bg-white data-[state=checked]:text-purple-700"
+                                        checked={isSubjectAllChecked(sub.id)}
+                                        onCheckedChange={(c) => toggleSubjectAll(sub.id, !!c)}
                                     />
                                 </div>
                             </TableHeaderCell>
                         ))}
                     </tr>
                 </thead>
+
                 <tbody>
                     {filteredStudents.length === 0 ? (
                         <tr>
-                            <TableCell colSpan={subjects.length + 3} className="text-center py-12 text-gray-500">
-                                No students found
+                            <TableCell colSpan={subjects.length + 2} className='text-center py-6 text-gray-500'>
+                                No Records Found
                             </TableCell>
                         </tr>
                     ) : (
-                        filteredStudents.map((student, idx) => (
+                        filteredStudents.map((s, i) => (
                             <tr
-                                key={student.studentID}
-                                className={cn(
-                                    idx % 2 === 0 ? 'bg-white' : 'bg-gray-50',
-                                    'hover:bg-blue-50 border-t border-b border-gray-300'
-                                )}
+                                key={`student-${s.id}`}
+                                className={
+                                    'bg-white hover:bg-accent/90 transition-colors duration-200'
+                                }
                             >
-                                <TableCell className="text-center font-medium">{idx + 1}</TableCell>
-                                <TableCell className="text-center">
-                                    <Checkbox className="data-[state=checked]:bg-blue-600" />
-                                </TableCell>
-                                <TableCell className="text-left">
-                                    <div className="font-medium text-[#0C0A09]">{student.name}</div>
-                                    <div className="text-xs text-gray-500">
-                                        Adm.No: {student.admNo} &nbsp;&nbsp; Roll.No: {student.rollNo}
+
+
+                                <TableCell className='text-center'>{i + 1}</TableCell>
+                                <TableCell>
+                                    <div className='font-semibold'>{s.name}</div>
+                                    <div className='text-xs text-gray-600'>
+                                        Adm: {s.admNo} | Roll: {s.rollNo}
                                     </div>
                                 </TableCell>
-                                {subjects.map((sub) => (
-                                    <TableCell key={sub.subjectId} className="text-center">
-                                        <Checkbox
-                                            checked={!!student[sub.subjectName]}
-                                            onCheckedChange={(checked) =>
-                                                handleIndividualChange(student.studentID, sub.subjectName, !!checked)
-                                            }
-                                            className="data-[state=checked]:bg-blue-600"
-                                        />
-                                    </TableCell>
-                                ))}
+
+                                {subjects.map((sub) => {
+                                    const matched = s.subList.find((x) => x.id === sub.id);
+                                    return (
+                                        <TableCell key={`student-${s.id}-subject-${sub.id}`} className='text-center'>
+                                            <Checkbox
+                                                checked={matched?.abc ?? false}
+                                                onCheckedChange={(c) => handleIndividualChange(s.id, sub.id, !!c)}
+                                            />
+                                        </TableCell>
+                                    );
+                                })}
                             </tr>
                         ))
                     )}
