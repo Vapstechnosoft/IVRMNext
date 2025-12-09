@@ -660,59 +660,64 @@ export default function AddFeeTransactionWaiveOffForm({ onSuccess, className = '
                                 </label>
                             </div>
                         </div>
-                        <div>
-                            <label htmlFor='grouplist' className='inline-flex cursor-pointer items-center space-x-2'>
-                                Group List:<span className='ml-1 text-red-500'>*</span>
-                            </label>
-                            <div className='group flex flex-col gap-1.5 md:col-span-2'>
-                                <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
-                                    {/* <input
-                    type="text"
-                    placeholder="Search Group Name"
-                    className="mb-2 w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={groupSearch}
-                    onChange={(e) => setGroupSearch(e.target.value)}
-                  /> */}
-                                    <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
-                                        {groupListLoading ? (
-                                            <span className='text-gray-400 text-sm'>Loading Groups...</span>
-                                        ) : groupList.length > 0 ? (
-                                            groupList.map((grp) => {
-                                                const optVal = Number(grp.fmG_Id);
-                                                return (
-                                                    <label
-                                                        key={grp.fmG_Id}
-                                                        className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
-                                                        <input
-                                                            type='checkbox'
-                                                            value={grp.fmG_Id}
-                                                            checked={selectedGroups.includes(optVal)}
-                                                            onChange={async (e) => {
-                                                                const checked = e.target.checked;
-                                                                const newSelected = checked
-                                                                    ? [...selectedGroups, optVal]
-                                                                    : selectedGroups.filter((p) => p !== optVal);
-                                                                setSelectedGroups(newSelected);
-                                                            }}
-                                                            className='mr-2 h-4 w-4 accent-blue-600'
-                                                        />
-                                                        <span className='truncate'>{grp.fmG_GroupName}</span>
-                                                    </label>
-                                                );
-                                            })
-                                        ) : groupListError ? (
-                                            <span className='text-gray-400 text-sm'>Error loading</span>
-                                        ) : (
-                                            <span className='text-gray-400 text-sm'>No Results or Select a Student </span>
-                                        )}
+                        <Controller
+                            name='feeGroupIds'
+                            control={control}
+                            defaultValue={[]}
+                            render={({ field }) => {
+                                return (
+                                    <div>
+                                        <Label htmlFor='feeGroupIds' className='inline-flex cursor-pointer items-center space-x-2'>
+                                            Group List:<span className='ml-1 text-red-500'>*</span>
+                                        </Label>
+                                        <div className='group flex flex-col gap-1.5 md:col-span-2'>
+                                            <div className='min-h-[40px] rounded-md border bg-white px-3 py-2'>
+                                                <div className='flex max-h-40 flex-col gap-2 overflow-y-auto'>
+                                                    {groupListLoading ? (
+                                                        <span className='text-gray-400 text-sm'>Loading Groups...</span>
+                                                    ) : groupList.length > 0 ? (
+                                                        groupList.map((grp) => {
+                                                            const optVal = Number(grp.fmG_Id);
+                                                            return (
+                                                                <label
+                                                                    key={grp.fmG_Id}
+                                                                    className='flex cursor-pointer items-center rounded p-1 hover:bg-gray-50'>
+                                                                    <input
+                                                                        type='checkbox'
+                                                                        value={grp.fmG_Id}
+                                                                        checked={selectedGroups.includes(optVal)}
+                                                                        onChange={async (e) => {
+                                                                            const checked = e.target.checked;
+                                                                            const newSelected = checked
+                                                                                ? [...selectedGroups, optVal]
+                                                                                : selectedGroups.filter((p) => p !== optVal);
+                                                                            setSelectedGroups(newSelected);
+                                                                            field.onChange(newSelected);
+                                                                        }}
+                                                                        className='mr-2 h-4 w-4 accent-blue-600'
+                                                                    />
+                                                                    <span className='truncate'>{grp.fmG_GroupName}</span>
+                                                                </label>
+                                                            );
+                                                        })
+                                                    ) : groupListError ? (
+                                                        <span className='text-gray-400 text-sm'>Error loading</span>
+                                                    ) : (
+                                                        <span className='text-gray-400 text-sm'>No Results or Select a Student </span>
+                                                    )}
+                                                </div>
+                                                {selectedGroups.length > 0 && (
+                                                    <div className='mt-2 text-blue-600 text-sm'>
+                                                        {selectedGroups.length} Group(s) selected
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {errors.feeGroupIds && <p className='text-red-500 text-sm'>{errors.feeGroupIds.message}</p>}
+                                        </div>
                                     </div>
-                                    {selectedGroups.length > 0 && (
-                                        <div className='mt-2 text-blue-600 text-sm'>{selectedGroups.length} Group(s) selected</div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
+                                );
+                            }}
+                        />
                         <div className='flex items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-3 py-2'>
                             <label className='inline-flex cursor-pointer items-center space-x-2'>
                                 <input
