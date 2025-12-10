@@ -8,44 +8,47 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-
+import { useClassTeacherReport } from '@/hooks/admission/preadmission/useTransactions';
 import type { IClassTeacherReportList } from '@/types/admission/preadmission/reports';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { classTeacherReportColumns } from './_components/columns';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { getClassTeacherReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function ClassTeacherReportPage(props: { searchParams: SearchParams }) {
+export default function ClassTeacherReportPage(props: {
+    searchParams: SearchParams;
+}) {
     const tableRef = useRef<DataTableRef>(null);
 
     const { data: academicYearOptions, isLoading: academicYearLoading, isError: academicYearError } = useAcademicYearDropdown();
 
     // Filters
     const [academicYearId, setAcademicYearId] = useState(0);
-    const [reportType, setReportType] = useState('all');
+    const [reportType, setReportType] = useState('class_teacher');
 
-    // Table selection
-    const [selectedStudents, setSelectedStudents] = useState<IClassTeacherReportList[]>([]);
-
-    // TODO: Replace with actual API hook
-    const studentsLoading = false;
-    const error = null;
-
-    // Use the data table hook
-    const tableProps = useDataTableProps<IClassTeacherReportList>({
-        data: [] as IClassTeacherReportList[], // TODO: Replace with actual data from API
-        pageCount: 0
-    });
-
-    const refetchStudents = () => {
-        // TODO: Implement refetch logic (e.g., call API or trigger table refetch)
+    // Map report type to flag
+    const flagMapping = {
+        class_teacher: 3,
+        class_teacher_attendance: 1,
+        subject_teacher_attendance: 2
     };
 
-    // Auto-select first academic year when options load
+    const flag = flagMapping[reportType as keyof typeof flagMapping];
+
+    const [selectedStudents, setSelectedStudents] = useState<IClassTeacherReportList[]>([]);
+
+    const { data: response, isLoading, error, refetch: refetchAdmissionStudents } = useClassTeacherReport(academicYearId, flag);
+
+    const columns = useMemo(() => getClassTeacherReportColumns(reportType), [reportType]);
+
+    const tableProps = useDataTableProps({
+        data: response?.data || []
+    });
+
     useEffect(() => {
         if ((academicYearId ?? 0) === 0 && academicYearOptions?.data && academicYearOptions.data.length > 0) {
-            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+            setAcademicYearId(Number(academicYearOptions.asmaY_Id));
         }
     }, [academicYearOptions, academicYearId]);
 
@@ -53,8 +56,7 @@ export default function ClassTeacherReportPage(props: { searchParams: SearchPara
         if (filterType === 'academic_year') {
             setAcademicYearId(value);
         }
-        // TODO: Trigger data refetch based on filters
-        refetchStudents();
+        refetchAdmissionStudents();
     };
 
     const handleSelectStudent = (selectedRows: IClassTeacherReportList[]) => {
@@ -62,29 +64,32 @@ export default function ClassTeacherReportPage(props: { searchParams: SearchPara
     };
 
     const handleReset = () => {
-        setAcademicYearId(0);
-        setReportType('all');
+        if (academicYearOptions?.data && academicYearOptions.data.length > 0) {
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+        } else {
+            setAcademicYearId(0);
+        }
+        setReportType('class_teacher');
         setSelectedStudents([]);
-        refetchStudents();
+        tableRef.current?.resetSelection();
     };
 
     return (
         <div className='min-h-screen'>
-            {/* Filters Header */}
-            <div className='mb-3 flex w-fit flex-col gap-4 rounded-xl border p-5 shadow-xl'>
-                <div className='flex flex-wrap items-center gap-10'>
-                    {/* Academic Year Filter */}
-                    <div className='flex flex-col gap-2 sm:w-56'>
-                        <Label htmlFor='academic-year' className='mb-1 font-semibold'>
+            <div className='mb-3 flex w-full flex-col gap-6 rounded-xl border p-6 shadow-xl'>
+                <div className='flex justify-center'>
+                    <div className='flex w-full max-w-md items-center gap-4'>
+                        <Label htmlFor='academic-year' className='whitespace-nowrap font-semibold'>
                             Academic Year
                         </Label>
 
                         <Select
                             onValueChange={(value) => handleFilterChange('academic_year', Number(value))}
                             value={academicYearId !== 0 ? academicYearId?.toString() || undefined : undefined}>
-                            <SelectTrigger id='academic-year'>
+                            <SelectTrigger id='academic-year' className='w-48'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
+
                             <SelectContent>
                                 {academicYearLoading ? (
                                     <SelectItem value='loading' disabled>
@@ -104,59 +109,61 @@ export default function ClassTeacherReportPage(props: { searchParams: SearchPara
                             </SelectContent>
                         </Select>
                     </div>
-
-                    {/* Report Type */}
-                    <div className='flex flex-col gap-2'>
-                        <Label className='font-semibold'>Report Type</Label>
-
-                        <RadioGroup value={reportType} onValueChange={setReportType} className='flex flex-wrap items-center gap-8'>
-                            <div className='flex items-center gap-2'>
-                                <RadioGroupItem value='all' id='report-all' />
-                                <Label htmlFor='report-all' className='cursor-pointer'>
-                                    Class Teacher
-                                </Label>
-                            </div>
-
-                            <div className='flex items-center gap-2'>
-                                <RadioGroupItem value='pending' id='report-pending' />
-                                <Label htmlFor='report-pending' className='cursor-pointer'>
-                                    Class Teacher having Attendance Privilege
-                                </Label>
-                            </div>
-
-                            <div className='flex items-center gap-2'>
-                                <RadioGroupItem value='approved' id='report-approved' />
-                                <Label htmlFor='report-approved' className='cursor-pointer'>
-                                    Subject Teacher having Attendance Privilege
-                                </Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
                 </div>
-                {/* Action Buttons */}
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
+
+                <div className='flex flex-col items-center gap-3'>
+                    <RadioGroup
+                        value={reportType}
+                        onValueChange={setReportType}
+                        className='flex flex-wrap items-center justify-center gap-6'>
+                        <div className='flex items-center gap-2'>
+                            <RadioGroupItem value='class_teacher' id='report-class-teacher' />
+                            <Label htmlFor='report-class-teacher' className='cursor-pointer'>
+                                Class Teacher
+                            </Label>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                            <RadioGroupItem value='class_teacher_attendance' id='report-class-attendance' />
+                            <Label htmlFor='report-class-attendance' className='cursor-pointer'>
+                                Class Teacher having Attendance Privilege
+                            </Label>
+                        </div>
+
+                        <div className='flex items-center gap-2'>
+                            <RadioGroupItem value='subject_teacher_attendance' id='report-subject-attendance' />
+                            <Label htmlFor='report-subject-attendance' className='cursor-pointer'>
+                                Subject Teacher having Attendance Privilege
+                            </Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+
+                {/* Action Buttons - Centered at Bottom */}
+                <div className='flex items-center justify-center gap-3 border-t pt-4'>
                     <Button
                         type='button'
                         variant='outline'
                         onClick={handleReset}
-                        className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                        className='w-fit transition-all duration-200 hover:scale-105'>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Reset
                     </Button>
-                    <Button type='button' onClick={() => {}} className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                    <Button
+                        type='button'
+                        onClick={() => refetchAdmissionStudents()}
+                        className='w-fit transition-all duration-200 hover:scale-105'>
                         <FileText className='mr-2 h-4 w-4' />
                         Report
                     </Button>
-                    <div className='flex gap-3'>
-                        <Button variant='outline' className='w-fit'>
-                            <FileSpreadsheet className='mr-2 h-4 w-4' />
-                            Export to Excel
-                        </Button>
-                        <Button variant='outline' className='w-fit'>
-                            <Printer className='mr-2 h-4 w-4' />
-                            Print
-                        </Button>
-                    </div>
+                    <Button variant='outline' className='w-fit'>
+                        <FileSpreadsheet className='mr-2 h-4 w-4' />
+                        Export to Excel
+                    </Button>
+                    <Button variant='outline' className='w-fit'>
+                        <Printer className='mr-2 h-4 w-4' />
+                        Print
+                    </Button>
                 </div>
             </div>
 
@@ -179,8 +186,8 @@ export default function ClassTeacherReportPage(props: { searchParams: SearchPara
                     <GenericDataTable<IClassTeacherReportList>
                         {...tableProps}
                         ref={tableRef}
-                        columns={classTeacherReportColumns}
-                        isLoading={studentsLoading}
+                        columns={columns}
+                        isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
                         loadingMessage='Loading class teacher reports...'

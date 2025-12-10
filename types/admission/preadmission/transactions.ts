@@ -34,6 +34,8 @@ export interface IPreadmissionDocumentDropdown {
     amsmD_FLAG: boolean;
 }
 export interface IPreadmissionClassDropdown {
+    asmS_Id: number;
+    asmC_SectionName: string;
     asmcL_Id: number;
     asmcL_ClassCode: string;
     asmcL_ClassName: string;

@@ -1,0 +1,29 @@
+'use server';
+
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
+import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
+
+export async function GetStudentYearlyAttendance(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,AMST_AdmNo,AMST_RegistrationNo,AMAY_RollNo,yearidname');
+    const url = `/StudentYearlyAttendance/GetStudentYearlyAttendance?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AllOrIndiFlag=${'indi'}&${urlParams}`;
+
+    return await api.post<IPreadmissionClassDropdown[]>('admission', url);
+}
+
+export async function getPreadmissionClassDropdown1() {
+    const url = '/master_class_category/master_class_drop_down_list';
+    return await api.get<IPreadmissionClassDropdown[]>('admission', url);
+}
+
+export async function getadmissionSectionDropdown(asmcl_id: number) {
+    const url = `/master_class_held/class_section_drop_down_list/${asmcl_id}`;
+    return await api.get('admission', url);
+}
+
+export async function GetClassTeacherReport(ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'name,AMST_AdmNo,AMST_RegistrationNo,AMAY_RollNo,yearidname');
+    const url = `/ClassTeacherReportAttendance/GetReport?ASMAY_Id=${ASMAY_Id}&flag=${flag}&${urlParams}`;
+
+    return await api.post<IPreadmissionClassDropdown[]>('admission', url);
+}

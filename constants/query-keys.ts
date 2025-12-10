@@ -26,7 +26,11 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CLASS_TEACHER_EMPLOYEE: 'master_class_teacher_employee',
     MASTER_EXCHANGE_CLASS_TEACHER_MAPPING: 'exchange_class_teacher_mapping',
     MASTER_CLASS_SET_ORDER: 'master_class_set_order',
-    MASTER_SECTION_SET_ORDER: 'master_section_set_order'
+    MASTER_SECTION_SET_ORDER: 'master_section_set_order',
+    ADMISSION_CLASS_DROPDOWN1: 'admission_class_dropdown1',
+    ADMISSION_SECTION_DROPDOWN: 'admission_section_dropdown',
+    ADMISSION_STUDENT_LISTS: 'admission_student_lists',
+    ADMISSION_CLASS_TEACHER_REPORT: 'admission_class_teacher_report'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

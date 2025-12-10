@@ -29,11 +29,14 @@ export interface IClassTeacherReportList {
 }
 
 export interface IStudentYearlyAttendenceReportList {
-    pasr_id: number;
-    MONTH_NAME: string;
-    total: number;
+    AMST_Id: number;
     name: string;
     AMST_AdmNo: string;
     AMST_RegistrationNo: string;
-    AMAY_RollNo: string;
+    AMAY_RollNo: number;
+    monthlyAttendance: {
+        [key: string]: number;
+    };
+    totalPresent: number;
+    percentage: string;
 }
