@@ -191,7 +191,8 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
     FEE_CONCESSION_STUDENT_LIST: 'fee_concession_student_list',
-    FEE_CONCESSION_STUDENT_GRID: 'fee_concession_student_grid'
+    FEE_CONCESSION_STUDENT_GRID: 'fee_concession_student_grid',
+    FEE_PROSPECTUS_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details'
 };
 
 export const EXAM_QUERY_KEYS = {
