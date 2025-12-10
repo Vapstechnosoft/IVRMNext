@@ -18,6 +18,7 @@ import {
     getFeeConcessionStaffList,
     getFeesCommonSettingConfigSet
 } from '@/server/fees/trasactions/FeeConcession';
+import { getFeeAdjutmentGridList } from '@/server/fees/trasactions/fee_adjustment';
 import {
     getOpeningAcademicYearDropdownData,
     getOpeningBalanceList,
@@ -810,6 +811,23 @@ export const useFeeConcessionCategoryFeeConcessionDropdowndata = (searchParams?:
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_FEE_CONCESSION_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeAdjustment = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GRIDDATA, searchParams ?? {}],
+            queryFn: async () => getFeeAdjutmentGridList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GRIDDATA]
             });
         }
     };

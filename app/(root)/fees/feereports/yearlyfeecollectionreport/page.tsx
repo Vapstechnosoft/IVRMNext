@@ -307,21 +307,76 @@ export default function FeeDefaulterReport() {
 
         // STATIC MOCK DATA - Looks 100% real!
         const mockData: IFeeDefaulterReportRow[] = [
-            { feeGroup: 'Tuition Fee', totalDue: 12500 },
-            { feeGroup: 'Transport + Tuition', totalDue: 28500 },
-            { feeGroup: 'Annual Charges', totalDue: 8000 },
-            { feeGroup: 'Tuition Fee', totalDue: 15000 },
-            { feeGroup: 'Lab + Tuition', totalDue: 42000 },
-            { feeGroup: 'Transport Fee', totalDue: 18000 },
-            { feeGroup: 'Tuition Fee', totalDue: 12500 },
-            { feeGroup: 'All Fees', totalDue: 55000 },
-            { feeGroup: 'Exam Fee', totalDue: 5000 },
-            { feeGroup: 'Tuition Fee', totalDue: 11000 },
-            { feeGroup: 'Science Fee', totalDue: 15000 },
-            { feeGroup: 'Transport', totalDue: 20000 },
-            { feeGroup: 'Tuition + Lab', totalDue: 30000 },
-            { feeGroup: 'All Fees', totalDue: 68000 },
-            { feeGroup: 'Admission Fee', totalDue: 25000 }
+            {
+                feeGroup: 'Tuition Fee',
+                totalDue: 12500,
+                fsS_TotalToBePaid: 3000,
+                fsS_CurrentYrCharges: 10000,
+                fsS_AdjustedAmount: 1200,
+                fsS_ConcessionAmount: 1000,
+                fsS_FineAmount: 1000,
+                fsS_RefundAmount: 10000,
+                fsS_RunningExcessAmount: 1000,
+                fsS_PaidAmount: 2000,
+                fsS_WaivedAmount: 6000,
+                fsS_ToBePaid: 10000
+            },
+            {
+                feeGroup: 'Transport + Tuition',
+                totalDue: 28500,
+                fsS_TotalToBePaid: 100,
+                fsS_CurrentYrCharges: 10000,
+                fsS_AdjustedAmount: 4000,
+                fsS_ConcessionAmount: 1000,
+                fsS_FineAmount: 1000,
+                fsS_RefundAmount: 9800,
+                fsS_RunningExcessAmount: 1000,
+                fsS_PaidAmount: 2000,
+                fsS_WaivedAmount: 20000,
+                fsS_ToBePaid: 10000
+            },
+            {
+                feeGroup: 'Annual Charges',
+                totalDue: 200,
+                fsS_TotalToBePaid: 100,
+                fsS_CurrentYrCharges: 10000,
+                fsS_AdjustedAmount: 3000,
+                fsS_ConcessionAmount: 1000,
+                fsS_FineAmount: 1000,
+                fsS_RefundAmount: 10000,
+                fsS_RunningExcessAmount: 1000,
+                fsS_PaidAmount: 2000,
+                fsS_WaivedAmount: 4500,
+                fsS_ToBePaid: 4500
+            },
+            {
+                feeGroup: 'Tuition Fee',
+                totalDue: 15000,
+                fsS_TotalToBePaid: 100,
+                fsS_CurrentYrCharges: 10000,
+                fsS_AdjustedAmount: 1200,
+                fsS_ConcessionAmount: 4000,
+                fsS_FineAmount: 1000,
+                fsS_RefundAmount: 10000,
+                fsS_RunningExcessAmount: 1000,
+                fsS_PaidAmount: 2000,
+                fsS_WaivedAmount: 20000,
+                fsS_ToBePaid: 10000
+            },
+            {
+                feeGroup: 'Lab + Tuition',
+                totalDue: 42000,
+                fsS_TotalToBePaid: 100,
+                fsS_CurrentYrCharges: 10000,
+                fsS_AdjustedAmount: 1200,
+                fsS_ConcessionAmount: 1000,
+                fsS_FineAmount: 1000,
+                fsS_RefundAmount: 6000,
+                fsS_RunningExcessAmount: 1000,
+                fsS_PaidAmount: 2000,
+                fsS_WaivedAmount: 7000,
+                fsS_ToBePaid: 10000
+            }
         ];
 
         setReportData(mockData);

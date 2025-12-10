@@ -810,3 +810,14 @@ export interface IFeeCategoryConcessionDropDownList {
     createdDate: number;
     updatedDate: number;
 }
+
+export interface IFeeAdjustmentGridList {
+    fsA_Id: number;
+    fsA_Date: string;
+    fsA_AdjustedAmount: number;
+    studentName: string;
+    fromHead: string;
+    toHead: string;
+    fromInstallment: string;
+    toInstallment: string;
+}

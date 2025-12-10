@@ -34,9 +34,24 @@ export interface IFeeSectionDropdownList {
     asmC_SectionName: string;
 }
 
+// export interface IFeeDefaulterReportRow {
+//     feeGroup: string;
+//     totalDue: number;
+// }
+
 export interface IFeeDefaulterReportRow {
     feeGroup: string;
     totalDue: number;
+    fsS_CurrentYrCharges: number;
+    fsS_TotalToBePaid: number;
+    fsS_ToBePaid: number;
+    fsS_PaidAmount: number;
+    fsS_ConcessionAmount: number;
+    fsS_AdjustedAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_RefundAmount: number;
+    fsS_RunningExcessAmount: number;
+    fsS_FineAmount: number;
 }
 
 export interface IDailyFeeCollectionResponse {
