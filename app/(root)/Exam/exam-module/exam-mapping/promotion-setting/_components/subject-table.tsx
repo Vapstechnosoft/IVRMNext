@@ -178,64 +178,74 @@ export function ViewGroupsModal({
                     </div>
                 </div>
 
-                {/* GROUP LIST */}
-                <div className='border-t p-4'>
-                    <table className='min-w-full border-collapse border'>
-                        <thead className='bg-gray-100 text-sm'>
-                            <tr>
-                                <th className='p-2'>#</th>
-                                <th className='p-2'>Group</th>
-                                <th className='p-2'>Display</th>
-                                <th className='p-2'>%</th>
-                                <th className='p-2'>Marks</th>
-                                <th className='p-2'>Max</th>
-                                <th className='p-2'>Best</th>
-                                <th className='p-2'>Order</th>
-                                <th className='p-2'>Exams</th>
-                                <th className='p-2'>Round</th>
-                                <th className='p-2'>Remove</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {groups.length === 0 ? (
+                {groups.length > 0 && (
+                    <div className='border-t p-4'>
+                        <table className='min-w-full border-collapse border'>
+                            <thead className='bg-gray-100 text-sm'>
                                 <tr>
-                                    <td colSpan={11} className='p-3 text-center'>
-                                        No Groups Added
-                                    </td>
+                                    <th className='p-2'>#</th>
+                                    <th className='p-2'>Group</th>
+                                    <th className='p-2'>Display</th>
+                                    <th className='p-2'>%</th>
+                                    <th className='p-2'>Marks</th>
+                                    <th className='p-2'>Max</th>
+                                    <th className='p-2'>Best</th>
+                                    <th className='p-2'>Order</th>
+                                    <th className='p-2'>Exams</th>
+                                    <th className='p-2'>Round</th>
+                                    <th className='p-2'>Remove</th>
                                 </tr>
-                            ) : (
-                                groups.map((g, i) => (
-                                    <tr key={g.id} className={`${i % 2 ? 'bg-gray-50' : 'bg-white'} text-sm`}>
-                                        <td className='p-2 text-center'>{i + 1}</td>
-                                        <td className='p-2'>{g.groupName}</td>
-                                        <td className='p-2'>{g.displayName}</td>
-                                        <td className='p-2 text-center'>{g.percentage}</td>
-                                        <td className='p-2 text-center'>{g.marks}</td>
-                                        <td className='p-2 text-center'>{g.maxOff}</td>
-                                        <td className='p-2 text-center'>{g.bestOff}</td>
-                                        <td className='p-2 text-center'>{g.order}</td>
-                                        <td className='p-2 text-center'>
-                                            <Button size='sm' variant='ghost' onClick={() => onOpenExams(g)}>
-                                                <Eye className='h-4 w-4 text-blue-600' />
-                                            </Button>
-                                        </td>
-                                        <td className='p-2 text-center'>{g.roundOffFlag ? '✔' : ''}</td>
-                                        <td className='p-2 text-center'>
-                                            <Button variant='ghost'>
-                                                <X className='h-4 w-4 text-red-600' />
-                                            </Button>
+                            </thead>
+
+                            <tbody className="[&>tr:hover>td]:!bg-accent/90" >
+                                {groups.length === 0 ? (
+                                    <tr>
+                                        <td colSpan={11} className='p-3 text-center'>
+                                            No Groups Added
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : (
+                                    groups.map((g, i) => (
+                                        <tr
+                                            key={g.id}
+                                            className={`
+                                                ${i % 2 ? 'bg-gray-50' : 'bg-white'}
+                                                hover:[&>td]:!bg-accent/90
+                                                text-sm transition-colors
+                                            `}
+                                        >
 
-                    <div className='mt-4 flex w-fit justify-center'>
-                        <Button onClick={onClose}>Submit & Close</Button>
+                                            <td className='p-2 text-center'>{i + 1}</td>
+                                            <td className='p-2'>{g.groupName}</td>
+                                            <td className='p-2'>{g.displayName}</td>
+                                            <td className='p-2 text-center'>{g.percentage}</td>
+                                            <td className='p-2 text-center'>{g.marks}</td>
+                                            <td className='p-2 text-center'>{g.maxOff}</td>
+                                            <td className='p-2 text-center'>{g.bestOff}</td>
+                                            <td className='p-2 text-center'>{g.order}</td>
+                                            <td className='p-2 text-center'>
+                                                <Button size='sm' variant='ghost' onClick={() => onOpenExams(g)}>
+                                                    <Eye className='h-4 w-4 text-blue-600' />
+                                                </Button>
+                                            </td>
+                                            <td className='p-2 text-center'>{g.roundOffFlag ? '✔' : ''}</td>
+                                            <td className='p-2 text-center'>
+                                                <Button variant='ghost'>
+                                                    <X className='h-4 w-4 text-red-600' />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+
+                        <div className='mt-4 flex w-fit justify-center'>
+                            <Button onClick={onClose}>Submit & Close</Button>
+                        </div>
                     </div>
-                </div>
+                )}
+
             </div>
         </div>
     );

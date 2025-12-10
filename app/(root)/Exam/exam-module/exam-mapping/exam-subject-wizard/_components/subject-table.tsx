@@ -28,21 +28,21 @@ export const BaseExamSubjectSchema = {
             EYCES_MaxMarks: z.preprocess(
                 (val) => {
                     const num = Number(val);
-                    return !val || isNaN(num) || num === 0 ? undefined : num;
+                    return !val || Number.isNaN(num) || num === 0 ? undefined : num;
                 },
                 z.number().min(1).max(100).optional()
             ),
             EYCES_MinMarks: z.preprocess(
                 (val) => {
                     const num = Number(val);
-                    return !val || isNaN(num) || num === 0 ? undefined : num;
+                    return !val || Number.isNaN(num) || num === 0 ? undefined : num;
                 },
                 z.number().min(1).max(100).optional()
             ),
             EYCES_MarksEntryMax: z.preprocess(
                 (val) => {
                     const num = Number(val);
-                    return !val || isNaN(num) || num === 0 ? undefined : num;
+                    return !val || Number.isNaN(num) || num === 0 ? undefined : num;
                 },
                 z.number().min(1).max(100).optional()
             ),
@@ -98,9 +98,6 @@ export const BaseExamSubjectSchema = {
         EYCE_Id: z.number({ required_error: 'EYCE_Id is required' }).int().positive({ message: 'Invalid EYCE_Id' })
     })
 };
-
-
-
 
 // ---------- Types ----------
 type SubjectRowRaw = {
@@ -172,10 +169,10 @@ type NormalizedSubject = {
 // ---------- Helper utilities ----------
 const coerceNumberForSchema = (val: number | '' | string | undefined): number => {
     // Zod expects numbers — empty string or undefined will be replaced by NaN so we must coerce carefully.
-    if (val === '' || val === undefined || val === null) return NaN;
+    if (val === '' || val === undefined || val === null) return Number.NaN;
     if (typeof val === 'number') return val;
     const n = Number(val);
-    return Number.isFinite(n) ? n : NaN;
+    return Number.isFinite(n) ? n : Number.NaN;
 };
 
 const mapZodIssuePathToField = (path: (string | number)[]): string => {
@@ -186,7 +183,7 @@ const mapZodIssuePathToField = (path: (string | number)[]): string => {
 const toNumOrEmpty = (v: any): number | "" => {
     if (v === "" || v === null || v === undefined) return "";
     const n = Number(v);
-    return isNaN(n) ? "" : n;
+    return Number.isNaN(n) ? "" : n;
 };
 
 
@@ -1055,13 +1052,22 @@ export default function SubjectTableWithValidation({
 
                                                 updateSubjectField(s.ISMS_Id, "EMGR_Id", num);
 
-                                                setErrors((prev) => ({
-                                                    ...prev,
-                                                    [s.ISMS_Id]: {
-                                                        ...(prev[s.ISMS_Id] ?? {}),
-                                                        EMGR_Id: '',
-                                                    },
-                                                }));
+                                                setErrors(prev => {
+                                                    const updated = { ...prev };
+
+                                                    // only remove EMGR_Id error if a valid value is selected
+                                                    if (num && updated[s.ISMS_Id]?.EMGR_Id) {
+                                                        // biome-ignore lint/performance/noDelete: <explanation>
+                                                        delete updated[s.ISMS_Id].EMGR_Id;
+
+                                                        // cleanup empty object to avoid stale render
+                                                        if (Object.keys(updated[s.ISMS_Id]).length === 0) {
+                                                            delete updated[s.ISMS_Id];
+                                                        }
+                                                    }
+
+                                                    return updated;
+                                                });
                                             }}
 
                                         >
@@ -1077,7 +1083,6 @@ export default function SubjectTableWithValidation({
                                                 ))}
                                             </SelectContent>
                                         </Select>
-
                                         {renderFieldError(s.ISMS_Id, 'EMGR_Id')}
                                     </td>
 

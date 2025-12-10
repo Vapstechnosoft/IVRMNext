@@ -8,6 +8,7 @@ import type { IMasterSubject } from '@/types/exam/exam-module/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
+
 export const examSubjectColumns: ColumnDef<IMasterSubject>[] = [
     {
         accessorKey: 'slNo',

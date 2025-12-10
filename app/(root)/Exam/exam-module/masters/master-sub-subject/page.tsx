@@ -101,17 +101,16 @@ function MasterSubSubjectPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex items-center justify-end gap-4'>
+                    <Button type='button' onClick={handleSetOrder} className='w-fit transition-all duration-200 hover:scale-90'>
+                        <GitCompareArrows className='h-4 w-4 transition-transform duration-200 group-hover:rotate-90' />
+                        Set Order
+                    </Button>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='mr-2 h-4 w-4' />
                         Add SubSubject
-                    </Button>
-
-                    <Button type='button' onClick={handleSetOrder} className='w-fit transition-all duration-200 hover:scale-90'>
-                        <GitCompareArrows className='h-4 w-4 transition-transform duration-200 group-hover:rotate-90' />
-                        Set Order
                     </Button>
                 </div>
 

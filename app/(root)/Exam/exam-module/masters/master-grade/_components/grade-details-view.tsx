@@ -7,6 +7,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-t
 import { useMasterGradeDetails } from '@/hooks/exam/exammodule/usemasters';
 import type { IGradeDetails, IMasterGrade } from '@/types/exam/exam-module/masters';
 import { GradeDetailsColumns } from './grade-details-columns';
+import { X } from 'lucide-react';
 
 interface MasterGradeDetailsPageProps {
     rowData: IMasterGrade; //  Will receive selected grade details
@@ -36,10 +37,12 @@ export default function MasterGradeDetailsPage({ rowData, onClose }: MasterGrade
                         </div>
                         <div className='flex gap-2'>
                             <Button
-                                variant='secondary'
+                                type='button'
                                 onClick={onClose}
-                                className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                Close
+                                variant='ghost'
+                                size='sm'
+                                className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                         </div>
                     </div>
