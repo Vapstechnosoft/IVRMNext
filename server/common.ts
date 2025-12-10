@@ -157,7 +157,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master Religion Caste Category Details'
                                         },
                                         {
-                                            id: 12,
+                                            id: 1290,
                                             name: 'Master Class Teacher',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/masters/class-teacher',
@@ -173,7 +173,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Master Class Held '
                                         },
                                         {
-                                            id: 12,
+                                            id: 88,
                                             name: 'Active Deactive Students',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/masters/active-deactive-students',
@@ -188,7 +188,7 @@ export async function getUserAccessibleModules() {
                                     icon: 'Settings',
                                     pages: [
                                         {
-                                            id: 12,
+                                            id: 1211,
                                             name: 'Preadmission Form',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/transactions/application-form',
@@ -1158,7 +1158,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Manage Grades'
                                         },
                                         {
-                                            id: 12,
+                                            id: 1288,
                                             name: 'Group-Dept-Desig Mapping',
                                             icon: 'Network',
                                             url: '/hrms/masters/group-dept-dessg-mapping',
@@ -1379,7 +1379,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Employee Service Summary'
                                         },
                                         {
-                                            id: 12,
+                                            id: 1289,
                                             name: 'Salary Certificate',
                                             icon: 'Award',
                                             url: '/hrms/reports/salary-certificate',
