@@ -377,7 +377,8 @@ export const YearlyGroupSchema = {
 export const masterConcessionSchema = {
     addOrUpdate: z.object({
         fmcC_Id: z.number().int().optional(),
-        fmcC_ConcessionName: z.string().min(1, { message: 'ConcessionName is required' }),
+        //fmcC_ConcessionName: z.string().min(1, { message: 'ConcessionName is required' }),
+        fmcC_ConcessionName: createStringOnlySchema('Concession Name', 1, 100),
         fmcC_ConcessionApplLimit: z.number({
             message: 'Concession Limit is required'
         }),
@@ -418,18 +419,32 @@ export const masterTermFeeHeadSchema = {
     })
 };
 export const masterConcessionDetailsSchema = {
-    addOrUpdate: z.object({
-        fmccD_Id: z.number().int().optional(),
-        fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
-        fmccD_PerOrAmtFlag: z.string({
-            message: 'Amount or Percentage is required'
-        }),
+    addOrUpdate: z
+        .object({
+            fmccD_Id: z.number().int().optional(),
+            fmcC_Id: z.number({ message: 'Concession Category Type is required' }),
+            fmccD_PerOrAmtFlag: z.string({
+                message: 'Amount or Percentage is required'
+            }),
 
-        fmccD_FromNoSibblings: z.number().min(1, { message: 'From No of Sibblings is required' }),
-        fmccD_ToNoSibblings: z.number().min(1, { message: 'To No of Sibblings is required' }),
-        //fmcC_ActiveFlag: z.boolean().optional(),
-        fmccD_PerOrAmt: z.number().min(1, { message: 'Concession Limit must be at morethan 0' })
-    }),
+            fmccD_FromNoSibblings: z.number().min(1, { message: 'From No of Sibblings is required' }),
+            fmccD_ToNoSibblings: z.number().min(1, { message: 'To No of Sibblings is required' }),
+            //fmcC_ActiveFlag: z.boolean().optional(),
+            fmccD_PerOrAmt: z.number().min(1, { message: 'Concession Limit must be at morethan 0' })
+        })
+        .refine(
+            (data) => {
+                // If type is Percentage → value must NOT exceed 100
+                if (data.fmccD_PerOrAmtFlag === 'P') {
+                    return data.fmccD_PerOrAmt <= 100;
+                }
+                return true;
+            },
+            {
+                message: 'Percentage should Not Be morethan 100',
+                path: ['fmccD_PerOrAmt'] // <— Error attached to this field
+            }
+        ),
     delete: z.object({
         fmccD_Id: deleteIdSchema('fmccD_Id')
     })
@@ -697,15 +712,20 @@ export const masterFeePrivilege = {
 };
 
 export const masterTermPeriodSchema = {
-    addOrUpdate: z.object({
-        asmay_Id: z.number({ message: 'Academic Year is required' }),
-        fmt_id: z.number({ message: 'Term is required' }),
-        // fmh_id: z.number({ message: 'Head is required' }),
-        fmtP_Year: z.string().min(1, 'Please select year'),
-        filterType: z.string().min(1, 'Please select a fee type'),
-        from_Month: z.string().min(1, 'Please select from month'),
-        to_Month: z.string().min(1, 'Please select to month')
-    }),
+    addOrUpdate: z
+        .object({
+            asmay_Id: z.number({ message: 'Academic Year is required' }),
+            fmt_id: z.number({ message: 'Term is required' }),
+            // fmh_id: z.number({ message: 'Head is required' }),
+            fmtP_Year: z.string().min(1, 'Please select year'),
+            filterType: z.string().min(1, 'Please select a fee type'),
+            from_Month: z.string().min(1, 'Please select from month'),
+            to_Month: z.string().min(1, 'Please select to month')
+        })
+        .refine((data) => data.from_Month !== data.to_Month, {
+            message: 'From Month and To Month cannot be the same',
+            path: ['to_Month'] // error will show under To Month
+        }),
     delete: z.object({
         fmtP_Id: deleteIdSchema('fmtP_Id')
     })

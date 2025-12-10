@@ -115,7 +115,7 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
                 const toastId = toast.loading('Fetching due date data...');
                 try {
                     const res = await getFeeTermHeadDueDateGridList(selectedAcademicYear, selectedTerm, selectedHead);
-
+                    console.log('getFeeTermHeadDueDateGridList:', res);
                     if (res?.success && Array.isArray(res.data)) {
                         setGridData(res.data);
                         toast.success('Data loaded successfully', { id: toastId });
@@ -162,6 +162,9 @@ export default function UpdateFeeTermsHeadDueDateForm({ onSuccess, termname = ''
                 FMTFHDD_DueDate: item.fmtfhdD_DueDate || null
             }))
         };
+
+        const js = JSON.stringify(payload);
+        console.log('Payload JSON:', js);
 
         console.log('Final Payload:', payload);
 

@@ -604,12 +604,17 @@ export interface IfeeConcession {
     fmH_Id: number;
 }
 
+// export interface FeeConcessionTermDropdown {
+//     fmT_Id: number;
+//     fmT_Name: string;
+//     fmT_Order: number;
+//     isChecked: boolean;
+//     asmaY_Id: number;
+// }
+
 export interface FeeConcessionTermDropdown {
-    fmT_Id: number;
-    fmT_Name: string;
-    fmT_Order: number;
-    isChecked: boolean;
-    asmaY_Id: number;
+    fmG_Id: number;
+    fmG_GroupName: string;
 }
 
 export interface IFeeConcessionAcademicyearDropDownList {
@@ -759,4 +764,49 @@ export interface IFeeRefundableHeadList {
     fsS_RefundableAmount: number;
     fsS_RefundAmount: number;
     fmG_Id: number;
+}
+
+export interface IFeeCommonSettingConfigSet {
+    fmC_GroupOrTermFlg: string;
+    fmC_EableStaffTrans: number;
+    fmC_EableOtherStudentTrans: number;
+}
+
+export interface IFeeConcessionStaffList {
+    hrmE_EmployeeFirstName: string;
+    hrmdeS_DesignationName: string;
+    hrmD_DepartmentName: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fscI_ConcessionAmount: number;
+    feC_Id: number;
+    ftI_Id: number;
+    fecI_Id: number;
+}
+
+export interface IFeeConcessionOthersList {
+    fmosT_StudentName: string;
+    fmosT_StudentMobileNo: number;
+    fmosT_StudentEmailId: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fscI_ConcessionAmount: number;
+    foC_Id: number;
+    ftI_Id: number;
+    focI_Id: number;
+}
+
+export interface IFeeCategoryConcessionDropDownList {
+    fmcC_Id: number;
+    mI_Id: number;
+    fmcC_ConcessionName: string;
+    fmcC_ConcessionFlag: number;
+    fmcC_ConcessionApplLimit: number;
+    fmcC_ActiveFlag: boolean;
+    fmcC_CreatedBy: null;
+    fmcC_UpdatedBy: null;
+    createdDate: number;
+    updatedDate: number;
 }

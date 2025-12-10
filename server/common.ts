@@ -503,11 +503,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 30,
-                                            name: 'Master Yearly Category',
+                                            name: 'Master Yearly Class Category',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/category',
-                                            title: 'Master Yearly Category',
-                                            description: 'Manage Master Yearly Category'
+                                            title: 'Master Yearly Class Category',
+                                            description: 'Manage Master Yearly Class Category'
                                         },
                                         {
                                             id: 31,

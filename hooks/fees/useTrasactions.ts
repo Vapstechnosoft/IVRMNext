@@ -564,13 +564,13 @@ export const useconcessionacademicyerdropdowndatafee = (mi_Id: number, searchPar
     };
 };
 
-export const useFeeConcessionTermDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+export const useFeeConcessionTermDropdowndata = (groupOrTerm: string, asmaY_Id: number, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_TERM_DROPDOWN, mi_id, searchParams ?? {}],
-            queryFn: async () => getConcessionTermDropdownData(mi_id),
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_TERM_DROPDOWN, groupOrTerm, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getConcessionTermDropdownData(groupOrTerm, asmaY_Id),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -619,13 +619,13 @@ export const useFeeConcessionCategoryDropdowndata = (mi_id: number, searchParams
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, mi_id, searchParams ?? {}],
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_DROPDOWN, mi_id, searchParams ?? {}],
             queryFn: async () => getConcessionCategoryDropdownData(mi_id),
             staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN]
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_DROPDOWN]
             });
         }
     };
@@ -739,6 +739,74 @@ export const useFeeProspectusTransactionList = (
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_PROSPECTUS_TRANSACTION_DETAILS]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionConfigSet = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CONFIGSET, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeesCommonSettingConfigSet(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CONFIGSET]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionStaffList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STAFF_LIST, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeeConcessionStaffList(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STAFF_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionOthersList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_OTHERS_LIST, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeeConcessionOthersList(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_OTHERS_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionCategoryFeeConcessionDropdowndata = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_FEE_CONCESSION_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getConcessionFeeConcessionCategoryDropdownData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_FEE_CONCESSION_DROPDOWN]
             });
         }
     };

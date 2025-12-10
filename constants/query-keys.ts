@@ -192,7 +192,12 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
     FEE_CONCESSION_STUDENT_LIST: 'fee_concession_student_list',
     FEE_CONCESSION_STUDENT_GRID: 'fee_concession_student_grid',
-    FEE_PROSPECTUS_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details'
+    FEE_PROSPECTUS_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
+    FEE_CONCESSION_CATEGORYS_DROPDOWN: 'fee_concession_cagegorys_dropdown',
+    FEE_CONCESSION_CATEGORYS_FEE_CONCESSION_DROPDOWN: 'fee_concession_cagegorys_fee_concession_dropdown',
+    FEE_CONCESSION_CONFIGSET: 'fee_concession_configset',
+    FEE_CONCESSION_STAFF_LIST: 'fee_concession_staff_list',
+    FEE_CONCESSION_OTHERS_LIST: 'fee_concession_others_list'
 };
 
 export const EXAM_QUERY_KEYS = {

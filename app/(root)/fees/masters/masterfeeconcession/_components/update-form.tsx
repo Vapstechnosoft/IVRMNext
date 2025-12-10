@@ -90,16 +90,16 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
                 <div className='space-y-4'>
                     <div className='space-y-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                            {/* <InputText
+                            <InputText
                                 label='Concession Name'
                                 required
                                 id='fmcC_ConcessionName'
                                 {...register('fmcC_ConcessionName')}
                                 error={errors.fmcC_ConcessionName?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            /> */}
+                            />
 
-                            <InputText
+                            {/* <InputText
                                 label='Concession Name'
                                 required
                                 id='fmcC_ConcessionName'
@@ -117,7 +117,7 @@ export default function UpdateMasterConcessionForm({ onSuccess, fineslab = '', s
                                 })}
                                 error={errors.fmcC_ConcessionName?.message}
                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            />
+                            /> */}
 
                             <Controller
                                 name='fmcC_ConcessionApplLimit'
