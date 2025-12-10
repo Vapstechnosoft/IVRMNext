@@ -9,11 +9,14 @@ import {
     getConcessionAcademicDropdownData,
     getConcessionCategoryDropdownData,
     getConcessionClassesDropdownData,
+    getConcessionFeeConcessionCategoryDropdownData,
     getConcessionHeadDetailsList,
-    getConcessionHeadList,
     getConcessionStudentConcessionGrid,
     getConcessionStudentList,
-    getConcessionTermDropdownData
+    getConcessionTermDropdownData,
+    getFeeConcessionOthersList,
+    getFeeConcessionStaffList,
+    getFeesCommonSettingConfigSet
 } from '@/server/fees/trasactions/FeeConcession';
 import {
     getOpeningAcademicYearDropdownData,
@@ -637,7 +640,7 @@ export const useFeeConcessionHeadList = (mi_Id: number, asmaY_Id: number, asmcL_
     return {
         ...useQuery({
             queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
-            queryFn: async () => getConcessionHeadList(mi_Id, asmaY_Id, asmcL_Id),
+            //queryFn: async () => getConcessionHeadList(mi_Id, asmaY_Id, asmcL_Id),
             staleTime: 0
         }),
         refetchAll: () => {
