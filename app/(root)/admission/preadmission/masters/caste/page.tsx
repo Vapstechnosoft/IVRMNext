@@ -16,6 +16,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterCastePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
+
     const { data: response, isLoading, error } = useMasterCaste(searchParams);
 
     return (

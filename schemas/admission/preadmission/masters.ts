@@ -118,7 +118,8 @@ export const masterClassCategorySchema = {
         asmcC_Id: z.number().int({ message: 'ASMCC_ID is required' }).optional(),
         asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
         amC_Id: z.number().int({ message: 'Category is required' }),
-        class_ids: z.array(z.string()).min(1, 'Please select at least one class')
+        category_classes: z.array(z.string()).min(1, 'Please select at least one class'),
+        category_class_sections: z.array(z.string()).min(1, 'Please select at least one class')
     }),
     delete: z.object({
         asmcC_Id: deleteIdSchema('asmcC_Id')
@@ -320,3 +321,20 @@ export const masterConfigurationSchema = {
             }
         })
 };
+export const masterActiveDeactiveStudentSchema = z.object({
+    amsT_SOL: z.enum(['S', 'D'], { required_error: 'Status is required' }),
+    asmaY_Id: z.number().int().min(1, { message: 'Academic Year is required' }),
+    asmcL_Id: z.number().int().min(1, { message: 'Class is required' }),
+    asmS_Id: z.number().int().min(1, { message: 'Section is required' }),
+    students: z
+        .array(
+            z.object({
+                amsT_Id: z.number(),
+                reason: z.string(),
+                remarks: z.string()
+            })
+        )
+        .min(1, { message: 'Please select at least one student' })
+        .optional()
+        .default([])
+});
