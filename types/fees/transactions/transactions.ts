@@ -177,6 +177,7 @@ export interface IFeePreAdmissionTransactionDetails {
 export interface IFeePreAdmissionStudentsDropDownList {
     amsT_Id: number;
     studentName: string;
+    prospectusNo: string;
 }
 
 export interface IFeePreAdmissionStudentInformation {

@@ -8,7 +8,8 @@ import {
     useAcademicYearDropdown,
     useMasterCategoryDropdown,
     useMasterClassCategory,
-    useMasterClassDropdown
+    useMasterSectionDropdown,
+    useMasterUnMappedClassDropdown
 } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassCategorySchema } from '@/schemas/admission/preadmission/masters';
 import { addMasterClassCategory } from '@/server/admission/preadmission/masters/class_category';
@@ -29,6 +30,7 @@ interface AddMasterClassCategoryFormProps {
 export default function AddMasterClassCategoryForm({ onSuccess, className = '' }: AddMasterClassCategoryFormProps) {
     const { refetchAll } = useMasterClassCategory();
     const [selectedClassItems, setSelectedClassItems] = useState<{ asmcL_Id: string; asmcL_ClassName: string }[]>([]);
+    const [selectedSectionItems, setSelectedSectionItems] = useState<{ asmS_Id: string; asmcL_SectionName: string }[]>([]);
 
     const {
         data: academicYear,
@@ -44,7 +46,7 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
         refetchAll: refetchMasterCategory
     } = useMasterCategoryDropdown();
 
-    const { data: masterClass, isLoading: masterClassLoading, refetchAll: refetchMasterClass } = useMasterClassDropdown();
+    const { data: masterSection, isLoading: masterSectionLoading, refetchAll: refetchMasterSection } = useMasterSectionDropdown();
 
     const {
         control,
@@ -52,22 +54,32 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
         reset,
         clearErrors,
         setValue,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterClassCategorySchema.add),
         mode: 'onChange'
     });
+    const watchedAsmaY_Id = watch('asmaY_Id');
+    const watchedAmC_Id = watch('amC_Id');
+    const {
+        data: masterUnmappedClass,
+        isLoading: masterUnmappedClassLoading,
+        refetchAll: refetchMasterUnmappedClass
+    } = useMasterUnMappedClassDropdown(watchedAsmaY_Id, watchedAmC_Id);
 
     function OnReset() {
         reset({
             asmaY_Id: undefined,
             amC_Id: undefined,
-            class_ids: []
+            category_classes: [],
+            category_class_sections: []
         });
 
         setSelectedClassItems([]);
+        setSelectedSectionItems([]);
 
-        setValue('class_ids', []);
+        setValue('category_classes', []);
 
         setTimeout(() => {
             clearErrors();
@@ -77,7 +89,8 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
         // also trigger immediate refetch of dropdowns when reset/add completed
         refetchAcademicYear();
         refetchMasterCategory();
-        refetchMasterClass();
+        refetchMasterUnmappedClass();
+        refetchMasterSection();
     }
 
     // When the Add/Edit form mounts, ensure dropdowns are freshly fetched
@@ -85,7 +98,8 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
         // call the hooks' refetchAll functions to refresh dropdown data when form opens
         refetchAcademicYear?.();
         refetchMasterCategory?.();
-        refetchMasterClass?.();
+        refetchMasterUnmappedClass?.();
+        refetchMasterSection?.();
     }, []);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
@@ -97,6 +111,9 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
                 amC_Id: amC_Id,
                 category_classes: selectedClassItems.map((item) => {
                     return { asmcL_Id: item.asmcL_Id };
+                }),
+                category_class_sections: selectedSectionItems.map((item) => {
+                    return { asmS_Id: item.asmS_Id };
                 })
             };
 
@@ -124,6 +141,13 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
         });
 
         setSelectedClassItems(selectedClasses);
+    };
+    const handleSectionSelection = (selectedValues: string[]) => {
+        const selectedSections = selectedValues.map((value) => {
+            return { asmS_Id: value.toString(), asmcL_SectionName: '' };
+        });
+
+        setSelectedSectionItems(selectedSections);
     };
 
     return (
@@ -210,16 +234,16 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
                             {errors.amC_Id && <FormError>{errors.amC_Id.message}</FormError>}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label aria-label='Class' htmlFor='class_ids'>
+                            <Label aria-label='Class' htmlFor='category_classes'>
                                 Class <span className='ml-1 text-red-500'>*</span>
                             </Label>
                             <Controller
-                                name='class_ids'
+                                name='category_classes'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
                                         options={
-                                            masterClass?.data?.map((data) => ({
+                                            masterUnmappedClass?.data?.map((data) => ({
                                                 label: data.asmcL_ClassName,
                                                 value: data.asmcL_Id.toString()
                                             })) || []
@@ -232,12 +256,42 @@ export default function AddMasterClassCategoryForm({ onSuccess, className = '' }
                                         value={selectedClassItems.map((data) => data.asmcL_Id)}
                                         placeholder='Select Classes'
                                         variant='inverted'
-                                        disabled={masterClassLoading}
+                                        disabled={!watchedAsmaY_Id || !watchedAmC_Id || masterUnmappedClassLoading}
                                     />
                                 )}
                             />
 
-                            {errors.class_ids && <FormError>{errors.class_ids.message}</FormError>}
+                            {errors.category_classes && <FormError>{errors.category_classes.message}</FormError>}
+                        </div>
+                        <div className='group flex flex-col gap-1.5'>
+                            <Label aria-label='Section' htmlFor='category_class_sections'>
+                                Section <span className='ml-1 text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='category_class_sections'
+                                control={control}
+                                render={({ field }) => (
+                                    <MultiSelect
+                                        options={
+                                            masterSection?.data?.map((data) => ({
+                                                label: data.asmC_SectionName,
+                                                value: data.asmS_Id.toString()
+                                            })) || []
+                                        }
+                                        onValueChange={(selectedValues) => {
+                                            field.onChange(selectedValues);
+                                            handleSectionSelection(selectedValues);
+                                        }}
+                                        defaultValue={selectedSectionItems.map((data) => data.asmS_Id)}
+                                        value={selectedSectionItems.map((data) => data.asmS_Id)}
+                                        placeholder='Select Classes'
+                                        variant='inverted'
+                                        disabled={masterSectionLoading}
+                                    />
+                                )}
+                            />
+
+                            {errors.category_class_sections && <FormError>{errors.category_class_sections.message}</FormError>}
                         </div>
                     </div>
 

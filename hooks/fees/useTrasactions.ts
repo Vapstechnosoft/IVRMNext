@@ -29,7 +29,11 @@ import {
 } from '@/server/fees/trasactions/fee_opening_balance';
 import { getFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundable';
 import { getFeeStudentTransactionDetails } from '@/server/fees/trasactions/fee_student_transaction';
-import { getFeePreadmissionTransactionList, getPreadmissionStudentDropdownData } from '@/server/fees/trasactions/feepreadmissiontrasaction';
+import {
+    getFeePreadmissionTransactionList,
+    getFeeProspectusTransactionList,
+    getPreadmissionStudentDropdownData
+} from '@/server/fees/trasactions/feepreadmissiontrasaction';
 import {
     getThirdPartyTrasaction,
     getThirdPartyTrasactionBankDropDown,
@@ -309,14 +313,22 @@ export const useBankdropdowndatathirdpartytransaction = (searchParams?: ApiSearc
     };
 };
 
-export const useFeePreadmissionTransactionList = (searchParams?: ApiSearchparams) => {
+export const useFeePreadmissionTransactionList = (
+    asmay_Id: number,
+    searchParams?: Record<string, any> // ← Make sure it's object, not Promise
+) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_TRANSACTION_DETAILS, searchParams ?? {}],
-            queryFn: async () => getFeePreadmissionTransactionList(searchParams),
-            staleTime: 0
+            queryKey: [
+                FEES_QUERY_KEYS.FEE_PREADMISSION_TRANSACTION_DETAILS,
+                asmay_Id,
+                searchParams ?? {} // ← This must be plain object
+            ],
+            queryFn: async () => getFeePreadmissionTransactionList(asmay_Id, searchParams),
+            staleTime: 0,
+            enabled: asmay_Id > 0 // ← Prevent API call when asmay_id=0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -702,6 +714,31 @@ export const useFeeConcessionHeadDetailsList = (
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeProspectusTransactionList = (
+    asmay_Id: number,
+    searchParams?: Record<string, any> // ← Make sure it's object, not Promise
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [
+                FEES_QUERY_KEYS.FEE_PROSPECTUS_TRANSACTION_DETAILS,
+                asmay_Id,
+                searchParams ?? {} // ← This must be plain object
+            ],
+            queryFn: async () => getFeeProspectusTransactionList(asmay_Id, searchParams),
+            staleTime: 0,
+            enabled: asmay_Id > 0 // ← Prevent API call when asmay_id=0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_PROSPECTUS_TRANSACTION_DETAILS]
             });
         }
     };
