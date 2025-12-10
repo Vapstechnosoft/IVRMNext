@@ -2,14 +2,10 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { IFeeAuditReport } from '@/types/fees/reports/reports';
 import type { ColumnDef } from '@tanstack/react-table';
 
-export interface IFeeDefaulterReportRow {
-    feeGroup: string;
-    totalDue: number;
-}
-
-export const AuditReportColumns: ColumnDef<IFeeDefaulterReportRow>[] = [
+export const AuditReportColumns: ColumnDef<IFeeAuditReport>[] = [
     // 1. Select All / Individual Checkbox
     {
         id: 'select',

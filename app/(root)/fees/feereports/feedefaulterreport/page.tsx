@@ -23,10 +23,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { exportToExcel } from '@/lib/utils';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import type {
+    IFeeAuditReport,
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
-    IFeeDefaulterReportRow,
     IFeeGroupDropdownList,
     IFeeSectionDropdownList,
     IFeeTermDropdownList
@@ -91,7 +91,7 @@ export default function FeeDefaulterReport() {
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeDefaulterReportRow[]>([]);
+    const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
@@ -257,7 +257,7 @@ export default function FeeDefaulterReport() {
 
     //     const data = Array.isArray(result) ? result : (result?.data || []);
 
-    //     setReportData(data as IFeeDefaulterReportRow[]);
+    //     setReportData(data as IFeeAuditReport[]);
     //     setShowReport(true);
 
     //     // Feedback
@@ -296,7 +296,7 @@ export default function FeeDefaulterReport() {
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
         // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeDefaulterReportRow[] = [
+        const mockData: IFeeAuditReport[] = [
             { feeGroup: 'Tuition Fee', totalDue: 12500 },
             { feeGroup: 'Transport + Tuition', totalDue: 28500 },
             { feeGroup: 'Annual Charges', totalDue: 8000 },
@@ -839,7 +839,7 @@ export default function FeeDefaulterReport() {
                                                 <div className='border-b bg-primary/5 px-8 py-6'>
                                                     <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
                                                 </div>
-                                                <GenericDataTable<IFeeDefaulterReportRow>
+                                                <GenericDataTable<IFeeAuditReport>
                                                     columns={feeDefaulterReportColumns}
                                                     data={reportData}
                                                     isLoading={reportLoading}

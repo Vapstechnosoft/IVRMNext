@@ -18,10 +18,10 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type {
+    IFeeAuditReport,
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
-    IFeeDefaulterReportRow,
     IFeeGroupDropdownList,
     IFeeInstallmentDropdownList,
     IFeeSectionDropdownList,
@@ -88,7 +88,7 @@ export default function FeeConcessionReport() {
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeDefaulterReportRow[]>([]);
+    const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
     const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
@@ -243,7 +243,7 @@ export default function FeeConcessionReport() {
 
     //     const data = Array.isArray(result) ? result : (result?.data || []);
 
-    //     setReportData(data as IFeeDefaulterReportRow[]);
+    //     setReportData(data as IFeeAuditReport[]);
     //     setShowReport(true);
 
     //     // Feedback
@@ -271,7 +271,7 @@ export default function FeeConcessionReport() {
 
     const handleSubmit = async () => {
         // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeDefaulterReportRow[] = [];
+        const mockData: IFeeAuditReport[] = [];
     };
 
     const showBalancecheckbox = filters.userType === 'Students' && filters.breakdown === 'Student/Staff Wise';
@@ -618,7 +618,7 @@ export default function FeeConcessionReport() {
                                                 <div className='border-b bg-primary/5 px-8 py-6'>
                                                     <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
                                                 </div>
-                                                <GenericDataTable<IFeeDefaulterReportRow>
+                                                <GenericDataTable<IFeeAuditReport>
                                                     columns={FeeConcessionReportColumns}
                                                     data={reportData}
                                                     isLoading={reportLoading}

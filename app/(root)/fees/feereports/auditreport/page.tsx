@@ -10,7 +10,7 @@ import { FormError } from '@/components/ui/extension/field';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { feeAuditSchema } from '@/schemas/fees/reports';
-import type { IFeeDefaulterReportRow } from '@/types/fees/reports/reports';
+import type { IFeeAuditReport } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod/dist/zod.js';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -54,7 +54,7 @@ export default function FeeDefaulterReport() {
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeDefaulterReportRow[]>([]);
+    const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
@@ -98,7 +98,7 @@ export default function FeeDefaulterReport() {
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
         // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeDefaulterReportRow[] = [
+        const mockData: IFeeAuditReport[] = [
             { feeGroup: 'Tuition Fee', totalDue: 12500 },
             { feeGroup: 'Transport + Tuition', totalDue: 28500 },
             { feeGroup: 'Annual Charges', totalDue: 8000 },
@@ -302,7 +302,7 @@ export default function FeeDefaulterReport() {
                                                 <div className='border-b bg-primary/5 px-8 py-6'>
                                                     <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
                                                 </div>
-                                                <GenericDataTable<IFeeDefaulterReportRow>
+                                                <GenericDataTable<IFeeAuditReport>
                                                     columns={AuditReportColumns}
                                                     data={reportData}
                                                     isLoading={reportLoading}

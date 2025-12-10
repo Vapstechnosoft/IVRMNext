@@ -1,9 +1,9 @@
 'use server';
 
-import type { IFeeDefaulterReportRow } from '@/app/(root)/fees/feereports/feedefaulterreport/_components/columns';
 import { api } from '@/lib/apiService';
 import type {
     IFeeAcademicYearDropdownList,
+    IFeeAuditReport,
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
@@ -54,5 +54,5 @@ export async function getFeesSectionListByClassId(asmaY_Id: number, asmcl_Id: nu
 
 export async function feedefaluerreportdata(asmaY_Id: number, asmcl_Id: number) {
     const url = `/FeesCommon/section-dropdown-by-class?asmay_Id=${asmaY_Id}&asmcl_Id=${asmcl_Id}`;
-    return await api.get<IFeeDefaulterReportRow[]>('fees', url);
+    return await api.get<IFeeAuditReport[]>('fees', url);
 }

@@ -34,10 +34,10 @@ export interface IFeeSectionDropdownList {
     asmC_SectionName: string;
 }
 
-// export interface IFeeDefaulterReportRow {
-//     feeGroup: string;
-//     totalDue: number;
-// }
+export interface IFeeAuditReport {
+    feeGroup: string;
+    totalDue: number;
+}
 
 export interface IFeeDefaulterReportRow {
     feeGroup: string;
