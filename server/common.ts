@@ -171,6 +171,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/class-held',
                                             title: 'Master Class Held',
                                             description: 'Manage Master Class Held '
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Active Deactive Students',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/active-deactive-students',
+                                            title: 'Active Deactive Students',
+                                            description: 'Active Deactive Students'
                                         }
                                     ]
                                 },

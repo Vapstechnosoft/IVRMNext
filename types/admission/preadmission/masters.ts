@@ -235,3 +235,44 @@ export interface IMasterSectionSetOrderList {
     asmC_SectionName: string;
     asmC_Order: number;
 }
+
+export interface IMasterClassCategorySectionList {
+    asmcC_Id: number;
+    asmaY_Id: number;
+    asmaY_Year: string;
+    amC_Id: number;
+    amC_Name: string;
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    // Flattened section properties (used when row data is from flattened array)
+    asmccS_Id?: number;
+    asmS_Id?: number;
+    asmC_SectionName?: string;
+    asmccS_ActiveFlg?: boolean;
+    // Nested sections array (used when data is from API)
+    sections?: {
+        asmccS_Id: number;
+        asmcC_Id: number;
+        asmS_Id: number;
+        asmC_SectionName: string;
+        asmccS_ActiveFlg: boolean;
+    }[];
+}
+export interface Student {
+    amst_sol: string;
+    amsT_SOL: number;
+    student_id: number;
+    student_name: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amsT_AdmNo: string;
+    amaY_RollNo: number;
+    registration_no: string;
+    admission_no: string;
+}
+
+export interface StudentData {
+    student_id: number;
+    reason: string;
+    remark: string;
+}
