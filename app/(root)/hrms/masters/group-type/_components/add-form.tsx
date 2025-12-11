@@ -42,7 +42,8 @@ export default function AddGroupTypeForm({ onSuccess, className = '' }: AddGroup
                 hrmgT_Id: 0,
                 hrmgT_EmployeeGroupType: data.hrmgT_EmployeeGroupType?.trim() || '',
                 hrmgT_Code: data.hrmgT_Code?.trim() || '',
-                hrmgT_Order: data.hrmgT_Order || 0
+                hrmgT_Order: data.hrmgT_Order || 0,
+                hrmgT_ActiveFlag: true
             };
             const response = await addOrUpdateMasterGroupType(payload);
 

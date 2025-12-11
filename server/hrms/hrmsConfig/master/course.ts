@@ -10,15 +10,14 @@ export async function getMasterCourse(searchParams?: ApiSearchparams) {
     return await api.get<IMasterCourseList[]>('hrms', url);
 }
 export async function addOrUpdateMasterCourse(data: any) {
-    const url = '/api/MasterCourseFacade/AddOrUpdateMasterCourse';
+    const url = '/api/MasterCourseFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterCourse(id: number) {
-    const url = `/api/MasterCourseFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterCourseFacade/toggle/${id}`;
     return await api.put('hrms', url);
 }
-
 
 export async function getMasterCourseDetails(id: number) {
     const url = `/api/MasterCourseFacade/getRecordById/${id}`;

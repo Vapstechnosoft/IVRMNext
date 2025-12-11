@@ -3,28 +3,27 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
-import type { EarningsDeductionDetail } from '@/types/hrms/master-earnings-deductions';
+import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 const toggleSchema = z.object({
-    HRMED_Id: z.number()
+    hrmeD_Id: z.number()
 });
 
 type FormFields = z.infer<typeof toggleSchema>;
 
 interface ToggleMasterEarningsDeductionsFormProps {
-    rowData: EarningsDeductionDetail;
+    rowData: IMasterEarningsDeductionsList;
     onClose: () => void;
 }
 
 export default function ToggleMasterEarningsDeductionsForm({ rowData, onClose }: ToggleMasterEarningsDeductionsFormProps) {
-    const { toggleMutation, refetchAll } = useMasterEarningsDeductions(HRMS_MI_ID);
-    const isActive = rowData.HRMED_ActiveFlag;
+    const { toggleMutation, refetchAll } = useMasterEarningsDeductions();
+    const isActive = rowData.hrmeD_ActiveFlag;
 
     const {
         register,
@@ -35,7 +34,7 @@ export default function ToggleMasterEarningsDeductionsForm({ rowData, onClose }:
         resolver: zodResolver(toggleSchema),
         mode: 'onChange',
         defaultValues: {
-            HRMED_Id: rowData.HRMED_Id
+            hrmeD_Id: rowData.hrmeD_Id
         }
     });
 
@@ -46,11 +45,7 @@ export default function ToggleMasterEarningsDeductionsForm({ rowData, onClose }:
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMutation.mutateAsync({
-                HRMED_Id: rowData.HRMED_Id,
-                HRMED_ActiveFlag: !isActive,
-                MI_Id: HRMS_MI_ID
-            });
+            const response = await toggleMutation.mutateAsync(rowData.hrmeD_Id);
 
             if (response?.success) {
                 toast.success(response?.message || `Earnings/Deduction ${!isActive ? 'activated' : 'deactivated'} successfully`);
@@ -68,11 +63,11 @@ export default function ToggleMasterEarningsDeductionsForm({ rowData, onClose }:
         <AdaptiveDialog title='Toggle Earnings/Deduction Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('HRMED_Id', { valueAsNumber: true })} defaultValue={rowData.HRMED_Id} />
+                    <input type='hidden' {...register('hrmeD_Id', { valueAsNumber: true })} defaultValue={rowData.hrmeD_Id} />
                     <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.HRMED_Name}</strong>?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.hrmeD_Name}</strong>?
                     </p>
-                    <FormError>{errors.HRMED_Id?.message}</FormError>
+                    <FormError>{errors.hrmeD_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

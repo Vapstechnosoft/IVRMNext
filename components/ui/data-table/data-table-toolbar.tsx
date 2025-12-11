@@ -1,3 +1,4 @@
+// components/ui/data-table/data-table-toolbar.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,25 @@ import { exportToExcel } from '@/lib/utils';
 import type { ColumnDef, Table } from '@tanstack/react-table';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { DownloadIcon, FileSpreadsheet, FileText, Settings2, X } from 'lucide-react';
+import {
+    DownloadIcon,
+    FileSpreadsheet,
+    FileText,
+    Settings2,
+    X,
+    Mic,
+    MicOff,
+} from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
 import { useEffect, useRef, useState } from 'react';
-import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '../dropdown-menu';
+import { enhanceAndConvertToWav, blobToFile } from '@/lib/audio-utils';
 
 interface DataTableToolbarProps<TData, TValue> {
     table: Table<TData>;
@@ -27,40 +43,35 @@ export function DataTableToolbar<TData, TValue>({
     data,
     columns,
     showExportOptions = true,
-    showViewOptions = true
+    showViewOptions = true,
 }: DataTableToolbarProps<TData, TValue>) {
     const [searchQuery, setSearchQuery] = useQueryState(
         tableSearchVariables.search,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
 
-    // Add local state for immediate input feedback
-    const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || ''); // Initialize with searchQuery
+    const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery || '');
+    const debouncedSearchQuery = useDebounce(localSearchQuery, 800);
 
-    // Debounce the local search query with 1 seconds delay
-    const debouncedSearchQuery = useDebounce(localSearchQuery, 1000);
-
-    // Only sync from URL to local state on mount or when URL changes externally
-    // Use a ref to track if this is user input or external change
     const isUserInputRef = useRef(false);
-    const [showSearchColumns, setShowSearchColumns] = useState(false);
 
+    // Sync URL → local input
     useEffect(() => {
         if (!isUserInputRef.current) {
-            // Only update if it's not from user input (e.g., browser back/forward, initial load)
             setLocalSearchQuery(searchQuery || '');
         }
         isUserInputRef.current = false;
     }, [searchQuery]);
 
-    // Update URL when debounced value changes
+    // Apply search to URL + table
     useEffect(() => {
         if (debouncedSearchQuery !== searchQuery) {
             isUserInputRef.current = true;
-            setSearchQuery(debouncedSearchQuery || null); // Use null to clear the param
+            setSearchQuery(debouncedSearchQuery || null);
+            table.setGlobalFilter(debouncedSearchQuery);
             table.setPageIndex(0);
         }
-    }, [debouncedSearchQuery]);
+    }, [debouncedSearchQuery, searchQuery, table, setSearchQuery]);
 
     const handleSearch = (term: string) => {
         isUserInputRef.current = true;
@@ -70,208 +81,273 @@ export function DataTableToolbar<TData, TValue>({
     const handleReset = () => {
         isUserInputRef.current = true;
         setLocalSearchQuery('');
-        setSearchQuery(null); // Clear the URL param completely
-        table.resetColumnFilters();
-        table.resetColumnVisibility();
-        table.resetSorting();
-        setSearchColumns(tableSearchVariables.search_columns, parseAsString.withOptions({ shallow: false }).withDefault(allCols));
+        setSearchQuery(null);
+        table.setGlobalFilter('');
+        table.setPageIndex(0);
     };
 
-    //find if any column is hiding
-    const anyColumnHiding = table.getAllColumns().filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide());
-    const allCols = anyColumnHiding.map((c) => c.id).join(',');
+    // Column settings
+    const hideableColumns = table.getAllColumns().filter((col) => col.getCanHide());
+    const allCols = hideableColumns.map((c) => c.id).join(',');
+
     const [searchColumns, setSearchColumns] = useQueryState(
         tableSearchVariables.search_columns,
         parseAsString.withOptions({ shallow: false }).withDefault(allCols)
     );
-    const handleExportToExcel = () => {
-        exportToExcel(data);
-    };
 
-    const handleExportToPDF = () => {
-        const doc = new jsPDF();
-
-        // Get visible columns
-        const visibleColumns = table
-            .getAllColumns()
-            .filter((col) => col.getIsVisible())
-            .map((col) => ({
-                header: col.id.charAt(0).toUpperCase() + col.id.slice(1),
-                dataKey: col.id
-            }));
-
-        // Prepare the data for PDF
-        const tableData = data.map((item) => {
-            const row: Record<string, any> = {};
-            visibleColumns.forEach((col) => {
-                row[col.dataKey] = (item as any)[col.dataKey]?.toString() || '';
-            });
-            return row;
-        });
-
-        // Generate PDF
-        autoTable(doc, {
-            columns: visibleColumns,
-            body: tableData,
-            theme: 'grid',
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
-            margin: { top: 20 }
-        });
-
-        doc.save('data.pdf');
-    };
-
-    const selectedRows = table.getSelectedRowModel().rows;
-
-    function handleUnselectAll() {
-        table.toggleAllPageRowsSelected(false);
-    }
-    const allSearchableColumns = anyColumnHiding.map((c) => c.id);
     const selectedSearchColumns = searchColumns ? searchColumns.split(',') : [];
 
     const toggleSearchColumn = (colId: string, checked: boolean) => {
-        let updated: string[];
-        if (checked) {
-            updated = [...new Set([...selectedSearchColumns, colId])];
-        } else {
-            updated = selectedSearchColumns.filter((id) => id !== colId);
-        }
-        setSearchColumns(updated.join(','));
+        const updated = checked
+            ? [...new Set([...selectedSearchColumns, colId])]
+            : selectedSearchColumns.filter((id) => id !== colId);
+        setSearchColumns(updated.length ? updated.join(',') : null);
     };
 
-    const toggleSelectAllSearchColumns = () => {
-        if (selectedSearchColumns.length === allSearchableColumns.length) {
-            setSearchColumns('');
-        } else {
-            setSearchColumns(allSearchableColumns.join(','));
+    // Voice Search
+    const [isRecording, setIsRecording] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<BlobPart[]>([]);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            chunksRef.current = [];
+
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunksRef.current.push(e.data);
+            };
+
+            recorder.onstop = async () => {
+                const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+                stream.getTracks().forEach((t) => t.stop());
+
+                if (blob.size < 1000) {
+                    alert('No audio detected. Please speak louder.');
+                    setIsTranscribing(false);
+                    return;
+                }
+
+                setIsTranscribing(true);
+                try {
+                    const wavBlob = await enhanceAndConvertToWav(blob);
+                    const file = blobToFile(wavBlob, 'voice-search.wav');
+
+                    const formData = new FormData();           // Fixed: was 'form'
+                    formData.append('audio', file);            // Fixed: was 'form.append'
+
+                    const res = await fetch('/api/transcribe', {
+                        method: 'POST',
+                        body: formData,
+                    });
+
+                    const result = await res.json();
+
+                    if (res.ok && result.text?.trim()) {
+                        const text = result.text.trim();
+                        setLocalSearchQuery(text);
+                        isUserInputRef.current = true;
+                        table.setGlobalFilter(text);
+                        table.setPageIndex(0);
+                    } else {
+                        alert('Speech not recognized. Try again.');
+                    }
+                } catch (err: any) {
+                    console.error(err);
+                    alert(`Transcription failed: ${err.message}`);
+                } finally {
+                    setIsTranscribing(false);
+                }
+            };
+
+            recorder.start();
+            mediaRecorderRef.current = recorder;
+            setIsRecording(true);
+
+            timeoutRef.current = setTimeout(() => stopRecording(), 2000);
+        } catch (err: any) {
+            alert(`Microphone access denied: ${err.message}`);
         }
     };
-    const [isSearchColumnModalOpen, setIsSearchColumnModalOpen] = useState(true);
+
+    const stopRecording = () => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        if (mediaRecorderRef.current?.state === 'recording') {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, []);
+
+    // Export
+    const handleExportToExcel = () => exportToExcel(data);
+
+    const handleExportToPDF = () => {
+        const doc = new jsPDF();
+        const visibleCols = table
+            .getVisibleLeafColumns()
+            .map((col) => ({
+                header:
+                    (col.columnDef.meta as any)?.title ||
+                    col.id.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+                dataKey: col.id,
+            }));
+
+        const rows = data.map((row: any) => {
+            const obj: Record<string, string> = {};
+            visibleCols.forEach((c) => {
+                obj[c.dataKey] = row[c.dataKey]?.toString() || '';
+            });
+            return obj;
+        });
+
+        autoTable(doc, {
+            head: [visibleCols.map((c) => c.header)],
+            body: rows.map((r) => Object.values(r)),
+            theme: 'grid',
+            styles: { fontSize: 8 },
+        });
+
+        doc.save('table-data.pdf');
+    };
 
     return (
-        <div className='flex w-full items-center justify-between gap-2 overflow-auto p-0.5'>
-            <div className='flex items-center gap-2'>
-                <Input
-                    id='table-search-input'
-                    onChange={(event) => handleSearch(event.target.value)}
-                    className='h-8 w-40 lg:w-64'
-                    placeholder='Search...'
-                    value={localSearchQuery || ''}
-                />
-                {localSearchQuery && (
-                    <Button onClick={handleReset} variant='ghost' suffix={<X className='h-4 w-4' />} className='h-8 w-fit'>
-                        Reset
-                    </Button>
-                )}
+        <div className="flex w-full items-center justify-between gap-3 overflow-auto py-1">
+            <div className="flex items-center gap-2">
+                <div className="relative">
+                    <Input
+                        placeholder="Search..."
+                        value={localSearchQuery}
+                        onChange={(e) => handleSearch(e.target.value)}
+                        className="h-9 w-64 pr-12"
+                    />
+
+                    {/* Clear button */}
+                    {localSearchQuery && (
+                        // biome-ignore lint/a11y/useButtonType: <explanation>
+                        <button
+                            onClick={handleReset}
+                            className="absolute right-9 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground"
+                            aria-label="Clear search"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    )}
+
+                    {/* Mic button - hold to speak */}
+                    <button
+                        type="button"
+                        onClick={isRecording ? stopRecording : startRecording}   // ← toggle behavior
+                        disabled={isTranscribing}
+                        className={`
+              absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-2 transition
+              ${isRecording ? 'animate-pulse text-red-600' : 'text-muted-foreground hover:text-foreground'}
+              ${isTranscribing ? 'cursor-not-allowed opacity-50' : ''}
+            `}
+                        aria-label="Hold to speak"
+                    >
+                        {isTranscribing ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                        ) : isRecording ? (
+                            <MicOff className="h-4 w-4" />
+                        ) : (
+                            <Mic className="h-4 w-4" />
+                        )}
+                    </button>
+                </div>
+
+                {isTranscribing && <span className="text-sm text-blue-600">Transcribing...</span>}
             </div>
-            <div className='flex items-center gap-2'>
-                {selectedRows.length > 0 && (
-                    <div className='flex-center gap-2'>
-                        <Button onClick={handleUnselectAll} variant='ghost' suffix={<X className='h-4 w-4' />} className='h-8 w-fit'>
-                            Reset
-                        </Button>
-                    </div>
-                )}
 
+            <div className="flex items-center gap-2">
+                {/* Export */}
                 {showExportOptions && table.getFilteredRowModel().rows.length > 0 && (
-                    <div className='flex items-center gap-2'>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant='outline' size='sm' prefix={<DownloadIcon className='h-4 w-4' />} className='h-8 w-fit'>
-                                    Export
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className='w-[200px] p-2' align='end'>
-                                <div className='flex flex-col gap-2'>
-                                    <Button variant='ghost' className='w-full justify-start' onClick={handleExportToExcel}>
-                                        <FileSpreadsheet className='mr-2 h-4 w-4 text-green-500' />
-                                        Export as Excel
-                                    </Button>
-                                    <Button variant='ghost' className='w-full justify-start' onClick={handleExportToPDF}>
-                                        <FileText className='mr-2 h-4 w-4 text-orange-500' />
-                                        Export as PDF
-                                    </Button>
-                                </div>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <DownloadIcon className="mr-2 h-4 w-4" />
+                                Export
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-48 p-1" align="end">
+                            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={handleExportToExcel}>
+                                <FileSpreadsheet className="mr-2 h-4 w-4 text-green-600" />
+                                Excel
+                            </Button>
+                            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={handleExportToPDF}>
+                                <FileText className="mr-2 h-4 w-4 text-orange-600" />
+                                PDF
+                            </Button>
+                        </PopoverContent>
+                    </Popover>
                 )}
 
-                {/* Search Columns */}
-                {isSearchColumnModalOpen && anyColumnHiding.length > 0 && (
+                {/* Search In Columns */}
+                {hideableColumns.length > 0 && (
                     <DropdownMenu>
-                        {/* <DropdownMenuTrigger asChild>
-                            <Button
-                                variant='outline'
-                                size='sm'
-                                prefix={<Settings2 className='h-4 w-4' />}
-                                className='hidden h-8 w-fit sm:flex'>
-                                Search Columns
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm">
+                                <Settings2 className="mr-2 h-4 w-4" />
+                                Search In
                             </Button>
-                        </DropdownMenuTrigger> */}
-                        <DropdownMenuContent align='end' className='w-[180px]'>
-                            <DropdownMenuItem onClick={toggleSelectAllSearchColumns}>
-                                {selectedSearchColumns.length === allSearchableColumns.length ? 'Deselect All' : 'Select All'}
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <span onClick={() => setSearchColumns(allCols || null)}>
+                                    {selectedSearchColumns.length === hideableColumns.length ? 'Deselect All' : 'Select All'}
+                                </span>
                             </DropdownMenuItem>
-                            <div className='my-1 border-t' />
-                            {table
-                                .getAllColumns()
-                                .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
-                                .map((column) => {
-                                    const displayName =
-                                        (column.columnDef.meta as any)?.title ||
-                                        column.id
-                                            .split('_')
-                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                                            .join(' ');
-
-                                    return (
-                                        <DropdownMenuCheckboxItem
-                                            key={column.id}
-                                            checked={selectedSearchColumns.includes(column.id)}
-                                            onCheckedChange={(value) => toggleSearchColumn(column.id, !!value)}>
-                                            {displayName}
-                                        </DropdownMenuCheckboxItem>
-                                    );
-                                })}
+                            <div className="my-1 border-t" />
+                            {hideableColumns.map((column) => {
+                                const title =
+                                    (column.columnDef.meta as any)?.title ||
+                                    column.id.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+                                return (
+                                    <DropdownMenuCheckboxItem
+                                        key={column.id}
+                                        checked={selectedSearchColumns.includes(column.id)}
+                                        onCheckedChange={(checked) => toggleSearchColumn(column.id, checked)}
+                                    >
+                                        {title}
+                                    </DropdownMenuCheckboxItem>
+                                );
+                            })}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}
 
-                {showViewOptions && anyColumnHiding.length > 0 && (
+                {/* View Columns */}
+                {showViewOptions && hideableColumns.length > 0 && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button
-                                variant='outline'
-                                size='sm'
-                                prefix={<Settings2 className='h-4 w-4' />}
-                                className='hidden h-8 w-fit sm:flex'>
+                            <Button variant="outline" size="sm">
+                                <Settings2 className="mr-2 h-4 w-4" />
                                 View
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align='end' className='w-[150px]'>
-                            {table
-                                .getAllColumns()
-                                .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
-                                .map((column) => {
-                                    // Get display name from meta or format the column id
-                                    const displayName =
-                                        (column.columnDef.meta as any)?.title ||
-                                        column.id
-                                            .split('_')
-                                            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                                            .join(' ');
-
-                                    return (
-                                        <DropdownMenuCheckboxItem
-                                            key={column.id}
-                                            checked={column.getIsVisible()}
-                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}>
-                                            {displayName}
-                                        </DropdownMenuCheckboxItem>
-                                    );
-                                })}
+                        <DropdownMenuContent align="end">
+                            {hideableColumns.map((column) => {
+                                const title =
+                                    (column.columnDef.meta as any)?.title ||
+                                    column.id.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+                                return (
+                                    <DropdownMenuCheckboxItem
+                                        key={column.id}
+                                        checked={column.getIsVisible()}
+                                        onCheckedChange={(v) => column.toggleVisibility(!!v)}
+                                    >
+                                        {title}
+                                    </DropdownMenuCheckboxItem>
+                                );
+                            })}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 )}

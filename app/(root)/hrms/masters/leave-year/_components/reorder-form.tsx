@@ -20,7 +20,10 @@ export default function ReorderLeaveYearForm() {
     const handleOpenDialog = async () => {
         try {
             const orderResponse = await getLeaveYearSetOrder();
-            setOrderedItems(Array.isArray(orderResponse) ? orderResponse : []);
+            // API returns { success, message, data, total, page, page_size }
+            // Extract the data array from the response
+            const leaveYears = Array.isArray(orderResponse?.data) ? orderResponse.data : [];
+            setOrderedItems(leaveYears);
             setIsDialogOpen(true);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to load leave years for reordering');

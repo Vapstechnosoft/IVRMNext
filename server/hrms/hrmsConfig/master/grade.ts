@@ -11,22 +11,17 @@ export async function getMasterGrade(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterGrade(data: any) {
-    const url = '/api/MasterGradeFacade';
+    const url = '/api/MasterGradeFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterGrade(id: number) {
-    const url = `/api/MasterGradeFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterGradeFacade/toggle/${id}`;
     return await api.put('hrms', url);
 }
 
-export async function deleteMasterGrade(id: number) {
-    const url = `/api/MasterGradeFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
-}
-
 export async function getGradeSetOrder() {
-    const url = '/api/MasterGradeFacade/onloadgetdetails?page=1&page_size=1000&sort_column=hrmG_Order&sort_direction=asc';
+    const url = '/api/MasterGradeFacade/set_order_list';
     return await api.get<IMasterGradeSetOrderList[]>('hrms', url);
 }
 

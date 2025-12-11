@@ -1,166 +1,318 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useHallTicketGeneratedList } from '@/hooks/exam/exammodule/exam-mapping';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { hallTicketGenerationSchema } from '@/schemas/exam/exam-module/exam-mapping';
+import { GenerateHalltickets } from '@/server/exam/exam-module/exam-mapping/hallTicket-generation';
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist,
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { set } from 'date-fns';
-import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
+/**
+ * Types
+ *
+ * Keep FormFields strongly typed by inferring from the imported zod schema.
+ * If your schema doesn't include 'leadingzeros', TypeScript may complain.
+ * If you prefer to avoid type friction while iterating, temporarily use `any`.
+ */
 type FormFields = z.infer<typeof hallTicketGenerationSchema>;
 
-const mI_Id = 30; // adjust if dynamic
+/**
+ * NOTE:
+ * If your schema currently does NOT include `leadingzeros`, please add it to the schema:
+ *   leadingzeros: z.number().int().nonnegative().optional().default(0)
+ *
+ * Otherwise adapt the component to match your schema.
+ */
 
-export default function HallTicketGenerationForm({
-    onSuccess
-}: {
-    onSuccess?: () => void;
-}) {
+/**
+ * Component
+ */
+export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: () => void }) {
+    // ---------- useForm / methods ----------
+    // We capture the entire methods object and pass it into FormProvider
+    // so that nested Controllers and other logic use the same form instance.
     const methods = useForm<FormFields>({
-        resolver: zodResolver(hallTicketGenerationSchema),
-        mode: 'all',
+        resolver: zodResolver(hallTicketGenerationSchema) as any,
+        mode: 'onSubmit',
+        reValidateMode: 'onChange',
         defaultValues: {
-            mI_Id,
+            // Defaults — cast as any to tolerate slight schema mismatches while you iterate.
+            mI_Id: 30,
             asmaY_Id: 0,
             asmcL_Id: 0,
+            classList: [],
             sectionList: [],
             emE_Id: 0,
             prefixNo: '',
             startingNo: '',
             increment: '',
-            prefixNoFlag: 'N'
-        }
+            prefixNoFlag: 'N',
+            leadingzeros: 0,
+        } as any,
     });
 
-    const { control, handleSubmit, reset, setValue, formState } = methods;
-    const { isSubmitting } = formState;
+    // Destructure commonly used helpers from the methods object (still keep methods to feed FormProvider)
+    const {
+        control,
+        handleSubmit,
+        reset,
+        setValue,
+        getValues,
+        watch,
+        trigger,
+        formState: { errors, isSubmitting },
+    } = methods;
 
-    // Dropdown data
+    // ---------- Local state for dropdown options ----------
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
 
-    // Loading states
+    // Loading indicators for each async dropdown
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
 
+    // Hook for refreshing generated list after success (optional)
+    const { refetchAll } = useHallTicketGeneratedList();
+
+    // Academic year dropdown hook
     const {
         data: academicYear,
         isLoading: academicYearLoading,
         error: academicYearError,
     } = useAcademicYearDropdown();
 
-    // Watchers
-    const selectedYear = useWatch({ control, name: 'asmaY_Id' });
-    const selectedClass = useWatch({ control, name: 'asmcL_Id' });
-    const selectedSections = useWatch({ control, name: 'sectionList' });
-    //const prefixNoFlag = useWatch({ control, name: 'prefixNoFlag' });
+    // ---------- Watchers (live) ----------
+    // Watch fields — useWatch ensures we get updated values when user interacts
+    const selectedYear = useWatch({ control, name: 'asmaY_Id' }) as number | undefined;
+    const selectedClass = useWatch({ control, name: 'asmcL_Id' }) as number | undefined;
+    const selectedSections = useWatch({ control, name: 'sectionList' }) as { asmS_Id: number }[] | undefined;
 
-    // Load Academic Years + Auto-select current (first)
+    // ---------- Helper: safeReadNumber ----------
+    const safeNumber = (v: unknown, fallback = 0) => {
+        const n = Number(v as any);
+        return Number.isFinite(n) ? n : fallback;
+    };
+
+    // ---------- Auto-select first academic year if none selected ----------
     useEffect(() => {
         if (academicYearError) {
             toast.error('Failed to load academic years');
             return;
         }
         if (academicYear?.data) {
-            const years = academicYear.data.map((i: any) => ({
-                asmaY_Id: i.asmaY_Id,
-                asmaY_Year: i.asmaY_Year
-            }));
+            const years = academicYear.data.map((i: any) => ({ asmaY_Id: i.asmaY_Id, asmaY_Year: i.asmaY_Year }));
             if (years.length > 0 && !selectedYear) {
                 setValue('asmaY_Id', years[0].asmaY_Id);
             }
         }
-    }, [academicYear, academicYearError, setValue, selectedYear]);
+    }, [academicYear, academicYearError, selectedYear, setValue]);
 
-    // ---------- Load Classes ----------
+    // ---------- Load Classes when year changes ----------
     useEffect(() => {
         if (!selectedYear) return;
+
+        let mounted = true;
         (async () => {
             try {
                 setLoadingClasses(true);
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
+                if (!mounted) return;
                 setClasses(Array.isArray(data) ? data : []);
-                setValue('sectionList', []);
-                setValue('emE_Id', 0);
+                // reset dependent values: when year changes we clear selected sections and exam
+                setValue('sectionList', [] as any[]);
+                setValue('emE_Id', 0 as any);
                 setExams([]);
-                setLoadingClasses(false);
-            } catch {
+            } catch (err) {
+                console.error('load classes error', err);
                 toast.error('Failed to load classes');
+            } finally {
+                if (mounted) setLoadingClasses(false);
             }
         })();
+
+        return () => {
+            mounted = false;
+        };
     }, [selectedYear, setValue]);
 
-    // ---------- Load Sections ----------
+    // ---------- Load Sections when class changes ----------
     useEffect(() => {
         if (!selectedYear || !selectedClass) return;
+
+        let mounted = true;
         (async () => {
             try {
                 setLoadingSections(true);
                 setSections([]);
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                if (!mounted) return;
                 setSections(Array.isArray(data) ? data : []);
-                setValue('emE_Id', 0);
-                setLoadingSections(false);
-            } catch {
+                // reset dependent exam & section selection
+                setValue('emE_Id', 0 as any);
+                setValue('sectionList', [] as any);
+            } catch (err) {
+                console.error('load sections error', err);
                 toast.error('Failed to load sections');
             } finally {
-                setLoadingSections(false);
+                if (mounted) setLoadingSections(false);
             }
         })();
+
+        return () => {
+            mounted = false;
+        };
     }, [selectedYear, selectedClass, setValue]);
 
-    // ---------- Load Exams ----------
+    // ---------- Load Exams when section(s) selected ----------
     useEffect(() => {
-        if (!selectedYear || !selectedClass || !selectedSections.length) return;
+        if (!selectedYear || !selectedClass || !(selectedSections?.length)) return;
+
+        let mounted = true;
         (async () => {
             setLoadingExams(true);
-            const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSections[0].asmS_Id);
-            const safeData = Array.isArray(data) ? data : [];
-            setExams(safeData);
-            if (safeData.length == 0) {
-                toast.info('No exams are mapped for your selections');
+            try {
+                // For api we pick first selected section id (same as your code)
+                const firstSectionId = selectedSections?.[0]?.asmS_Id ?? selectedSections?.[0];
+                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, Number(firstSectionId));
+                if (!mounted) return;
+                const safeData = Array.isArray(data) ? data : [];
+                setExams(safeData);
+                if (safeData.length === 0) {
+                    toast.info('No exams are mapped for your selections');
+                }
+                setValue('emE_Id', 0 as any);
+            } catch (err) {
+                console.error('load exams error', err);
+                toast.error('Failed to load exams');
+            } finally {
+                if (mounted) setLoadingExams(false);
             }
-            setValue('emE_Id', 0);
-            setLoadingExams(false);
-
         })();
+
+        return () => {
+            mounted = false;
+        };
     }, [selectedYear, selectedClass, selectedSections, setValue]);
 
+    // ---------- Helper: makePayload ----------
+    const makePayload = (data: FormFields) => {
+        // canonicalize section list (array of { asmS_Id })
+        const sectionArray = Array.isArray((data as any).sectionList) ? (data as any).sectionList : [];
+        const sectionlist = sectionArray.map((s: any) => ({ asmS_Id: Number(s.asmS_Id) || 0 }));
+        const sectionids = sectionArray.map((s: any) => String(s.asmS_Id ?? '')).filter(Boolean).join(',');
+
+        // read leadingzeros from the form if present (some schemas may call it 'leadingzeros')
+        const leadingzerosVal = (data as any).leadingzeros !== undefined ? safeNumber((data as any).leadingzeros, 0) : 0;
+
+        const payload = {
+            mI_Id: safeNumber((data as any).mI_Id, 0),
+            asmaY_Id: safeNumber((data as any).asmaY_Id, 0),
+            asmcL_Id: safeNumber((data as any).asmcL_Id, 0),
+            emE_Id: safeNumber((data as any).emE_Id, 0),
+            prefixstr: (data as any).prefixNo ?? '',
+            sectionids,
+            startno: safeNumber((data as any).startingNo ?? (data as any).startno ?? 0, 0),
+            increment: safeNumber((data as any).increment ?? 0, 0),
+            leadingzeros: leadingzerosVal,
+            sectionlist,
+        };
+
+        return payload;
+    };
+
+    // ---------- Submit handler ----------
     const onSubmit = async (data: FormFields) => {
         try {
-            // Call your actual save/generate API here
-            // await generateHallTickets(data);
-            console.info(data);
-            toast.success('Hall tickets generated successfully!');
-            onSuccess?.();
-            reset();
+            // Build exact payload format you asked for
+            const payload = makePayload(data);
+
+            // Debug log
+            console.info('HallTicket payload ->', payload);
+
+            // Call server API (await)
+            const res = await GenerateHalltickets(payload);
+
+            // Expecting res.success / res.message
+            if (res && res.success) {
+                toast.success(res.message || 'Hall tickets generated successfully!');
+                // re-fetch generated list if available
+                try {
+                    refetchAll?.();
+                } catch (e) {
+                    // if refetchAll not available or fails, ignore
+                }
+                onSuccess?.();
+                // Reset the form to default values but keep selected academic year for convenience
+                const curYear = getValues('asmaY_Id');
+                reset({
+                    ...methods.getValues(),
+                    mI_Id: 0,
+                    asmaY_Id: curYear ?? 0,
+                    asmcL_Id: 0,
+                    classList: [],
+                    sectionList: [],
+                    emE_Id: 0,
+                    prefixNo: '',
+                    startingNo: '',
+                    increment: '',
+                    prefixNoFlag: 'N',
+                    leadingzeros: 0,
+                } as any);
+            } else {
+                toast.error((res && res.message) || 'Update failed');
+            }
         } catch (err: any) {
+            console.error('generate error', err);
             toast.error(err?.message || 'Failed to generate hall tickets');
         }
     };
 
+    // ---------- Error logging (useEffect) ----------
+    useEffect(() => {
+        if (errors && Object.keys(errors).length > 0) {
+            // Full object for debugging
+            console.log('❌ Validation Errors object:', errors);
+
+            // Human readable lines
+            Object.entries(errors).forEach(([field, info]) => {
+                // react-hook-form nested errors are objects; we stringify a helpful message
+                if (!info) return;
+                // simple shape: info.message
+                const msg = (info as any)?.message ?? JSON.stringify(info);
+                console.log(` - ${field}: ${msg}`);
+            });
+        }
+    }, [errors]);
+
+    // ---------- Small helper UI functions ----------
+    const isEmptyArray = (a: any[]) => !Array.isArray(a) || a.length === 0;
+
+    // ---------- Render ----------
     return (
         <div className="w-full rounded-2xl bg-white p-8 shadow-lg">
+            {/* Provide form methods to children */}
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
                     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                         {/* LEFT COLUMN */}
                         <div className="space-y-6">
+
                             {/* Academic Year */}
                             <Controller
                                 control={control}
@@ -175,19 +327,19 @@ export default function HallTicketGenerationForm({
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder='Select Academic Year' />
+                                                    <SelectValue placeholder="Select Academic Year" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicYearLoading ? (
-                                                        <SelectItem value='loading' disabled>
+                                                        <SelectItem value="loading" disabled>
                                                             Loading Academic Year...
                                                         </SelectItem>
                                                     ) : academicYearError ? (
-                                                        <SelectItem value='error' disabled>
+                                                        <SelectItem value="error" disabled>
                                                             Error loading Academic Year
                                                         </SelectItem>
                                                     ) : (
-                                                        academicYear?.data?.map((item) => (
+                                                        academicYear?.data?.map((item: any) => (
                                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                 {item.asmaY_Year}
                                                             </SelectItem>
@@ -204,7 +356,7 @@ export default function HallTicketGenerationForm({
                             {/* Class - Single Select */}
                             <Controller
                                 control={control}
-                                name="asmcL_Id" // changed from classList to classId for single selection
+                                name="asmcL_Id"
                                 render={({ field, fieldState }) => (
                                     <div className="flex items-center gap-4">
                                         <Label className="w-40 text-right">
@@ -217,19 +369,24 @@ export default function HallTicketGenerationForm({
                                                 value={field.value ? String(field.value) : ''}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder='Select Class' />
+                                                    <SelectValue placeholder="Select Class" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {!selectedYear
-                                                        ? 'First select Academic Year'
-                                                        : loadingClasses
-                                                            ? 'Loading classes...'
-                                                            : classes.map((c) => (
-                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                    {c.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))}
-
+                                                    {!selectedYear ? (
+                                                        <SelectItem value="none" disabled>
+                                                            First select Academic Year
+                                                        </SelectItem>
+                                                    ) : loadingClasses ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            Loading classes...
+                                                        </SelectItem>
+                                                    ) : (
+                                                        classes.map((c) => (
+                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                {c.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -237,7 +394,6 @@ export default function HallTicketGenerationForm({
                                     </div>
                                 )}
                             />
-
 
                             {/* Section - Multi Select */}
                             <Controller
@@ -250,10 +406,10 @@ export default function HallTicketGenerationForm({
                                         </Label>
                                         <div className="flex-1">
                                             <CustomMultiSelectBox
-                                                options={sections.map(s => ({ label: s.asmC_SectionName, value: String(s.asmS_Id) }))}
-                                                value={field.value?.map((s: { asmS_Id: any; }) => String(s.asmS_Id)) || []}
+                                                options={sections.map((s) => ({ label: s.asmC_SectionName, value: String(s.asmS_Id) }))}
+                                                value={field.value?.map((s: any) => String(s.asmS_Id)) || []}
                                                 onChange={(vals) =>
-                                                    field.onChange(vals.map(id => ({ asmS_Id: Number(id) })))
+                                                    field.onChange(vals.map((id: string | number) => ({ asmS_Id: Number(id) })))
                                                 }
                                                 disabled={!selectedYear || sections.length === 0}
                                                 height="200px"
@@ -281,24 +437,32 @@ export default function HallTicketGenerationForm({
                                                 value={field.value ? String(field.value) : ''}
                                             >
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder='Select Exam' />
+                                                    <SelectValue placeholder="Select Exam" />
                                                 </SelectTrigger>
                                                 <SelectContent>
-
-                                                    {!selectedYear
-                                                        ? <div>select Academic Year</div> // <div className="text-red-500">First select Academic Year</div>
-                                                        : !selectedClass
-                                                            ? <div className="text-red-500">select Class</div>
-                                                            : selectedSections.length === 0
-                                                                ? ' select Section'
-                                                                : loadingExams
-                                                                    ? 'Loading exams...'
-                                                                    : exams.map((e) => (
-                                                                        <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
-                                                                            {e.emE_ExamName}
-                                                                        </SelectItem>
-                                                                    ))}
-
+                                                    {!selectedYear ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            select academic year
+                                                        </SelectItem>
+                                                    ) : !selectedClass ? (
+                                                        <SelectItem value="noclass" disabled>
+                                                            select Class
+                                                        </SelectItem>
+                                                    ) : isEmptyArray(sections) ? (
+                                                        <SelectItem value="nosection" disabled>
+                                                            Select Sections
+                                                        </SelectItem>
+                                                    ) : loadingExams ? (
+                                                        <SelectItem value="loading" disabled>
+                                                            Loading exams...
+                                                        </SelectItem>
+                                                    ) : (
+                                                        exams.map((e) => (
+                                                            <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                                {e.emE_ExamName}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -314,7 +478,13 @@ export default function HallTicketGenerationForm({
                             <div className="flex items-center gap-4">
                                 <Label className="w-40 text-right">Prefix</Label>
                                 <div className="flex-1">
-                                    <Input placeholder="Enter Prefix" className="w-full" />
+                                    <Controller
+                                        control={control}
+                                        name="prefixNo"
+                                        render={({ field }) => (
+                                            <Input {...field} placeholder="Enter Prefix" className="w-full" />
+                                        )}
+                                    />
                                 </div>
                             </div>
 
@@ -328,11 +498,7 @@ export default function HallTicketGenerationForm({
                                             Starting No.notes <span className="text-red-500">*</span>
                                         </Label>
                                         <div className="flex-1">
-                                            <Input
-                                                {...field}
-                                                placeholder="Enter Starting No."
-                                                className="w-full"
-                                            />
+                                            <Input {...field} placeholder="Enter Starting No." className="w-full" />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -349,12 +515,32 @@ export default function HallTicketGenerationForm({
                                             Increment <span className="text-red-500">*</span>
                                         </Label>
                                         <div className="flex-1">
-                                            <Input
-                                                {...field}
-                                                placeholder="Enter Increment"
-                                                className="w-full"
-                                            />
+                                            <Input {...field} placeholder="Enter Increment" className="w-full" />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                        </div>
+                                    </div>
+                                )}
+                            />
+
+                            {/* Leading Zeros */}
+                            <Controller
+                                control={control}
+                                name="leadingzeros"
+                                defaultValue={0 as any}
+                                render={({ field }) => (
+                                    <div className="flex items-center gap-4">
+                                        <Label className="w-40 text-right">Leading Zeros</Label>
+                                        <div className="flex-1">
+                                            <Input
+                                                type="number"
+                                                placeholder="Enter Leading Zeros"
+                                                className="w-full"
+                                                value={field.value ?? 0}
+                                                onChange={(e) => {
+                                                    const val = Number(e.target.value || 0);
+                                                    field.onChange(Number.isFinite(val) ? val : 0);
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 )}
@@ -383,10 +569,11 @@ export default function HallTicketGenerationForm({
                                                     />
                                                     <span>No</span>
                                                 </label>
+
                                                 <Input
                                                     placeholder="Enter Prefix No."
-                                                    value={field.value === 'Y' ? methods.getValues('prefixNo') : ''}
-                                                    onChange={(e) => methods.setValue('prefixNo', e.target.value)}
+                                                    value={field.value === 'Y' ? getValues('prefixNo') : ''}
+                                                    onChange={(e) => setValue('prefixNo', e.target.value)}
                                                     disabled={field.value !== 'Y'}
                                                     className="w-48 transition-opacity"
                                                 />
@@ -404,20 +591,32 @@ export default function HallTicketGenerationForm({
                             type="button"
                             variant="outline"
                             size="lg"
-                            onClick={() => reset()}
+                            onClick={() => {
+                                // Full reset but keep academic year (common UX)
+                                const curYear = getValues('asmaY_Id');
+                                reset({
+                                    ...methods.getValues(),
+                                    mI_Id: 0,
+                                    asmaY_Id: curYear ?? 0,
+                                    asmcL_Id: 0,
+                                    classList: [],
+                                    sectionList: [],
+                                    emE_Id: 0,
+                                    prefixNo: '',
+                                    startingNo: '',
+                                    increment: '',
+                                    prefixNoFlag: 'N',
+                                    leadingzeros: 0,
+                                } as any);
+                            }}
                             className="min-w-[120px]"
                         >
                             CANCEL
                         </Button>
-                        <Button
-                            type="submit"
-                            size="lg"
-                            disabled={isSubmitting}
-                            className="w-fit"
-                        >
+
+                        <Button type="submit" size="lg" disabled={isSubmitting} className="w-fit">
                             {isSubmitting ? 'Generating...' : 'SAVE AND GENERATE'}
                         </Button>
-
                     </div>
                 </form>
             </FormProvider>

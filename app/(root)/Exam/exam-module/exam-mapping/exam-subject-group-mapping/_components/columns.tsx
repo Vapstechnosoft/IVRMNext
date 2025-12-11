@@ -1,5 +1,6 @@
 'use client';
 
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -87,10 +88,7 @@ export const ExamSubjectGroupMappingColumns: ColumnDef<IExamSubjectGroupMapping>
     {
         accessorKey: 'esG_CompulsoryFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Compulsory' />,
-        cell: ({ row }) => {
-            const value = row.getValue('esG_CompulsoryFlag') as string;
-            return <div>{value === 'Y' ? 'Yes' : 'No'}</div>;
-        }
+        cell: ({ row }) => getStatusBadge(row.getValue('esG_CompulsoryFlag') === 'Y' ? 'yes' : 'no')
     },
 
     // Actions - Only Edit

@@ -89,15 +89,128 @@ export interface ILeaveReasonDropdown {
     value: string;
 }
 
-// Employee List Interface
+export interface IBloodGroupDropdown {
+    key: string;
+    value: string;
+}
+
+export interface ISalaryTypeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface ITeachingTypeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface IScoreTypeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface IContactTypeDropdown {
+    key: string;
+    value: string;
+}
+
+// Employee List Interface - matches API response from /api/EmployeeRegistration/GetEmployeeDetails
 export interface IEmployeeList {
     hrmE_Id: number;
-    hrmE_EmployeeCode: string;
+    mI_Id: number;
+    hrmeT_Id: number;
+    hrmgT_Id: number;
+    hrmD_Id: number;
+    hrmdeS_Id: number;
+    hrmG_Id: number;
     hrmE_EmployeeFirstName: string;
+    hrmE_EmployeeMiddleName: string | null;
     hrmE_EmployeeLastName: string;
+    hrmE_EmployeeCode: string;
+    hrmE_BiometricCode: string;
+    hrmE_RFCardId: string;
+    hrmE_PerStreet: string;
+    hrmE_PerArea: string;
+    hrmE_PerCity: string;
+    hrmE_PerAdd4: string | null;
+    hrmE_PerStateId: number;
+    hrmE_PerCountryId: number;
+    hrmE_PerPincode: number;
+    hrmE_LocStreet: string;
+    hrmE_LocArea: string;
+    hrmE_LocCity: string;
+    hrmE_LocAdd4: string | null;
+    hrmE_LocStateId: number;
+    hrmE_LocCountryId: number;
+    hrmE_LocPincode: number;
+    ivrmmmS_Id: number;
+    ivrmmG_Id: number;
+    casteCategoryId: number;
+    casteId: number;
+    religionId: number;
+    hrmE_FatherName: string;
+    hrmE_MotherName: string;
+    hrmE_SpouseName: string | null;
+    hrmE_SpouseOccupation: string | null;
+    hrmE_SpouseMobileNo: number;
+    hrmE_SpouseEmailId: string | null;
+    hrmE_SpouseAddress: string | null;
+    hrmE_DOB: string;
+    hrmE_DOJ: string;
+    hrmE_ExpectedRetirementDate: string;
+    hrmE_PFDate: string;
+    hrmE_ESIDate: string;
+    hrmE_MobileNo: number;
     hrmE_EmailId: string;
-    hrmE_MobileNo: string;
+    hrmE_BloodGroup: string;
+    hrmE_PaymentType: string;
+    hrmE_BankAccountNo: string | null;
+    hrmE_PFApplicableFlag: boolean;
+    hrmE_PFMaxFlag: boolean;
+    hrmE_PFFixedFlag: boolean;
+    hrmE_PFAccNo: string;
+    hrmE_ESIAccNo: string;
+    hrmE_GratuityAccNo: string;
+    hrmE_ESIApplicableFlag: boolean;
+    hrmE_Photo: string | null;
+    hrmE_LeftFlag: boolean;
+    hrmE_DOL: string;
+    hrmE_LeavingReason: string;
+    hrmE_Height: string;
+    hrmE_HeightUOM: string;
+    hrmE_Weight: number;
+    hrmE_WeightUOM: string;
+    hrmE_IdentificationMark: string;
+    hrmE_ApprovalNo: string | null;
+    hrmE_PANCardNo: string;
+    hrmE_AadharCardNo: number;
+    hrmE_SubstituteFlag: boolean;
+    hrmE_NationalSSN: string;
+    hrmE_SalaryType: string;
+    hrmE_EmployeeOrder: number;
     hrmE_ActiveFlag: boolean;
+    hrmE_UINumber: string;
+    hrmE_doc: string;
+    hrmE_SubjectsTaught: string;
+    hrmE_AppDownloadedDeviceId: string | null;
+    hrmE_PHDResearchGuideFlg: boolean;
+    hrmE_TechNonTeachingFlg: string;
+    hrmE_RGRecognitionYear: number;
+    hrmE_AnyHealthIssue: string;
+    hrmE_EyeSightIssue: string;
+    hrmE_TransfferedTo: number;
+    hrmE_RecordTransferredFlg: boolean;
+    hrmE_MSTeamsUserId: string;
+    hrmE_MSTeamsEmailId: string | null;
+    hrmE_MSTeamsPassword: string;
+    hrmE_ExcPunch: boolean;
+    hrmE_RetiredFlg: boolean;
+    hrmE_PensionStoppedDate: string;
+    hrmE_FPFNotApplicableFlg: boolean;
+    hrmE_EPFNotApplicableFlg: boolean;
+    hrmE_AllowSoftwareAccessFlg: boolean;
+    createdDate: string;
+    updatedDate: string;
 }
 
 // Employee Save Request/Response - Will be defined based on actual form payloads

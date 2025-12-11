@@ -47,7 +47,8 @@ export default function UpdateSpecializationForm({ onSuccess, className = '', se
         try {
             const payload = {
                 hrmspL_Id: data.hrmspL_Id,
-                hrmspL_SpecialisationName: data.hrmspL_SpecialisationName?.trim() || ''
+                hrmspL_SpecialisationName: data.hrmspL_SpecialisationName?.trim() || '',
+                hrmspL_ActiveFlag: true
             };
             const response = await addOrUpdateMasterSpecialization(payload);
 

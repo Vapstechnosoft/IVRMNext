@@ -6,7 +6,8 @@ import { FormProvider } from '@/components/ui/form/form-provider';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useMasterSubjectGroupDetails } from '@/hooks/exam/exammodule/usemasters';
 import type { IMasterSubjectGroup, IMasterSubjectGroupDetails } from '@/types/exam/exam-module/masters';
-import { MasterSubjectGroupDetailsColumns } from './subject-group-details-columns';
+import { X } from 'lucide-react';
+import { MasterSubjectGroupDetailsViewColumns } from './subject-group-view-details-columns';
 
 interface MasterSubjectGroupDetailsPageProps {
     rowData: IMasterSubjectGroup;
@@ -34,11 +35,14 @@ export default function MasterSubjectGroupDetailsPage({ rowData, onClose }: Mast
                             />
                         </div>
                         <div className='flex gap-2'>
+
                             <Button
-                                variant='secondary'
+                                type='button'
                                 onClick={onClose}
-                                className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                Close
+                                variant='ghost'
+                                size='sm'
+                                className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                         </div>
                     </div>
@@ -46,7 +50,7 @@ export default function MasterSubjectGroupDetailsPage({ rowData, onClose }: Mast
                     {/* Subject Details Table */}
                     <GenericDataTable<IMasterSubjectGroupDetails>
                         {...tableProps}
-                        columns={MasterSubjectGroupDetailsColumns}
+                        columns={MasterSubjectGroupDetailsViewColumns}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: [] }}

@@ -3,27 +3,27 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useGroupDeptDessgMappingCRUD } from '@/hooks/hrms/useMasters';
-import type { GroupDeptDessgMappingDetail } from '@/types/hrms/group-dept-dessg-mapping';
+import { useGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
+import type { IMasterGroupDeptDessgMappingList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
 const toggleSchema = z.object({
-    HRGTDDS_Id: z.number()
+    hrgtddS_Id: z.number()
 });
 
 type FormFields = z.infer<typeof toggleSchema>;
 
 interface ToggleGroupDeptDessgMappingFormProps {
-    rowData: GroupDeptDessgMappingDetail;
+    rowData: IMasterGroupDeptDessgMappingList;
     onClose: () => void;
 }
 
 export default function ToggleGroupDeptDessgMappingForm({ rowData, onClose }: ToggleGroupDeptDessgMappingFormProps) {
-    const { toggleMutation, refetchAll } = useGroupDeptDessgMappingCRUD();
-    const isActive = rowData.HRGTDDS_ActiveFlg;
+    const { toggleMutation } = useGroupDeptDessgMapping();
+    const isActive = rowData.hrgtddS_ActiveFlg;
 
     const {
         register,
@@ -34,7 +34,7 @@ export default function ToggleGroupDeptDessgMappingForm({ rowData, onClose }: To
         resolver: zodResolver(toggleSchema),
         mode: 'onChange',
         defaultValues: {
-            HRGTDDS_Id: rowData.HRGTDDS_Id
+            hrgtddS_Id: rowData.hrgtddS_Id
         }
     });
 
@@ -45,15 +45,9 @@ export default function ToggleGroupDeptDessgMappingForm({ rowData, onClose }: To
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMutation.mutateAsync(rowData.HRGTDDS_Id);
-
-            if (response?.success) {
-                toast.success(response?.message || `Mapping ${!isActive ? 'activated' : 'deactivated'} successfully`);
-                refetchAll();
-                closeDialog();
-            } else {
-                toast.error(response?.message || `Failed to ${!isActive ? 'activate' : 'deactivate'} mapping`);
-            }
+            await toggleMutation.mutateAsync(rowData.hrgtddS_Id);
+            toast.success(`Mapping ${!isActive ? 'activated' : 'deactivated'} successfully`);
+            closeDialog();
         } catch (error: any) {
             toast.error(error?.message || `Failed to ${!isActive ? 'activate' : 'deactivate'} mapping`);
         }
@@ -63,15 +57,15 @@ export default function ToggleGroupDeptDessgMappingForm({ rowData, onClose }: To
         <AdaptiveDialog title='Toggle Group-Dept-Designation Mapping Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('HRGTDDS_Id', { valueAsNumber: true })} defaultValue={rowData.HRGTDDS_Id} />
+                    <input type='hidden' {...register('hrgtddS_Id', { valueAsNumber: true })} defaultValue={rowData.hrgtddS_Id} />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} mapping for{' '}
                         <strong>
-                            {rowData.HRMGT_EmployeeGroupType} - {rowData.HRMD_DepartmentName} - {rowData.HRMDES_DesignationName}
+                            {rowData.hrmgT_EmployeeGroupType} - {rowData.hrmD_DepartmentName} - {rowData.hrmdeS_DesignationName}
                         </strong>
                         ?
                     </p>
-                    <FormError>{errors.HRGTDDS_Id?.message}</FormError>
+                    <FormError>{errors.hrgtddS_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>

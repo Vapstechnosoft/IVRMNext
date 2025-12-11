@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveSalaryIncrement } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { salaryIncrementSchema } from '@/schemas/hrms/salary-increment-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryIncrementOnloadResponse } from '@/types/hrms/salary-increment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -20,7 +20,7 @@ import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof salaryIncrementSchema.addOrUpdate>;
+type FormFields = z.infer<typeof hrmsTransactionSchemas.salaryIncrement.addOrUpdate>;
 interface AddFormProps {
     onloadData: SalaryIncrementOnloadResponse | undefined;
     onSuccess: () => void;
@@ -36,7 +36,7 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
         watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(salaryIncrementSchema.addOrUpdate),
+        resolver: zodResolver(hrmsTransactionSchemas.salaryIncrement.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             HRESI_Id: 0,

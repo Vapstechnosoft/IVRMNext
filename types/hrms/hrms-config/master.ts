@@ -177,3 +177,119 @@ export interface IMasterLoanList {
     createdDate: string;
     updatedDate: string;
 }
+
+// Attendance Management Masters
+
+
+
+export interface IMasterEarningsDeductionsList {
+    hrmeD_Id: number;
+    mI_Id: number;
+    hrmeD_Name: string;
+    hrmeD_EDTypeFlag: string;
+    hrmeD_EarnDedFlag: string;
+    hrmeD_AmountPercentFlag: string;
+    hrmeD_AmountPercent: string;
+    hrmeD_ActiveFlag: boolean;
+    hrmeD_RoundOffFlag: string;
+    hrmeD_Order: number;
+    hrmeD_ReviseFlg: boolean;
+    createdDate?: string;
+    updatedDate?: string;
+}
+
+export interface IMasterGroupDeptDessgMappingList {
+    hrgtddS_Id: number;
+    mI_Id: number;
+    hrmgT_Id: number;
+    hrmD_Id: number;
+    hrmdeS_Id: number;
+    hrgtddS_ActiveFlg: boolean;
+    hrmgT_EmployeeGroupType: string;
+    hrmD_DepartmentName: string;
+    hrmdeS_DesignationName: string;
+    hrgtddS_CreatedDate?: string;
+    hrgtddS_UpdatedDate?: string;
+}
+
+export interface IMasterReligionCategoryMappingList {
+    ircC_Id: number;
+    mI_Id: number;
+    userId: number;
+    ivrmmR_Id: number;
+    imcC_Id: number;
+    ircC_ActiveFlg: boolean;
+    ivrmmR_Name: string;
+    imcC_CategoryName: string;
+    ircC_CreatedDate?: string | null;
+    ircC_UpdatedDate?: string | null;
+}
+
+export interface IMasterPayrollStandardList {
+    hrC_Id: number;
+    hrC_PFMaxAmt: number;
+    hrC_FPFPer: number;
+    hrC_EPFPer: number;
+    hrC_AsPerEmpFlag: boolean;
+    hrC_PFAccNoPrefix: string;
+    hrC_AccNo2: number;
+    hrC_AccNo21: number;
+    hrC_AccNo22: number;
+    hrC_RetirementYrs: number;
+    hrC_ECodePrefix: string;
+    hrC_ESIMax: number;
+    hrC_ESIEmplrCont: number;
+    hrC_PayMethodFlg: string;
+    hrC_ArrSalaryFlag: boolean;
+    hrC_CummArrFlag: boolean;
+    hrC_SalaryFromDay: number;
+    hrC_SalaryToDay: number;
+    hrC_ARTFPFPer: number;
+    hrC_ARTEPFPer: number;
+    hrC_ESIMaxAmount: number;
+    hrC_AC2MinAmount: number;
+    hrC_AC21MinAmount: number;
+    hrC_AC22MinAmount: number;
+    hrC_SalAdvApprovalFlg: boolean;
+    hrC_LoanApprovalFlg: boolean;
+    hrC_LeaveApprovalFlg: boolean;
+    hrC_IncrementApprovalFlg: boolean;
+    hrC_ProbationApprovalFlg: boolean;
+    hrC_SalApprovalFlg: boolean;
+    hrC_EducationCess: number;
+    hrC_partAmaxflag: number;
+    hrC_partBmaxflag: number;
+    hrC_IncrementMonth: string;
+    hrC_MinimumWorkingPeriod: number;
+    hrC_FixedIncrmentFlg: boolean;
+    hrC_NoOfOptionalHolidays: number;
+    hrC_IncrementOnceInMonths: number;
+    hrC_AlertDay: number;
+}
+
+// Dropdown Interfaces for Master Forms
+export interface IEarningsDeductionsTypeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface IRoundingTypeDropdown {
+    key: string;
+    value: string;
+}
+
+export interface IAmountOrPercentageDropdown {
+    key: string;
+    value: string;
+}
+
+export interface ISalaryComponentTypeDropdown {
+    key: string;
+    value: string;
+}
+
+//Month Dropdown
+export interface IMonthDropdown {
+    key: string;
+    value: string;
+}

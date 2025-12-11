@@ -11,16 +11,11 @@ export async function getMasterBank(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterBank(data: any) {
-    const url = '/api/MasterBankFacade/AddOrUpdateMasterBank';
+    const url = '/api/MasterBankFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterBank(id: number) {
-    const url = `/api/MasterBankFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterBankFacade/toggle/${id}`;
     return await api.put('hrms', url);
-}
-
-export async function deleteMasterBank(id: number) {
-    const url = `/api/MasterBankFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
 }

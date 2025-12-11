@@ -11,16 +11,12 @@ export async function getMasterMaritalStatus(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterMaritalStatus(data: any) {
-    const url = '/api/MasterMaritalStatusFacade';
+    const url = '/api/MasterMaritalStatusFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterMaritalStatus(id: number) {
-    const url = `/api/MasterMaritalStatusFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterMaritalStatusFacade/toggle/${id}`;
     return await api.put('hrms', url);
 }
 
-export async function deleteMasterMaritalStatus(id: number) {
-    const url = `/api/MasterMaritalStatusFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
-}

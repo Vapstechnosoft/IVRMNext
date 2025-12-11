@@ -55,6 +55,9 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
         control,
         name: 'grade_list'
     });
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+
 
     const gradeName = watch('emgR_GradeName');
 
@@ -71,15 +74,15 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                 emgR_MarksPerFlag: data.emgR_MarksPerFlag,
                 grade_list: data.grade_list.map(({ emgD_Id, ...row }) => ({
                     emgD_Name: row.emgD_Name,
-                    emgD_From: Number(row.emgD_From),
-                    emgD_To: Number(row.emgD_To),
-                    emgD_GradePoints: Number(row.emgD_GradePoints),
-                    emgD_Remarks: row.emgD_Remarks
+                    emgD_From: row.emgD_From === null ? null : Number(row.emgD_From),
+                    emgD_To: row.emgD_To === null ? null : Number(row.emgD_To),
+                    emgD_GradePoints: row.emgD_GradePoints === null ? null : Number(row.emgD_GradePoints),
+                    emgD_Remarks: row.emgD_Remarks,
+                    emgD_ActiveFlag: row.emgD_ActiveFlag
                 }))
+
             };
-
             const response = await addOrUpdateMasterGrade(payload);
-
             if (response.success) {
                 toast.success(response.message);
                 reset();
@@ -167,8 +170,8 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* From Marks */}
                                         <td className='border'>
                                             <InputText
-                                                {...register(`grade_list.${index}.emgD_From` as const, {
-                                                    setValueAs: v => v === "" ? null : Number(v)
+                                                {...register(`grade_list.${index}.emgD_From`, {
+                                                    setValueAs: v => v === "" || v === null ? null : Number.isNaN(Number(v)) ? null : Number(v)
                                                 })}
                                                 placeholder="Enter marks"
                                                 error={errors.grade_list?.[index]?.emgD_From?.message}
@@ -178,8 +181,8 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* To Marks */}
                                         <td className='border'>
                                             <InputText
-                                                {...register(`grade_list.${index}.emgD_To` as const, {
-                                                    setValueAs: v => v === "" ? null : Number(v)
+                                                {...register(`grade_list.${index}.emgD_To`, {
+                                                    setValueAs: v => v === "" || v === null ? null : Number.isNaN(Number(v)) ? null : Number(v)
                                                 })}
                                                 placeholder="Enter marks"
                                                 error={errors.grade_list?.[index]?.emgD_To?.message}
@@ -189,8 +192,9 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                         {/* Grade Points */}
                                         <td className='border'>
                                             <InputText
-                                                {...register(`grade_list.${index}.emgD_GradePoints` as const, {
-                                                    setValueAs: v => v === "" ? null : Number(v)
+                                                {...
+                                                register(`grade_list.${index}.emgD_GradePoints`, {
+                                                    setValueAs: v => v === "" || v === null ? null : Number.isNaN(Number(v)) ? null : Number(v)
                                                 })}
                                                 placeholder="Enter points"
                                                 error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
@@ -211,6 +215,7 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                                                 size='sm'
                                                 onClick={() => {
                                                     const last = watch('grade_list')[index];
+                                                    console.log('last', last);
                                                     if (
                                                         last.emgD_Name.trim() === "" ||
                                                         last.emgD_From === null ||
@@ -238,10 +243,19 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
 
                                             {/* Remove row */}
                                             {fields.length > 1 && (
-                                                <Button type='button' size='sm' variant='destructive' onClick={() => remove(index)}>
-                                                    <Trash className='h-3 w-3' />
+                                                <Button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    onClick={() => {
+                                                        setDeleteIndex(index);
+                                                        setConfirmOpen(true);
+                                                    }}
+                                                >
+                                                    <Trash className="h-3 w-3" />
                                                 </Button>
                                             )}
+
                                         </td>
                                     </tr>
                                 ))}
@@ -260,6 +274,40 @@ export default function AddMasterGradeForm({ onSuccess, className = '' }: { onSu
                     </div>
                 </CollapsibleSection>
             )}
+            {confirmOpen && (
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-md shadow-xl w-[350px] text-center">
+                        <h2 className="text-lg font-semibold mb-3">Confirm Delete</h2>
+                        <p className="text-gray-700 mb-6">Are you sure you want to delete this row?</p>
+
+                        <div className="flex justify-center gap-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setConfirmOpen(false);
+                                    setDeleteIndex(null);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (deleteIndex !== null) {
+                                        remove(deleteIndex);
+                                    }
+                                    setConfirmOpen(false);
+                                    setDeleteIndex(null);
+                                }}
+                            >
+                                Yes, Delete
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </form>
     );
 }

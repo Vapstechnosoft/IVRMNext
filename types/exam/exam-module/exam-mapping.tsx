@@ -432,4 +432,21 @@ export interface IPromotionSetting {
     best_off: number;
 }
 
+export interface IExamPromotionalSettingDetails {
+    eycsE_Id: number;            // Subject Mapping ID  (Row ID)
+    eycE_Id: number;             // Parent ExamId (FK)
+    emS_Id: number;              // Subject Id
+    subjectName: string;
+    maxMarks: number;
+    minMarks: number;
+    passPercentage?: number;
+    isActive: boolean;
 
+    // Navigation Forward → Page-2
+    groups?: IExamSubjectGroupDetails[];
+}
+
+
+export interface IExamSubjectGroupDetails{
+    
+}

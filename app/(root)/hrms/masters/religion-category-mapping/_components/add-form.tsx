@@ -4,9 +4,8 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCasteCategoryDropdown, useReligionDropdown } from '@/hooks/hrms/useEmployeeRegister';
-import { useReligionCategoryMappingCRUD } from '@/hooks/hrms/useMasters';
-import { religionCategoryMappingSchema } from '@/schemas/hrms/religion-category-mapping-schemas';
-import { saveReligionCategoryMapping } from '@/server/hrms/hrmsConfig/master/religion-category-mapping';
+import { useReligionCategoryMapping } from '@/hooks/hrms/useMasters';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { ICasteCategoryDropdown, IReligionDropdown } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -15,7 +14,7 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof religionCategoryMappingSchema.addOrUpdate>;
+type FormFields = z.infer<typeof hrmsMasterSchemas.religionCategoryMapping.addOrUpdate>;
 
 interface AddReligionCategoryMappingFormProps {
     onSuccess?: () => void;
@@ -23,7 +22,7 @@ interface AddReligionCategoryMappingFormProps {
 }
 
 export default function AddReligionCategoryMappingForm({ onSuccess, className = '' }: AddReligionCategoryMappingFormProps) {
-    const { refetchAll } = useReligionCategoryMappingCRUD();
+    const { saveMutation } = useReligionCategoryMapping();
 
     // Religion dropdown - API: /api/MasterDropDown/GeAllReligionList
     const { data: religionDropdownResponse } = useReligionDropdown();
@@ -43,28 +42,49 @@ export default function AddReligionCategoryMappingForm({ onSuccess, className = 
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(religionCategoryMappingSchema.addOrUpdate),
+        resolver: zodResolver(hrmsMasterSchemas.religionCategoryMapping.addOrUpdate),
         mode: 'onChange'
     });
 
+    const { mutate: saveMapping, isPending } = saveMutation;
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const payload = {
-                IRCC_Id: 0,
-                IVRMMR_Id: data.IVRMMR_Id,
-                IMCC_Ids: data.categoryids || [],
-                UserId: 0
-            };
-            const response = await saveReligionCategoryMapping(payload);
-
-            if (response?.success) {
-                toast.success(response?.message || 'Mapping saved successfully');
-                reset();
-                refetchAll();
-                onSuccess?.();
-            } else {
-                toast.error(response?.message || 'Failed to save mapping');
+            // Validate required fields
+            if (!data.IVRMMR_Id || data.IVRMMR_Id <= 0) {
+                toast.error('Please select a religion');
+                return;
             }
+            if (!data.categoryids || data.categoryids.length === 0) {
+                toast.error('Please select at least one category');
+                return;
+            }
+
+            // Transform categoryids array to castid array of objects as per API spec
+            const castid = (data.categoryids || []).map((categoryId) => ({
+                imcC_Id: categoryId
+            }));
+
+            const payload = {
+                ircC_Id: 0, // 0 for add, actual ID for update
+                ivrmmR_Id: data.IVRMMR_Id,
+                castid: castid // Array of objects with imcC_Id property
+            };
+
+            saveMapping(payload, {
+                onSuccess: (response) => {
+                    if (response?.success) {
+                        toast.success(response?.message || 'Mapping saved successfully');
+                        reset();
+                        onSuccess?.();
+                    } else {
+                        toast.error(response?.message || 'Failed to save mapping');
+                    }
+                },
+                onError: (error: any) => {
+                    toast.error(error?.message || 'Failed to save mapping');
+                }
+            });
         } catch (error: any) {
             toast.error(error?.message || 'Failed to save mapping');
         }
@@ -182,9 +202,9 @@ export default function AddReligionCategoryMappingForm({ onSuccess, className = 
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || isPending}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
+                        isLoading={isSubmitting || isPending}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />

@@ -2,30 +2,35 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { EarningsDeductionDetail } from '@/types/hrms/master-earnings-deductions';
+import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-export const columns: ColumnDef<EarningsDeductionDetail>[] = [
+export const columns: ColumnDef<IMasterEarningsDeductionsList>[] = [
     {
         id: 'slNo',
         header: () => <div className='text-center font-medium'>Sl No</div>,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false,
         size: 60
     },
     {
-        accessorKey: 'HRMED_Name',
+        accessorKey: 'hrmeD_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Name' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMED_EDTypeFlag',
+        accessorKey: 'hrmeD_EDTypeFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Type' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMED_EarnDedFlag',
+        accessorKey: 'hrmeD_EarnDedFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Category' className='whitespace-nowrap' />,
         cell: ({ row }) => {
-            const value = row.getValue('HRMED_EarnDedFlag') as string;
+            const value = row.getValue('hrmeD_EarnDedFlag') as string;
             const badgeClass =
                 value === 'Earning'
                     ? 'bg-green-100 text-green-800 border-green-200'
@@ -42,17 +47,17 @@ export const columns: ColumnDef<EarningsDeductionDetail>[] = [
         }
     },
     {
-        accessorKey: 'HRMED_AmountPercentFlag',
+        accessorKey: 'hrmeD_AmountPercentFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount Type' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMED_AmountPercent',
+        accessorKey: 'hrmeD_AmountPercent',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Value' className='whitespace-nowrap' />
     },
     {
-        accessorKey: 'HRMED_Order',
+        accessorKey: 'hrmeD_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
-        cell: ({ row }) => row.original.HRMED_Order ?? '-'
+        cell: ({ row }) => row.original.hrmeD_Order ?? '-'
     },
     {
         id: 'actions',
@@ -61,18 +66,18 @@ export const columns: ColumnDef<EarningsDeductionDetail>[] = [
         enableSorting: false
     }
 ];
-function ActionButtonsCell({ rowData }: { rowData: EarningsDeductionDetail }) {
-    const { openEditForm, openToggleForm } = useFormContext<EarningsDeductionDetail>();
+function ActionButtonsCell({ rowData }: { rowData: IMasterEarningsDeductionsList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterEarningsDeductionsList>();
 
     const handleEdit = useCallback(
-        (data: EarningsDeductionDetail) => {
+        (data: IMasterEarningsDeductionsList) => {
             openEditForm(data);
         },
         [openEditForm]
     );
 
     const handleToggle = useCallback(
-        (data: EarningsDeductionDetail) => {
+        (data: IMasterEarningsDeductionsList) => {
             openToggleForm(data);
         },
         [openToggleForm]
@@ -84,7 +89,7 @@ function ActionButtonsCell({ rowData }: { rowData: EarningsDeductionDetail }) {
             buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
             onToggle={handleToggle}
-            toggleConditionKey='HRMED_ActiveFlag'
+            toggleConditionKey='hrmeD_ActiveFlag'
         />
     );
 }

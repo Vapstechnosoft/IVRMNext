@@ -11,18 +11,13 @@ export async function getMasterDesignation(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterDesignation(data: any) {
-    const url = '/api/MasterDesignationFacade';
+    const url = '/api/MasterDesignationFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterDesignation(id: number) {
-    const url = `/api/MasterDesignationFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterDesignationFacade/toggle/${id}`;
     return await api.put('hrms', url);
-}
-
-export async function deleteMasterDesignation(id: number) {
-    const url = `/api/MasterDesignationFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
 }
 
 export async function getDesignationSetOrder() {

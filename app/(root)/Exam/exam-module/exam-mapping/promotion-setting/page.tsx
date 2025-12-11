@@ -252,9 +252,9 @@ function FormSections() {
             )} */}
 
             {/* Details View */}
-            {/* {isDetailsViewOpen && selectedRow && (
+            {isDetailsViewOpen && selectedRow && (
                 <PromotionalSettingDetailsPage rowData={selectedRow} onClose={closeDetailsView} />
-            )} */}
+            )}
         </>
     );
 }

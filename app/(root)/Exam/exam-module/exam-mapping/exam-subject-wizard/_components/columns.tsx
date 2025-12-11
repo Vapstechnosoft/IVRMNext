@@ -15,23 +15,6 @@ import { useCallback } from 'react';
 // -------------------------
 export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
     {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 24
-    },
-
-    {
         accessorKey: 'slno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
         cell: ({ row, table }) => {
@@ -49,14 +32,12 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
     { accessorKey: 'emE_ExamCode', header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Code' /> },
     { accessorKey: 'emgR_GradeName', header: ({ column }) => <DataTableColumnHeader column={column} title='Grade' /> },
     { accessorKey: 'asmaY_Order', header: ({ column }) => <DataTableColumnHeader column={column} title='Order' /> },
-    { accessorKey: 'eycE_BestOf', header: ({ column }) => <DataTableColumnHeader column={column} title='Best Of' /> },
-
     {
         accessorKey: 'eycE_BestOfApplicableFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Best Of Applicable' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Best Off Applicable' />,
         cell: ({ row }) => getStatusBadge((row.getValue('eycE_BestOfApplicableFlg') as boolean) === true ? 'yes' : 'no')
     },
-
+    { accessorKey: 'eycE_BestOf', header: ({ column }) => <DataTableColumnHeader column={column} title='Best Off' /> },
     {
         accessorKey: 'eycE_AttendanceFromDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Attendance From' />,

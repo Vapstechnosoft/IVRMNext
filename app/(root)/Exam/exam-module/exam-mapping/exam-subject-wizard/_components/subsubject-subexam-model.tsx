@@ -61,6 +61,7 @@ export default function SubSubjectSubExamModal({
     const parentMinMarks = Number(subject?.EYCES_MinMarks ?? 0);
 
     // Populate/reset when subject changes
+    // Populate/reset when subject changes
     useEffect(() => {
         if (!subject) {
             reset({ list: [] });
@@ -72,8 +73,10 @@ export default function SubSubjectSubExamModal({
         const list = (subject.list ?? []).map((l: any) => ({
             eycessS_Id: l.eycessS_Id ?? undefined,
             eyceS_Id: l.eyceS_Id ?? undefined,
-            ismS_Id: subject.ismS_Id,
+            ismS_Id: subject.ISMS_Id,
             emsS_Id: l.emsS_Id,
+            emsE_Id: l.emsE_Id,
+            compositeId: `${l.emsS_Id}_${l.emsE_Id}`, // <-- Add this
             checkedvalue: Boolean(l.checkedvalue) ?? false,
             emgR_GradeName: l.emgR_GradeName ?? '',
             ismS_SubjectName: subject.ISMS_SubjectName ?? '',
@@ -300,14 +303,29 @@ export default function SubSubjectSubExamModal({
         try {
             const currentList = getValues('list') ?? [];
             const reorderedList = (updatedData ?? []).map((item: any, index: number) => {
-                const matchId = item.id ?? item.emsS_Id;
-                const original = currentList.find((x: any) => x.emsS_Id === matchId) ?? item;
-                return { ...original, eycessS_SubSubjectOrder: index + 1 };
+                // Find by composite match
+                const compositeId = `${item.emsS_Id}_${item.emsE_Id}`;
+                const original = currentList.find(
+                    (x: any) => `${x.emsS_Id}_${x.emsE_Id}` === compositeId
+                ) ?? item;
+
+                return {
+                    ...original,
+                    eycessS_SubSubjectOrder: index + 1
+                };
             });
 
-            const reorderedIds = new Set(reorderedList.map((r: any) => r.emsS_Id));
-            const remaining = currentList.filter((x: any) => !reorderedIds.has(x.emsS_Id));
-            const finalList = [...reorderedList, ...remaining].sort((a: any, b: any) => Number(a.eycessS_SubSubjectOrder ?? 0) - Number(b.eycessS_SubSubjectOrder ?? 0));
+            const reorderedIds = new Set(
+                reorderedList.map((r: any) => `${r.emsS_Id}_${r.emsE_Id}`)
+            );
+
+            const remaining = currentList.filter(
+                (x: any) => !reorderedIds.has(`${x.emsS_Id}_${x.emsE_Id}`)
+            );
+
+            const finalList = [...reorderedList, ...remaining].sort(
+                (a: any, b: any) => Number(a.eycessS_SubSubjectOrder ?? 0) - Number(b.eycessS_SubSubjectOrder ?? 0)
+            );
 
             setValue('list', finalList, { shouldDirty: true, shouldValidate: true });
             toast.success('Sub-Subjects order saved successfully.');
@@ -349,8 +367,10 @@ export default function SubSubjectSubExamModal({
             toast.error(`Sum of selected sub-subjects (max/min) must equal parent subject marks (Max: ${parentMaxMarks}, Min: ${parentMinMarks}).`);
             return;
         }
+        console.log(selected);
+        console.log('subject', subject);
 
-        onSave(subject.ismS_Id, selected);
+        onSave(subject.ISMS_Id, selected);
         onClose();
     }, [getValues, validateAllBeforeSave, parentMaxMarks, parentMinMarks, onSave, onClose, subject]);
 
@@ -447,18 +467,20 @@ export default function SubSubjectSubExamModal({
                                 )}
 
                                 {paginatedData.map((row, idx) => {
-                                    // Find the real index inside the form list using the stable id
-                                    const formIndex = (watchedList || []).findIndex((x: any) => Number(x.emsS_Id) === Number(row.emsS_Id));
-                                    // Fallback: if not found, use the paginated position (defensive)
+                                    // Use composite ID to find the correct index
+                                    const compositeId = `${row.emsS_Id}_${row.emsE_Id}`;
+                                    const formIndex = (watchedList || []).findIndex(
+                                        (x: any) => `${x.emsS_Id}_${x.emsE_Id}` === compositeId
+                                    );
+
+                                    // Fallback: if not found, use the paginated position
                                     const safeIndex = formIndex === -1 ? startIndex + idx : formIndex;
 
                                     const rowErrors: any = errors.list?.[safeIndex];
-
-                                    // Visible serial for current page
                                     const visibleSerial = startIndex + idx + 1;
 
                                     return (
-                                        <tr key={row.emsS_Id ?? `row-${visibleSerial}`} className={visibleSerial % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+                                        <tr key={compositeId ?? `row-${visibleSerial}`} className={visibleSerial % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                                             <td className='border p-2 text-center'>{visibleSerial}</td>
 
                                             <td className='border p-2 text-center'>
@@ -771,6 +793,7 @@ export default function SubSubjectSubExamModal({
 
                             <div className="flex items-center space-x-1">
                                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                                    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
                                     let pageNum;
                                     if (totalPages <= 5) {
                                         pageNum = i + 1;
@@ -824,7 +847,11 @@ export default function SubSubjectSubExamModal({
                     <MasterViewDetails
                         isOpen={isOrderDetailsOpen}
                         onClose={closeOrderDetails}
-                        data={watchedList.map((d: any) => ({ ...d, id: d.emsS_Id }))}
+                        data={watchedList.map((d: any) => ({
+                            ...d,
+                            // Pass both IDs for proper matching
+                            id: `${d.emsS_Id}_${d.emsE_Id}`  // <-- Use composite ID
+                        }))}
                         isLoading={isOrderloading}
                         isSaving={isOrderSaving}
                         columns={[

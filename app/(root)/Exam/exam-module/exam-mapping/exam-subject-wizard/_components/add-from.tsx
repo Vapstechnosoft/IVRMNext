@@ -35,6 +35,7 @@ import SubExamModal from './subexam-model';
 import SubjectTable from './subject-table';
 import SubSubjectModal from './subsubject-modal';
 import SubSubjectSubExamModal from './subsubject-subexam-model';
+import { InputNumber } from '@/components/ui/extension/input-number';
 
 type FormFields = z.infer<typeof ExamSubjectWizardSchema.addOrUpdate>;
 
@@ -354,6 +355,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         }
 
                         setSubjects(updatedSubjects);
+                        console.log('updatedSubjects', updatedSubjects);
                     } else {
                         setSubjects(formattedSubjects);
                     }
@@ -479,50 +481,45 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const onOpenSubSubjectSubExamModal = async (subject: any) => {
         try {
             setSubSubjectSubExamModalState({ open: true, subject });
-            const { data: list } = await getSubSubjectSubExamList(30);
-            const safeList = Array.isArray(list) ? list : [];
-            console.log('safeList', safeList);
 
-            // Use existing config instead of mapped API call
-            const safeConfigList = Array.isArray(subject.subSubjectSubExamConfig) ? subject.subSubjectSubExamConfig : [];
+            const { data } = await getSubSubjectSubExamList(30);
+            const safeList = Array.isArray(data) ? data : [];
+
+            const safeConfigList = Array.isArray(subject?.subSubjectSubExamConfig) ? subject.subSubjectSubExamConfig : [];
 
             const updatedList = safeList.map((item: any) => {
-                const matched = safeConfigList.find((m: any) => m.emsS_Id === item.emsS_Id && m.emsE_Id === item.emsE_Id);
-
-                if (matched) {
-                    return {
-                        ...item,
-                        ...matched,
-                        checkedvalue: true
-                    };
-                }
+                const match = safeConfigList.find((m: any) =>
+                    Number(m.emsS_Id) === Number(item.emsS_Id) &&
+                    Number(m.emsE_Id) === Number(item.emsE_Id)
+                );
 
                 return {
                     ...item,
-                    checkedvalue: false
+                    ...(match ?? {}),
+                    checkedvalue: Boolean(match)   // auto check if matched
                 };
             });
 
             setSubSubjectSubExamModalState({
                 open: true,
-                subject: {
-                    ...subject,
-                    list: updatedList
-                }
+                subject: { ...subject, list: updatedList }
             });
+
         } catch {
+            // fallback (keeps UI usable even when API fails)
             setSubSubjectSubExamModalState({
                 open: true,
                 subject: {
                     ...subject,
                     list: [
-                        { EMSE_Id: 1, EMSE_SubExamName: 'Internal Test' },
-                        { EMSE_Id: 2, EMSE_SubExamName: 'Viva' }
+                        { EMSE_Id: 1, EMSE_SubExamName: "Internal Test", checkedvalue: false },
+                        { EMSE_Id: 2, EMSE_SubExamName: "Viva", checkedvalue: false }
                     ]
                 }
             });
         }
     };
+
 
     const toBackendDate = (d?: string | null) => {
         if (!d) return '';
@@ -567,11 +564,15 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     };
 
     const handleSaveSubSubjectSubExam = (subjectId: number, selectedList: any[]) => {
+        console.log('selectedList **', selectedList);
+        console.log('subjectId **', subjectId);
+        console.log('subjects **', subjects);
         setSubjects((prev) =>
             prev.map((s) =>
                 s.ISMS_Id === subjectId ? { ...s, subSubjectSubExamConfig: selectedList, EYCES_SubSubjectFlg: selectedList.length > 0 } : s
             )
         );
+        console.log('subjects **', subjects);
         setSubSubjectSubExamModalState({ open: false });
         toast.info('SubSubject and SubExam Data saved successfully.');
     };
@@ -905,6 +906,49 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                     )}
                                 />
                             </div>
+                            {/* BEST APPLICABLE + BEST OFF INPUT */}
+                            <div className='flex items-center gap-6 mt-3'>
+
+                                {/* Checkbox -> EYCE_BestOfApplicableFlg */}
+                                <div className='flex items-center gap-2'>
+                                    <Checkbox
+                                        id='bestApplicableCheckbox'
+                                        checked={watch('EYCE_BestOfApplicableFlg')}
+                                        onCheckedChange={(value) => setValue('EYCE_BestOfApplicableFlg', Boolean(value))}
+                                    />
+                                    <label htmlFor='bestApplicableCheckbox' className='font-medium text-sm'>
+                                        Best Applicable
+                                    </label>
+                                </div>
+
+                                {/* BEST OFF NUMBER FIELD */}
+                                <div className='w-32'>
+                                    <Controller
+                                        control={control}
+                                        name='EYCE_BestOf'
+                                        render={({ field, fieldState }) => (
+                                            <div className="flex items-center gap-3">
+
+                                                {/* Label beside input */}
+                                                <Label className="whitespace-nowrap">Best Off {watch('EYCE_BestOfApplicableFlg') && <span className='text-red-500'>*</span>}</Label>
+
+                                                <InputNumber
+                                                    minValue={1}
+                                                    isDisabled={!watch('EYCE_BestOfApplicableFlg')}  // Enable only when checked
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    className="w-24"   // adjust width if needed
+                                                />
+
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+
+                                            </div>
+                                        )}
+                                    />
+                                    {errors.EYCE_BestOf && <FormError>{errors.EYCE_BestOf.message}</FormError>}
+                                </div>
+                            </div>
+
 
                             <div className='mt-2 flex items-center gap-4'>
                                 <div className='flex items-center gap-2'>
