@@ -21,11 +21,12 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { exportToExcel } from '@/lib/utils';
+import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import type {
+    IFeeAuditReport,
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
-    IFeeDefaulterReportRow,
     IFeeGroupDropdownList,
     IFeeSectionDropdownList,
     IFeeTermDropdownList
@@ -90,9 +91,11 @@ export default function FeeDefaulterReport() {
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeDefaulterReportRow[]>([]);
+    const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
+
+    const [sectionLoading, setSectionLoading] = useState(false);
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -144,17 +147,34 @@ export default function FeeDefaulterReport() {
             setFilters((prev) => ({ ...prev, sectionId: 0 }));
         }
     }, [filters.classId, refetchSections]);
-
     useEffect(() => {
-        if (sectionListError) {
-            toast.error(sectionListError?.message || 'Failed to load sections');
-            setSections([]);
-            return;
-        }
-        if (sectionListResponse?.data && Array.isArray(sectionListResponse.data)) {
-            setSections(sectionListResponse.data);
-        }
-    }, [sectionListResponse, sectionListError]);
+        const fetchSections = async () => {
+            if (!filters.includeClassSection || !filters.academicYearId || filters.classId <= 0) {
+                setSections([]);
+                setFilters((prev) => ({ ...prev, sectionId: 0 }));
+                return;
+            }
+
+            setSectionLoading(true);
+            try {
+                const result = await getFeesSectionListByClassId(Number(filters.academicYearId), filters.classId);
+
+                const data = Array.isArray(result?.data) ? result.data : [];
+                setSections(data);
+
+                if (data.length === 0) {
+                    toast.info('No sections found for this class');
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'Failed to load sections');
+                setSections([]);
+            } finally {
+                setSectionLoading(false);
+            }
+        };
+
+        fetchSections();
+    }, [filters.academicYearId, filters.classId, filters.includeClassSection]);
 
     useEffect(() => {
         if (feegroupError) toast.error(feegroupError?.message || 'Failed to load fee groups');
@@ -237,7 +257,7 @@ export default function FeeDefaulterReport() {
 
     //     const data = Array.isArray(result) ? result : (result?.data || []);
 
-    //     setReportData(data as IFeeDefaulterReportRow[]);
+    //     setReportData(data as IFeeAuditReport[]);
     //     setShowReport(true);
 
     //     // Feedback
@@ -276,7 +296,7 @@ export default function FeeDefaulterReport() {
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
         // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeDefaulterReportRow[] = [
+        const mockData: IFeeAuditReport[] = [
             { feeGroup: 'Tuition Fee', totalDue: 12500 },
             { feeGroup: 'Transport + Tuition', totalDue: 28500 },
             { feeGroup: 'Annual Charges', totalDue: 8000 },
@@ -819,7 +839,7 @@ export default function FeeDefaulterReport() {
                                                 <div className='border-b bg-primary/5 px-8 py-6'>
                                                     <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
                                                 </div>
-                                                <GenericDataTable<IFeeDefaulterReportRow>
+                                                <GenericDataTable<IFeeAuditReport>
                                                     columns={feeDefaulterReportColumns}
                                                     data={reportData}
                                                     isLoading={reportLoading}

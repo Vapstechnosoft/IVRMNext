@@ -45,7 +45,7 @@ export const feeMasterConcessionDetailsColumns: ColumnDef<IMasterConcessionDetai
     },
     {
         accessorKey: 'fmccD_FromNoSibblings',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='From no of Sibbling' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='From no of Sibling' />,
         cell: ({ row }) => <div>{row.getValue('fmccD_FromNoSibblings')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -53,7 +53,7 @@ export const feeMasterConcessionDetailsColumns: ColumnDef<IMasterConcessionDetai
 
     {
         accessorKey: 'fmccD_ToNoSibblings',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='To no of Sibbling' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='To no of Sibling' />,
         cell: ({ row }) => <div>{row.getValue('fmccD_ToNoSibblings')}</div>,
         enableSorting: true,
         enableHiding: true

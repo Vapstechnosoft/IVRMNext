@@ -6,6 +6,20 @@ import { getAcademicYearDropdownData, getAmountEntry } from '@/server/fees/trasa
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
+    getConcessionAcademicDropdownData,
+    getConcessionCategoryDropdownData,
+    getConcessionClassesDropdownData,
+    getConcessionFeeConcessionCategoryDropdownData,
+    getConcessionHeadDetailsList,
+    getConcessionStudentConcessionGrid,
+    getConcessionStudentList,
+    getConcessionTermDropdownData,
+    getFeeConcessionOthersList,
+    getFeeConcessionStaffList,
+    getFeesCommonSettingConfigSet
+} from '@/server/fees/trasactions/FeeConcession';
+import { getFeeAdjutmentGridList } from '@/server/fees/trasactions/fee_adjustment';
+import {
     getOpeningAcademicYearDropdownData,
     getOpeningBalanceList,
     getOpeningCategoryDropdownData,
@@ -17,8 +31,13 @@ import {
     getOpeningRefundable,
     getOpeningSectionDropdownData
 } from '@/server/fees/trasactions/fee_opening_balance';
+import { getFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundable';
 import { getFeeStudentTransactionDetails } from '@/server/fees/trasactions/fee_student_transaction';
-import { getFeePreadmissionTransactionList, getPreadmissionStudentDropdownData } from '@/server/fees/trasactions/feepreadmissiontrasaction';
+import {
+    getFeePreadmissionTransactionList,
+    getFeeProspectusTransactionList,
+    getPreadmissionStudentDropdownData
+} from '@/server/fees/trasactions/feepreadmissiontrasaction';
 import {
     getThirdPartyTrasaction,
     getThirdPartyTrasactionBankDropDown,
@@ -298,14 +317,22 @@ export const useBankdropdowndatathirdpartytransaction = (searchParams?: ApiSearc
     };
 };
 
-export const useFeePreadmissionTransactionList = (searchParams?: ApiSearchparams) => {
+export const useFeePreadmissionTransactionList = (
+    asmay_Id: number,
+    searchParams?: Record<string, any> // ← Make sure it's object, not Promise
+) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_PREADMISSION_TRANSACTION_DETAILS, searchParams ?? {}],
-            queryFn: async () => getFeePreadmissionTransactionList(searchParams),
-            staleTime: 0
+            queryKey: [
+                FEES_QUERY_KEYS.FEE_PREADMISSION_TRANSACTION_DETAILS,
+                asmay_Id,
+                searchParams ?? {} // ← This must be plain object
+            ],
+            queryFn: async () => getFeePreadmissionTransactionList(asmay_Id, searchParams),
+            staleTime: 0,
+            enabled: asmay_Id > 0 // ← Prevent API call when asmay_id=0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -519,6 +546,288 @@ export const useFeeOpeningRefundable = (asmaY_Id: number, filterrefund: string, 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_OPENING_REFUNDABLE]
+            });
+        }
+    };
+};
+
+export const useconcessionacademicyerdropdowndatafee = (mi_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getConcessionAcademicDropdownData(mi_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionTermDropdowndata = (groupOrTerm: string, asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_TERM_DROPDOWN, groupOrTerm, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getConcessionTermDropdownData(groupOrTerm, asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_TERM_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeRefundableList = (asmay_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_REFUNDABLE_LIST, asmay_Id, searchParams ?? {}],
+            queryFn: async () => getFeeRefundableDetails(asmay_Id, searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_REFUNDABLE_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionClassDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN, mi_id, searchParams ?? {}],
+            queryFn: async () => getConcessionClassesDropdownData(mi_id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CLASS_DROPDOWN]
+            });
+        }
+    };
+};
+export const useFeeConcessionCategoryDropdowndata = (mi_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_DROPDOWN, mi_id, searchParams ?? {}],
+            queryFn: async () => getConcessionCategoryDropdownData(mi_id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionHeadList = (mi_Id: number, asmaY_Id: number, asmcL_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
+            //queryFn: async () => getConcessionHeadList(mi_Id, asmaY_Id, asmcL_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionStudentList = (
+    radiobtnvalue: string,
+    asmaY_Id: number,
+    asmcL_Id: number,
+    amcId: number,
+    fmccId: number,
+    searchParams?: ApiSearchparams
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_LIST, radiobtnvalue, asmaY_Id, asmcL_Id, amcId, fmccId, searchParams ?? {}],
+            queryFn: async () => getConcessionStudentList(radiobtnvalue, asmaY_Id, asmcL_Id, amcId, fmccId),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionStudentConcessionGrid = (
+    mi_Id: number,
+    asmaY_Id: number,
+    asmcL_Id: number,
+    searchParams?: ApiSearchparams
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID, mi_Id, asmaY_Id, asmcL_Id, searchParams ?? {}],
+            queryFn: () => getConcessionStudentConcessionGrid(mi_Id, asmaY_Id, asmcL_Id, searchParams),
+            staleTime: 0,
+            enabled: !!mi_Id && !!asmaY_Id
+        }),
+        refetchAll: () => {
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID],
+                exact: false
+            });
+        }
+    };
+};
+
+export const useFeeConcessionHeadDetailsList = (
+    asmaY_Id: number,
+    amsT_Id: number,
+    fmT_Id: number,
+    configSet: string,
+    searchParams?: ApiSearchparams
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST, asmaY_Id, amsT_Id, fmT_Id, configSet, searchParams ?? {}],
+            queryFn: async () => getConcessionHeadDetailsList(asmaY_Id, amsT_Id, fmT_Id, configSet),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_HEAD_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeProspectusTransactionList = (
+    asmay_Id: number,
+    searchParams?: Record<string, any> // ← Make sure it's object, not Promise
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [
+                FEES_QUERY_KEYS.FEE_PROSPECTUS_TRANSACTION_DETAILS,
+                asmay_Id,
+                searchParams ?? {} // ← This must be plain object
+            ],
+            queryFn: async () => getFeeProspectusTransactionList(asmay_Id, searchParams),
+            staleTime: 0,
+            enabled: asmay_Id > 0 // ← Prevent API call when asmay_id=0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_PROSPECTUS_TRANSACTION_DETAILS]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionConfigSet = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CONFIGSET, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeesCommonSettingConfigSet(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CONFIGSET]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionStaffList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STAFF_LIST, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeeConcessionStaffList(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STAFF_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionOthersList = (asmaY_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_OTHERS_LIST, asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getFeeConcessionOthersList(asmaY_Id),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_OTHERS_LIST]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionCategoryFeeConcessionDropdowndata = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_FEE_CONCESSION_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getConcessionFeeConcessionCategoryDropdownData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_CATEGORYS_FEE_CONCESSION_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeAdjustment = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GRIDDATA, searchParams ?? {}],
+            queryFn: async () => getFeeAdjutmentGridList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GRIDDATA]
             });
         }
     };

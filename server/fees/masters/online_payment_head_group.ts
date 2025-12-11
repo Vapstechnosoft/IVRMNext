@@ -43,7 +43,7 @@ export async function getHeadNameDropDownList(academicYears?: number, groupName?
 export async function getFeeOnlinePaymentHeadGroupTable(searchParams?: ApiSearchparams) {
     console.info('OnlinePaymentHeadGroupMapping params:', searchParams);
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'fopM_Id,className,submerchandId,groupName,headName,installmentName,termName');
-    const url = `/OnlinePaymentHeadGroupMapping/OnlinePaymentHeadGroupMappingList/30?${urlParams}`;
+    const url = `/OnlinePaymentHeadGroupMapping/OnlinePaymentHeadGroupMappingList?${urlParams}`;
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 

@@ -157,7 +157,7 @@ export default function AddAddFeeTermsForm({ onSuccess, feeterms = '' }: AddFeeT
                                 }}
                                 id='fmT_IncludeArrearFeeFlg'
                             />
-                            <Label htmlFor='fmT_IncludeArrearFeeFlg'>Arrear Flag</Label>
+                            <Label htmlFor='fmT_IncludeArrearFeeFlg'>Arrear Term</Label>
                         </div>
                     )}
                 />

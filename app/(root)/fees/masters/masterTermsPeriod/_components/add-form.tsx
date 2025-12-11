@@ -38,6 +38,8 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
     const [selectedHead, setSelectedHead] = useState<number | null>(null);
     const [splitAcademicYear, setSplitAcademicYear] = useState<any>(null); // store API result
 
+    const [isSplitLoading, setIsSplitLoading] = useState(false);
+
     const [selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
 
     const [filterType, setFilterType] = useState<string>('');
@@ -85,12 +87,17 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
     useEffect(() => {
         if (selectedAcademicYear !== null) {
             const fetchSplitAcademicYear = async () => {
+                setIsSplitLoading(true); // 🔥 Disable immediately
+                setSplitAcademicYear(null); // 🔥 Clear old data
+                setSelectedSplitYear(null); // 🔥 Reset selected option
                 try {
                     const response = await get_split_year(Number(selectedAcademicYear));
                     console.log('Split Academic Year:', response);
                     setSplitAcademicYear(response.data); // store result if needed
                 } catch (err) {
                     console.error('Failed to fetch split academic year', err);
+                } finally {
+                    setIsSplitLoading(false); // 🔥 Re-enable dropdown
                 }
             };
 
@@ -243,7 +250,8 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                                         setSelectedSplitYear(val);
                                     }}
                                     value={field.value || ''}
-                                    disabled={!selectedAcademicYear || !splitAcademicYear} // <-- FIXED
+                                    //disabled={!selectedAcademicYear || !splitAcademicYear}
+                                    disabled={!selectedAcademicYear || isSplitLoading || !splitAcademicYear}
                                 >
                                     <SelectTrigger className='min-w-[400px] text-center'>
                                         <SelectValue placeholder='--Select Year--' />
@@ -393,38 +401,39 @@ export default function AddFeeTermsPeriodForm({ onSuccess, termname = '' }: FeeT
                     </div>
                 </div>
 
-                <div className='flex justify-center'>
+                <div className='flex w-full justify-center'>
                     <Controller
                         name='filterType'
                         control={control}
                         render={({ field }) => (
-                            <div className='flex flex-col items-center'>
-                                <Card className='p-4'>
+                            <div className='flex w-full flex-col items-center'>
+                                <Card className='w-full max-w-[900px] p-4'>
                                     <RadioGroup
                                         value={field.value}
                                         onValueChange={(val) => {
                                             field.onChange(val);
                                             setFilterType(val);
-                                        }}>
-                                        <div className='grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5'>
+                                        }}
+                                        className='w-full'>
+                                        <div className='flex w-full items-center justify-evenly gap-x-4 px-2'>
                                             {[
                                                 { value: 'N', label: 'New Admission Fee' },
                                                 { value: 'F', label: 'Regular Fee' },
-                                                { value: 'T', label: 'TransportFee' },
+                                                { value: 'T', label: 'Transport Fee' },
                                                 { value: 'R', label: 'Registration Fee' }
                                             ].map((item) => (
-                                                <div key={item.value} className='flex items-center space-x-2'>
+                                                <label
+                                                    key={item.value}
+                                                    htmlFor={item.value}
+                                                    className='flex cursor-pointer items-center gap-2 text-sm'>
                                                     <RadioGroupItem value={item.value} id={item.value} />
-                                                    <Label htmlFor={item.value} className='cursor-pointer text-sm'>
-                                                        {item.label}
-                                                    </Label>
-                                                </div>
+                                                    <span>{item.label}</span>
+                                                </label>
                                             ))}
                                         </div>
                                     </RadioGroup>
                                 </Card>
 
-                                {/* Error BELOW the card */}
                                 {errors.filterType && <FormError className='mt-2'>{errors.filterType.message}</FormError>}
                             </div>
                         )}

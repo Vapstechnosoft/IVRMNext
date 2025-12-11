@@ -23,7 +23,7 @@ export const feeInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
     },
     {
         accessorKey: 'fmI_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Name' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Master Installment' />,
         cell: ({ row }) => <div className='font-medium'>{row.getValue('fmI_Name')}</div>,
         enableSorting: true,
         enableHiding: true
@@ -35,16 +35,16 @@ export const feeInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
         enableSorting: true,
         enableHiding: true
     },
-    {
-        accessorKey: 'fmI_Installment_Type',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Type' />,
-        cell: ({ row }) => {
-            const type = row.getValue('fmI_Installment_Type') as string;
-            return <div>{type === '1' ? 'Monthly' : type === '2' ? 'Quarterly' : type}</div>;
-        },
-        enableSorting: true,
-        enableHiding: true
-    },
+    // {
+    //     accessorKey: 'fmI_Installment_Type',
+    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Type' />,
+    //     cell: ({ row }) => {
+    //         const type = row.getValue('fmI_Installment_Type') as string;
+    //         return <div>{type === '1' ? 'Monthly' : type === '2' ? 'Quarterly' : type}</div>;
+    //     },
+    //     enableSorting: true,
+    //     enableHiding: true
+    // },
 
     {
         id: 'actions',

@@ -2,9 +2,12 @@
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { Ifeetransaction } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
+import { useCallback } from 'react';
 
 export const feeTransactionColumns: ColumnDef<Ifeetransaction>[] = [
     {
@@ -66,48 +69,36 @@ export const feeTransactionColumns: ColumnDef<Ifeetransaction>[] = [
     },
 
     {
-        accessorKey: 'fyP_Id',
-        header: 'Action',
-        cell: ({ row }) => (
-            <div className='flex justify-center gap-2'>
-                <button
-                    type='button'
-                    className='rounded-md p-2 text-primary transition hover:bg-muted'
-                    title='View Receipt'
-                    onClick={() => console.log('View receipt', row.getValue('fyP_Id'))}>
-                    <Eye className='h-4 w-4' />
-                </button>
-            </div>
-        )
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
 
-/* ----------------------------------------------------------- */
-// function ActionButtonsCell({ rowData }: { rowData: Ifeetransaction }) {
-//   const { openEditForm, openDeleteForm, openDetailsView } =
-//     useFormContext<Ifeetransaction>();
+function ActionButtonsCell({ rowData }: { rowData: Ifeetransaction }) {
+    const { openEditForm, openDeleteForm, openDetailsView } = useFormContext<Ifeetransaction>();
 
-//   const handleEdit = useCallback(() => openEditForm(rowData), [openEditForm, rowData]);
-//   const handleDelete = useCallback(() => openDeleteForm(rowData), [openDeleteForm, rowData]);
-//   const handleView = useCallback(() => openDetailsView(rowData), [openDetailsView, rowData]);
+    const handleEdit = useCallback((data: Ifeetransaction) => openEditForm(data), [openEditForm]);
 
-//   return (
-//     <div className="flex items-center justify-center gap-2">
-//       <button
-//         type="button"
-//         onClick={handleView}
-//         className="rounded-md p-2 transition hover:bg-muted"
-//         title="View Receipt"
-//       >
-//         <Eye className="h-4 w-4 text-blue-600" />
-//       </button>
+    const handleDelete = useCallback((data: Ifeetransaction) => openDeleteForm(data), [openDeleteForm]);
 
-//       <ActionButtons
-//         rowData={rowData}
-//         buttons={{ edit: false, delete: false, toggle: false }}
-//         onEdit={handleEdit}
-//         onDelete={handleDelete}
-//       />
-//     </div>
-//   );
-// }
+    const handleView = useCallback(() => {
+        openDetailsView(rowData);
+    }, [openDetailsView, rowData]);
+
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Grade Details'>
+                <Eye className='h-4 w-4 text-blue-600' />
+            </button>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: false, toggle: false, delete: false }}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
+        </div>
+    );
+}

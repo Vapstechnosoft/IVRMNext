@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useState } from 'react';
+import React, { use, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, FormProvider, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -319,6 +319,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         setValue('subjectList', row.sub ?? []);
         setValue('subSubjectList', row.ssub ?? []);
         setDisableClassSection(true);
+        if (formRef.current) {
+            const topPosition = formRef.current.getBoundingClientRect().top + window.pageYOffset;
+            window.scrollTo({
+                top: topPosition - 70,
+                behavior: "smooth"
+            });
+        }
+
     }
 
     // Update edited row after user modifies subject/sub-subject
@@ -460,11 +468,23 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         }
     };
 
+    const tableRef = useRef<HTMLDivElement | null>(null);
+    const scrollToBottom = () => {
+        if (tableRef.current) {
+            tableRef.current.scrollTop = tableRef.current.scrollHeight;
+        }
+    };
 
+    useEffect(() => {
+        if (details.length > 0) {
+            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            setTimeout(scrollToBottom, 50);
+        }
+    }, [details]);
     // Build display columns for details table - minimal table without external table lib
     const detailsTable = useMemo(() => {
         return (
-            <>
+            <div ref={tableRef}>
                 <table className="w-full text-sm border-collapse">
                     <thead>
                         <tr style={{ background: 'hsl(277 90% 52%)', color: '#fff' }}>
@@ -543,14 +563,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     </div>
                 </div>
 
-            </>
+            </div>
         );
     }, [details]);
-
+    const formRef = useRef<HTMLDivElement | null>(null);
     // Render
     return (
-        <div className="w-full space-y-6">
-            <FormProvider {...methods}>
+        <div className="w-full space-y-6" ref={formRef}>
+            <FormProvider {...methods} >
                 <div className="bg-white p-3 rounded shadow">
                     {/* Tabs */}
                     <div className="flex gap-2 mb-4 bg-gray-200 rounded-full w-max p-1">

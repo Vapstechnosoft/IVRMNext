@@ -1,103 +1,125 @@
+'use client';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+
+import type { IFeeAdjustmentGridList } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-export type OpeningBalanceRow = {
-    amsT_FirstName?: string;
-    amsT_MiddleName?: string;
-    amsT_LastName?: string;
-    asmcL_ClassName?: string;
-    asmC_SectionName?: string;
-    fmoB_Student_Due?: number;
-    fmoB_Institution_Due?: number;
-    fmoB_EntryDate?: string;
-    asmay_id?: number;
-    fmC_Id?: number;
-    amst_Id?: number;
-    fmoB_Id?: number;
-    [key: string]: any;
-};
-
-export const openingBalanceColumns: ColumnDef<OpeningBalanceRow>[] = [
+export const feeAdjustmentColumns: ColumnDef<IFeeAdjustmentGridList>[] = [
+    // {
+    //     id: 'select',
+    //     header: ({ table }) => (
+    //         <Checkbox
+    //             checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
+    //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+    //             aria-label='Select all'
+    //         />
+    //     ),
+    //     cell: ({ row }) => (
+    //         <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
+    //     ),
+    //     enableSorting: false,
+    //     enableHiding: false,
+    //     size: 24
+    // },
     {
-        accessorKey: 'asmay_id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        accessorKey: 'fsA_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            return <div className='text-center font-medium'>{pageIndex * pageSize + row.index + 1}</div>;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='pl-6'>{continuousIndex}</div>;
         },
-        enableSorting: false,
+        enableSorting: true,
         enableHiding: false
     },
     {
-        accessorKey: 'Student Name',
+        accessorKey: 'studentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        cell: ({ row }) => row.getValue('Student Name')
+        cell: ({ row }) => <div>{row.getValue('studentName')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'Adjusted Amount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Adjusted Amount' />,
-        cell: ({ row }) => row.getValue('Adjusted Amount')
-    },
-    {
-        accessorKey: 'Adjusted from Head Name',
+        accessorKey: 'fromHead',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Adjusted from Head Name' />,
-        cell: ({ row }) => row.getValue('Adjusted from Head Name')
+        cell: ({ row }) => <div>{row.getValue('fromHead')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
+
     {
-        accessorKey: 'Adjusted from Installment',
+        accessorKey: 'fromInstallment',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Adjusted from Installment' />,
-        cell: ({ row }) => row.getValue('Adjusted from Installment')
+        cell: ({ row }) => <div>{row.getValue('fromInstallment')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'Adjusted to Head Name',
+        accessorKey: 'toHead',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Adjusted to Head Name' />,
-        cell: ({ row }) => row.getValue('Adjusted to Head Name')
+        cell: ({ row }) => <div>{row.getValue('toHead')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'Adjusted to Installment',
+        accessorKey: 'toInstallment',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Adjusted to Installment' />,
-        cell: ({ row }) => row.getValue('Adjusted to Installment')
+        cell: ({ row }) => <div>{row.getValue('toInstallment')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'Amount',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
-        cell: ({ row }) => row.getValue('Amount')
+        accessorKey: 'fsA_AdjustedAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Adjusted Amount' />,
+        cell: ({ row }) => <div>{row.getValue('fsA_AdjustedAmount')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'Date',
+        accessorKey: 'fsA_Date',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => row.getValue('Date')
+        //cell: ({ row }) => <div>{row.getValue('fsA_Date')}</div>,
+
+        cell: ({ row }) => {
+            const value = row.getValue('fsA_Date') as string | null;
+            const formattedDate = value
+                ? (() => {
+                      const [year, month, day] = value.split('T')[0].split('-');
+                      return `${day}-${month}-${year}`; // DD-MM-YYYY
+                  })()
+                : '';
+            return <div>{formattedDate}</div>;
+        },
+        enableSorting: true,
+        enableHiding: true
     },
+
     {
-        accessorKey: 'actions',
-        header: ({ column }) => <div className='text-center'>Actions</div>,
-        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
-        enableSorting: false
+        id: 'actions',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
 
-function ActionButtonsCell({ rowData }: { rowData: OpeningBalanceRow }) {
-    const { openToggleForm, openDeleteForm } = useFormContext<OpeningBalanceRow>();
+function ActionButtonsCell({ rowData }: { rowData: IFeeAdjustmentGridList }) {
+    const { openEditForm, openDeleteForm } = useFormContext<IFeeAdjustmentGridList>();
 
-    const handleToggle = useCallback(() => openToggleForm(rowData), [rowData, openToggleForm]);
-    const handleDelete = useCallback(() => openDeleteForm(rowData), [rowData, openDeleteForm]);
+    const handleEdit = useCallback((data: IFeeAdjustmentGridList) => openEditForm(data), [openEditForm]);
 
-    const hasRecord = !!(rowData.fmC_Id || rowData.fmoB_Id);
+    const handleDelete = useCallback((data: IFeeAdjustmentGridList) => openDeleteForm(data), [openDeleteForm]);
 
     return (
-        <div className='flex justify-center gap-2'>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
             <ActionButtons
                 rowData={rowData}
-                buttons={{
-                    edit: false,
-                    toggle: !hasRecord,
-                    delete: hasRecord
-                }}
-                onToggle={handleToggle}
+                buttons={{ edit: false, toggle: false, delete: true }}
+                onEdit={handleEdit}
                 onDelete={handleDelete}
             />
         </div>

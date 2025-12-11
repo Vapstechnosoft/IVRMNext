@@ -276,28 +276,31 @@ export default function AddMasterOnlinePaymentHeadGroupForm({ onSuccess, classNa
             }
 
             const payload = {
-                mI_Id: Number(getValues('mI_Id') ?? 30),
+                // mI_Id: Number(getValues('mI_Id') ?? 30),
                 asmaY_Id: academicYear,
                 asmcL_ID: classId,
                 fpgd_id: subMerchantId,
                 fmg_id: groupId,
                 selectedheadList: selectedHeads.map((headId) => ({ fmH_Id: headId })),
                 fmt_id: termId,
-                fti_id: installmentId,
-                user_id: 1001
+                fti_id: installmentId
+                //user_id: 1001
             };
 
             // submitted payload
 
+            const js = JSON.stringify(payload);
+            console.log('Payload JSON:', js);
+
             const response = await addMasterOnlinePaymentHeadGroup(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Online Payment Head Group added successfully');
+                toast.success(response.message);
                 await refetchAll();
                 handleReset();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to add Online Payment Head Group');
+                toast.error(response.message);
             }
         } catch (error: any) {
             console.error('Error submitting form:', error);

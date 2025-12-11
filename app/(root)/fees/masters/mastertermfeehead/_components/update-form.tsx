@@ -27,6 +27,8 @@ interface UpdateFeeTermHeadFormProps {
 export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', selectedRow: row }: UpdateFeeTermHeadFormProps) {
     const { refetchAll } = useMasterTermsHead();
 
+    const isEditMode = !!row;
+
     const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
     const [SelectedInstallmentsItems, setSelectedInstallmentsItems] = useState<{ ftI_ID: string }[]>([]);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -180,7 +182,8 @@ export default function UpdateFeeTermHeadForm({ onSuccess, fineslab = '', select
                                         onValueChange={(value) => {
                                             field.onChange(Number(value));
                                         }}
-                                        value={field.value?.toString() || undefined}>
+                                        value={field.value?.toString() || undefined}
+                                        disabled={isEditMode}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Term' />
                                         </SelectTrigger>

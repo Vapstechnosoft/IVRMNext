@@ -8,9 +8,11 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CATEGORY: 'master_category',
     MASTER_SECTION: 'master_section',
     MASTER_CLASS_CATEGORY: 'master_class_category',
+    MASTER_CLASS_CATEGORY_SECTION: 'master_class_category_section',
     ACADEMIC_DROPDOWN: 'academic_dropdown',
     MASTER_CATEGORY_DROPDOWN: 'master_category_dropdown',
     MASTER_CLASS_DROPDOWN: 'master_class_dropdown',
+    MASTER_UNMAPPED_CLASS_DROPDOWN: 'master_unmapped_class_dropdown',
     MASTER_SECTION_DROPDOWN: 'master_section_dropdown',
     MASTER_RELIGION: 'master_religion',
     MASTER_CASTE_CATEGORY: 'master_caste_category',
@@ -35,7 +37,8 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_STUDENT_ROLES: 'master_student_roles',
     MASTER_YEAR_LOSS_SECTION: 'master_year_loss_section',
     MASTER_CHANGE_CLASS_STUDENTS: 'master_change_class_students',
-    MASTER_CHANGE_CLASS_STUDENT_DETAILS: 'master_change_class_student_details'
+    MASTER_CHANGE_CLASS_STUDENT_DETAILS: 'master_change_class_student_details',
+    ACTIVE_DEACTIVE_STUDENTS: 'active_deactive_students'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
@@ -179,7 +182,23 @@ export const FEES_QUERY_KEYS = {
     FEE_CLASS_LIST_DEFAULTER: 'fee_class_list_defaulter_report',
     FEE_SECTION_LIST_DEFAULTER: 'fee_section_list_defaulter_report',
     FEE_REPORT_GROUP_DROPDOWN: 'fee_report_group_dropdown',
-    FEE_REPORT_HEAD_DROPDOWN: 'fee_report_head_dropdown'
+    FEE_REPORT_HEAD_DROPDOWN: 'fee_report_head_dropdown',
+    FEES_REPORT_INSTLLMENT_DROPDOWN_YEARLYREPORT: 'fees_report_instllment_dropdown_yearlyreport',
+    FEE_CONCESSION_ACADEMIC_YEAR_DROPDOWN: 'fee_concession_academic_year_dropdown',
+    FEE_CONCESSION_TERM_DROPDOWN: 'fee_concession_term_dropdown',
+    FEE_REFUNDABLE_LIST: 'fee_refundable_list',
+
+    FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
+    FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
+    FEE_CONCESSION_STUDENT_LIST: 'fee_concession_student_list',
+    FEE_CONCESSION_STUDENT_GRID: 'fee_concession_student_grid',
+    FEE_PROSPECTUS_TRANSACTION_DETAILS: 'fee_preadmission_transaction_details',
+    FEE_CONCESSION_CATEGORYS_DROPDOWN: 'fee_concession_cagegorys_dropdown',
+    FEE_CONCESSION_CATEGORYS_FEE_CONCESSION_DROPDOWN: 'fee_concession_cagegorys_fee_concession_dropdown',
+    FEE_CONCESSION_CONFIGSET: 'fee_concession_configset',
+    FEE_CONCESSION_STAFF_LIST: 'fee_concession_staff_list',
+    FEE_CONCESSION_OTHERS_LIST: 'fee_concession_others_list',
+    FEE_ADJUSTMENT_GRIDDATA: 'fee_adjustment_griddata'
 };
 
 export const EXAM_QUERY_KEYS = {

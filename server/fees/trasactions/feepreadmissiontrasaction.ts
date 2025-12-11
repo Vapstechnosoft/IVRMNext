@@ -15,15 +15,21 @@ import type {
     IMasterAmountEntryDetails
 } from '@/types/fees/transactions/transactions';
 
-export async function getFeePreadmissionTransactionList(searchParams?: ApiSearchparams) {
+export async function getFeePreadmissionTransactionList(asmay_Id: number, searchParams?: Record<string, any>) {
+    if (!asmay_Id || asmay_Id === 0) {
+        console.warn('getFeePreadmissionTransactionList called with asmay_Id=0');
+        return { success: true, data: [], total: 0 };
+    }
+
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
         'modeOfPayment,paidAmount,paidDate,receiptNo,studentEmail,studentMobile,studentRegNo,studentName,classname'
     );
-    const url = `/FeePreadmission/gettransactionlist?ASMAY_Id=231&${urlParams}`;
-    console.info('preadmissiontransactiondetials api', url, urlParams);
-    console.info(searchParams);
-    return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url);
+    const url = `/FeePreadmission/gettransactionlist?asmay_id=${asmay_Id}&${urlParams}`;
+    console.info('API Call →', url);
+
+    const res = await api.get<any>('fees', url);
+    return res;
 }
 export async function getPreadmissionStudentDropdownData(
     searchText: string,
@@ -128,4 +134,21 @@ export async function getAmountentrydetails(mi_id: number, asmay_id: number, fmc
 export async function getPrintdetails(fyp_id: number, asmay_id: number, filterinitialdata: string, pasr_id: number) {
     const url = `FeePreadmission/print_receipt?fyp_id=${fyp_id}&asmay_id=${asmay_id}&filterinitialdata=${filterinitialdata}&pasr_id=${pasr_id}`;
     return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url);
+}
+
+export async function getFeeProspectusTransactionList(asmay_Id: number, searchParams?: Record<string, any>) {
+    if (!asmay_Id || asmay_Id === 0) {
+        console.warn('getFeePreadmissionTransactionList called with asmay_Id=0');
+        return { success: true, data: [], total: 0 };
+    }
+
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'modeOfPayment,paidAmount,paidDate,receiptNo,studentEmail,studentMobile,studentRegNo,studentName,classname'
+    );
+    const url = `/FeePreadmission/get-prospectus-transactionlist?asmay_id=${asmay_Id}&${urlParams}`;
+    console.info('API Call →', url);
+
+    const res = await api.get<any>('fees', url);
+    return res;
 }

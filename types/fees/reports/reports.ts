@@ -34,9 +34,24 @@ export interface IFeeSectionDropdownList {
     asmC_SectionName: string;
 }
 
+export interface IFeeAuditReport {
+    feeGroup: string;
+    totalDue: number;
+}
+
 export interface IFeeDefaulterReportRow {
     feeGroup: string;
     totalDue: number;
+    fsS_CurrentYrCharges: number;
+    fsS_TotalToBePaid: number;
+    fsS_ToBePaid: number;
+    fsS_PaidAmount: number;
+    fsS_ConcessionAmount: number;
+    fsS_AdjustedAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_RefundAmount: number;
+    fsS_RunningExcessAmount: number;
+    fsS_FineAmount: number;
 }
 
 export interface IDailyFeeCollectionResponse {
@@ -69,4 +84,20 @@ export interface IDailyFeeCollectionData {
     listCode: string;
     listName: string;
     list: any[]; // dynamic per report type
+}
+
+export interface IFeeInstallmentDropdownList {
+    // fmI_Id: number;
+    // fmI_Name: string;
+    //  fmI_Id: number;
+    // fmI_Name: string;
+
+    fmI_Id: number;
+    mI_Id: number;
+    fmI_Name: string;
+    fmI_No_Of_Installments: number;
+    fmI_Installment_Type: string;
+    fmI_ActiceFlag: boolean;
+    createdDate: string;
+    updatedDate: string;
 }

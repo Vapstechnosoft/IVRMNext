@@ -4,21 +4,41 @@ import React, { useEffect, useMemo, useState, useRef, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 /* -------------------------
    Table Cells
    ------------------------- */
-const TableCell = forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
-    ({ className, ...props }, ref) => (
-        <td
-            ref={ref}
-            className={cn(
-                'p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] whitespace-nowrap text-[#0C0A09] text-[14px]',
-                className
-            )}
-            {...props}
-        />
-    )
+interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {
+    children?: React.ReactNode;
+}
+
+const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
+    ({ className, children, ...props }, ref) => {
+        // Case-1: if child is a checkbox input element
+        const isCheckbox =
+            React.isValidElement(children) &&
+            (children.type as any)?.displayName === 'Checkbox' ||
+            (children as any)?.props?.type === 'checkbox';
+
+        return (
+            <td
+                ref={ref}
+                className={cn(
+                    'p-2 align-middle whitespace-nowrap text-[#0C0A09] text-[14px]',
+                    isCheckbox && 'pr-0', // adjust spacing only when checkbox
+                    className
+                )}
+                {...props}
+            >
+                {isCheckbox ? (
+                    <Checkbox {...(children as any).props} />   // <-- replace checkbox with custom component
+                ) : (
+                    children
+                )}
+            </td>
+        );
+    }
 );
 TableCell.displayName = 'TableCell';
 
@@ -108,7 +128,7 @@ export const MarksInputCell = forwardRef<
 
     return (
         <div className="flex flex-col items-start">
-            <input
+            <Input
                 ref={ref}
                 className={`border border-gray-300 rounded px-2 py-1 text-sm bg-white ${sizeClass}`}
                 placeholder={placeholder ?? 'Enter Marks...'}
@@ -151,6 +171,7 @@ export default function MarksCustomTable({
 
     function toggleSelectAll(v: boolean) {
         const next: Record<number, boolean> = {};
+        // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
         if (v) students.forEach(s => (next[s.studentID] = true));
         setSelectedIds(next);
     }
@@ -180,6 +201,7 @@ export default function MarksCustomTable({
     const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
 
     function handleArrowNavigation(rowIndex: number, colIndex: number, dir: 'left' | 'right' | 'up' | 'down') {
+        // biome-ignore lint/style/useSingleVarDeclarator: <explanation>
         let nextR = rowIndex, nextC = colIndex;
 
         if (!inputRefs.current[rowIndex]) return;
@@ -196,8 +218,8 @@ export default function MarksCustomTable({
        Render Table
        ------------------------- */
     return (
-        <div className="overflow-x-auto bg-white border rounded shadow-sm">
-            <table className="min-w-full table-fixed border-collapse border border-gray-300 [&_th]:border [&_td]:border [&_td]:border-gray-300">
+        <div className='overflow-x-auto rounded border bg-white shadow-sm'>
+            <table className='min-w-full table-fixed border-collapse border border-gray-300 [&_td]:border [&_td]:border-gray-300 [&_th]:border'>
                 <thead>
                     <tr>
                         <TableHeaderCell rowSpan={3}>
@@ -267,7 +289,7 @@ export default function MarksCustomTable({
                 <tbody>
                     {students.length === 0 ? (
                         <tr>
-                            <TableCell colSpan={10} className="text-center py-8 text-sm text-gray-500">
+                            <TableCell colSpan={10} className='py-8 text-center text-gray-500 text-sm'>
                                 No Records Found
                             </TableCell>
                         </tr>
@@ -275,8 +297,8 @@ export default function MarksCustomTable({
                         students.map((st, rowIndex) => {
                             const subsum = computeSubSubSum(st);
                             const examsum = computeSubExamSum(st);
-                            const subOver = subjectMeta?.subsubFlag ? subsum > (subjectMeta.maxMarks ?? Infinity) : false;
-                            const examOver = subjectMeta?.subexamFlag ? examsum > (subjectMeta.maxMarks ?? Infinity) : false;
+                            const subOver = subjectMeta?.subsubFlag ? subsum > (subjectMeta.maxMarks ?? 0) : false;
+                            const examOver = subjectMeta?.subexamFlag ? examsum > (subjectMeta.maxMarks ?? 0) : false;
 
                             return (
                                 <tr key={st.studentID} className={`${rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
@@ -319,10 +341,10 @@ export default function MarksCustomTable({
                                                 })}
                                                 <TableCell className="align-top">
                                                     <div className="flex flex-col items-start">
-                                                        <div className={`px-3 py-1 text-sm ${subOver ? 'text-red-600 font-semibold' : ''}`}>
+                                                        <div className={`px-3 py-1 text-sm ${subOver ? 'font-semibold text-red-600' : ''}`}>
                                                             {subsum}
                                                         </div>
-                                                        {subOver && <div className="text-red-600 text-[11px]">Sum exceeds subject max</div>}
+                                                        {subOver && <div className='text-[11px] text-red-600'>Sum exceeds subject max</div>}
                                                     </div>
                                                 </TableCell>
                                             </>
@@ -349,10 +371,10 @@ export default function MarksCustomTable({
                                                 })}
                                                 <TableCell className="align-top">
                                                     <div className="flex flex-col items-start">
-                                                        <div className={`px-3 py-1 text-sm ${examOver ? 'text-red-600 font-semibold' : ''}`}>
+                                                        <div className={`px-3 py-1 text-sm ${examOver ? 'font-semibold text-red-600' : ''}`}>
                                                             {examsum}
                                                         </div>
-                                                        {examOver && <div className="text-red-600 text-[11px]">Sum exceeds subject max</div>}
+                                                        {examOver && <div className='text-[11px] text-red-600'>Sum exceeds subject max</div>}
                                                     </div>
                                                 </TableCell>
                                             </>

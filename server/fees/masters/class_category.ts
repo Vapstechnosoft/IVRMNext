@@ -20,3 +20,8 @@ export async function toggleMasterclassCategory(id: number) {
     const url = `/fee_class_category/deactivate/${id}`;
     return await api.put('fees', url);
 }
+
+export async function deleteMasterclassCategory(id: number) {
+    const url = `/fee_class_category/delete-fee-class-category?id=${id}`;
+    return await api.delete('fees', url);
+}

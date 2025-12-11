@@ -354,6 +354,7 @@ export const SubSubjectSubExamSchema = z
         eyceS_Id: z.number().int().nonnegative().optional(), // Foreign key to parent subject
         ismS_Id: z.number().int().positive({ message: 'ismS_Id required' }), // Subject Id
         emsS_Id: z.number().int().positive({ message: 'emsS_Id required' }), // SubSubject Id
+        emsE_Id: z.number().int().positive({ message: 'emsE_Id required' }), // SubExam Id
         emgR_GradeName: z.string().min(1, { message: 'Grade Name required' }),
         ismS_SubjectName: z.string().min(1, { message: 'Subject Name required' }),
         ismS_SubjectCode: z.string().min(1, { message: 'Subject Code required' }),
@@ -718,13 +719,14 @@ export const examMarksProcessConditionSchema = {
 
 
 export const hallTicketGenerationSchema = z.object({
-    mI_Id: z.number().int().positive(),
+    mI_Id: z.number().int().positive().optional().default(30),
     asmaY_Id: z.number().int().positive(),
     asmcL_Id: z.number().int().positive(),
-    classList: z.array(z.object({ asmcL_Id: z.number().int().positive() })).min(1, 'At least one class is required'),
     sectionList: z.array(z.object({ asmS_Id: z.number().int().positive() })).min(1, 'At least one section is required'),
     emE_Id: z.number().int().positive(),
     prefixNo: z.string().optional(),
+    leadingzeros: z.number().int().nonnegative().optional().default(0)
+        .refine((val) => val <= 9, 'Leading zeros must be less than or equal to 9'),
     startingNo: z.string().regex(/^\d+$/, 'Starting No. must be a number').min(1, 'Starting No. is required'),
     increment: z.string().regex(/^\d+$/, 'Increment must be a number').min(1, 'Increment is required'),
     prefixNoFlag: z.enum(['Y', 'N']),

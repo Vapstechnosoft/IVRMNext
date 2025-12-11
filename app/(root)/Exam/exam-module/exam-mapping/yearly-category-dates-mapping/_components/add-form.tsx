@@ -170,7 +170,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Exam Start Date'
                                         placeholder='Select Exam Start Date'
-                                        fromDate={today}
+                                    //fromDate={today}
                                     />
                                 )}
                             />

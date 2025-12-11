@@ -15,6 +15,7 @@ import {
 } from '@/server/exam/exam-module/masters/category-class-mapping';
 import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { set } from 'date-fns';
 import { Edit, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -57,11 +58,21 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const [categories, setCategories] = useState<Category[]>([]);
     const [classes, setClasses] = useState<ClassItem[]>([]);
     const [sections, setSections] = useState<SectionItem[]>([]);
+    const [initialSections, setIntialSections] = useState<SectionItem[]>([]);
+    const [initialSelectedSections, setInitialSelectedSections] = useState<SectionItem[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
     const { refetchAll } = useMasterCategoryClassMapping();
 
     // Local mapping list (table) and edit state
     const [mappingList, setMappingList] = useState<
+        {
+            asmaY_Id: number;
+            emcA_Id: number;
+            asmcL_Id: number;
+            section_list: SectionItem[];
+        }[]
+    >([]);
+    const [initialMappingList, setInitialMappingList] = useState<
         {
             asmaY_Id: number;
             emcA_Id: number;
@@ -76,6 +87,13 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
             tableRef.current.scrollTop = tableRef.current.scrollHeight;
         }
     };
+
+    useEffect(() => {
+        if (mappingList.length > 0) {
+            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            setTimeout(scrollToBottom, 50);
+        }
+    }, [mappingList]);
 
     const watchedYear = watch('asmaY_Id');
     const watchedCategory = watch('emcA_Id');
@@ -143,8 +161,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                 // Prefill basic fields (these fields will be disabled in UI)
                 setValue('asmaY_Id', selectedRow.asmaY_Id);
                 setValue('emcA_Id', selectedRow.emcA_Id);
-                // Wait for classes to load below to set class value (we also set it here; effect below will verify existence)
-                //setValue('asmcL_Id', selectedRow.asmcL_Id);
+                setValue('asmcL_Id', selectedRow.asmcL_Id);
 
                 // fetch all class sections (options)
                 const classSectionsRes = await getClassMappedSections(selectedRow.asmaY_Id, selectedRow.asmcL_Id);
@@ -174,11 +191,20 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
 
                 setSections(sectionOptions);
                 if (sectionOptions.length === 0) toast.info('No sections are mapped to this class');
-                // set into form so the multi-select will show checked values
                 setValue('section_list', selectedSections);
+                setIntialSections(sectionOptions);
+                setInitialSelectedSections(selectedSections);
 
                 // mappingList initial row (use selectedSections)
                 setMappingList([
+                    {
+                        asmaY_Id: selectedRow.asmaY_Id,
+                        emcA_Id: selectedRow.emcA_Id,
+                        asmcL_Id: selectedRow.asmcL_Id,
+                        section_list: selectedSections
+                    }
+                ]);
+                setInitialMappingList([
                     {
                         asmaY_Id: selectedRow.asmaY_Id,
                         emcA_Id: selectedRow.emcA_Id,
@@ -241,7 +267,6 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         asmS_Id: Number(s.asmS_Id),
                         asmC_SectionName: s.asmC_SectionName ?? String(s.asmS_Id)
                     }));
-                    setValue('section_list', sectionOptions);
                 }
             } catch {
                 setSections([]);
@@ -266,7 +291,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         if (selectedRow?.asmcL_Id) {
             const exists = classes.some((c) => Number(c.asmcL_Id) === Number(selectedRow.asmcL_Id));
             if (exists) {
-                //setValue('asmcL_Id', Number(selectedRow.asmcL_Id));
+                setValue('asmcL_Id', Number(selectedRow.asmcL_Id));
             }
         }
 
@@ -274,7 +299,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         const current = watch('asmcL_Id');
         const hasCurrent = classes.some((c) => Number(c.asmcL_Id) === Number(current));
         if (!hasCurrent) {
-            //setValue('asmcL_Id', 0);
+            setValue('asmcL_Id', 0);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [classes]);
@@ -637,8 +662,12 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                             variant='outline'
                             type='button'
                             onClick={() => {
-                                // setValue('asmcL_Id', 0);
-                                //setValue('section_list', []);
+                                setValue('asmcL_Id', selectedRow?.asmcL_Id || 0);
+                                setValue('section_list', initialSelectedSections || []);
+                                setSections(initialSections || []);
+                                setValue('asmaY_Id', selectedRow?.asmaY_Id || 0);
+                                setValue('emcA_Id', selectedRow?.emcA_Id || 0);
+                                setMappingList(initialMappingList || []);
                                 setEditIndex(null);
                             }}>
                             Reset
@@ -656,3 +685,5 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         </form>
     );
 }
+
+

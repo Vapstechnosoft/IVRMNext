@@ -15,7 +15,7 @@ import {
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IAcademicYear, ICategory, IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Save, Trash2, X } from 'lucide-react';
+import { Edit, Save, Trash, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -33,6 +33,9 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const [classes, setClasses] = useState<IClass[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+
     const tableRef = useRef<HTMLDivElement>(null);
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     // local list that holds added mappings (rows)
@@ -152,8 +155,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         const cls = Number(watch('asmcL_Id') || 0);
         const secs = (watch('section_list') || []) as { asmS_Id: number; asmC_SectionName: string }[];
 
-        if (!year || !cat || !cls || !secs || secs.length === 0) {
-            toast.error('All fields are required to add a mapping');
+        if (!year || !cat || !cls || secs.length === 0) {
+            toast.error('All fields are required to add/update a mapping');
             return;
         }
 
@@ -161,20 +164,23 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
             asmaY_Id: year,
             emcA_Id: cat,
             asmcL_Id: cls,
-            section_list: secs.map((s) => ({ asmS_Id: Number(s.asmS_Id), asmC_SectionName: s.asmC_SectionName }))
+            section_list: secs.map((s) => ({
+                asmS_Id: Number(s.asmS_Id),
+                asmC_SectionName: s.asmC_SectionName
+            }))
         };
 
         if (editIndex !== null) {
-            // update existing row
+            // ✔ UPDATE existing row inside update modal
             setMappingList((prev) => {
                 const updated = [...prev];
                 updated[editIndex] = newEntry;
                 return updated;
             });
-            setEditIndex(null);
+
             toast.info('Mapping updated');
         } else {
-            // if exact combination already exists, update that row instead of adding duplicate
+            // ✔ ADD or replace if combination already exists
             const existingIndex = mappingList.findIndex(
                 (m) => Number(m.asmaY_Id) === year && Number(m.emcA_Id) === cat && Number(m.asmcL_Id) === cls
             );
@@ -185,18 +191,28 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     updated[existingIndex] = newEntry;
                     return updated;
                 });
-                toast.info('Existing mapping updated with selected sections');
+                toast.info('Existing mapping updated');
             } else {
                 setMappingList((prev) => [...prev, newEntry]);
                 toast.success('Mapping added');
             }
         }
 
-        // After adding/updating: retain Academic Year & Category, but clear Class & Sections
-        setValue('asmcL_Id', 0);
-        setValue('section_list', []);
+        // ❌ DO NOT reset class in update form
+        // In update page: keep user’s selected class & sections stable
+
+        setEditIndex(null);
         setTimeout(scrollToBottom, 50);
+        setValue('section_list', []);
+        setValue('asmcL_Id', 0);
+        setSections([]);
     };
+    useEffect(() => {
+        if (mappingList.length > 0) {
+            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [mappingList]);  // <-- Watch this
+
 
     const handleEdit = (index: number) => {
         const row = mappingList[index];
@@ -494,13 +510,16 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
                                                     {/* Delete Button */}
                                                     <Button
-                                                        type='button'
                                                         variant='ghost'
                                                         size='sm'
-                                                        onClick={() => handleDelete(i)}
-                                                        className='h-8 w-8 p-0 transition-all duration-200 hover:bg-red-50 hover:text-red-600'>
+                                                        onClick={() => {
+                                                            setDeleteIndex(i);   // store selected row index
+                                                            setConfirmOpen(true);    // open confirmation popup
+                                                        }}
+                                                        className='h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600'>
                                                         <Trash2 className='h-4 w-4' />
                                                     </Button>
+
                                                 </td>
                                             </tr>
                                         ))
@@ -515,12 +534,15 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                             type='button'
                             variant='outline'
                             onClick={() => {
+                                setValue('ecaC_Id', 0);
+                                setValue('asmaY_Id', 0);
                                 setValue('asmcL_Id', 0);
                                 setValue('section_list', []);
-                                setValue('ecaC_Id', 0);
+                                setValue('emcA_Id', 0);
                                 setValue('asmcL_Id', 0);
                                 setSections([]);
                                 setEditIndex(null);
+                                setMappingList([]);
                             }}
                             disabled={isSubmitting}
                             className='order-3 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
@@ -541,6 +563,39 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     </div>
                 </>
             )}
+            {confirmOpen && deleteIndex !== null && (
+                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+                    <div className='w-[360px] rounded-md bg-white p-6 text-center shadow-xl'>
+                        <h2 className='mb-3 font-semibold text-lg'>Confirm Delete</h2>
+                        <p className='mb-6 text-gray-700'>Are you sure you want to delete this mapping?</p>
+
+                        <div className="flex justify-center gap-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setConfirmOpen(false);
+                                    setDeleteIndex(null);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (deleteIndex !== null) handleDelete(deleteIndex); // 🔥 call your function
+                                    setConfirmOpen(false);
+                                    setDeleteIndex(null);
+                                }}
+                            >
+                                Yes, Delete
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
         </form>
     );
 }

@@ -1,3 +1,4 @@
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
@@ -52,13 +53,13 @@ export const YearlyCategorySubjectMappingColumns: ColumnDef<IYearlyCategorySubje
     },
     {
         accessorKey: 'emG_ElectiveFlg',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Elective' />,
-        cell: ({ row }) => <div>{row.original.emG_ElectiveFlg ? 'Yes' : 'No'}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Elective Subjects' />,
+        cell: ({ row }) => getStatusBadge((row.getValue('emG_ElectiveFlg') as number) === 1 ? 'yes' : 'no')
     },
     {
         accessorKey: 'eyC_BasedOnPaperTypeFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Based On Paper Type' />,
-        cell: ({ row }) => <div>{row.original.eyC_BasedOnPaperTypeFlg ? 'Yes' : 'No'}</div>
+        cell: ({ row }) => getStatusBadge((row.getValue('eyC_BasedOnPaperTypeFlg') as number) === 1 ? 'yes' : 'no')
     },
     {
         id: 'actions',

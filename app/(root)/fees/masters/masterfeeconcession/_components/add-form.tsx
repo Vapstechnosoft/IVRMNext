@@ -33,7 +33,8 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
         resolver: zodResolver(masterConcessionSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            fmcC_Id: 0
+            fmcC_Id: 0,
+            fmcC_ConcessionApplLimit: 0
         }
     });
 
@@ -71,15 +72,15 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
             <form onSubmit={handleSubmit(onSubmit)} className='flex w-full flex-col items-center justify-center space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                        {/* <InputText
+                        <InputText
                             label='Concession Name'
                             required
                             id='fmcC_ConcessionName'
                             {...register('fmcC_ConcessionName')}
                             error={errors.fmcC_ConcessionName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-                        <InputText
+                        />
+                        {/* <InputText
                             label='Concession Name'
                             required
                             id='fmcC_ConcessionName'
@@ -97,7 +98,7 @@ export default function AddMasterConcessionForm({ onSuccess, concession = '' }: 
                             })}
                             error={errors.fmcC_ConcessionName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        />
+                        /> */}
 
                         <Controller
                             name='fmcC_ConcessionApplLimit'

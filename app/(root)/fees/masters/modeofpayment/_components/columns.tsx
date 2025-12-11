@@ -52,7 +52,7 @@ export const modeOfPaymentColumns: ColumnDef<IModeOfPaymentList>[] = [
 
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

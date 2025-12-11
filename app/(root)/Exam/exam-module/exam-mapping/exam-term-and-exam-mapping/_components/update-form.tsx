@@ -60,6 +60,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
 
     // local state: exam-term rows shown in table (from details API + newly added)
     const [addedRows, setAddedRows] = useState<FormFields['exam_term']>([]);
+    const [initialAddedRows, setInitialAddedRows] = useState<FormFields['exam_term']>([]);
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [grades, setGrades] = useState<IMasterGrade[]>([]);
@@ -213,6 +214,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                 ecteX_NotApplicableToTotal: !!d.ecteX_NotApplToTotalFlg
             }));
             setAddedRows(mapped);
+            if (initialAddedRows.length === 0) setInitialAddedRows(mapped);
             // sync into RHF field array (so validation sees them)
             replace(mapped as any);
         } else {
@@ -375,6 +377,7 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
         setEntryRoundOff(false);
         setEntryConversion(false);
         setEntryNotApplicable(false);
+        setAddedRows(initialAddedRows)
         toast.info('Form reset to loaded values');
     }
 
@@ -763,20 +766,23 @@ export default function UpdateExamTermAndExamMapping({ rowData, onSuccess, onClo
                                             {addedRows.map((r, idx) => (
                                                 <tr
                                                     key={idx}
-                                                    className='border-gray-300 border-t transition-colors duration-150 hover:bg-gray-50'>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>{idx + 1}</td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>{r.emE_ExamName}</td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>
+                                                    className='border-gray-300 border-t transition-colors hover:bg-accent/90 duration-200 
+               text-sm [&>*]:py-1 [&>*]:px-2'>
+
+
+                                                    <td className='border-gray-300 border-r px-3 '>{idx + 1}</td>
+                                                    <td className='border-gray-300 border-r px-3'>{r.emE_ExamName}</td>
+                                                    <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_MarksPerFlag === 'M' ? 'Marks' : 'Percentage'}
                                                     </td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>{r.ecteX_MarksPercentValue}</td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>
+                                                    <td className='border-gray-300 border-r px-3'>{r.ecteX_MarksPercentValue}</td>
+                                                    <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_RoundOffReqFlg ? 'Yes' : 'No'}
                                                     </td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>
+                                                    <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_ConversionReqFlg ? 'Yes' : 'No'}
                                                     </td>
-                                                    <td className='border-gray-300 border-r px-3 py-2'>
+                                                    <td className='border-gray-300 border-r px-3'>
                                                         {r.ecteX_NotApplicableToTotal ? 'Yes' : 'No'}
                                                     </td>
                                                     <td className='px-3 py-2 text-center'>

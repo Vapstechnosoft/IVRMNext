@@ -35,6 +35,7 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
         handleSubmit,
         register,
         reset,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterConcessionDetailsSchema.addOrUpdate),
@@ -225,8 +226,17 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
 
                                                 id='fmccD_PerOrAmt'
                                                 value={field.value ?? 0}
+                                                // onChange={(value: number) => {
+                                                //     field.onChange(value);
+                                                // }}
+
                                                 onChange={(value: number) => {
-                                                    field.onChange(value);
+                                                    const num = Number(value);
+                                                    if (watch('fmccD_PerOrAmtFlag') === 'P' && num > 100) {
+                                                        field.onChange(100); // auto-limit
+                                                    } else {
+                                                        field.onChange(num);
+                                                    }
                                                 }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />

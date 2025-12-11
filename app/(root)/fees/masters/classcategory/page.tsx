@@ -9,6 +9,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterCasteCategoryColumns } from './_components/columns';
+import DelteClassCategoryForm from './_components/delete-form';
 import ToggleMasterClassForm from './_components/toggle-form';
 import UpdateMasterClassForm from './_components/update-form';
 
@@ -88,6 +89,8 @@ function FormSections({ refetch }: { refetch?: () => void }) {
         isEditFormOpen,
         isToggleFormOpen,
         selectedRow,
+        isDeleteFormOpen,
+        closeDeleteForm,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
@@ -163,6 +166,8 @@ function FormSections({ refetch }: { refetch?: () => void }) {
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && <ToggleMasterClassForm rowData={selectedRow} onClose={closeToggleForm} />}
+
+            {isDeleteFormOpen && selectedRow && <DelteClassCategoryForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

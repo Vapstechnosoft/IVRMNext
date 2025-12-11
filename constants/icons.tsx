@@ -1,6 +1,7 @@
 import {
     AlertTriangle,
     ArrowRight,
+    BadgeIndianRupee,
     BookOpen,
     CalendarDays,
     Check,
@@ -70,6 +71,9 @@ export const Icons = {
     sun: SunMedium,
     moon: Moon,
     laptop: Laptop,
+    badgeIndianRupee: BadgeIndianRupee,
+    BadgeIndianRupee: BadgeIndianRupee,
+
     gitHub: ({ ...props }: LucideProps) => (
         <svg
             aria-hidden='true'

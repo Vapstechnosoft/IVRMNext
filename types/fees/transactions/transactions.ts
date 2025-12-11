@@ -177,6 +177,7 @@ export interface IFeePreAdmissionTransactionDetails {
 export interface IFeePreAdmissionStudentsDropDownList {
     amsT_Id: number;
     studentName: string;
+    prospectusNo: string;
 }
 
 export interface IFeePreAdmissionStudentInformation {
@@ -557,6 +558,7 @@ export interface IFeeOpeningPDA {
     fillmastergroup: string;
     fillmasterhead: string;
     fillinstallment: string;
+    studentName: string;
 }
 export interface IFeeOpeningRefundable {
     fmH_Id: number;
@@ -577,6 +579,7 @@ export interface IFeeOpeningBalanceList {
     asmC_SectionName: string;
 
     fmC_Id?: number;
+    studentName: string;
 }
 
 export type OpeningBalanceRow = {
@@ -594,3 +597,227 @@ export type OpeningBalanceRow = {
     fmoB_Id?: number;
     [key: string]: any;
 };
+
+export interface IfeeConcession {
+    fmcC_Id: number;
+    fmcC_ClassCategoryName: string;
+    fmH_Id: number;
+}
+
+// export interface FeeConcessionTermDropdown {
+//     fmT_Id: number;
+//     fmT_Name: string;
+//     fmT_Order: number;
+//     isChecked: boolean;
+//     asmaY_Id: number;
+// }
+
+export interface FeeConcessionTermDropdown {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IFeeConcessionAcademicyearDropDownList {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    asmaY_Order: number;
+    is_Active: boolean;
+}
+export interface IStudentSearchList {
+    amst_Id: number;
+    amsT_StudentName: string;
+}
+
+export interface IStudentTermList {
+    checked: boolean;
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fmT_Id: number;
+}
+
+export interface IStudentTDetails {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    amaY_RollNo: number;
+    classname: string;
+    sectionname: string;
+    fathername: string;
+    studentdob: string;
+    amst_mobile: number;
+    amsT_Photoname: string;
+    username: string;
+}
+
+export interface IFeeTDetails {
+    fsS_CurrentYrCharges: number;
+    fmG_GroupName: string;
+    fsS_TotalToBePaid: number;
+    fsS_ToBePaid: number;
+    fsS_PaidAmount: number;
+    fsS_ConcessionAmount: number;
+    fsS_AdjustedAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_RefundAmount: number;
+    fmG_Id: number;
+    fsS_RunningExcessAmount: number;
+    fsS_FineAmount: number;
+}
+
+export interface IFeeRefundableList {
+    amst_Id: number;
+    studentName: string;
+    admisionNo: string;
+    voucherNo: string;
+    refundedAmount: number;
+    modeOfPayment: string;
+    fr_Date: string;
+    fr_id: number;
+}
+
+export interface IFeeConcessionClassDropDownList {
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+    asmcL_Order: number;
+}
+export interface IFeeConcessionCategoryDropDownList {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+}
+
+// export interface IFeeConcessionHeadList {
+//     slno: number;
+//     fmH_Id: number;
+//     fmH_FeeName: string;
+//     fmI_Id: number;
+//     fmI_Name: string;
+//     fmA_Amount: number;
+//     isSelected: boolean;
+// }
+
+export interface IFeeConcessionHeadList {
+    fmH_FeeName: string;
+    ftI_Name: string;
+    ftI_Id: number;
+    fmH_Id: number;
+    fmA_Amount: number;
+    fmA_Id: number;
+    fmG_Id: number;
+    amsT_Id: number;
+    fmT_Id: number;
+}
+
+export interface IFeeConcessionStudentList {
+    slno: number;
+    amsT_Id: number;
+    amsT_AdmNo: string;
+    amsT_RegistrationNo: string;
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amaY_RollNo: number;
+    asmcL_ClassName?: string;
+    isSelected: boolean;
+}
+
+export interface IFeeConcessionStudentConcessionGrid {
+    slno: number;
+    fmI_Id: number;
+    amsT_Id: number;
+    studentName: string;
+    amsT_AdmNo: number;
+    asmcL_ClassName: string;
+    asmaY_Year: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fmcC_ConcessionName: string;
+    fsC_ConcessionAmount: number;
+    fsC_Id: number;
+}
+
+export interface IFeeRefundableStudentDropDownList {
+    amsT_Id: number;
+    studentName: string;
+    amsT_AdmNo: string;
+    // amsT_RegistrationNo: string;
+
+    // amsT_MobileNo: string;
+    // amsT_emailId: string;
+}
+
+export interface IFeeRefundableGroupDropDownList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+}
+
+export interface IFeeRefundableHeadList {
+    fsS_Id: number;
+    fmH_ID: number;
+    fmH_FeeName: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fsS_RunningExcessAmount: number;
+    fsS_RefundableAmount: number;
+    fsS_RefundAmount: number;
+    fmG_Id: number;
+}
+
+export interface IFeeCommonSettingConfigSet {
+    fmC_GroupOrTermFlg: string;
+    fmC_EableStaffTrans: number;
+    fmC_EableOtherStudentTrans: number;
+}
+
+export interface IFeeConcessionStaffList {
+    hrmE_EmployeeFirstName: string;
+    hrmdeS_DesignationName: string;
+    hrmD_DepartmentName: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fscI_ConcessionAmount: number;
+    feC_Id: number;
+    ftI_Id: number;
+    fecI_Id: number;
+}
+
+export interface IFeeConcessionOthersList {
+    fmosT_StudentName: string;
+    fmosT_StudentMobileNo: number;
+    fmosT_StudentEmailId: string;
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fscI_ConcessionAmount: number;
+    foC_Id: number;
+    ftI_Id: number;
+    focI_Id: number;
+}
+
+export interface IFeeCategoryConcessionDropDownList {
+    fmcC_Id: number;
+    mI_Id: number;
+    fmcC_ConcessionName: string;
+    fmcC_ConcessionFlag: number;
+    fmcC_ConcessionApplLimit: number;
+    fmcC_ActiveFlag: boolean;
+    fmcC_CreatedBy: null;
+    fmcC_UpdatedBy: null;
+    createdDate: number;
+    updatedDate: number;
+}
+
+export interface IFeeAdjustmentGridList {
+    fsA_Id: number;
+    fsA_Date: string;
+    fsA_AdjustedAmount: number;
+    studentName: string;
+    fromHead: string;
+    toHead: string;
+    fromInstallment: string;
+    toInstallment: string;
+}

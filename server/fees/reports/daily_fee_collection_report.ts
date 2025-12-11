@@ -2,7 +2,6 @@
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IMasterClassYearlyList, IMasterGroupList } from '@/types/fees/masters/masters';
-import type { IDailyFeeCollectionRequest, IDailyFeeCollectionResponse } from '@/types/fees/reports/reports';
 import type { IFeeOpeningBalanceList } from '@/types/fees/transactions/transactions';
 
 export async function getFeeOpeningBalance(searchParams?: ApiSearchparams) {
@@ -41,9 +40,8 @@ export async function getClassDropDown() {
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 
-export async function getDailyFeeCollectionReport(data: IDailyFeeCollectionRequest) {
-    console.log(' API HITTTTTTTTTT');
-    console.log('SENDING DATA:', data);
+export async function getDailyFeeCollectionReport(data: any) {
+    const url = '/FeeDailycollection/daily-fee-collection-report';
 
-    return await api.post<IDailyFeeCollectionResponse>('fees', '/FeeDailycollection/daily-fee-collection-report', data);
+    return await api.post<any>('fees', url, data);
 }
