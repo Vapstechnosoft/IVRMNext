@@ -357,7 +357,22 @@ export const feesRefundableSchema = {
         groups: z.array(z.string()).min(1, 'Select at least one group')
     }),
     delete: z.object({
-        fR_Id: deleteIdSchema('fR_Id')
+        fR_ID: deleteIdSchema('fR_ID')
+    })
+};
+
+export const feeAdjustmentSchema = {
+    addOrUpdate: z.object({
+        //asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        // feeGroupId: z.number({ message: 'Fee Group is required' }),
+        // categoryId: z.number({ message: 'Category is required' })
+
+        feeGroupId: z.number().optional(),
+        categoryId: z.number().optional()
+    }),
+    delete: z.object({
+        fsA_Id: deleteIdSchema('fsA_Id')
     })
 };
 

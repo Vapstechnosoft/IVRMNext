@@ -92,9 +92,9 @@ export default function AddFeeAdjustmentForm({
 
     return (
         <div className={`space-y-6 ${className}`}>
-            <div className='border-orange-400 border-b-2 pb-4'>
+            {/* <div className='border-orange-400 border-b-2 pb-4'>
                 <h2 className='font-bold text-2xl text-gray-800'>FEE ADJUSTMENT</h2>
-            </div>
+            </div> */}
 
             <div className='grid gap-8 lg:grid-cols-2'>
                 <div className='space-y-6'>

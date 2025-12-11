@@ -847,7 +847,7 @@ export const useFeeMasterGroupwiseAutoReceiptDropDown = (academicYear: number) =
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT_GROUP_DROPDOWN],
+            queryKey: [FEES_QUERY_KEYS.FEE_MASTER_GROUPWISE_AUTO_RECEIPT_GROUP_DROPDOWN, academicYear],
             queryFn: async () => getFeeMasterGroupwiseAutoReceiptGroupDropDown(academicYear),
             enabled: !!academicYear,
 

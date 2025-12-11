@@ -14,6 +14,8 @@ export async function getFeeMasterGroupwiseAutoReceipt(asmay_Id: number, searchP
 export async function getFeeMasterGroupwiseAutoReceiptGroupDropDown(academicYear: number) {
     const url = `/FeeMasterGroupwiseAutoReceipt/GetGroupDropdown?asmay_Id=${academicYear}`;
 
+    console.info('FeeMasterGroupwiseAutoReceipt URL:', url);
+
     return await api.get<any>('fees', url);
 }
 

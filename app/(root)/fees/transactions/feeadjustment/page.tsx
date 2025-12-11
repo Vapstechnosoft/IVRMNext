@@ -9,6 +9,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeAdjustmentForm from './_components/add-form';
 import { feeAdjustmentColumns } from './_components/columns';
+import DeleteFeeAdjustmentForm from './_components/delete-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -44,7 +45,7 @@ function MasterFeeAdjustmentPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Fee Adjustment
+                        Add Fee Adjustment
                     </Button>
                 </div>
                 <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='rounded-xl border bg-white shadow-xl'>
@@ -67,7 +68,7 @@ function MasterFeeAdjustmentPageContent({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } =
+    const { isAddFormOpen, isToggleFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeToggleForm, closeDeleteForm, addFormRef } =
         useFormContext<IFeeAdjustmentGridList>();
 
     return (
@@ -97,6 +98,8 @@ function FormSections() {
 
             {/* Toggle Form */}
             {/* {isToggleFormOpen && selectedRow && <ToggleMasterFeesConfigForm rowData={selectedRow} onClose={closeToggleForm} />} */}
+
+            {isDeleteFormOpen && selectedRow && <DeleteFeeAdjustmentForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

@@ -57,9 +57,29 @@ export default function FeePreadmissionTransactionPage(props: { searchParams: Se
 
     const resolvedSearchParams = Object.fromEntries(Object.entries(searchParams || {}).filter(([_, v]) => v != null));
 
-    const preAdmissionQuery = useFeePreadmissionTransactionList(selectedAsmayId || 0, resolvedSearchParams);
-    const prospectusQuery = useFeeProspectusTransactionList(selectedAsmayId || 0, resolvedSearchParams);
+    // const preAdmissionQuery = useFeePreadmissionTransactionList(selectedAsmayId || 0, resolvedSearchParams);
+    // const prospectusQuery = useFeeProspectusTransactionList(selectedAsmayId || 0, resolvedSearchParams);
+    // const activeQuery = transactionType === 'admission' ? preAdmissionQuery : prospectusQuery;
+
+    const preAdmissionQuery = useFeePreadmissionTransactionList(selectedAsmayId, resolvedSearchParams);
+
+    const prospectusQuery = useFeeProspectusTransactionList(selectedAsmayId, resolvedSearchParams);
+
+    useEffect(() => {
+        if (!selectedAsmayId) return;
+
+        if (transactionType === 'admission') {
+            preAdmissionQuery.refetch();
+        } else {
+            prospectusQuery.refetch();
+        }
+    }, [transactionType, selectedAsmayId]);
+
     const activeQuery = transactionType === 'admission' ? preAdmissionQuery : prospectusQuery;
+
+    //const { data: response, isLoading, error, refetch } = activeQuery;
+
+    console.log('activeQuery', transactionType);
     const { data: response, isLoading, error, refetch } = activeQuery;
 
     return (
