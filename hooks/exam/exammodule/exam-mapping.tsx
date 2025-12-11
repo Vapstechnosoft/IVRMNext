@@ -331,21 +331,21 @@ export const usePromotionalSetting = (params: any, searchParams?: ApiSearchparam
 };
 
 
-export const usePromotionalSettingDetails = (subjectId: number, searchParams?: ApiSearchparams) => {
-    const queryClient = useQueryClient();
+// export const usePromotionalSettingDetails = (subjectId: number, searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS, subjectId, searchParams ?? {}],
-            queryFn: async () => getGroupMappings(subjectId),
-            enabled: !!subjectId,
-            staleTime: 0
-        }),
+//     return {
+//         ...useQuery({
+//             queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS, subjectId, searchParams ?? {}],
+//             queryFn: async () => getGroupMappings(subjectId),
+//             enabled: !!subjectId,
+//             staleTime: 0
+//         }),
 
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [EXAM_QUERY_KEYS.GROUP_MAPPING_LIST]
-            });
-        }
-    };
-};
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [EXAM_QUERY_KEYS.GROUP_MAPPING_LIST]
+//             });
+//         }
+//     };
+// };

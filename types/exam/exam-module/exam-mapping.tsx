@@ -447,3 +447,6 @@ export interface IExamPromotionalSettingDetails {
 }
 
 
+export interface IExamSubjectGroupDetails{
+    
+}
