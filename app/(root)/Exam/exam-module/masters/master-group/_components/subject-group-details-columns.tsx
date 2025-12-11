@@ -6,6 +6,20 @@ import type { ColumnDef } from '@tanstack/react-table';
 
 export const MasterSubjectGroupDetailsColumns: ColumnDef<IMasterSubjectGroupDetails>[] = [
     {
+        accessorKey: 'ex_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: true,
+        size: 50, // <-- Set fixed width
+        minSize: 50,
+        maxSize: 50
+    },
+    {
         id: 'select',
         header: ({ table }) => (
             <Checkbox
@@ -19,19 +33,11 @@ export const MasterSubjectGroupDetailsColumns: ColumnDef<IMasterSubjectGroupDeta
         ),
         enableSorting: false,
         enableHiding: false,
-        size: 24
+        size: 50, // <-- Same width as Sl.No
+        minSize: 50,
+        maxSize: 50
     },
-    {
-        accessorKey: 'ex_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            return <div>{pageIndex * pageSize + row.index + 1}</div>;
-        },
-        enableSorting: false,
-        enableHiding: true
-    },
+
     {
         accessorKey: 'ismS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,

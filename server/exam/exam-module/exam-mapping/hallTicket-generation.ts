@@ -1,18 +1,17 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { ApiSearchparams } from '@/types';
 import { IHallTicketGeneratedItem, IHallTicketStudentItem } from '@/types/exam/exam-module/exam-mapping';
 
 
 // 1) Get Hall Ticket Generated List
 export async function getHallTicketGeneratedList(searchParams?: ApiSearchparams) {
-    const url = `hall_ticket_generation/hall_ticket_generation_list/30`;
+    const url = `hall_ticket_generation/hall_ticket_generation_list/30?${getSearchParamsUrl(searchParams ?? {})}`;
     const response = await api.get<IHallTicketGeneratedItem>('exam', url);
     return { ...response };
 }
 
-// 2) Get Student List for Hall Ticket View
 export async function getHallTicketStudentList(params: {
     MI_Id: number;
     ASMAY_Id: number;
@@ -35,5 +34,10 @@ export async function getHallTicketStudentList(params: {
 // 3) (OPTIONAL) Publish Hall Tickets (If Later Needed)
 export async function updateHallTicketPublishStatus(data:any) {
     const url = `/hall_ticket_generation/publish_student_hall_ticket`;
+    return await api.post('exam', url, data);
+}
+
+export async function GenerateHalltickets(data:any) {
+    const url = `/hall_ticket_generation/generate_hall_ticket`;
     return await api.post('exam', url, data);
 }

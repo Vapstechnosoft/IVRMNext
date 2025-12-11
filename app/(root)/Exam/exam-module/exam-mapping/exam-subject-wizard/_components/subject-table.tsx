@@ -25,18 +25,27 @@ export const BaseExamSubjectSchema = {
 
             // -------- MARKS UPDATED HERE --------
             // If val is '' or undefined or NaN or 0 → treat as undefined
-            EYCES_MaxMarks: z.preprocess((val) => {
-                const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
-            EYCES_MinMarks: z.preprocess((val) => {
-                const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
-            EYCES_MarksEntryMax: z.preprocess((val) => {
-                const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
+            EYCES_MaxMarks: z.preprocess(
+                (val) => {
+                    const num = Number(val);
+                    return !val || Number.isNaN(num) || num === 0 ? undefined : num;
+                },
+                z.number().min(1).max(100).optional()
+            ),
+            EYCES_MinMarks: z.preprocess(
+                (val) => {
+                    const num = Number(val);
+                    return !val || Number.isNaN(num) || num === 0 ? undefined : num;
+                },
+                z.number().min(1).max(100).optional()
+            ),
+            EYCES_MarksEntryMax: z.preprocess(
+                (val) => {
+                    const num = Number(val);
+                    return !val || Number.isNaN(num) || num === 0 ? undefined : num;
+                },
+                z.number().min(1).max(100).optional()
+            ),
             // -------------------------------------
 
             EYCES_SubExamFlg: z.boolean().optional().default(false),
@@ -171,7 +180,7 @@ const mapZodIssuePathToField = (path: (string | number)[]): string => {
 const toNumOrEmpty = (v: any): number | '' => {
     if (v === '' || v === null || v === undefined) return '';
     const n = Number(v);
-    return Number.isNaN(n) ? '' : n;
+    return Number.isNaN(n) ? "" : n;
 };
 
 // ---------- Component ----------
@@ -1057,14 +1066,25 @@ export default function SubjectTableWithValidation({
 
                                                 updateSubjectField(s.ISMS_Id, 'EMGR_Id', num);
 
-                                                setErrors((prev) => ({
-                                                    ...prev,
-                                                    [s.ISMS_Id]: {
-                                                        ...(prev[s.ISMS_Id] ?? {}),
-                                                        EMGR_Id: ''
+                                                setErrors(prev => {
+                                                    const updated = { ...prev };
+
+                                                    // only remove EMGR_Id error if a valid value is selected
+                                                    if (num && updated[s.ISMS_Id]?.EMGR_Id) {
+                                                        // biome-ignore lint/performance/noDelete: <explanation>
+                                                        delete updated[s.ISMS_Id].EMGR_Id;
+
+                                                        // cleanup empty object to avoid stale render
+                                                        if (Object.keys(updated[s.ISMS_Id]).length === 0) {
+                                                            delete updated[s.ISMS_Id];
+                                                        }
                                                     }
-                                                }));
-                                            }}>
+
+                                                    return updated;
+                                                });
+                                            }}
+
+                                        >
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Grade' />
                                             </SelectTrigger>
@@ -1077,7 +1097,6 @@ export default function SubjectTableWithValidation({
                                                 ))}
                                             </SelectContent>
                                         </Select>
-
                                         {renderFieldError(s.ISMS_Id, 'EMGR_Id')}
                                     </td>
                                 </tr>

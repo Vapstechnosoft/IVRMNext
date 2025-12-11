@@ -10,16 +10,19 @@ import { toast } from 'sonner';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassDropDownByAcademicYearlist,
+    getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist,
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { buildMarksEntryColumns, IStudentMarksRow } from './_components/columns';
-import { sub } from 'date-fns';
 import MarksCustomTable from './_components/marks-entry-custom-table';
+import { GetLoginPrivilegeClassesDropdown, GetLoginPrivilegeSectionsDropdown, getSubjectsByAcademicYearandClassandSectionlist } from '@/server/exam/exam-module/marks-entry/exam-marks-entry';
 
 /**
  * NOTE:
- * - This page uses a mock `fetchSubjectAndStudents` which returns the JSON structure you provided.
- * - Replace that mock with real API calls as needed.
+ * - This file keeps your original logic but fixes the dropdown-fetch flow,
+ *   completes the save/validate code, and keeps the mock fetch.
+ *
+ * - Replace mocks with real API calls when ready.
  */
 
 /* -------------------------
@@ -35,8 +38,6 @@ export interface ISubjectMeta {
     subsubData: { subsubId: number; subsubName: string; maxMarks: number; minMarks?: number }[];
     subexamData: { subexamId: number; subexamName: string; maxMarks: number; minMarks?: number }[];
 }
-
-
 
 /* -------------------------
    Mock fetch: returns the JSON you provided (scenario: no flags)
@@ -119,15 +120,15 @@ async function fetchSubjectAndStudentsMock(
             RollNo: 10 + i,
             marks: '', // keep blank for main mark if subsub/subexam used
             subSubMarks: subjectData.subsubFlag
-                ? subjectData.subsubData.map((sub: { subsubId: any; maxMarks: number; }) => ({
+                ? subjectData.subsubData.map((sub: { subsubId: any; maxMarks: number }) => ({
                     subsubId: sub.subsubId,
-                    marks: Math.min(sub.maxMarks, 10 + i), // mock marks
+                    marks: '', // leave blank for entry
                 }))
                 : [],
             subExamMarks: subjectData.subexamFlag
-                ? subjectData.subexamData.map((se: { subexamId: any; maxMarks: number; }) => ({
+                ? subjectData.subexamData.map((se: { subexamId: any; maxMarks: number }) => ({
                     subexamId: se.subexamId,
-                    marks: Math.min(se.maxMarks, 20 + i), // mock marks
+                    marks: '',
                 }))
                 : [],
         };
@@ -154,14 +155,14 @@ function MarksEntryContent() {
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [exams, setexams] = useState<{ examId: number; examName: string }[]>([]);
+    const [exams, setExams] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<{ subjectId: number; subjectName: string }[]>([]);
 
     // selected
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | undefined>();
     const [selectedClass, setSelectedClass] = useState<number | undefined>();
     const [selectedSectionId, setSelectedSectionId] = useState<number | undefined>();
-    const [selectedexam, setSelectedexam] = useState<number | undefined>();
+    const [selectedExam, setSelectedExam] = useState<number | undefined>();
     const [selectedSubjectId, setSelectedSubjectId] = useState<number | undefined>();
 
     // data & table
@@ -174,7 +175,7 @@ function MarksEntryContent() {
     // loading flags
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
-    const [loadingexams, setLoadingexams] = useState(false);
+    const [loadingExams, setLoadingExams] = useState(false);
 
     /* -------------------------
        Load academic years
@@ -200,21 +201,27 @@ function MarksEntryContent() {
             setSelectedClass(undefined);
             return;
         }
+
         (async () => {
             setLoadingClasses(true);
             try {
-                const { data } = await getClassDropDownByAcademicYearlist(selectedAcademicYear);
+                // Use your privileged endpoint if available
+                const res = await GetLoginPrivilegeClassesDropdown(selectedAcademicYear);
+                const data = res?.data ?? [];
                 if (!Array.isArray(data) || data.length === 0) {
                     toast.info('No classes are mapped for your selections');
                 }
                 setClasses(Array.isArray(data) ? data : []);
+                // reset dependent selects
                 setSections([]);
                 setSelectedSectionId(undefined);
-                setexams([]);
-                setSelectedexam(undefined);
+                setExams([]);
+                setSelectedExam(undefined);
             } catch (err) {
                 console.error(err);
                 toast.error('Failed to load classes');
+                setClasses([]);
+                setSelectedClass(undefined);
             } finally {
                 setLoadingClasses(false);
             }
@@ -230,17 +237,21 @@ function MarksEntryContent() {
             setSelectedSectionId(undefined);
             return;
         }
+
         (async () => {
             setLoadingSections(true);
             try {
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedAcademicYear, selectedClass);
+                const res = await GetLoginPrivilegeSectionsDropdown(selectedAcademicYear, selectedClass);
+                const data = res?.data ?? [];
                 setSections(Array.isArray(data) ? data : []);
                 setSelectedSectionId(undefined);
-                setexams([]);
-                setSelectedexam(undefined);
+                setExams([]);
+                setSelectedExam(undefined);
             } catch (err) {
                 console.error(err);
                 toast.error('Failed to load sections');
+                setSections([]);
+                setSelectedSectionId(undefined);
             } finally {
                 setLoadingSections(false);
             }
@@ -252,44 +263,65 @@ function MarksEntryContent() {
        ------------------------- */
     useEffect(() => {
         if (activeTab !== 0 || !selectedAcademicYear || !selectedClass || !selectedSectionId) {
-            setexams([]);
-            setSelectedexam(undefined);
+            setExams([]);
+            setSelectedExam(undefined);
             return;
         }
 
         (async () => {
-            setLoadingexams(true);
+            setLoadingExams(true);
             try {
-                const res = await fetch(`/api/master/exams?academicYearId=${encodeURIComponent(String(selectedAcademicYear))}&classId=${encodeURIComponent(String(selectedClass))}&sectionId=${encodeURIComponent(String(selectedSectionId))}`);
-                if (!res.ok) {
-                    setexams([]);
-                    setSelectedexam(undefined);
-                    return;
-                }
-                const json = await res.json();
-                const normalized = Array.isArray(json) ? json.map((t: any) => ({ examId: t.examId ?? t.id ?? 0, examName: t.examName ?? t.name ?? '' })) : [];
-                setexams(normalized);
-                if (normalized.length > 0) setSelectedexam(normalized[0].examId);
+                const res = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedAcademicYear, selectedClass, selectedSectionId);
+                // Normalize possible shapes — your backend sometimes returns different keys
+                const data = res?.data ?? [];
+                // Some endpoints return { emE_Id, emE_ExamName } while others return { examId, examName }
+                const normalized = (Array.isArray(data) ? data : []).map((x: any) => {
+                    if (x.emE_Id !== undefined) return { examId: x.emE_Id, examName: x.emE_ExamName };
+                    if (x.examId !== undefined) return { examId: x.examId, examName: x.examName };
+                    // fallback: attempt to guess keys
+                    const keys = Object.keys(x);
+                    return { examId: x[keys[0]], examName: x[keys[1]] ?? JSON.stringify(x) };
+                });
+                setExams(normalized);
             } catch (err) {
                 console.error(err);
                 toast.error('Failed to load exams');
-                setexams([]);
-                setSelectedexam(undefined);
+                setExams([]);
+                setSelectedExam(undefined);
             } finally {
-                setLoadingexams(false);
+                setLoadingExams(false);
             }
         })();
     }, [activeTab, selectedAcademicYear, selectedClass, selectedSectionId]);
 
     /* -------------------------
-       mock subjects list
+       mock subjects list (still using your static list)
        ------------------------- */
     useEffect(() => {
-        setSubjects([
-            { subjectId: 1, subjectName: 'FL KANNADA (M-25)' },
-            { subjectId: 12, subjectName: 'FL KANNADA (M-50) (SUBS)' },
-            { subjectId: 44, subjectName: 'MATHEMATICS (M-80) (EXAMS)' }
-        ]);
+        if (activeTab !== 0 || !selectedAcademicYear || !selectedClass || !selectedSectionId) return;
+        (async () => {
+            try {
+                const res = await getSubjectsByAcademicYearandClassandSectionlist(selectedAcademicYear, selectedClass, selectedSectionId);
+                const data = res?.data ?? [];
+                const normalized = (Array.isArray(data) ? data : []).map((x: any) => {
+                    if (x.subjectId !== undefined) return { subjectId: x.ismS_Id, subjectName: x.ismS_SubjectName };
+                    // fallback: attempt to guess keys
+                    const keys = Object.keys(x);
+                    return { subjectId: x[keys[0]], subjectName: x[keys[1]] ?? JSON.stringify(x) };
+                });
+                setSubjects(normalized);
+            } catch (err) {
+                console.error(err);
+                toast.error('Failed to load subjects');
+                setSubjects([
+                    { subjectId: 1, subjectName: 'FL KANNADA (M-25)' },
+                    { subjectId: 12, subjectName: 'FL KANNADA (M-50) (SUBS)' },
+                    { subjectId: 44, subjectName: 'MATHEMATICS (M-80) (EXAMS)' }
+                ]);
+                setSelectedSubjectId(undefined);
+            }
+        })
+
     }, []);
 
     /* -------------------------
@@ -300,7 +332,8 @@ function MarksEntryContent() {
             toast.info('Select all required fields before search');
             return;
         }
-        // if (activeTab === 0 && selectedexam === undefined) {
+        // exam is optional for some flows — keep commented code if you want mandatory
+        // if (activeTab === 0 && selectedExam === undefined) {
         //     toast.info('Select exam before search');
         //     return;
         // }
@@ -313,17 +346,28 @@ function MarksEntryContent() {
         setIsStudentsGridOpen(true);
 
         try {
-            const resp = await fetchSubjectAndStudentsMock(selectedAcademicYear!, selectedClass!, String(selectedSectionId!), selectedexam, selectedSubjectId);
+            const resp = await fetchSubjectAndStudentsMock(selectedAcademicYear!, selectedClass!, String(selectedSectionId!), selectedExam, selectedSubjectId);
             const s = resp.subjectData;
+
             const subjectMeta: ISubjectMeta = {
-                subjectId: s.subjectId,
-                subjectName: s.subjectName,
+                subjectId: Number(s.subjectId ?? 0),
+                subjectName: String(s.subjectName ?? ''),
                 subsubFlag: !!s.subsubFlag,
                 subexamFlag: !!s.subexamFlag,
-                maxMarks: Number(s.maxMarks ?? s.maxMarks ?? 0),
+                maxMarks: Number(s.maxMarks ?? 0),
                 minMarks: s.minMarks !== undefined ? Number(s.minMarks) : undefined,
-                subsubData: Array.isArray(s.subsubData) ? s.subsubData.map((x: any) => ({ subsubId: x.subsubId ?? x.subsubid ?? x.id, subsubName: x.subsubName ?? x.subsubName ?? x.subsubName, maxMarks: Number(x.maxMarks), minMarks: x.minMarks })) : [],
-                subexamData: Array.isArray(s.subexamData) ? s.subexamData.map((x: any) => ({ subexamId: x.subexamId ?? x.subexamid ?? x.id, subexamName: x.subexamName ?? x.subexamName ?? x.subexamName, maxMarks: Number(x.maxMarks), minMarks: x.minMarks })) : []
+                subsubData: Array.isArray(s.subsubData) ? s.subsubData.map((x: any) => ({
+                    subsubId: Number(x.subsubId ?? x.subsubid ?? x.id),
+                    subsubName: String(x.subsubName ?? x.subsubName ?? x.subsubName ?? x.name ?? ''),
+                    maxMarks: Number(x.maxMarks ?? x.max ?? 0),
+                    minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
+                })) : [],
+                subexamData: Array.isArray(s.subexamData) ? s.subexamData.map((x: any) => ({
+                    subexamId: Number(x.subexamId ?? x.subexamid ?? x.id),
+                    subexamName: String(x.subexamName ?? x.subexamName ?? x.name ?? ''),
+                    maxMarks: Number(x.maxMarks ?? x.max ?? 0),
+                    minMarks: x.minMarks !== undefined ? Number(x.minMarks) : undefined
+                })) : []
             };
 
             // normalize students
@@ -331,7 +375,7 @@ function MarksEntryContent() {
                 const row: IStudentMarksRow = {
                     studentID: st.studentID ?? st.studentId ?? 0,
                     studentName: st.studentName ?? st.name ?? '',
-                    RegNo: st.RegNo ?? st.RegNo ?? '',
+                    RegNo: st.RegNo ?? st.Reg_No ?? '',
                     AdmissionNo: st.AdmissionNo ?? st.Admission_no ?? st.AdmissionNo ?? '',
                     RollNo: st.RollNo ?? st.rollNo ?? 0
                 };
@@ -370,6 +414,10 @@ function MarksEntryContent() {
         } catch (err: any) {
             console.error(err);
             toast.error(err?.message || 'Failed to fetch students/subject');
+            setSubjectMeta(null);
+            setStudents([]);
+            setTableProps(null);
+            setIsStudentsGridOpen(false);
         } finally {
             setIsLoading(false);
         }
@@ -421,7 +469,8 @@ function MarksEntryContent() {
        ------------------------- */
     const columns = useMemo(() => {
         return buildMarksEntryColumns(subjectMeta, updateSimpleMark, updateSubSubMark, updateSubExamMark);
-    }, [subjectMeta]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subjectMeta]); // intentionally only subjectMeta here — columns depend on meta
 
     /* -------------------------
        Save - validate everything and print (or send to API)
@@ -438,20 +487,61 @@ function MarksEntryContent() {
             if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
                 // simple
                 const v = s.marks === '' || s.marks === undefined ? null : Number(s.marks);
-                if (v === null || v === undefined) {
+                if (v === null || v === undefined || Number.isNaN(v)) {
                     errors.push(`${s.studentName}: Marks required`);
                 } else {
-                    if (subjectMeta.minMarks !== undefined && v < subjectMeta.minMarks) errors.push(`${s.studentName}: below min`);
-                    if (v > subjectMeta.maxMarks) errors.push(`${s.studentName}: above max`);
+                    if (subjectMeta.minMarks !== undefined && v < subjectMeta.minMarks) errors.push(`${s.studentName}: below min (${subjectMeta.minMarks})`);
+                    if (v > subjectMeta.maxMarks) errors.push(`${s.studentName}: above max (${subjectMeta.maxMarks})`);
                 }
             } else {
                 if (subjectMeta.subsubFlag) {
-                    const sum = (s.subSubMarks ?? []).reduce((acc, x) => acc + (x.marks === '' ? 0 : Number(x.marks)), 0);
-                    if (sum > subjectMeta.maxMarks) errors.push(`${s.studentName}: sub-subject sum exceeds max`);
+                    // ensure all subsub marks are present and respect sub-sub max (if provided) and total
+                    const arr = s.subSubMarks ?? [];
+                    // check count match
+                    if (arr.length !== subjectMeta.subsubData.length) {
+                        errors.push(`${s.studentName}: all sub-subject marks required`);
+                    } else {
+                        // check each value & sum
+                        let sum = 0;
+                        for (let i = 0; i < arr.length; i++) {
+                            const m = arr[i].marks;
+                            const maxForSub = subjectMeta.subsubData[i]?.maxMarks ?? subjectMeta.maxMarks;
+                            const minForSub = subjectMeta.subsubData[i]?.minMarks;
+                            if (m === '' || m === undefined || Number.isNaN(Number(m))) {
+                                errors.push(`${s.studentName}: sub-subject ${subjectMeta.subsubData[i]?.subsubName ?? subjectMeta.subsubData[i]?.subsubId} marks required`);
+                            } else {
+                                const num = Number(m);
+                                if (minForSub !== undefined && num < minForSub) errors.push(`${s.studentName}: sub-sub ${subjectMeta.subsubData[i].subsubName} below min (${minForSub})`);
+                                if (maxForSub !== undefined && num > maxForSub) errors.push(`${s.studentName}: sub-sub ${subjectMeta.subsubData[i].subsubName} above max (${maxForSub})`);
+                                sum += num;
+                            }
+                        }
+                        if (sum > subjectMeta.maxMarks) errors.push(`${s.studentName}: sub-subject sum exceeds max (${subjectMeta.maxMarks})`);
+                    }
                 }
+
                 if (subjectMeta.subexamFlag) {
-                    const sum = (s.subExamMarks ?? []).reduce((acc, x) => acc + (x.marks === '' ? 0 : Number(x.marks)), 0);
-                    if (sum > subjectMeta.maxMarks) errors.push(`${s.studentName}: sub-exam sum exceeds max`);
+                    // similar checks for sub-exam
+                    const arr = s.subExamMarks ?? [];
+                    if (arr.length !== subjectMeta.subexamData.length) {
+                        errors.push(`${s.studentName}: all sub-exam marks required`);
+                    } else {
+                        let sum = 0;
+                        for (let i = 0; i < arr.length; i++) {
+                            const m = arr[i].marks;
+                            const maxForSub = subjectMeta.subexamData[i]?.maxMarks ?? subjectMeta.maxMarks;
+                            const minForSub = subjectMeta.subexamData[i]?.minMarks;
+                            if (m === '' || m === undefined || Number.isNaN(Number(m))) {
+                                errors.push(`${s.studentName}: sub-exam ${subjectMeta.subexamData[i]?.subexamName ?? subjectMeta.subexamData[i]?.subexamId} marks required`);
+                            } else {
+                                const num = Number(m);
+                                if (minForSub !== undefined && num < minForSub) errors.push(`${s.studentName}: sub-exam ${subjectMeta.subexamData[i].subexamName} below min (${minForSub})`);
+                                if (maxForSub !== undefined && num > maxForSub) errors.push(`${s.studentName}: sub-exam ${subjectMeta.subexamData[i].subexamName} above max (${maxForSub})`);
+                                sum += num;
+                            }
+                        }
+                        if (sum > subjectMeta.maxMarks) errors.push(`${s.studentName}: sub-exam sum exceeds max (${subjectMeta.maxMarks})`);
+                    }
                 }
             }
         });
@@ -464,6 +554,10 @@ function MarksEntryContent() {
 
         // build payload
         const payload = {
+            academicYearId: selectedAcademicYear,
+            classId: selectedClass,
+            sectionId: selectedSectionId,
+            examId: selectedExam,
             subjectId: subjectMeta.subjectId,
             studentData: students
         };
@@ -480,56 +574,167 @@ function MarksEntryContent() {
                 {/* Filters */}
                 <div className="rounded-md border bg-white p-4 shadow-sm">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        {/* Academic Year */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Academic Year <span className="text-red-500">*</span></label>
-                            <Select value={selectedAcademicYear ? String(selectedAcademicYear) : ''} onValueChange={(v) => setSelectedAcademicYear(v !== 'none' ? Number(v) : undefined)}>
-                                <SelectTrigger className="h-10"><SelectValue placeholder="Select Academic Year" /></SelectTrigger>
+                            <label htmlFor="academicYear" className="mb-1 block text-sm font-medium text-slate-700">
+                                Academic Year <span className="text-red-500">*</span>
+                            </label>
+
+                            <Select
+                                //id="academicYear"
+                                value={selectedAcademicYear ? String(selectedAcademicYear) : ""}
+                                onValueChange={(v) => setSelectedAcademicYear(v !== "none" ? Number(v) : undefined)}
+                            >
+                                <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="Select Academic Year" />
+                                </SelectTrigger>
+
                                 <SelectContent>
-                                    {loadingAcademic ? <SelectItem value="loading">Loading...</SelectItem> : academicYears.length === 0 ? <SelectItem value="none">-- No academic years --</SelectItem> : academicYears.map((y) => <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>)}
+                                    {loadingAcademic ? (
+                                        <SelectItem value="loading">Loading...</SelectItem>
+                                    ) : academicYears.length === 0 ? (
+                                        <SelectItem value="none">-- No academic years --</SelectItem>
+                                    ) : (
+                                        academicYears.map((y) => (
+                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                {y.asmaY_Year}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
 
+                        {/* Class */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Class <span className="text-red-500">*</span></label>
-                            <Select value={selectedClass ? String(selectedClass) : ''} onValueChange={(v) => setSelectedClass(v !== 'none' ? Number(v) : undefined)} disabled={!selectedAcademicYear || loadingClasses}>
-                                <SelectTrigger className="h-10"><SelectValue placeholder="Select Class" /></SelectTrigger>
+                            <label htmlFor="classSelect" className="mb-1 block text-sm font-medium text-slate-700">
+                                Class <span className="text-red-500">*</span>
+                            </label>
+
+                            <Select
+                                //id="classSelect"
+                                value={selectedClass ? String(selectedClass) : ""}
+                                onValueChange={(v) => setSelectedClass(v !== "none" ? Number(v) : undefined)}
+                                disabled={!selectedAcademicYear || loadingClasses}
+                            >
+                                <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="Select Class" />
+                                </SelectTrigger>
+
                                 <SelectContent>
-                                    {!selectedAcademicYear ? <SelectItem value="none">-- Select Academic Year first --</SelectItem> : loadingClasses ? <SelectItem value="loading">Loading classes...</SelectItem> : classes.length === 0 ? <SelectItem value="none">-- No classes --</SelectItem> : classes.map((c) => <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>)}
+                                    {!selectedAcademicYear ? (
+                                        <SelectItem value="none">-- Select Academic Year first --</SelectItem>
+                                    ) : loadingClasses ? (
+                                        <SelectItem value="loading">Loading classes...</SelectItem>
+                                    ) : classes.length === 0 ? (
+                                        <SelectItem value="none">-- No classes --</SelectItem>
+                                    ) : (
+                                        classes.map((c) => (
+                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                {c.asmcL_ClassName}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
 
+                        {/* Section */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Section <span className="text-red-500">*</span></label>
-                            <Select value={selectedSectionId ? String(selectedSectionId) : ''} onValueChange={(v) => setSelectedSectionId(v !== 'none' ? Number(v) : undefined)} disabled={!selectedClass || loadingSections}>
-                                <SelectTrigger className="h-10"><SelectValue placeholder="Select Section" /></SelectTrigger>
+                            <label htmlFor="sectionSelect" className="mb-1 block text-sm font-medium text-slate-700">
+                                Section <span className="text-red-500">*</span>
+                            </label>
+
+                            <Select
+                                //id="sectionSelect"
+                                value={selectedSectionId ? String(selectedSectionId) : ""}
+                                onValueChange={(v) => setSelectedSectionId(v !== "none" ? Number(v) : undefined)}
+                                disabled={!selectedClass || loadingSections}
+                            >
+                                <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="Select Section" />
+                                </SelectTrigger>
+
                                 <SelectContent>
-                                    {loadingSections ? <SelectItem value="loading">Loading sections...</SelectItem> : sections.length === 0 ? <SelectItem value="none">-- No sections --</SelectItem> : sections.map((s) => <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>)}
+                                    {loadingSections ? (
+                                        <SelectItem value="loading">Loading sections...</SelectItem>
+                                    ) : sections.length === 0 ? (
+                                        <SelectItem value="none">-- No sections --</SelectItem>
+                                    ) : (
+                                        sections.map((s) => (
+                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                {s.asmC_SectionName}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
 
+                        {/* Exam */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">exam <span className="text-red-500">*</span></label>
-                            <Select value={selectedexam ? String(selectedexam) : ''} onValueChange={(v) => setSelectedexam(v !== 'none' && v !== 'disabled' ? Number(v) : undefined)} disabled={activeTab === 1 || loadingexams}>
-                                <SelectTrigger className="h-10"><SelectValue placeholder={activeTab === 1 ? '-- Disabled for Overall --' : 'Select exam'} /></SelectTrigger>
+                            <label htmlFor="examSelect" className='mb-1 block font-medium text-slate-700 text-sm'>
+                                Exam <span className="text-red-500">*</span>
+                            </label>
+
+                            <Select
+                                //id="examSelect"
+                                value={selectedExam ? String(selectedExam) : ""}
+                                onValueChange={(v) => setSelectedExam(v !== "none" && v !== "disabled" ? Number(v) : undefined)}
+                                disabled={activeTab === 1 || loadingExams}
+                            >
+                                <SelectTrigger className="h-10">
+                                    <SelectValue placeholder={activeTab === 1 ? "-- Disabled for Overall --" : "Select exam"} />
+                                </SelectTrigger>
+
                                 <SelectContent>
-                                    {activeTab === 1 ? <SelectItem value="disabled">-- Disabled for Overall --</SelectItem> : loadingexams ? <SelectItem value="loading">Loading exams...</SelectItem> : exams.length === 0 ? <SelectItem value="none">-- No exams --</SelectItem> : exams.map((t) => <SelectItem key={t.examId} value={String(t.examId)}>{t.examName}</SelectItem>)}
+                                    {activeTab === 1 ? (
+                                        <SelectItem value="disabled">-- Disabled for Overall --</SelectItem>
+                                    ) : loadingExams ? (
+                                        <SelectItem value="loading">Loading exams...</SelectItem>
+                                    ) : exams.length === 0 ? (
+                                        <SelectItem value="none">-- No exams --</SelectItem>
+                                    ) : (
+                                        exams.map((t: any) => (
+                                            <SelectItem key={String(t.examId)} value={String(t.examId)}>
+                                                {t.examName}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <div className="md:col-span-4 mt-4">
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Subject <span className="text-red-500">*</span></label>
-                            <Select value={selectedSubjectId ? String(selectedSubjectId) : ''} onValueChange={(v) => setSelectedSubjectId(v !== 'none' ? Number(v) : undefined)}>
-                                <SelectTrigger className="h-10"><SelectValue placeholder="Select Subject" /></SelectTrigger>
+                        {/* Subject */}
+                        <div className="mt-4 md:col-span-1">
+                            <label htmlFor="subjectSelect" className="mb-1 block text-sm font-medium text-slate-700">
+                                Subject <span className="text-red-500">*</span>
+                            </label>
+
+                            <Select
+                                //id="subjectSelect"
+                                value={selectedSubjectId ? String(selectedSubjectId) : ""}
+                                onValueChange={(v) => setSelectedSubjectId(v !== "none" ? Number(v) : undefined)}
+                            >
+                                <SelectTrigger className="h-10">
+                                    <SelectValue placeholder="Select Subject" />
+                                </SelectTrigger>
+
                                 <SelectContent>
-                                    {subjects.length === 0 ? <SelectItem value="none">-- No subjects --</SelectItem> : subjects.map((s) => <SelectItem key={s.subjectId} value={String(s.subjectId)}>{s.subjectName}</SelectItem>)}
+                                    {subjects.length === 0 ? (
+                                        <SelectItem value="none">-- No subjects --</SelectItem>
+                                    ) : (
+                                        subjects.map((s) => (
+                                            <SelectItem key={s.subjectId} value={String(s.subjectId)}>
+                                                {s.subjectName}
+                                            </SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
+
                     <div className="mt-3 text-sm">
                         <label className="inline-flex items-center">
                             <input type="checkbox" className="mr-2" />
@@ -539,24 +744,13 @@ function MarksEntryContent() {
                     <div className="w-fit mx-auto mt-6">
                         <Button className="px-6 py-2 shadow" onClick={handleSearch}>SEARCH</Button>
                     </div>
-
-
                 </div>
 
                 {/* Students Grid */}
                 {isStudentsGridOpen && tableProps && subjectMeta && (
                     <CollapsibleSection defaultOpen variant="default" size="lg" className="shadow-lg transition-shadow duration-300 hover:shadow-xl">
                         <div>
-                            {/* <GenericDataTable<IStudentMarksRow>
-                                {...tableProps}
-                                columns={columns}
-                                isLoading={isLoading}
-                                columnPinning={{ right: ['subject_group_' + (subjectMeta?.subjectId ?? '')] }}
-                                loadingMessage="Loading marks..."
-                                noDataTitle="No Records Found"
-                                noDataDescription="Click SEARCH to view students"
-                                errorTitle="Error Loading Students"
-                            /> */}
+                            {/* The custom table component handles rendering + inputs */}
                             <MarksCustomTable
                                 subjectMeta={subjectMeta}
                                 students={students}

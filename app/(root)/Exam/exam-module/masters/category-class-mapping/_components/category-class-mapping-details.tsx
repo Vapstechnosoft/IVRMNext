@@ -9,6 +9,7 @@ import type { ICategoryClassMappingDetails, ICategoryMapping } from '@/types/exa
 import { useEffect } from 'react';
 import { CategoryClassMappingDetalisColumns } from './subject-group-details-columns';
 import ToggleCategoryClassMappingForm from './toggle-form';
+import { X } from 'lucide-react';
 
 interface CategoryClassMappingDetailsPageProps {
     rowData: ICategoryMapping;
@@ -62,10 +63,12 @@ export default function CategoryClassMappingDetailsPage({ rowData, onClose }: Ca
 
                         <div className='flex gap-2'>
                             <Button
-                                variant='secondary'
+                                type='button'
                                 onClick={onClose}
-                                className='shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                                Close
+                                variant='ghost'
+                                size='sm'
+                                className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                         </div>
                     </div>
