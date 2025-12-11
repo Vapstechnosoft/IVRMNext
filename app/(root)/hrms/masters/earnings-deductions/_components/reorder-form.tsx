@@ -3,22 +3,34 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
-import { getEarningsDeductionsSetOrder, updateEarningsDeductionsSetorder } from '@/server/hrms/hrmsConfig/master/earnings-deductions';
+import { getMasterEarningsDeductionsList, saveMasterEarningsDeductions } from '@/server/hrms/hrmsConfig/master/earnings-deductions';
 import type { EarningsDeductionSetOrderList } from '@/types/hrms/master-earnings-deductions';
 import { GitCompareArrows, GripVertical } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 export default function ReorderEarningsDeductionsForm() {
-    const { refetchAll } = useMasterEarningsDeductions(HRMS_MI_ID);
+    const { refetchAll } = useMasterEarningsDeductions();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [orderedItems, setOrderedItems] = useState<EarningsDeductionSetOrderList[]>([]);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const handleOpenDialog = async () => {
         try {
-            const orderResponse = await getEarningsDeductionsSetOrder(HRMS_MI_ID);
-            setOrderedItems(orderResponse?.data ?? []);
+            const orderResponse = await getMasterEarningsDeductionsList({
+                page: 1,
+                page_size: 1000,
+                sort_column: 'HRMED_Order',
+                sort_direction: 'asc'
+            });
+            // API returns { success, message, data, total, page, page_size }
+            // Extract the data array from the response
+            const earningsDeductionsList = Array.isArray(orderResponse?.data) ? orderResponse.data : [];
+            setOrderedItems(earningsDeductionsList.map((ed) => ({
+                HRMED_Id: ed.hrmeD_Id,
+                HRMED_Name: ed.hrmeD_Name,
+                HRMED_Order: ed.hrmeD_Order
+            })));
             setIsDialogOpen(true);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to load earnings/deductions for reordering');
@@ -44,18 +56,39 @@ export default function ReorderEarningsDeductionsForm() {
         e?.preventDefault();
         setIsSaving(true);
         try {
-            const payload = orderedItems.map((item, index) => ({
-                id: item.HRMED_Id,
-                order: index + 1
-            }));
-            const response = await updateEarningsDeductionsSetorder(payload as any);
-            if (response?.success || (response as any)?.retrunMsg === 'Order') {
-                toast.success('Order saved successfully');
-                setIsDialogOpen(false);
-                refetchAll();
-            } else {
-                toast.error((response as any)?.message || 'Failed to save order');
-            }
+            // Get all earnings deductions and update their order
+            const allEarningsDeductions = await getMasterEarningsDeductionsList({
+                page: 1,
+                page_size: 1000
+            });
+            // API returns { success, message, data, total, page, page_size }
+            // Extract the data array from the response
+            const earningdetectionList = Array.isArray(allEarningsDeductions?.data) ? allEarningsDeductions.data : [];
+            
+            // Update order for each item
+            const updatePromises = orderedItems.map(async (item, index) => {
+                const existingItem = earningdetectionList.find((ed) => ed.hrmeD_Id === item.HRMED_Id);
+                if (existingItem) {
+                    const payload = {
+                        hrmeD_Id: existingItem.hrmeD_Id,
+                        hrmeD_Name: existingItem.hrmeD_Name,
+                        hrmeD_EDTypeFlag: existingItem.hrmeD_EDTypeFlag,
+                        hrmeD_EarnDedFlag: existingItem.hrmeD_EarnDedFlag,
+                        hrmeD_AmountPercentFlag: existingItem.hrmeD_AmountPercentFlag,
+                        hrmeD_AmountPercent: existingItem.hrmeD_AmountPercent,
+                        hrmeD_RoundOffFlag: existingItem.hrmeD_RoundOffFlag,
+                        hrmeD_ReviseFlg: existingItem.hrmeD_ReviseFlg ?? true,
+                        hrmeD_Order: index + 1
+                    };
+                    return saveMasterEarningsDeductions(payload);
+                }
+                return null;
+            });
+            
+            await Promise.all(updatePromises.filter(Boolean));
+            toast.success('Order saved successfully');
+            setIsDialogOpen(false);
+            refetchAll();
         } catch (error: any) {
             toast.error(error?.message ?? 'An error occurred');
         } finally {

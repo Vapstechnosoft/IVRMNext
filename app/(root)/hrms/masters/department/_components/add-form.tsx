@@ -42,7 +42,8 @@ export default function AddDepartmentForm({ onSuccess, className = '' }: AddDepa
                 hrmD_Id: 0,
                 hrmD_DepartmentName: data.hrmD_DepartmentName?.trim() || '',
                 hrmD_Order: data.hrmD_Order || 0,
-                hrmD_InternalTrainingMinimumHrs: data.hrmD_InternalTrainingMinimumHrs || 0
+                hrmD_InternalTrainingMinimumHrs: data.hrmD_InternalTrainingMinimumHrs || 0,
+                hrmD_ActiveFlag: true
             };
             const response = await addOrUpdateMasterDepartment(payload);
 

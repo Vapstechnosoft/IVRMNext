@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { salaryAdvanceFormSchema } from '@/schemas/hrms/salary-advance-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryAdvanceOnloadResponse } from '@/types/hrms/salary-advance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -17,7 +17,7 @@ import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type SalaryAdvanceForm = z.infer<typeof salaryAdvanceFormSchema>;
+type SalaryAdvanceForm = z.infer<typeof hrmsTransactionSchemas.salaryAdvance.form>;
 interface AddFormProps {
     onloadData: SalaryAdvanceOnloadResponse | undefined;
     onSuccess: () => void;
@@ -39,7 +39,7 @@ export default function AddSalaryAdvanceForm({ onloadData, onSuccess, className 
         setValue,
         formState: { errors, isSubmitting }
     } = useForm<SalaryAdvanceForm>({
-        resolver: zodResolver(salaryAdvanceFormSchema),
+        resolver: zodResolver(hrmsTransactionSchemas.salaryAdvance.form),
         mode: 'onChange',
         defaultValues: {
             employeeId: '',

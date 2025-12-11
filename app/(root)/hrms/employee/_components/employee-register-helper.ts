@@ -1,126 +1,146 @@
 import type { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
-import type { SavePersonalDetailsRequest } from '@/types/hrms/employee-register';
+import type { SavePersonalDetailsApiRequest } from '@/types/hrms/employee-register';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof employeeRegisterSchemas.add>;
 
 /**
- * Map form data to API format for SavePersonalDetails
+ * Helper function to convert empty string to null
  */
-export function mapFormDataToApiFormat(data: FormFields, employeeId = 0, selectedPhoto: string | null = null): SavePersonalDetailsRequest {
+function toNullIfEmpty(value: any): string | null {
+    if (value === null || value === undefined || value === '') {
+        return null;
+    }
+    const str = String(value).trim();
+    return str === '' ? null : str;
+}
+
+/**
+ * Map form data to API format for SavePersonalDetails
+ * Uses lowercase field names and sends null for empty strings
+ */
+export function mapFormDataToApiFormat(data: FormFields, employeeId = 0, selectedPhoto: string | null = null): SavePersonalDetailsApiRequest {
     // Get mobile and email from arrays (take first/default)
     const defaultMobile = data.mobileDetails?.[0]?.mobileNo || '';
     const defaultEmail = data.emailDetails?.[0]?.emailId || '';
     // Get bank account from bank details (take first/default)
     const defaultBankAccount = data.bankDetails?.[0]?.bankAccountNo || '';
 
-    // MI_Id is excluded from payload - backend extracts it from JWT
-    const payload = {
-        CreatedDate: new Date().toISOString(),
-        UpdatedDate: new Date().toISOString(),
-        HRME_Id: employeeId,
-        // Employee basic info
-        HRME_EmployeeFirstName: data.firstName || '',
-        HRME_EmployeeMiddleName: data.middleName || '',
-        HRME_EmployeeLastName: data.lastName || '',
-        HRME_EmployeeCode: data.employeeCode || '',
-        HRME_FatherName: data.fatherName || '',
-        HRME_MotherName: data.motherName || '',
-        HRME_SpouseName: (data as any).spouseName || '',
-        HRME_SpouseOccupation: (data as any).spouseOccupation || '',
-        HRME_SpouseMobileNo: Number((data as any).spouseMobileNo) || 0,
-        HRME_SpouseEmailId: (data as any).spouseEmailId || '',
-        HRME_SpouseAddress: (data as any).spouseAddress || '',
+    // Map form data to API format with lowercase field names
+    // Send null for empty strings and null for other tab objects
+    const payload: SavePersonalDetailsApiRequest = {
+        hrmE_Id: employeeId,
         // Employee type/group/department/designation (convert string IDs to numbers)
-        HRMET_Id: Number(data.typeOfEmployment) || 0,
-        HRMGT_Id: Number(data.employeeGroup) || 0,
-        HRMD_Id: Number(data.school) || 0,
-        HRMDES_Id: Number(data.designation) || 0,
-        HRMG_Id: Number(data.grade) || 0,
+        hrmeT_Id: Number(data.typeOfEmployment) || 0,
+        hrmgT_Id: Number(data.employeeGroup) || 0,
+        hrmD_Id: Number(data.school) || 0,
+        hrmdeS_Id: Number(data.designation) || 0,
+        hrmG_Id: Number(data.grade) || 0,
+        // Employee basic info
+        hrmE_EmployeeFirstName: toNullIfEmpty(data.firstName),
+        hrmE_EmployeeMiddleName: toNullIfEmpty(data.middleName),
+        hrmE_EmployeeLastName: toNullIfEmpty(data.lastName),
+        hrmE_EmployeeCode: toNullIfEmpty(data.employeeCode),
+        hrmE_FatherName: toNullIfEmpty(data.fatherName),
+        hrmE_MotherName: toNullIfEmpty(data.motherName),
+        hrmE_SpouseName: toNullIfEmpty((data as any).spouseName),
+        hrmE_SpouseOccupation: toNullIfEmpty((data as any).spouseOccupation),
+        hrmE_SpouseMobileNo: Number((data as any).spouseMobileNo) || 0,
+        hrmE_SpouseEmailId: toNullIfEmpty((data as any).spouseEmailId),
+        hrmE_SpouseAddress: toNullIfEmpty((data as any).spouseAddress),
         // Dates
-        HRME_DOB: data.dateOfBirth || '',
-        HRME_DOJ: data.dateOfJoining || '',
-        HRME_DOC: data.dateOfConfirmation || '',
-        HRME_ExpectedRetirementDate: data.dateOfRetirement || '',
+        hrmE_DOB: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null,
+        hrmE_DOJ: data.dateOfJoining ? new Date(data.dateOfJoining).toISOString() : null,
+        hrmE_doc: data.dateOfConfirmation ? new Date(data.dateOfConfirmation).toISOString() : null,
+        hrmE_ExpectedRetirementDate: data.dateOfRetirement ? new Date(data.dateOfRetirement).toISOString() : null,
         // Personal details
-        IVRMMG_Id: Number(data.gender) || 0,
-        IVRMMMS_Id: Number(data.maritalStatus) || 0,
-        ReligionId: Number(data.religion) || 0,
-        CasteCategoryId: Number(data.casteCategory) || 0,
-        CasteId: Number(data.caste) || 0,
-        HRME_BloodGroup: data.bloodGroup || '',
-        HRME_SalaryType: data.salaryType || '',
-        HRME_PaymentType: data.modeOfPayment || '',
-        HRME_SubjectsTaught: data.subjectTaught || '',
-        HRME_AppDownloadedDeviceId: '', // Required by API
+        ivrmmG_Id: Number(data.gender) || 0,
+        ivrmmmS_Id: Number(data.maritalStatus) || 0,
+        religionId: Number(data.religion) || 0,
+        casteCategoryId: Number(data.casteCategory) || 0,
+        casteId: Number(data.caste) || 0,
+        hrmE_BloodGroup: toNullIfEmpty(data.bloodGroup),
+        hrmE_SalaryType: toNullIfEmpty(data.salaryType),
+        hrmE_PaymentType: toNullIfEmpty(data.modeOfPayment),
+        hrmE_SubjectsTaught: toNullIfEmpty(data.subjectTaught),
+        hrmE_AppDownloadedDeviceId: toNullIfEmpty(''), // Required by API
         // Contact info
-        HRME_MobileNo: Number(defaultMobile) || 0,
-        HRME_EmailId: defaultEmail || '',
+        hrmE_MobileNo: Number(defaultMobile) || 0,
+        hrmE_EmailId: toNullIfEmpty(defaultEmail),
         // Address - Local/Contact Address
-        HRME_LocStreet: data.contactAddress || '',
-        HRME_LocArea: data.contactArea || '',
-        HRME_LocCity: data.contactCity || '',
-        HRME_LocAdd4: '', // Not in form
-        HRME_LocStateId: Number(data.contactState) || 0,
-        HRME_LocCountryId: Number(data.contactCountry) || 0,
-        HRME_LocPincode: Number(data.contactPincode) || 0,
+        hrmE_LocStreet: toNullIfEmpty(data.contactAddress),
+        hrmE_LocArea: toNullIfEmpty(data.contactArea),
+        hrmE_LocCity: toNullIfEmpty(data.contactCity),
+        hrmE_LocAdd4: null, // Not in form
+        hrmE_LocStateId: Number(data.contactState) || 0,
+        hrmE_LocCountryId: Number(data.contactCountry) || 0,
+        hrmE_LocPincode: Number(data.contactPincode) || 0,
         // Address - Permanent Address
-        HRME_PerStreet: data.permanentAddress || '',
-        HRME_PerArea: data.permanentArea || '',
-        HRME_PerCity: data.permanentCity || '',
-        HRME_PerAdd4: '', // Not in form
-        HRME_PerStateId: Number(data.permanentState) || 0,
-        HRME_PerCountryId: Number(data.permanentCountry) || 0,
-        HRME_PerPincode: Number(data.permanentPincode) || 0,
+        hrmE_PerStreet: toNullIfEmpty(data.permanentAddress),
+        hrmE_PerArea: toNullIfEmpty(data.permanentArea),
+        hrmE_PerCity: toNullIfEmpty(data.permanentCity),
+        hrmE_PerAdd4: null, // Not in form
+        hrmE_PerStateId: Number(data.permanentState) || 0,
+        hrmE_PerCountryId: Number(data.permanentCountry) || 0,
+        hrmE_PerPincode: Number(data.permanentPincode) || 0,
         // PF Details
-        HRME_PFApplicableFlag: data.pfApplicable || false,
-        HRME_PFMaxFlag: data.pfMaxAmount || false,
-        HRME_PFFixedFlag: data.pfFixedAmount || false,
-        HRME_PFAccNo: data.pfAccNo || '',
-        HRME_UINumber: data.uanNumber || '',
-        HRME_PFDate: data.pfDate || '',
+        hrmE_PFApplicableFlag: data.pfApplicable || false,
+        hrmE_PFMaxFlag: data.pfMaxAmount || false,
+        hrmE_PFFixedFlag: data.pfFixedAmount || false,
+        hrmE_PFAccNo: toNullIfEmpty(data.pfAccNo),
+        hrmE_UINumber: toNullIfEmpty(data.uanNumber),
+        hrmE_PFDate: data.pfDate ? new Date(data.pfDate).toISOString() : null,
         // ESI Details
-        HRME_ESIApplicableFlag: data.esiApplicable || false,
-        HRME_ESIAccNo: data.esiAccNo || '',
-        HRME_GratuityAccNo: data.gratuityAccNo || '',
-        HRME_ESIDate: data.esiDate || '',
+        hrmE_ESIApplicableFlag: data.esiApplicable || false,
+        hrmE_ESIAccNo: toNullIfEmpty(data.esiAccNo),
+        hrmE_GratuityAccNo: toNullIfEmpty(data.gratuityAccNo),
+        hrmE_ESIDate: data.esiDate ? new Date(data.esiDate).toISOString() : null,
         // Other flags
-        HRME_EPFNotApplicableFlg: !data.epf,
-        HRME_FPFNotApplicableFlg: !data.ppf,
-        HRME_PHDResearchGuideFlg: data.phdResearchGuide || false,
-        HRME_RGRecognitionYear: Number(data.recognitionYear) || 0,
-        HRME_TechNonTeachingFlg: data.teachingNonTeaching === 'Non Teaching' ? 'Non Teaching' : 'Teaching',
-        HRME_NationalSSN: data.nationalSSN || '',
-        HRME_PANCardNo: data.panCardNo || '',
-        HRME_AadharCardNo: Number(data.aadharNo) || 0,
-        HRME_BankAccountNo: defaultBankAccount || '',
-        HRME_BiometricCode: data.biometricCode || '',
-        HRME_RFCardId: data.rfCardId || '',
-        HRME_Photo: selectedPhoto || '', // Base64 photo
-        HRME_ActiveFlag: true,
-        HRME_LeftFlag: data.employeeLeft || false,
-        HRME_DOL: data.lastWorkingDay || null,
-        HRME_LeavingReason: data.reasonForLeaving || '',
-        HRME_Height: data.employeeHeight || '',
-        HRME_HeightUOM: data.employeeHeightUnit || '',
-        HRME_Weight: Number(data.employeeWeight) || 0,
-        HRME_WeightUOM: data.employeeWeightUnit || '',
-        HRME_IdentificationMark: data.identificationMark || '',
-        HRME_ApprovalNo: '', // Required by API
-        HRME_AnyHealthIssue: data.anyHealthIssue || '',
-        HRME_EyeSightIssue: data.eyeSightIssue || '',
-        HRME_SubstituteFlag: false,
-        HRME_EmployeeOrder: 0,
-        HRME_TransfferedTo: 0,
-        HRME_RecordTransferredFlg: false,
-        HRME_MSTeamsUserId: data.msTeamsUserName || '',
-        HRME_MSTeamsEmailId: '',
-        HRME_MSTeamsPassword: data.msTeamsPassword || '',
-        HRME_ExcPunch: data.punchRelaxation || false,
-        HRME_RetiredFlg: data.stopPension || false,
-        HRME_PensionStoppedDate: data.dateOfStopPension || null,
-        HRME_AllowSoftwareAccessFlg: false
-    } as SavePersonalDetailsRequest;
+        hrmE_EPFNotApplicableFlg: !data.epf,
+        hrmE_FPFNotApplicableFlg: !data.ppf,
+        hrmE_PHDResearchGuideFlg: data.phdResearchGuide || false,
+        hrmE_RGRecognitionYear: Number(data.recognitionYear) || 0,
+        hrmE_TechNonTeachingFlg: toNullIfEmpty(data.teachingNonTeaching === 'Non Teaching' ? 'Non Teaching' : 'Teaching'),
+        hrmE_NationalSSN: toNullIfEmpty(data.nationalSSN),
+        hrmE_PANCardNo: toNullIfEmpty(data.panCardNo),
+        hrmE_AadharCardNo: Number(data.aadharNo) || 0,
+        hrmE_BankAccountNo: toNullIfEmpty(defaultBankAccount),
+        hrmE_BiometricCode: toNullIfEmpty(data.biometricCode),
+        hrmE_RFCardId: toNullIfEmpty(data.rfCardId),
+        hrmE_Photo: toNullIfEmpty(selectedPhoto), // Base64 photo
+        hrmE_ActiveFlag: true,
+        hrmE_LeftFlag: data.employeeLeft || false,
+        hrmE_DOL: data.lastWorkingDay ? new Date(data.lastWorkingDay).toISOString() : null,
+        hrmE_LeavingReason: toNullIfEmpty(data.reasonForLeaving),
+        hrmE_Height: toNullIfEmpty(data.employeeHeight),
+        hrmE_HeightUOM: toNullIfEmpty(data.employeeHeightUnit),
+        hrmE_Weight: Number(data.employeeWeight) || 0,
+        hrmE_WeightUOM: toNullIfEmpty(data.employeeWeightUnit),
+        hrmE_IdentificationMark: toNullIfEmpty(data.identificationMark),
+        hrmE_ApprovalNo: null, // Required by API
+        hrmE_AnyHealthIssue: toNullIfEmpty(data.anyHealthIssue),
+        hrmE_EyeSightIssue: toNullIfEmpty(data.eyeSightIssue),
+        hrmE_SubstituteFlag: false,
+        hrmE_EmployeeOrder: 0,
+        hrmE_TransfferedTo: 0,
+        hrmE_RecordTransferredFlg: false,
+        hrmE_MSTeamsUserId: toNullIfEmpty(data.msTeamsUserName),
+        hrmE_MSTeamsEmailId: null,
+        hrmE_MSTeamsPassword: toNullIfEmpty(data.msTeamsPassword),
+        hrmE_ExcPunch: data.punchRelaxation || false,
+        hrmE_RetiredFlg: data.stopPension || false,
+        hrmE_PensionStoppedDate: data.dateOfStopPension ? new Date(data.dateOfStopPension).toISOString() : null,
+        hrmE_FPFNotApplicableFlg: !data.ppf,
+        hrmE_EPFNotApplicableFlg: !data.epf,
+        hrmE_AllowSoftwareAccessFlg: false,
+        // Other tab objects - send as null when saving personal details
+        qualificationDetails: null,
+        experienceDetails: null,
+        documentList: null,
+        medicalDetails: null,
+        otherDetails: null,
+        payrollDetails: null
+    };
     return payload;
 }
 
@@ -131,23 +151,23 @@ export function mapFormDataToApiFormatWithoutAddress(
     data: FormFields,
     employeeId = 0,
     selectedPhoto: string | null = null
-): SavePersonalDetailsRequest {
+): SavePersonalDetailsApiRequest {
     const payload = mapFormDataToApiFormat(data, employeeId, selectedPhoto);
     // Set all address fields to null/0
-    payload.HRME_LocStreet = null;
-    payload.HRME_LocArea = null;
-    payload.HRME_LocCity = null;
-    payload.HRME_LocAdd4 = null;
-    payload.HRME_LocStateId = 0;
-    payload.HRME_LocCountryId = 0;
-    payload.HRME_LocPincode = 0;
-    payload.HRME_PerStreet = null;
-    payload.HRME_PerArea = null;
-    payload.HRME_PerCity = null;
-    payload.HRME_PerAdd4 = null;
-    payload.HRME_PerStateId = 0;
-    payload.HRME_PerCountryId = 0;
-    payload.HRME_PerPincode = 0;
+    payload.hrmE_LocStreet = null;
+    payload.hrmE_LocArea = null;
+    payload.hrmE_LocCity = null;
+    payload.hrmE_LocAdd4 = null;
+    payload.hrmE_LocStateId = 0;
+    payload.hrmE_LocCountryId = 0;
+    payload.hrmE_LocPincode = 0;
+    payload.hrmE_PerStreet = null;
+    payload.hrmE_PerArea = null;
+    payload.hrmE_PerCity = null;
+    payload.hrmE_PerAdd4 = null;
+    payload.hrmE_PerStateId = 0;
+    payload.hrmE_PerCountryId = 0;
+    payload.hrmE_PerPincode = 0;
     return payload;
 }
 

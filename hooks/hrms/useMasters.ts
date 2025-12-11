@@ -84,16 +84,14 @@ import {
 } from '@/server/hrms/hrmsConfig/master/leave-year';
 import {
     activateDeactivateMasterEarningsDeductions,
-    getMasterEarningsDeductionsDetails,
+    getAmountOrPercentageDropdown,
+    getEarningsDeductionsTypeDropdown,
     getMasterEarningsDeductionsList,
-    saveMasterEarningsDeductions,
-    saveMasterEarningsDeductionsOrder
+    getRoundingTypeDropdown,
+    getSalaryComponentTypeDropdown,
+    saveMasterEarningsDeductions
 } from '@/server/hrms/hrmsConfig/master/earnings-deductions';
-import {
-    getMasterPayrollStandardDetails,
-    getMasterPayrollStandardList,
-    saveMasterPayrollStandard
-} from '@/server/hrms/hrmsConfig/master/payroll-standard';
+import { getMasterPayrollStandardList, getMonthDropdown, saveMasterPayrollStandard } from '@/server/hrms/hrmsConfig/master/payroll-standard';
 import {
     getReligionCategoryMappingList,
     saveReligionCategoryMapping,
@@ -113,9 +111,10 @@ import type { MasterMaritalStatusInput } from '@/types/hrms/master-marital-statu
 import type { GroupTypeDetail, MasterGroupTypeInput } from '@/types/hrms/master-group-type';
 import type { LeaveYearDetail, MasterLeaveYearInput } from '@/types/hrms/master-leave-year';
 import type { EarningsDeductionDetail, MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
-import type { MasterPayrollStandardInput } from '@/types/hrms/master-payroll-standard';
-import type { ReligionCategoryMappingInput, ReligionCategoryMappingDetail, ReligionCategoryMappingResponse } from '@/types/hrms/religion-category-mapping';
-import type { GroupDeptDessgMappingDetail, GroupDeptDessgMappingInput, GroupDeptDessgMappingResponse } from '@/types/hrms/group-dept-dessg-mapping';
+import type { IEarningsDeductionsTypeDropdown, IMonthDropdown, IRoundingTypeDropdown } from '@/types/hrms/hrms-config/master';
+import type { IMasterPayrollStandardList } from '@/types/hrms/hrms-config/master';
+import type { IMasterReligionCategoryMappingList } from '@/types/hrms/hrms-config/master';
+import type { IMasterGroupDeptDessgMappingList } from '@/types/hrms/hrms-config/master';
 import type { ApiResponse } from '@/lib/apiService';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -529,288 +528,221 @@ export function useLeaveYearSetOrder() {
 // ============================================================================
 // EARNINGS DEDUCTIONS
 // ============================================================================
-export function useMasterEarningsDeductions(roleId: number) {
+export function useMasterEarningsDeductions(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
-    const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, roleId],
-        queryFn: async () => getMasterEarningsDeductionsList(roleId),
-        staleTime: 5 * 60 * 1000
-    });
-    const saveMutation = useMutation({
-        mutationFn: (data: MasterEarningsDeductionsInput) => {
-            const timestamp = new Date().toISOString();
-            console.log('🟣 [BROWSER-HOOK] Data:', JSON.stringify(data, null, 2));
-            return saveMasterEarningsDeductions(data);
-        },
-        onSuccess: (response) => {
-            console.log('🟢 [BROWSER-HOOK] Response:', JSON.stringify(response, null, 2));
-            queryClient.invalidateQueries({
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, searchParams ?? {}],
+            queryFn: async () => getMasterEarningsDeductionsList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
             });
         },
-        onError: (error: any) => {
-            if (error?.response) {
-                console.error('🔴 [BROWSER-HOOK] Error response data:', JSON.stringify(error.response?.data, null, 2));
-            }
-        }
-    });
-    const toggleMutation = useMutation({
-        mutationFn: (data: {
-            HRMED_Id: number;
-            HRMED_ActiveFlag: boolean;
-            MI_Id?: number;
-        }) => {
-            const timestamp = new Date().toISOString();
-            const targetState = data.HRMED_ActiveFlag ? 'ACTIVE' : 'INACTIVE';
-            console.log('🟣 [BROWSER-HOOK] Data:', JSON.stringify(data, null, 2));
-            return activateDeactivateMasterEarningsDeductions(data);
-        },
-        onSuccess: (response) => {
-            console.log('🟢 [BROWSER-HOOK] Response:', JSON.stringify(response, null, 2));
-            // Use the complete data from toggle response to update the cache
-            if (response?.success && response?.data) {
-                const toggleResponseData = response.data;
-                console.log('🟢 [BROWSER-HOOK] Toggle response data keys:', Object.keys(toggleResponseData || {}));
-                // Get current cached data for pagination/metadata
-                const queryKey = [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, roleId];
-                const currentData = queryClient.getQueryData(queryKey) as any;
-                // Transform toggle response data to match the list query response format
-                // Use the complete data from toggle response as-is (backend handles filtering)
-                const updatedData = {
-                    success: true,
-                    message: response.message || 'Data updated successfully',
-                    data: {
-                        HRMED_Id: toggleResponseData.HRMED_Id || 0,
-                        MI_Id: toggleResponseData.MI_Id || roleId,
-                        HRMED_Name: toggleResponseData.HRMED_Name || null,
-                        HRMED_EDTypeFlag: toggleResponseData.HRMED_EDTypeFlag || null,
-                        HRMED_EarnDedFlag: toggleResponseData.HRMED_EarnDedFlag || null,
-                        HRMED_AmountPercentFlag: toggleResponseData.HRMED_AmountPercentFlag || null,
-                        HRMED_AmountPercent: toggleResponseData.HRMED_AmountPercent || null,
-                        HRMED_ActiveFlag: toggleResponseData.HRMED_ActiveFlag ?? false,
-                        HRMED_RoundOffFlag: toggleResponseData.HRMED_RoundOffFlag || null,
-                        earningdetectionList: toggleResponseData.earningdetectionList || null,
-                        retrunMsg: toggleResponseData.retrunMsg || '',
-                        roleId: toggleResponseData.roleId || 0,
-                        HRMED_ReviseFlg: toggleResponseData.HRMED_ReviseFlg ?? false,
-                        earningList: toggleResponseData.earningList || null,
-                        detectionList: toggleResponseData.detectionList || null,
-                        eardettypelist: toggleResponseData.eardettypelist || null,
-                        eardettypeDropdown: toggleResponseData.eardettypeDropdown || null,
-                        perc_OfDTO: toggleResponseData.perc_OfDTO || null,
-                        selectedearningdetectionList: toggleResponseData.selectedearningdetectionList || null,
-                        percentOff: toggleResponseData.percentOff || null,
-                        HREED_Amount: toggleResponseData.HREED_Amount || null,
-                        arrearlist: toggleResponseData.arrearlist || [],
-                        grosslist: toggleResponseData.grosslist || [],
-                        EarningsDeductionsDTO: toggleResponseData.EarningsDeductionsDTO || null,
-                        HRMED_Order: toggleResponseData.HRMED_Order || null
-                    },
-                    total: currentData?.total || null,
-                    page: currentData?.page || 1,
-                    page_size: currentData?.page_size || 10
-                };
-                // Update the cache with the complete data from toggle response
-                queryClient.setQueryData(queryKey, updatedData);
-            } else {
-                // Fallback: invalidate queries if response doesn't have complete data
+        saveMutation: useMutation({
+            mutationFn: (data: MasterEarningsDeductionsInput) => {
+                return saveMasterEarningsDeductions(data);
+            },
+            onSuccess: () => {
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
                 });
             }
-        },
-        onError: (error: any) => {
-            if (error?.response) {
-                console.error('🔴 [BROWSER-HOOK] Error response data:', JSON.stringify(error.response?.data, null, 2));
+        }),
+        toggleMutation: useMutation({
+            mutationFn: (id: number) => {
+                return activateDeactivateMasterEarningsDeductions(id);
+            },
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
+                });
             }
-        }
-    });
-    const saveOrderMutation = useMutation({
-        mutationFn: (earningsDeductions: EarningsDeductionDetail[]) => saveMasterEarningsDeductionsOrder(earningsDeductions),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
-            });
-        }
-    });
-    const refetchAll = () => {
-        queryClient.invalidateQueries({
-            queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS]
-        });
-    };
-    return {
-        listQuery,
-        saveMutation,
-        toggleMutation,
-        saveOrderMutation,
-        refetchAll
+        })
     };
 }
-export function useMasterEarningsDeductionsDetails(id: number) {
-    return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'details', id],
-        queryFn: async () => getMasterEarningsDeductionsDetails(id),
-        enabled: id > 0
-    });
+
+export function useEarningsDeductionsTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'earnings-deductions-type'],
+            queryFn: async () => getEarningsDeductionsTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'earnings-deductions-type']
+            });
+        }
+    };
+}
+
+export function useRoundingTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'rounding-type'],
+            queryFn: async () => getRoundingTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'rounding-type']
+            });
+        }
+    };
+}
+
+export function useAmountOrPercentageDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'amount-or-percentage'],
+            queryFn: async () => getAmountOrPercentageDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'amount-or-percentage']
+            });
+        }
+    };
+}
+
+export function useSalaryComponentTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'salary-component-type'],
+            queryFn: async () => getSalaryComponentTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_EARNINGS_DEDUCTIONS, 'dropdown', 'salary-component-type']
+            });
+        }
+    };
+}
+
+/**
+ * Get Month List for dropdowns
+ * GET /api/MasterDropDown/GetMonths
+ */
+export function useMonthDropdown() {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months'],
+            queryFn: async () => getMonthDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'dropdown', 'months']
+            });
+        }
+    };
 }
 // ============================================================================
 // PAYROLL STANDARD
 // ============================================================================
-export function useMasterPayrollStandard(roleId: number) {
+export function useMasterPayrollStandard() {
     const queryClient = useQueryClient();
-    const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, roleId],
-        queryFn: async () => {
-            const result = await getMasterPayrollStandardList(roleId);
-            const hrStandardList = (result?.hrStandardList || []) as any[];
-            return result;
-        },
-        staleTime: 5 * 60 * 1000
-    });
-    const saveMutation = useMutation({
-        mutationFn: (data: MasterPayrollStandardInput) => {
-            console.log('🟣 [HOOK] Payload:', JSON.stringify(data, null, 2));
-            return saveMasterPayrollStandard(data);
-        },
-        onSuccess: (response) => {
-            console.log('🟣 [HOOK] Payroll Standard saveMutation.onSuccess - Response:', JSON.stringify(response, null, 2));
-            queryClient.invalidateQueries({
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD],
+            queryFn: async () => getMasterPayrollStandardList(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD]
             });
         },
-        onError: (error: any) => {
-        }
-    });
-    return {
-        listQuery,
-        saveMutation
+        saveMutation: useMutation({
+            mutationFn: (data: any) => saveMasterPayrollStandard(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD]
+                });
+            }
+        })
     };
-}
-export function useMasterPayrollStandardDetails(id: number) {
-    return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.MASTER_PAYROLL_STANDARD, 'details', id],
-        queryFn: async () => getMasterPayrollStandardDetails(id),
-        enabled: id > 0
-    });
 }
 // ============================================================================
 // RELIGION CATEGORY MAPPING
 // ============================================================================
 export function useReligionCategoryMapping(searchParams?: ApiSearchparams) {
-    return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, searchParams ?? {}],
-        queryFn: async () => {
-            const result = await getReligionCategoryMappingList(searchParams);
-            return result;
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, searchParams ?? {}],
+            queryFn: async () => getReligionCategoryMappingList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+            });
         },
-        staleTime: 0
-    });
-}
-export function useSaveReligionCategoryMapping() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: any) => saveReligionCategoryMapping(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
-            });
-        }
-    });
-}
-export function useReligionCategoryMappingCRUD(searchParams?: ApiSearchparams) {
-    const queryClient = useQueryClient();
-    const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING, searchParams ?? {}],
-        queryFn: () => getReligionCategoryMappingList(searchParams),
-        staleTime: 0
-    });
-    const saveMutation = useMutation({
-        mutationFn: (data: any) => saveReligionCategoryMapping(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
-            });
-        }
-    });
-    const toggleMutation = useMutation({
-        mutationFn: (id: number) => toggleReligionCategoryMapping(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
-            });
-        }
-    });
-    const refetchAll = () => {
-        queryClient.invalidateQueries({
-            queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
-        });
+        saveMutation: useMutation({
+            mutationFn: (data: any) => saveReligionCategoryMapping(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+                });
+            }
+        }),
+        toggleMutation: useMutation({
+            mutationFn: (id: number) => toggleReligionCategoryMapping(id),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.RELIGION_CATEGORY_MAPPING]
+                });
+            }
+        })
     };
-    return { listQuery, saveMutation, toggleMutation, refetchAll };
-}
-export function useActivateDeactivateReligionCategoryMapping() {
-    const { toggleMutation } = useReligionCategoryMappingCRUD();
-    return toggleMutation;
 }
 // ============================================================================
 // GROUP DEPT DESSG MAPPING
 // ============================================================================
 export function useGroupDeptDessgMapping(searchParams?: ApiSearchparams) {
-    return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING, searchParams ?? {}],
-        queryFn: () => getGroupDeptDessgMappingList(searchParams),
-        staleTime: 0
-    });
-}
-export function useSaveGroupDeptDessgMapping() {
     const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: (data: GroupDeptDessgMappingInput) => saveGroupDeptDessgMapping(data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING, searchParams ?? {}],
+            queryFn: async () => getGroupDeptDessgMappingList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
             });
-        }
-    });
-}
-export function useGroupDeptDessgMappingCRUD() {
-    const queryClient = useQueryClient();
-    const listQuery = useQuery({
-        queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING],
-        queryFn: () => getGroupDeptDessgMappingList(),
-        staleTime: 1000 * 60 * 5
-    });
-    const saveMutation = useMutation({
-        mutationFn: (data: GroupDeptDessgMappingInput) => saveGroupDeptDessgMapping(data),
-        onSuccess: (response) => {
-            if (response.success) {
-                toast.success(response.message || 'Mapping saved successfully');
+        },
+        saveMutation: useMutation({
+            mutationFn: (data: any) => saveGroupDeptDessgMapping(data),
+            onSuccess: () => {
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
                 });
-            } else {
-                toast.error(response.message || 'Failed to save mapping');
             }
-        },
-        onError: (error: Error) => {
-            toast.error(error.message || 'An error occurred while saving mapping');
-        }
-    });
-    const toggleMutation = useMutation({
-        mutationFn: (id: number) => toggleGroupDeptDessgMapping(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
-            });
-        }
-    });
-    const refetchAll = () => {
-        queryClient.invalidateQueries({
-            queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
-        });
+        }),
+        toggleMutation: useMutation({
+            mutationFn: (id: number) => toggleGroupDeptDessgMapping(id),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.GROUP_DEPT_DESSG_MAPPING]
+                });
+            }
+        })
     };
-    return { listQuery, saveMutation, toggleMutation, refetchAll };
-}
-export function useActivateDeactivateGroupDeptDessgMapping() {
-    const { toggleMutation } = useGroupDeptDessgMappingCRUD();
-    return toggleMutation;
 }

@@ -47,7 +47,8 @@ export default function UpdateMaritalStatusForm({ onSuccess, className = '', sel
         try {
             const payload = {
                 ivrmmmS_Id: data.ivrmmmS_Id,
-                ivrmmmS_MaritalStatus: data.ivrmmmS_MaritalStatus?.trim() || ''
+                ivrmmmS_MaritalStatus: data.ivrmmmS_MaritalStatus?.trim() || '',
+                ivrmmmS_ActiveFlag: true
             };
             const response = await addOrUpdateMasterMaritalStatus(payload);
 

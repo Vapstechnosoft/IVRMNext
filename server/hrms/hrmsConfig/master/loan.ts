@@ -11,16 +11,12 @@ export async function getMasterLoan(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterLoan(data: any) {
-    const url = '/api/MasterLoanFacade/AddOrUpdateMasterLoan';
+    const url = '/api/MasterLoanFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterLoan(id: number) {
-    const url = `/api/MasterLoanFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterLoanFacade/toggle/${id}`;
     return await api.put('hrms', url);
 }
 
-export async function deleteMasterLoan(id: number) {
-    const url = `/api/MasterLoanFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
-}

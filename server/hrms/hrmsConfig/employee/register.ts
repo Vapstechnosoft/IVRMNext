@@ -24,7 +24,12 @@ import type {
     IReligionDropdown,
     ISpecializationDropdown,
     IStateDropdown,
-    ILeaveReasonDropdown
+    ILeaveReasonDropdown,
+    IBloodGroupDropdown,
+    ISalaryTypeDropdown,
+    ITeachingTypeDropdown,
+    IScoreTypeDropdown,
+    IContactTypeDropdown
 } from '@/types/hrms/hrms-config/employee';
 
 // ==================== Dropdown Endpoints ====================
@@ -191,18 +196,61 @@ export async function getLeaveReasonDropdown() {
     return await api.get<ILeaveReasonDropdown[]>('hrms', url);
 }
 
+/**
+ * Get Blood Group List for dropdowns
+ * GET /api/MasterDropDown/GetBloodGroupList
+ */
+export async function getBloodGroupDropdown() {
+    const url = '/api/MasterDropDown/GetBloodGroupList';
+    return await api.get<IBloodGroupDropdown[]>('hrms', url);
+}
+
+/**
+ * Get Salary Type List for dropdowns
+ * GET /api/MasterDropDown/GetSalaryTypeList
+ */
+export async function getSalaryTypeDropdown() {
+    const url = '/api/MasterDropDown/GetSalaryTypeList';
+    return await api.get<ISalaryTypeDropdown[]>('hrms', url);
+}
+
+/**
+ * Get Teaching Type List for dropdowns
+ * GET /api/MasterDropDown/GetTeachingTypeList
+ */
+export async function getTeachingTypeDropdown() {
+    const url = '/api/MasterDropDown/GetTeachingTypeList';
+    return await api.get<ITeachingTypeDropdown[]>('hrms', url);
+}
+
+/**
+ * Get Score Type List for dropdowns (CGPA Or Percentage)
+ * GET /api/MasterDropDown/ScoreTypeList
+ */
+export async function getScoreTypeDropdown() {
+    const url = '/api/MasterDropDown/ScoreTypeList';
+    return await api.get<IScoreTypeDropdown[]>('hrms', url);
+}
+
+/**
+ * Get Contact Type List for dropdowns (Default/Alternate for mobile, email, bank)
+ * GET /api/MasterDropDown/GetContactType
+ */
+export async function getContactTypeDropdown() {
+    const url = '/api/MasterDropDown/GetContactType';
+    return await api.get<IContactTypeDropdown[]>('hrms', url);
+}
+
 // ==================== Employee CRUD Endpoints ====================
 
 /**
  * Get Employee List with search, sort, and pagination
- * GET /api/EmployeeRegistrationNew/employee_list
+ * GET /api/EmployeeRegistration/GetEmployeeDetails
  */
-export async function getEmployeeList(roleId: number, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(
-        searchParams ?? {},
-        'HRME_EmployeeCode,HRME_EmployeeFirstName,HRME_EmployeeLastName,HRME_EmailId,HRME_MobileNo'
-    );
-    const url = `/api/EmployeeRegistrationNew/employee_list?MI_Id=${roleId}&${urlParams}`;
+export async function getEmployeeList(searchParams?: ApiSearchparams) {
+    const searchableColumns = 'hrmE_EmployeeCode,hrmE_EmployeeFirstName,hrmE_EmployeeLastName,hrmE_EmailId,hrmE_MobileNo';
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, searchableColumns);
+    const url = `/api/EmployeeRegistration/GetEmployeeDetails?${urlParams}`;
     return await api.get<IEmployeeList[]>('hrms', url);
 }
 
@@ -216,12 +264,12 @@ export async function getEmployeeById(id: number) {
 }
 
 /**
- * Save or Update Employee
- * POST /api/EmployeeRegistrationNew/SavePersonalDetails
- * Note: Payload will be defined in the form component
+ * Save or Update Employee Personal Details
+ * POST /api/EmployeeRegistration/SavePersonalDetails
+ * Note: This endpoint is used for both Employee Information and Address tabs
  */
 export async function saveEmployee(data: IEmployeeSaveRequest) {
-    const url = '/api/EmployeeRegistrationNew/SavePersonalDetails';
+    const url = '/api/EmployeeRegistration/SavePersonalDetails';
     return await api.post<IEmployeeSaveResponse>('hrms', url, data);
 }
 

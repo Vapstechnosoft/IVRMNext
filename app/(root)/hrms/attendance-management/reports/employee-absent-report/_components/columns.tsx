@@ -1,14 +1,16 @@
 'use client';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { BaseEntity } from '@/lib/localdb';
 import type { ColumnDef } from '@tanstack/react-table';
-export interface EmployeeAbsentReportRow extends BaseEntity {
-    employeeCode: string;
-    employeeName: string;
-    designation: string;
-    totalAbsent: number;
+
+export interface EmployeeAbsentReportRow {
+    user_id?: number;
+    employee_code?: string;
+    designation?: string;
+    total_absent?: number;
+    [key: string]: any;
 }
+
 export const employeeAbsentReportColumns: ColumnDef<EmployeeAbsentReportRow>[] = [
     {
         id: 'select',
@@ -27,30 +29,36 @@ export const employeeAbsentReportColumns: ColumnDef<EmployeeAbsentReportRow>[] =
         size: 24
     },
     {
-        id: 'sl',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+        accessorKey: 'user_id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='font-medium'>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
-        enableSorting: false
+        enableSorting: true,
+        enableHiding: false
     },
     {
-        accessorKey: 'employeeCode',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />
-    },
-    {
-        accessorKey: 'employeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />
+        accessorKey: 'employee_code',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee code' />,
+        cell: ({ row }) => <div>{row.getValue('employee_code')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'designation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
+        cell: ({ row }) => <div>{row.getValue('designation')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
-        accessorKey: 'totalAbsent',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Absent' />
+        accessorKey: 'total_absent',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Absent' />,
+        cell: ({ row }) => <div>{row.getValue('total_absent')}</div>,
+        enableSorting: true,
+        enableHiding: true
     }
 ];

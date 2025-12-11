@@ -9,15 +9,15 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { EmployeeListItem } from '@/types/hrms/employee';
+import type { IEmployeeList } from '@/types/hrms/hrms-config/employee';
 import type { Row } from '@tanstack/react-table';
 import { Edit, MoreHorizontal, Power } from 'lucide-react';
 interface ActionsCellProps {
-    row: Row<EmployeeListItem>;
+    row: Row<IEmployeeList>;
 }
 export function ActionsCell({ row }: ActionsCellProps) {
     const employee = row.original;
-    const { openEditForm, openToggleForm } = useFormContext<EmployeeListItem>();
+    const { openEditForm, openToggleForm } = useFormContext<IEmployeeList>();
     const handleEdit = () => {
         openEditForm(employee);
     };
@@ -41,7 +41,7 @@ export function ActionsCell({ row }: ActionsCellProps) {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleToggle}>
                     <Power className='mr-2 h-4 w-4' />
-                    {employee.HRME_ActiveFlag ? 'Deactivate' : 'Activate'}
+                    {employee.hrmE_ActiveFlag ? 'Deactivate' : 'Activate'}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

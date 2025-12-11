@@ -58,7 +58,8 @@ export default function UpdateCourseForm({ onSuccess, className = '', selectedRo
                 hrmC_QualificationDesc: data.hrmC_QualificationDesc?.trim() || '',
                 hrmC_Order: data.hrmC_Order || 0,
                 hrmC_DefaultQualFag: data.hrmC_DefaultQualFag,
-                hrmC_SpecialisationFlag: data.hrmC_SpecialisationFlag
+                hrmC_SpecialisationFlag: data.hrmC_SpecialisationFlag,
+                hrmC_ActiveFlag: true
             };
             const response = await addOrUpdateMasterCourse(payload);
 

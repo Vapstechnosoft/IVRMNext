@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { employeeLoanFormSchema } from '@/schemas/hrms/employee-loan-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -17,7 +17,7 @@ import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type EmployeeLoanForm = z.infer<typeof employeeLoanFormSchema>;
+type EmployeeLoanForm = z.infer<typeof hrmsTransactionSchemas.employeeLoan.form>;
 interface AddFormProps {
     onloadData: EmployeeLoanOnloadResponse | undefined;
     onSuccess: () => void;
@@ -41,7 +41,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
         watch,
         formState: { errors, isSubmitting }
     } = useForm<EmployeeLoanForm>({
-        resolver: zodResolver(employeeLoanFormSchema),
+        resolver: zodResolver(hrmsTransactionSchemas.employeeLoan.form),
         mode: 'onChange',
         defaultValues: {
             employeeId: 0,

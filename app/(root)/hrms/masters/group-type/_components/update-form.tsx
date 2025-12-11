@@ -53,7 +53,8 @@ export default function UpdateGroupTypeForm({ onSuccess, className = '', selecte
                 hrmgT_Id: data.hrmgT_Id,
                 hrmgT_EmployeeGroupType: data.hrmgT_EmployeeGroupType?.trim() || '',
                 hrmgT_Code: data.hrmgT_Code?.trim() || '',
-                hrmgT_Order: data.hrmgT_Order || 0
+                hrmgT_Order: data.hrmgT_Order || 0,
+                hrmgT_ActiveFlag: true
             };
             const response = await addOrUpdateMasterGroupType(payload);
 

@@ -20,7 +20,10 @@ export default function ReorderGradeForm() {
     const handleOpenDialog = async () => {
         try {
             const orderResponse = await getGradeSetOrder();
-            setOrderedItems(Array.isArray(orderResponse) ? orderResponse : []);
+            // API returns { success, message, data, total, page, page_size }
+            // Extract the data array from the response
+            const grades = Array.isArray(orderResponse?.data) ? orderResponse.data : [];
+            setOrderedItems(grades);
             setIsDialogOpen(true);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to load grades for reordering');

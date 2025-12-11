@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useSaveSalaryUpdation } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { salaryUpdationSchema } from '@/schemas/hrms/salary-updation-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryUpdationOnloadResponse } from '@/types/hrms/salary-updation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -18,7 +18,7 @@ import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof salaryUpdationSchema.addOrUpdate>;
+type FormFields = z.infer<typeof hrmsTransactionSchemas.salaryUpdation.addOrUpdate>;
 interface AddFormProps {
     onloadData: SalaryUpdationOnloadResponse | undefined;
     onSuccess: () => void;
@@ -33,7 +33,7 @@ export default function AddSalaryUpdationForm({ onloadData, onSuccess, className
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(salaryUpdationSchema.addOrUpdate),
+        resolver: zodResolver(hrmsTransactionSchemas.salaryUpdation.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             HRESU_Id: 0,

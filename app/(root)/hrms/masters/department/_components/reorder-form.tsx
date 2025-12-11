@@ -20,7 +20,10 @@ export default function ReorderDepartmentForm() {
     const handleOpenDialog = async () => {
         try {
             const orderResponse = await getDepartmentSetOrder();
-            setOrderedItems(Array.isArray(orderResponse) ? orderResponse : []);
+            // API returns { success, message, data, total, page, page_size }
+            // Extract the data array from the response
+            const departments = Array.isArray(orderResponse?.data) ? orderResponse.data : [];
+            setOrderedItems(departments);
             setIsDialogOpen(true);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to load departments for reordering');

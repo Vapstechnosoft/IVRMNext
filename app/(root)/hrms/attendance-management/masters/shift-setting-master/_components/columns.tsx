@@ -1,96 +1,138 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
+import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IMasterShiftSettingList } from '@/types/hrms/attendance-management/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
-export interface ShiftSetting {
-    id: number;
-    shiftName: string;
-    shiftStartTime: string;
-    shiftEndTime: string;
-    lunchStartTime: string;
-    lunchEndTime: string;
-    totalWorkingHours: string;
-    halfDayWorkingHours: string;
-    lunchHours: string;
-    delayPerShift: string;
-    earlyPerShift: string;
-    isActive: boolean;
-}
-export const shiftSettingColumns: ColumnDef<ShiftSetting>[] = [
+
+export const shiftSettingColumns: ColumnDef<IMasterShiftSettingList>[] = [
     {
-        id: 'serialNumber',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL. NO.' />,
+        accessorKey: 'FOMS_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='font-medium'>{continuousIndex}</div>;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
-        enableSorting: false,
+        enableSorting: true,
         enableHiding: false
     },
     {
-        accessorKey: 'shiftName',
+        accessorKey: 'FOMS_ShiftName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('shiftName')}</div>,
+        cell: ({ row }) => <div>{row.getValue('FOMS_ShiftName')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'shiftStartTime',
+        accessorKey: 'FOMST_IHalfLoginTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Shift Start Time' />,
-        cell: ({ row }) => <div>{row.getValue('shiftStartTime')}</div>,
+        cell: ({ row }) => <div>{row.getValue('FOMST_IHalfLoginTime') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'shiftEndTime',
+        accessorKey: 'FOMST_IIHalfLogoutTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Shift End Time' />,
-        cell: ({ row }) => <div>{row.getValue('shiftEndTime')}</div>,
+        cell: ({ row }) => <div>{row.getValue('FOMST_IIHalfLogoutTime') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'isActive',
+        accessorKey: 'FOMST_IHalfLogoutTime',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Lunch start time' />,
+        cell: ({ row }) => <div>{row.getValue('FOMST_IHalfLogoutTime') || '-'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'FOMST_IIHalfLoginTime',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Lunch End time' />,
+        cell: ({ row }) => <div>{row.getValue('FOMST_IIHalfLoginTime') || '-'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'FOMST_FDWHrMin',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total working hours per shift' />,
+        cell: ({ row }) => <div>{row.getValue('FOMST_FDWHrMin') || '-'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'FOMST_HDWHrMin',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Half day working hours per shift' />,
+        cell: ({ row }) => <div>{row.getValue('FOMST_HDWHrMin') || '-'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'FOMST_LunchHoursDuration',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Lunch Hours' />,
+        cell: ({ row }) => <div>{row.getValue('FOMST_LunchHoursDuration') || '-'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'FOMST_DelayPerShiftHrMin',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Delay per shift' />,
+        cell: ({ row }) => <div>{row.getValue('FOMST_DelayPerShiftHrMin') || '-'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'FOMST_EarlyPerShiftHrMin',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Early per shift' />,
+        cell: ({ row }) => <div>{row.getValue('FOMST_EarlyPerShiftHrMin') || '-'}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'FOMS_ActiveFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
-            const isActive = row.getValue('isActive') as boolean;
-            return <Badge variant={isActive ? 'default' : 'secondary'}>{isActive ? 'Active' : 'Inactive'}</Badge>;
+            const isActive = row.getValue('FOMS_ActiveFlg') as boolean;
+            return <div>{getStatusBadge(isActive ? 'active' : 'inactive')}</div>;
         },
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-start' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
         accessorFn: (row: any) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
-function ActionButtonsCell({ rowData }: { rowData: ShiftSetting }) {
-    const { openEditForm, openDeleteForm } = useFormContext<ShiftSetting>();
+
+function ActionButtonsCell({ rowData }: { rowData: IMasterShiftSettingList }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterShiftSettingList>();
+
     const handleEdit = useCallback(
-        (data: ShiftSetting) => {
+        (data: IMasterShiftSettingList) => {
             openEditForm(data);
         },
         [openEditForm]
     );
-    const handleDelete = useCallback(
-        (data: ShiftSetting) => {
-            openDeleteForm(data);
+
+    const handleToggle = useCallback(
+        (data: IMasterShiftSettingList) => {
+            openToggleForm(data);
         },
-        [openDeleteForm]
+        [openToggleForm]
     );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: true }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onToggle={handleToggle}
+            toggleConditionKey='FOMS_ActiveFlg'
         />
     );
 }

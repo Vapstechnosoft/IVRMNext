@@ -1,226 +1,158 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
-import { FormError } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { useSaveShiftSettingMaster, useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
-import { shiftSettingMasterSchema } from '@/schemas/hrms/attendance-management-schemas';
+import { ShiftTimingFields } from '../../_components/shift-timing-fields';
+import { useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { addOrUpdateShiftSettingMaster } from '@/server/hrms/attendance-management/masters/shift-setting-master';
+import type { IMasterShiftSettingList } from '@/types/hrms/attendance-management/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
-import type { ShiftSetting } from './columns';
-type FormFields = z.infer<typeof shiftSettingMasterSchema.addOrUpdate>;
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.shiftSettingMaster.update>;
+
 interface UpdateShiftSettingMasterFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: ShiftSetting;
+    selectedRow: IMasterShiftSettingList;
 }
+
 export default function UpdateShiftSettingMasterForm({ onSuccess, className = '', selectedRow: row }: UpdateShiftSettingMasterFormProps) {
     const { refetchAll } = useShiftSettingMaster();
-    const { mutate: saveShiftSetting, isPending } = useSaveShiftSettingMaster();
+
     const {
         register,
         handleSubmit,
+        control,
         watch,
+        setValue,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(shiftSettingMasterSchema.addOrUpdate),
+        resolver: zodResolver(hrmsMasterSchemas.shiftSettingMaster.update),
         mode: 'onChange'
     });
+
+    // Pre-fill form with selected row data
     useEffect(() => {
         if (row) {
             reset({
-                shiftName: row.shiftName || '',
-                shiftStartTime: row.shiftStartTime || '09:00',
-                shiftEndTime: row.shiftEndTime || '18:00',
-                lunchStartTime: row.lunchStartTime || '',
-                lunchEndTime: row.lunchEndTime || '',
-                totalWorkingHours: row.totalWorkingHours || '08:00',
-                halfDayWorkingHours: row.halfDayWorkingHours || '04:00',
-                lunchHours: row.lunchHours || '',
-                delayPerShift: row.delayPerShift || '',
-                earlyPerShift: row.earlyPerShift || '',
-                isActive: row.isActive ?? true
+                fomsT_Id: row.FOMST_Id,
+                foms_ShiftName: row.FOMS_ShiftName,
+                fomsT_IHalfLoginTime: row.FOMST_IHalfLoginTime, // Shift Start Time
+                fomsT_IIHalfLogoutTime: row.FOMST_IIHalfLogoutTime, // Shift End Time
+                fomsT_IHalfLogoutTime: row.FOMST_IHalfLogoutTime, // Lunch start time
+                fomsT_IIHalfLoginTime: row.FOMST_IIHalfLoginTime, // Lunch End time
+                fomsT_FDWHrMin: row.FOMST_FDWHrMin, // Total working hours per shift
+                fomsT_HDWHrMin: row.FOMST_HDWHrMin, // Half day working hours per shift
+                fomsT_LunchHoursDuration: row.FOMST_LunchHoursDuration, // Lunch Hours
+                fomsT_DelayPerShiftHrMin: row.FOMST_DelayPerShiftHrMin, // Delay per shift
+                fomsT_EarlyPerShiftHrMin: row.FOMST_EarlyPerShiftHrMin // Early per shift
             });
         }
     }, [row, reset]);
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        saveShiftSetting(
-            {
-                id: row.id,
-                shiftName: data.shiftName,
-                shiftStartTime: data.shiftStartTime,
-                shiftEndTime: data.shiftEndTime,
-                lunchStartTime: data.lunchStartTime || '',
-                lunchEndTime: data.lunchEndTime || '',
-                totalWorkingHours: data.totalWorkingHours,
-                halfDayWorkingHours: data.halfDayWorkingHours,
-                lunchHours: data.lunchHours || '',
-                delayPerShift: data.delayPerShift || '',
-                earlyPerShift: data.earlyPerShift || '',
-                isActive: data.isActive ?? true
-            },
-            {
-                onSuccess: () => {
-                    reset();
-                    refetchAll();
-                    onSuccess?.();
-                }
+        try {
+            // Sample payload structure following project architecture
+            // Note: mI_Id is handled by JWT, not included in request body
+            // Map lowercase form field names to uppercase API field names
+            const payload = {
+                FOMST_Id: row.FOMST_Id,
+                FOMS_ShiftName: data.foms_ShiftName?.trim(),
+                FOMST_IHalfLoginTime: data.fomsT_IHalfLoginTime, // Shift Start Time
+                FOMST_IIHalfLogoutTime: data.fomsT_IIHalfLogoutTime, // Shift End Time
+                FOMST_IHalfLogoutTime: data.fomsT_IHalfLogoutTime, // Lunch start time
+                FOMST_IIHalfLoginTime: data.fomsT_IIHalfLoginTime, // Lunch End time
+                FOMST_FDWHrMin: data.fomsT_FDWHrMin, // Total working hours per shift
+                FOMST_HDWHrMin: data.fomsT_HDWHrMin, // Half day working hours per shift
+                FOMST_LunchHoursDuration: data.fomsT_LunchHoursDuration, // Lunch Hours
+                FOMST_DelayPerShiftHrMin: data.fomsT_DelayPerShiftHrMin, // Delay per shift
+                FOMST_EarlyPerShiftHrMin: data.fomsT_EarlyPerShiftHrMin, // Early per shift
+                FOMST_BlockAttendance: '0',
+                FOMST_FixTimings: '0'
+            };
+
+            const response = await addOrUpdateShiftSettingMaster(payload);
+
+            if (response?.success) {
+                toast.success('Shift setting updated successfully!');
+                reset();
+                refetchAll();
+                onSuccess?.();
+            } else {
+                toast.error(response?.message || 'Failed to update shift setting');
             }
-        );
+        } catch (error: any) {
+            toast.error(error?.message || 'Failed to update shift setting');
+        }
     };
+
     const handleReset = () => {
         reset();
     };
+
     return (
         <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='max-w-full space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-4'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Shift Name'
                             required
-                            id='shiftName'
-                            placeholder='Enter Shift Name'
-                            {...register('shiftName')}
-                            error={errors.shiftName?.message}
+                            id='foms_ShiftName'
+                            placeholder='Enter shift name'
+                            maxLength={100}
+                            {...register('foms_ShiftName')}
+                            error={errors.foms_ShiftName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
-                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='shiftStartTime'>
-                                Shift Start Time <span className='text-red-500'>*</span>
-                            </label>
-                            <input
-                                id='shiftStartTime'
-                                type='time'
-                                {...register('shiftStartTime')}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.shiftStartTime ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.shiftStartTime && <FormError>{errors.shiftStartTime.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='shiftEndTime'>
-                                Shift End Time <span className='text-red-500'>*</span>
-                            </label>
-                            <input
-                                id='shiftEndTime'
-                                type='time'
-                                {...register('shiftEndTime')}
-                                min={watch('shiftStartTime') || undefined}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.shiftEndTime ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.shiftEndTime && <FormError>{errors.shiftEndTime.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='totalWorkingHours'>
-                                Total working hours per shift <span className='text-red-500'>*</span>
-                            </label>
-                            <input
-                                id='totalWorkingHours'
-                                type='time'
-                                {...register('totalWorkingHours')}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.totalWorkingHours ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.totalWorkingHours && <FormError>{errors.totalWorkingHours.message}</FormError>}
-                        </div>
-                    </div>
-                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='lunchStartTime'>
-                                Lunch start time
-                            </label>
-                            <input
-                                id='lunchStartTime'
-                                type='time'
-                                {...register('lunchStartTime')}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.lunchStartTime ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.lunchStartTime && <FormError>{errors.lunchStartTime.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='lunchEndTime'>
-                                Lunch End time
-                            </label>
-                            <input
-                                id='lunchEndTime'
-                                type='time'
-                                {...register('lunchEndTime')}
-                                min={watch('lunchStartTime') || undefined}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.lunchEndTime ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.lunchEndTime && <FormError>{errors.lunchEndTime.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='lunchHours'>
-                                Lunch Hours
-                            </label>
-                            <input
-                                id='lunchHours'
-                                type='time'
-                                {...register('lunchHours')}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.lunchHours ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.lunchHours && <FormError>{errors.lunchHours.message}</FormError>}
-                        </div>
-                    </div>
-                    <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='earlyPerShift'>
-                                Early per shift
-                            </label>
-                            <input
-                                id='earlyPerShift'
-                                type='time'
-                                {...register('earlyPerShift')}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.earlyPerShift ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.earlyPerShift && <FormError>{errors.earlyPerShift.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='delayPerShift'>
-                                Delay per shift
-                            </label>
-                            <input
-                                id='delayPerShift'
-                                type='time'
-                                {...register('delayPerShift')}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.delayPerShift ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.delayPerShift && <FormError>{errors.delayPerShift.message}</FormError>}
-                        </div>
-                        <div className='space-y-2'>
-                            <label className='font-medium text-sm' htmlFor='halfDayWorkingHours'>
-                                Half day working hours per shift <span className='text-red-500'>*</span>
-                            </label>
-                            <input
-                                id='halfDayWorkingHours'
-                                type='time'
-                                {...register('halfDayWorkingHours')}
-                                className={`w-full rounded-md border px-3 py-2 ${errors.halfDayWorkingHours ? 'border-red-500' : 'border-input'}`}
-                            />
-                            {errors.halfDayWorkingHours && <FormError>{errors.halfDayWorkingHours.message}</FormError>}
-                        </div>
-                    </div>
+
+                    {/* Shift Timing Fields */}
+                    <ShiftTimingFields
+                        control={control}
+                        errors={errors}
+                        watch={watch}
+                        setValue={setValue}
+                        fieldNames={{
+                            shiftStartTime: 'fomsT_IHalfLoginTime',
+                            shiftEndTime: 'fomsT_IIHalfLogoutTime',
+                            totalWorkingHours: 'fomsT_FDWHrMin',
+                            lunchStartTime: 'fomsT_IHalfLogoutTime',
+                            lunchEndTime: 'fomsT_IIHalfLoginTime',
+                            lunchHours: 'fomsT_LunchHoursDuration',
+                            earlyPerShift: 'fomsT_EarlyPerShiftHrMin',
+                            delayPerShift: 'fomsT_DelayPerShiftHrMin',
+                            halfDayWorkingHours: 'fomsT_HDWHrMin'
+                        }}
+                    />
+
+                    {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
+
+                {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
                         onClick={handleReset}
-                        disabled={isSubmitting || isPending}
+                        disabled={isSubmitting}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting || isPending}
+                        disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting || isPending}
+                        isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />

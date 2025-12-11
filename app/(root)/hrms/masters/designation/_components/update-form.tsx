@@ -58,7 +58,8 @@ export default function UpdateDesignationForm({ onSuccess, className = '', selec
                 hrmdeS_BasicAmount: data.hrmdeS_BasicAmount || 0,
                 hrmdeS_SanctionedSeats: data.hrmdeS_SanctionedSeats || 0,
                 hrmdeS_DisplaySanctionedSeatsFlag: data.hrmdeS_DisplaySanctionedSeatsFlag || false,
-                hrmdeS_Order: data.hrmdeS_Order || 0
+                hrmdeS_Order: data.hrmdeS_Order || 0,
+                hrmdeS_ActiveFlag: true
             };
             const response = await addOrUpdateMasterDesignation(payload);
 
