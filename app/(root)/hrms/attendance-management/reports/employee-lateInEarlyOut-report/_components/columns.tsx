@@ -10,7 +10,9 @@ const formatDate = (date: unknown): string => {
     return format(new Date(date), 'dd-MM-yyyy');
 };
 
-export interface LIEORow {
+import type { BaseEntity } from '@/lib/localdb';
+
+export interface LIEORow extends BaseEntity {
     user_id?: number;
     employee_name?: string;
     employee_code?: string;
@@ -19,6 +21,11 @@ export interface LIEORow {
     date?: string;
     late_by?: string;
     early_out?: string;
+    type?: string;
+    employeeCode?: string;
+    employeeName?: string;
+    lateBy?: string;
+    earlyOut?: string;
     [key: string]: any;
 }
 

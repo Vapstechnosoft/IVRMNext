@@ -37,7 +37,7 @@ import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { employeeRegisterSchemas, type qualificationDetailSchema } from '@/schemas/hrms/employee-register-schemas';
 import type { IEmployeeList } from '@/types/hrms/hrms-config/employee';
-import type { SavePersonalDetailsRequest } from '@/types/hrms/employee-register';
+import type { SavePersonalDetailsApiRequest } from '@/types/hrms/employee-register';
 import type {
     IBankDropdown,
     IBloodGroupDropdown,
@@ -690,11 +690,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     });
 
     // Map form data to API format - use helper functions
-    const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsRequest => {
+    const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
         return mapFormDataToApiFormat(data, savedEmployeeId || 0, selectedPhoto);
     };
 
-    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsRequest => {
+    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
         return mapFormDataToApiFormatWithoutAddress(data, savedEmployeeId || 0, selectedPhoto);
     };
 
@@ -757,7 +757,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     return;
                 }
                 const payload = mapFormDataToApiFormatLocal(data);
-                payload.HRME_Id = savedEmployeeId;
+                payload.hrmE_Id = savedEmployeeId;
                 savePersonalDetails(payload, {
                     onSuccess: () => {
                         toast.success('Address details saved successfully!');
@@ -894,7 +894,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     return;
                 }
                 const payload = mapFormDataToApiFormatLocal(data);
-                payload.HRME_Id = savedEmployeeId;
+                payload.hrmE_Id = savedEmployeeId;
                 saveMedicalDetails(payload, {
                     onSuccess: () => {
                         toast.success('Medical details saved successfully!');
@@ -912,7 +912,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     return;
                 }
                 const payload = mapFormDataToApiFormatLocal(data);
-                payload.HRME_Id = savedEmployeeId;
+                payload.hrmE_Id = savedEmployeeId;
                 savePersonalDetails(payload, {
                     onSuccess: () => {
                         toast.success('Other details saved successfully!');

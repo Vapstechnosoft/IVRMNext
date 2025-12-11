@@ -167,7 +167,7 @@ export default function UpdateEarningsDeductionsForm({
                             placeholder='Enter earning/deduction name'
                             maxLength={EARNING_DEDUCTION_VALIDATION.HRMED_Name.maxLength?.value}
                             error={errors.HRMED_Name?.message}
-                            defaultValue={row.HRMED_Name}
+                            defaultValue={row.hrmeD_Name}
                             {...register('HRMED_Name', EARNING_DEDUCTION_VALIDATION.HRMED_Name)}
                         />
                     </div>
@@ -201,7 +201,7 @@ export default function UpdateEarningsDeductionsForm({
                                                 })
                                                 .map((item) => {
                                                     const key = (item.key || item.value)?.toString().trim();
-                                                    const value = item.value || item.label || item.name || String(key);
+                                                    const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
@@ -247,7 +247,7 @@ export default function UpdateEarningsDeductionsForm({
                                                 })
                                                 .map((item) => {
                                                     const key = (item.key || item.value)?.toString().trim();
-                                                    const value = item.value || item.label || item.name || String(key);
+                                                    const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
@@ -293,7 +293,7 @@ export default function UpdateEarningsDeductionsForm({
                                                 })
                                                 .map((item) => {
                                                     const key = (item.key || item.value)?.toString().trim();
-                                                    const value = item.value || item.label || item.name || String(key);
+                                                    const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
@@ -344,7 +344,7 @@ export default function UpdateEarningsDeductionsForm({
                                                 })
                                                 .map((item) => {
                                                     const key = (item.key || item.value)?.toString().trim();
-                                                    const value = item.value || item.label || item.name || String(key);
+                                                    const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
                                                         <SafeSelectItem key={key} value={key}>
@@ -369,7 +369,7 @@ export default function UpdateEarningsDeductionsForm({
                             placeholder={`Enter ${calculationType === 'Percentage' ? 'percentage' : 'amount'}`}
                             maxLength={calculationType === 'Percentage' ? 5 : undefined}
                             error={errors.HRMED_AmountPercent?.message}
-                            defaultValue={row.HRMED_AmountPercent}
+                            defaultValue={row.hrmeD_AmountPercent}
                             {...register('HRMED_AmountPercent', {
                                 required: EARNING_DEDUCTION_VALIDATION.HRMED_AmountPercent.required,
                                 validate: (value) => {
@@ -403,7 +403,7 @@ export default function UpdateEarningsDeductionsForm({
                         <Input
                             type='number'
                             id='HRMED_Order'
-                            defaultValue={row.HRMED_Order}
+                            defaultValue={row.hrmeD_Order}
                             {...register('HRMED_Order', {
                                 valueAsNumber: true
                             })}
@@ -415,7 +415,7 @@ export default function UpdateEarningsDeductionsForm({
                             type='checkbox'
                             id='HRMED_ReviseFlg'
                             className='h-4 w-4'
-                            defaultChecked={row.HRMED_ReviseFlg}
+                            defaultChecked={row.hrmeD_ReviseFlg}
                             {...register('HRMED_ReviseFlg')}
                         />
                         <Label htmlFor='HRMED_ReviseFlg' className='cursor-pointer'>

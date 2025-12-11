@@ -64,9 +64,9 @@ export default function AddEmployeeInOutReportForm({
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
             const payload = {
-                type: data.type.map(Number),
-                department: data.department.map(Number),
-                designation: data.designation.map(Number),
+                type: (data.type || []).map(Number),
+                department: (data.department || []).map(Number),
+                designation: (data.designation || []).map(Number),
                 allOrIndividual: data.allOrIndividual,
                 employeeCode: data.allOrIndividual === 'Individual' && data.codeOrName === 'Code' ? data.query : undefined,
                 employeeName: data.allOrIndividual === 'Individual' && data.codeOrName === 'Name' ? data.query : undefined,

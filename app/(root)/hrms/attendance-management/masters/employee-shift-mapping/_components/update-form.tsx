@@ -82,20 +82,20 @@ export default function UpdateEmployeeShiftMappingForm({
     useEffect(() => {
         if (row) {
             reset({
-                foest_Id: row.foest_Id,
-                foest_ShiftName: row.foest_ShiftName || '',
-                foest_Employee: row.foest_Employee || '',
-                foest_HolidayType: row.foest_HolidayType || '',
-                foest_ApplicableDate: row.foest_ApplicableDate || '',
-                foest_TotalWork: row.foest_TotalWork || '',
-                foest_HalfDayWork: row.foest_HalfDayWork || '',
-                foest_MorningLogin: row.foest_MorningLogin || '',
-                foest_MorningLogout: row.foest_MorningLogout || '',
-                foest_AfternoonLogin: row.foest_AfternoonLogin || '',
-                foest_AfternoonLogout: row.foest_AfternoonLogout || '',
-                foest_DelayShift: row.foest_DelayShift || '',
-                foest_EarlyShift: row.foest_EarlyShift || '',
-                foest_LunchHour: row.foest_LunchHour || ''
+                foest_Id: row.FOEST_Id || 0,
+                foest_ShiftName: row.ShiftName || '',
+                foest_Employee: row.EmployeeName || '',
+                foest_HolidayType: row.DayType || '',
+                foest_ApplicableDate: row.Date || '',
+                foest_TotalWork: row.FDWHrMin || '',
+                foest_HalfDayWork: row.HDWHrMin || '',
+                foest_MorningLogin: row.IHalfLogin || '',
+                foest_MorningLogout: row.IHalfLogout || '',
+                foest_AfternoonLogin: row.IIHalfLogin || '',
+                foest_AfternoonLogout: row.IIHalfLogout || '',
+                foest_DelayShift: row.DelayPerShift || '',
+                foest_EarlyShift: row.EarlyPerShift || '',
+                foest_LunchHour: row.LunchDuration || ''
             });
         }
     }, [row, reset]);
@@ -315,7 +315,7 @@ export default function UpdateEmployeeShiftMappingForm({
                 foest_DelayShift: data.foest_DelayShift || '00:00',
                 foest_EarlyShift: data.foest_EarlyShift || '00:00',
                 foest_LunchHour: data.foest_LunchHour || '00:00',
-                foest_ActiveFlag: row.foest_ActiveFlag, // Keep existing ActiveFlag
+                foest_ActiveFlag: true, // Default to active
                 // Additional fields for API processing
                 fomS_Id: fomS_Id,
                 employeeIds: employeeIds,
@@ -340,20 +340,20 @@ export default function UpdateEmployeeShiftMappingForm({
     const handleReset = () => {
         if (row) {
             reset({
-                foest_Id: row.foest_Id,
-                foest_ShiftName: row.foest_ShiftName || '',
-                foest_Employee: row.foest_Employee || '',
-                foest_HolidayType: row.foest_HolidayType || '',
-                foest_ApplicableDate: row.foest_ApplicableDate || '',
-                foest_TotalWork: row.foest_TotalWork || '',
-                foest_HalfDayWork: row.foest_HalfDayWork || '',
-                foest_MorningLogin: row.foest_MorningLogin || '',
-                foest_MorningLogout: row.foest_MorningLogout || '',
-                foest_AfternoonLogin: row.foest_AfternoonLogin || '',
-                foest_AfternoonLogout: row.foest_AfternoonLogout || '',
-                foest_DelayShift: row.foest_DelayShift || '',
-                foest_EarlyShift: row.foest_EarlyShift || '',
-                foest_LunchHour: row.foest_LunchHour || ''
+                foest_Id: row.FOEST_Id || 0,
+                foest_ShiftName: row.ShiftName || '',
+                foest_Employee: row.EmployeeName || '',
+                foest_HolidayType: row.DayType || '',
+                foest_ApplicableDate: row.Date || '',
+                foest_TotalWork: row.FDWHrMin || '',
+                foest_HalfDayWork: row.HDWHrMin || '',
+                foest_MorningLogin: row.IHalfLogin || '',
+                foest_MorningLogout: row.IHalfLogout || '',
+                foest_AfternoonLogin: row.IIHalfLogin || '',
+                foest_AfternoonLogout: row.IIHalfLogout || '',
+                foest_DelayShift: row.DelayPerShift || '',
+                foest_EarlyShift: row.EarlyPerShift || '',
+                foest_LunchHour: row.LunchDuration || ''
             });
         }
     };

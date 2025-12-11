@@ -130,8 +130,6 @@ export function mapFormDataToApiFormat(data: FormFields, employeeId = 0, selecte
         hrmE_ExcPunch: data.punchRelaxation || false,
         hrmE_RetiredFlg: data.stopPension || false,
         hrmE_PensionStoppedDate: data.dateOfStopPension ? new Date(data.dateOfStopPension).toISOString() : null,
-        hrmE_FPFNotApplicableFlg: !data.ppf,
-        hrmE_EPFNotApplicableFlg: !data.epf,
         hrmE_AllowSoftwareAccessFlg: false,
         // Other tab objects - send as null when saving personal details
         qualificationDetails: null,

@@ -10,7 +10,9 @@ const formatDate = (date: unknown): string => {
     return format(new Date(date), 'dd-MM-yyyy');
 };
 
-export interface InOutRow {
+import type { BaseEntity } from '@/lib/localdb';
+
+export interface InOutRow extends BaseEntity {
     user_id?: number;
     user_name?: string;
     employee_code?: string;
@@ -20,6 +22,11 @@ export interface InOutRow {
     branch?: string;
     department?: string;
     designation?: string;
+    type?: string;
+    employeeCode?: string;
+    employeeName?: string;
+    timeIn?: string;
+    timeOut?: string;
     [key: string]: any;
 }
 

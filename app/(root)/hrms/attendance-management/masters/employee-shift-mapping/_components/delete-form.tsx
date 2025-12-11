@@ -57,11 +57,11 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
         <AdaptiveDialog title='Delete Employee Shift Mapping' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('FOEST_Id')} defaultValue={rowData.FOEST_Id || 0} />
+                    <input type='hidden' {...register('foest_Id')} defaultValue={rowData.FOEST_Id || 0} />
                     <p>
                         Are you sure you want to delete shift mapping for <strong>{rowData.EmployeeName || rowData.ShiftName || 'this record'}</strong>?
                     </p>
-                    <FormError>{errors.FOEST_Id?.message}</FormError>
+                    <FormError>{errors.foest_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
