@@ -10,14 +10,14 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+    useFeeConcessionCategoryDropdowndata,
     useFeeConcessionCategoryFeeConcessionDropdowndata,
     useFeeConcessionClassDropdowndata,
     useFeeConcessionConfigSet,
     useFeeConcessionHeadDetailsList,
     useFeeConcessionStudentList,
     useFeeConcessionTermDropdowndata,
-    useconcessionacademicyerdropdowndatafee,
-    useopeningCategorydropdowndatafee
+    useconcessionacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
 import { saveFeeHead } from '@/server/fees/trasactions/FeeConcession';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -75,14 +75,14 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
 
     const { data: configSetData } = useFeeConcessionConfigSet(Number(academicYearId || 0));
     const configSettings = configSetData?.data?.[0];
-    const groupOrTermFlg = configSettings?.fmC_GroupOrTermFlg || 'G';
+    const groupOrTermFlg = configSettings?.fmC_GroupOrTermFlg;
     const enableStaffTrans = configSettings?.fmC_EableStaffTrans === 1;
     const enableOtherStudentTrans = configSettings?.fmC_EableOtherStudentTrans === 1;
 
     const { data: academicYears, isLoading: loadingAY } = useconcessionacademicyerdropdowndatafee(MI_ID);
-    const { data: terms, isLoading: loadingTerms } = useFeeConcessionTermDropdowndata(groupOrTermFlg, Number(academicYearId || 0));
+    const { data: terms, isLoading: loadingTerms } = useFeeConcessionTermDropdowndata(String(groupOrTermFlg), Number(academicYearId || 0));
     const { data: classes, isLoading: loadingClasses } = useFeeConcessionClassDropdowndata(MI_ID);
-    const { data: categories, isLoading: loadingCategories } = useopeningCategorydropdowndatafee();
+    const { data: categories, isLoading: loadingCategories } = useFeeConcessionCategoryDropdowndata(MI_ID);
     const { data: feeConcessionCategories, isLoading: loadingfeeConcessionCategories } =
         useFeeConcessionCategoryFeeConcessionDropdowndata();
 
@@ -124,11 +124,6 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
             }));
             setStudents(mapped);
             setStudentSearch('');
-            if (mapped.length > 0) {
-                setTimeout(() => {
-                    setStudents((prev) => prev.map((s, i) => ({ ...s, checked: i === 0 })));
-                }, 0);
-            }
         } else {
             setStudents([]);
         }
@@ -142,42 +137,38 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
     // FIXED: Stable key to prevent infinite re-renders
     const termIdsKey = termIds.join(',');
 
-    // Convert to proper format for API (axios will repeat fmgIds automatically)
-    const termIdsForApi: number | number[] =
-        termIds.length === 0 ? 0 : termIds.length === 1 ? Number(termIds[0]) : termIds.map((id) => Number(id));
+    const selectedTermIds: number[] = Array.from(new Set(termIds.map((id) => Number(id)).filter((id) => id > 0)));
 
     const headQuery = useFeeConcessionHeadDetailsList(
         Number(academicYearId || 0),
         selectedAmsT_Id,
-        termIdsForApi as any, // axios handles number[] correctly → fmgIds=142&fmgIds=140
-        groupOrTermFlg,
+        selectedTermIds,
+        String(groupOrTermFlg),
         apiSearchParams
     );
 
-    // FIXED: Use stable primitive `termIdsKey` in deps → no infinite loop
     useEffect(() => {
         if (shouldShowHeads && headQuery.data?.data) {
-            setHeads(
-                headQuery.data.data.map((h: any, i: number) => ({
-                    slno: i + 1,
-                    fmH_Id: h.fmH_Id,
-                    fmG_Id: h.fmG_Id || 0,
-                    ftI_Id: h.ftI_Id || 0,
-                    fmH_FeeName: h.fmH_FeeName,
-                    ftI_Name: h.ftI_Name || 'Yearly',
-                    fmA_Amount: h.fmA_Amount || 0,
-                    type: '' as 'Amount' | 'Percentage' | '',
-                    concessionValue: 0,
-                    remarks: '',
-                    checked: true
-                }))
-            );
+            const mappedHeads = headQuery.data.data.map((h: any, i: number) => ({
+                slno: i + 1,
+                fmH_Id: h.fmH_Id,
+                fmG_Id: h.fmG_Id || 0,
+                ftI_Id: h.ftI_Id || 0,
+                fmH_FeeName: h.fmH_FeeName,
+                ftI_Name: h.ftI_Name || 'Yearly',
+                fmA_Amount: h.fmA_Amount || 0,
+                type: '' as 'Amount' | 'Percentage' | '',
+                concessionValue: 0,
+                remarks: '',
+                checked: false
+            }));
+
+            setHeads(mappedHeads);
             setHeadSearch('');
         } else {
             setHeads([]);
         }
     }, [headQuery.data, shouldShowHeads, termIdsKey, groupOrTermFlg]);
-
     useEffect(() => {
         setStudents([]);
         setHeads([]);
@@ -238,16 +229,22 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
     ];
 
     const headColumns: ColumnDef<HeadRow>[] = [
-        { accessorKey: 'slno', header: 'S.No', size: 70, cell: ({ row }) => <div className='text-center'>{row.original.slno}</div> },
+        {
+            accessorKey: 'slno',
+            header: 'S.No',
+            size: 70,
+            cell: ({ row }) => <div className='text-center'>{row.original.slno}</div>
+        },
         {
             id: 'select',
             header: () => <></>,
             cell: ({ row }) => (
                 <Checkbox
                     checked={row.original.checked}
-                    onCheckedChange={(v) =>
-                        setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, checked: !!v } : h)))
-                    }
+                    onCheckedChange={(checked) => {
+                        // Use row.index — guaranteed unique per table render
+                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, checked: !!checked } : item)));
+                    }}
                 />
             ),
             size: 60
@@ -260,12 +257,14 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
             size: 160,
             cell: ({ row }) => (
                 <Select
-                    value={row.original.type}
-                    onValueChange={(value) =>
+                    value={row.original.type || ''}
+                    onValueChange={(value) => {
                         setHeads((prev) =>
-                            prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, type: value as any, concessionValue: 0 } : h))
-                        )
-                    }>
+                            prev.map((item, idx) =>
+                                idx === row.index ? { ...item, type: value as 'Amount' | 'Percentage', concessionValue: 0 } : item
+                            )
+                        );
+                    }}>
                     <SelectTrigger className='h-9'>
                         <SelectValue placeholder='Select' />
                     </SelectTrigger>
@@ -291,12 +290,14 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                     type='number'
                     min='0'
                     max={row.original.type === 'Percentage' ? 100 : undefined}
-                    placeholder={row.original.type === 'Percentage' ? '0-100' : 'Amount'}
+                    placeholder={row.original.type === 'Percentage' ? '0-100' : '0'}
                     className='text-right'
-                    value={row.original.concessionValue || ''}
+                    value={row.original.concessionValue ?? ''}
                     onChange={(e) => {
-                        const val = Number(e.target.value) || 0;
-                        setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, concessionValue: val } : h)));
+                        const inputVal = e.target.value;
+                        const val = inputVal === '' ? 0 : Number(inputVal);
+
+                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: val } : item)));
                     }}
                 />
             )
@@ -308,10 +309,10 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
             cell: ({ row }) => (
                 <Input
                     placeholder='Optional'
-                    value={row.original.remarks}
-                    onChange={(e) =>
-                        setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, remarks: e.target.value } : h)))
-                    }
+                    value={row.original.remarks || ''}
+                    onChange={(e) => {
+                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, remarks: e.target.value } : item)));
+                    }}
                 />
             )
         }
@@ -426,7 +427,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                             <SelectTrigger className='h-12'>
-                                                <SelectValue placeholder='Select Class' />
+                                                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {classes?.data?.map((cls: any) => (
@@ -452,12 +453,12 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                             <SelectTrigger className='h-12'>
-                                                <SelectValue placeholder='Select Category' />
+                                                <SelectValue placeholder={loadingCategories ? 'Loading...' : 'Select Category'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {categories?.data?.map((cat: any) => (
                                                     <SelectItem key={cat.fmcC_Id} value={String(cat.fmcC_Id)}>
-                                                        {cat.fmcC_ClassCategoryName}
+                                                        {cat.fmcC_ConcessionName}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -478,7 +479,9 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                             <SelectTrigger className='h-12'>
-                                                <SelectValue placeholder='Select Category' />
+                                                <SelectValue
+                                                    placeholder={loadingfeeConcessionCategories ? 'Loading...' : 'Select Category'}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {feeConcessionCategories?.data?.map((cat: any) => (
@@ -528,7 +531,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                             }
                                             onValueChange={field.onChange}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Terms'
+                                            placeholder={loadingTerms ? 'Loading...' : 'Select Terms'}
                                             className='h-12'
                                         />
                                     )}

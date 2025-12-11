@@ -67,8 +67,26 @@ export async function deleteFeeConcession(fsC_Id: number) {
     return await api.delete<any>('fees', url);
 }
 
-export async function getConcessionHeadDetailsList(asmaY_Id: number, amsT_Id: number, fmT_Id: number, configSet: string) {
-    const url = `FeeConcessionFacade/head-details?asmayId=${asmaY_Id || 0}&amstId=${amsT_Id || 0}&fmgIds=${fmT_Id}&configSet=${configSet || 0}`;
+export async function getConcessionHeadDetailsList(
+    asmaY_Id: number,
+    amsT_Id: number,
+    fmT_Id: number[], // now always array
+    configSet: string
+) {
+    const params = new URLSearchParams();
+
+    params.append('asmayId', String(asmaY_Id || 0));
+    params.append('amstId', String(amsT_Id || 0));
+    params.append('configSet', configSet || '');
+
+    fmT_Id.forEach((id) => {
+        if (id > 0) {
+            params.append('fmgIds', String(id));
+        }
+    });
+
+    const url = `FeeConcessionFacade/head-details?${params.toString()}`;
+
     return await api.get<IFeeConcessionHeadList[]>('fees', url);
 }
 
