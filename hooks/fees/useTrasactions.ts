@@ -14,6 +14,7 @@ import {
     getConcessionStudentConcessionGrid,
     getConcessionStudentList,
     getConcessionTermDropdownData,
+    getFeeConcessionEdit,
     getFeeConcessionOthersList,
     getFeeConcessionStaffList,
     getFeesCommonSettingConfigSet
