@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,7 +12,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CalendarIcon, RotateCcw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Checkbox } from '@/components/ui/checkbox';
@@ -59,20 +59,13 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const {
         handleSubmit,
         reset,
-        formState: { isSubmitting }
+        control,
+        formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feesStudentTransactionSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            asmaY_Id: 231,
-            amst_Id: 0,
-            feeGroupIds: [],
-            paymentRows: [],
-            gridRows: [],
-            payModeType: 'Single',
-            amountCheck: false,
-            showReceiptNo: false,
-            rebateFlag: false
+            asmaY_Id: undefined
         }
     });
 
@@ -115,7 +108,6 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const [rebateAmount, setRebateAmount] = useState<{
         [key: number]: string;
     }>({});
-    const [summary, setSummary] = useState<any | null>(null);
     const [bankDetails, setBankDetails] = useState<any[]>([]);
     const [chequeNo, setChequeNo] = useState<{
         [key: number]: string;
@@ -127,7 +119,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const [filterType, setFilterType] = useState('regular');
     const [payType, setPayType] = useState<string>('Bank');
     const [modeType, setModeType] = useState<string>('Single');
-    const [checkPayType, setCheckPayType] = useState<string[]>([]);
+    const [checkPayType, setCheckPayType] = useState<string[]>(['Bank']);
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
 
     const [left, setLeft] = useState(false);
@@ -140,7 +132,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const [sms, setSms] = useState(false);
     const [email, setEmail] = useState(false);
     const [openFeeDetails, setOpenFeeDetails] = useState(false);
-
+    const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
 
     const filterOptions = [
@@ -167,6 +159,10 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         // setFeeHeads([]);
         setBankDetails(payDetails);
     }, [selectedAsmayId, selectedclassId, selectedSectionId]);
+
+    useEffect(() => {
+        if (!amountCheck) setselectedTerm([]);
+    }, [amountCheck]);
 
     const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(classs);
 
@@ -295,16 +291,73 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         setSelectedHeads(newState);
     };
 
-    const onSubmit = async () => {
-        toast.success('Fee Transaction Saved Successfully!');
+    const handleTermChange = (newSelectedValues: string[]) => {
+        const isSelectAll = newSelectedValues.length === terms.length || newSelectedValues.length === 0;
+
+        if (isSelectAll) {
+            applySelection(newSelectedValues);
+            return;
+        }
+
+        const newlySelected = newSelectedValues.map(Number);
+        const previouslySelected = selectedTerm.map(Number);
+
+        const orderedTerms = terms;
+
+        const clickedId =
+            newlySelected.find((id) => !previouslySelected.includes(id)) ?? previouslySelected.find((id) => !newlySelected.includes(id));
+
+        if (clickedId == null) {
+            applySelection(newSelectedValues);
+            return;
+        }
+
+        const clickedIndex = orderedTerms.findIndex((t) => t.fmT_Id === clickedId);
+
+        const isChecking = newlySelected.includes(clickedId);
+        const isUnchecking = !isChecking;
+
+        if (isChecking) {
+            for (let i = 0; i < clickedIndex; i++) {
+                const above = orderedTerms[i];
+
+                const isEnabled = above.disablepaisterms === false || above.disablepaisterms === undefined;
+
+                if (!isEnabled) continue;
+
+                const isAboveSelected = newlySelected.includes(above.fmT_Id);
+
+                if (!isAboveSelected) {
+                    toast.warning('You have to select Terms in Order');
+                    return;
+                }
+            }
+        }
+
+        if (isUnchecking) {
+            for (let i = clickedIndex + 1; i < orderedTerms.length; i++) {
+                const below = orderedTerms[i];
+
+                const isBelowSelected = previouslySelected.includes(below.fmT_Id);
+
+                if (isBelowSelected) {
+                    toast.warning('You cannot unselect,because you have selected next Term');
+                    return;
+                }
+            }
+        }
+
+        applySelection(newSelectedValues);
     };
 
-    const handleReset = () => {
-        reset();
-        setStudents([]);
-        // setTerms([]);
-        // setFeeHeads([]);
-        // setSummary(null);
+    const applySelection = (selectedValues: string[]) => {
+        setselectedTerm(selectedValues);
+
+        const updated = terms.map((ex) => ({
+            ...ex,
+            checked: selectedValues.includes(ex.fmT_Id.toString())
+        }));
+        setTerms(updated);
     };
 
     const handleCheckboxChange = (checked: boolean, type: 'left' | 'deactive' | 'class' | 'section') => {
@@ -314,6 +367,9 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
             setDeative(checked);
         } else if (type === 'class') {
             setClass(checked);
+            if (!checked) {
+                setSection(false);
+            }
         } else if (type === 'section') {
             setSection(checked);
             if (checked) {
@@ -322,6 +378,25 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 setClass(false);
             }
         }
+    };
+
+    const onSubmit = async () => {
+        toast.success('Fee Transaction Saved Successfully!');
+        onSuccess?.();
+    };
+
+    const handleReset = () => {
+        reset();
+        setSelectedAsmayId(0);
+        setStudentSearch('');
+        setStudents([]);
+        setTerms([]);
+        setselectedTerm([]);
+        setLeft(false);
+        setClass(false);
+        setSection(false);
+        setDeative(false);
+        setFilterType('regular');
     };
 
     return (
@@ -411,9 +486,26 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
                                 <InputText
                                     id='Chal_no'
+                                    value={challenSearch}
+                                    onChange={(e) => setChallenSearch(e.target.value)}
                                     placeholder='Enter Challan No'
                                     className='flex transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
+                            </div>
+                        )}
+                        {challenSearch !== '' && (
+                            <div className='flex justify-end gap-3 pt-4'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    className='flex items-center gap-2'
+                                    onClick={() => setChallenSearch('')}>
+                                    <RotateCcw className='h-4 w-4' /> Clear
+                                </Button>
+
+                                <Button>
+                                    <Save className='mr-2 h-4 w-4' /> Search
+                                </Button>
                             </div>
                         )}
                     </div>
@@ -421,70 +513,134 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                         {/* Academic Year */}
                         <div className='mb-4 space-y-2'>
                             <div className='flex w-full items-center justify-between gap-4'>
-                                <Label className='whitespace-nowrap font-semibold'>
+                                <Label htmlFor='asmaY_Id' className='whitespace-nowrap font-semibold'>
                                     Academic Year <span className='text-red-500'>*</span>
                                 </Label>
-
-                                <Select
-                                    value={selectedAsmayId?.toString() || ''}
-                                    onValueChange={(v) => setSelectedAsmayId(Number(v))}
-                                    disabled={loadingYears}>
-                                    <SelectTrigger className='w-64'>
-                                        <SelectValue placeholder='Select Academic Year' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {academicYearData?.data?.map((item) => (
-                                            <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
-                                                {item.asmaY_Year}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Controller
+                                    name='asmaY_Id'
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            key={field.value || 'empty'}
+                                            onValueChange={(val) => {
+                                                const id = Number(val);
+                                                field.onChange(id);
+                                                setSelectedAsmayId(id);
+                                            }}
+                                            value={
+                                                typeof field.value === 'number' || typeof field.value === 'string'
+                                                    ? String(field.value)
+                                                    : ''
+                                            }
+                                            disabled={loadingYears}>
+                                            <SelectTrigger className='w-64'>
+                                                <SelectValue placeholder='--Select Academic Year--' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYearData?.data?.map((item: any) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
                             </div>
-
+                            {errors.asmaY_Id && (
+                                <div className='flex w-full items-center justify-between gap-4'>
+                                    <Label />
+                                    <FormError>{errors.asmaY_Id.message}</FormError>
+                                </div>
+                            )}
                             {/* Class */}
                             {classs && (
                                 <div className='flex w-full items-center justify-between gap-4'>
-                                    <Label className='whitespace-nowrap font-semibold'>Class</Label>
-
-                                    <Select
-                                        value={selectedclassId?.toString() || ''}
-                                        onValueChange={(v) => setSelectedClassId(Number(v))}
-                                        disabled={feeclassDataLoading}>
-                                        <SelectTrigger className='w-64'>
-                                            <SelectValue placeholder='Select Class' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {feeclassData?.data?.map((item) => (
-                                                <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
-                                                    {item.asmcL_ClassName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <Label htmlFor='asmcl_Id' className='whitespace-nowrap font-semibold'>
+                                        Class <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='asmcl_Id'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                key={field.value || 'empty'}
+                                                onValueChange={(val) => {
+                                                    const id = Number(val);
+                                                    field.onChange(id);
+                                                    setSelectedClassId(id);
+                                                }}
+                                                value={
+                                                    typeof field.value === 'number' || typeof field.value === 'string'
+                                                        ? String(field.value)
+                                                        : ''
+                                                }
+                                                disabled={feeclassDataLoading}>
+                                                <SelectTrigger className='w-64'>
+                                                    <SelectValue placeholder='Select Class' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {feeclassData?.data?.map((item) => (
+                                                        <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
+                                                            {item.asmcL_ClassName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                </div>
+                            )}
+                            {errors.asmcl_Id && classs && (
+                                <div className='flex w-full items-center justify-between gap-4'>
+                                    <Label />
+                                    <FormError>{errors.asmcl_Id.message}</FormError>
                                 </div>
                             )}
 
                             {/* Section */}
                             {section && (
                                 <div className='flex w-full items-center justify-between gap-4'>
-                                    <Label className='whitespace-nowrap font-semibold'>Section</Label>
+                                    <Label htmlFor='asms_Id' className='whitespace-nowrap font-semibold'>
+                                        Section <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Controller
+                                        name='asms_Id'
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                key={field.value || 'empty'}
+                                                onValueChange={(val) => {
+                                                    const id = Number(val);
+                                                    field.onChange(id);
+                                                    setSelectedSectionId(id);
+                                                }}
+                                                value={
+                                                    typeof field.value === 'number' || typeof field.value === 'string'
+                                                        ? String(field.value)
+                                                        : ''
+                                                }
+                                                disabled={feeSectionDataLoading}>
+                                                <SelectTrigger className='w-64'>
+                                                    <SelectValue placeholder='Select Section' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {feeSectionData?.data?.map((item) => (
+                                                        <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
+                                                            {item.asmC_SectionName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                    />
+                                </div>
+                            )}
 
-                                    <Select
-                                        value={selectedSectionId?.toString() || ''}
-                                        onValueChange={(v) => setSelectedSectionId(Number(v))}
-                                        disabled={feeSectionDataLoading}>
-                                        <SelectTrigger className='w-64'>
-                                            <SelectValue placeholder='Select Section' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {feeSectionData?.data?.map((item) => (
-                                                <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                    {item.asmC_SectionName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                            {errors.asms_Id && section && (
+                                <div className='flex w-full items-center justify-between gap-4'>
+                                    <Label />
+                                    <FormError>{errors.asms_Id.message}</FormError>
                                 </div>
                             )}
 
@@ -501,7 +657,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         id='studentSearchInput'
                                         type='text'
                                         placeholder='Search student...'
-                                        disabled={!selectedAsmayId}
+                                        disabled={!selectedAsmayId || filterType === 'Chal_no'}
                                         value={studentSearch}
                                         onChange={(e) => {
                                             setStudentSearch(e.target.value);
@@ -561,15 +717,9 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         value: ex.fmT_Id.toString()
                                     }))}
                                     isLoading={loadingTerm}
-                                    value={terms.filter((ex) => ex.checked).map((ex) => ex.fmT_Id.toString())}
-                                    onChange={(selectedValues) => {
-                                        setselectedTerm(selectedValues);
-                                        const updated = terms.map((ex) => ({
-                                            ...ex,
-                                            checked: selectedValues.includes(ex.fmT_Id.toString())
-                                        }));
-                                        setTerms(updated);
-                                    }}
+                                    disabled={amountCheck || filterType === 'Chal_no'}
+                                    value={selectedTerm}
+                                    onChange={handleTermChange}
                                     height='150px'
                                 />
                             </div>
@@ -578,7 +728,17 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                         {/* Amount */}
                         <div className='mt-3'>
                             <div className='flex items-center gap-3'>
-                                <Checkbox id='amount' checked={amountCheck} onCheckedChange={(v) => setAmountCheck(v === true)} />
+                                <Checkbox
+                                    id='amount'
+                                    checked={amountCheck}
+                                    onCheckedChange={(v) => {
+                                        if (v === true && selectedTerm.length === 0) {
+                                            toast.error('Kindly select atleast any one term');
+                                            return;
+                                        }
+                                        setAmountCheck(v === true);
+                                    }}
+                                />
 
                                 <Label>Amount {amountCheck && <span className='text-red-500'>*</span>}</Label>
 
@@ -657,243 +817,243 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
                 {/* -------- FEE GRID -------- */}
                 {loadingFeeHead ? (
-                    <Card className='p-4 text-center'>Loading...</Card>
-                ) : selectedTerm.length > 0 ? (
-                    <Card className='p-4'>
-                        <table className='w-full border text-center text-sm'>
-                            <thead className='bg-gray-100'>
-                                <tr>
-                                    <th className='border p-2'>Sl.No</th>
-                                    <th className='border p-2'>
-                                        <Checkbox checked={selectAll} onCheckedChange={(val) => handleSelectAll(val === true)} />
-                                    </th>
-                                    <th className='border p-2'>Fee Head</th>
-                                    <th className='border p-2'>Installment</th>
-                                    <th className='border p-2'>Current Charges</th>
-                                    <th className='border p-2'>Total Adjusted</th>
-                                    <th className='border p-2'>Total Charges</th>
-                                    <th className='border p-2'>Concession</th>
-                                    <th className='border p-2'>Opening Balance</th>
-                                    <th className='border p-2'>Payable Amount</th>
-                                    <th className='border p-2'>Net Amount</th>
-                                    <th className='border p-2'>Rebate Amount</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {feeHeads.map((f, index) => (
-                                    <tr key={f.fmG_Id}>
-                                        <td className='border p-2'>{index + 1}</td>
-                                        <td className='border p-2'>
-                                            <Checkbox
-                                                checked={selectedHeads[f.fmG_Id] || false}
-                                                onCheckedChange={(val) => toggleRow(f.fmG_Id, val === true)}
-                                            />
-                                        </td>
-
-                                        <td className='border p-2'>{f.fmG_GroupName}</td>
-                                        <td className='border p-2'>{f.fmG_GroupName}</td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={currentCharges[f.fmG_Id] || '0'}
-                                                disabled
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setCurrentCharges((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: ''
-                                                        }));
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setCurrentCharges((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: v
-                                                        }));
-                                                    }
-                                                }}
-                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                            />
-                                        </td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={toatlAdjusted[f.fmG_Id] || ''}
-                                                // disabled
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setToatlAdjusted((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: ''
-                                                        }));
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setToatlAdjusted((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: v
-                                                        }));
-                                                    }
-                                                }}
-                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                            />
-                                        </td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={totalCharges[f.fmG_Id] || ''}
-                                                disabled
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setTotalCharges((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: ''
-                                                        }));
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setTotalCharges((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: v
-                                                        }));
-                                                    }
-                                                }}
-                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                            />
-                                        </td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={concession[f.fmG_Id] || ''}
-                                                disabled
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setConcession((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: ''
-                                                        }));
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setConcession((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: v
-                                                        }));
-                                                    }
-                                                }}
-                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                            />
-                                        </td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={openingBalance[f.fmG_Id] || ''}
-                                                disabled
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setOpeningBalance((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: ''
-                                                        }));
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setOpeningBalance((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: v
-                                                        }));
-                                                    }
-                                                }}
-                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                            />
-                                        </td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={payableAmount[f.fmG_Id] || ''}
-                                                disabled={!selectedHeads[f.fmG_Id]}
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setPayableAmount((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: ''
-                                                        }));
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setPayableAmount((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: v
-                                                        }));
-                                                    }
-                                                }}
-                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                            />
-                                        </td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={netAmount[f.fmG_Id] || ''}
-                                                disabled
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setNetAmount((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: ''
-                                                        }));
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setNetAmount((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: v
-                                                        }));
-                                                    }
-                                                }}
-                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                            />
-                                        </td>
-                                        <td className='border p-2'>
-                                            <input
-                                                type='number'
-                                                value={rebateAmount[f.fmG_Id] || ''}
-                                                disabled
-                                                onChange={(e) => {
-                                                    const v = e.target.value;
-                                                    if (v === '') {
-                                                        setRebateAmount((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: ''
-                                                        }));
-                                                        return;
-                                                    }
-                                                    if (/^\d*\.?\d*$/.test(v)) {
-                                                        setRebateAmount((prev) => ({
-                                                            ...prev,
-                                                            [f.fmG_Id]: v
-                                                        }));
-                                                    }
-                                                }}
-                                                className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </Card>
+                    <Card className='p-4 text-center'>Loading Fee Head Details...</Card>
                 ) : (
-                    <Card className='p-4 text-center'>No Results Found</Card>
+                    selectedTerm.length > 0 && (
+                        <Card className='p-4'>
+                            <table className='w-full border text-center text-sm'>
+                                <thead className='bg-gray-100'>
+                                    <tr>
+                                        <th className='border p-2'>Sl.No</th>
+                                        <th className='border p-2'>
+                                            <Checkbox checked={selectAll} onCheckedChange={(val) => handleSelectAll(val === true)} />
+                                        </th>
+                                        <th className='border p-2'>Fee Head</th>
+                                        <th className='border p-2'>Installment</th>
+                                        <th className='border p-2'>Current Charges</th>
+                                        <th className='border p-2'>Total Adjusted</th>
+                                        <th className='border p-2'>Total Charges</th>
+                                        <th className='border p-2'>Concession</th>
+                                        <th className='border p-2'>Opening Balance</th>
+                                        <th className='border p-2'>Payable Amount</th>
+                                        <th className='border p-2'>Net Amount</th>
+                                        <th className='border p-2'>Rebate Amount</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {feeHeads.map((f, index) => (
+                                        <tr key={f.fmG_Id}>
+                                            <td className='border p-2'>{index + 1}</td>
+                                            <td className='border p-2'>
+                                                <Checkbox
+                                                    checked={selectedHeads[f.fmG_Id] || false}
+                                                    onCheckedChange={(val) => toggleRow(f.fmG_Id, val === true)}
+                                                />
+                                            </td>
+
+                                            <td className='border p-2'>{f.fmG_GroupName}</td>
+                                            <td className='border p-2'>{f.fmG_GroupName}</td>
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='number'
+                                                    value={currentCharges[f.fmG_Id] || '0'}
+                                                    disabled
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        if (v === '') {
+                                                            setCurrentCharges((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: ''
+                                                            }));
+                                                            return;
+                                                        }
+                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                            setCurrentCharges((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: v
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='number'
+                                                    value={toatlAdjusted[f.fmG_Id] || ''}
+                                                    // disabled
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        if (v === '') {
+                                                            setToatlAdjusted((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: ''
+                                                            }));
+                                                            return;
+                                                        }
+                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                            setToatlAdjusted((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: v
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='number'
+                                                    value={totalCharges[f.fmG_Id] || ''}
+                                                    disabled
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        if (v === '') {
+                                                            setTotalCharges((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: ''
+                                                            }));
+                                                            return;
+                                                        }
+                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                            setTotalCharges((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: v
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='number'
+                                                    value={concession[f.fmG_Id] || ''}
+                                                    disabled
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        if (v === '') {
+                                                            setConcession((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: ''
+                                                            }));
+                                                            return;
+                                                        }
+                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                            setConcession((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: v
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='number'
+                                                    value={openingBalance[f.fmG_Id] || ''}
+                                                    disabled
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        if (v === '') {
+                                                            setOpeningBalance((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: ''
+                                                            }));
+                                                            return;
+                                                        }
+                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                            setOpeningBalance((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: v
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='number'
+                                                    value={payableAmount[f.fmG_Id] || ''}
+                                                    disabled={!selectedHeads[f.fmG_Id]}
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        if (v === '') {
+                                                            setPayableAmount((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: ''
+                                                            }));
+                                                            return;
+                                                        }
+                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                            setPayableAmount((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: v
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='number'
+                                                    value={netAmount[f.fmG_Id] || ''}
+                                                    disabled
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        if (v === '') {
+                                                            setNetAmount((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: ''
+                                                            }));
+                                                            return;
+                                                        }
+                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                            setNetAmount((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: v
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <input
+                                                    type='number'
+                                                    value={rebateAmount[f.fmG_Id] || ''}
+                                                    disabled
+                                                    onChange={(e) => {
+                                                        const v = e.target.value;
+                                                        if (v === '') {
+                                                            setRebateAmount((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: ''
+                                                            }));
+                                                            return;
+                                                        }
+                                                        if (/^\d*\.?\d*$/.test(v)) {
+                                                            setRebateAmount((prev) => ({
+                                                                ...prev,
+                                                                [f.fmG_Id]: v
+                                                            }));
+                                                        }
+                                                    }}
+                                                    className='w-full rounded border px-2 py-1 font-semibold text-sm disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-500 '
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </Card>
+                    )
                 )}
-                {selectedTerm.length > 0 && (
+                {selectedTerm.length > 0 && !loadingFeeHead && (
                     <div className='flex gap-8'>
                         <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
                             <Card className='mb-5 p-4'>
@@ -1182,15 +1342,17 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                     </div>
                 )}
 
-                <div className='flex justify-end gap-3 border-t pt-4'>
-                    <Button type='button' variant='outline' className='flex items-center gap-2' onClick={handleReset}>
-                        <RotateCcw className='h-4 w-4' /> Reset
-                    </Button>
+                {selectedTerm.length > 0 && !loadingFeeHead && (
+                    <div className='flex justify-end gap-3 border-t pt-4'>
+                        <Button type='button' variant='outline' className='flex items-center gap-2' onClick={handleReset}>
+                            <RotateCcw className='h-4 w-4' /> Reset
+                        </Button>
 
-                    <Button type='submit' disabled={isSubmitting}>
-                        <Save className='mr-2 h-4 w-4' /> Save
-                    </Button>
-                </div>
+                        <Button type='submit' disabled={isSubmitting}>
+                            <Save className='mr-2 h-4 w-4' /> Save
+                        </Button>
+                    </div>
+                )}
             </form>
         </div>
     );
