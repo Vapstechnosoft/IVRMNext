@@ -47,7 +47,8 @@ export default function UpdateEmployeeTypeForm({ onSuccess, className = '', sele
         try {
             const payload = {
                 hrmeT_Id: data.hrmeT_Id,
-                hrmeT_EmployeeType: data.hrmeT_EmployeeType?.trim() || ''
+                hrmeT_EmployeeType: data.hrmeT_EmployeeType?.trim() || '',
+                hrmeT_ActiveFlag: true
             };
             const response = await addOrUpdateMasterEmployeeType(payload);
 

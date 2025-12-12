@@ -1,50 +1,52 @@
 'use client';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { EmployeeListItem } from '@/types/hrms/employee';
+import type { IEmployeeList } from '@/types/hrms/hrms-config/employee';
 import type { ColumnDef } from '@tanstack/react-table';
 import { ActionsCell } from './actions-cell';
-export const employeeColumns: ColumnDef<EmployeeListItem>[] = [
+export const employeeColumns: ColumnDef<IEmployeeList>[] = [
     {
         id: 'slNo',
         header: 'Sl No',
-        cell: ({ row }) => {
-            return <div className='w-[50px] text-center'>{row.index + 1}</div>;
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div className='w-[50px] text-center'>{pageIndex * pageSize + row.index + 1}</div>;
         },
         enableSorting: false,
         enableHiding: false
     },
     {
-        accessorKey: 'HRME_EmployeeFirstName',
+        accessorKey: 'hrmE_EmployeeFirstName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='First Name' />,
         cell: ({ row }) => {
-            const firstName = row.getValue('HRME_EmployeeFirstName') as string;
+            const firstName = row.getValue('hrmE_EmployeeFirstName') as string;
             return <div>{firstName || '-'}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'HRME_EmployeeMiddleName',
+        accessorKey: 'hrmE_EmployeeMiddleName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Middle Name' />,
         cell: ({ row }) => {
-            const middleName = row.getValue('HRME_EmployeeMiddleName') as string;
+            const middleName = row.getValue('hrmE_EmployeeMiddleName') as string | null;
             return <div>{middleName || '-'}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'HRME_EmployeeLastName',
+        accessorKey: 'hrmE_EmployeeLastName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Last Name' />,
         cell: ({ row }) => {
-            const lastName = row.getValue('HRME_EmployeeLastName') as string;
+            const lastName = row.getValue('hrmE_EmployeeLastName') as string;
             return <div>{lastName || '-'}</div>;
         },
         enableSorting: true
     },
     {
-        accessorKey: 'HRME_EmployeeCode',
+        accessorKey: 'hrmE_EmployeeCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
         cell: ({ row }) => {
-            const code = row.getValue('HRME_EmployeeCode') as string;
+            const code = row.getValue('hrmE_EmployeeCode') as string;
             return <div className='font-medium'>{code || '-'}</div>;
         },
         enableSorting: true
@@ -53,9 +55,9 @@ export const employeeColumns: ColumnDef<EmployeeListItem>[] = [
         id: 'employeePhoto',
         header: 'Employee Photo',
         cell: ({ row }) => {
-            const photoUrl = row.original.HRME_Photo;
-            const firstName = row.original.HRME_EmployeeFirstName;
-            const lastName = row.original.HRME_EmployeeLastName;
+            const photoUrl = row.original.hrmE_Photo;
+            const firstName = row.original.hrmE_EmployeeFirstName;
+            const lastName = row.original.hrmE_EmployeeLastName;
             const initials = `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
             return (
                 <div className='flex items-center gap-2'>
@@ -106,11 +108,11 @@ export const employeeColumns: ColumnDef<EmployeeListItem>[] = [
         enableSorting: false
     },
     {
-        accessorKey: 'HRME_EmployeeOrder',
+        accessorKey: 'hrmE_EmployeeOrder',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Order' />,
         cell: ({ row }) => {
-            const order = row.original.HRME_EmployeeOrder || row.index + 1;
-            return <div className='text-center'>{order}</div>;
+            const order = row.original.hrmE_EmployeeOrder || 0;
+            return <div className='text-center'>{order || '-'}</div>;
         },
         enableSorting: true
     },

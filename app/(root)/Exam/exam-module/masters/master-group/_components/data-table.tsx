@@ -65,7 +65,7 @@ export function SimpleSubjectTable({
     return (
         <div className='w-full space-y-3'>
             {/* 🔍 Search Box */}
-            <div className='flex items-center justify-between'>
+            <div className='justify-between-end flex items-center justify-end'>
                 <Input
                     type='text'
                     placeholder='Search subjects...'
@@ -76,20 +76,23 @@ export function SimpleSubjectTable({
             </div>
 
             {/* 📋 Table */}
-            <div className='overflow-hidden rounded-md border'>
-                <Table>
-                    <TableHeader>
+            <div className="overflow-y-auto rounded-md border max-h-[550px]">
+                <Table className="min-w-full">
+                    <TableHeader className="sticky top-0 bg-white z-10 shadow-sm">
                         <TableRow>
-                            <TableHead className='w-16 text-center'>Select</TableHead>
+                            <TableHead className="w-16">Sl.No</TableHead>
+                            <TableHead className="w-56 text-center">Select</TableHead>
                             <TableHead>Subject Name</TableHead>
                             <TableHead>Subject Code</TableHead>
                         </TableRow>
                     </TableHeader>
+
                     <TableBody>
                         {filteredSubjects.length ? (
-                            filteredSubjects.map((subject) => (
+                            filteredSubjects.map((subject, index) => (
                                 <TableRow key={subject.ismS_Id}>
-                                    <TableCell className='text-center'>
+                                    <TableCell>{index + 1}</TableCell>
+                                    <TableCell className="text-center">
                                         <Checkbox
                                             checked={subject.ismS_Id !== undefined && selectedIds.has(subject.ismS_Id)}
                                             onCheckedChange={() => toggleSelection(subject)}
@@ -101,7 +104,7 @@ export function SimpleSubjectTable({
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={3} className='h-24 text-center text-gray-500'>
+                                <TableCell colSpan={4} className="h-24 text-center text-gray-500">
                                     No subjects found.
                                 </TableCell>
                             </TableRow>
@@ -109,6 +112,7 @@ export function SimpleSubjectTable({
                     </TableBody>
                 </Table>
             </div>
+
         </div>
     );
 }

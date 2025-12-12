@@ -369,6 +369,79 @@ export const courseMasterSchema = z.object({
     hrmC_Order: z.number().optional()
 });
 
+// Payroll Standard Master Schema
+export const payrollStandardSchema = z.object({
+    HRC_Id: z.number().optional(),
+    // Provident Fund
+    HRC_PFAccPrefix: z.string().optional(),
+    HRC_PFMaxAmt: z.number().min(0, 'Cannot be negative').optional().or(z.literal(undefined)),
+    HRC_FPFPer: z.number().min(0).max(100).optional().or(z.literal(undefined)),
+    HRC_EPFPer: z.number().min(0).max(100).optional().or(z.literal(undefined)),
+    HRC_EPFPerAfterRetirement: z.number().min(0).max(100).optional(),
+    HRC_EPFPerAfterRetirement2: z.number().min(0).max(100).optional(),
+    HRC_AccNo2Per: z.number().min(0).optional(), // Account number, not percentage
+    HRC_AccNo21Per: z.number().min(0).optional(), // Account number, not percentage
+    HRC_AccNo22Per: z.number().min(0).optional(), // Account number, not percentage
+    HRC_AC2MinAmt: z.number().min(0).optional(),
+    HRC_AC21MinAmt: z.number().min(0).optional(),
+    HRC_AC22MinAmt: z.number().min(0).optional(),
+    HRC_EducationCess: z.number().min(0).optional(),
+    HRC_PartAMaxLimit: z.number().min(0).optional(),
+    HRC_PartBMaxLimit: z.number().min(0).optional(),
+    HRC_AsPerEmployee: z.boolean().optional(),
+    HRC_RetirementYrs: z.number().min(1).max(100),
+    // ESI
+    HRC_ESIAccPrefix: z.string().optional(),
+    HRC_ESIMax: z.number().min(0).optional().or(z.literal(undefined)),
+    HRC_ESIEmplrCont: z.number().min(0).max(100).optional().or(z.literal(undefined)),
+    // Arrear Details
+    HRC_ArrearSalaryReport: z.enum(['Separate', 'OnlyArrearHead']).optional(),
+    HRC_ArrearRequired: z.enum(['Cumulative', 'Monthwise']).optional(),
+    // Approval Process
+    HRC_SalaryApproval: z.boolean().optional(),
+    HRC_SalaryAdvance: z.boolean().optional(),
+    HRC_Loan: z.boolean().optional(),
+    HRC_Leave: z.boolean().optional(),
+    HRC_Increment: z.boolean().optional(),
+    HRC_Probation: z.boolean().optional(),
+    // Payment Method
+    HRC_PaymentMethod: z.number().min(1).max(6).optional(),
+    // Increment Process
+    HRC_OptionalHolidays: z.number().min(0).optional(),
+    HRC_ApplicableFlag: z.boolean().optional(),
+    HRC_MinimumPeriods: z.number().min(0).optional(),
+    HRC_IncrementMonth: z.string().optional(),
+    HRC_IncrementOnceInMonths: z.number().min(0).optional(),
+    HRC_AlertDays: z.number().min(0).optional(),
+    // Salary Days
+    HRC_SalaryFromDay: z.number().min(1).max(31),
+    HRC_SalaryToDay: z.number().min(1).max(31),
+    HRC_ActiveFlag: z.boolean()
+});
+
+// Group-Department-Designation Mapping Schema
+export const groupDeptDessgMappingSchema = z.object({
+    hrgtddS_Id: z.number().optional(),
+    hrmgT_Id: z.number().min(1, 'Please select a group type'),
+    hrmD_Id: z.number().min(1, 'Please select a department'),
+    hrmdeS_Id: z.number().optional(),
+    designationids: z.array(z.number()).min(1, 'Please select at least one designation'),
+    hrgtddS_ActiveFlg: z.boolean().default(true),
+    hrgtddS_CreatedBy: z.number().optional(),
+    logInUserId: z.number().optional()
+});
+
+// Religion-Category Mapping Schema
+export const religionCategoryMappingSchema = z.object({
+    IMRCC_Id: z.number().optional(),
+    IVRMMR_Id: z.number().min(1, 'Please select a religion'),
+    IMCC_Id: z.number().optional(),
+    categoryids: z.array(z.number()).min(1, 'Please select at least one category'),
+    IMRCC_ActiveFlag: z.boolean().default(true),
+    IMRCC_CreatedBy: z.number().optional(),
+    LogInUserId: z.number().optional()
+});
+
 // Export schemas as objects matching the pattern from preadmission
 export const hrmsMasterSchemas = {
     bank: {
@@ -423,8 +496,112 @@ export const hrmsMasterSchemas = {
         add: specializationMasterSchema,
         update: specializationMasterSchema
     },
+    payrollStandard: {
+        add: payrollStandardSchema,
+        update: payrollStandardSchema
+    },
+    groupDeptDessgMapping: {
+        addOrUpdate: groupDeptDessgMappingSchema
+    },
+    religionCategoryMapping: {
+        addOrUpdate: religionCategoryMappingSchema
+    },
     loan: {
         add: loanTypeMasterSchema,
         update: loanTypeMasterSchema
+    },
+    // Attendance Management Masters
+    masterHoliday: {
+        add: z.object({
+            calendarYear: z.string().min(1, 'Calendar Year is required'),
+            fomhwD_Department: z.string().optional(),
+            fomhwD_HolidayType: z.string().min(1, 'Holiday Type is required'),
+            selectedDays: z.array(z.string()).optional(),
+            fomhwD_FromDate: z.string().optional(),
+            fomhwD_ToDate: z.string().optional(),
+            fomhwD_Name: z.string().optional(),
+            fomhwD_Remarks: z.string().optional()
+        }),
+        update: z.object({
+            fomhwD_Id: z.number(),
+            calendarYear: z.string().min(1, 'Calendar Year is required'),
+            fomhwD_Department: z.string().optional(),
+            fomhwD_HolidayType: z.string().min(1, 'Holiday Type is required'),
+            selectedDays: z.array(z.string()).optional(),
+            fomhwD_FromDate: z.string().optional(),
+            fomhwD_ToDate: z.string().optional(),
+            fomhwD_Name: z.string().optional(),
+            fomhwD_Remarks: z.string().optional()
+        }),
+        delete: z.object({
+            fomhwdD_Id: z.number().int({ message: 'fomhwdD_Id is required' }).min(1, { message: 'fomhwdD_Id must be greater than 0' })
+        })
+    },
+    shiftSettingMaster: {
+        add: z.object({
+            foms_ShiftName: z.string().min(1, 'Shift Name is required').max(100),
+            fomsT_IHalfLoginTime: z.string().optional(), // Shift Start Time
+            fomsT_IIHalfLogoutTime: z.string().optional(), // Shift End Time
+            fomsT_IHalfLogoutTime: z.string().optional(), // Lunch start time
+            fomsT_IIHalfLoginTime: z.string().optional(), // Lunch End time
+            fomsT_FDWHrMin: z.string().optional(), // Total working hours per shift
+            fomsT_HDWHrMin: z.string().optional(), // Half day working hours per shift
+            fomsT_LunchHoursDuration: z.string().optional(), // Lunch Hours
+            fomsT_DelayPerShiftHrMin: z.string().optional(), // Delay per shift
+            fomsT_EarlyPerShiftHrMin: z.string().optional() // Early per shift
+        }),
+        update: z.object({
+            fomsT_Id: z.number().optional(),
+            foms_Id: z.number().optional(),
+            foms_ShiftName: z.string().min(1, 'Shift Name is required').max(100),
+            fomsT_IHalfLoginTime: z.string().optional(), // Shift Start Time
+            fomsT_IIHalfLogoutTime: z.string().optional(), // Shift End Time
+            fomsT_IHalfLogoutTime: z.string().optional(), // Lunch start time
+            fomsT_IIHalfLoginTime: z.string().optional(), // Lunch End time
+            fomsT_FDWHrMin: z.string().optional(), // Total working hours per shift
+            fomsT_HDWHrMin: z.string().optional(), // Half day working hours per shift
+            fomsT_LunchHoursDuration: z.string().optional(), // Lunch Hours
+            fomsT_DelayPerShiftHrMin: z.string().optional(), // Delay per shift
+            fomsT_EarlyPerShiftHrMin: z.string().optional() // Early per shift
+        }),
+        delete: z.object({
+            fomsT_Id: z.number().int({ message: 'fomsT_Id is required' }).min(1, { message: 'fomsT_Id must be greater than 0' })
+        })
+    },
+    employeeShiftMapping: {
+        add: z.object({
+            foest_ShiftName: z.string().min(1, 'Shift Name is required'),
+            foest_Employee: z.string().optional(),
+            foest_HolidayType: z.string().optional(),
+            foest_ApplicableDate: z.string().optional(),
+            foest_TotalWork: z.string().optional(),
+            foest_HalfDayWork: z.string().optional(),
+            foest_MorningLogin: z.string().optional(),
+            foest_MorningLogout: z.string().optional(),
+            foest_AfternoonLogin: z.string().optional(),
+            foest_AfternoonLogout: z.string().optional(),
+            foest_DelayShift: z.string().optional(),
+            foest_EarlyShift: z.string().optional(),
+            foest_LunchHour: z.string().optional()
+        }),
+        update: z.object({
+            foest_Id: z.number(),
+            foest_ShiftName: z.string().min(1, 'Shift Name is required'),
+            foest_Employee: z.string().optional(),
+            foest_HolidayType: z.string().optional(),
+            foest_ApplicableDate: z.string().optional(),
+            foest_TotalWork: z.string().optional(),
+            foest_HalfDayWork: z.string().optional(),
+            foest_MorningLogin: z.string().optional(),
+            foest_MorningLogout: z.string().optional(),
+            foest_AfternoonLogin: z.string().optional(),
+            foest_AfternoonLogout: z.string().optional(),
+            foest_DelayShift: z.string().optional(),
+            foest_EarlyShift: z.string().optional(),
+            foest_LunchHour: z.string().optional()
+        }),
+        delete: z.object({
+            foest_Id: z.number().int({ message: 'foest_Id is required' }).min(1, { message: 'foest_Id must be greater than 0' })
+        })
     }
 };

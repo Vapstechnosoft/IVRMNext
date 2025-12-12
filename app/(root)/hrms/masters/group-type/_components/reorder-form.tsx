@@ -20,7 +20,10 @@ export default function ReorderGroupTypeForm() {
     const handleOpenDialog = async () => {
         try {
             const orderResponse = await getGroupTypeSetOrder();
-            setOrderedItems(Array.isArray(orderResponse) ? orderResponse : []);
+            // API returns { success, message, data, total, page, page_size }
+            // Extract the data array from the response
+            const groupTypes = Array.isArray(orderResponse?.data) ? orderResponse.data : [];
+            setOrderedItems(groupTypes);
             setIsDialogOpen(true);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to load group types for reordering');

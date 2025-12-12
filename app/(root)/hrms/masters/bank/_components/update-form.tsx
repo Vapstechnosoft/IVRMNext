@@ -42,7 +42,6 @@ export default function UpdateBankForm({ onSuccess, className = '', selectedRow:
                 hrmbD_BankAccountNo: row.hrmbD_BankAccountNo,
                 hrmbD_IFSCCode: row.hrmbD_IFSCCode,
                 hrmbD_BankAddress: row.hrmbD_BankAddress,
-                hrmbD_ActiveFlag: row.hrmbD_ActiveFlag
             });
         }
     }, [row, reset]);
@@ -56,7 +55,7 @@ export default function UpdateBankForm({ onSuccess, className = '', selectedRow:
                 hrmbD_BankAccountNo: data.hrmbD_BankAccountNo,
                 hrmbD_IFSCCode: data.hrmbD_IFSCCode,
                 hrmbD_BankAddress: data.hrmbD_BankAddress?.trim() || '',
-                hrmbD_ActiveFlag: data.hrmbD_ActiveFlag
+                hrmbD_ActiveFlag: true
             };
             const response = await addOrUpdateMasterBank(payload);
 

@@ -11,16 +11,13 @@ export async function getMasterEmployeeType(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterEmployeeType(data: any) {
-    const url = '/api/MasterEmployeeTypeFacade';
+    const url = '/api/MasterEmployeeTypeFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterEmployeeType(id: number) {
-    const url = `/api/MasterEmployeeTypeFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterEmployeeTypeFacade/toggle/${id}`;
     return await api.put('hrms', url);
 }
 
-export async function deleteMasterEmployeeType(id: number) {
-    const url = `/api/MasterEmployeeTypeFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
-}
+

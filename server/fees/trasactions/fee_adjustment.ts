@@ -9,3 +9,9 @@ export async function getFeeAdjutmentGridList(searchParams?: ApiSearchparams) {
     const url = `/FeeAdjustment/get-adjustead-list?${urlParams}`;
     return await api.get<IFeeAdjustmentGridList[]>('fees', url);
 }
+
+export async function deleteFeeAdjustment(fr_id: number) {
+    const url = `/FeeAdjustment/deletedetails/${fr_id}`;
+
+    return await api.delete('fees', url);
+}

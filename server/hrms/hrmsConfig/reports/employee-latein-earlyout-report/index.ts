@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
     EmployeeLateInEarlyOutReportOnloadRequest,
@@ -212,4 +212,13 @@ export async function getEmployeeLateInEarlyOutReportList(
             page_size: searchParams?.page_size || 10
         }
     };
+}
+/**
+ * Get employee late in/early out report data
+ * POST /api/EmployeeLateInEarlyOutReportFacade/search
+ */
+export async function getEmployeeLateInEarlyOutReport(data: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
+    const url = `/api/EmployeeLateInEarlyOutReportFacade/search?${urlParams}`;
+    return await api.post<any>('hrmsfrontoffice', url, data);
 }

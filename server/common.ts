@@ -660,16 +660,15 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/transactions/feepreadmissiontrasaction',
                                             title: 'Fee Preadmission Transaction',
                                             description: 'Manage Fee Preadmission Transaction'
-                                        }
-                                        // ,
-                                        // {
-                                        //     id: 508,
-                                        //     name: 'Fee Refundable',
-                                        //     icon: 'BadgeIndianRupee',
-                                        //     url: '/fees/transactions/feerefundable',
-                                        //     title: 'Fee Refundable',
-                                        //     description: 'Manage Fee Refundable'
-                                        // },
+                                        },
+                                        {
+                                            id: 508,
+                                            name: 'Fee Refundable',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feerefundable',
+                                            title: 'Fee Refundable',
+                                            description: 'Manage Fee Refundable'
+                                        },
                                         // {
                                         //     id: 511,
                                         //     name: 'Fee OnlinePayment',
@@ -679,32 +678,30 @@ export async function getUserAccessibleModules() {
                                         //     description: 'Manage Fee OnlinePayment'
                                         // }
                                         // ,
-                                        // {
-                                        //     id: 505,
-                                        //     name: 'Fee Transaction',
-                                        //     icon: 'BadgeIndianRupee',
-                                        //     url: '/fees/transactions/feetransaction',
-                                        //     title: 'Fee Transaction',
-                                        //     description: 'Fee Transaction'
-                                        // }
-                                        // ,
-                                        //  {
-                                        //     id: 506,
-                                        //     name: 'Fee Adjustment',
-                                        //     icon: 'BadgeIndianRupee',
-                                        //     url: '/fees/transactions/feeadjustment',
-                                        //     title: 'Fee Adjustment',
-                                        //     description: 'Manage Fee Adjustment'
-                                        // }
-                                        //,
-                                        //  {
-                                        //     id: 507,
-                                        //     name: 'Fee Concession',
-                                        //     icon: 'BadgeIndianRupee',
-                                        //     url: '/fees/transactions/feeconcession',
-                                        //     title: 'Fee Concession',
-                                        //     description: 'Manage Fee Concession'
-                                        // },
+                                        {
+                                            id: 505,
+                                            name: 'Fee Transaction',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feetransaction',
+                                            title: 'Fee Transaction',
+                                            description: 'Fee Transaction'
+                                        },
+                                        {
+                                            id: 506,
+                                            name: 'Fee Adjustment',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeadjustment',
+                                            title: 'Fee Adjustment',
+                                            description: 'Manage Fee Adjustment'
+                                        },
+                                        {
+                                            id: 507,
+                                            name: 'Fee Concession',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/transactions/feeconcession',
+                                            title: 'Fee Concession',
+                                            description: 'Manage Fee Concession'
+                                        }
                                     ]
                                 },
                                 {

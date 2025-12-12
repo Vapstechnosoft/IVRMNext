@@ -169,11 +169,34 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
             </CollapsibleSection>
 
             {/* Actions */}
-            <div className='flex w-fit justify-center gap-2 align-items-center'>
-                <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Updating...'>
+            <div className='flex w-fit items-center justify-center gap-3'>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                        reset({
+                            emG_Id: initialData?.emG_Id || 0,
+                            mI_Id: 30,
+                            emG_GroupName: initialData?.emG_GroupName || '',
+                            emG_TotSubjects: initialData?.emG_TotSubjects || 0,
+                            emG_MaxAplSubjects: initialData?.emG_MaxAplSubjects || 1,
+                            emG_MinAplSubjects: initialData?.emG_MinAplSubjects || 1,
+                            emG_BestOff: initialData?.emG_BestOff || 0,
+                            subject_list: []
+                        });
+
+                        // Reset selected subjects to the original ones loaded
+                        const normalizedGroupSubjects = normalizeSubjects(groupSubjectsResponse?.data);
+                        setSelectedSubjects(normalizedGroupSubjects);
+                    }}>
+                    Reset
+                </Button>
+
+                <Button type="submit" disabled={isSubmitting} isLoading={isSubmitting} loadingText="Updating...">
                     Update
                 </Button>
             </div>
+
         </form>
     );
 }

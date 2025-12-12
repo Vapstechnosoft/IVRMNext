@@ -23,6 +23,11 @@ import {
     getReligionDropdown,
     getSpecializationDropdown,
     getLeaveReasonDropdown,
+    getBloodGroupDropdown,
+    getSalaryTypeDropdown,
+    getTeachingTypeDropdown,
+    getScoreTypeDropdown,
+    getContactTypeDropdown,
     getStateDropdown,
     saveEmployee,
     toggleEmployee
@@ -48,6 +53,11 @@ import type {
     IReligionDropdown,
     ISpecializationDropdown,
     ILeaveReasonDropdown,
+    IBloodGroupDropdown,
+    ISalaryTypeDropdown,
+    ITeachingTypeDropdown,
+    IScoreTypeDropdown,
+    IContactTypeDropdown,
     IStateDropdown
 } from '@/types/hrms/hrms-config/employee';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -355,19 +365,98 @@ export function useLeaveReasonDropdown() {
     };
 }
 
+export function useBloodGroupDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'blood-group'],
+            queryFn: async () => getBloodGroupDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'blood-group']
+            });
+        }
+    };
+}
+
+export function useSalaryTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'salary-type'],
+            queryFn: async () => getSalaryTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'salary-type']
+            });
+        }
+    };
+}
+
+export function useTeachingTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'teaching-type'],
+            queryFn: async () => getTeachingTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'teaching-type']
+            });
+        }
+    };
+}
+
+export function useScoreTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'score-type'],
+            queryFn: async () => getScoreTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'score-type']
+            });
+        }
+    };
+}
+
+export function useContactTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'contact-type'],
+            queryFn: async () => getContactTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'contact-type']
+            });
+        }
+    };
+}
+
 // ==================== Employee CRUD Hooks ====================
 
 /**
  * Hook to fetch employee list with search, sort, and pagination
  */
-export function useEmployeeList(roleId: number, searchParams?: ApiSearchparams) {
+export function useEmployeeList(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'list', roleId, searchParams ?? {}],
-            queryFn: async () => getEmployeeList(roleId, searchParams),
-            staleTime: 0,
-            enabled: !!roleId
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, searchParams ?? {}],
+            queryFn: async () => getEmployeeList(searchParams),
+            staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

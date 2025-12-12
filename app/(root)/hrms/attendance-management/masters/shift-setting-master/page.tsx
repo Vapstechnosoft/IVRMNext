@@ -1,74 +1,31 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useShiftSettingMaster } from '@/hooks/hrms/attendance-management/useMasters';
-import type { ApiSearchparams } from '@/types';
-import type { ShiftSettingMasterReportListItem } from '@/types/hrms/attendance-management/shift-setting-master';
+import type { IMasterShiftSettingList } from '@/types/hrms/attendance-management/masters';
 import { Plus, X } from 'lucide-react';
-import { use, useMemo } from 'react';
-import { HRMSCollapsibleSection } from '../_components/hrms-collapsible-section';
+import { use } from 'react';
 import AddShiftSettingMasterForm from './_components/add-form';
-import { type ShiftSetting, shiftSettingColumns } from './_components/columns';
-import DeleteShiftSettingMasterForm from './_components/delete-form';
+import { shiftSettingColumns } from './_components/columns';
+import ToggleShiftSettingMasterForm from './_components/toggle-form';
 import UpdateShiftSettingMasterForm from './_components/update-form';
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
 export default function ShiftSettingMasterPage(props: { searchParams: SearchParams }) {
-    const rawSearchParams = use(props.searchParams);
-    // Convert Next.js searchParams (string | string[]) to ApiSearchparams format
-    const searchParams: ApiSearchparams = useMemo(
-        () => ({
-            page:
-                typeof rawSearchParams?.page === 'string'
-                    ? Number.parseInt(rawSearchParams.page, 10)
-                    : Array.isArray(rawSearchParams?.page)
-                      ? Number.parseInt(rawSearchParams.page[0], 10)
-                      : typeof rawSearchParams?.page === 'number'
-                        ? rawSearchParams.page
-                        : undefined,
-            page_size:
-                typeof rawSearchParams?.page_size === 'string'
-                    ? Number.parseInt(rawSearchParams.page_size, 10)
-                    : Array.isArray(rawSearchParams?.page_size)
-                      ? Number.parseInt(rawSearchParams.page_size[0], 10)
-                      : typeof rawSearchParams?.page_size === 'number'
-                        ? rawSearchParams.page_size
-                        : undefined,
-            search_query:
-                typeof rawSearchParams?.search_query === 'string'
-                    ? rawSearchParams.search_query
-                    : Array.isArray(rawSearchParams?.search_query)
-                      ? rawSearchParams.search_query[0]
-                      : undefined,
-            search_column:
-                typeof rawSearchParams?.search_column === 'string'
-                    ? rawSearchParams.search_column
-                    : Array.isArray(rawSearchParams?.search_column)
-                      ? rawSearchParams.search_column[0]
-                      : undefined,
-            sort_column:
-                typeof rawSearchParams?.sort_column === 'string'
-                    ? rawSearchParams.sort_column
-                    : Array.isArray(rawSearchParams?.sort_column)
-                      ? rawSearchParams.sort_column[0]
-                      : undefined,
-            sort_direction:
-                typeof rawSearchParams?.sort_direction === 'string'
-                    ? rawSearchParams.sort_direction
-                    : Array.isArray(rawSearchParams?.sort_direction)
-                      ? rawSearchParams.sort_direction[0]
-                      : undefined
-        }),
-        [rawSearchParams]
-    );
+    const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useShiftSettingMaster(searchParams);
+
     return (
-        <FormProvider<ShiftSetting>>
+        <FormProvider<IMasterShiftSettingList>>
             <ShiftSettingMasterPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
+
 function ShiftSettingMasterPageContent({
     response,
     isLoading,
@@ -78,63 +35,30 @@ function ShiftSettingMasterPageContent({
     isLoading: boolean;
     error: any;
 }) {
-    const { openAddForm } = useFormContext<ShiftSetting>();
-    // Transform API response to ShiftSetting format
-    const transformedData = useMemo(() => {
-        if (!response?.data?.report_list) {
-            return [];
-        }
-        const reportList = response.data.report_list as ShiftSettingMasterReportListItem[];
-        // Map API response to ShiftSetting interface
-        // TODO: Update field mapping based on actual API response structure
-        return reportList.map((item) => ({
-            id: item.id || 0,
-            shiftName: item.shiftName || '',
-            shiftStartTime: item.shiftStartTime || '',
-            shiftEndTime: item.shiftEndTime || '',
-            lunchStartTime: item.lunchStartTime || '',
-            lunchEndTime: item.lunchEndTime || '',
-            totalWorkingHours: item.totalWorkingHours || '',
-            halfDayWorkingHours: item.halfDayWorkingHours || '',
-            lunchHours: item.lunchHours || '',
-            delayPerShift: item.delayPerShift || '',
-            earlyPerShift: item.earlyPerShift || '',
-            isActive: item.isActive ?? true
-        })) as ShiftSetting[];
-    }, [response]);
-    // Create a response object that useDataTableProps expects
-    const tableResponse = useMemo(() => {
-        const total = response?.total || 0;
-        return {
-            data: transformedData,
-            total: total,
-            success: response?.success ?? true,
-            message: response?.message || ''
-        };
-    }, [transformedData, response]);
-    const tableProps = useDataTableProps(tableResponse);
+    const { openAddForm } = useFormContext<IMasterShiftSettingList>();
+    const tableProps = useDataTableProps(response);
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                <div className='flex justify-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}
-                        size='lg'
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Shift Setting
                     </Button>
                 </div>
+
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
                     variant='default'
                     size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'
-                    headerClassName=''>
-                    <GenericDataTable<ShiftSetting>
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<IMasterShiftSettingList>
                         {...tableProps}
                         columns={shiftSettingColumns}
                         isLoading={isLoading}
@@ -147,74 +71,80 @@ function ShiftSettingMasterPageContent({
                         errorTitle='Error Loading Shift Settings'
                     />
                 </CollapsibleSection>
+
                 {/* Forms */}
                 <FormSections />
             </div>
         </div>
     );
 }
+
 function FormSections() {
     const {
         isAddFormOpen,
         isEditFormOpen,
-        isDeleteFormOpen,
+        isToggleFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
-        closeDeleteForm,
+        closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<ShiftSetting>();
+    } = useFormContext<IMasterShiftSettingList>();
+
     return (
         <>
             {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
-                    <HRMSCollapsibleSection
-                        title='Add Shift Setting'
+                    <CollapsibleSection
+                        title='Add New Shift Setting'
+                        description='Fill in the details below to create a new shift setting'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'
-                        closeButton={
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeAddForm}
                                 variant='ghost'
                                 size='sm'
-                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                        }>
-                        <AddShiftSettingMasterForm onSuccess={closeAddForm} />
-                    </HRMSCollapsibleSection>
+                            <AddShiftSettingMasterForm onSuccess={closeAddForm} />
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
+
             {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
-                    <HRMSCollapsibleSection
-                        title='Update Shift Setting'
+                    <CollapsibleSection
+                        title='Edit Shift Setting'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'
-                        closeButton={
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
                             <Button
                                 type='button'
                                 onClick={closeEditForm}
                                 variant='ghost'
                                 size='sm'
-                                className='w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                        }>
-                        <UpdateShiftSettingMasterForm selectedRow={selectedRow} onSuccess={closeEditForm} />
-                    </HRMSCollapsibleSection>
+                            <UpdateShiftSettingMasterForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
-            {/* Delete Form */}
-            {isDeleteFormOpen && selectedRow && <DeleteShiftSettingMasterForm rowData={selectedRow} onClose={closeDeleteForm} />}
+
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleShiftSettingMasterForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }

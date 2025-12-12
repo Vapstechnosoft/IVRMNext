@@ -13,24 +13,24 @@ export async function getEmployeeLateInEarlyOutReport(filters?: EmployeeLateInEa
         };
     }
     const filtered = data.filter((r) => {
-        const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
-        const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
-        const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
-        const okDateFrom = filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true;
-        const okDateTo = filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true;
+        const okType = filters.type && filters.type.length > 0 && r.type ? filters.type.includes(r.type) : true;
+        const okDept = filters.department && filters.department.length > 0 && r.department ? filters.department.includes(r.department) : true;
+        const okDesg = filters.designation && filters.designation.length > 0 && r.designation ? filters.designation.includes(r.designation) : true;
+        const okDateFrom = filters.fromDate && r.date ? new Date(r.date) >= new Date(filters.fromDate) : true;
+        const okDateTo = filters.toDate && r.date ? new Date(r.date) <= new Date(filters.toDate) : true;
         const okQuery =
             filters.allOrIndividual === 'Individual' && filters.query
                 ? filters.codeOrName === 'Code'
-                    ? r.employeeCode.includes(filters.query)
-                    : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
+                    ? (r.employeeCode || r.employee_code || '').includes(filters.query)
+                    : (r.employeeName || r.employee_name || '').toLowerCase().includes(filters.query.toLowerCase())
                 : true;
         const okMode = filters.mode
             ? filters.mode === 'Late By'
-                ? r.lateBy
+                ? !!(r.lateBy || r.late_by)
                 : filters.mode === 'Early Out'
-                  ? r.earlyOut
+                  ? !!(r.earlyOut || r.early_out)
                   : filters.mode === 'Late In Early Out'
-                    ? r.lateBy && r.earlyOut
+                    ? !!(r.lateBy || r.late_by) && !!(r.earlyOut || r.early_out)
                     : true
             : true;
         return okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okMode;

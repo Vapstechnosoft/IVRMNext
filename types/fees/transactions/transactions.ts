@@ -675,7 +675,7 @@ export interface IFeeRefundableList {
     refundedAmount: number;
     modeOfPayment: string;
     fr_Date: string;
-    fr_id: number;
+    fR_ID: number;
 }
 
 export interface IFeeConcessionClassDropDownList {

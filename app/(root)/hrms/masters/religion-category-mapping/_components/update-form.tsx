@@ -4,11 +4,10 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCasteCategoryDropdown, useReligionDropdown } from '@/hooks/hrms/useEmployeeRegister';
-import { useReligionCategoryMappingCRUD } from '@/hooks/hrms/useMasters';
-import { religionCategoryMappingSchema } from '@/schemas/hrms/religion-category-mapping-schemas';
-import { saveReligionCategoryMapping } from '@/server/hrms/hrmsConfig/master/religion-category-mapping';
+import { useReligionCategoryMapping } from '@/hooks/hrms/useMasters';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { ICasteCategoryDropdown, IReligionDropdown } from '@/types/hrms/hrms-config/employee';
-import type { ReligionCategoryMappingDetail } from '@/types/hrms/religion-category-mapping';
+import type { IMasterReligionCategoryMappingList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -16,12 +15,12 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-type FormFields = z.infer<typeof religionCategoryMappingSchema.addOrUpdate>;
+type FormFields = z.infer<typeof hrmsMasterSchemas.religionCategoryMapping.addOrUpdate>;
 
 interface UpdateReligionCategoryMappingFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: ReligionCategoryMappingDetail;
+    selectedRow: IMasterReligionCategoryMappingList;
 }
 
 export default function UpdateReligionCategoryMappingForm({
@@ -29,7 +28,8 @@ export default function UpdateReligionCategoryMappingForm({
     className = '',
     selectedRow: row
 }: UpdateReligionCategoryMappingFormProps) {
-    const { refetchAll } = useReligionCategoryMappingCRUD();
+    const { saveMutation } = useReligionCategoryMapping();
+    const { mutate: saveMapping, isPending } = saveMutation;
 
     // Religion dropdown - API: /api/MasterDropDown/GeAllReligionList
     const { data: religionDropdownResponse } = useReligionDropdown();
@@ -47,27 +47,20 @@ export default function UpdateReligionCategoryMappingForm({
         control,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
-        resolver: zodResolver(religionCategoryMappingSchema.addOrUpdate),
+        resolver: zodResolver(hrmsMasterSchemas.religionCategoryMapping.addOrUpdate),
         mode: 'onChange'
     });
 
     useEffect(() => {
         if (row) {
-            const rowWithCategoryIds = row as ReligionCategoryMappingDetail & {
-                categoryids?: number[];
-            };
-            const categoryids =
-                rowWithCategoryIds.categoryids && Array.isArray(rowWithCategoryIds.categoryids) && rowWithCategoryIds.categoryids.length > 0
-                    ? rowWithCategoryIds.categoryids
-                    : row.IMCC_Id
-                      ? [row.IMCC_Id]
-                      : [];
+            const categoryids = row.imcC_Id ? [row.imcC_Id] : [];
             reset({
-                IMRCC_Id: row.IRCC_Id,
-                IVRMMR_Id: row.IVRMMR_Id,
-                IMCC_Id: row.IMCC_Id || 0,
+                IMRCC_Id: row.ircC_Id,
+                IVRMMR_Id: row.ivrmmR_Id,
+                IMCC_Id: row.imcC_Id || 0,
                 categoryids: categoryids
             });
         }
@@ -75,16 +68,10 @@ export default function UpdateReligionCategoryMappingForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const rowWithCategoryIds = row as ReligionCategoryMappingDetail & { categoryids?: number[] };
-            const originalCategoryIds =
-                rowWithCategoryIds.categoryids && Array.isArray(rowWithCategoryIds.categoryids) && rowWithCategoryIds.categoryids.length > 0
-                    ? rowWithCategoryIds.categoryids.sort((a, b) => a - b)
-                    : row.IMCC_Id
-                      ? [row.IMCC_Id]
-                      : [];
+            const originalCategoryIds = row.imcC_Id ? [row.imcC_Id] : [];
             const currentCategoryIds = (data.categoryids || []).sort((a, b) => a - b);
             const hasChanges =
-                row.IVRMMR_Id !== data.IVRMMR_Id ||
+                row.ivrmmR_Id !== data.IVRMMR_Id ||
                 originalCategoryIds.length !== currentCategoryIds.length ||
                 !originalCategoryIds.every((id, index) => id === currentCategoryIds[index]);
             if (!hasChanges) {
@@ -92,21 +79,30 @@ export default function UpdateReligionCategoryMappingForm({
                 onSuccess?.();
                 return;
             }
-            const payload = {
-                IRCC_Id: row.IRCC_Id,
-                IVRMMR_Id: data.IVRMMR_Id,
-                IMCC_Ids: data.categoryids || [],
-                UserId: 0
-            };
-            const response = await saveReligionCategoryMapping(payload);
+            // Transform categoryids array to castid array of objects as per API spec
+            const castid = (data.categoryids || []).map((categoryId) => ({
+                imcC_Id: categoryId
+            }));
 
-            if (response?.success) {
-                toast.success(response?.message || 'Mapping updated successfully');
-                refetchAll();
-                onSuccess?.();
-            } else {
-                toast.error(response?.message || 'Failed to update mapping');
-            }
+            const payload = {
+                ircC_Id: row.ircC_Id, // Use existing ID for update
+                ivrmmR_Id: data.IVRMMR_Id,
+                castid: castid // Array of objects with imcC_Id property
+            };
+            console.log('🟠 [RELIGION CATEGORY MAPPING] Request payload:', JSON.stringify(payload, null, 2));
+            saveMapping(payload, {
+                onSuccess: (response) => {
+                    if (response?.success) {
+                        toast.success(response?.message || 'Mapping updated successfully');
+                        onSuccess?.();
+                    } else {
+                        toast.error(response?.message || 'Failed to update mapping');
+                    }
+                },
+                onError: (error: any) => {
+                    toast.error(error?.message || 'Failed to update mapping');
+                }
+            });
         } catch (error: any) {
             toast.error(error?.message || 'Failed to update mapping');
         }
@@ -128,14 +124,6 @@ export default function UpdateReligionCategoryMappingForm({
             }))
             .filter((opt) => opt.value !== '');
     }, [casteCategoryDropdown]);
-    const rowWithCategoryIds = row as ReligionCategoryMappingDetail & { categoryids?: number[] };
-    const defaultCategoryIds =
-        rowWithCategoryIds.categoryids && Array.isArray(rowWithCategoryIds.categoryids) && rowWithCategoryIds.categoryids.length > 0
-            ? rowWithCategoryIds.categoryids
-            : row.IMCC_Id
-              ? [row.IMCC_Id]
-              : [];
-    const defaultCategoryStringValues = defaultCategoryIds.map((id) => id.toString());
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -197,17 +185,20 @@ export default function UpdateReligionCategoryMappingForm({
                                 name='categoryids'
                                 control={control}
                                 render={({ field }) => {
-                                    const uniqueValues = Array.from(new Set(field.value || []));
+                                    // Use watch to get reactive value that updates immediately when reset() is called
+                                    const categoryIds = watch('categoryids') || [];
+                                    const uniqueValues = Array.from(new Set(categoryIds));
                                     const stringValues = uniqueValues.map((id) => id.toString());
-                                    const multiSelectKey = `category-${row.IRCC_Id}-${stringValues.join(',')}`;
+                                    // Use row ID in key to force re-render when row changes
+                                    const multiSelectKey = `category-${row.ircC_Id}`;
                                     return (
                                         <MultiSelect
                                             key={multiSelectKey}
                                             options={categoryOptions}
-                                            defaultValue={defaultCategoryStringValues}
+                                            defaultValue={stringValues}
                                             onValueChange={(values) => {
                                                 const uniqueNumbers = Array.from(new Set(values.map((v) => Number(v))));
-                                                const currentUnique = Array.from(new Set(field.value || [])).sort((a, b) => a - b);
+                                                const currentUnique = Array.from(new Set(categoryIds)).sort((a, b) => a - b);
                                                 const newUnique = uniqueNumbers.sort((a, b) => a - b);
                                                 if (
                                                     currentUnique.length !== newUnique.length ||

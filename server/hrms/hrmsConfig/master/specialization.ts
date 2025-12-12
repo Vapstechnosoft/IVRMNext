@@ -11,16 +11,11 @@ export async function getMasterSpecialization(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterSpecialization(data: any) {
-    const url = '/api/MasterSpecialisationFacade/SaveData';
+    const url = '/api/MasterSpecialisationFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterSpecialization(id: number) {
-    const url = `/api/MasterSpecialisationFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterSpecialisationFacade/toggle/${id}`;
     return await api.put('hrms', url);
-}
-
-export async function deleteMasterSpecialization(id: number) {
-    const url = `/api/MasterSpecialisationFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
 }

@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    useMasterFeeOpeningBalance,
+    useFeeRefundableList,
     useopeningClassdropdowndatafee,
     useopeningSectiondropdowndatafee,
     useopeningacademicyerdropdowndatafee
@@ -22,7 +22,6 @@ import {
     getFeeRefundableStudentDropdownDetails
 } from '@/server/fees/trasactions/fee_refundable';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
 import { CheckSquare, Save, Square } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
@@ -59,7 +58,16 @@ export default function AddFeeRefundableForm({
     onSuccess?: () => void;
     className?: string;
 }) {
-    const { refetchAll } = useMasterFeeOpeningBalance();
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    //const { refetchAll } = useMasterFeeOpeningBalance();
+    const { refetchAll } = useFeeRefundableList(Number(selectedAsmayId));
+    const { data: yeardata, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
+
+    useEffect(() => {
+        if (!loadingYears && academicYearData?.data?.length && selectedAsmayId === null) {
+            setSelectedAsmayId(Number(academicYearData.data[0].asmaY_Id));
+        }
+    }, [loadingYears, yeardata, selectedAsmayId]);
 
     const {
         control,
@@ -550,11 +558,11 @@ export default function AddFeeRefundableForm({
             const payload = {
                 asmaY_Id: Number(academicYearId),
                 amsT_Id: Number(selectedStudentId),
-                FmfR_Date: format(refunddate, "yyyy-MM-dd'T'HH:mm:ss"),
+                FmfR_Date: refunddate,
                 fR_RefundNo: data.REF_REC_No,
                 fR_RefundRemarks: narration,
                 fR_BANK_CASH: paymentMode,
-                fR_CheqDate: format(chequeDate, "yyyy-MM-dd'T'HH:mm:ss"),
+                fR_CheqDate: chequeDate,
                 fR_BankName: data.fR_BankName,
                 fR_CheqNo: data.fR_CheqNo,
                 refundItems: refundItems
@@ -1320,9 +1328,21 @@ export default function AddFeeRefundableForm({
                                 {/* BANK FIELDS */}
                                 {paymentMode === 'B' && (
                                     <div className='mt-5 space-y-4'>
-                                        <div className='flex items-center gap-4'>
+                                        {/* <div className='flex items-center gap-4'>
                                             <InputText
                                                 label='Fee Bank Name'
+                                                id='fR_BankName'
+                                                {...register('fR_BankName')}
+                                                error={errors.fR_BankName?.message}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                        </div> */}
+                                        <div className='flex items-center gap-4'>
+                                            <label htmlFor='fR_BankName' className='w-40 font-medium text-sm'>
+                                                Fee Bank Name
+                                            </label>
+
+                                            <InputText
                                                 id='fR_BankName'
                                                 {...register('fR_BankName')}
                                                 error={errors.fR_BankName?.message}
@@ -1331,7 +1351,7 @@ export default function AddFeeRefundableForm({
                                         </div>
 
                                         <div className='flex items-center gap-4'>
-                                            <Label className='w-40 text-right font-medium'>Cheque/DD Date:</Label>
+                                            <Label className='w-40 text-right '>Cheque/DD Date:</Label>
                                             <Input
                                                 className='flex-1'
                                                 type='date'
@@ -1340,11 +1360,11 @@ export default function AddFeeRefundableForm({
                                             />
                                         </div>
 
-                                        <div className='flex items-center gap-4'>
-                                            {/* <Label className='w-40 text-right font-medium'>
+                                        {/* <div className='flex items-center gap-4'>
+                                            <Label className='w-40 text-right font-medium'>
                                                 Cheque/DD No:<span className='text-red-500'>*</span>
                                             </Label>
-                                            <Input className='flex-1' placeholder='Enter cheque number' /> */}
+                                            <Input className='flex-1' placeholder='Enter cheque number' />
                                             <InputText
                                                 label='Cheque/DD No'
                                                 required
@@ -1353,6 +1373,21 @@ export default function AddFeeRefundableForm({
                                                 error={errors.fR_CheqNo?.message}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
+                                        </div> */}
+
+                                        <div className='flex items-center gap-4'>
+                                            <label htmlFor='fR_CheqNo' className='w-40 text-right'>
+                                                Cheque/DD No:<span className='text-red-500'>*</span>
+                                            </label>
+
+                                            <div className='flex-1'>
+                                                <InputText
+                                                    id='fR_CheqNo'
+                                                    {...register('fR_CheqNo')}
+                                                    error={errors.fR_CheqNo?.message}
+                                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 )}

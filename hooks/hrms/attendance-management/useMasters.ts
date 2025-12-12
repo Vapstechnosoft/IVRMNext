@@ -1,13 +1,12 @@
 'use client';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import { addOrUpdateEmployeeMissingLog, deleteEmployeeMissingLog, getEmployeeMissingLogs } from '@/server/hrms/attendance-management/masters/employee-missing-logs';
-import { addOrUpdateEmployeeShiftMapping, deleteEmployeeShiftMapping, getEmployeeShiftMapping, getEmployeeShiftMappingDropdowns, getEmployeeShiftMappingShiftNames, getEmployeeShiftMappingEditData, getEmployeeShiftMappingEmployees } from '@/server/hrms/attendance-management/masters/employee-shift-mapping';
+import { addOrUpdateEmployeeShiftMapping, deleteEmployeeShiftMapping, getEmployeeShiftMapping, getEmployeeShiftMappingDropdowns, getEmployeeShiftMappingShiftNames, getEmployeeShiftMappingEmployees } from '@/server/hrms/attendance-management/masters/employee-shift-mapping';
 import { addOrUpdateMasterDriverShift, deleteMasterDriverShift, getMasterDriverShift } from '@/server/hrms/attendance-management/masters/master-driver-shift';
-import { addOrUpdateMasterHoliday, deleteMasterHoliday, getMasterHoliday } from '@/server/hrms/attendance-management/masters/master-holiday';
+import { addOrUpdateMasterHoliday, deleteMasterHoliday, getMasterHoliday, getHolidayDatesForDays } from '@/server/hrms/attendance-management/masters/master-holiday';
 import { addOrUpdateMasterShift, deleteMasterShift, getMasterShift } from '@/server/hrms/attendance-management/masters/master-shift';
 import { addOrUpdateShiftSettingMaster, deleteShiftSettingMaster, getShiftSettingMaster } from '@/server/hrms/attendance-management/masters/shift-setting-master';
 import type { ApiSearchparams } from '@/types';
-import type { MasterHolidayGetDataResponseData } from '@/types/hrms/attendance-management/master-holiday';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 export const useMasterShift = () => {
@@ -69,13 +68,6 @@ export const useMasterHoliday = (searchParams?: ApiSearchparams) => {
         queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY, searchParams ?? {}],
         queryFn: async () => {
             const result = await getMasterHoliday(searchParams);
-            console.log('📥 [HOOK] Query result received:', {
-                hasResult: !!result,
-                hasData: !!result?.data,
-                reportListLength: (result?.data as unknown as MasterHolidayGetDataResponseData)?.report_list?.length || 0,
-                total: result?.total,
-                success: result?.success
-            });
             return result;
         },
         staleTime: 0
@@ -96,45 +88,9 @@ export const useMasterHoliday = (searchParams?: ApiSearchparams) => {
 export const useSaveMasterHoliday = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({
-            data,
-            dropdownData
-        }: {
-            data: Parameters<typeof addOrUpdateMasterHoliday>[0];
-            dropdownData?: Parameters<typeof addOrUpdateMasterHoliday>[1];
-        }) => {
-            console.log('📤 [CLIENT] Mutation data:', {
-                hasData: !!data,
-                hasDropdownData: !!dropdownData,
-                dataKeys: data ? Object.keys(data) : []
-            });
-            return addOrUpdateMasterHoliday(data, dropdownData);
-        },
+        mutationFn: (data: Parameters<typeof addOrUpdateMasterHoliday>[0]) => addOrUpdateMasterHoliday(data),
         onSuccess: (response) => {
-            console.log('📥 [CLIENT] Full Response Object:', JSON.stringify(response, null, 2));
-            console.log('📥 [CLIENT] Response analysis:', {
-                hasResponse: !!response,
-                responseType: typeof response,
-                isArray: Array.isArray(response),
-                isNull: response === null,
-                isUndefined: response === undefined,
-                hasSuccess: response && typeof response === 'object' ? 'success' in response : false,
-                success: response?.success,
-                successType: typeof response?.success,
-                successValue: response?.success,
-                successStrictTrue: response?.success === true,
-                successStrictFalse: response?.success === false,
-                successTruthy: !!response?.success,
-                hasMessage: response && typeof response === 'object' ? 'message' in response : false,
-                message: response?.message,
-                messageType: typeof response?.message,
-                hasData: response && typeof response === 'object' ? 'data' in response : false,
-                dataType: typeof response?.data,
-                responseKeys: response && typeof response === 'object' ? Object.keys(response) : []
-            });
-            // Check success condition more carefully
-            const isSuccess = response?.success === true;
-            if (isSuccess) {
+            if (response?.success) {
                 toast.success(response?.message || 'Master holiday saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY]
@@ -144,14 +100,6 @@ export const useSaveMasterHoliday = () => {
             }
         },
         onError: (error: Error) => {
-            console.error('💥 [CLIENT] Error details:', {
-                message: error?.message,
-                name: error?.name,
-                stack: error?.stack,
-                errorType: typeof error,
-                errorKeys: error ? Object.keys(error) : []
-            });
-            console.error('💥 [CLIENT] Full error JSON:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
             toast.error(error.message || 'Failed to save master holiday');
         }
     });
@@ -173,6 +121,21 @@ export const useDeleteMasterHoliday = () => {
         onError: (error: Error) => {
             toast.error(error.message || 'Failed to delete master holiday');
         }
+    });
+};
+
+// Hook to get dates for selected days
+export const useHolidayDatesForDays = (request?: { calendarYear: string; holidayType: string; selectedDays: string[] }, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.MASTER_HOLIDAY, 'dates', request],
+        queryFn: async () => {
+            if (!request || !request.calendarYear || !request.holidayType || !request.selectedDays || request.selectedDays.length === 0) {
+                return { data: [], success: true };
+            }
+            return await getHolidayDatesForDays(request);
+        },
+        enabled: enabled && !!request && !!request.calendarYear && !!request.holidayType && !!request.selectedDays && request.selectedDays.length > 0,
+        staleTime: 0
     });
 };
 export const useShiftSettingMaster = (searchParams?: ApiSearchparams) => {
@@ -285,42 +248,27 @@ export const useDeleteEmployeeShiftMapping = () => {
         }
     });
 };
-export const useEmployeeShiftMappingDropdowns = () => {
+export const useEmployeeShiftMappingDropdowns = (data?: any) => {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'dropdowns'],
-        queryFn: async () => getEmployeeShiftMappingDropdowns(),
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'dropdowns', data],
+        queryFn: async () => getEmployeeShiftMappingDropdowns(data),
         staleTime: 5 * 60 * 1000 // Cache for 5 minutes
     });
 };
-export const useEmployeeShiftMappingShiftNames = (fomsId: number = 0) => {
+export const useEmployeeShiftMappingShiftNames = (data?: any) => {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'shiftNames', fomsId],
-        queryFn: async () => getEmployeeShiftMappingShiftNames(fomsId),
-        enabled: fomsId > 0, // Only fetch when a valid shift ID is provided
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'shiftNames', data],
+        queryFn: async () => getEmployeeShiftMappingShiftNames(data),
+        enabled: !!data, // Only fetch when data is provided
         staleTime: 5 * 60 * 1000 // Cache for 5 minutes
     });
 };
-export const useEmployeeShiftMappingEditData = (foestId: number | null) => {
+
+export const useEmployeeShiftMappingEmployees = (data?: any) => {
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'edit', foestId],
-        queryFn: async () => {
-            if (!foestId) {
-                return { success: false, message: 'Invalid ID', data: null };
-            }
-            return getEmployeeShiftMappingEditData(foestId);
-        },
-        enabled: !!foestId && foestId > 0, // Only fetch if we have a valid ID
-        staleTime: 0 // Don't cache edit data
-    });
-};
-export const useEmployeeShiftMappingEmployees = (params: {
-    groupTypeIds?: number[];
-    departmentIds?: number[];
-    designationIds?: number[];
-}) => {
-    return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'employees', params],
-        queryFn: async () => getEmployeeShiftMappingEmployees(params),
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'employees', data],
+        queryFn: async () => getEmployeeShiftMappingEmployees(data),
+        enabled: !!data, // Only fetch when data is provided
         staleTime: 2 * 60 * 1000 // Cache for 2 minutes
     });
 };

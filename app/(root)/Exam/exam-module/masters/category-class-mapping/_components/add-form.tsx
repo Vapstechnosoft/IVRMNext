@@ -15,7 +15,7 @@ import {
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IAcademicYear, ICategory, IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Save, Trash2, X } from 'lucide-react';
+import { Edit, Save, Trash, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -33,6 +33,9 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const [classes, setClasses] = useState<IClass[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [loadingSections, setLoadingSections] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
+
     const tableRef = useRef<HTMLDivElement>(null);
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     // local list that holds added mappings (rows)
@@ -507,13 +510,16 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
                                                     {/* Delete Button */}
                                                     <Button
-                                                        type='button'
                                                         variant='ghost'
                                                         size='sm'
-                                                        onClick={() => handleDelete(i)}
-                                                        className='h-8 w-8 p-0 transition-all duration-200 hover:bg-red-50 hover:text-red-600'>
+                                                        onClick={() => {
+                                                            setDeleteIndex(i);   // store selected row index
+                                                            setConfirmOpen(true);    // open confirmation popup
+                                                        }}
+                                                        className='h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600'>
                                                         <Trash2 className='h-4 w-4' />
                                                     </Button>
+
                                                 </td>
                                             </tr>
                                         ))
@@ -557,6 +563,39 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     </div>
                 </>
             )}
+            {confirmOpen && deleteIndex !== null && (
+                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+                    <div className='w-[360px] rounded-md bg-white p-6 text-center shadow-xl'>
+                        <h2 className='mb-3 font-semibold text-lg'>Confirm Delete</h2>
+                        <p className='mb-6 text-gray-700'>Are you sure you want to delete this mapping?</p>
+
+                        <div className="flex justify-center gap-4">
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setConfirmOpen(false);
+                                    setDeleteIndex(null);
+                                }}
+                            >
+                                Cancel
+                            </Button>
+
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    if (deleteIndex !== null) handleDelete(deleteIndex); // 🔥 call your function
+                                    setConfirmOpen(false);
+                                    setDeleteIndex(null);
+                                }}
+                            >
+                                Yes, Delete
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
         </form>
     );
 }

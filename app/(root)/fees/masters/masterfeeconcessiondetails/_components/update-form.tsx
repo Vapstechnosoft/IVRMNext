@@ -106,10 +106,10 @@ export default function UpdateMasterConcessionDetailsForm({
         <div className={`${termname}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='flex flex-col items-center space-y-4'>
-                        {/* className="grid grid-cols-1 gap-5 md:grid-cols-2" */}
-                        <div className='group flex items-center justify-center gap-1.5 space-x-3'>
-                            <Label aria-label='Category' htmlFor='fmcC_Id' className='whitespace-nowrap font-medium'>
+                    {/* <div className='flex flex-col items-center space-y-4'>
+
+                        <div className='group flex items-center justify-center space-x-3'>
+                            <Label aria-label='Category' htmlFor='fmcC_Id' className='whitespace-nowrap'>
                                 Category <span className='ml-1 text-red-500'>*</span>:
                             </Label>
 
@@ -150,8 +150,8 @@ export default function UpdateMasterConcessionDetailsForm({
                                 {errors.fmcC_Id && <FormError className='ml-2'>{errors.fmcC_Id.message}</FormError>}
                             </div>
                         </div>
-                        <div className='group flex items-center justify-center gap-3 space-x-3'>
-                            <Label aria-label='type' htmlFor='fmccD_PerOrAmtFlag' className='whitespace-nowrap font-medium'>
+                        <div className='group flex items-center justify-center space-x-3'>
+                            <Label aria-label='type' htmlFor='fmccD_PerOrAmtFlag' className='whitespace-nowrap'>
                                 Type <span className='ml-1 text-red-500'>*</span>:
                             </Label>
 
@@ -177,7 +177,7 @@ export default function UpdateMasterConcessionDetailsForm({
                                     )}
                                 />
 
-                                {/* ✅ Show validation error below the dropdown */}
+
                                 {errors.fmccD_PerOrAmtFlag && (
                                     <FormError className='mt-1 text-red-500 text-sm'>{errors.fmccD_PerOrAmtFlag.message}</FormError>
                                 )}
@@ -209,7 +209,7 @@ export default function UpdateMasterConcessionDetailsForm({
                             />
                         </div>
                         <div className='group flex items-center justify-center space-x-3'>
-                            <label htmlFor='fmccD_ToNoSibblings' className='whitespace-nowrap font-medium'>
+                            <label htmlFor='fmccD_ToNoSibblings' className='whitespace-nowrap'>
                                 To No of Siblings <span className='text-red-500'>*</span>:
                             </label>
 
@@ -257,6 +257,160 @@ export default function UpdateMasterConcessionDetailsForm({
                                                 onChange={(value: number) => {
                                                     field.onChange(value);
                                                 }}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_PerOrAmt && <FormError>{errors.fmccD_PerOrAmt.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div> */}
+
+                    <div className='flex flex-col items-center space-y-4'>
+                        {/* Category */}
+                        <div className='flex items-center justify-center gap-4'>
+                            <Label aria-label='Category' htmlFor='fmcC_Id' className='w-40 whitespace-nowrap text-right'>
+                                Category <span className='ml-1 text-red-500'>*</span>:
+                            </Label>
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmcC_Id'
+                                    control={control}
+                                    defaultValue={row?.fmcC_Id ?? ''}
+                                    render={({ field }) => (
+                                        <Select
+                                            onValueChange={(value) => field.onChange(Number(value))}
+                                            value={field.value ? String(field.value) : ''}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select Category' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {categoryLoading ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
+                                                    </SelectItem>
+                                                ) : categoryError ? (
+                                                    <SelectItem value='error' disabled>
+                                                        Error loading
+                                                    </SelectItem>
+                                                ) : (
+                                                    category?.data?.map((item) => (
+                                                        <SelectItem key={item.fmcC_Id} value={String(item.fmcC_Id)}>
+                                                            {item.fmcC_ConcessionName}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.fmcC_Id && <FormError className='ml-2'>{errors.fmcC_Id.message}</FormError>}
+                            </div>
+                        </div>
+
+                        {/* Type */}
+                        <div className='flex items-center justify-center gap-4'>
+                            <Label aria-label='type' htmlFor='fmccD_PerOrAmtFlag' className='w-40 whitespace-nowrap text-right'>
+                                Type <span className='ml-1 text-red-500'>*</span>:
+                            </Label>
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmccD_PerOrAmtFlag'
+                                    control={control}
+                                    defaultValue={row?.fmccD_PerOrAmtFlag ?? ''}
+                                    rules={{ required: 'Please select a type' }}
+                                    render={({ field }) => (
+                                        <Select
+                                            onValueChange={(value) => field.onChange(value)}
+                                            value={field.value ? String(field.value) : ''}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder='Select Type' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value='P'>Percent</SelectItem>
+                                                <SelectItem value='A'>Amount</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                                {errors.fmccD_PerOrAmtFlag && (
+                                    <FormError className='mt-1 text-red-500 text-sm'>{errors.fmccD_PerOrAmtFlag.message}</FormError>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* From No of Siblings */}
+                        <div className='flex items-center justify-center gap-4'>
+                            <label htmlFor='fmccD_FromNoSibblings' className='w-40 whitespace-nowrap text-right'>
+                                From No of Sibling <span className='text-red-500'>*</span>:
+                            </label>
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmccD_FromNoSibblings'
+                                    control={control}
+                                    rules={{ required: 'From No of Sibling is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                id='fmccD_FromNoSibblings'
+                                                value={field.value ?? 0}
+                                                onChange={(value: number) => field.onChange(value)}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_FromNoSibblings && <FormError>{errors.fmccD_FromNoSibblings.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        {/* To No of Siblings */}
+                        <div className='flex items-center justify-center gap-4'>
+                            <label htmlFor='fmccD_ToNoSibblings' className='w-40 whitespace-nowrap text-right'>
+                                To No of Siblings <span className='text-red-500'>*</span>:
+                            </label>
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmccD_ToNoSibblings'
+                                    control={control}
+                                    rules={{ required: 'To No of Siblings is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                id='fmccD_ToNoSibblings'
+                                                value={field.value ?? 0}
+                                                onChange={(value: number) => field.onChange(value)}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_ToNoSibblings && <FormError>{errors.fmccD_ToNoSibblings.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Percent / Amount */}
+                        <div className='flex items-center justify-center gap-4'>
+                            <label htmlFor='fmccD_PerOrAmt' className='w-40 whitespace-nowrap text-right'>
+                                Percent/Amount <span className='text-red-500'>*</span>:
+                            </label>
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmccD_PerOrAmt'
+                                    control={control}
+                                    rules={{ required: 'Percent/Amount is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                id='fmccD_PerOrAmt'
+                                                value={field.value ?? 0}
+                                                onChange={(value: number) => field.onChange(value)}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                             {errors.fmccD_PerOrAmt && <FormError>{errors.fmccD_PerOrAmt.message}</FormError>}

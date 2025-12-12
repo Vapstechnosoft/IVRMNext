@@ -703,7 +703,7 @@ export const useFeeConcessionStudentConcessionGrid = (
 export const useFeeConcessionHeadDetailsList = (
     asmaY_Id: number,
     amsT_Id: number,
-    fmT_Id: number,
+    fmT_Id: number[],
     configSet: string,
     searchParams?: ApiSearchparams
 ) => {

@@ -137,10 +137,10 @@ export async function getPrintdetails(fyp_id: number, asmay_id: number, filterin
 }
 
 export async function getFeeProspectusTransactionList(asmay_Id: number, searchParams?: Record<string, any>) {
-    if (!asmay_Id || asmay_Id === 0) {
-        console.warn('getFeePreadmissionTransactionList called with asmay_Id=0');
-        return { success: true, data: [], total: 0 };
-    }
+    // if (!asmay_Id || asmay_Id === 0) {
+    //    // console.warn('getFeePreadmissionTransactionList called with asmay_Id=0');
+    //     return { success: true, data: [], total: 0 };
+    // }
 
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},

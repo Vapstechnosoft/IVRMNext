@@ -26,7 +26,6 @@ import {
 } from '@/server/hrms/hrmsConfig/reports/employee-details-report';
 import { getEmployeeInOutReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-inout-report';
 import { getEmployeeLateInEarlyOutReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-latein-earlyout-report';
-import { getEmployeeLogReportList, getEmployeeLogReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-log-report';
 import { getEmployeeMonthlyReportList, getEmployeeMonthlyReportOnload } from '@/server/hrms/hrmsConfig/reports/employee-monthly-report';
 import {
     filterEmployeesBySelection,
@@ -724,56 +723,6 @@ export function useEmployeeLateInEarlyOutReportList(
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LATEIN_EARLYOUT_REPORT_SEARCH]
-            });
-        }
-    };
-}
-// ============================================================================
-// EMPLOYEE LOG REPORT
-// ============================================================================
-export function useEmployeeLogReportOnload(MI_Id = 30, LoginUserId = 0, UserRole = '') {
-    return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT_ONLOAD, MI_Id, LoginUserId, UserRole],
-        queryFn: () => getEmployeeLogReportOnload(MI_Id, LoginUserId, UserRole),
-        staleTime: 5 * 60 * 1000
-    });
-}
-export function useEmployeeLogReportList(
-    searchParams?: ApiSearchparams,
-    filterParams?: {
-        MIID?: number;
-        LoginUserId?: number;
-        UserRole?: string;
-        is_export?: boolean;
-        typeIdList?: number[];
-        departmentIdList?: number[];
-        designationIdList?: number[];
-        allOrIndividual?: 'All' | 'Individual';
-        employeeCode?: string;
-        employeeName?: string;
-        codeOrName?: 'Code' | 'Name';
-        dateMode?: 'Date' | 'Monthly' | 'From Date';
-        date?: string;
-        month?: string;
-        fromDate?: string;
-        toDate?: string;
-        metric?: 'Punch Time' | 'Late In' | 'Early Out';
-    },
-    enabled = true
-) {
-    const queryClient = useQueryClient();
-    return {
-        ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT_SEARCH, searchParams ?? {}, filterParams ?? {}],
-            queryFn: async () => {
-                return getEmployeeLogReportList(searchParams, filterParams);
-            },
-            staleTime: 0,
-            enabled // Only fetch when enabled (when search criteria are present)
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOG_REPORT_SEARCH]
             });
         }
     };

@@ -405,7 +405,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             </Label>
                             <InputTextarea
                                 id='address'
-                                placeholder='Enter address (optional)'
+                                placeholder='Enter address'
                                 {...register('address')}
                                 rows={4}
                                 className='h-24 transition-colors focus:ring-2 focus:ring-primary/20'
@@ -420,7 +420,7 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             </Label>
                             <InputTextarea
                                 id='receiptTemplateFormat'
-                                placeholder='Enter receipt template format (optional)'
+                                placeholder='Kindly add the HTML format only...'
                                 {...register('receiptTemplateFormat')}
                                 rows={6}
                                 className='h-32 transition-colors focus:ring-2 focus:ring-primary/20'
