@@ -1,3 +1,4 @@
+// file: fee-concession-page.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -9,10 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useFeeConcessionStudentConcessionGrid, useconcessionacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import AddFeeOpeningBalanceForm from './_components/add-form';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { IFeeConcessionStudentConcessionGrid } from '@/types/fees/transactions/transactions';
+import AddFeeConcessionForm from './_components/add-form';
 import { concessionColumns } from './_components/columns';
 import DeleteFeeConcessionForm from './_components/delete-form';
 
@@ -21,31 +22,38 @@ export default function FeeConcessionPage() {
     const router = useRouter();
     const pathname = usePathname();
 
-    const [MI_ID] = useState<number>(30); // Change dynamically if needed
+    const [MI_ID] = useState<number>(30);
     const [selectedAsmaY_Id, setSelectedAsmaY_Id] = useState<number | null>(null);
     const [asmcL_Id] = useState<number>(0);
 
-    // Fetch academic years
     const { data: academicYearResponse, isLoading: loadingYears } = useconcessionacademicyerdropdowndatafee(MI_ID);
-    const academicYears = academicYearResponse?.data || [];
 
-    // Auto-select first academic year on load if none selected
+    const academicYears = useMemo(() => {
+        const raw = academicYearResponse?.data ?? [];
+        if (!Array.isArray(raw)) return [];
+        return raw
+            .map((ay: any) => ({
+                asmaY_Id: ay.asmaY_Id ?? ay.asmaY_ID ?? ay.ASMAY_Id ?? ay.asmaYId ?? null,
+                asmaY_Year: ay.asmaY_Year ?? ay.asmaYYear ?? ay.asmaY ?? String(ay.asmaY_ID ?? ay.asmaY_Id ?? ''),
+                _raw: ay
+            }))
+            .filter((a: any) => a.asmaY_Id != null);
+    }, [academicYearResponse]);
+
     useEffect(() => {
         if (!loadingYears && academicYears.length > 0 && !selectedAsmaY_Id) {
-            const latestYear = academicYears[0]; // or sort to get current/latest
-            setSelectedAsmaY_Id(latestYear.asmaY_Id);
+            setSelectedAsmaY_Id(Number(academicYears[0].asmaY_Id));
         }
     }, [academicYears, loadingYears, selectedAsmaY_Id]);
 
     const apiSearchParams = searchParams ? Object.fromEntries(searchParams.entries()) : {};
 
-    // Fetch grid data based on selected academic year
     const {
         data: response,
         isLoading,
         refetch,
         refetchAll
-    } = useFeeConcessionStudentConcessionGrid(MI_ID, selectedAsmaY_Id || 0, asmcL_Id, apiSearchParams as any);
+    } = useFeeConcessionStudentConcessionGrid(MI_ID, selectedAsmaY_Id ?? 0, asmcL_Id, apiSearchParams as any);
 
     const tableData: IFeeConcessionStudentConcessionGrid[] = response?.data ?? [];
     const totalRecords = response?.total ?? 0;
@@ -112,10 +120,8 @@ function PageContent({
     return (
         <div className='min-h-screen bg-gray-50'>
             <div className='container mx-auto space-y-6 p-6'>
-                {/* Header with Academic Year Dropdown + Add Button */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='space-y-1'>
-                        {/* Academic Year Dropdown */}
                         <div className='flex min-w-[240px] flex-col gap-2'>
                             <Label className='font-medium'>
                                 Academic Year <span className='text-red-500'>*</span>
@@ -126,7 +132,7 @@ function PageContent({
                                 </SelectTrigger>
                                 <SelectContent>
                                     {academicYears.map((ay: any) => (
-                                        <SelectItem key={ay.asmaY_Id} value={String(ay.asmaY_Id)}>
+                                        <SelectItem key={String(ay.asmaY_Id)} value={String(ay.asmaY_Id)}>
                                             {ay.asmaY_Year}
                                         </SelectItem>
                                     ))}
@@ -136,19 +142,16 @@ function PageContent({
                     </div>
 
                     <div className='flex items-center gap-4'>
-                        {/* Add Button */}
                         <Button
                             type='button'
                             onClick={openAddForm}
-                            className='mt-8 w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg' // mt-8 to align with select
-                        >
+                            className='mt-8 w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                             <Plus className='mr-2 h-4 w-4' />
                             Add Fee Concession
                         </Button>
                     </div>
                 </div>
 
-                {/* Table */}
                 <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='rounded-xl border bg-white shadow-xl'>
                     <GenericDataTable<IFeeConcessionStudentConcessionGrid>
                         {...tableProps}
@@ -162,22 +165,34 @@ function PageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections refetch={refetchAll} />
+                {/* Pass selectedAsmaY_Id down into FormSections so AddFeeConcessionForm can use it */}
+                <FormSections refetch={refetchAll} selectedAsmaY_Id={selectedAsmaY_Id} />
             </div>
         </div>
     );
 }
 
-function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
-        useFormContext<IFeeConcessionStudentConcessionGrid>();
+function FormSections({ refetch, selectedAsmaY_Id }: { refetch: () => void; selectedAsmaY_Id: number | null }) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IFeeConcessionStudentConcessionGrid>();
+
+    const isAnyFormOpen = isAddFormOpen || isEditFormOpen;
 
     return (
         <>
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
+            {isAnyFormOpen && (
+                <div ref={isEditFormOpen ? editFormRef : addFormRef}>
                     <CollapsibleSection
-                        title='Add Fee Concession'
+                        title={isEditFormOpen ? 'Edit Fee Concession' : 'Add Fee Concession'}
                         description='Apply concession to student'
                         defaultOpen={true}
                         variant='outline'
@@ -186,16 +201,19 @@ function FormSections({ refetch }: { refetch: () => void }) {
                         <div className='relative'>
                             <Button
                                 type='button'
-                                onClick={closeAddForm}
+                                onClick={isEditFormOpen ? closeEditForm : closeAddForm}
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
 
-                            <AddFeeOpeningBalanceForm
+                            {/* IMPORTANT: pass selectedAsmaY_Id into AddFeeConcessionForm */}
+                            <AddFeeConcessionForm
+                                pageAcademicYear={selectedAsmaY_Id}
                                 onSuccess={() => {
-                                    closeAddForm();
+                                    if (isEditFormOpen) closeEditForm();
+                                    else closeAddForm();
                                     refetch();
                                 }}
                             />

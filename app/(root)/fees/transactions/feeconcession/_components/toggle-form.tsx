@@ -2,79 +2,86 @@
 
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { FormError } from '@/components/ui/extension/field';
-import { useFeeOpeningBalanceList } from '@/hooks/fees/useTrasactions';
-import { feeOpeningBalanceSchema } from '@/schemas/fees/trasactions';
 import { toggleMasterfeeconfig } from '@/server/fees/configuration/feeconfiguration';
-import type { IFeeOpeningBalanceList } from '@/types/fees/transactions/transactions';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import type { z } from 'zod';
-
-type FormFields = z.infer<typeof feeOpeningBalanceSchema.delete>;
 
 interface ToggleMasterFeesConfigFormProps {
-    rowData: IFeeOpeningBalanceList;
+    configId: number; // fmC_Id or asmay_id
+    isActive: boolean; // current status
+    configName?: string; // optional display name
     onClose: () => void;
+    onSuccess?: () => void; // to refetch parent table
 }
 
-export default function ToggleMasterFeesConfigForm({ rowData, onClose }: ToggleMasterFeesConfigFormProps) {
-    const asmayId = (rowData as any).asmay_id ?? (rowData as any).fmC_Id ?? (rowData as any).id;
-    const { refetchAll } = useFeeOpeningBalanceList(asmayId);
-    const isActive = Boolean(asmayId);
+export default function ToggleMasterFeesConfigForm({
+    configId,
+    isActive,
+    configName = 'this configuration',
+    onClose,
+    onSuccess
+}: ToggleMasterFeesConfigFormProps) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(feeOpeningBalanceSchema.delete),
-        mode: 'onChange'
-    });
+    const handleToggle = async () => {
+        if (!configId) {
+            toast.error('Invalid configuration ID');
+            return;
+        }
 
-    function closeDialog() {
-        onClose();
-        reset();
-    }
-
-    const onSubmit: SubmitHandler<FormFields | any> = async () => {
         try {
-            const response = await toggleMasterfeeconfig(30, Number(asmayId));
+            setIsSubmitting(true);
+
+            const response = await toggleMasterfeeconfig(30, configId);
 
             if (response.success) {
-                toast.success(response.message);
-                refetchAll();
-                closeDialog();
+                toast.success(response.message || `Configuration ${isActive ? 'deactivated' : 'activated'} successfully`);
+                onSuccess?.();
+                onClose();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Something went wrong');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const closeDialog = () => {
+        if (!isSubmitting) {
+            onClose();
         }
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Fee Config Status' isOpen={true} onClose={closeDialog}>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-                <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('fmC_Id')} defaultValue={asmayId} />
-                    <p>
-                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{asmayId}</strong>?
+        <AdaptiveDialog title='Toggle Configuration Status' isOpen={true} onClose={closeDialog}>
+            <div className='flex flex-col gap-6'>
+                <AdaptiveBody className='space-y-4'>
+                    <p className='text-muted-foreground text-sm'>
+                        Are you sure you want to{' '}
+                        <strong className={isActive ? 'text-destructive' : 'text-green-600'}>{isActive ? 'deactivate' : 'activate'}</strong>{' '}
+                        <span className='font-medium text-foreground'>"{configName}"</span>?
                     </p>
-                    <FormError>{errors.fmC_Id?.message}</FormError>
-                    <FormError>{errors.root?.message}</FormError>
+                    <p className='text-muted-foreground text-xs'>
+                        This will {isActive ? 'stop' : 'allow'} fee transactions for this academic year configuration.
+                    </p>
                 </AdaptiveBody>
+
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>
+                    <Button variant='secondary' onClick={closeDialog} disabled={isSubmitting} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting} variant={isActive ? 'destructive' : 'default'}>
+                    <Button
+                        onClick={handleToggle}
+                        isLoading={isSubmitting}
+                        disabled={isSubmitting}
+                        variant={isActive ? 'destructive' : 'default'}
+                        className='min-w-28'>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>
                 </AdaptiveFooter>
-            </form>
+            </div>
         </AdaptiveDialog>
     );
 }
