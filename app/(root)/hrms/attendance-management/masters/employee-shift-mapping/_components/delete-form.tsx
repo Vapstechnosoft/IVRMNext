@@ -1,56 +1,75 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useDeleteEmployeeShiftMapping, useEmployeeShiftMapping } from '@/hooks/hrms/attendance-management/useMasters';
+import { useEmployeeShiftMapping } from '@/hooks/hrms/attendance-management/useMasters';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
+import { deleteEmployeeShiftMapping } from '@/server/hrms/attendance-management/masters/employee-shift-mapping';
+import type { IMasterEmployeeShiftMappingList } from '@/types/hrms/attendance-management/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type SubmitHandler, useForm } from 'react-hook-form';
-import { z } from 'zod';
-import type { EmployeeShiftMapping } from './columns';
+import { toast } from 'sonner';
+import type { z } from 'zod';
+
+type FormFields = z.infer<typeof hrmsMasterSchemas.employeeShiftMapping.delete>;
+
 interface DeleteEmployeeShiftMappingFormProps {
-    rowData: EmployeeShiftMapping;
+    rowData: IMasterEmployeeShiftMappingList;
     onClose: () => void;
 }
+
 export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: DeleteEmployeeShiftMappingFormProps) {
     const { refetchAll } = useEmployeeShiftMapping();
-    const { mutate: deleteMapping, isPending } = useDeleteEmployeeShiftMapping();
+
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
-    } = useForm<{ id: number }>({
-        resolver: zodResolver(z.object({ id: z.number() })),
+    } = useForm<FormFields>({
+        resolver: zodResolver(hrmsMasterSchemas.employeeShiftMapping.delete),
         mode: 'onChange'
     });
+
     function closeDialog() {
         onClose();
         reset();
     }
-    const onSubmit: SubmitHandler<{ id: number }> = async () => {
-        deleteMapping(rowData.id, {
-            onSuccess: () => {
+
+    const onSubmit: SubmitHandler<FormFields | any> = async () => {
+        try {
+            const response = await deleteEmployeeShiftMapping(Number(rowData.FOEST_Id));
+
+            if (response.success) {
+                toast.success(response.message);
                 refetchAll();
                 closeDialog();
+            } else {
+                toast.error(response.message);
             }
-        });
+        } catch (error: any) {
+            toast.error(error.message);
+        }
     };
+
     return (
         <AdaptiveDialog title='Delete Employee Shift Mapping' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('id')} defaultValue={rowData.id} />
+                    <input type='hidden' {...register('foest_Id')} defaultValue={rowData.FOEST_Id || 0} />
                     <p>
-                        Are you sure you want to delete shift mapping for <strong>{rowData.employee || rowData.shiftName}</strong>?
+                        Are you sure you want to delete shift mapping for{' '}
+                        <strong>{rowData.EmployeeName || rowData.ShiftName || 'this record'}</strong>?
                     </p>
-                    <FormError>{errors.id?.message}</FormError>
+                    <FormError>{errors.foest_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
                     <Button variant='secondary' onClick={closeDialog} type='button'>
                         Cancel
                     </Button>
-                    <Button type='submit' isLoading={isSubmitting || isPending} variant={'destructive'}>
+                    <Button type='submit' isLoading={isSubmitting} variant={'destructive'}>
                         Delete
                     </Button>
                 </AdaptiveFooter>

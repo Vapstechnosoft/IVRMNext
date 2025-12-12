@@ -20,7 +20,10 @@ export default function ReorderCourseForm() {
     const handleOpenDialog = async () => {
         try {
             const orderResponse = await getCourseSetOrder();
-            setOrderedItems(Array.isArray(orderResponse) ? orderResponse : []);
+            // API returns { success, message, data, total, page, page_size }
+            // Extract the data array from the response
+            const courses = Array.isArray(orderResponse?.data) ? orderResponse.data : [];
+            setOrderedItems(courses);
             setIsDialogOpen(true);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to load courses for reordering');

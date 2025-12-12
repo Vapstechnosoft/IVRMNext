@@ -53,7 +53,8 @@ export default function UpdateDepartmentForm({ onSuccess, className = '', select
                 hrmD_Id: data.hrmD_Id,
                 hrmD_DepartmentName: data.hrmD_DepartmentName?.trim() || '',
                 hrmD_Order: data.hrmD_Order || 0,
-                hrmD_InternalTrainingMinimumHrs: data.hrmD_InternalTrainingMinimumHrs || 0
+                hrmD_InternalTrainingMinimumHrs: data.hrmD_InternalTrainingMinimumHrs || 0,
+                hrmD_ActiveFlag: true
             };
             const response = await addOrUpdateMasterDepartment(payload);
 

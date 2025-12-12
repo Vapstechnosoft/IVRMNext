@@ -18,7 +18,6 @@ import { masterInstallmentDueDateSchema } from '@/schemas/fees/masters';
 import { getInstallmentDueDateList, saveInstallmentDueDate } from '@/server/fees/masters/feeinstallmentduedate';
 import type { IMasterFeesInstallmentDueDateList, IMasterFeesInstallmentDuedateList } from '@/types/fees/masters';
 import type { IMasterFeeInstallmentDropDown } from '@/types/fees/masters/masters';
-import { masterFeeInstallmentDueDateColumn } from './fee_due_date_column';
 import { masterFeeInstallmentDueDateUpdateColumn } from './fee_due_date_columnupdate';
 
 //type MasterInstallmentFormSchema = z.infer<typeof masterInstallmentDueDateSchema>;
@@ -120,6 +119,9 @@ export default function UpdtaeMasterInstallmentDueDateForm({ onSuccess, selected
                     }))
                 };
             };
+
+            const jsonpayload = JSON.stringify(buildPayload());
+            console.log('Update Payload:', jsonpayload);
 
             const _payload = buildPayload();
             const updatedpayload = JSON.stringify(_payload);

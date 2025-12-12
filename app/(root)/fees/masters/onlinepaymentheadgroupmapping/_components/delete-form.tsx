@@ -36,12 +36,12 @@ export default function DeleteMasterOnlinePaymentHeadGroupForm({
             const response = await deleteOnlinePaymentHeadGroup(rowData.fopM_Id);
 
             if (response.success) {
-                toast.success(`${rowData.groupName} deleted successfully`);
+                toast.success(response.message);
                 await refetchAll();
                 onSuccess?.();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to delete record');
+                toast.error(response.message);
             }
         } catch (error: any) {
             console.error('Delete error:', error);

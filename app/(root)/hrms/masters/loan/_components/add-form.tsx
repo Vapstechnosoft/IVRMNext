@@ -41,7 +41,8 @@ export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormPr
             const payload = {
                 hrmlN_Id: 0,
                 hrmL_LoanType: data.hrmL_LoanType?.trim() || '',
-                hrmL_Max: data.hrmL_Max || 0
+                hrmL_Max: data.hrmL_Max || 0,
+                hrmlN_ActiveFlag: true
             };
             const response = await addOrUpdateMasterLoan(payload);
 

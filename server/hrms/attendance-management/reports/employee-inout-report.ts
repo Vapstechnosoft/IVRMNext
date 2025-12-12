@@ -1,7 +1,7 @@
 'use server';
-import { createLocalCrud } from '@/lib/localdb';
 import type { InOutRow } from '@/app/(root)/hrms/attendance-management/reports/employee-inout-report/_components/columns';
 import type { EmployeeInOutReportFilters } from '@/app/(root)/hrms/attendance-management/reports/employee-inout-report/_components/filters';
+import { createLocalCrud } from '@/lib/localdb';
 export async function getEmployeeInOutReport(filters?: EmployeeInOutReportFilters) {
     const db = createLocalCrud<InOutRow>('attendance:inout');
     const data = db.list();
@@ -14,24 +14,26 @@ export async function getEmployeeInOutReport(filters?: EmployeeInOutReportFilter
     }
     const filtered = data.filter((r) => {
         const okBranch = filters.branch ? r.branch === filters.branch : true;
-        const okType = filters.type && filters.type.length > 0 ? filters.type.includes(r.type) : true;
-        const okDept = filters.department && filters.department.length > 0 ? filters.department.includes(r.department) : true;
-        const okDesg = filters.designation && filters.designation.length > 0 ? filters.designation.includes(r.designation) : true;
-        const okDateFrom = filters.fromDate ? new Date(r.date) >= new Date(filters.fromDate) : true;
-        const okDateTo = filters.toDate ? new Date(r.date) <= new Date(filters.toDate) : true;
+        const okType = filters.type && filters.type.length > 0 && r.type ? filters.type.includes(r.type) : true;
+        const okDept =
+            filters.department && filters.department.length > 0 && r.department ? filters.department.includes(r.department) : true;
+        const okDesg =
+            filters.designation && filters.designation.length > 0 && r.designation ? filters.designation.includes(r.designation) : true;
+        const okDateFrom = filters.fromDate && r.date ? new Date(r.date) >= new Date(filters.fromDate) : true;
+        const okDateTo = filters.toDate && r.date ? new Date(r.date) <= new Date(filters.toDate) : true;
         const okQuery =
             filters.allOrIndividual === 'Individual' && filters.query
                 ? filters.codeOrName === 'Code'
-                    ? r.employeeCode.includes(filters.query)
-                    : r.employeeName.toLowerCase().includes(filters.query.toLowerCase())
+                    ? (r.employeeCode || r.employee_code || '').includes(filters.query)
+                    : (r.employeeName || r.user_name || '').toLowerCase().includes(filters.query.toLowerCase())
                 : true;
         const okTimeInOut = filters.timeInTimeOut
             ? filters.timeInTimeOut === 'Time In'
-                ? r.timeIn
+                ? !!(r.timeIn || r.time_in)
                 : filters.timeInTimeOut === 'Time Out'
-                  ? r.timeOut
+                  ? !!(r.timeOut || r.time_out)
                   : filters.timeInTimeOut === 'In Out'
-                    ? r.timeIn && r.timeOut
+                    ? !!(r.timeIn || r.time_in) && !!(r.timeOut || r.time_out)
                     : true
             : true;
         return okBranch && okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okTimeInOut;

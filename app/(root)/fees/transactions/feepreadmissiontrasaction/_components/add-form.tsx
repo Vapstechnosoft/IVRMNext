@@ -40,7 +40,7 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
     const { data: academicYeardata, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
 
     const [date, setDate] = useState(today); // Dynamic: today
-    const [admissionType, setAdmissionType] = useState<'prospectus' | 'Preadmission'>('Preadmission');
+    const [admissionType, setAdmissionType] = useState<'prospectus' | 'Preadmission'>('prospectus');
     const [termName, setTermName] = useState(false);
     const [studentSearch, setStudentSearch] = useState('');
     const [selectedStudent, setSelectedStudent] = useState<IFeePreAdmissionStudentsDropDownList | null>(null);
@@ -115,6 +115,8 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
         const { name, value } = e.target;
         setPaymentData((prev) => ({ ...prev, [name]: value }));
     };
+
+    const studentLabel = admissionType === 'prospectus' ? 'Prospectus No.' : 'Student Name';
 
     useEffect(() => {
         if (!studentSearch.trim()) {
@@ -413,8 +415,11 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
 
                         <div className='mb-4'>
                             <div className='flex items-center space-x-4'>
-                                <label htmlFor='studentSearchInput' className='whitespace-nowrap font-semibold'>
+                                {/* <label htmlFor='studentSearchInput' className='whitespace-nowrap font-semibold'>
                                     Student Name:<span className='ml-1 text-red-600'>*</span>
+                                </label> */}
+                                <label htmlFor='studentSearchInput' className='whitespace-nowrap font-semibold'>
+                                    {studentLabel}:<span className='ml-1 text-red-600'>*</span>
                                 </label>
 
                                 <div className='relative'>
@@ -443,10 +448,16 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                                         key={student.amsT_Id}
                                                         onClick={() => {
                                                             setSelectedStudent(student);
-                                                            setStudentSearch(student.studentName);
+                                                            setStudentSearch(
+                                                                admissionType === 'prospectus'
+                                                                    ? student.prospectusNo || student.studentName
+                                                                    : student.studentName
+                                                            );
                                                         }}
                                                         className='cursor-pointer px-3 py-2 hover:bg-blue-100'>
-                                                        {student.studentName}
+                                                        {admissionType === 'prospectus'
+                                                            ? student.prospectusNo || student.studentName
+                                                            : student.studentName}
                                                     </li>
                                                 ))
                                             )}

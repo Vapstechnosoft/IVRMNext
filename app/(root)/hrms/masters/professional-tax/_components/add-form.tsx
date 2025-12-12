@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { FormError } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { useMasterProfessionalTax } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
@@ -25,24 +26,21 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
         handleSubmit,
         control,
         reset,
+        trigger,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.professionalTax.add),
-        mode: 'onChange',
-        defaultValues: {
-            hrmpT_SalaryFrom: 0,
-            hrmpT_SalaryTo: 0,
-            hrmpT_PTax: 0
-        }
+        mode: 'onChange'
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
                 hrmpT_Id: 0,
-                hrmpT_SalaryFrom: data.hrmpT_SalaryFrom || 0,
-                hrmpT_SalaryTo: data.hrmpT_SalaryTo || 0,
-                hrmpT_PTax: data.hrmpT_PTax || 0
+                hrmpT_SalaryFrom: data.hrmpT_SalaryFrom,
+                hrmpT_SalaryTo: data.hrmpT_SalaryTo,
+                hrmpT_PTax: data.hrmpT_PTax,
+                hrmpT_ActiveFlag: true
             };
             const response = await addOrUpdateMasterProfessionalTax(payload);
 
@@ -131,6 +129,9 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                             )}
                         />
                     </div>
+                    {(errors.root || errors.hrmpT_SalaryTo) && (
+                        <FormError>{errors.hrmpT_SalaryTo?.message || errors.root?.message}</FormError>
+                    )}
                 </div>
 
                 {/* Action Buttons */}
@@ -146,6 +147,18 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                     <Button
                         type='submit'
                         disabled={isSubmitting}
+                        onClick={async () => {
+                            // Trigger validation to show errors
+                            const isValid = await trigger();
+                            if (!isValid) {
+                                // If validation fails, check for the specific error
+                                if (errors.hrmpT_SalaryTo?.message) {
+                                    toast.error(errors.hrmpT_SalaryTo.message);
+                                } else if (errors.root?.message) {
+                                    toast.error(errors.root.message);
+                                }
+                            }
+                        }}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>

@@ -35,7 +35,8 @@ export default function AddMaritalStatusForm({ onSuccess, className = '' }: AddM
         try {
             const payload = {
                 ivrmmmS_Id: 0,
-                ivrmmmS_MaritalStatus: data.ivrmmmS_MaritalStatus?.trim() || ''
+                ivrmmmS_MaritalStatus: data.ivrmmmS_MaritalStatus?.trim() || '',
+                ivrmmmS_ActiveFlag: true
             };
             const response = await addOrUpdateMasterMaritalStatus(payload);
 

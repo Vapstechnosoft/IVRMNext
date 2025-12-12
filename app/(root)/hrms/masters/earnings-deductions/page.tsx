@@ -3,56 +3,67 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
-import type { EarningsDeductionDetail } from '@/types/hrms/master-earnings-deductions';
+import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
 import { Plus, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { use, useMemo, useState } from 'react';
 import AddEarningsDeductionsForm from './_components/add-form';
 import { columns } from './_components/columns';
 import ReorderEarningsDeductionsForm from './_components/reorder-form';
 import ToggleMasterEarningsDeductionsForm from './_components/toggle-form';
 import UpdateEarningsDeductionsForm from './_components/update-form';
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-export default function MasterEarningsDeductionsPage(_props: {
-    searchParams: SearchParams;
-}) {
-    const roleId = HRMS_MI_ID;
-    const { listQuery, refetchAll } = useMasterEarningsDeductions(roleId);
+
+export default function MasterEarningsDeductionsPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useMasterEarningsDeductions(searchParams);
+
     return (
-        <FormProvider<EarningsDeductionDetail>>
-            <MasterEarningsDeductionsPageContent
-                response={listQuery.data}
-                isLoading={listQuery.isLoading}
-                error={listQuery.error}
-                refetch={refetchAll}
-            />
+        <FormProvider<IMasterEarningsDeductionsList>>
+            <MasterEarningsDeductionsPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
+
 function MasterEarningsDeductionsPageContent({
     response,
     isLoading,
-    error,
-    refetch
+    error
 }: {
     response: any;
     isLoading: boolean;
     error: any;
-    refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<EarningsDeductionDetail>();
-    const { refetchAll } = useMasterEarningsDeductions(HRMS_MI_ID);
-    const tableProps = useDataTableProps(response);
+    const { openAddForm } = useFormContext<IMasterEarningsDeductionsList>();
     // Memoize arrays to prevent unnecessary re-renders
-    const rows: EarningsDeductionDetail[] = useMemo(() => {
-        const earningdetectionList = Array.isArray(response?.data?.earningdetectionList) ? response.data.earningdetectionList : [];
-        return earningdetectionList;
-    }, [response?.data?.earningdetectionList]);
-    const typeDropdown = useMemo(() => response?.data?.eardettypeDropdown ?? [], [response?.data?.eardettypeDropdown]);
+    const rows: IMasterEarningsDeductionsList[] = useMemo(() => {
+        const data = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+        return data;
+    }, [response]);
     const [filterCategory, setFilterCategory] = useState<string>('all');
-    const filteredRows = filterCategory === 'all' ? rows : rows.filter((row) => row.HRMED_EarnDedFlag === filterCategory);
-    const filteredTableProps = filterCategory === 'all' ? tableProps : { data: filteredRows, totalItems: filteredRows.length };
+    const filteredRows = useMemo(() => {
+        if (filterCategory === 'all') {
+            return rows;
+        }
+        const filtered = rows.filter((row) => {
+            const rowValue = String(row.hrmeD_EarnDedFlag || '').trim();
+            const filterValue = filterCategory.trim();
+            return rowValue === filterValue;
+        });
+        return filtered;
+    }, [rows, filterCategory]);
+    const tableProps = useDataTableProps(response);
+    const filteredTableProps = useMemo(() => {
+        if (filterCategory === 'all') {
+            return tableProps;
+        }
+        return {
+            ...tableProps,
+            data: filteredRows,
+            totalItems: filteredRows.length
+        };
+    }, [tableProps, filteredRows, filterCategory]);
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -96,7 +107,7 @@ function MasterEarningsDeductionsPageContent({
                     <div className='flex justify-end'>
                         <ReorderEarningsDeductionsForm />
                     </div>
-                    <GenericDataTable<EarningsDeductionDetail>
+                    <GenericDataTable<IMasterEarningsDeductionsList>
                         {...filteredTableProps}
                         columns={columns}
                         isLoading={isLoading}
@@ -110,12 +121,12 @@ function MasterEarningsDeductionsPageContent({
                     />
                 </CollapsibleSection>
                 {/* Forms */}
-                <FormSections typeDropdown={typeDropdown} refetch={refetchAll} />
+                <FormSections />
             </div>
         </div>
     );
 }
-function FormSections({ typeDropdown, refetch }: { typeDropdown: any[]; refetch: () => void }) {
+function FormSections() {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -126,9 +137,11 @@ function FormSections({ typeDropdown, refetch }: { typeDropdown: any[]; refetch:
         closeToggleForm,
         addFormRef,
         editFormRef
-    } = useFormContext<EarningsDeductionDetail>();
+    } = useFormContext<IMasterEarningsDeductionsList>();
+
     return (
         <>
+            {/* Add Form */}
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
@@ -147,17 +160,13 @@ function FormSections({ typeDropdown, refetch }: { typeDropdown: any[]; refetch:
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddEarningsDeductionsForm
-                                typeDropdown={typeDropdown}
-                                onSuccess={() => {
-                                    closeAddForm();
-                                    refetch();
-                                }}
-                            />
+                            <AddEarningsDeductionsForm onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
+
+            {/* Edit Form */}
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
@@ -175,14 +184,7 @@ function FormSections({ typeDropdown, refetch }: { typeDropdown: any[]; refetch:
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateEarningsDeductionsForm
-                                typeDropdown={typeDropdown}
-                                selectedRow={selectedRow}
-                                onSuccess={() => {
-                                    closeEditForm();
-                                    refetch();
-                                }}
-                            />
+                            <UpdateEarningsDeductionsForm selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

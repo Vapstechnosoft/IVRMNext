@@ -3,28 +3,87 @@ import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useMasterEarningsDeductions } from '@/hooks/hrms/useMasters';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    useAmountOrPercentageDropdown,
+    useEarningsDeductionsTypeDropdown,
+    useMasterEarningsDeductions,
+    useRoundingTypeDropdown,
+    useSalaryComponentTypeDropdown
+} from '@/hooks/hrms/useMasters';
 import { EARNING_DEDUCTION_VALIDATION } from '@/lib/validation/hrms-master-validation';
-import type { EarningsDeductionDetail, MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
+import { saveMasterEarningsDeductions } from '@/server/hrms/hrmsConfig/master/earnings-deductions';
+import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
+import type {
+    IAmountOrPercentageDropdown,
+    IEarningsDeductionsTypeDropdown,
+    IRoundingTypeDropdown,
+    ISalaryComponentTypeDropdown
+} from '@/types/hrms/hrms-config/master';
+import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useEffect, useMemo } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+
+// SafeSelectItem component to filter out invalid/empty dropdown items
+const SafeSelectItem = ({
+    children,
+    value,
+    ...props
+}: {
+    children: React.ReactNode;
+    value: string;
+    [key: string]: any;
+}) => {
+    if (!value || value.trim() === '') return null;
+    return (
+        <SelectItem value={value} {...props}>
+            {children}
+        </SelectItem>
+    );
+};
+
 interface UpdateEarningsDeductionsFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: EarningsDeductionDetail;
-    typeDropdown?: any[];
+    selectedRow: IMasterEarningsDeductionsList;
 }
-export default function UpdateEarningsDeductionsForm({
-    onSuccess,
-    className = '',
-    selectedRow: row,
-    typeDropdown = []
-}: UpdateEarningsDeductionsFormProps) {
-    const roleId = HRMS_MI_ID;
-    const { saveMutation, refetchAll } = useMasterEarningsDeductions(roleId);
+export default function UpdateEarningsDeductionsForm({ onSuccess, className = '', selectedRow: row }: UpdateEarningsDeductionsFormProps) {
+    const { refetchAll } = useMasterEarningsDeductions();
+
+    // Earnings Deductions Type dropdown
+    const { data: earningsDeductionsTypeDropdownResponse, isLoading: isLoadingEarningsDeductionsTypes } =
+        useEarningsDeductionsTypeDropdown();
+    const earningsDeductionsTypeDropdown: IEarningsDeductionsTypeDropdown[] = useMemo(() => {
+        return Array.isArray(earningsDeductionsTypeDropdownResponse)
+            ? earningsDeductionsTypeDropdownResponse
+            : (earningsDeductionsTypeDropdownResponse as any)?.data || [];
+    }, [earningsDeductionsTypeDropdownResponse]);
+
+    // Rounding Type dropdown
+    const { data: roundingTypeDropdownResponse, isLoading: isLoadingRoundingTypes } = useRoundingTypeDropdown();
+    const roundingTypeDropdown: IRoundingTypeDropdown[] = useMemo(() => {
+        return Array.isArray(roundingTypeDropdownResponse)
+            ? roundingTypeDropdownResponse
+            : (roundingTypeDropdownResponse as any)?.data || [];
+    }, [roundingTypeDropdownResponse]);
+
+    // Amount Or Percentage dropdown
+    const { data: amountOrPercentageDropdownResponse, isLoading: isLoadingAmountOrPercentage } = useAmountOrPercentageDropdown();
+    const amountOrPercentageDropdown: IAmountOrPercentageDropdown[] = useMemo(() => {
+        return Array.isArray(amountOrPercentageDropdownResponse)
+            ? amountOrPercentageDropdownResponse
+            : (amountOrPercentageDropdownResponse as any)?.data || [];
+    }, [amountOrPercentageDropdownResponse]);
+
+    // Salary Component Type dropdown (Earning/Deduction)
+    const { data: salaryComponentTypeDropdownResponse, isLoading: isLoadingSalaryComponentType } = useSalaryComponentTypeDropdown();
+    const salaryComponentTypeDropdown: ISalaryComponentTypeDropdown[] = useMemo(() => {
+        return Array.isArray(salaryComponentTypeDropdownResponse)
+            ? salaryComponentTypeDropdownResponse
+            : (salaryComponentTypeDropdownResponse as any)?.data || [];
+    }, [salaryComponentTypeDropdownResponse]);
     const {
         register,
         handleSubmit,
@@ -47,35 +106,43 @@ export default function UpdateEarningsDeductionsForm({
     useEffect(() => {
         if (row) {
             reset({
-                HRMED_Id: row.HRMED_Id,
-                MI_Id: row.MI_Id,
-                HRMED_Name: row.HRMED_Name,
-                HRMED_EDTypeFlag: row.HRMED_EDTypeFlag,
-                HRMED_EarnDedFlag: row.HRMED_EarnDedFlag,
-                HRMED_AmountPercentFlag: row.HRMED_AmountPercentFlag,
-                HRMED_AmountPercent: row.HRMED_AmountPercent,
-                HRMED_ActiveFlag: row.HRMED_ActiveFlag,
-                HRMED_RoundOffFlag: row.HRMED_RoundOffFlag,
-                HRMED_Order: row.HRMED_Order,
-                HRMED_ReviseFlg: row.HRMED_ReviseFlg
+                HRMED_Id: row.hrmeD_Id,
+                MI_Id: row.mI_Id,
+                HRMED_Name: row.hrmeD_Name,
+                HRMED_EDTypeFlag: row.hrmeD_EDTypeFlag,
+                HRMED_EarnDedFlag: row.hrmeD_EarnDedFlag,
+                HRMED_AmountPercentFlag: row.hrmeD_AmountPercentFlag,
+                HRMED_AmountPercent: row.hrmeD_AmountPercent,
+                HRMED_ActiveFlag: row.hrmeD_ActiveFlag,
+                HRMED_RoundOffFlag: row.hrmeD_RoundOffFlag,
+                HRMED_Order: row.hrmeD_Order,
+                HRMED_ReviseFlg: row.hrmeD_ReviseFlg
             });
         }
     }, [row, reset]);
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
-        const sanitizedData: MasterEarningsDeductionsInput = {
-            ...data,
-            HRMED_Name: data.HRMED_Name?.trim() || ''
-        };
         try {
-            const res = await saveMutation.mutateAsync(sanitizedData);
-            if (res?.success) {
-                toast.success(res?.message || 'Earning/Deduction updated successfully');
+            // Build the request body - map to lowercase field names as per API
+            const payload = {
+                hrmeD_Id: data.HRMED_Id || 0,
+                hrmeD_Name: data.HRMED_Name?.trim() || '',
+                hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag,
+                hrmeD_EarnDedFlag: data.HRMED_EarnDedFlag,
+                hrmeD_AmountPercentFlag: data.HRMED_AmountPercentFlag,
+                hrmeD_AmountPercent: data.HRMED_AmountPercent,
+                hrmeD_RoundOffFlag: data.HRMED_RoundOffFlag,
+                hrmeD_ReviseFlg: data.HRMED_ReviseFlg ?? true,
+                hrmeD_Order: data.HRMED_Order || 0
+            };
+            const response = await saveMasterEarningsDeductions(payload);
+            if (response?.success) {
+                toast.success(response?.message || 'Earning/Deduction updated successfully');
                 refetchAll();
                 if (onSuccess) {
                     onSuccess();
                 }
             } else {
-                toast.error(res?.message || 'Failed to update earning/deduction');
+                toast.error(response?.message || 'Failed to update earning/deduction');
             }
         } catch (error: any) {
             const errorMsg =
@@ -101,7 +168,7 @@ export default function UpdateEarningsDeductionsForm({
                             placeholder='Enter earning/deduction name'
                             maxLength={EARNING_DEDUCTION_VALIDATION.HRMED_Name.maxLength?.value}
                             error={errors.HRMED_Name?.message}
-                            defaultValue={row.HRMED_Name}
+                            defaultValue={row.hrmeD_Name}
                             {...register('HRMED_Name', EARNING_DEDUCTION_VALIDATION.HRMED_Name)}
                         />
                     </div>
@@ -109,69 +176,190 @@ export default function UpdateEarningsDeductionsForm({
                         <Label htmlFor='HRMED_EDTypeFlag'>
                             Type <span className='text-destructive'>*</span>
                         </Label>
-                        <select
-                            id='HRMED_EDTypeFlag'
-                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
-                            defaultValue={row.HRMED_EDTypeFlag}
-                            {...register('HRMED_EDTypeFlag', { required: 'Type is required' })}>
-                            <option value=''>Select Type</option>
-                            {typeDropdown.map((type) => (
-                                <option key={type.HRMEDT_Id} value={type.HRMEDT_EarnDedType}>
-                                    {type.HRMEDT_EarnDedType}
-                                </option>
-                            ))}
-                        </select>
+                        <Controller
+                            name='HRMED_EDTypeFlag'
+                            control={control}
+                            rules={{ required: 'Type is required' }}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Type' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {isLoadingEarningsDeductionsTypes ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
+                                        ) : (earningsDeductionsTypeDropdown || []).length === 0 ? (
+                                            <SelectItem value='no-options' disabled>
+                                                No options available
+                                            </SelectItem>
+                                        ) : (
+                                            (earningsDeductionsTypeDropdown || [])
+                                                .filter((item) => {
+                                                    const key = item.key || item.value;
+                                                    return key != null && key !== '' && String(key).trim() !== '';
+                                                })
+                                                .map((item) => {
+                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const value = item.value || String(key);
+                                                    if (!key || key === '') return null;
+                                                    return (
+                                                        <SafeSelectItem key={key} value={key}>
+                                                            {value}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
                         {errors.HRMED_EDTypeFlag && <FormError>{errors.HRMED_EDTypeFlag.message}</FormError>}
                     </div>
                     <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='HRMED_RoundOffFlag'>
                             Rounding To <span className='text-destructive'>*</span>
                         </Label>
-                        <select
-                            id='HRMED_RoundOffFlag'
-                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
-                            defaultValue={row.HRMED_RoundOffFlag}
-                            {...register('HRMED_RoundOffFlag', { required: 'Rounding option is required' })}>
-                            <option value=''>Select Rounding</option>
-                            <option value='No'>No</option>
-                            <option value='RoundUp'>Round Up</option>
-                            <option value='RoundDown'>Round Down</option>
-                            <option value='HalfRoundUp'>Half Round Up</option>
-                        </select>
+                        <Controller
+                            name='HRMED_RoundOffFlag'
+                            control={control}
+                            rules={{ required: 'Rounding option is required' }}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Rounding' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {isLoadingRoundingTypes ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
+                                        ) : (roundingTypeDropdown || []).length === 0 ? (
+                                            <SelectItem value='no-options' disabled>
+                                                No options available
+                                            </SelectItem>
+                                        ) : (
+                                            (roundingTypeDropdown || [])
+                                                .filter((item) => {
+                                                    const key = item.key || item.value;
+                                                    return key != null && key !== '' && String(key).trim() !== '';
+                                                })
+                                                .map((item) => {
+                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const value = item.value || String(key);
+                                                    if (!key || key === '') return null;
+                                                    return (
+                                                        <SafeSelectItem key={key} value={key}>
+                                                            {value}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
                         {errors.HRMED_RoundOffFlag && <FormError>{errors.HRMED_RoundOffFlag.message}</FormError>}
                     </div>
                     <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='HRMED_EarnDedFlag'>
                             Earning/Deduction <span className='text-destructive'>*</span>
                         </Label>
-                        <select
-                            id='HRMED_EarnDedFlag'
-                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
-                            defaultValue={row.HRMED_EarnDedFlag}
-                            {...register('HRMED_EarnDedFlag', EARNING_DEDUCTION_VALIDATION.HRMED_EarnDedFlag)}>
-                            <option value='Earning'>Earning</option>
-                            <option value='Deduction'>Deduction</option>
-                            <option value='Arrear'>Arrear</option>
-                            <option value='Gross'>Gross</option>
-                        </select>
+                        <Controller
+                            name='HRMED_EarnDedFlag'
+                            control={control}
+                            rules={{ required: 'Earning/Deduction is required' }}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Earning/Deduction' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {isLoadingSalaryComponentType ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
+                                        ) : (salaryComponentTypeDropdown || []).length === 0 ? (
+                                            <SelectItem value='no-options' disabled>
+                                                No options available
+                                            </SelectItem>
+                                        ) : (
+                                            (salaryComponentTypeDropdown || [])
+                                                .filter((item) => {
+                                                    const key = item.key || item.value;
+                                                    return key != null && key !== '' && String(key).trim() !== '';
+                                                })
+                                                .map((item) => {
+                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const value = item.value || String(key);
+                                                    if (!key || key === '') return null;
+                                                    return (
+                                                        <SafeSelectItem key={key} value={key}>
+                                                            {value}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
                         {errors.HRMED_EarnDedFlag && <FormError>{errors.HRMED_EarnDedFlag.message}</FormError>}
                     </div>
                     <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='HRMED_AmountPercentFlag'>
                             Calculation Type <span className='text-destructive'>*</span>
                         </Label>
-                        <select
-                            id='HRMED_AmountPercentFlag'
-                            className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm'
-                            defaultValue={row.HRMED_AmountPercentFlag}
-                            {...register('HRMED_AmountPercentFlag', {
-                                onChange: (_e) => {
-                                    trigger('HRMED_AmountPercent');
-                                }
-                            })}>
-                            <option value='Amount'>Amount</option>
-                            <option value='Percentage'>Percentage</option>
-                        </select>
+                        <Controller
+                            name='HRMED_AmountPercentFlag'
+                            control={control}
+                            rules={{ required: 'Calculation Type is required' }}
+                            render={({ field }) => (
+                                <Select
+                                    onValueChange={(value) => {
+                                        field.onChange(value);
+                                        trigger('HRMED_AmountPercent');
+                                    }}
+                                    value={field.value || undefined}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Calculation Type' />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {isLoadingAmountOrPercentage ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading...
+                                            </SelectItem>
+                                        ) : (amountOrPercentageDropdown || []).length === 0 ? (
+                                            <SelectItem value='no-options' disabled>
+                                                No options available
+                                            </SelectItem>
+                                        ) : (
+                                            (amountOrPercentageDropdown || [])
+                                                .filter((item) => {
+                                                    const key = item.key || item.value;
+                                                    return key != null && key !== '' && String(key).trim() !== '';
+                                                })
+                                                .map((item) => {
+                                                    const key = (item.key || item.value)?.toString().trim();
+                                                    const value = item.value || String(key);
+                                                    if (!key || key === '') return null;
+                                                    return (
+                                                        <SafeSelectItem key={key} value={key}>
+                                                            {value}
+                                                        </SafeSelectItem>
+                                                    );
+                                                })
+                                                .filter(Boolean)
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                        {errors.HRMED_AmountPercentFlag && <FormError>{errors.HRMED_AmountPercentFlag.message}</FormError>}
                     </div>
                     <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='HRMED_AmountPercent'>
@@ -182,7 +370,7 @@ export default function UpdateEarningsDeductionsForm({
                             placeholder={`Enter ${calculationType === 'Percentage' ? 'percentage' : 'amount'}`}
                             maxLength={calculationType === 'Percentage' ? 5 : undefined}
                             error={errors.HRMED_AmountPercent?.message}
-                            defaultValue={row.HRMED_AmountPercent}
+                            defaultValue={row.hrmeD_AmountPercent}
                             {...register('HRMED_AmountPercent', {
                                 required: EARNING_DEDUCTION_VALIDATION.HRMED_AmountPercent.required,
                                 validate: (value) => {
@@ -216,7 +404,7 @@ export default function UpdateEarningsDeductionsForm({
                         <Input
                             type='number'
                             id='HRMED_Order'
-                            defaultValue={row.HRMED_Order}
+                            defaultValue={row.hrmeD_Order}
                             {...register('HRMED_Order', {
                                 valueAsNumber: true
                             })}
@@ -228,7 +416,7 @@ export default function UpdateEarningsDeductionsForm({
                             type='checkbox'
                             id='HRMED_ReviseFlg'
                             className='h-4 w-4'
-                            defaultChecked={row.HRMED_ReviseFlg}
+                            defaultChecked={row.hrmeD_ReviseFlg}
                             {...register('HRMED_ReviseFlg')}
                         />
                         <Label htmlFor='HRMED_ReviseFlg' className='cursor-pointer'>

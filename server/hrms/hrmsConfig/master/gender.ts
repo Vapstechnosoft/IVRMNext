@@ -11,16 +11,11 @@ export async function getMasterGender(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterGender(data: any) {
-    const url = '/api/MasterGenderFacade';
+    const url = '/api/MasterGenderFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterGender(id: number) {
-    const url = `/api/MasterGenderFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterGenderFacade/toggle/${id}`;
     return await api.put('hrms', url);
-}
-
-export async function deleteMasterGender(id: number) {
-    const url = `/api/MasterGenderFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
 }

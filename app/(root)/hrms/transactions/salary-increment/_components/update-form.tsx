@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSaveSalaryIncrement } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { salaryIncrementSchema } from '@/schemas/hrms/salary-increment-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryIncrementGridItem, SalaryIncrementOnloadResponse } from '@/types/hrms/salary-increment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -17,7 +17,7 @@ import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof salaryIncrementSchema.addOrUpdate>;
+type FormFields = z.infer<typeof hrmsTransactionSchemas.salaryIncrement.addOrUpdate>;
 interface UpdateFormProps {
     selectedRow: SalaryIncrementGridItem | null;
     onloadData: SalaryIncrementOnloadResponse | undefined;
@@ -33,7 +33,7 @@ export default function UpdateSalaryIncrementForm({ selectedRow, onloadData, onS
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(salaryIncrementSchema.addOrUpdate),
+        resolver: zodResolver(hrmsTransactionSchemas.salaryIncrement.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
             HRESI_Id: 0,

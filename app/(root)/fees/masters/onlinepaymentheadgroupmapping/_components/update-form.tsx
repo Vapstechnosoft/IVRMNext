@@ -41,6 +41,8 @@ export interface SelectedRowData {
     fmt_id?: number;
     termName?: string;
     institutionName?: string;
+    mI_Id: number;
+    mI_Name: string;
 }
 
 interface UpdateFormProps {
@@ -60,6 +62,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     const [installmentId, setInstallmentId] = useState<number | null>(selectedRow?.fti_id || null);
     const [termId, setTermId] = useState<number | null>(selectedRow?.fmt_id || null);
     const [headSearchTerm, setHeadSearchTerm] = useState('');
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | undefined>(undefined);
 
     // Data hooks
     const { data: instituteData, isLoading: instituteLoading } = useInstituteDropDown();
@@ -81,6 +84,16 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
     );
     const { data: masterTerms, isLoading: masterTermsLoading } = useMasterTerms();
 
+    // useEffect(() => {
+    //     if ( academicYearData?.data?.length && academicYear === null) {
+    //         setSelectedAsmayId(Number(academicYearData.data[0].asmaY_Id));
+    //     }
+    // }, [academicYearData, academicYear]);
+
+    // selectedRow.asmaY_Id=selectedAsmayId;
+
+    console.log('selectedRow', selectedRow);
+
     // Form
     const {
         control,
@@ -93,8 +106,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         resolver: zodResolver(masterOnlinePaymentHeadGroupSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            mI_Id: '30',
-            institutionName: 'vidya_vikas_vidya_samste',
+            mI_Id: selectedRow.mI_Id.toString(),
+            institutionName: selectedRow.mI_Name,
             asmaY_Id: selectedRow.asmaY_Id,
             classCategory: selectedRow.asmcL_ID?.toString() || '',
             subMerchantId: selectedRow.fpgd_id?.toString() || '',
@@ -129,8 +142,8 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         setTermId(selectedRow.fmt_id || null);
 
         reset({
-            mI_Id: '30',
-            institutionName: 'vidya_vikas_vidya_samste',
+            mI_Id: selectedRow.mI_Id.toString(),
+            institutionName: selectedRow.mI_Name,
             asmaY_Id: selectedRow.asmaY_Id,
             classCategory: selectedRow.asmcL_ID?.toString() || '',
             subMerchantId: selectedRow.fpgd_id?.toString() || '',
@@ -143,7 +156,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
     // Populate institute
     useEffect(() => {
-        setValue('institutionName', 'vidya_vikas_vidya_samste');
+        setValue('institutionName', selectedRow.mI_Name);
     }, [setValue]);
 
     // Refetch heads on group/academic year change
@@ -307,7 +320,7 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
 
         const payload = {
             fopM_Id: selectedRow.fopM_Id,
-            mI_Id: Number(getValues('mI_Id') ?? 30),
+            mI_Id: Number(getValues('mI_Id')),
             asmaY_Id: academicYear,
             asmcL_ID: classId,
             fpgd_id: subMerchantId,
@@ -321,11 +334,11 @@ export default function UpdateMasterOnlinePaymentHeadGroupMappingForm({ onSucces
         try {
             const response = await addMasterOnlinePaymentHeadGroup(payload);
             if (response.success) {
-                toast.success(response.message || 'Online Payment Head Group updated successfully');
+                toast.success(response.message);
                 await refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update');
+                toast.error(response.message);
             }
         } catch (error: any) {
             console.error('Error updating:', error);

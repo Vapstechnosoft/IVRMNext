@@ -1,27 +1,25 @@
 'use client';
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
 import type { ApiResponse } from '@/lib/apiService';
-import { deleteEmployee, getEmployeeById, getEmployeeOnload, saveEmployee } from '@/server/hrms/hrmsConfig/employee';
-import type { EmployeeOnloadResponse, EmployeeSaveRequest } from '@/types/hrms/employee';
+import { deleteEmployee, getEmployeeById, saveEmployee } from '@/server/hrms/hrmsConfig/employee/register';
+import type { EmployeeSaveRequest } from '@/types/hrms/employee';
 import type { IEmployeeSaveResponse } from '@/types/hrms/hrms-config/employee';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-/**
- * Hook to fetch employee onload data (dropdowns)
- */
-export function useEmployeeOnload() {
-    return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_ONLOAD],
-        queryFn: async () => {
-            const res: ApiResponse<EmployeeOnloadResponse> = await getEmployeeOnload();
-            if (!res.success) {
-                throw new Error(res.message);
-            }
-            return res.data!;
-        },
-        staleTime: 1000 * 60 * 5 // 5 minutes
-    });
-}
+// TODO: Implement useEmployeeOnload hook when the onload API endpoint is available
+// export function useEmployeeOnload() {
+//     return useQuery({
+//         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_ONLOAD],
+//         queryFn: async () => {
+//             const res: ApiResponse<EmployeeOnloadResponse> = await getEmployeeOnload();
+//             if (!res.success) {
+//                 throw new Error(res.message);
+//             }
+//             return res.data!;
+//         },
+//         staleTime: 1000 * 60 * 5 // 5 minutes
+//     });
+// }
 /**
  * Hook to fetch employee by ID
  */

@@ -12,8 +12,17 @@ interface TimePicker12HourProps {
     required?: boolean;
     className?: string;
     name?: string;
+    showPeriod?: boolean; // Show AM/PM selector (default: true)
 }
-export function TimePicker12Hour({ value, onChange, disabled = false, required = false, className, name }: TimePicker12HourProps) {
+export function TimePicker12Hour({
+    value,
+    onChange,
+    disabled = false,
+    required = false,
+    className,
+    name,
+    showPeriod = true
+}: TimePicker12HourProps) {
     const minuteRef = React.useRef<HTMLInputElement>(null);
     const hourRef = React.useRef<HTMLInputElement>(null);
     const [date, setDate] = React.useState<Date | undefined>(undefined);
@@ -76,12 +85,18 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
         if (!date) return;
         const newDate = new Date(date);
         const currentHour24 = date.getHours();
-        const hour12 = currentHour24 === 0 ? 12 : currentHour24 > 12 ? currentHour24 - 12 : currentHour24;
-        const newHour12 = hour12 >= 12 ? 1 : hour12 + 1;
-        if (period === 'PM') {
-            newDate.setHours(newHour12 === 12 ? 12 : newHour12 + 12);
+        if (showPeriod) {
+            // 12-hour format logic
+            const hour12 = currentHour24 === 0 ? 12 : currentHour24 > 12 ? currentHour24 - 12 : currentHour24;
+            const newHour12 = hour12 >= 12 ? 1 : hour12 + 1;
+            if (period === 'PM') {
+                newDate.setHours(newHour12 === 12 ? 12 : newHour12 + 12);
+            } else {
+                newDate.setHours(newHour12 === 12 ? 0 : newHour12);
+            }
         } else {
-            newDate.setHours(newHour12 === 12 ? 0 : newHour12);
+            // 24-hour format logic (0-23)
+            newDate.setHours(currentHour24 >= 23 ? 0 : currentHour24 + 1);
         }
         handleDateChange(newDate);
     };
@@ -89,12 +104,18 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
         if (!date) return;
         const newDate = new Date(date);
         const currentHour24 = date.getHours();
-        const hour12 = currentHour24 === 0 ? 12 : currentHour24 > 12 ? currentHour24 - 12 : currentHour24;
-        const newHour12 = hour12 <= 1 ? 12 : hour12 - 1;
-        if (period === 'PM') {
-            newDate.setHours(newHour12 === 12 ? 12 : newHour12 + 12);
+        if (showPeriod) {
+            // 12-hour format logic
+            const hour12 = currentHour24 === 0 ? 12 : currentHour24 > 12 ? currentHour24 - 12 : currentHour24;
+            const newHour12 = hour12 <= 1 ? 12 : hour12 - 1;
+            if (period === 'PM') {
+                newDate.setHours(newHour12 === 12 ? 12 : newHour12 + 12);
+            } else {
+                newDate.setHours(newHour12 === 12 ? 0 : newHour12);
+            }
         } else {
-            newDate.setHours(newHour12 === 12 ? 0 : newHour12);
+            // 24-hour format logic (0-23)
+            newDate.setHours(currentHour24 <= 0 ? 23 : currentHour24 - 1);
         }
         handleDateChange(newDate);
     };
@@ -133,10 +154,10 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
                         <ChevronUp className='h-3 w-3' />
                     </button>
                     <TimePickerInput
-                        picker='12hours'
+                        picker={showPeriod ? '12hours' : 'hours'}
                         date={date}
                         setDate={handleDateChange}
-                        period={period}
+                        period={showPeriod ? period : undefined}
                         ref={hourRef}
                         onRightFocus={() => minuteRef.current?.focus()}
                         disabled={disabled}
@@ -187,14 +208,16 @@ export function TimePicker12Hour({ value, onChange, disabled = false, required =
                     Minutes
                 </Label>
             </div>
-            <Button
-                type='button'
-                onClick={handlePeriodChange}
-                disabled={disabled}
-                variant='outline'
-                className='h-[72px] px-3 font-medium text-sm'>
-                {period}
-            </Button>
+            {showPeriod && (
+                <Button
+                    type='button'
+                    onClick={handlePeriodChange}
+                    disabled={disabled}
+                    variant='outline'
+                    className='h-[72px] px-3 font-medium text-sm'>
+                    {period}
+                </Button>
+            )}
         </div>
     );
 }

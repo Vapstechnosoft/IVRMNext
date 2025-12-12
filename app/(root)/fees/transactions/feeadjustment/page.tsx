@@ -1,33 +1,39 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-
-import { useFeeconfiguration } from '@/hooks/fees/useConfiguration';
-import type { IFeeConfig } from '@/types/fees/configuration/feesconfiguration';
+import { useFeeAdjustment } from '@/hooks/fees/useTrasactions';
+import type { IFeeAdjustmentGridList } from '@/types/fees/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddFeeAdjustmentForm from './_components/add-form';
-import ToggleMasterFeesConfigForm from './_components/toggle-form';
-import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
-import { openingBalanceColumns, OpeningBalanceRow } from './_components/columns';
+import { feeAdjustmentColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function fineSlabPage(props: { searchParams: SearchParams }) {
+export default function feeAdjustment(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useFeeconfiguration(searchParams);
+    const { data: response, isLoading, error } = useFeeAdjustment(searchParams);
 
     return (
-        <FormProvider<IFeeConfig>>
-            <MasterFeeOpeningBalancePageContent data={response} isLoading={isLoading} />
+        <FormProvider<IFeeAdjustmentGridList>>
+            <MasterFeeAdjustmentPageContent response={response} isLoading={isLoading} error={error} />
         </FormProvider>
     );
 }
-function MasterFeeOpeningBalancePageContent({ data, isLoading }: { data: any; isLoading: boolean }) {
-    const { openAddForm } = useFormContext<IFeeConfig>();
-    const activeTab = 'Fee Adjustment';
-    const tableData: any[] = (data as any)?.data ?? [];
+function MasterFeeAdjustmentPageContent({
+    response,
+    isLoading,
+    error
+}: {
+    response: any;
+    isLoading: boolean;
+    error: any;
+}) {
+    const { openAddForm } = useFormContext<IFeeAdjustmentGridList>();
+    const tableProps = useDataTableProps(response);
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -42,28 +48,27 @@ function MasterFeeOpeningBalancePageContent({ data, isLoading }: { data: any; is
                     </Button>
                 </div>
                 <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='rounded-xl border bg-white shadow-xl'>
-
-                    <GenericDataTable<OpeningBalanceRow>
-                        data={tableData}
-                        columns={openingBalanceColumns}
+                    <GenericDataTable<IFeeAdjustmentGridList>
+                        {...tableProps}
+                        columns={feeAdjustmentColumns}
                         isLoading={isLoading}
+                        error={error}
                         columnPinning={{ right: ['actions'] }}
-                        loadingMessage={`Loading ${activeTab} Opening Balances...`}
-                        noDataTitle={`No ${activeTab} Opening Balance Records Found`}
-                        noDataDescription='No records exist for the selected academic year.'
+                        loadingMessage='Loading Fee Adjustments...'
+                        noDataTitle='No Fee Adjustments Found'
+                        noDataDescription='Get started by adding a new Fee Adjustment.'
+                        errorTitle='Error Loading Fee Adjustments'
                     />
-
                 </CollapsibleSection>
                 <FormSections />
-
             </div>
-
         </div>
     );
 }
 
 function FormSections() {
-    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } = useFormContext<IFeeConfig>();
+    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } =
+        useFormContext<IFeeAdjustmentGridList>();
 
     return (
         <>
@@ -71,7 +76,6 @@ function FormSections() {
                 <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add Fee Transaction Adjustment'
-
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -92,7 +96,7 @@ function FormSections() {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleMasterFeesConfigForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {/* {isToggleFormOpen && selectedRow && <ToggleMasterFeesConfigForm rowData={selectedRow} onClose={closeToggleForm} />} */}
         </>
     );
 }

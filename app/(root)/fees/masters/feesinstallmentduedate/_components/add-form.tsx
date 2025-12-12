@@ -211,24 +211,26 @@ export default function AddMasterInstallmentDueDateForm({ onSuccess }: AddMaster
                     </div>
                 </div>
 
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<IMasterFeesInstallmentDueDateList>
-                        {...tableProps}
-                        columns={masterFeeInstallmentDueDateColumn}
-                        isLoading={masterInstallmentDueDataLoading}
-                        error={masterInstallmentDueDataError}
-                        // onRowSelectionChange={handleSelectStudent}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading Fee Installment Due Date...'
-                        noDataTitle='No Fee Installment Due Date Found'
-                        noDataDescription='Get started by creating your first Fee Installment Due Date'
-                        errorTitle='Error Fee Installment Due Date'
-                    />
-                </CollapsibleSection>
+                {asmayId && fmI_Installment_Type ? (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        <GenericDataTable<IMasterFeesInstallmentDueDateList>
+                            {...tableProps}
+                            columns={masterFeeInstallmentDueDateColumn}
+                            isLoading={masterInstallmentDueDataLoading}
+                            error={masterInstallmentDueDataError}
+                            // onRowSelectionChange={handleSelectStudent}
+                            columnPinning={{ right: ['actions'] }}
+                            loadingMessage='Loading Fee Installment Due Date...'
+                            noDataTitle='No Fee Installment Due Date Found'
+                            noDataDescription='Get started by creating your first Fee Installment Due Date'
+                            errorTitle='Error Fee Installment Due Date'
+                        />
+                    </CollapsibleSection>
+                ) : null}
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

@@ -11,22 +11,17 @@ export async function getMasterLeaveYear(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterLeaveYear(data: any) {
-    const url = '/api/MasterLeaveYearFacade';
+    const url = '/api/MasterLeaveYearFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterLeaveYear(id: number) {
-    const url = `/api/MasterLeaveYearFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterLeaveYearFacade/toggle/${id}`;
     return await api.put('hrms', url);
 }
 
-export async function deleteMasterLeaveYear(id: number) {
-    const url = `/api/MasterLeaveYearFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
-}
-
 export async function getLeaveYearSetOrder() {
-    const url = '/api/MasterLeaveYearFacade/onloadgetdetails?page=1&page_size=1000&sort_column=hrmlY_LeaveYearOrder&sort_direction=asc';
+    const url = '/api/MasterLeaveYearFacade/set_order_list';
     return await api.get<IMasterLeaveYearSetOrderList[]>('hrms', url);
 }
 

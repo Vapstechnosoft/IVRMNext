@@ -61,7 +61,7 @@ export const feeMasterConcessionColumns: ColumnDef<IMasterConcessionList>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterConcessionList }) {
-    const { openEditForm, openToggleForm } = useFormContext<IMasterConcessionList>();
+    const { openEditForm, openToggleForm, openDeleteForm } = useFormContext<IMasterConcessionList>();
 
     const handleEdit = useCallback(
         (data: IMasterConcessionList) => {
@@ -77,12 +77,20 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterConcessionList }) {
         [openToggleForm]
     );
 
+    const handleDelete = useCallback(
+        (data: IMasterConcessionList) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: false }}
+            buttons={{ edit: true, toggle: true, delete: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
+            onDelete={handleDelete}
             toggleConditionKey='fmcC_ActiveFlag'
         />
     );

@@ -1,10 +1,10 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
+    EmployeeYearlyReportGetDataResponse,
     EmployeeYearlyReportOnloadRequest,
-    EmployeeYearlyReportOnloadResponse,
-    EmployeeYearlyReportGetDataResponse
+    EmployeeYearlyReportOnloadResponse
 } from '@/types/hrms/reports/employee-yearly-report';
 /**
  * Get onload data for employee yearly report
@@ -135,4 +135,13 @@ export async function getEmployeeYearlyReportList(
             page_size: searchParams?.page_size || 10
         }
     };
+}
+/**
+ * Get employee yearly report data
+ * POST /api/EmployeeYearlyReportFacade/search
+ */
+export async function getEmployeeYearlyReport(data: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
+    const url = `/api/EmployeeYearlyReportFacade/search?${urlParams}`;
+    return await api.post<any>('hrmsfrontoffice', url, data);
 }

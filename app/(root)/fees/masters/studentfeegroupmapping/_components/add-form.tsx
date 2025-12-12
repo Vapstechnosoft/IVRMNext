@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { SecondaryFormProvider, useSecondaryFormContext } from '@/components/ui/form/secondary-form-provider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
@@ -16,6 +16,7 @@ import {
     useStudentFeeCasteRoutingDropDown,
     useStudentFeeGroupAdmiClassCategoryDropDown,
     useStudentFeeGroupFeeClassCategoryDropDown,
+    useStudentFeeGroupMapping,
     useStudentSectionDropDown
 } from '@/hooks/fees/useMasters';
 import { masterStudentFeeGroupMappingSchema } from '@/schemas/fees/masters';
@@ -36,16 +37,48 @@ import type {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RotateCcw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import React from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+
+import { MasterViewDetail } from './masterViewDetails';
 import { masterFeeStudentClassMapping } from './student-list-columns';
 
 type FormFields = z.infer<typeof masterStudentFeeGroupMappingSchema.addOrUpdate>;
 interface AddStudentFeeGroupMappingFilter {
     onSuccess?: () => void;
 }
-export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFilter) {
+
+export default function MasterStudentGroupMappingPage({ onSuccess }: AddStudentFeeGroupMappingFilter) {
+    const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+    const [selectedRow, setSelectedRow] = useState<any>(null);
+
+    const formState = {
+        isEditFormOpen,
+        selectedRow,
+
+        openEditForm: (row: any) => {
+            setSelectedRow(row);
+            setIsEditFormOpen(true);
+        },
+        closeEditForm: () => {
+            setSelectedRow(null);
+            setIsEditFormOpen(false);
+        },
+
+        addFormRef: React.createRef<HTMLDivElement>(),
+        editFormRef: React.createRef<HTMLDivElement>()
+    };
+
+    return (
+        <SecondaryFormProvider<IMasterStudentClassMappingList> {...formState}>
+            <StudentFeeGroupMappingFilter onSuccess={onSuccess} />
+        </SecondaryFormProvider>
+    );
+}
+function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFeeGroupMappingFilter) {
+    const { refetchAll } = useStudentFeeGroupMapping();
     const [filterType, setFilterType] = useState<string>('alldata');
     const [classWise, setClassWise] = useState(false);
     const [areaWise, setAreaWise] = useState(false);
@@ -81,7 +114,6 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         control,
         handleSubmit,
         reset,
-        setValue,
         watch,
         getValues,
         formState: { errors, isSubmitting }
@@ -89,8 +121,8 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         resolver: zodResolver(masterStudentFeeGroupMappingSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            //  asmaY_Id:academicYear,
-            asmaY_Id: 231,
+            // asmaY_Id: academicYear,
+            //  asmaY_Id: 231,
             mI_Id: '30',
             institutionName: 'vidya_vikas_vidya_samste'
         }
@@ -100,14 +132,15 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
     const { data: academicYearData, isLoading: academicYearLoading, error: academicYearError } = useMasterStudentFeeGrouMappingAcademic();
 
     useEffect(() => {
-        if (academicYearData) {
-            if (academicYearData?.data && Array.isArray(academicYearData.data)) {
-                const firstId = academicYearData.data[0].asmaY_Id;
-                setValue('asmaY_Id', firstId);
-                setAcademicYear(firstId);
-            }
+        if (academicYearData?.data?.length) {
+            const firstId = academicYearData.data[0].asmaY_Id;
+
+            reset((prev) => ({
+                ...prev,
+                asmaY_Id: firstId
+            }));
         }
-    }, [academicYearData, reset]);
+    }, [academicYearData]);
 
     const asmaY_Id = watch('asmaY_Id');
     const classId = watch('class');
@@ -161,9 +194,9 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         fetchStudentClassMapping();
     }, [asmaY_Id, classId, sectionId, admCategoryId, areaId, filterType, apisearchParams_]);
 
-    useEffect(() => {
-        fetchStudentClassMapping();
-    }, [academicYear, classId, sectionId, admCategoryId, areaId, filterType, apisearchParams_]);
+    // useEffect(() => {
+    //     fetchStudentClassMapping();
+    // }, [academicYear, classId, sectionId, admCategoryId, areaId, filterType, apisearchParams_]);
 
     //--------------------Student Group List----------------------
     const loadStudentFeeGroupList = async () => {
@@ -184,7 +217,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
 
     useEffect(() => {
         loadStudentFeeGroupList();
-    }, [academicYear]);
+    }, [academicYear, asmaY_Id]);
 
     const {
         data: masterfeeClassCategory,
@@ -470,6 +503,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
 
             if (res?.success) {
                 toast.success(res.message || 'Saved successfully');
+                await refetchAll();
                 handleReset();
                 onSuccess?.();
             } else {
@@ -486,7 +520,6 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         setFilterType('alldata');
         setClassWise(false);
         setAreaWise(false);
-        setAcademicYear(0);
         setFeeClassCategory('');
         setAdmClassCategory('');
         setFeeBusRouting('');
@@ -494,11 +527,12 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
         setStudentClass('');
         setSection('');
         setArea('');
+        handleSelectStudent([]);
         setSelectedGroups([]);
         setSelectedHeads([]);
         setSelectedInstallments([]);
-        setSelectedStudents([]);
     };
+    const { isEditFormOpen, closeEditForm } = useSecondaryFormContext<IMasterStudentClassMappingList>();
 
     return (
         <div className='mx-auto max-w-5xl space-y-6 p-4'>
@@ -561,11 +595,13 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                         <Label htmlFor='asmaY_Id'>
                             Academic Year <span className='ml-1 text-red-500'>*</span>
                         </Label>
+
                         <Controller
                             name='asmaY_Id'
                             control={control}
                             render={({ field }) => (
                                 <Select
+                                    disabled={academicYearLoading}
                                     onValueChange={(v) => {
                                         const selectedYear = Number(v);
                                         field.onChange(selectedYear);
@@ -575,6 +611,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                                     <SelectTrigger className='w-full'>
                                         <SelectValue placeholder='Select Academic Year' />
                                     </SelectTrigger>
+
                                     <SelectContent>
                                         {academicYearLoading ? (
                                             <SelectItem value='loading' disabled>
@@ -595,6 +632,7 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                                 </Select>
                             )}
                         />
+
                         {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
                     </div>
                     {filterType === 'FCC' && (
@@ -897,11 +935,13 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                     )}
                 </div>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-1'>
-                    <CollapsibleSection
+                    {/* <CollapsibleSection
                         defaultOpen={true}
                         variant='default'
                         size='lg'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>                       
+                    </CollapsibleSection> */}
+                    <Card className='p-4'>
                         <GenericDataTable<IMasterStudentClassMappingList>
                             {...tableProps}
                             columns={masterFeeStudentClassMapping}
@@ -914,12 +954,14 @@ export default function StudentFeeGroupMappingFilter({ onSuccess }: AddStudentFe
                             noDataDescription='Get started by creating your first Student Class Mapping'
                             errorTitle='Error Student Class Mapping'
                             onSearchQueryChange={handleApiParmasChange}
-                            showSearch={false}
+                            showSearch={true}
                             searchQuery=''
                             showPagination={true}
                             currentApiParams={apisearchParams_}
                         />
-                    </CollapsibleSection>
+                    </Card>
+                    {isEditFormOpen && <MasterViewDetail onSuccess={closeEditForm} />}
+
                     <div className='p-4'>
                         <h3 className='mb-2 font-semibold text-lg'>Group List</h3>
                         <div

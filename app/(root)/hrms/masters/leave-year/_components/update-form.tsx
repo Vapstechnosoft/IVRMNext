@@ -76,7 +76,8 @@ export default function UpdateLeaveYearForm({ onSuccess, className = '', selecte
                 hrmlY_Id: data.hrmlY_Id,
                 hrmlY_LeaveYear: data.hrmlY_LeaveYear?.trim() || '',
                 hrmlY_FromDate: data.hrmlY_FromDate,
-                hrmlY_ToDate: data.hrmlY_ToDate
+                hrmlY_ToDate: data.hrmlY_ToDate,
+                hrmlY_ActiveFlag: true
             };
             const response = await addOrUpdateMasterLeaveYear(payload);
 

@@ -57,19 +57,42 @@ export async function getOpeningRefundable(asmaY_Id: number, filterrefund: strin
     return await api.get<IFeeOpeningRefundable[]>('fees', url);
 }
 export async function getOpeningBalanceList(asmaY_Id: number, searchParams?: ApiSearchparams) {
+    // if(searchParams?.search_column==='fullName' || searchParams?.sort_column==='fullName'){
+    //     searchParams.search_column='amsT_FirstName,amsT_MiddleName,amsT_LastName'
+    //     searchParams.sort_column='amsT_FirstName,amsT_MiddleName,amsT_LastName'
+
+    // }
+    // else if(searchParams?.search_column==='classSection' || searchParams?.sort_column==='classSection'){
+    //     searchParams.search_column='asmcL_ClassName,asmcL_SectionName'
+    //     searchParams.sort_column='asmcL_ClassName,asmcL_SectionName'
+
+    // }
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'fmoB_Institution_Due,fmoB_Student_Due,asmcL_ClassName,amsT_FirstName,amsT_MiddleName,amsT_LastName'
+        'fmoB_Institution_Due,fmoB_Student_Due,asmcL_ClassName,amsT_FirstName,amsT_MiddleName,amsT_LastName,asmcL_SectionName,studentName'
     );
     const url = `FeeOpeningBalance/opening-balance-list/${asmaY_Id}?${urlParams}`;
+    console.info('FeeOpeningBalance', url);
     return await api.get<IFeeOpeningBalanceList[]>('fees', url);
 }
 export async function getOpeningPDAList(asmaY_Id: number, searchParams?: ApiSearchparams) {
+    // if(searchParams?.search_column==='fullName' || searchParams?.sort_column==='fullName'){
+    //     searchParams.search_column='amsT_FirstName,amsT_MiddleName,amsT_LastName'
+    //     searchParams.sort_column='amsT_FirstName,amsT_MiddleName,amsT_LastName'
+
+    //  }
+    // else if(searchParams?.search_column==='classSection' || searchParams?.sort_column==='classSection'){
+    //     searchParams.search_column='asmcL_ClassName'
+    //     searchParams.sort_column='asmcL_ClassName'
+
+    // }
     const urlParams = getSearchParamsUrl(
         searchParams ?? {},
-        'fmoB_Institution_Due,fmoB_Student_Due,asmcL_ClassName,amsT_FirstName,amsT_MiddleName,amsT_LastName'
+        'fmoB_Institution_Due,fmoB_Student_Due,asmcL_ClassName,amsT_FirstName,amsT_MiddleName,amsT_LastName,asmcL_SectionName,studentName'
     );
     const url = `FeeOpeningBalance/opening-balance-pda-list/${asmaY_Id}?${urlParams}`;
+
+    console.info('getOpeningPDAList', url);
     return await api.get<IFeeOpeningPDA[]>('fees', url);
 }
 export async function getOpeningHeadDropdownData(asmaY_Id: number) {

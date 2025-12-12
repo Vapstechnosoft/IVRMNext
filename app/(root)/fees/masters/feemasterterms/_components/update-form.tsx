@@ -146,7 +146,7 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
                                 }}
                                 id='fmT_IncludeArrearFeeFlg'
                             />
-                            <Label htmlFor='fmT_IncludeArrearFeeFlg'>Arrear Flag</Label>
+                            <Label htmlFor='fmT_IncludeArrearFeeFlg'>Arrear Term</Label>
                         </div>
                     )}
                 />

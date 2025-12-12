@@ -10,6 +10,7 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterConcessionForm from './_components/add-form';
 import { feeMasterConcessionColumns } from './_components/columns';
+import DelteMasterConcessionForm from './_components/delete-form';
 import ToggleMasterConcessionForm from './_components/toggle-form';
 import UpdateMasterConcessionForm from './_components/update-form';
 
@@ -82,6 +83,8 @@ function FormSections() {
         isEditFormOpen,
         isToggleFormOpen,
         selectedRow,
+        isDeleteFormOpen,
+        closeDeleteForm,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
@@ -139,6 +142,8 @@ function FormSections() {
             )}
 
             {isToggleFormOpen && selectedRow && <ToggleMasterConcessionForm rowData={selectedRow} onClose={closeToggleForm} />}
+
+            {isDeleteFormOpen && selectedRow && <DelteMasterConcessionForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }

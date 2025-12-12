@@ -458,3 +458,10 @@ export interface IExamPromotionalSettingDetails {
     // Navigation Forward → Page-2
     groups?: IExamSubjectGroupingDetails[];
 }
+
+export interface IExamSubjectGroupDetails {
+    emcA_Id: number;
+    emcA_CategoryName: string;
+    emE_Id: number;
+    emE_ExamName: string;
+}

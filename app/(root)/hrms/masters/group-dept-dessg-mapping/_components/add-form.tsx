@@ -4,8 +4,8 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDepartmentDropdown, useDesignationDropdown, useGroupTypeDropdown } from '@/hooks/hrms/useEmployeeRegister';
-import { useSaveGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
-import { groupDeptDessgMappingSchema } from '@/schemas/hrms/group-dept-dessg-mapping-schemas';
+import { useGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { IDepartmentDropdown, IDesignationDropdown, IGroupTypeDropdown } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -13,7 +13,7 @@ import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof groupDeptDessgMappingSchema.addOrUpdate>;
+type FormFields = z.infer<typeof hrmsMasterSchemas.groupDeptDessgMapping.addOrUpdate>;
 interface AddGroupDeptDessgMappingFormProps {
     onSuccess?: () => void;
     className?: string;
@@ -37,24 +37,25 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
         ? designationDropdownResponse
         : (designationDropdownResponse as any)?.data || [];
 
-    const { mutate: saveMapping, isPending } = useSaveGroupDeptDessgMapping();
+    const { saveMutation } = useGroupDeptDessgMapping();
+    const { mutate: saveMapping, isPending } = saveMutation;
     const {
         control,
         handleSubmit,
         reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
-        resolver: zodResolver(groupDeptDessgMappingSchema.addOrUpdate),
+        resolver: zodResolver(hrmsMasterSchemas.groupDeptDessgMapping.addOrUpdate),
         mode: 'onChange'
     });
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            // Construct API request body - MI_Id is excluded (extracted from JWT)
-            const requestBody: any = {
-                HRMGT_Id: data.hrmgT_Id,
-                HRMD_Id: data.hrmD_Id,
-                HRMDES_Ids: data.designationids || [],
-                UserId: data.logInUserId || 0
+            // Construct API request body matching Swagger spec
+            const requestBody = {
+                hrgtddS_Id: 0,
+                hrmgT_Id: data.hrmgT_Id,
+                hrmD_Id: data.hrmD_Id,
+                hrmdeS_Ids: data.designationids || []
             };
             saveMapping(requestBody, {
                 onSuccess: (response) => {

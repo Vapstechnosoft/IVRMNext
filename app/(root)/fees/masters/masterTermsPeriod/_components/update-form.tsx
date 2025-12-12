@@ -264,52 +264,56 @@ export default function UpdateMasterTermsPeriodForm({ onSuccess, feeheadname = '
                 <Label className='min-w-[150px] text-right'>
                     To Month<span className='text-red-500'>*</span>
                 </Label>
-                <Controller
-                    name='to_Month'
-                    control={control}
-                    defaultValue={row.fmtToMonth ?? ''}
-                    render={({ field }) => (
-                        <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
-                            <SelectTrigger className='min-w-[400px] text-center'>
-                                <SelectValue placeholder='--Select Month--' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {months.map((m) => (
-                                    <SelectItem key={m} value={m}>
-                                        {m}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                />
-                {errors.to_Month && <FormError>{errors.to_Month.message}</FormError>}
+                <div className='flex w-full max-w-[400px] flex-col'>
+                    <Controller
+                        name='to_Month'
+                        control={control}
+                        defaultValue={row.fmtToMonth ?? ''}
+                        render={({ field }) => (
+                            <Select value={String(field.value ?? '')} onValueChange={field.onChange}>
+                                <SelectTrigger className='min-w-[400px] text-center'>
+                                    <SelectValue placeholder='--Select Month--' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {months.map((m) => (
+                                        <SelectItem key={m} value={m}>
+                                            {m}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                    {errors.to_Month && <FormError>{errors.to_Month.message}</FormError>}
+                </div>
             </div>
 
             {/* Fee Type */}
-            <div className='flex justify-center'>
+            <div className='flex w-full justify-center'>
                 <Controller
                     name='filterType'
                     control={control}
                     render={({ field }) => (
-                        <Card className='p-4'>
-                            <RadioGroup value={field.value} onValueChange={field.onChange}>
-                                <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
-                                    {[
-                                        { value: 'N', label: 'New Admission Fee' },
-                                        { value: 'F', label: 'Regular Fee' },
-                                        { value: 'T', label: 'Transport Fee' },
-                                        { value: 'R', label: 'Registration Fee' }
-                                    ].map((item) => (
-                                        <div key={item.value} className='flex items-center gap-2'>
-                                            <RadioGroupItem id={item.value} value={item.value} />
-                                            <Label htmlFor={item.value}>{item.label}</Label>
-                                        </div>
-                                    ))}
-                                </div>
-                            </RadioGroup>
-                            {errors.filterType && <FormError className='mt-2'>{errors.filterType.message}</FormError>}
-                        </Card>
+                        <div className='flex w-full flex-col items-center'>
+                            <Card className='w-full max-w-[900px] p-4'>
+                                <RadioGroup value={field.value} onValueChange={field.onChange}>
+                                    <div className='flex w-full items-center justify-evenly gap-x-4 px-2'>
+                                        {[
+                                            { value: 'N', label: 'New Admission Fee' },
+                                            { value: 'F', label: 'Regular Fee' },
+                                            { value: 'T', label: 'Transport Fee' },
+                                            { value: 'R', label: 'Registration Fee' }
+                                        ].map((item) => (
+                                            <div key={item.value} className='flex items-center gap-2'>
+                                                <RadioGroupItem id={item.value} value={item.value} />
+                                                <Label htmlFor={item.value}>{item.label}</Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </RadioGroup>
+                                {errors.filterType && <FormError className='mt-2'>{errors.filterType.message}</FormError>}
+                            </Card>
+                        </div>
                     )}
                 />
             </div>

@@ -10,7 +10,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetEmployeeDetailsBySelection, useMassUpdationOnload, useSearchMassUpdationEmployees } from '@/hooks/hrms/useTransactions';
-import { massUpdationFormSchema, massUpdationSchema } from '@/schemas/hrms/mass-updation-schemas';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { EmployeeDropdown } from '@/types/hrms/mass-updation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -22,7 +22,7 @@ import { z } from 'zod';
 interface Employee extends EmployeeDropdown {
     selected?: boolean;
 }
-type MassUpdateForm = z.infer<typeof massUpdationFormSchema>;
+type MassUpdateForm = z.infer<typeof hrmsTransactionSchemas.massUpdation.form>;
 export default function MassUpdationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
@@ -38,7 +38,7 @@ export default function MassUpdationPage() {
         getValues,
         formState: { errors }
     } = useForm<MassUpdateForm>({
-        resolver: zodResolver(massUpdationFormSchema),
+        resolver: zodResolver(hrmsTransactionSchemas.massUpdation.form),
         mode: 'onChange',
         defaultValues: {
             groupType: [],
@@ -116,7 +116,7 @@ export default function MassUpdationPage() {
     }, [hasSearched, filterEmployees]);
     const onSubmit: SubmitHandler<MassUpdateForm> = async (data: MassUpdateForm) => {
         // Validate search criteria
-        const searchValidation = massUpdationSchema.search.safeParse({
+        const searchValidation = hrmsTransactionSchemas.massUpdation.search.safeParse({
             groupType: data.groupType,
             department: data.department,
             designation: data.designation

@@ -1,20 +1,21 @@
 'use client';
-import { HRMSDateField as DateField } from '@/app/(root)/hrms/_components/hrms-date-field';
-import { HRMSInputText } from '@/app/(root)/hrms/_components/hrms-input-text';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { DateField } from '@/components/ui/dateField';
 import { Label } from '@/components/ui/extension/field';
+import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStateDropdown } from '@/hooks/hrms/useEmployeeRegister';
 import {
     useBankDropdown,
+    useBloodGroupDropdown,
     useCasteCategoryDropdown,
     useCasteDropdown,
+    useContactTypeDropdown,
     useCountryDropdown,
+    useCourseDropdown,
     useDesignationDropdown,
     useEmployeeTypeDropdown,
     useGenderDropdown,
@@ -25,18 +26,24 @@ import {
     useMaritalStatusDropdown,
     usePaymentModeDropdown,
     useReligionDropdown,
+    useSalaryTypeDropdown,
     useSaveEmployee,
-    useSpecializationDropdown
+    useScoreTypeDropdown,
+    useSpecializationDropdown,
+    useTeachingTypeDropdown
 } from '@/hooks/hrms/useEmployeeRegister';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
-import type { SavePersonalDetailsRequest } from '@/types/hrms/employee-register';
+import type { SavePersonalDetailsApiRequest } from '@/types/hrms/employee-register';
 import type {
     IBankDropdown,
+    IBloodGroupDropdown,
     ICasteCategoryDropdown,
     ICasteDropdown,
+    IContactTypeDropdown,
     ICountryDropdown,
+    ICourseDropdown,
     IDesignationDropdown,
     IEmployeeTypeDropdown,
     IGenderDropdown,
@@ -47,12 +54,15 @@ import type {
     IMaritalStatusDropdown,
     IPaymentModeDropdown,
     IReligionDropdown,
+    ISalaryTypeDropdown,
+    IScoreTypeDropdown,
     ISpecializationDropdown,
-    IStateDropdown
+    IStateDropdown,
+    ITeachingTypeDropdown
 } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -60,7 +70,6 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 import {
     employeeRegisterSteps,
-    ensureNonEmptyValue,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
     tabFieldMap
@@ -166,6 +175,30 @@ const SafeSelectItem = ({
             {children}
         </SelectItem>
     );
+};
+
+// Helper function to render dropdown options with loading state
+const renderDropdownOptions = <T extends { key?: any; value?: any }>(
+    items: T[],
+    isLoading: boolean,
+    renderItem: (item: T) => React.ReactNode,
+    loadingText = 'Loading...'
+) => {
+    if (isLoading) {
+        return (
+            <SelectItem value='__loading__' disabled>
+                {loadingText}
+            </SelectItem>
+        );
+    }
+    if (items.length === 0) {
+        return (
+            <SelectItem value='__no_options__' disabled>
+                No options available
+            </SelectItem>
+        );
+    }
+    return items.map(renderItem).filter(Boolean);
 };
 
 // Type definition using imported schema
@@ -279,6 +312,42 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         ? leaveReasonDropdownResponse
         : (leaveReasonDropdownResponse as any)?.data || [];
 
+    // Blood Group dropdown - API: /api/MasterDropDown/GetBloodGroupList
+    const { data: bloodGroupDropdownResponse, isLoading: isLoadingBloodGroups } = useBloodGroupDropdown();
+    const bloodGroupDropdown: IBloodGroupDropdown[] = Array.isArray(bloodGroupDropdownResponse)
+        ? bloodGroupDropdownResponse
+        : (bloodGroupDropdownResponse as any)?.data || [];
+
+    // Salary Type dropdown - API: /api/MasterDropDown/GetSalaryTypeList
+    const { data: salaryTypeDropdownResponse, isLoading: isLoadingSalaryTypes } = useSalaryTypeDropdown();
+    const salaryTypeDropdown: ISalaryTypeDropdown[] = Array.isArray(salaryTypeDropdownResponse)
+        ? salaryTypeDropdownResponse
+        : (salaryTypeDropdownResponse as any)?.data || [];
+
+    // Teaching Type dropdown - API: /api/MasterDropDown/GetTeachingTypeList
+    const { data: teachingTypeDropdownResponse, isLoading: isLoadingTeachingTypes } = useTeachingTypeDropdown();
+    const teachingTypeDropdown: ITeachingTypeDropdown[] = Array.isArray(teachingTypeDropdownResponse)
+        ? teachingTypeDropdownResponse
+        : (teachingTypeDropdownResponse as any)?.data || [];
+
+    // Score Type dropdown - API: /api/MasterDropDown/ScoreTypeList
+    const { data: scoreTypeDropdownResponse, isLoading: isLoadingScoreTypes } = useScoreTypeDropdown();
+    const scoreTypeDropdown: IScoreTypeDropdown[] = Array.isArray(scoreTypeDropdownResponse)
+        ? scoreTypeDropdownResponse
+        : (scoreTypeDropdownResponse as any)?.data || [];
+
+    // Contact Type dropdown - API: /api/MasterDropDown/GetContactType
+    const { data: contactTypeDropdownResponse, isLoading: isLoadingContactTypes } = useContactTypeDropdown();
+    const contactTypeDropdown: IContactTypeDropdown[] = Array.isArray(contactTypeDropdownResponse)
+        ? contactTypeDropdownResponse
+        : (contactTypeDropdownResponse as any)?.data || [];
+
+    // Course dropdown - API: /api/MasterDropDown/GetCourseList
+    const { data: courseDropdownResponse, isLoading: isLoadingCourses } = useCourseDropdown();
+    const courseDropdown: ICourseDropdown[] = Array.isArray(courseDropdownResponse)
+        ? courseDropdownResponse
+        : (courseDropdownResponse as any)?.data || [];
+
     // Options object - Multiple dropdowns are integrated, others will be added one by one as APIs are provided
     const options = useMemo(() => {
         return {
@@ -297,14 +366,15 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             departments: [],
             countries: countryDropdown || [],
             states: [],
-            courses: [],
+            courses: courseDropdown || [],
             specialisations: specializationDropdown || [],
-            teachingNonTeaching: [],
-            bloodGroups: [],
-            salaryTypes: [],
+            teachingNonTeaching: teachingTypeDropdown || [],
+            bloodGroups: bloodGroupDropdown || [],
+            salaryTypes: salaryTypeDropdown || [],
             addressTypes: [],
-            phoneTypes: [],
-            cgpaPercentageTypes: [],
+            phoneTypes: contactTypeDropdown || [],
+            contactTypes: contactTypeDropdown || [],
+            cgpaPercentageTypes: scoreTypeDropdown || [],
             leavingReasons: leaveReasonDropdown || [],
             earningList: [],
             detectionList: [],
@@ -327,8 +397,62 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         paymentModeDropdown,
         bankDropdown,
         countryDropdown,
+        courseDropdown,
         specializationDropdown,
-        leaveReasonDropdown
+        leaveReasonDropdown,
+        bloodGroupDropdown,
+        salaryTypeDropdown,
+        teachingTypeDropdown,
+        scoreTypeDropdown
+    ]);
+
+    // Loading states object for individual dropdowns
+    const dropdownLoadingStates = useMemo(() => {
+        return {
+            grades: isLoadingGrades,
+            groupTypes: isLoadingGroupTypes,
+            empTypes: isLoadingEmployeeTypes,
+            institutions: isLoadingInstitutions,
+            designations: isLoadingDesignations,
+            genders: isLoadingGenders,
+            maritalStatuses: isLoadingMaritalStatuses,
+            religions: isLoadingReligions,
+            casteCategories: isLoadingCasteCategories,
+            castes: isLoadingCastes,
+            modeOfPayment: isLoadingPaymentModes,
+            banks: isLoadingBanks,
+            countries: isLoadingCountries,
+            courses: isLoadingCourses,
+            specialisations: isLoadingSpecializations,
+            teachingNonTeaching: isLoadingTeachingTypes,
+            bloodGroups: isLoadingBloodGroups,
+            salaryTypes: isLoadingSalaryTypes,
+            cgpaPercentageTypes: isLoadingScoreTypes,
+            contactTypes: isLoadingContactTypes,
+            leavingReasons: isLoadingLeaveReasons
+        };
+    }, [
+        isLoadingGrades,
+        isLoadingGroupTypes,
+        isLoadingEmployeeTypes,
+        isLoadingInstitutions,
+        isLoadingDesignations,
+        isLoadingGenders,
+        isLoadingMaritalStatuses,
+        isLoadingReligions,
+        isLoadingCasteCategories,
+        isLoadingCastes,
+        isLoadingPaymentModes,
+        isLoadingBanks,
+        isLoadingCountries,
+        isLoadingCourses,
+        isLoadingSpecializations,
+        isLoadingTeachingTypes,
+        isLoadingBloodGroups,
+        isLoadingSalaryTypes,
+        isLoadingScoreTypes,
+        isLoadingContactTypes,
+        isLoadingLeaveReasons
     ]);
 
     const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
@@ -638,11 +762,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     });
 
     // Map form data to API format - use helper functions
-    const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsRequest => {
-        return mapFormDataToApiFormat(data, 0, selectedPhoto);
+    const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
+        return mapFormDataToApiFormat(data, savedEmployeeId || 0, selectedPhoto);
     };
 
-    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsRequest => {
+    const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
         return mapFormDataToApiFormatWithoutAddress(data, 0, selectedPhoto);
     };
 
@@ -680,12 +804,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
         try {
             if (currentStepId === 1) {
-                // Employee tab - save without address
+                // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
+                // Save employee details without address (address fields will be null)
                 const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
+                payload.hrmE_Id = 0; // New record
                 savePersonalDetails(payload, {
                     onSuccess: (response: any) => {
-                        const employeeId = response?.data?.HRME_Id || response?.HRME_Id || 0;
-                        if (employeeId) {
+                        // API returns hrmE_Id (lowercase) in response
+                        const employeeId =
+                            response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
+                        if (employeeId && employeeId > 0) {
                             setSavedEmployeeId(employeeId);
                             toast.success('Employee details saved successfully!');
                             setCurrentStep(2);
@@ -698,14 +826,15 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     }
                 });
             } else if (currentStepId === 2) {
-                // Address tab
+                // Address Information tab - call same endpoint /api/EmployeeRegistration/SavePersonalDetails
+                // Update with address details using the hrmE_Id from step 1
                 if (!savedEmployeeId) {
                     toast.error('Please save Employee details first');
                     setCurrentStep(1);
                     return;
                 }
                 const payload = mapFormDataToApiFormatLocal(data);
-                payload.HRME_Id = savedEmployeeId;
+                payload.hrmE_Id = savedEmployeeId; // Use the ID from step 1
                 savePersonalDetails(payload, {
                     onSuccess: () => {
                         toast.success('Address details saved successfully!');
@@ -844,7 +973,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     return;
                 }
                 const payload = mapFormDataToApiFormatLocal(data);
-                payload.HRME_Id = savedEmployeeId;
+                payload.hrmE_Id = savedEmployeeId;
                 saveMedicalDetails(payload, {
                     onSuccess: () => {
                         toast.success('Medical details saved successfully!');
@@ -862,7 +991,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     return;
                 }
                 const payload = mapFormDataToApiFormatLocal(data);
-                payload.HRME_Id = savedEmployeeId;
+                payload.hrmE_Id = savedEmployeeId;
                 savePersonalDetails(payload, {
                     onSuccess: () => {
                         toast.success('Other details saved successfully!');
@@ -899,32 +1028,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const isSubmittingAny =
         isSubmitting || isSavingQualification || isSavingExperience || isSavingDocument || isSavingMedical || isSavingBank;
 
-    // Show loading for dropdowns
-    if (
-        isLoadingGrades ||
-        isLoadingGroupTypes ||
-        isLoadingEmployeeTypes ||
-        isLoadingInstitutions ||
-        isLoadingDesignations ||
-        isLoadingGenders ||
-        isLoadingMaritalStatuses ||
-        isLoadingReligions ||
-        isLoadingCasteCategories ||
-        isLoadingCastes ||
-        isLoadingPaymentModes ||
-        isLoadingBanks ||
-        isLoadingCountries ||
-        isLoadingSpecializations ||
-        isLoadingLeaveReasons
-    ) {
-        return (
-            <div className='flex items-center justify-center p-8'>
-                <div className='text-muted-foreground'>Loading form data...</div>
-            </div>
-        );
-    }
-
     // Form UI - standalone add form (no edit mode references)
+    // Form renders immediately, dropdowns load in background and populate as data arrives
     return (
         <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
             <form onSubmit={onFormSubmit} className='space-y-6'>
@@ -993,7 +1098,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <div className='flex flex-col items-center'>
                                                 <button
                                                     type='button'
-                                                    // onClick={() => setCurrentStep(step.id)}
+                                                    onClick={() => setCurrentStep(step.id)}
                                                     disabled={isSubmittingAny || isDisabled}
                                                     className={cn(
                                                         'flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border-2 font-semibold transition-all duration-300 hover:scale-110 disabled:cursor-not-allowed disabled:opacity-50',
@@ -1055,7 +1160,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <div className='grid grid-cols-1 items-start gap-4 lg:grid-cols-2 lg:gap-6'>
                                                 {/* Left Column */}
                                                 <div className='space-y-4'>
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='First Name'
                                                         required
                                                         id='firstName'
@@ -1093,7 +1198,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         })}
                                                         error={errors.firstName?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='Middle Name'
                                                         id='middleName'
                                                         maxLength={50}
@@ -1128,7 +1233,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         {...register('middleName')}
                                                         error={errors.middleName?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='Last Name'
                                                         id='lastName'
                                                         maxLength={50}
@@ -1163,7 +1268,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         {...register('lastName')}
                                                         error={errors.lastName?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='Employee Code'
                                                         required
                                                         id='employeeCode'
@@ -1173,7 +1278,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         })}
                                                         error={errors.employeeCode?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label="Father's Name *"
                                                         id='fatherName'
                                                         maxLength={50}
@@ -1208,7 +1313,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         {...register('fatherName')}
                                                         error={errors.fatherName?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label="Mother's Name *"
                                                         id='motherName'
                                                         maxLength={50}
@@ -1261,24 +1366,34 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         <SelectValue placeholder='--Select--' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.empTypes || [])
-                                                                            .filter((et: IEmployeeTypeDropdown) => {
-                                                                                return (
-                                                                                    et.key != null &&
-                                                                                    et.key !== '' &&
-                                                                                    String(et.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((et: IEmployeeTypeDropdown) => {
-                                                                                const val = et.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
-                                                                                return (
-                                                                                    <SafeSelectItem key={et.key} value={val}>
-                                                                                        {et.value || String(et.key)}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
+                                                                        {dropdownLoadingStates.empTypes ? (
+                                                                            <SelectItem value='__loading__' disabled>
+                                                                                Loading employee types...
+                                                                            </SelectItem>
+                                                                        ) : (options?.empTypes || []).length === 0 ? (
+                                                                            <SelectItem value='__no_options__' disabled>
+                                                                                No options available
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (options?.empTypes || [])
+                                                                                .filter((et: IEmployeeTypeDropdown) => {
+                                                                                    return (
+                                                                                        et.key != null &&
+                                                                                        et.key !== '' &&
+                                                                                        String(et.key).trim() !== ''
+                                                                                    );
+                                                                                })
+                                                                                .map((et: IEmployeeTypeDropdown) => {
+                                                                                    const val = et.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={et.key} value={val}>
+                                                                                            {et.value || String(et.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)
+                                                                        )}
                                                                     </SelectContent>
                                                                 </Select>
                                                                 {fieldState.error && (
@@ -1307,24 +1422,34 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         <SelectValue placeholder='--Select--' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.groupTypes || [])
-                                                                            .filter((gt: IGroupTypeDropdown) => {
-                                                                                return (
-                                                                                    gt.key != null &&
-                                                                                    gt.key !== '' &&
-                                                                                    String(gt.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((gt: IGroupTypeDropdown) => {
-                                                                                const val = gt.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
-                                                                                return (
-                                                                                    <SafeSelectItem key={gt.key} value={val}>
-                                                                                        {gt.value || String(gt.key)}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
+                                                                        {dropdownLoadingStates.groupTypes ? (
+                                                                            <SelectItem value='__loading__' disabled>
+                                                                                Loading group types...
+                                                                            </SelectItem>
+                                                                        ) : (options?.groupTypes || []).length === 0 ? (
+                                                                            <SelectItem value='__no_options__' disabled>
+                                                                                No options available
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (options?.groupTypes || [])
+                                                                                .filter((gt: IGroupTypeDropdown) => {
+                                                                                    return (
+                                                                                        gt.key != null &&
+                                                                                        gt.key !== '' &&
+                                                                                        String(gt.key).trim() !== ''
+                                                                                    );
+                                                                                })
+                                                                                .map((gt: IGroupTypeDropdown) => {
+                                                                                    const val = gt.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={gt.key} value={val}>
+                                                                                            {gt.value || String(gt.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)
+                                                                        )}
                                                                     </SelectContent>
                                                                 </Select>
                                                                 {fieldState.error && (
@@ -1353,24 +1478,34 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         <SelectValue placeholder='--Select--' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.institutions || [])
-                                                                            .filter((inst: IInstitutionDropdown) => {
-                                                                                return (
-                                                                                    inst.key != null &&
-                                                                                    inst.key !== '' &&
-                                                                                    String(inst.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((inst: IInstitutionDropdown) => {
-                                                                                const val = inst.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
-                                                                                return (
-                                                                                    <SafeSelectItem key={inst.key} value={val}>
-                                                                                        {inst.value || String(inst.key)}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
+                                                                        {dropdownLoadingStates.institutions ? (
+                                                                            <SelectItem value='__loading__' disabled>
+                                                                                Loading institutions...
+                                                                            </SelectItem>
+                                                                        ) : (options?.institutions || []).length === 0 ? (
+                                                                            <SelectItem value='__no_options__' disabled>
+                                                                                No options available
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (options?.institutions || [])
+                                                                                .filter((inst: IInstitutionDropdown) => {
+                                                                                    return (
+                                                                                        inst.key != null &&
+                                                                                        inst.key !== '' &&
+                                                                                        String(inst.key).trim() !== ''
+                                                                                    );
+                                                                                })
+                                                                                .map((inst: IInstitutionDropdown) => {
+                                                                                    const val = inst.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={inst.key} value={val}>
+                                                                                            {inst.value || String(inst.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)
+                                                                        )}
                                                                     </SelectContent>
                                                                 </Select>
                                                                 {fieldState.error && (
@@ -1427,7 +1562,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </div>
                                                         )}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='Subject Taught'
                                                         id='subjectTaught'
                                                         maxLength={50}
@@ -1550,7 +1685,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         />
                                                     </div>
                                                     {watch?.('phdResearchGuide') ? (
-                                                        <HRMSInputText
+                                                        <InputText
                                                             label='Recognition Year'
                                                             id='recognitionYear'
                                                             maxLength={4}
@@ -1599,38 +1734,24 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         <SelectValue placeholder='--Select--' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.teachingNonTeaching || []).length === 0 ? (
-                                                                            <SelectItem value='no-options' disabled>
-                                                                                No options available
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            (options?.teachingNonTeaching || [])
-                                                                                .filter((item: any) => {
-                                                                                    const key = item.key || item.value || item.id;
-                                                                                    return (
-                                                                                        key != null &&
-                                                                                        key !== '' &&
-                                                                                        String(key).trim() !== ''
-                                                                                    );
-                                                                                })
-                                                                                .map((item: any) => {
-                                                                                    const key = (item.key || item.value || item.id)
-                                                                                        ?.toString()
-                                                                                        .trim();
-                                                                                    const value =
-                                                                                        item.value ||
-                                                                                        item.label ||
-                                                                                        item.name ||
-                                                                                        String(key);
-                                                                                    if (!key || key === '') return null;
-                                                                                    return (
-                                                                                        <SafeSelectItem key={key} value={key}>
-                                                                                            {value}
-                                                                                        </SafeSelectItem>
-                                                                                    );
-                                                                                })
-                                                                                .filter(Boolean)
-                                                                        )}
+                                                                        {(options?.teachingNonTeaching || [])
+                                                                            .filter((tt: ITeachingTypeDropdown) => {
+                                                                                return (
+                                                                                    tt.key != null &&
+                                                                                    tt.key !== '' &&
+                                                                                    String(tt.key).trim() !== ''
+                                                                                );
+                                                                            })
+                                                                            .map((tt: ITeachingTypeDropdown) => {
+                                                                                const val = tt.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={tt.key} value={val}>
+                                                                                        {tt.value || String(tt.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
                                                                     </SelectContent>
                                                                 </Select>
                                                                 {fieldState.error && (
@@ -1703,14 +1824,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     )}
                                                                 />
                                                             </div>
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='PF Acc No.'
                                                                 id='pfAccNo'
                                                                 maxLength={22}
                                                                 {...register('pfAccNo')}
                                                                 error={errors.pfAccNo?.message}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='UAN Number'
                                                                 id='uanNumber'
                                                                 maxLength={12}
@@ -1747,7 +1868,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     />
                                                     {watch?.('esiApplicable') ? (
                                                         <div className='space-y-4 border-green-500 border-l-4 pl-4'>
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='ESI Acc No.'
                                                                 id='esiAccNo'
                                                                 maxLength={10}
@@ -1777,7 +1898,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 {...register('esiAccNo')}
                                                                 error={errors.esiAccNo?.message}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Gratuity Acc No.'
                                                                 id='gratuityAccNo'
                                                                 maxLength={25}
@@ -1798,7 +1919,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             />
                                                         </div>
                                                     ) : null}
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='National SSN'
                                                         id='nationalSSN'
                                                         maxLength={9}
@@ -2115,12 +2236,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                     <SelectValue placeholder='Select' />
                                                                                 </SelectTrigger>
                                                                                 <SelectContent>
-                                                                                    {(options?.phoneTypes || []).length === 0 ? (
+                                                                                    {(options?.contactTypes || []).length === 0 ? (
                                                                                         <SelectItem value='no-options' disabled>
                                                                                             No options available
                                                                                         </SelectItem>
                                                                                     ) : (
-                                                                                        (options?.phoneTypes || [])
+                                                                                        (options?.contactTypes || [])
                                                                                             .filter((item: any) => {
                                                                                                 const key =
                                                                                                     item.key || item.value || item.id;
@@ -2156,7 +2277,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             </Select>
                                                                         )}
                                                                     />
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         placeholder='Enter mobile number'
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
@@ -2199,12 +2320,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                     <SelectValue placeholder='Select' />
                                                                                 </SelectTrigger>
                                                                                 <SelectContent>
-                                                                                    {(options?.phoneTypes || []).length === 0 ? (
+                                                                                    {(options?.contactTypes || []).length === 0 ? (
                                                                                         <SelectItem value='no-options' disabled>
                                                                                             No options available
                                                                                         </SelectItem>
                                                                                     ) : (
-                                                                                        (options?.phoneTypes || [])
+                                                                                        (options?.contactTypes || [])
                                                                                             .filter((item: any) => {
                                                                                                 const key =
                                                                                                     item.key || item.value || item.id;
@@ -2240,7 +2361,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             </Select>
                                                                         )}
                                                                     />
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         type='email'
                                                                         placeholder='Enter email address'
                                                                         maxLength={100}
@@ -2267,7 +2388,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </Button>
                                                         </div>
                                                     </div>
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='Aadhaar No.'
                                                         id='aadharNo'
                                                         maxLength={12}
@@ -2297,7 +2418,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         {...register('aadharNo')}
                                                         error={errors.aadharNo?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='PAN Card No.'
                                                         id='panCardNo'
                                                         maxLength={10}
@@ -2327,48 +2448,44 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <Controller
                                                         name='bloodGroup'
                                                         control={control}
-                                                        render={({ field }) => (
+                                                        render={({ field, fieldState }) => (
                                                             <div className='flex flex-col gap-1.5'>
                                                                 <Label>Blood Group</Label>
                                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
                                                                         <SelectValue placeholder='--Select--' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.bloodGroups || []).length === 0 ? (
-                                                                            <SelectItem value='no-options' disabled>
-                                                                                No options available
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            (options?.bloodGroups || [])
-                                                                                .filter((item: any) => {
-                                                                                    const key = item.key || item.value || item.id;
-                                                                                    return (
-                                                                                        key != null &&
-                                                                                        key !== '' &&
-                                                                                        String(key).trim() !== ''
-                                                                                    );
-                                                                                })
-                                                                                .map((item: any) => {
-                                                                                    const key = (item.key || item.value || item.id)
-                                                                                        ?.toString()
-                                                                                        .trim();
-                                                                                    const value =
-                                                                                        item.value ||
-                                                                                        item.label ||
-                                                                                        item.name ||
-                                                                                        String(key);
-                                                                                    if (!key || key === '') return null;
-                                                                                    return (
-                                                                                        <SafeSelectItem key={key} value={key}>
-                                                                                            {value}
-                                                                                        </SafeSelectItem>
-                                                                                    );
-                                                                                })
-                                                                                .filter(Boolean)
-                                                                        )}
+                                                                        {(options?.bloodGroups || [])
+                                                                            .filter((bg: IBloodGroupDropdown) => {
+                                                                                return (
+                                                                                    bg.key != null &&
+                                                                                    bg.key !== '' &&
+                                                                                    String(bg.key).trim() !== ''
+                                                                                );
+                                                                            })
+                                                                            .map((bg: IBloodGroupDropdown) => {
+                                                                                const val = bg.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={bg.key} value={val}>
+                                                                                        {bg.value || String(bg.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
                                                                     </SelectContent>
                                                                 </Select>
+                                                                {fieldState.error && (
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {fieldState.error.message}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         )}
                                                     />
@@ -2379,42 +2496,33 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             <div className='flex flex-col gap-1.5'>
                                                                 <Label>Salary Type</Label>
                                                                 <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger>
+                                                                    <SelectTrigger
+                                                                        className={cn(
+                                                                            fieldState.error
+                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                : 'border-input focus-visible:ring-ring'
+                                                                        )}>
                                                                         <SelectValue placeholder='--Select--' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.salaryTypes || []).length === 0 ? (
-                                                                            <SelectItem value='no-options' disabled>
-                                                                                No options available
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            (options?.salaryTypes || [])
-                                                                                .filter((item: any) => {
-                                                                                    const key = item.key || item.value || item.id;
-                                                                                    return (
-                                                                                        key != null &&
-                                                                                        key !== '' &&
-                                                                                        String(key).trim() !== ''
-                                                                                    );
-                                                                                })
-                                                                                .map((item: any) => {
-                                                                                    const key = (item.key || item.value || item.id)
-                                                                                        ?.toString()
-                                                                                        .trim();
-                                                                                    const value =
-                                                                                        item.value ||
-                                                                                        item.label ||
-                                                                                        item.name ||
-                                                                                        String(key);
-                                                                                    if (!key || key === '') return null;
-                                                                                    return (
-                                                                                        <SafeSelectItem key={key} value={key}>
-                                                                                            {value}
-                                                                                        </SafeSelectItem>
-                                                                                    );
-                                                                                })
-                                                                                .filter(Boolean)
-                                                                        )}
+                                                                        {(options?.salaryTypes || [])
+                                                                            .filter((st: ISalaryTypeDropdown) => {
+                                                                                return (
+                                                                                    st.key != null &&
+                                                                                    st.key !== '' &&
+                                                                                    String(st.key).trim() !== ''
+                                                                                );
+                                                                            })
+                                                                            .map((st: ISalaryTypeDropdown) => {
+                                                                                const val = st.key?.toString().trim();
+                                                                                if (!val || val === '') return null;
+                                                                                return (
+                                                                                    <SafeSelectItem key={st.key} value={val}>
+                                                                                        {st.value || String(st.key)}
+                                                                                    </SafeSelectItem>
+                                                                                );
+                                                                            })
+                                                                            .filter(Boolean)}
                                                                     </SelectContent>
                                                                 </Select>
                                                                 {fieldState.error && (
@@ -2567,7 +2675,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 />
                                                                             </div>
                                                                             <div>
-                                                                                <HRMSInputText
+                                                                                <InputText
                                                                                     placeholder='Bank Account No.'
                                                                                     maxLength={14}
                                                                                     onKeyDown={(e) => {
@@ -2613,13 +2721,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                 <SelectValue placeholder='Select' />
                                                                                             </SelectTrigger>
                                                                                             <SelectContent>
-                                                                                                {(options?.phoneTypes || []).length ===
+                                                                                                {(options?.contactTypes || []).length ===
                                                                                                 0 ? (
                                                                                                     <SelectItem value='no-options' disabled>
                                                                                                         No options available
                                                                                                     </SelectItem>
                                                                                                 ) : (
-                                                                                                    (options?.phoneTypes || [])
+                                                                                                    (options?.contactTypes || [])
                                                                                                         .filter((item: any) => {
                                                                                                             const key =
                                                                                                                 item.key ||
@@ -2713,14 +2821,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     </div>
                                                     <div className='p-4'>
                                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Address'
                                                                 id='contactAddress'
                                                                 maxLength={100}
                                                                 {...register('contactAddress')}
                                                                 error={errors.contactAddress?.message}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Area'
                                                                 id='contactArea'
                                                                 {...register('contactArea')}
@@ -2819,13 +2927,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     )}
                                                                 />
                                                             </div>
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='City'
                                                                 id='contactCity'
                                                                 {...register('contactCity')}
                                                                 error={errors.contactCity?.message}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Pincode'
                                                                 id='contactPincode'
                                                                 maxLength={10}
@@ -2881,7 +2989,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </Label>
                                                         </div>
                                                         <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Address'
                                                                 id='permanentAddress'
                                                                 maxLength={100}
@@ -2889,7 +2997,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 error={errors.permanentAddress?.message}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Area'
                                                                 id='permanentArea'
                                                                 {...register('permanentArea')}
@@ -2995,14 +3103,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     )}
                                                                 />
                                                             </div>
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='City'
                                                                 id='permanentCity'
                                                                 {...register('permanentCity')}
                                                                 error={errors.permanentCity?.message}
                                                                 disabled={sameAsCommunicationAddress}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Pincode'
                                                                 id='permanentPincode'
                                                                 maxLength={10}
@@ -3111,7 +3219,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             <div className='space-y-4'>
                                                                 {/* Row 1: Qualification, Course */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='Qualification *'
                                                                         id={`qualificationDetails.${index}.qualification`}
                                                                         maxLength={50}
@@ -3132,57 +3240,41 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                             <SelectValue placeholder='Select Course' />
                                                                                         </SelectTrigger>
                                                                                         <SelectContent>
-                                                                                            {courses
-                                                                                                .filter(
-                                                                                                    (course: any, courseIndex: number) => {
-                                                                                                        const courseId = (
-                                                                                                            course.HRMC_Id ||
-                                                                                                            course.id ||
-                                                                                                            course.value ||
-                                                                                                            course.HRMC_CourseId ||
-                                                                                                            courseIndex
-                                                                                                        )?.toString();
+                                                                                            {isLoadingCourses ? (
+                                                                                                <SelectItem value='loading' disabled>
+                                                                                                    Loading courses...
+                                                                                                </SelectItem>
+                                                                                            ) : courses.length === 0 ? (
+                                                                                                <SelectItem value='no-options' disabled>
+                                                                                                    No courses available
+                                                                                                </SelectItem>
+                                                                                            ) : (
+                                                                                                courses
+                                                                                                    .filter((course: ICourseDropdown) => {
                                                                                                         return (
-                                                                                                            courseId &&
-                                                                                                            courseId.trim() !== ''
+                                                                                                            course.key != null &&
+                                                                                                            course.key !== '' &&
+                                                                                                            String(course.key).trim() !== ''
                                                                                                         );
-                                                                                                    }
-                                                                                                )
-                                                                                                .map((course: any, courseIndex: number) => {
-                                                                                                    const courseIdRaw =
-                                                                                                        course.HRMC_Id ??
-                                                                                                        course.id ??
-                                                                                                        course.value ??
-                                                                                                        course.HRMC_CourseId ??
-                                                                                                        courseIndex;
-                                                                                                    const courseId = ensureNonEmptyValue(
-                                                                                                        courseIdRaw,
-                                                                                                        courseIndex
-                                                                                                    );
-                                                                                                    if (!courseId) return null;
-                                                                                                    const courseName =
-                                                                                                        course.HRMC_QualificationDesc ||
-                                                                                                        course.HRMC_QulaificationName ||
-                                                                                                        course.HRMC_CourseName ||
-                                                                                                        course.CourseName ||
-                                                                                                        course.courseName ||
-                                                                                                        course.name ||
-                                                                                                        course.label ||
-                                                                                                        course.HRMC_Name ||
-                                                                                                        course.text ||
-                                                                                                        `Course ${courseId}`;
-                                                                                                    if (!courseId || courseId.trim() === '')
-                                                                                                        return null;
-                                                                                                    return (
-                                                                                                        <SelectItem
-                                                                                                            key={courseId}
-                                                                                                            value={courseId}
-                                                                                                            textValue={courseName}>
-                                                                                                            {courseName}
-                                                                                                        </SelectItem>
-                                                                                                    );
-                                                                                                })
-                                                                                                .filter(Boolean)}
+                                                                                                    })
+                                                                                                    .map((course: ICourseDropdown) => {
+                                                                                                        const key = course.key
+                                                                                                            ?.toString()
+                                                                                                            .trim();
+                                                                                                        if (!key || key === '') return null;
+                                                                                                        const value =
+                                                                                                            course.value ||
+                                                                                                            String(course.key);
+                                                                                                        return (
+                                                                                                            <SelectItem
+                                                                                                                key={course.key}
+                                                                                                                value={key}>
+                                                                                                                {value}
+                                                                                                            </SelectItem>
+                                                                                                        );
+                                                                                                    })
+                                                                                                    .filter(Boolean)
+                                                                                            )}
                                                                                         </SelectContent>
                                                                                     </Select>
                                                                                 </div>
@@ -3192,13 +3284,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 </div>
                                                                 {/* Row 2: College, University */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='College *'
                                                                         id={`qualificationDetails.${index}.college`}
                                                                         maxLength={100}
                                                                         {...register(`qualificationDetails.${index}.college`)}
                                                                     />
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='University *'
                                                                         id={`qualificationDetails.${index}.university`}
                                                                         maxLength={100}
@@ -3207,7 +3299,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 </div>
                                                                 {/* Row 3: Year Of Passing, Country, State */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='Year Of Passing *'
                                                                         id={`qualificationDetails.${index}.yearOfPassing`}
                                                                         maxLength={4}
@@ -3305,13 +3397,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 </div>
                                                                 {/* Row 4: Registration No., Result */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='Registration No.'
                                                                         id={`qualificationDetails.${index}.registrationNo`}
                                                                         maxLength={50}
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
                                                                     />
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='Result *'
                                                                         id={`qualificationDetails.${index}.result`}
                                                                         maxLength={20}
@@ -3323,63 +3415,53 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     <Controller
                                                                         name={`qualificationDetails.${index}.cgpaOrPercentage`}
                                                                         control={control}
-                                                                        render={({ field }) => (
+                                                                        render={({ field, fieldState }) => (
                                                                             <div className='flex flex-col gap-1.5'>
                                                                                 <Label>CGPA Or Percentage *</Label>
                                                                                 <Select
                                                                                     onValueChange={field.onChange}
                                                                                     value={field.value || 'CGPA'}>
-                                                                                    <SelectTrigger className='h-9'>
+                                                                                    <SelectTrigger
+                                                                                        className={cn(
+                                                                                            'h-9',
+                                                                                            fieldState.error
+                                                                                                ? 'border-destructive focus-visible:ring-destructive'
+                                                                                                : 'border-input focus-visible:ring-ring'
+                                                                                        )}>
                                                                                         <SelectValue placeholder='Select' />
                                                                                     </SelectTrigger>
                                                                                     <SelectContent>
-                                                                                        {(options?.cgpaPercentageTypes || []).length ===
-                                                                                        0 ? (
-                                                                                            <SelectItem value='no-options' disabled>
-                                                                                                No options available
-                                                                                            </SelectItem>
-                                                                                        ) : (
-                                                                                            (options?.cgpaPercentageTypes || [])
-                                                                                                .filter((item: any) => {
-                                                                                                    const key =
-                                                                                                        item.key || item.value || item.id;
-                                                                                                    return (
-                                                                                                        key != null &&
-                                                                                                        key !== '' &&
-                                                                                                        String(key).trim() !== ''
-                                                                                                    );
-                                                                                                })
-                                                                                                .map((item: any) => {
-                                                                                                    const key = (
-                                                                                                        item.key ||
-                                                                                                        item.value ||
-                                                                                                        item.id
-                                                                                                    )
-                                                                                                        ?.toString()
-                                                                                                        .trim();
-                                                                                                    const value =
-                                                                                                        item.value ||
-                                                                                                        item.label ||
-                                                                                                        item.name ||
-                                                                                                        String(key);
-                                                                                                    if (!key || key === '') return null;
-                                                                                                    return (
-                                                                                                        <SelectItem
-                                                                                                            key={key}
-                                                                                                            value={key}
-                                                                                                            textValue={value}>
-                                                                                                            {value}
-                                                                                                        </SelectItem>
-                                                                                                    );
-                                                                                                })
-                                                                                                .filter(Boolean)
-                                                                                        )}
+                                                                                        {(options?.cgpaPercentageTypes || [])
+                                                                                            .filter((st: IScoreTypeDropdown) => {
+                                                                                                return (
+                                                                                                    st.key != null &&
+                                                                                                    st.key !== '' &&
+                                                                                                    String(st.key).trim() !== ''
+                                                                                                );
+                                                                                            })
+                                                                                            .map((st: IScoreTypeDropdown) => {
+                                                                                                const val = st.key?.toString().trim();
+                                                                                                if (!val || val === '') return null;
+                                                                                                return (
+                                                                                                    <SafeSelectItem
+                                                                                                        key={st.key}
+                                                                                                        value={val}>
+                                                                                                        {st.value || String(st.key)}
+                                                                                                    </SafeSelectItem>
+                                                                                                );
+                                                                                            })
+                                                                                            .filter(Boolean)}
                                                                                     </SelectContent>
                                                                                 </Select>
+                                                                                {fieldState.error && (
+                                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                                        {fieldState.error.message}
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
                                                                         )}
                                                                     />
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label={cgpaOrPercentage === 'Percentage' ? 'Percentage' : 'CGPA'}
                                                                         id={`qualificationDetails.${index}.cgpa`}
                                                                         maxLength={cgpaOrPercentage === 'Percentage' ? 3 : 4}
@@ -3493,13 +3575,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 </div>
                                                                 {/* Row 8: Thesis Title and Medical Council */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='Thesis Title'
                                                                         id={`qualificationDetails.${index}.thesisTitle`}
                                                                         maxLength={255}
                                                                         {...register(`qualificationDetails.${index}.thesisTitle`)}
                                                                     />
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='Medical Council'
                                                                         id={`qualificationDetails.${index}.medicalCouncil`}
                                                                         maxLength={50}
@@ -3508,51 +3590,40 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 </div>
                                                                 {/* Row 9: Registration Year, Guide Name, Qualified Date */}
                                                                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
-                                                                    <Controller
-                                                                        name={`qualificationDetails.${index}.registrationYear`}
-                                                                        control={control}
-                                                                        render={({ field }) => {
-                                                                            const [open, setOpen] = useState(false);
-                                                                            return (
-                                                                                <div className='flex flex-col gap-1.5'>
-                                                                                    <Label>Registration Year</Label>
-                                                                                    <Popover open={open} onOpenChange={setOpen}>
-                                                                                        <PopoverTrigger asChild>
-                                                                                            <Button
-                                                                                                variant='outline'
-                                                                                                className='h-9 w-full justify-start text-left font-normal'
-                                                                                                type='button'>
-                                                                                                <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                                                {field.value ? (
-                                                                                                    field.value
-                                                                                                ) : (
-                                                                                                    <span>Select year</span>
-                                                                                                )}
-                                                                                            </Button>
-                                                                                        </PopoverTrigger>
-                                                                                        <PopoverContent className='w-auto p-0'>
-                                                                                            <DatePickerWithYear
-                                                                                                mode='single'
-                                                                                                selected={
-                                                                                                    field.value
-                                                                                                        ? new Date(`${field.value}-01-01`)
-                                                                                                        : undefined
-                                                                                                }
-                                                                                                onSelect={(date) => {
-                                                                                                    if (date) {
-                                                                                                        const year = format(date, 'yyyy');
-                                                                                                        field.onChange(year);
-                                                                                                        setOpen(false);
-                                                                                                    }
-                                                                                                }}
-                                                                                            />
-                                                                                        </PopoverContent>
-                                                                                    </Popover>
-                                                                                </div>
-                                                                            );
+                                                                    <InputText
+                                                                        label='Registration Year'
+                                                                        id={`qualificationDetails.${index}.registrationYear`}
+                                                                        maxLength={4}
+                                                                        placeholder='Enter year (e.g., 2024)'
+                                                                        onKeyDown={(e) => {
+                                                                            const controlKeys = [
+                                                                                'Backspace',
+                                                                                'Delete',
+                                                                                'Tab',
+                                                                                'Escape',
+                                                                                'Enter',
+                                                                                'ArrowLeft',
+                                                                                'ArrowRight',
+                                                                                'ArrowUp',
+                                                                                'ArrowDown'
+                                                                            ];
+                                                                            if (controlKeys.includes(e.key) || e.ctrlKey || e.metaKey) {
+                                                                                return;
+                                                                            }
+                                                                            if (e.key === ' ') {
+                                                                                e.preventDefault();
+                                                                                return;
+                                                                            }
+                                                                            if (!/^[0-9]$/.test(e.key)) {
+                                                                                e.preventDefault();
+                                                                            }
                                                                         }}
+                                                                        {...register(`qualificationDetails.${index}.registrationYear`)}
+                                                                        error={
+                                                                            errors.qualificationDetails?.[index]?.registrationYear?.message
+                                                                        }
                                                                     />
-                                                                    <HRMSInputText
+                                                                    <InputText
                                                                         label='Guide Name'
                                                                         id={`qualificationDetails.${index}.guideName`}
                                                                         maxLength={100}
@@ -3624,19 +3695,19 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </div>
                                                         </div>
                                                         <div className='grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3'>
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Organisation Name'
                                                                 id={`experienceDetails.${index}.organisationName`}
                                                                 maxLength={255}
                                                                 {...register(`experienceDetails.${index}.organisationName`)}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Department'
                                                                 id={`experienceDetails.${index}.department`}
                                                                 maxLength={100}
                                                                 {...register(`experienceDetails.${index}.department`)}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Designation *'
                                                                 id={`experienceDetails.${index}.designation`}
                                                                 maxLength={100}
@@ -3762,21 +3833,21 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     );
                                                                 }}
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='No. Of Years'
                                                                 id={`experienceDetails.${index}.noOfYears`}
                                                                 {...register(`experienceDetails.${index}.noOfYears`)}
                                                                 disabled
                                                                 className='[&>input]:cursor-not-allowed [&>input]:bg-muted [&>input]:opacity-70'
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='No. Of Months'
                                                                 id={`experienceDetails.${index}.noOfMonths`}
                                                                 {...register(`experienceDetails.${index}.noOfMonths`)}
                                                                 disabled
                                                                 className='[&>input]:cursor-not-allowed [&>input]:bg-muted [&>input]:opacity-70'
                                                             />
-                                                            <HRMSInputText
+                                                            <InputText
                                                                 label='Annual Salary'
                                                                 id={`experienceDetails.${index}.annualSalary`}
                                                                 maxLength={15}
@@ -3858,7 +3929,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 </div>
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
-                                                                <HRMSInputText
+                                                                <InputText
                                                                     label='Document Name *'
                                                                     id={`documentList.${index}.documentName`}
                                                                     maxLength={255}
@@ -3866,7 +3937,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                     placeholder='Enter document name'
                                                                     error={errors.documentList?.[index]?.documentName?.message}
                                                                 />
-                                                                <HRMSInputText
+                                                                <InputText
                                                                     label='Description *'
                                                                     id={`documentList.${index}.documentDescription`}
                                                                     maxLength={400}
@@ -3944,7 +4015,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             </div>
                                             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                                 <div className='grid grid-cols-2 gap-4'>
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label="Employee's Height"
                                                         id='employeeHeight'
                                                         placeholder='Height (e.g., 175.50)'
@@ -3981,7 +4052,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         {...register('employeeHeight')}
                                                         error={errors.employeeHeight?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='Unit of measure (Height)'
                                                         id='employeeHeightUnit'
                                                         placeholder='Unit of measure'
@@ -3990,7 +4061,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         error={errors.employeeHeightUnit?.message}
                                                     />
                                                 </div>
-                                                <HRMSInputText
+                                                <InputText
                                                     label='Eye Sight Issue'
                                                     id='eyeSightIssue'
                                                     maxLength={255}
@@ -3998,7 +4069,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     error={errors.eyeSightIssue?.message}
                                                 />
                                                 <div className='grid grid-cols-2 gap-4'>
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label="Employee's Weight"
                                                         id='employeeWeight'
                                                         placeholder='Weight (e.g., 75.50)'
@@ -4035,7 +4106,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         {...register('employeeWeight')}
                                                         error={errors.employeeWeight?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='Unit of measure (Weight)'
                                                         id='employeeWeightUnit'
                                                         placeholder='Unit of measure'
@@ -4044,7 +4115,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         error={errors.employeeWeightUnit?.message}
                                                     />
                                                 </div>
-                                                <HRMSInputText
+                                                <InputText
                                                     label='Any Health Issue'
                                                     id='anyHealthIssue'
                                                     maxLength={500}
@@ -4080,28 +4151,28 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             </div>
                                             <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                                                 <div className='space-y-1.5'>
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='Biometric Code'
                                                         id='biometricCode'
                                                         maxLength={50}
                                                         {...register('biometricCode')}
                                                         error={errors.biometricCode?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='RF card ID'
                                                         id='rfCardId'
                                                         maxLength={50}
                                                         {...register('rfCardId')}
                                                         error={errors.rfCardId?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='MS Teams UserName'
                                                         id='msTeamsUserName'
                                                         maxLength={100}
                                                         {...register('msTeamsUserName')}
                                                         error={errors.msTeamsUserName?.message}
                                                     />
-                                                    <HRMSInputText
+                                                    <InputText
                                                         label='MS Teams Password'
                                                         id='msTeamsPassword'
                                                         type='password'

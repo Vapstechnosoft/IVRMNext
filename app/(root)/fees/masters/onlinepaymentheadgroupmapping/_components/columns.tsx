@@ -2,7 +2,7 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { getOnlinePaymentHeadGroupEdit } from '@/server/fees/masters/online_payment_head_group';
+import { getAcademicYearDropdown, getOnlinePaymentHeadGroupEdit } from '@/server/fees/masters/online_payment_head_group';
 import type { IMasterOnlinePaymentHeadgroupList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useCallback } from 'react';
@@ -20,6 +20,12 @@ export const masterClassYearlyCategoryColumns: ColumnDef<IMasterOnlinePaymentHea
         enableSorting: false,
         enableHiding: false
     },
+    {
+        accessorKey: 'institutionName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Institution Name' />,
+        cell: ({ row }) => <div>{row.getValue('institutionName')}</div>
+    },
+
     {
         accessorKey: 'className',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
@@ -71,7 +77,15 @@ function ActionButtonsCell({
         async (data: IMasterOnlinePaymentHeadgroupList) => {
             try {
                 const fopM_Id = data.fopM_Id;
+
+                // console.log('🟣 [HOOK] fopM_Id:', fopM_Id);
                 const response = await getOnlinePaymentHeadGroupEdit(fopM_Id);
+
+                const academicyeardata = await getAcademicYearDropdown();
+
+                //  console.log('🟣 [HOOK] academicYearData:', academicyeardata);
+
+                const asmaY_Id = Number(academicyeardata?.data?.[0]?.asmaY_Id ?? 0);
 
                 if (response?.success && response?.data) {
                     const dataArray = (response as any).data;
@@ -79,7 +93,7 @@ function ActionButtonsCell({
 
                     const transformedData = {
                         fopM_Id: apiData.fopM_Id,
-                        asmaY_Id: 176,
+                        asmaY_Id: asmaY_Id,
                         asmcL_ID: apiData.asmcL_Id,
                         className: data.className,
                         fpgd_id: apiData.fpgd_id,
@@ -92,7 +106,8 @@ function ActionButtonsCell({
                         installmentName: data.installmentName,
                         fmt_id: apiData.fmt_id,
                         termName: data.terms,
-                        institutionName: 'vidya_vikas_vidya_samste'
+                        institutionName: apiData.mI_Name,
+                        mI_Id: apiData.mI_Id
                     };
 
                     openEditForm(transformedData as any);

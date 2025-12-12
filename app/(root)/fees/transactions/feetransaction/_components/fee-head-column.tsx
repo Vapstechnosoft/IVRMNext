@@ -1,113 +1,147 @@
-// _components/columns.tsx
 'use client';
 
-import { Checkbox } from '@/components/ui/checkbox';
+import { Heading } from '@/components/layout/heading';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { feeTransactionWaivedOffHead } from '@/types/fees/transactions/transactions';
+import { FormProvider } from '@/components/ui/form/form-provider';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
+import type { IExamSubjectGroupingDetails } from '@/types/exam/exam-module/exam-mapping';
+import type { IFeeTDetails } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useState } from 'react';
 
-export const feeTransactionHeadColumn: ColumnDef<feeTransactionWaivedOffHead>[] = [
+interface FeeDetailsProps {
+    onClose: () => void;
+    data: IFeeTDetails[];
+    loading: boolean;
+}
+
+export default function FeeDetails({ onClose, data, loading }: FeeDetailsProps) {
+    const tableProps = useDataTableProps({
+        data: data,
+        total: data.length,
+        pageIndex: 0,
+        pageSize: 5
+    });
+
+    return (
+        <FormProvider<IExamSubjectGroupingDetails>>
+            <div className='fixed inset-0 z-50 flex items-start justify-center bg-black/30 pt-[10vh]'>
+                <div className='relative mx-auto w-[75%] rounded-2xl bg-white p-6 shadow-xl'>
+                    {/* Header Section */}
+                    <div className='mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
+                        <Heading title='Fee Details' />
+                        <Button
+                            variant='secondary'
+                            onClick={onClose}
+                            className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
+                            Close
+                        </Button>
+                    </div>
+
+                    {/* Data Table */}
+                    <GenericDataTable<IFeeTDetails>
+                        {...tableProps}
+                        columns={feeDetailsColumn}
+                        isLoading={loading}
+                        columnPinning={{ right: ['actions'] }}
+                        noDataTitle='No Data Found'
+                        noDataDescription='No Fee Details available.'
+                        errorTitle='Error Loading Data'
+                        showViewOptions={false}
+                    />
+                </div>
+            </div>
+        </FormProvider>
+    );
+}
+
+export const feeDetailsColumn: ColumnDef<IFeeTDetails>[] = [
     {
-        id: 'fmgM_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='pl-6' />,
+        accessorKey: 'fmG_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL No' />,
         cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex || 0;
-            const pageSize = table.getState().pagination.pageSize || 10;
-            return <div className='pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
         },
         enableSorting: false,
-        enableHiding: false
+        enableHiding: true
     },
     {
-        accessorKey: 'check',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all'
-                disabled
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-                disabled
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false
+        accessorKey: 'fmG_GroupName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Group Name' />,
+        cell: ({ row }) => <div>{row.getValue('fmG_GroupName')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
-
     {
-        accessorKey: 'fmH_FeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Name' />,
-        cell: ({ row }) => <div>{row.getValue('fmH_FeeName')}</div>,
-        enableSorting: false,
-        enableHiding: false
+        accessorKey: 'fsS_CurrentYrCharges',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Charges' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_TotalToBePaid')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
-
     {
-        accessorKey: 'ftI_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Installment' />,
-        cell: ({ row }) => <div>{row.getValue('ftI_Name')}</div>,
-        enableSorting: false,
-        enableHiding: false
+        accessorKey: 'fsS_ConcessionAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Concession' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_ConcessionAmount')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
-
     {
-        accessorKey: 'tobepaid',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Balance' />,
-        cell: ({ row }) => <div>{row.getValue('tobepaid')}</div>,
-        enableSorting: false,
-        enableHiding: false
+        accessorKey: 'fsS_WaivedAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total WaivedOff' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_WaivedAmount')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
-
     {
-        accessorKey: 'totalTobepaid',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Paid Amount' />,
-        cell: ({ row }) => <div>{row.getValue('totalTobepaid')}</div>,
-        enableSorting: false,
-        enableHiding: false
+        accessorKey: 'fsS_AdjustedAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Adjustment' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_AdjustedAmount')}</div>,
+        enableHiding: true,
+        enableSorting: false
     },
-
     {
-        accessorKey: 'waivedOff',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Waived Off Amount' />,
-        cell: ({ row }) => {
-            const rawValue = row.getValue('waivedOff') as unknown;
-            const initialValue = rawValue !== null && rawValue !== undefined && rawValue !== '' ? String(rawValue) : '0';
-            const [value, setValue] = useState(initialValue);
-
-            const handleBlur = () => {
-                const num = Number(value);
-                const finalValue = Number.isNaN(num) ? 0 : num;
-                row.original.waivedOff = finalValue;
-                setValue(finalValue.toString());
-            };
-            return (
-                <input
-                    type='number'
-                    value={value}
-                    onChange={(e) => {
-                        const v = e.target.value;
-                        if (v === '') {
-                            setValue('');
-                            return;
-                        }
-                        if (/^\d*\.?\d*$/.test(v)) {
-                            setValue(v);
-                        }
-                    }}
-                    onBlur={handleBlur}
-                    className='w-full rounded border px-2 py-1 text-sm'
-                    disabled={true}
-                />
-            );
-        },
-        enableSorting: false,
-        enableHiding: false
+        accessorKey: 'fsS_TotalToBePaid',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Payable' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_TotalToBePaid')}</div>,
+        enableHiding: true,
+        enableSorting: false
+    },
+    {
+        accessorKey: 'fsS_PaidAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Paid Amount' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_PaidAmount')}</div>,
+        enableHiding: true,
+        enableSorting: false
+    },
+    {
+        accessorKey: 'fsS_ToBePaid',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Outstanding' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_ToBePaid')}</div>,
+        enableHiding: true,
+        enableSorting: false
+    },
+    {
+        accessorKey: 'fsS_RefundAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Refund' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_RefundAmount')}</div>,
+        enableHiding: true,
+        enableSorting: false
+    },
+    {
+        accessorKey: 'fsS_RunningExcessAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Excess' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_RunningExcessAmount')}</div>,
+        enableHiding: true,
+        enableSorting: false
+    },
+    {
+        accessorKey: 'fsS_FineAmount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Fine' />,
+        cell: ({ row }) => <div>{row.getValue('fsS_FineAmount')}</div>,
+        enableHiding: true,
+        enableSorting: false
     }
 ];

@@ -3,23 +3,22 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useDepartmentDropdown, useDesignationDropdown, useGroupTypeDropdown } from '@/hooks/hrms/useEmployeeRegister';
-import { useSaveGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
-import { groupDeptDessgMappingSchema } from '@/schemas/hrms/group-dept-dessg-mapping-schemas';
-import type { GroupDeptDessgMappingDetail } from '@/types/hrms/group-dept-dessg-mapping';
+import { useGroupDeptDessgMapping } from '@/hooks/hrms/useMasters';
+import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { IDepartmentDropdown, IDesignationDropdown, IGroupTypeDropdown } from '@/types/hrms/hrms-config/employee';
+import type { IMasterGroupDeptDessgMappingList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-type FormFields = z.infer<typeof groupDeptDessgMappingSchema.addOrUpdate>;
+type FormFields = z.infer<typeof hrmsMasterSchemas.groupDeptDessgMapping.addOrUpdate>;
 interface UpdateGroupDeptDessgMappingFormProps {
     onSuccess?: () => void;
     className?: string;
-    selectedRow: GroupDeptDessgMappingDetail;
+    selectedRow: IMasterGroupDeptDessgMappingList;
 }
 export default function UpdateGroupDeptDessgMappingForm({
     onSuccess,
@@ -44,55 +43,37 @@ export default function UpdateGroupDeptDessgMappingForm({
         ? designationDropdownResponse
         : (designationDropdownResponse as any)?.data || [];
 
-    const { mutate: saveMapping, isPending } = useSaveGroupDeptDessgMapping();
+    const { saveMutation } = useGroupDeptDessgMapping();
+    const { mutate: saveMapping, isPending } = saveMutation;
     const {
         control,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isSubmitting, isDirty }
     } = useForm<FormFields>({
-        resolver: zodResolver(groupDeptDessgMappingSchema.addOrUpdate),
+        resolver: zodResolver(hrmsMasterSchemas.groupDeptDessgMapping.addOrUpdate),
         mode: 'onChange'
     });
     useEffect(() => {
         if (row) {
-            const rowWithDesignationIds = row as GroupDeptDessgMappingDetail & {
-                designationids?: number[];
-            };
-            const designationids =
-                rowWithDesignationIds.designationids &&
-                Array.isArray(rowWithDesignationIds.designationids) &&
-                rowWithDesignationIds.designationids.length > 0
-                    ? rowWithDesignationIds.designationids
-                    : row.HRMDES_Id
-                      ? [row.HRMDES_Id]
-                      : [];
+            const designationids = row.hrmdeS_Id ? [row.hrmdeS_Id] : [];
             reset({
-                hrgtddS_Id: row.HRGTDDS_Id,
-                mI_Id: HRMS_MI_ID,
-                hrmgT_Id: row.HRMGT_Id,
-                hrmD_Id: row.HRMD_Id,
-                hrmdeS_Id: row.HRMDES_Id || 0,
-                designationids: designationids,
-                hrgtddS_ActiveFlg: row.HRGTDDS_ActiveFlg,
-                hrgtddS_CreatedBy: 5,
-                logInUserId: 5
+                hrgtddS_Id: row.hrgtddS_Id,
+                hrmgT_Id: row.hrmgT_Id,
+                hrmD_Id: row.hrmD_Id,
+                hrmdeS_Id: row.hrmdeS_Id || 0,
+                designationids: designationids
             });
         }
     }, [row, reset]);
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            const originalDesignationIds =
-                row.designationids && Array.isArray(row.designationids) && row.designationids.length > 0
-                    ? row.designationids.sort((a, b) => a - b)
-                    : row.HRMDES_Id
-                      ? [row.HRMDES_Id]
-                      : [];
+            const originalDesignationIds = row.hrmdeS_Id ? [row.hrmdeS_Id] : [];
             const currentDesignationIds = (data.designationids || []).sort((a, b) => a - b);
             const hasChanges =
-                row.HRMGT_Id !== data.hrmgT_Id ||
-                row.HRMD_Id !== data.hrmD_Id ||
-                row.HRGTDDS_ActiveFlg !== data.hrgtddS_ActiveFlg ||
+                row.hrmgT_Id !== data.hrmgT_Id ||
+                row.hrmD_Id !== data.hrmD_Id ||
                 originalDesignationIds.length !== currentDesignationIds.length ||
                 !originalDesignationIds.every((id, index) => id === currentDesignationIds[index]);
             if (!hasChanges) {
@@ -100,13 +81,12 @@ export default function UpdateGroupDeptDessgMappingForm({
                 onSuccess?.();
                 return;
             }
-            // Construct API request body - MI_Id is excluded (extracted from JWT)
-            const requestBody: any = {
-                HRGTDDS_Id: row.HRGTDDS_Id,
-                HRMGT_Id: data.hrmgT_Id,
-                HRMD_Id: data.hrmD_Id,
-                HRMDES_Ids: data.designationids || [],
-                UserId: data.logInUserId || 0
+            // Construct API request body matching Swagger spec
+            const requestBody = {
+                hrgtddS_Id: row.hrgtddS_Id,
+                hrmgT_Id: data.hrmgT_Id,
+                hrmD_Id: data.hrmD_Id,
+                hrmdeS_Ids: data.designationids || []
             };
             saveMapping(requestBody, {
                 onSuccess: (response) => {
@@ -156,18 +136,6 @@ export default function UpdateGroupDeptDessgMappingForm({
             }))
             .filter((opt) => opt.value !== '');
     }, [designationDropdown]);
-    const rowWithDesignationIds = row as GroupDeptDessgMappingDetail & {
-        designationids?: number[];
-    };
-    const defaultDesignationIds =
-        rowWithDesignationIds.designationids &&
-        Array.isArray(rowWithDesignationIds.designationids) &&
-        rowWithDesignationIds.designationids.length > 0
-            ? rowWithDesignationIds.designationids
-            : row.HRMDES_Id
-              ? [row.HRMDES_Id]
-              : [];
-    const defaultDesignationStringValues = defaultDesignationIds.map((id) => id.toString());
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -182,7 +150,7 @@ export default function UpdateGroupDeptDessgMappingForm({
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                        key={`group-select-${row.HRGTDDS_Id}-${field.value}`}
+                                        key={`group-select-${row.hrgtddS_Id}-${field.value}`}
                                         value={field.value?.toString() || ''}
                                         onValueChange={(value) => field.onChange(Number(value))}>
                                         <SelectTrigger id='hrmgT_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
@@ -219,7 +187,7 @@ export default function UpdateGroupDeptDessgMappingForm({
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                        key={`dept-select-${row.HRGTDDS_Id}-${field.value}`}
+                                        key={`dept-select-${row.hrgtddS_Id}-${field.value}`}
                                         value={field.value?.toString() || ''}
                                         onValueChange={(value) => field.onChange(Number(value))}>
                                         <SelectTrigger id='hrmD_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
@@ -255,13 +223,16 @@ export default function UpdateGroupDeptDessgMappingForm({
                                 name='designationids'
                                 control={control}
                                 render={({ field }) => {
-                                    const stringValues = field.value?.map((id) => id.toString()) || [];
-                                    const multiSelectKey = `designation-${row.HRGTDDS_Id}-${stringValues.join(',')}`;
+                                    // Use watch to get reactive value that updates immediately when reset() is called
+                                    const designationIds = watch('designationids') || [];
+                                    const stringValues = designationIds.map((id) => id.toString());
+                                    // Use row ID in key to force re-render when row changes
+                                    const multiSelectKey = `designation-${row.hrgtddS_Id}`;
                                     return (
                                         <MultiSelect
                                             key={multiSelectKey}
                                             options={designationOptions}
-                                            defaultValue={defaultDesignationStringValues}
+                                            defaultValue={stringValues}
                                             onValueChange={(values) => {
                                                 field.onChange(values.map((v) => Number(v)));
                                             }}

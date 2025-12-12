@@ -48,7 +48,8 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                 hrmG_PayScaleFrom: data.hrmG_PayScaleFrom || 0,
                 hrmG_IncrementOf: data.hrmG_IncrementOf || 0,
                 hrmG_PayScaleTo: data.hrmG_PayScaleTo || 0,
-                hrmG_Order: data.hrmG_Order || 0
+                hrmG_Order: data.hrmG_Order || 0,
+                hrmG_ActiveFlag: true
             };
             const response = await addOrUpdateMasterGrade(payload);
 

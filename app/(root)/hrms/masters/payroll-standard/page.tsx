@@ -1,22 +1,19 @@
 'use client';
+
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
+import type { IMasterPayrollStandardList } from '@/types/hrms/hrms-config/master';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { useMemo } from 'react';
-import PayrollStandardForm from './_components/payroll-standard-form';
+import PayrollStandardForm from './_components/add-form';
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
-export default function MasterPayrollStandardPage(_props: {
-    searchParams: SearchParams;
-}) {
-    const roleId = HRMS_MI_ID;
-    const { listQuery } = useMasterPayrollStandard(roleId);
-    // Memoize array to prevent unnecessary re-renders
-    const hrStandardList = useMemo(() => (listQuery.data?.hrStandardList || []) as any[], [listQuery.data?.hrStandardList]);
-    // Get the first (and only) payroll standard record
-    const existingData = hrStandardList[0];
-    const isLoading = listQuery.isLoading;
-    const error = listQuery.error;
+
+export default function MasterPayrollStandardPage(_props: { searchParams: SearchParams }) {
+    const { data: response, isLoading, error } = useMasterPayrollStandard();
+    const dataItem = Array.isArray(response?.data) ? response?.data[0] : response?.data;
+    // Only treat as existing data if hrC_Id > 0 (update), otherwise treat as new record (hrC_Id = 0)
+    const existingData: IMasterPayrollStandardList | undefined = dataItem && dataItem.hrC_Id > 0 ? dataItem : undefined;
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>

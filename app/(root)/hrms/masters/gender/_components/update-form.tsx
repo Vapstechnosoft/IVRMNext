@@ -47,7 +47,8 @@ export default function UpdateGenderForm({ onSuccess, className = '', selectedRo
         try {
             const payload = {
                 ivrmmG_Id: data.ivrmmG_Id,
-                ivrmmG_GenderName: data.ivrmmG_GenderName?.trim() || ''
+                ivrmmG_GenderName: data.ivrmmG_GenderName?.trim() || '',
+                ivrmmG_IsActive: true
             };
             const response = await addOrUpdateMasterGender(payload);
 

@@ -35,7 +35,8 @@ export default function AddGenderForm({ onSuccess, className = '' }: AddGenderFo
         try {
             const payload = {
                 ivrmmG_Id: 0,
-                ivrmmG_GenderName: data.ivrmmG_GenderName?.trim() || ''
+                ivrmmG_GenderName: data.ivrmmG_GenderName?.trim() || '',
+                ivrmmG_IsActive: true
             };
             const response = await addOrUpdateMasterGender(payload);
 

@@ -632,6 +632,8 @@ export interface IMasterStudentFeeGroupMappingList {
     fmsG_Id: number;
     asmaY_Id: number;
     mI_Id: number;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
 }
 export interface IMasterFeeClassDropDownList {
     asmcL_Id: number;
@@ -789,14 +791,11 @@ export interface IFeeHeadsListSetOrder {
     fmH_RefundFlag: boolean;
 }
 
-
 export interface IMasterFeeClassCategoryList {
     fmcC_Id: number;
     fmcC_ClassCategoryName: string;
 }
- 
- 
- 
+
 export interface IMasterFeeBusAreaList {
     trmA_Id: number;
     trmA_AreaName: string;

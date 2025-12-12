@@ -1,10 +1,10 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
+    EmployeeLateInEarlyOutReportGetDataResponse,
     EmployeeLateInEarlyOutReportOnloadRequest,
-    EmployeeLateInEarlyOutReportOnloadResponse,
-    EmployeeLateInEarlyOutReportGetDataResponse
+    EmployeeLateInEarlyOutReportOnloadResponse
 } from '@/types/hrms/reports/employee-latein-earlyout-report';
 /**
  * Get onload data for employee late in early out report
@@ -40,9 +40,10 @@ export async function getEmployeeLateInEarlyOutReportOnload(
         // Return error response
         return {
             success: false,
-            message: error?.response?.status === 404 
-                ? `Endpoint not found: ${url}. Please verify the endpoint URL.`
-                : error?.message || 'Failed to load data from API',
+            message:
+                error?.response?.status === 404
+                    ? `Endpoint not found: ${url}. Please verify the endpoint URL.`
+                    : error?.message || 'Failed to load data from API',
             data: {
                 types: [],
                 employees: [],
@@ -212,4 +213,13 @@ export async function getEmployeeLateInEarlyOutReportList(
             page_size: searchParams?.page_size || 10
         }
     };
+}
+/**
+ * Get employee late in/early out report data
+ * POST /api/EmployeeLateInEarlyOutReportFacade/search
+ */
+export async function getEmployeeLateInEarlyOutReport(data: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'searchableColumns');
+    const url = `/api/EmployeeLateInEarlyOutReportFacade/search?${urlParams}`;
+    return await api.post<any>('hrmsfrontoffice', url, data);
 }

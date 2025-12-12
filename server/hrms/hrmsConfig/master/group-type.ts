@@ -11,22 +11,17 @@ export async function getMasterGroupType(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterGroupType(data: any) {
-    const url = '/api/MasterGroupTypeFacade';
+    const url = '/api/MasterGroupTypeFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterGroupType(id: number) {
-    const url = `/api/MasterGroupTypeFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterGroupTypeFacade/toggle/${id}`;
     return await api.put('hrms', url);
 }
 
-export async function deleteMasterGroupType(id: number) {
-    const url = `/api/MasterGroupTypeFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
-}
-
 export async function getGroupTypeSetOrder() {
-    const url = '/api/MasterGroupTypeFacade/onloadgetdetails?page=1&page_size=1000&sort_column=hrmgT_Order&sort_direction=asc';
+    const url = '/api/MasterGroupTypeFacade/set_order_list';
     return await api.get<IMasterGroupTypeSetOrderList[]>('hrms', url);
 }
 

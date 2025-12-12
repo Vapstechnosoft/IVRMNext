@@ -41,11 +41,12 @@ export default function AddCourseForm({ onSuccess, className = '' }: AddCourseFo
         try {
             const payload = {
                 hrmC_Id: 0,
-                hrmC_QulaificationName: data.hrmC_QulaificationName?.trim() || '',
-                hrmC_QualificationDesc: data.hrmC_QualificationDesc?.trim() || '',
-                hrmC_Order: data.hrmC_Order || 0,
+                hrmC_QulaificationName: data.hrmC_QulaificationName?.trim(),
+                hrmC_QualificationDesc: data.hrmC_QualificationDesc?.trim(),
+                hrmC_Order: data.hrmC_Order,
                 hrmC_DefaultQualFag: data.hrmC_DefaultQualFag,
-                hrmC_SpecialisationFlag: data.hrmC_SpecialisationFlag
+                hrmC_SpecialisationFlag: data.hrmC_SpecialisationFlag,
+                hrmC_ActiveFlag: true
             };
             const response = await addOrUpdateMasterCourse(payload);
 

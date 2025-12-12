@@ -1,14 +1,15 @@
 'use client';
 
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import type { ApiSearchparams } from '@/types';
 import {
+    deleteEmployee,
     getBankDropdown,
+    getBloodGroupDropdown,
     getCasteCategoryDropdown,
     getCasteDropdown,
+    getContactTypeDropdown,
     getCountryDropdown,
     getCourseDropdown,
-    deleteEmployee,
     getDepartmentDropdown,
     getDesignationDropdown,
     getEmployeeById,
@@ -18,38 +19,20 @@ import {
     getGradeDropdown,
     getGroupTypeDropdown,
     getInstitutionDropdown,
+    getLeaveReasonDropdown,
     getMaritalStatusDropdown,
     getPaymentModeDropdown,
     getReligionDropdown,
+    getSalaryTypeDropdown,
+    getScoreTypeDropdown,
     getSpecializationDropdown,
-    getLeaveReasonDropdown,
     getStateDropdown,
+    getTeachingTypeDropdown,
     saveEmployee,
     toggleEmployee
 } from '@/server/hrms/hrmsConfig/employee/register';
-import type {
-    IBankDropdown,
-    ICasteCategoryDropdown,
-    ICasteDropdown,
-    ICountryDropdown,
-    ICourseDropdown,
-    IDesignationDropdown,
-    IEmployeeDetailResponse,
-    IEmployeeList,
-    IEmployeeSaveRequest,
-    IEmployeeSaveResponse,
-    IEmployeeTypeDropdown,
-    IGenderDropdown,
-    IGradeDropdown,
-    IGroupTypeDropdown,
-    IInstitutionDropdown,
-    IMaritalStatusDropdown,
-    IPaymentModeDropdown,
-    IReligionDropdown,
-    ISpecializationDropdown,
-    ILeaveReasonDropdown,
-    IStateDropdown
-} from '@/types/hrms/hrms-config/employee';
+import type { ApiSearchparams } from '@/types';
+import type { IEmployeeSaveRequest } from '@/types/hrms/hrms-config/employee';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -355,19 +338,98 @@ export function useLeaveReasonDropdown() {
     };
 }
 
+export function useBloodGroupDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'blood-group'],
+            queryFn: async () => getBloodGroupDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'blood-group']
+            });
+        }
+    };
+}
+
+export function useSalaryTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'salary-type'],
+            queryFn: async () => getSalaryTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'salary-type']
+            });
+        }
+    };
+}
+
+export function useTeachingTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'teaching-type'],
+            queryFn: async () => getTeachingTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'teaching-type']
+            });
+        }
+    };
+}
+
+export function useScoreTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'score-type'],
+            queryFn: async () => getScoreTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'score-type']
+            });
+        }
+    };
+}
+
+export function useContactTypeDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'contact-type'],
+            queryFn: async () => getContactTypeDropdown(),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'dropdown', 'contact-type']
+            });
+        }
+    };
+}
+
 // ==================== Employee CRUD Hooks ====================
 
 /**
  * Hook to fetch employee list with search, sort, and pagination
  */
-export function useEmployeeList(roleId: number, searchParams?: ApiSearchparams) {
+export function useEmployeeList(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'list', roleId, searchParams ?? {}],
-            queryFn: async () => getEmployeeList(roleId, searchParams),
-            staleTime: 0,
-            enabled: !!roleId
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, searchParams ?? {}],
+            queryFn: async () => getEmployeeList(searchParams),
+            staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

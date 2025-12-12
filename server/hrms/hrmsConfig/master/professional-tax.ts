@@ -11,16 +11,11 @@ export async function getMasterProfessionalTax(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterProfessionalTax(data: any) {
-    const url = '/api/MasterProfessionalTaxFacade';
+    const url = '/api/MasterProfessionalTaxFacade/SaveUpdate';
     return await api.post<any>('hrms', url, data);
 }
 
 export async function toggleMasterProfessionalTax(id: number) {
-    const url = `/api/MasterProfessionalTaxFacade/deactivateRecordById/${id}`;
+    const url = `/api/MasterProfessionalTaxFacade/toggle/${id}`;
     return await api.put('hrms', url);
-}
-
-export async function deleteMasterProfessionalTax(id: number) {
-    const url = `/api/MasterProfessionalTaxFacade/delete/${id}`;
-    return await api.delete<any>('hrms', url);
 }
