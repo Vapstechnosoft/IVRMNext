@@ -113,7 +113,7 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
                     </label>
 
                     <div className='flex-1'>
-                        <InputText
+                        {/* <InputText
                             id='fmT_Name'
                             {...register('fmT_Name', {
                                 required: 'Term Name is required',
@@ -129,6 +129,15 @@ export default function UpdateFeeTermForm({ onSuccess, fineslab = '', selectedRo
                             })}
                             error={errors.fmT_Name?.message}
                             className='w-full rounded-none border-0 border-gray-300 px-0 py-1 focus:border-primary focus:ring-0'
+                        /> */}
+
+                        <InputText
+                            //label='Term Name'
+                            required
+                            id='fmT_Name'
+                            {...register('fmT_Name')}
+                            error={errors.fmT_Name?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                     </div>
                 </div>

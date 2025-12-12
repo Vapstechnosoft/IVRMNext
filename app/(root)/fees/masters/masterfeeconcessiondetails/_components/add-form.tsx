@@ -39,7 +39,14 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterConcessionDetailsSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            fmccD_PerOrAmt: undefined,
+            fmccD_FromNoSibblings: undefined,
+            fmccD_ToNoSibblings: undefined,
+            fmccD_PerOrAmtFlag: '',
+            fmcC_Id: undefined
+        }
     });
 
     function OnReset() {
@@ -334,8 +341,21 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
                                         <div className='flex flex-col'>
                                             <InputNumber
                                                 id='fmccD_FromNoSibblings'
-                                                value={field.value ?? 0}
-                                                onChange={(value: number) => field.onChange(value)}
+                                                // value={field.value ?? 0}
+                                                // onChange={(value: number) => field.onChange(value)}
+
+                                                value={field.value ?? ''}
+                                                onChange={(value: number | string) => {
+                                                    if (value === '' || value === null || value === undefined) {
+                                                        field.onChange(undefined);
+                                                        return;
+                                                    }
+
+                                                    const num = Number(value);
+                                                    if (Number.isNaN(num)) return;
+
+                                                    field.onChange(num);
+                                                }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                             {errors.fmccD_FromNoSibblings && <FormError>{errors.fmccD_FromNoSibblings.message}</FormError>}
@@ -360,8 +380,20 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
                                         <div className='flex flex-col'>
                                             <InputNumber
                                                 id='fmccD_ToNoSibblings'
-                                                value={field.value ?? 0}
-                                                onChange={(value: number) => field.onChange(value)}
+                                                // value={field.value ?? 0}
+                                                // onChange={(value: number) => field.onChange(value)}
+                                                value={field.value ?? ''}
+                                                onChange={(value: number | string) => {
+                                                    if (value === '' || value === null || value === undefined) {
+                                                        field.onChange(undefined);
+                                                        return;
+                                                    }
+
+                                                    const num = Number(value);
+                                                    if (Number.isNaN(num)) return;
+
+                                                    field.onChange(num);
+                                                }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                             {errors.fmccD_ToNoSibblings && <FormError>{errors.fmccD_ToNoSibblings.message}</FormError>}
@@ -377,7 +409,7 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
                                 Percent/Amount <span className='text-red-500'>*</span>:
                             </label>
 
-                            <div className='w-64'>
+                            {/* <div className='w-64'>
                                 <Controller
                                     name='fmccD_PerOrAmt'
                                     control={control}
@@ -394,6 +426,35 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
                                                     } else {
                                                         field.onChange(num);
                                                     }
+                                                }}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_PerOrAmt && <FormError>{errors.fmccD_PerOrAmt.message}</FormError>}
+                                        </div>
+                                    )}
+                                />
+                            </div> */}
+
+                            <div className='w-64'>
+                                <Controller
+                                    name='fmccD_PerOrAmt'
+                                    control={control}
+                                    rules={{ required: 'Percent/Amount is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                id='fmccD_PerOrAmt'
+                                                value={field.value ?? ''}
+                                                onChange={(value: number | string) => {
+                                                    if (value === '' || value === null || value === undefined) {
+                                                        field.onChange(undefined);
+                                                        return;
+                                                    }
+
+                                                    const num = Number(value);
+                                                    if (Number.isNaN(num)) return;
+
+                                                    field.onChange(num);
                                                 }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />

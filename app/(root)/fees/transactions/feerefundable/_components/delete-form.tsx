@@ -85,6 +85,7 @@ export default function DeleteFeeRefundableForm({ rowData, onClose }: DeleteFeeR
                     </Button>
                     <Button type='submit' isLoading={isSubmitting} variant='destructive'>
                         <Trash2 className='mr-2 h-4 w-4' />
+                        {isSubmitting ? 'Deleting...' : 'Delete'}
                         Delete
                     </Button>
                 </AdaptiveFooter>

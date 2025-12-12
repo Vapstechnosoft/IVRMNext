@@ -198,7 +198,8 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_CONFIGSET: 'fee_concession_configset',
     FEE_CONCESSION_STAFF_LIST: 'fee_concession_staff_list',
     FEE_CONCESSION_OTHERS_LIST: 'fee_concession_others_list',
-    FEE_ADJUSTMENT_GRIDDATA: 'fee_adjustment_griddata'
+    FEE_ADJUSTMENT_GRIDDATA: 'fee_adjustment_griddata',
+    FEE_CONCESSION_EDIT: 'fee_concession_edit'
 };
 
 export const EXAM_QUERY_KEYS = {

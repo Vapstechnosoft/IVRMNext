@@ -633,6 +633,7 @@ export interface IStudentTermList {
     fmG_Id: number;
     fmG_GroupName: string;
     fmT_Id: number;
+    disablepaisterms: boolean;
 }
 
 export interface IStudentTDetails {
@@ -676,6 +677,7 @@ export interface IFeeRefundableList {
     modeOfPayment: string;
     fr_Date: string;
     fR_ID: number;
+    asmay_id: number;
 }
 
 export interface IFeeConcessionClassDropDownList {
@@ -737,6 +739,8 @@ export interface IFeeConcessionStudentConcessionGrid {
     fmcC_ConcessionName: string;
     fsC_ConcessionAmount: number;
     fsC_Id: number;
+    asmaY_Id: number;
+    fscI_ID: number;
 }
 
 export interface IFeeRefundableStudentDropDownList {
@@ -820,4 +824,55 @@ export interface IFeeAdjustmentGridList {
     toHead: string;
     fromInstallment: string;
     toInstallment: string;
+}
+
+export interface IFeeRefundedDetails {
+    amsT_ID: number;
+    fmH_FeeName: string;
+    fmA_Amount: number;
+    fR_Date: string; // ISO string
+    fR_RefundNo: string;
+    fR_RefundAmount: number;
+}
+
+export interface IStudentDetails {
+    amsT_FirstName: string;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amsT_FatherName: string;
+    amsT_MotherName: string;
+    asmaY_Year: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    amsT_AdmNo: string;
+    fR_RefundNo: string;
+}
+
+export interface IRefundReceiptResponse {
+    feerefunded_details: IFeeRefundedDetails[];
+    student_details: IStudentDetails[];
+}
+
+export interface IFeeConcessionEdit {
+    asmaY_Id: number;
+    asmcL_ID: number;
+    classname: string;
+    termname: string;
+    fmT_Id: number;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    amsT_FirstName: string;
+    fmH_Id: number;
+    fmG_Id: number;
+    ftI_Id: number;
+    fmA_Id: number;
+    fscI_ID: number;
+    fsC_Id: number;
+    fmH_FeeName: string;
+    ftI_Name: string;
+    fmA_Amount: number;
+    fscI_ConcessionAmount: number;
+    fsC_ConcessionType: string;
+    fsC_ConcessionReason: string;
+    amst_Id: number;
 }

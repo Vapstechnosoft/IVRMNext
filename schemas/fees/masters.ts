@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { createNumberOnlyStringSchema, createStringOnlySchema, createStringSchema, deleteIdSchema } from '../validationSchemas';
+import {
+    createNumberOnlyStringSchema,
+    createStringOnlySchema,
+    createStringSchema,
+    createStringSchemaNotAllowNumbersOnly,
+    deleteIdSchema
+} from '../validationSchemas';
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),
     password: createStringSchema('Password', 6, 50)
@@ -393,9 +399,10 @@ export const masterConcessionSchema = {
 export const masterTermsSchema = {
     addOrUpdate: z.object({
         fmT_Id: z.number().int().optional(),
-        fmT_Name: z.string().min(1, {
-            message: 'Term Name is required and Only letters and numbers allowed (no spaces and special characters)'
-        }),
+        // fmT_Name: z.string().min(1, {
+        //     message: 'Term Name is required and Only letters and numbers allowed (no spaces and special characters)'
+        // }),
+        fmT_Name: createStringSchemaNotAllowNumbersOnly('Term Name', 1, 60),
         fmT_IncludeArrearFeeFlg: z.boolean().optional(),
         fmT_ActiveFlag: z.boolean().optional()
     }),
@@ -431,6 +438,10 @@ export const masterConcessionDetailsSchema = {
             fmccD_ToNoSibblings: z.number().min(1, { message: 'To No of Sibblings is required' }),
             //fmcC_ActiveFlag: z.boolean().optional(),
             fmccD_PerOrAmt: z.number().min(1, { message: 'Concession Limit must be at morethan 0' })
+        })
+        .refine((data) => data.fmccD_FromNoSibblings < data.fmccD_ToNoSibblings, {
+            message: 'From No of Sibling must be less than  to To No of Siblings',
+            path: ['fmccD_FromNoSibblings']
         })
         .refine(
             (data) => {
@@ -635,12 +646,17 @@ export const masterClassFeeMasterGroupwiseAutoReceipt = {
             autoGroupName: createStringOnlySchema('Auto Group Name', 1, 100),
             address: z.string().min(1, { message: 'Address is required' }),
             //receiptTemplateFormat: z.string().min(1, { message: 'Receipt Template Format is required' })
+            // receiptTemplateFormat: z
+            //     .string()
+            //     .min(1, { message: 'Receipt Template Format is required' })
+            //     .regex(/<([a-z]+)([^<]+)*(?:>(.*)<\/\1>|\s*\/>)/i, {
+            //         message: 'Please enter valid HTML format'
+            //     })
+
             receiptTemplateFormat: z
                 .string()
                 .min(1, { message: 'Receipt Template Format is required' })
-                .regex(/<([a-z]+)([^<]+)*(?:>(.*)<\/\1>|\s*\/>)/i, {
-                    message: 'Please enter valid HTML format'
-                })
+                .regex(/<[^>]+>/, { message: 'Please enter valid HTML content' })
         })
         .refine(
             (data) => {

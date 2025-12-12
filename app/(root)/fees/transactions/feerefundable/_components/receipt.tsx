@@ -1,8 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { receiptView } from '@/server/fees/trasactions/thirdPartyTrasaction';
-import type { IFeeRefundableList } from '@/types/fees/transactions/transactions';
+import { getFeeRefundableReceiptDetails } from '@/server/fees/trasactions/fee_refundable';
+import type { IFeeRefundableList, IFeeRefundedDetails } from '@/types/fees/transactions/transactions';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
@@ -20,13 +20,9 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
     const [loading, setLoading] = useState(true);
     const [receiptData, setReceiptData] = useState<any>(null);
 
-    const payload = {
-        // mI_Id: rowData.mI_Id,
-        // asmaY_Id: rowData.asmaY_Id,
-        // fyP_Id: rowData.fyP_Id,
-        // fyptP_Id: rowData.fyptP_Id
-    };
-    console.log('Receipt Payload:', payload);
+    const [studentdetails, setstudentdetails] = useState<any>(null);
+
+    const [receiptdetails, setreceiptdetails] = useState<IFeeRefundedDetails[]>([]);
 
     // ───────────────────────────────────────────────
     //  FETCH RECEIPT DATA
@@ -34,12 +30,23 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const raw = await receiptView(payload);
+                const raw = await getFeeRefundableReceiptDetails(
+                    Number(rowData.asmay_id),
+                    Number(rowData.amst_Id),
+                    Number(rowData.voucherNo)
+                );
+                const js = JSON.stringify(raw);
+                console.log('Receipt Raw Data:', js);
 
-                console.log('Receipt Raw Data:', raw);
-                const response = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                const feeRefundedDetails = raw?.data?.feerefunded_details || [];
+                const studentDetails = raw?.data?.student_details || [];
 
-                setReceiptData(response);
+                console.log('Refund Details:', feeRefundedDetails);
+                console.log('Student Details:', studentDetails);
+
+                //setReceiptData(response);
+                setstudentdetails(studentDetails);
+                setreceiptdetails(feeRefundedDetails);
             } catch (err) {
                 console.error('Failed to load receipt', err);
             } finally {
@@ -168,48 +175,58 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
         </div>
     );
 
-    if (loading || !receiptData) {
+    if (loading || !studentdetails || !receiptdetails) {
         return <div className='fixed inset-0 flex items-center justify-center bg-black/50 text-lg text-white'>Loading receipt...</div>;
     }
 
-    // Extract Data ---------------------------------------------------------
-    // const d = receiptData.alldata[0];
-    // //const studentname = d.fyptP_Name || '';
-    // const studentname= '';
-    // const logo = d.mI_Logo || '';
+    const s = studentdetails[0];
 
-    // const receiptNo = d.fyP_Receipt_No;
-    // const date = formatDate(d.fyP_Date);
-    // const headName = d.fmH_FeeName;
-    // const amount = d.fyP_Tot_Amount || 0;
-    // const chequeNo = d.fyP_DD_Cheque_No || '';
-    // const chequeDate = formatDate(d.fyP_DD_Cheque_Date);
-    // const bank = d.fyP_Bank_Name || '';
-    // const remarks = d.fyP_Remarks || '';
-    // const paymode = d.fyP_Bank_Or_Cash;
+    const studentname = [s?.amsT_FirstName, s?.amsT_MiddleName, s?.amsT_LastName].filter(Boolean).join(' ');
 
-    // const asmaY_Year = d.asmaY_Year;
+    // const studentname = [
+    //     studentdetails[0].amsT_FirstName,
+    //     studentdetails[0].amsT_MiddleName,
+    //     studentdetails[0].amsT_LastName
+    // ]
+    //     .filter(Boolean)
+    //     .join(" ")
+    //     .trim();
 
-    const studentname = '';
-    const logo = '';
-    const receiptNo = '';
-    const date = '';
-    const headName = '';
-    const amount = 0; // keep as number if used in calculations
-    const chequeNo = '';
-    const chequeDate = '';
-    const bank = '';
-    const remarks = '';
-    const paymode = '';
-    const asmaY_Year = '';
+    // const admisiionno = studentdetails[0].amsT_AdmNo;
+
+    // const classname = studentdetails[0].asmcL_ClassName;
+
+    // const sectionname = studentdetails[0].asmC_SectionName;
+
+    // const rollno = studentdetails[0].amsT_RollNo;
+
+    // const asmaY_Year = studentdetails[0].asmaY_Year;
+    // const father = studentdetails[0].amsT_FatherName;
+    // const Mother = studentdetails[0].amsT_MotherName;
+
+    const admisiionno = s?.amsT_AdmNo || '';
+    const classname = s?.asmcL_ClassName || '';
+    const sectionname = s?.asmC_SectionName || '';
+    const rollno = s?.amsT_RollNo || '';
+    const asmaY_Year = s?.asmaY_Year || '';
+    const father = s?.amsT_FatherName || '';
+    const Mother = s?.amsT_MotherName || '';
+    const logo = s?.inst_logo || '';
+    const r = receiptdetails[0];
+
+    const receiptNo = r?.fR_RefundNo || '';
+    const d = new Date();
+    const date = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+
+    const amount = receiptdetails?.reduce((sum, item) => sum + item.fR_RefundAmount, 0);
 
     return (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
             <div className='relative max-h-[90vh] w-full max-w-6xl overflow-auto rounded-lg bg-white shadow-2xl'>
                 <div ref={receiptRef} className='p-8'>
-                    <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
+                    <div className='flex flex-col gap-8 lg:flex-row'>
                         {/* School Copy */}
-                        <div className='border-2 border-gray-300 p-6'>
+                        <div className='w-full border-2 border-gray-300 p-6 lg:w-[49%]'>
                             {/* <div className="mb-4 text-right">
                 <span className="font-bold text-violet-700">SCHOOL COPY</span>
               </div> */}
@@ -234,16 +251,16 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
                                         <span className='ml-1'>{receiptNo}</span>
                                     </div>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Class</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Class</span>:<span className='ml-1'>{classname}</span>
                                     </div>
                                 </div>
 
                                 <div className='flex justify-between'>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Adm No.</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Adm No.</span>:<span className='ml-1'>{admisiionno}</span>
                                     </div>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Section</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Section</span>:<span className='ml-1'>{sectionname}</span>
                                     </div>
                                 </div>
 
@@ -259,7 +276,7 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
 
                                 <div className='flex justify-between'>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Father</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Father</span>:<span className='ml-1'>{father}</span>
                                     </div>
                                     <div className='flex min-w-[200px] gap-1'>
                                         <span className='w-[100px] font-semibold'>Date</span>:<span className='ml-1'>{date}</span>
@@ -268,12 +285,12 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
 
                                 <div className='flex justify-start gap-4'>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Mother</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Mother</span>:<span className='ml-1'>{Mother}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <table className='mt-4 w-full border-collapse text-sm'>
+                            <table className='mt-4 w-full table-auto border-collapse text-xs'>
                                 <thead>
                                     <tr className='bg-blue-700 text-white'>
                                         <th className='border px-2 py-1'>SLNO</th>
@@ -284,20 +301,32 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
                                         <th className='border px-2 py-1'>Refund Amount</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
-                                    <tr>
-                                        <td className='border px-2 py-1 text-center'>1</td>
-                                        <td className='border px-2 py-1'>{headName}</td>
-                                        <td className='border px-2 py-1 text-right'>{amount}</td>
-                                        <td className='border px-2 py-1 text-center'>{}</td>
-                                        <td className='border px-2 py-1 text-center'>{}</td>
-                                        <td className='border px-2 py-1 text-right'>{}</td>
-                                    </tr>
-                                    <tr className='text-center font-semibold'>
+                                    {receiptdetails?.map((item, index) => (
+                                        <tr key={index} className='align-top'>
+                                            <td className='border px-2 py-1 text-center'>{index + 1}</td>
+                                            <td className='max-w-[90px] whitespace-normal break-words border px-2 py-1'>
+                                                {item.fmH_FeeName}
+                                            </td>
+                                            <td className='border px-2 py-1 text-right'>{item.fmA_Amount}</td>
+                                            <td className='border px-2 py-1 text-center'>
+                                                {new Date(item.fR_Date).toLocaleDateString('en-GB')}
+                                            </td>
+                                            <td className='max-w-[120px] whitespace-normal break-words border px-2 py-1'>
+                                                {item.fR_RefundNo}
+                                            </td>
+                                            <td className='border px-2 py-1 text-right'>{item.fR_RefundAmount}</td>
+                                        </tr>
+                                    ))}
+
+                                    <tr className='font-semibold'>
                                         <td className='border px-2 py-1 text-center' colSpan={5}>
                                             Total
                                         </td>
-                                        <td className='border px-2 py-1 text-right'>{}</td>
+                                        <td className='border px-2 py-1 text-right'>
+                                            {receiptdetails?.reduce((sum, item) => sum + item.fR_RefundAmount, 0)}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -323,7 +352,7 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
                         </div>
 
                         {/* Parent Copy - Now Uses Dynamic Logo Only */}
-                        <div className='border-2 border-gray-300 p-6'>
+                        <div className='w-full border-2 border-gray-300 p-6 lg:w-[49%]'>
                             {/* <div className="mb-4 text-right">
                 <span className="font-bold text-violet-700">PARENT COPY</span>
               </div>
@@ -348,16 +377,16 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
                                         <span className='ml-1'>{receiptNo}</span>
                                     </div>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Class</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Class</span>:<span className='ml-1'>{classname}</span>
                                     </div>
                                 </div>
 
                                 <div className='flex justify-between'>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Adm No.</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Adm No.</span>:<span className='ml-1'>{admisiionno}</span>
                                     </div>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Section</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Section</span>:<span className='ml-1'>{sectionname}</span>
                                     </div>
                                 </div>
 
@@ -373,7 +402,7 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
 
                                 <div className='flex justify-between'>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Father</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Father</span>:<span className='ml-1'>{father}</span>
                                     </div>
                                     <div className='flex min-w-[200px] gap-1'>
                                         <span className='w-[100px] font-semibold'>Date</span>:<span className='ml-1'>{date}</span>
@@ -382,12 +411,12 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
 
                                 <div className='flex justify-start gap-4'>
                                     <div className='flex min-w-[200px] gap-1'>
-                                        <span className='w-[100px] font-semibold'>Mother</span>:<span className='ml-1'>{}</span>
+                                        <span className='w-[100px] font-semibold'>Mother</span>:<span className='ml-1'>{Mother}</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <table className='mt-4 w-full border-collapse text-sm'>
+                            <table className='mt-4 w-full table-auto border-collapse text-xs'>
                                 <thead>
                                     <tr className='bg-blue-700 text-white'>
                                         <th className='border px-2 py-1'>SLNO</th>
@@ -398,23 +427,36 @@ export default function FeeRefundableReceiptPage({ rowData, onClose }: ReceiptPa
                                         <th className='border px-2 py-1'>Refund Amount</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
-                                    <tr>
-                                        <td className='border px-2 py-1 text-center'>1</td>
-                                        <td className='border px-2 py-1'>{headName}</td>
-                                        <td className='border px-2 py-1 text-right'>{amount}</td>
-                                        <td className='border px-2 py-1 text-center'>{}</td>
-                                        <td className='border px-2 py-1 text-center'>{}</td>
-                                        <td className='border px-2 py-1 text-right'>{}</td>
-                                    </tr>
-                                    <tr className='text-center font-semibold'>
+                                    {receiptdetails?.map((item, index) => (
+                                        <tr key={index} className='align-top'>
+                                            <td className='border px-2 py-1 text-center'>{index + 1}</td>
+                                            <td className='max-w-[90px] whitespace-normal break-words border px-2 py-1'>
+                                                {item.fmH_FeeName}
+                                            </td>
+                                            <td className='border px-2 py-1 text-right'>{item.fmA_Amount}</td>
+                                            <td className='border px-2 py-1 text-center'>
+                                                {new Date(item.fR_Date).toLocaleDateString('en-GB')}
+                                            </td>
+                                            <td className='max-w-[120px] whitespace-normal break-words border px-2 py-1'>
+                                                {item.fR_RefundNo}
+                                            </td>
+                                            <td className='border px-2 py-1 text-right'>{item.fR_RefundAmount}</td>
+                                        </tr>
+                                    ))}
+
+                                    <tr className='font-semibold'>
                                         <td className='border px-2 py-1 text-center' colSpan={5}>
                                             Total
                                         </td>
-                                        <td className='border px-2 py-1 text-right'>{}</td>
+                                        <td className='border px-2 py-1 text-right'>
+                                            {receiptdetails?.reduce((sum, item) => sum + item.fR_RefundAmount, 0)}
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
+
                             <br />
 
                             {/* <div className="mb-4 text-sm">

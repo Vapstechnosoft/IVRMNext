@@ -832,3 +832,21 @@ export const useFeeAdjustment = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+
+export const useFeeConcessionEdit = (asmaY_Id: number, fscI_ID: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_EDIT, asmaY_Id, fscI_ID, searchParams ?? {}],
+            queryFn: async () => getFeeConcessionEdit(asmaY_Id, fscI_ID),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_EDIT]
+            });
+        }
+    };
+};

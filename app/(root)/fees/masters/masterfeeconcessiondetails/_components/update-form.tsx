@@ -357,8 +357,22 @@ export default function UpdateMasterConcessionDetailsForm({
                                         <div className='flex flex-col'>
                                             <InputNumber
                                                 id='fmccD_FromNoSibblings'
-                                                value={field.value ?? 0}
-                                                onChange={(value: number) => field.onChange(value)}
+                                                // value={field.value ?? 0}
+                                                // onChange={(value: number) => field.onChange(value)}
+                                                onChange={(value: number | string) => {
+                                                    // Allow empty value without producing NaN
+                                                    if (value === '' || value === null || value === undefined) {
+                                                        field.onChange(undefined);
+                                                        return;
+                                                    }
+
+                                                    const num = Number(value);
+
+                                                    // Prevent NaN from entering form state
+                                                    if (Number.isNaN(num)) return;
+
+                                                    field.onChange(num);
+                                                }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                             {errors.fmccD_FromNoSibblings && <FormError>{errors.fmccD_FromNoSibblings.message}</FormError>}
@@ -383,8 +397,23 @@ export default function UpdateMasterConcessionDetailsForm({
                                         <div className='flex flex-col'>
                                             <InputNumber
                                                 id='fmccD_ToNoSibblings'
-                                                value={field.value ?? 0}
-                                                onChange={(value: number) => field.onChange(value)}
+                                                // value={field.value ?? 0}
+                                                // onChange={(value: number) => field.onChange(value)}
+
+                                                onChange={(value: number | string) => {
+                                                    // Allow empty value without producing NaN
+                                                    if (value === '' || value === null || value === undefined) {
+                                                        field.onChange(undefined);
+                                                        return;
+                                                    }
+
+                                                    const num = Number(value);
+
+                                                    // Prevent NaN from entering form state
+                                                    if (Number.isNaN(num)) return;
+
+                                                    field.onChange(num);
+                                                }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                             {errors.fmccD_ToNoSibblings && <FormError>{errors.fmccD_ToNoSibblings.message}</FormError>}
@@ -401,7 +430,7 @@ export default function UpdateMasterConcessionDetailsForm({
                             </label>
 
                             <div className='w-64'>
-                                <Controller
+                                {/* <Controller
                                     name='fmccD_PerOrAmt'
                                     control={control}
                                     rules={{ required: 'Percent/Amount is required' }}
@@ -411,6 +440,36 @@ export default function UpdateMasterConcessionDetailsForm({
                                                 id='fmccD_PerOrAmt'
                                                 value={field.value ?? 0}
                                                 onChange={(value: number) => field.onChange(value)}
+                                                className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                            />
+                                            {errors.fmccD_PerOrAmt && <FormError>{errors.fmccD_PerOrAmt.message}</FormError>}
+                                        </div>
+                                    )}
+                                /> */}
+
+                                <Controller
+                                    name='fmccD_PerOrAmt'
+                                    control={control}
+                                    rules={{ required: 'Percent/Amount is required' }}
+                                    render={({ field }) => (
+                                        <div className='flex flex-col'>
+                                            <InputNumber
+                                                id='fmccD_PerOrAmt'
+                                                value={field.value ?? ''}
+                                                onChange={(value: number | string) => {
+                                                    // Allow empty value without producing NaN
+                                                    if (value === '' || value === null || value === undefined) {
+                                                        field.onChange(undefined);
+                                                        return;
+                                                    }
+
+                                                    const num = Number(value);
+
+                                                    // Prevent NaN from entering form state
+                                                    if (Number.isNaN(num)) return;
+
+                                                    field.onChange(num);
+                                                }}
                                                 className='transition-colors focus:ring-2 focus:ring-primary/20'
                                             />
                                             {errors.fmccD_PerOrAmt && <FormError>{errors.fmccD_PerOrAmt.message}</FormError>}

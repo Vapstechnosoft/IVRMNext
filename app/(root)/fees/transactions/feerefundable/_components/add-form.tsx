@@ -1438,6 +1438,7 @@ export default function AddFeeRefundableForm({
                         type='submit'
                         disabled={isSubmitting || headData.length === 0 || headData.every((h) => !h.Selected) || !paymentMode}
                         className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
+                        {isSubmitting ? 'Saving...' : 'Save Master Fee Refundable'}
                         <Save className='mr-2 h-5 w-5' />
                         Save
                     </Button>

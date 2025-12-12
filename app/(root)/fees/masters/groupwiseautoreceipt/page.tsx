@@ -35,6 +35,14 @@ export default function MasterClassPage(props: {
         refetch();
     }, [academicYearId, searchQuery, refetch]);
 
+    const { data: academicYearOptions, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+
+    useEffect(() => {
+        if (!academicYearLoading && academicYearOptions?.data?.length && academicYearId === null) {
+            setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
+        }
+    }, [academicYearLoading, academicYearOptions, academicYearId]);
+
     return (
         <FormProvider<IMasterGroupWiseAutoReciptList>>
             <MasterClassPageContent
@@ -45,6 +53,9 @@ export default function MasterClassPage(props: {
                 academicYearId={academicYearId}
                 setAcademicYearId={setAcademicYearId}
                 searchQuery={searchQuery}
+                academicYearLoading={academicYearLoading}
+                academicYearError={academicYearError}
+                academicYearOptions={academicYearOptions}
             />
         </FormProvider>
     );
@@ -56,7 +67,10 @@ function MasterClassPageContent({
     refetch,
     academicYearId,
     setAcademicYearId,
-    searchQuery
+    searchQuery,
+    academicYearLoading,
+    academicYearError,
+    academicYearOptions
 }: {
     response: any;
     isLoading: boolean;
@@ -65,12 +79,14 @@ function MasterClassPageContent({
     academicYearId: number | null;
     setAcademicYearId: (id: number | null) => void;
     searchQuery: string;
+    academicYearLoading: boolean;
+    academicYearError: any;
+    academicYearOptions: any;
 }) {
     const { openAddForm } = useFormContext<IMasterGroupWiseAutoReciptList>();
     const tableProps = useDataTableProps(response);
 
     // Fetch academic year dropdown data
-    const { data: academicYearOptions, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     return (
         <div className='min-h-screen'>
