@@ -1,4 +1,5 @@
-import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { ADMISSION_QUERY_KEYS, PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import { getStudentTcReport } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -33,6 +34,24 @@ export const useParentDashboard = (asmay_id: number) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.PARENTS_DASHBOARD]
+            });
+        }
+    };
+};
+export const useStudentTcReport = (data: any, searchParams: ApiSearchparams, enabled = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.STUDENT_TC_REPORT, data, searchParams],
+            queryFn: async () => getStudentTcReport(data, searchParams),
+            staleTime: 0,
+            enabled: enabled && !!data,
+            refetchOnWindowFocus: false
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.STUDENT_TC_REPORT]
             });
         }
     };

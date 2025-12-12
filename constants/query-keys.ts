@@ -30,7 +30,8 @@ export const ADMISSION_QUERY_KEYS = {
     ADMISSION_CLASS_DROPDOWN1: 'admission_class_dropdown1',
     ADMISSION_SECTION_DROPDOWN: 'admission_section_dropdown',
     ADMISSION_STUDENT_LISTS: 'admission_student_lists',
-    ADMISSION_CLASS_TEACHER_REPORT: 'admission_class_teacher_report'
+    ADMISSION_CLASS_TEACHER_REPORT: 'admission_class_teacher_report',
+    STUDENT_TC_REPORT: 'student_tc_report'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

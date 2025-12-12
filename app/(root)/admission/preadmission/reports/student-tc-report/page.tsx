@@ -12,13 +12,13 @@ import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMaste
 import {
     useActivePreadmissionDetails,
     usePreadmissionAdmissionStatusDropdown,
-    usePreadmissionClassDropdown,
-    usePreadmissionStudentList
+    usePreadmissionClassDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 
+import { useStudentTcReport } from '@/hooks/admission/preadmission/useReports';
 import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
-import { CheckSquare, FileText, RotateCcw, Search, Square } from 'lucide-react';
+import { CheckSquare, RotateCcw, Search, Square } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { use, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -26,7 +26,18 @@ import { StudentTcReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function StudentTcReportPage(props: { searchParams: SearchParams }) {
+// Column ID mapping for API payload
+const COLUMN_ID_MAP: Record<string, string> = {
+    'Student Name': 'AMST_FirstName',
+    'Registration No.': 'AMST_AdmNo',
+    'TC No.': 'AMST_Id',
+    'Leaving Class': 'ASTC_ASMCL_ID',
+    'Admission Class Name': 'ASTC_TCDate'
+};
+
+export default function StudentTcReportPage(props: {
+    searchParams: SearchParams;
+}) {
     const searchParams = use(props.searchParams);
     const router = useRouter();
     const pathname = usePathname();
@@ -72,11 +83,11 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
     const [classId, setClassId] = useState<number>(0);
     const [statusId, setStatusId] = useState<number>(0);
 
-    const [viewMode, setViewMode] = useState<'all' | 'individual'>('all');
-    const [tcType, setTcType] = useState<'temporary' | 'permanent'>('temporary');
+    const [viewMode, setViewMode] = useState<'all' | 'ind'>('all');
+    const [tcType, setTcType] = useState<'TTC' | 'PTC'>('PTC');
 
     const availableColumns = ['Student Name', 'Registration No.', 'TC No.', 'Leaving Class', 'Admission Class Name'];
-    // Default: no columns selected so "Select All" is not checked by default
+
     const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
     const [columnsSearch, setColumnsSearch] = useState('');
 
@@ -84,12 +95,31 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
 
     const [, setIsStatusDialogOpen] = useState<boolean>(false);
 
-    const {
-        data: response,
-        isLoading,
-        error
-    } = usePreadmissionStudentList((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, statusId, searchParams);
-    const tableProps = useDataTableProps(response);
+    // Build API payload based on current state
+    const buildApiPayload = () => {
+        const payload = {
+            ASMAY_Id: academicYearId || 0,
+            AllOrInd: viewMode,
+            ASMCL_Id: viewMode === 'ind' ? classId : 0,
+            ASMC_Id: viewMode === 'ind' ? statusId : 0,
+            TempararyArrayheadList: selectedColumns.map((col) => ({
+                columnID: COLUMN_ID_MAP[col] || col
+            })),
+            PermOrTemp: tcType,
+            AMC_Id: 0
+        };
+        return payload;
+    };
+
+    const tablePayload = buildApiPayload();
+
+    const { data, isLoading, error, refetch } = useStudentTcReport(tablePayload, searchParams);
+    console.log('Student TC Report Data:', data);
+    const tableProps = useDataTableProps({
+        data: data?.data || [],
+        searchParams,
+        totalRecords: data?.totalRecords || 0
+    });
 
     const handleSelectStudent = (selectedRows: IStudentYearlyAttendenceReportList[]) => {
         setSelectedStudents(selectedRows);
@@ -100,7 +130,7 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
         setClassId(0);
         setStatusId(0);
         setViewMode('all');
-        setTcType('temporary');
+        setTcType('PTC');
         setSelectedColumns([]);
         setSelectedStudents([]);
         handleResetSelection();
@@ -109,16 +139,6 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
         router.replace(pathname);
 
         toast.success('Filters reset successfully');
-    };
-
-    const handleReport = () => {
-        if (!selectedColumns.length) {
-            toast.error('Please select at least one column');
-            return;
-        }
-
-        toast.success(`Report requested with columns: ${selectedColumns.join(', ')}`);
-        // TODO: Replace with actual API call to generate/download TC report
     };
 
     return (
@@ -136,12 +156,7 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
                                 <span>All</span>
                             </label>
                             <label className='flex items-center gap-2'>
-                                <input
-                                    type='radio'
-                                    name='viewMode'
-                                    checked={viewMode === 'individual'}
-                                    onChange={() => setViewMode('individual')}
-                                />
+                                <input type='radio' name='viewMode' checked={viewMode === 'ind'} onChange={() => setViewMode('ind')} />
                                 <span>Individual</span>
                             </label>
                         </div>
@@ -179,7 +194,7 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
                     </div>
 
                     {/* Class & Section only when Individual selected */}
-                    {viewMode === 'individual' && (
+                    {viewMode === 'ind' && (
                         <>
                             <div className='flex w-full flex-col gap-2 sm:w-56'>
                                 <Label htmlFor='class' className='mb-1 font-semibold'>
@@ -257,9 +272,9 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
                                 <input
                                     type='radio'
                                     name='tcType'
-                                    value='temporary'
-                                    checked={tcType === 'temporary'}
-                                    onChange={() => setTcType('temporary')}
+                                    value='TTC'
+                                    checked={tcType === 'TTC'}
+                                    onChange={() => setTcType('TTC')}
                                     className='h-4 w-4'
                                 />
                                 <span>Temporary TC</span>
@@ -269,9 +284,9 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
                                 <input
                                     type='radio'
                                     name='tcType'
-                                    value='permanent'
-                                    checked={tcType === 'permanent'}
-                                    onChange={() => setTcType('permanent')}
+                                    value='PTC'
+                                    checked={tcType === 'PTC'}
+                                    onChange={() => setTcType('PTC')}
                                     className='h-4 w-4'
                                 />
                                 <span>Permanent TC</span>
@@ -365,10 +380,6 @@ export default function StudentTcReportPage(props: { searchParams: SearchParams 
                         className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Reset
-                    </Button>
-                    <Button type='button' onClick={handleReport} className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
-                        <FileText className='mr-2 h-4 w-4' />
-                        Report
                     </Button>
                 </div>
             </div>
