@@ -83,7 +83,7 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
     const designationOptions = useMemo(() => {
         return designationDropdown
             .filter((desig: IDesignationDropdown) => {
-                return desig.key != null && desig.key !== '' && String(desig.key).trim() !== '';
+                return desig.key != null && desig.key !== undefined && desig.key !== 0;
             })
             .map((desig: IDesignationDropdown) => ({
                 label: desig.value || String(desig.key),
@@ -112,7 +112,7 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                                         <SelectContent>
                                             {groupTypeDropdown
                                                 .filter((group: IGroupTypeDropdown) => {
-                                                    return group.key != null && group.key !== '' && String(group.key).trim() !== '';
+                                                    return group.key != null && group.key !== undefined && group.key !== 0;
                                                 })
                                                 .map((group: IGroupTypeDropdown) => {
                                                     const key = group.key?.toString().trim();
@@ -146,7 +146,7 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
                                         <SelectContent>
                                             {departmentDropdown
                                                 .filter((dept: IDepartmentDropdown) => {
-                                                    return dept.key != null && dept.key !== '' && String(dept.key).trim() !== '';
+                                                    return dept.key != null && dept.key !== undefined && dept.key !== 0;
                                                 })
                                                 .map((dept: IDepartmentDropdown) => {
                                                     const key = dept.key?.toString().trim();

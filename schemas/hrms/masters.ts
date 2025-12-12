@@ -571,9 +571,12 @@ export const hrmsMasterSchemas = {
     employeeShiftMapping: {
         add: z.object({
             foest_ShiftName: z.string().min(1, 'Shift Name is required'),
+            foest_Department: z.string().optional(),
+            foest_Designation: z.string().optional(),
             foest_Employee: z.string().optional(),
             foest_HolidayType: z.string().optional(),
             foest_ApplicableDate: z.string().optional(),
+            foest_GroupType: z.string().optional(),
             foest_TotalWork: z.string().optional(),
             foest_HalfDayWork: z.string().optional(),
             foest_MorningLogin: z.string().optional(),
@@ -587,9 +590,12 @@ export const hrmsMasterSchemas = {
         update: z.object({
             foest_Id: z.number(),
             foest_ShiftName: z.string().min(1, 'Shift Name is required'),
+            foest_Department: z.string().optional(),
+            foest_Designation: z.string().optional(),
             foest_Employee: z.string().optional(),
             foest_HolidayType: z.string().optional(),
             foest_ApplicableDate: z.string().optional(),
+            foest_GroupType: z.string().optional(),
             foest_TotalWork: z.string().optional(),
             foest_HalfDayWork: z.string().optional(),
             foest_MorningLogin: z.string().optional(),

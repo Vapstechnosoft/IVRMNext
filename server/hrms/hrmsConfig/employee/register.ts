@@ -256,10 +256,10 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
 
 /**
  * Get Employee by ID
- * GET /api/EmployeeRegistrationNew/getRecordById/{id}
+ * GET /api/EmployeeRegistration/GetEmployeeDetailsById/{id}
  */
 export async function getEmployeeById(id: number) {
-    const url = `/api/EmployeeRegistrationNew/getRecordById/${id}`;
+    const url = `/api/EmployeeRegistration/GetEmployeeDetailsById/${id}`;
     return await api.get<IEmployeeDetailResponse>('hrms', url);
 }
 
@@ -289,4 +289,22 @@ export async function toggleEmployee(id: number) {
 export async function deleteEmployee(id: number) {
     const url = `/api/EmployeeRegistrationNew/delete/${id}`;
     return await api.delete<any>('hrms', url);
+}
+
+/**
+ * Save Employee Qualification Details
+ * POST /api/EmployeeRegistration/SaveQualificationDetails
+ */
+export async function saveEmployeeQualification(data: any[]) {
+    const url = '/api/EmployeeRegistration/SaveQulaification';
+    return await api.post<any>('hrms', url, data);
+}
+
+/**
+ * Save Employee Experience Details
+ * POST /api/EmployeeRegistration/SaveExperienceDetails
+ */
+export async function saveEmployeeExperience(data: any[]) {
+    const url = '/api/EmployeeRegistration/SaveExperienceDetails';
+    return await api.post<any>('hrms', url, data);
 }

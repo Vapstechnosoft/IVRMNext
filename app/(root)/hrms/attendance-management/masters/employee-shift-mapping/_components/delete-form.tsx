@@ -29,7 +29,10 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.employeeShiftMapping.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            foest_Id: Number(rowData.FOEST_Id) || 0
+        }
     });
 
     function closeDialog() {
@@ -41,15 +44,15 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
         try {
             const response = await deleteEmployeeShiftMapping(Number(rowData.FOEST_Id));
 
-            if (response.success) {
-                toast.success(response.message);
+            if (response?.success) {
+                toast.success(response.message || 'Employee shift mapping deleted successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response?.message || 'Failed to delete employee shift mapping');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Failed to delete employee shift mapping');
         }
     };
 
@@ -57,7 +60,13 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
         <AdaptiveDialog title='Delete Employee Shift Mapping' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('foest_Id')} defaultValue={rowData.FOEST_Id || 0} />
+                    <input 
+                        type='hidden' 
+                        {...register('foest_Id', { 
+                            valueAsNumber: true,
+                            value: Number(rowData.FOEST_Id) || 0
+                        })} 
+                    />
                     <p>
                         Are you sure you want to delete shift mapping for <strong>{rowData.EmployeeName || rowData.ShiftName || 'this record'}</strong>?
                     </p>

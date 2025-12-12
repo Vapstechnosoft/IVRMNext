@@ -27,6 +27,8 @@ import {
     useReligionDropdown,
     useSalaryTypeDropdown,
     useSaveEmployee,
+    useSaveEmployeeQualification,
+    useSaveEmployeeExperience,
     useScoreTypeDropdown,
     useContactTypeDropdown,
     useSpecializationDropdown,
@@ -75,7 +77,7 @@ import {
     mapFormDataToApiFormatWithoutAddress,
     tabFieldMap
 } from './employee-register-helper';
-import { PayrollTab } from './tabs/payroll-tab-new';
+import { PayrollTab } from './payroll-tab';
 
 // Helper component for Qualification State Dropdown (needs to be separate component to use hooks)
 function QualificationStateDropdown({
@@ -128,14 +130,14 @@ function QualificationStateDropdown({
                             ) : (
                                 availableStates
                                     .filter((state: IStateDropdown) => {
-                                        return state.key != null && state.key !== '' && String(state.key).trim() !== '';
+                                        return state.key != null && state.key !== undefined && state.key !== 0;
                                     })
                                     .map((state: IStateDropdown) => {
                                         const key = state.key?.toString().trim();
                                         if (!key || key === '') return null;
                                         const value = state.value || String(state.key);
                                         return (
-                                            <SelectItem key={state.key} value={key} textValue={value}>
+                                            <SelectItem key={`qual-state-${index}-${state.key}`} value={key} textValue={value}>
                                                 {value}
                                             </SelectItem>
                                         );
@@ -457,14 +459,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     ]);
 
     const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
+    const { mutate: saveQualificationDetails, isPending: isSavingQualification } = useSaveEmployeeQualification();
+    const { mutate: saveExperienceDetails, isPending: isSavingExperience } = useSaveEmployeeExperience();
     const savePersonalDetails = saveEmployeeMutation;
-    const saveQualificationDetails = saveEmployeeMutation;
-    const saveExperienceDetails = saveEmployeeMutation;
     const saveDocumentDetails = saveEmployeeMutation;
     const saveMedicalDetails = saveEmployeeMutation;
     const _saveBankDetails = saveEmployeeMutation;
-    const isSavingQualification = isPending;
-    const isSavingExperience = isPending;
     const isSavingDocument = isPending;
     const isSavingMedical = isPending;
     const isSavingBank = isPending;
@@ -487,15 +487,629 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const nextStep = async () => {
         const currentTabKey = getCurrentTabKey();
         const currentTabFields = tabFieldMap[currentTabKey] || [];
+        
+        console.log("🔍 [DEBUG] nextStep - Current Tab Key:", currentTabKey);
+        console.log("🔍 [DEBUG] nextStep - Current Step:", currentStep);
+        console.log("🔍 [DEBUG] nextStep - Fields to validate:", currentTabFields);
 
         if (currentTabFields.length > 0) {
             const isValid = await trigger(currentTabFields as any);
+            console.log("🔍 [DEBUG] nextStep - Validation result:", isValid);
             if (!isValid) {
+                console.error("❌ [DEBUG] nextStep - Validation failed, not proceeding");
+                const formErrors = getValues();
+                console.error("❌ [DEBUG] nextStep - Form errors:", errors);
                 return;
             }
         }
 
-        setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+        const data = getValues();
+        const currentStepId = currentStep;
+        console.log("🔍 [DEBUG] nextStep - Proceeding with step ID:", currentStepId);
+
+        // For steps 1 and 2, we need to save data via API before moving to next step
+        if (currentStepId === 1) {
+            // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
+            // Save employee details without address (address fields will be null)
+            const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
+            payload.hrmE_Id = 0; // New record
+            
+            console.log("🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:", data);
+            console.log("🔍 [DEBUG] Tab 1 (Employee Information) - Payload:", payload);
+            console.log("🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:", payload.hrmE_Id);
+            console.log("🔍 [DEBUG] Tab 1 (Employee Information) - Address Fields Check (should be null/empty):");
+            console.log("  - Contact Address:", {
+                street: payload.hrmE_LocStreet,
+                area: payload.hrmE_LocArea,
+                city: payload.hrmE_LocCity,
+                stateId: payload.hrmE_LocStateId,
+                countryId: payload.hrmE_LocCountryId,
+                pincode: payload.hrmE_LocPincode
+            });
+            console.log("  - Permanent Address:", {
+                street: payload.hrmE_PerStreet,
+                area: payload.hrmE_PerArea,
+                city: payload.hrmE_PerCity,
+                stateId: payload.hrmE_PerStateId,
+                countryId: payload.hrmE_PerCountryId,
+                pincode: payload.hrmE_PerPincode
+            });
+            console.log("🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...");
+            
+            savePersonalDetails(payload, {
+                onSuccess: (response: any) => {
+                    console.log("✅ [DEBUG] Tab 1 (Employee Information) - Save Success:", response);
+                    console.log("🔍 [DEBUG] Tab 1 - Full API Response:", JSON.stringify(response, null, 2));
+                    console.log("🔍 [DEBUG] Tab 1 - Response Success:", response?.success);
+                    console.log("🔍 [DEBUG] Tab 1 - Response Message:", response?.message);
+                    console.log("🔍 [DEBUG] Tab 1 - Response Data:", response?.data);
+                    
+                    // Verify request vs response - compare key fields
+                    const responseData = response?.data || {};
+                    const mismatches: string[] = [];
+                    const keyFields = [
+                        { req: 'hrmeT_Id', res: 'hrmeT_Id' },
+                        { req: 'hrmgT_Id', res: 'hrmgT_Id' },
+                        { req: 'hrmD_Id', res: 'hrmD_Id' },
+                        { req: 'hrmdeS_Id', res: 'hrmdeS_Id' },
+                        { req: 'hrmG_Id', res: 'hrmG_Id' },
+                        { req: 'hrmE_EmployeeFirstName', res: 'hrmE_EmployeeFirstName' },
+                        { req: 'hrmE_EmployeeMiddleName', res: 'hrmE_EmployeeMiddleName' },
+                        { req: 'hrmE_EmployeeLastName', res: 'hrmE_EmployeeLastName' },
+                        { req: 'hrmE_EmployeeCode', res: 'hrmE_EmployeeCode' },
+                        { req: 'hrmE_FatherName', res: 'hrmE_FatherName' },
+                        { req: 'hrmE_MotherName', res: 'hrmE_MotherName' },
+                        { req: 'religionId', res: 'religionId' },
+                        { req: 'casteCategoryId', res: 'casteCategoryId' },
+                        { req: 'casteId', res: 'casteId' },
+                        { req: 'hrmE_BloodGroup', res: 'hrmE_BloodGroup' },
+                        { req: 'hrmE_SalaryType', res: 'hrmE_SalaryType' },
+                        { req: 'hrmE_PaymentType', res: 'hrmE_PaymentType' },
+                        { req: 'hrmE_MobileNo', res: 'hrmE_MobileNo' },
+                        { req: 'hrmE_EmailId', res: 'hrmE_EmailId' },
+                        { req: 'hrmE_PANCardNo', res: 'hrmE_PANCardNo' },
+                        { req: 'hrmE_AadharCardNo', res: 'hrmE_AadharCardNo' },
+                        { req: 'hrmE_NationalSSN', res: 'hrmE_NationalSSN' },
+                        { req: 'hrmE_TechNonTeachingFlg', res: 'hrmE_TechNonTeachingFlg' },
+                        { req: 'ivrmmG_Id', res: 'ivrmmG_Id' },
+                        { req: 'ivrmmmS_Id', res: 'ivrmmmS_Id' },
+                    ];
+                    
+                    console.log("🔍 [DEBUG] Tab 1 - Request vs Response Comparison:");
+                    keyFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match = reqValue === resValue || 
+                                     (reqValue == null && resValue == null) ||
+                                     (reqValue === 0 && resValue === 0) ||
+                                     (reqValue === false && resValue === false);
+                        if (!match) {
+                            mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
+                    });
+                    
+                    // Check date fields (format might differ)
+                    const dateFields = [
+                        { req: 'hrmE_DOB', res: 'hrmE_DOB' },
+                        { req: 'hrmE_DOJ', res: 'hrmE_DOJ' },
+                        { req: 'hrmE_doc', res: 'hrmE_doc' },
+                        { req: 'hrmE_ExpectedRetirementDate', res: 'hrmE_ExpectedRetirementDate' },
+                    ];
+                    
+                    console.log("🔍 [DEBUG] Tab 1 - Date Fields Comparison:");
+                    dateFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        if (reqValue && resValue) {
+                            const reqDate = new Date(String(reqValue)).toISOString().split('T')[0];
+                            const resDate = new Date(String(resValue)).toISOString().split('T')[0];
+                            const match = reqDate === resDate;
+                            if (!match) {
+                                mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
+                            }
+                            console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqDate} → ${resDate}`);
+                        } else {
+                            console.log(`  ⚠️ ${req}: ${reqValue} → ${resValue} (one or both null)`);
+                        }
+                    });
+                    
+                    // Check payroll fields
+                    const payrollFields = [
+                        { req: 'hrmE_PFApplicableFlag', res: 'hrmE_PFApplicableFlag' },
+                        { req: 'hrmE_PFMaxFlag', res: 'hrmE_PFMaxFlag' },
+                        { req: 'hrmE_PFFixedFlag', res: 'hrmE_PFFixedFlag' },
+                        { req: 'hrmE_PFAccNo', res: 'hrmE_PFAccNo' },
+                        { req: 'hrmE_UINumber', res: 'hrmE_UINumber' },
+                        { req: 'hrmE_ESIApplicableFlag', res: 'hrmE_ESIApplicableFlag' },
+                        { req: 'hrmE_ESIAccNo', res: 'hrmE_ESIAccNo' },
+                        { req: 'hrmE_GratuityAccNo', res: 'hrmE_GratuityAccNo' },
+                        { req: 'hrmE_EPFNotApplicableFlg', res: 'hrmE_EPFNotApplicableFlg' },
+                        { req: 'hrmE_FPFNotApplicableFlg', res: 'hrmE_FPFNotApplicableFlg' },
+                        { req: 'hrmE_PHDResearchGuideFlg', res: 'hrmE_PHDResearchGuideFlg' },
+                        { req: 'hrmE_RGRecognitionYear', res: 'hrmE_RGRecognitionYear' },
+                    ];
+                    
+                    console.log("🔍 [DEBUG] Tab 1 - Payroll Fields Comparison:");
+                    payrollFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match = reqValue === resValue || 
+                                     (reqValue == null && resValue == null) ||
+                                     (reqValue === 0 && resValue === 0) ||
+                                     (reqValue === false && resValue === false);
+                        if (!match) {
+                            mismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
+                    });
+                    
+                    // Summary
+                    if (mismatches.length > 0) {
+                        console.warn("⚠️ [DEBUG] Tab 1 - Found mismatches between request and response:");
+                        mismatches.forEach(m => console.warn(`  - ${m}`));
+                    } else {
+                        console.log("✅ [DEBUG] Tab 1 - All key fields match between request and response!");
+                    }
+                    
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn("⚠️ [DEBUG] Tab 1 - API returned success: false");
+                        toast.warning("Employee saved but API returned success: false. Please verify the data was saved.");
+                    }
+                    
+                    // API returns hrmE_Id (lowercase) in response
+                    const employeeId = response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
+                    console.log("🔍 [DEBUG] Tab 1 - Extracted Employee ID:", employeeId);
+                    
+                    if (employeeId && employeeId > 0) {
+                        setSavedEmployeeId(employeeId);
+                        console.log("✅ [DEBUG] Tab 1 - Employee ID saved to state:", employeeId);
+                        setCurrentStep(2);
+                    } else {
+                        console.error("❌ [DEBUG] Tab 1 - Failed to extract employee ID from response");
+                        toast.error('Failed to get employee ID from response');
+                    }
+                },
+                onError: (error: any) => {
+                    console.error("❌ [DEBUG] Tab 1 (Employee Information) - Save Error:", error);
+                    console.error("❌ [DEBUG] Tab 1 - Error Details:", JSON.stringify(error, null, 2));
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 2) {
+            // Address Information tab - call same endpoint /api/EmployeeRegistration/SavePersonalDetails
+            // Update with address details using the hrmE_Id from step 1
+            if (!savedEmployeeId) {
+                toast.error('Please save Employee details first');
+                setCurrentStep(1);
+                return;
+            }
+            const payload = mapFormDataToApiFormatLocal(data);
+            payload.hrmE_Id = savedEmployeeId; // Use the ID from step 1
+            
+            console.log("🔍 [DEBUG] Tab 2 (Address Information) - Form Data:", data);
+            console.log("🔍 [DEBUG] Tab 2 (Address Information) - Payload:", payload);
+            console.log("🔍 [DEBUG] Tab 2 (Address Information) - Employee ID:", savedEmployeeId);
+            console.log("🔍 [DEBUG] Tab 2 (Address Information) - Address Fields:");
+            console.log("  - Contact Address:", {
+                street: payload.hrmE_LocStreet,
+                area: payload.hrmE_LocArea,
+                city: payload.hrmE_LocCity,
+                stateId: payload.hrmE_LocStateId,
+                countryId: payload.hrmE_LocCountryId,
+                pincode: payload.hrmE_LocPincode
+            });
+            console.log("  - Permanent Address:", {
+                street: payload.hrmE_PerStreet,
+                area: payload.hrmE_PerArea,
+                city: payload.hrmE_PerCity,
+                stateId: payload.hrmE_PerStateId,
+                countryId: payload.hrmE_PerCountryId,
+                pincode: payload.hrmE_PerPincode
+            });
+            console.log("🔍 [DEBUG] Tab 2 (Address Information) - Calling savePersonalDetails...");
+            
+            savePersonalDetails(payload, {
+                onSuccess: (response: any) => {
+                    console.log("✅ [DEBUG] Tab 2 (Address Information) - Save Success:", response);
+                    console.log("🔍 [DEBUG] Tab 2 - Full API Response:", JSON.stringify(response, null, 2));
+                    console.log("🔍 [DEBUG] Tab 2 - Response Success:", response?.success);
+                    console.log("🔍 [DEBUG] Tab 2 - Response Message:", response?.message);
+                    console.log("🔍 [DEBUG] Tab 2 - Response Data:", response?.data);
+                    
+                    // Verify address fields - CRITICAL CHECK
+                    const responseData = response?.data || {};
+                    const addressMismatches: string[] = [];
+                    
+                    console.log("🔍 [DEBUG] Tab 2 - Address Fields Comparison (CRITICAL):");
+                    
+                    // Contact Address Comparison
+                    const contactAddressFields = [
+                        { req: 'hrmE_LocStreet', res: 'hrmE_LocStreet' },
+                        { req: 'hrmE_LocArea', res: 'hrmE_LocArea' },
+                        { req: 'hrmE_LocCity', res: 'hrmE_LocCity' },
+                        { req: 'hrmE_LocStateId', res: 'hrmE_LocStateId' },
+                        { req: 'hrmE_LocCountryId', res: 'hrmE_LocCountryId' },
+                        { req: 'hrmE_LocPincode', res: 'hrmE_LocPincode' },
+                    ];
+                    
+                    console.log("📍 Contact Address:");
+                    contactAddressFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match = reqValue === resValue || 
+                                     (reqValue == null && resValue == null) ||
+                                     (reqValue === 0 && resValue === 0) ||
+                                     (reqValue === '' && resValue == null);
+                        if (!match) {
+                            addressMismatches.push(`Contact ${req}: Sent="${reqValue}" but Received="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: Sent="${reqValue}" → Received="${resValue}"`);
+                    });
+                    
+                    // Permanent Address Comparison
+                    const permanentAddressFields = [
+                        { req: 'hrmE_PerStreet', res: 'hrmE_PerStreet' },
+                        { req: 'hrmE_PerArea', res: 'hrmE_PerArea' },
+                        { req: 'hrmE_PerCity', res: 'hrmE_PerCity' },
+                        { req: 'hrmE_PerStateId', res: 'hrmE_PerStateId' },
+                        { req: 'hrmE_PerCountryId', res: 'hrmE_PerCountryId' },
+                        { req: 'hrmE_PerPincode', res: 'hrmE_PerPincode' },
+                    ];
+                    
+                    console.log("📍 Permanent Address:");
+                    permanentAddressFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match = reqValue === resValue || 
+                                     (reqValue == null && resValue == null) ||
+                                     (reqValue === 0 && resValue === 0) ||
+                                     (reqValue === '' && resValue == null);
+                        if (!match) {
+                            addressMismatches.push(`Permanent ${req}: Sent="${reqValue}" but Received="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: Sent="${reqValue}" → Received="${resValue}"`);
+                    });
+                    
+                    // Summary
+                    if (addressMismatches.length > 0) {
+                        console.error("❌ [DEBUG] Tab 2 - ADDRESS FIELDS NOT SAVED BY BACKEND!");
+                        console.error("❌ [DEBUG] Tab 2 - Mismatches found:");
+                        addressMismatches.forEach(m => console.error(`  - ${m}`));
+                        console.error("⚠️ [DEBUG] Tab 2 - This indicates a BACKEND ISSUE - address fields are being sent correctly but not saved.");
+                        toast.warning("Address fields were sent but may not have been saved. Please verify in database.");
+                    } else {
+                        console.log("✅ [DEBUG] Tab 2 - All address fields match between request and response!");
+                    }
+                    
+                    // Verify other fields are still intact
+                    const otherFieldMismatches: string[] = [];
+                    const keyFields = [
+                        { req: 'hrmE_Id', res: 'hrmE_Id' },
+                        { req: 'hrmE_EmployeeFirstName', res: 'hrmE_EmployeeFirstName' },
+                        { req: 'hrmE_EmployeeCode', res: 'hrmE_EmployeeCode' },
+                        { req: 'hrmE_MobileNo', res: 'hrmE_MobileNo' },
+                        { req: 'hrmE_EmailId', res: 'hrmE_EmailId' },
+                    ];
+                    
+                    console.log("🔍 [DEBUG] Tab 2 - Other Key Fields Verification:");
+                    keyFields.forEach(({ req, res }) => {
+                        const reqValue = payload[req as keyof typeof payload];
+                        const resValue = responseData[res as keyof typeof responseData];
+                        const match = reqValue === resValue;
+                        if (!match) {
+                            otherFieldMismatches.push(`${req}: Request="${reqValue}" vs Response="${resValue}"`);
+                        }
+                        console.log(`  ${match ? '✅' : '❌'} ${req}: ${reqValue} → ${resValue}`);
+                    });
+                    
+                    if (otherFieldMismatches.length > 0) {
+                        console.warn("⚠️ [DEBUG] Tab 2 - Other field mismatches:", otherFieldMismatches);
+                    }
+                    
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        if (addressMismatches.length > 0) {
+                            toast.warning(`${response.message} - But address fields may not have been saved.`);
+                        } else {
+                            toast.success(response.message);
+                        }
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn("⚠️ [DEBUG] Tab 2 - API returned success: false");
+                        toast.warning("Address saved but API returned success: false. Please verify the data was saved.");
+                    }
+                    
+                    setCurrentStep(3);
+                },
+                onError: (error: any) => {
+                    console.error("❌ [DEBUG] Tab 2 (Address Information) - Save Error:", error);
+                    console.error("❌ [DEBUG] Tab 2 - Error Details:", JSON.stringify(error, null, 2));
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 3) {
+            // Qualification tab - save qualification details
+            console.log("🔍 [DEBUG] Tab 3 (Qualification) - Starting save process");
+            console.log("🔍 [DEBUG] Tab 3 (Qualification) - Employee ID:", savedEmployeeId);
+            
+            if (!savedEmployeeId) {
+                console.error("❌ [DEBUG] Tab 3 - No employee ID found");
+                toast.error('Please save Employee and Address details first');
+                setCurrentStep(1);
+                return;
+            }
+            
+            const qualificationList = data.qualificationDetails || [];
+            console.log("🔍 [DEBUG] Tab 3 (Qualification) - Form Data:", data);
+            console.log("🔍 [DEBUG] Tab 3 (Qualification) - Qualification List (Raw):", qualificationList);
+            console.log("🔍 [DEBUG] Tab 3 (Qualification) - Qualification Count:", qualificationList.length);
+            
+            if (qualificationList.length === 0) {
+                console.error("❌ [DEBUG] Tab 3 - No qualifications found");
+                setError('qualificationDetails', {
+                    type: 'required',
+                    message: 'Please add at least one qualification'
+                });
+                return;
+            }
+            
+            // Map qualification data to API format
+            const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
+                const mapped = {
+                    HRME_Id: savedEmployeeId,
+                    HRMC_Id: Number(qual.course) || 0,
+                    HRMEQ_CollegeName: qual.college || '',
+                    HRMEQ_UniversityName: qual.university || '',
+                    HRMEQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
+                    HRMEQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
+                    HRMEQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
+                    HRMEQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
+                    HRMEQ_CountryId: Number(qual.qualificationCountry) || 0,
+                    HRMEQ_StateId: Number(qual.qualificationState) || 0,
+                    HRMEQ_RegistrationNo: qual.registrationNo || '',
+                    HRMEQ_Result: qual.result || '',
+                    HRMEQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
+                    HRMEQ_MedicalCouncil: qual.medicalCouncil || '',
+                    HRMEQ_PHDFlg: qual.phdFlag || false,
+                    HRMEQ_ThesisTitle: qual.thesisTitle || '',
+                    HRMEQ_RegistrationYear: Number(qual.registrationYear) || 0,
+                    HRMEQ_GuideName: qual.guideName || '',
+                    HRMEQ_Date: qual.qualifiedDate || ''
+                };
+                console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Mapping:`, {
+                    raw: qual,
+                    mapped: mapped
+                });
+                return mapped;
+            });
+            
+            console.log("🔍 [DEBUG] Tab 3 (Qualification) - Payload:", qualificationsPayload);
+            console.log("🔍 [DEBUG] Tab 3 (Qualification) - Payload (JSON):", JSON.stringify(qualificationsPayload, null, 2));
+            console.log("🔍 [DEBUG] Tab 3 (Qualification) - Calling saveQualificationDetails...");
+            
+            saveQualificationDetails(qualificationsPayload, {
+                onSuccess: (response: any) => {
+                    console.log("✅ [DEBUG] Tab 3 (Qualification) - Save Success:", response);
+                    console.log("🔍 [DEBUG] Tab 3 - Full API Response:", JSON.stringify(response, null, 2));
+                    console.log("🔍 [DEBUG] Tab 3 - Response Success:", response?.success);
+                    console.log("🔍 [DEBUG] Tab 3 - Response Message:", response?.message);
+                    console.log("🔍 [DEBUG] Tab 3 - Response Data:", response?.data);
+                    
+                    // Verify qualification data was saved
+                    if (response?.data && Array.isArray(response.data)) {
+                        console.log("🔍 [DEBUG] Tab 3 - Response contains qualification array, length:", response.data.length);
+                        console.log("🔍 [DEBUG] Tab 3 - Response Qualifications:", response.data);
+                        
+                        // Compare sent vs received
+                        if (response.data.length === qualificationsPayload.length) {
+                            console.log("✅ [DEBUG] Tab 3 - Qualification count matches!");
+                            qualificationsPayload.forEach((sent, index) => {
+                                const received = response.data[index];
+                                if (received) {
+                                    console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Comparison:`, {
+                                        sent: sent,
+                                        received: received
+                                    });
+                                    
+                                    // Check key fields
+                                    const keyFields = ['HRME_Id', 'HRMC_Id', 'HRMEQ_CollegeName', 'HRMEQ_UniversityName', 'HRMEQ_YearOfPassing'];
+                                    const mismatches: string[] = [];
+                                    keyFields.forEach(field => {
+                                        if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
+                                            mismatches.push(`${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`);
+                                        }
+                                    });
+                                    
+                                    if (mismatches.length > 0) {
+                                        console.warn(`⚠️ [DEBUG] Tab 3 - Qualification #${index + 1} mismatches:`, mismatches);
+                                    } else {
+                                        console.log(`✅ [DEBUG] Tab 3 - Qualification #${index + 1} key fields match!`);
+                                    }
+                                }
+                            });
+                        } else {
+                            console.warn(`⚠️ [DEBUG] Tab 3 - Qualification count mismatch: Sent=${qualificationsPayload.length}, Received=${response.data.length}`);
+                        }
+                    } else {
+                        console.warn("⚠️ [DEBUG] Tab 3 - Response data is not an array or is missing");
+                    }
+                    
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn("⚠️ [DEBUG] Tab 3 - API returned success: false");
+                        toast.warning("Qualification saved but API returned success: false. Please verify the data was saved.");
+                    }
+                    
+                    setCurrentStep(4);
+                },
+                onError: (error: any) => {
+                    console.error("❌ [DEBUG] Tab 3 (Qualification) - Save Error:", error);
+                    console.error("❌ [DEBUG] Tab 3 - Error Details:", JSON.stringify(error, null, 2));
+                    console.error("❌ [DEBUG] Tab 3 - Error Response:", error?.response);
+                    console.error("❌ [DEBUG] Tab 3 - Error Message:", error?.message);
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 4) {
+            // Experience tab - save experience details
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - nextStep function reached for Tab 4");
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Condition check: currentStepId === 4", currentStepId === 4);
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Starting save process");
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Employee ID:", savedEmployeeId);
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Current Step ID:", currentStepId);
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Type of currentStepId:", typeof currentStepId);
+            
+            if (!savedEmployeeId) {
+                console.error("❌ [DEBUG] Tab 4 - No employee ID found");
+                toast.error('Please save Employee and Address details first');
+                setCurrentStep(1);
+                return;
+            }
+            
+            const experienceList = data.experienceDetails || [];
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Form Data:", data);
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):", experienceList);
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Experience Count:", experienceList.length);
+            
+            if (experienceList.length === 0) {
+                console.error("❌ [DEBUG] Tab 4 - No experiences found");
+                setError('experienceDetails', {
+                    type: 'required',
+                    message: 'Please add at least one experience'
+                });
+                return;
+            }
+            
+            // Map experience data to API format (matching API request body format)
+            const experiencesPayload = experienceList.map((exp: any, index: number) => {
+                const mapped = {
+                    hrmeE_Id: 0, // New record
+                    hrmE_Id: savedEmployeeId,
+                    hrmeE_OrganisationName: exp.organisationName || '',
+                    hrmeE_OrganisationAddress: exp.organisationAddress || '',
+                    hrmeE_Department: exp.department || '',
+                    hrmeE_Designation: exp.designation || '',
+                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
+                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                    hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                    hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                    hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
+                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                };
+                console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
+                    raw: exp,
+                    mapped: mapped
+                });
+                return mapped;
+            });
+            
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Payload:", experiencesPayload);
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):", JSON.stringify(experiencesPayload, null, 2));
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...");
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:", typeof saveExperienceDetails);
+            console.log("🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function:", saveExperienceDetails);
+            
+            if (!saveExperienceDetails) {
+                console.error("❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!");
+                toast.error("Experience save function is not available. Please refresh the page.");
+                return;
+            }
+            
+            try {
+                saveExperienceDetails(experiencesPayload, {
+                onSuccess: (response: any) => {
+                    console.log("✅ [DEBUG] Tab 4 (Experience) - Save Success:", response);
+                    console.log("🔍 [DEBUG] Tab 4 - Full API Response:", JSON.stringify(response, null, 2));
+                    console.log("🔍 [DEBUG] Tab 4 - Response Success:", response?.success);
+                    console.log("🔍 [DEBUG] Tab 4 - Response Message:", response?.message);
+                    console.log("🔍 [DEBUG] Tab 4 - Response Data:", response?.data);
+                    
+                    // Verify experience data was saved
+                    if (response?.data && Array.isArray(response.data)) {
+                        console.log("🔍 [DEBUG] Tab 4 - Response contains experience array, length:", response.data.length);
+                        console.log("🔍 [DEBUG] Tab 4 - Response Experiences:", response.data);
+                        
+                        // Compare sent vs received
+                        if (response.data.length === experiencesPayload.length) {
+                            console.log("✅ [DEBUG] Tab 4 - Experience count matches!");
+                            experiencesPayload.forEach((sent, index) => {
+                                const received = response.data[index];
+                                if (received) {
+                                    console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
+                                        sent: sent,
+                                        received: received
+                                    });
+                                    
+                                    // Check key fields
+                                    const keyFields = ['hrmE_Id', 'hrmeE_OrganisationName', 'hrmeE_Department', 'hrmeE_Designation', 'hrmeE_NoOfYears'];
+                                    const mismatches: string[] = [];
+                                    keyFields.forEach(field => {
+                                        if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
+                                            mismatches.push(`${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`);
+                                        }
+                                    });
+                                    
+                                    if (mismatches.length > 0) {
+                                        console.warn(`⚠️ [DEBUG] Tab 4 - Experience #${index + 1} mismatches:`, mismatches);
+                                    } else {
+                                        console.log(`✅ [DEBUG] Tab 4 - Experience #${index + 1} key fields match!`);
+                                    }
+                                }
+                            });
+                        } else {
+                            console.warn(`⚠️ [DEBUG] Tab 4 - Experience count mismatch: Sent=${experiencesPayload.length}, Received=${response.data.length}`);
+                        }
+                    } else {
+                        console.warn("⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing");
+                    }
+                    
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn("⚠️ [DEBUG] Tab 4 - API returned success: false");
+                        toast.warning("Experience saved but API returned success: false. Please verify the data was saved.");
+                    }
+                    
+                    setCurrentStep(5);
+                },
+                onError: (error: any) => {
+                    console.error("❌ [DEBUG] Tab 4 (Experience) - Save Error:", error);
+                    console.error("❌ [DEBUG] Tab 4 - Error Details:", JSON.stringify(error, null, 2));
+                    console.error("❌ [DEBUG] Tab 4 - Error Response:", error?.response);
+                    console.error("❌ [DEBUG] Tab 4 - Error Message:", error?.message);
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
+                    toast.error(errorMessage);
+                }
+                });
+            } catch (error) {
+                console.error("❌ [DEBUG] Tab 4 - Exception when calling saveExperienceDetails:", error);
+                toast.error("An error occurred while calling the save function");
+            }
+        } else {
+            // For other steps, just move to next step without API call
+            setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+        }
     };
 
     // Function to go to specific step
@@ -664,7 +1278,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         if (!options?.banks) return [];
         return (options.banks || [])
             .filter((b: IBankDropdown) => {
-                return b.key != null && b.key !== '' && String(b.key).trim() !== '';
+                return b.key != null && b.key !== undefined && b.key !== 0;
             })
             .map((b: IBankDropdown) => {
                 const key = b.key?.toString().trim();
@@ -811,18 +1425,25 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 payload.hrmE_Id = 0; // New record
                 savePersonalDetails(payload, {
                     onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         // API returns hrmE_Id (lowercase) in response
                         const employeeId = response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
                         if (employeeId && employeeId > 0) {
                             setSavedEmployeeId(employeeId);
-                            toast.success('Employee details saved successfully!');
                             setCurrentStep(2);
                         } else {
                             toast.error('Failed to get employee ID from response');
                         }
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save employee details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 2) {
@@ -836,95 +1457,270 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId; // Use the ID from step 1
                 savePersonalDetails(payload, {
-                    onSuccess: () => {
-                        toast.success('Address details saved successfully!');
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(3);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save address details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 3) {
                 // Qualification tab
+                console.log("🔍 [DEBUG] Tab 3 (Qualification) - Starting save process");
+                console.log("🔍 [DEBUG] Tab 3 (Qualification) - Employee ID:", savedEmployeeId);
+                
                 if (!savedEmployeeId) {
+                    console.error("❌ [DEBUG] Tab 3 - No employee ID found");
                     toast.error('Please save Employee and Address details first');
                     setCurrentStep(1);
                     return;
                 }
+                
                 const qualificationList = data.qualificationDetails || [];
+                console.log("🔍 [DEBUG] Tab 3 (Qualification) - Form Data:", data);
+                console.log("🔍 [DEBUG] Tab 3 (Qualification) - Qualification List (Raw):", qualificationList);
+                console.log("🔍 [DEBUG] Tab 3 (Qualification) - Qualification Count:", qualificationList.length);
+                
                 if (qualificationList.length === 0) {
+                    console.error("❌ [DEBUG] Tab 3 - No qualifications found");
                     setError('qualificationDetails', {
                         type: 'required',
                         message: 'Please add at least one qualification'
                     });
                     return;
                 }
+                
                 // Map qualification data to API format
-                const qualificationsPayload = qualificationList.map((qual: any) => ({
-                    HRME_Id: savedEmployeeId,
-                    HRMC_Id: Number(qual.course) || 0,
-                    HRMEQ_CollegeName: qual.college || '',
-                    HRMEQ_UniversityName: qual.university || '',
-                    HRMEQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
-                    HRMEQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
-                    HRMEQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
-                    HRMEQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
-                    HRMEQ_CountryId: Number(qual.qualificationCountry) || 0,
-                    HRMEQ_StateId: Number(qual.qualificationState) || 0,
-                    HRMEQ_RegistrationNo: qual.registrationNo || '',
-                    HRMEQ_Result: qual.result || '',
-                    HRMEQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
-                    HRMEQ_MedicalCouncil: qual.medicalCouncil || '',
-                    HRMEQ_PHDFlg: qual.phdFlag || false,
-                    HRMEQ_ThesisTitle: qual.thesisTitle || '',
-                    HRMEQ_RegistrationYear: Number(qual.registrationYear) || 0,
-                    HRMEQ_GuideName: qual.guideName || '',
-                    HRMEQ_Date: qual.qualifiedDate || ''
-                }));
+                const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
+                    const mapped = {
+                        HRME_Id: savedEmployeeId,
+                        HRMC_Id: Number(qual.course) || 0,
+                        HRMEQ_CollegeName: qual.college || '',
+                        HRMEQ_UniversityName: qual.university || '',
+                        HRMEQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
+                        HRMEQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
+                        HRMEQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
+                        HRMEQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
+                        HRMEQ_CountryId: Number(qual.qualificationCountry) || 0,
+                        HRMEQ_StateId: Number(qual.qualificationState) || 0,
+                        HRMEQ_RegistrationNo: qual.registrationNo || '',
+                        HRMEQ_Result: qual.result || '',
+                        HRMEQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
+                        HRMEQ_MedicalCouncil: qual.medicalCouncil || '',
+                        HRMEQ_PHDFlg: qual.phdFlag || false,
+                        HRMEQ_ThesisTitle: qual.thesisTitle || '',
+                        HRMEQ_RegistrationYear: Number(qual.registrationYear) || 0,
+                        HRMEQ_GuideName: qual.guideName || '',
+                        HRMEQ_Date: qual.qualifiedDate || ''
+                    };
+                    console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Mapping:`, {
+                        raw: qual,
+                        mapped: mapped
+                    });
+                    return mapped;
+                });
+                
+                console.log("🔍 [DEBUG] Tab 3 (Qualification) - Payload:", qualificationsPayload);
+                console.log("🔍 [DEBUG] Tab 3 (Qualification) - Payload (JSON):", JSON.stringify(qualificationsPayload, null, 2));
+                console.log("🔍 [DEBUG] Tab 3 (Qualification) - Calling saveQualificationDetails...");
+                
                 saveQualificationDetails(qualificationsPayload, {
-                    onSuccess: () => {
-                        toast.success('Qualification details saved successfully!');
+                    onSuccess: (response: any) => {
+                        console.log("✅ [DEBUG] Tab 3 (Qualification) - Save Success:", response);
+                        console.log("🔍 [DEBUG] Tab 3 - Full API Response:", JSON.stringify(response, null, 2));
+                        console.log("🔍 [DEBUG] Tab 3 - Response Success:", response?.success);
+                        console.log("🔍 [DEBUG] Tab 3 - Response Message:", response?.message);
+                        console.log("🔍 [DEBUG] Tab 3 - Response Data:", response?.data);
+                        
+                        // Verify qualification data was saved
+                        if (response?.data && Array.isArray(response.data)) {
+                            console.log("🔍 [DEBUG] Tab 3 - Response contains qualification array, length:", response.data.length);
+                            console.log("🔍 [DEBUG] Tab 3 - Response Qualifications:", response.data);
+                            
+                            // Compare sent vs received
+                            if (response.data.length === qualificationsPayload.length) {
+                                console.log("✅ [DEBUG] Tab 3 - Qualification count matches!");
+                                qualificationsPayload.forEach((sent, index) => {
+                                    const received = response.data[index];
+                                    if (received) {
+                                        console.log(`🔍 [DEBUG] Tab 3 - Qualification #${index + 1} Comparison:`, {
+                                            sent: sent,
+                                            received: received
+                                        });
+                                        
+                                        // Check key fields
+                                        const keyFields = ['HRME_Id', 'HRMC_Id', 'HRMEQ_CollegeName', 'HRMEQ_UniversityName', 'HRMEQ_YearOfPassing'];
+                                        const mismatches: string[] = [];
+                                        keyFields.forEach(field => {
+                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
+                                                mismatches.push(`${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`);
+                                            }
+                                        });
+                                        
+                                        if (mismatches.length > 0) {
+                                            console.warn(`⚠️ [DEBUG] Tab 3 - Qualification #${index + 1} mismatches:`, mismatches);
+                                        } else {
+                                            console.log(`✅ [DEBUG] Tab 3 - Qualification #${index + 1} key fields match!`);
+                                        }
+                                    }
+                                });
+                            } else {
+                                console.warn(`⚠️ [DEBUG] Tab 3 - Qualification count mismatch: Sent=${qualificationsPayload.length}, Received=${response.data.length}`);
+                            }
+                        } else {
+                            console.warn("⚠️ [DEBUG] Tab 3 - Response data is not an array or is missing");
+                        }
+                        
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        } else if (response?.success === false) {
+                            console.warn("⚠️ [DEBUG] Tab 3 - API returned success: false");
+                            toast.warning("Qualification saved but API returned success: false. Please verify the data was saved.");
+                        }
+                        
                         setCurrentStep(4);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save qualification details');
+                        console.error("❌ [DEBUG] Tab 3 (Qualification) - Save Error:", error);
+                        console.error("❌ [DEBUG] Tab 3 - Error Details:", JSON.stringify(error, null, 2));
+                        console.error("❌ [DEBUG] Tab 3 - Error Response:", error?.response);
+                        console.error("❌ [DEBUG] Tab 3 - Error Message:", error?.message);
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 4) {
                 // Experience tab
+                console.log("🔍 [DEBUG] Tab 4 (Experience) - Starting save process");
+                console.log("🔍 [DEBUG] Tab 4 (Experience) - Employee ID:", savedEmployeeId);
+                
                 if (!savedEmployeeId) {
+                    console.error("❌ [DEBUG] Tab 4 - No employee ID found");
                     toast.error('Please save Employee and Address details first');
                     setCurrentStep(1);
                     return;
                 }
+                
                 const experienceList = data.experienceDetails || [];
+                console.log("🔍 [DEBUG] Tab 4 (Experience) - Form Data:", data);
+                console.log("🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):", experienceList);
+                console.log("🔍 [DEBUG] Tab 4 (Experience) - Experience Count:", experienceList.length);
+                
                 if (experienceList.length === 0) {
+                    console.error("❌ [DEBUG] Tab 4 - No experiences found");
                     setError('experienceDetails', {
                         type: 'required',
                         message: 'Please add at least one experience'
                     });
                     return;
                 }
-                const experiencesPayload = experienceList.map((exp: any) => ({
-                    HRME_Id: savedEmployeeId,
-                    HRMEE_OrganisationName: exp.organisationName || '',
-                    HRMEE_OrganisationAddress: exp.organisationAddress || '',
-                    HRMEE_Department: exp.department || '',
-                    HRMEE_Designation: exp.designation || '',
-                    HRMEE_JoinDate: exp.joinDate || '',
-                    HRMEE_ExitDate: exp.exitDate || '',
-                    HRMEE_NoOfYears: Number(exp.noOfYears) || 0,
-                    HRMEE_NoOfMonths: Number(exp.noOfMonths) || 0,
-                    HRMEE_AnnualSalary: Number(exp.annualSalary) || 0,
-                    HRMEE_ReasonForLeaving: exp.reasonForLeaving || ''
-                }));
+                
+                // Map experience data to API format (matching API request body format)
+                const experiencesPayload = experienceList.map((exp: any, index: number) => {
+                    const mapped = {
+                        hrmeE_Id: 0, // New record
+                        hrmE_Id: savedEmployeeId,
+                        hrmeE_OrganisationName: exp.organisationName || '',
+                        hrmeE_OrganisationAddress: exp.organisationAddress || '',
+                        hrmeE_Department: exp.department || '',
+                        hrmeE_Designation: exp.designation || '',
+                        hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
+                        hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                        hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                        hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                        hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
+                        hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                    };
+                    console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
+                        raw: exp,
+                        mapped: mapped
+                    });
+                    return mapped;
+                });
+                
+                console.log("🔍 [DEBUG] Tab 4 (Experience) - Payload:", experiencesPayload);
+                console.log("🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):", JSON.stringify(experiencesPayload, null, 2));
+                console.log("🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...");
+                
                 saveExperienceDetails(experiencesPayload, {
-                    onSuccess: () => {
-                        toast.success('Experience details saved successfully!');
+                    onSuccess: (response: any) => {
+                        console.log("✅ [DEBUG] Tab 4 (Experience) - Save Success:", response);
+                        console.log("🔍 [DEBUG] Tab 4 - Full API Response:", JSON.stringify(response, null, 2));
+                        console.log("🔍 [DEBUG] Tab 4 - Response Success:", response?.success);
+                        console.log("🔍 [DEBUG] Tab 4 - Response Message:", response?.message);
+                        console.log("🔍 [DEBUG] Tab 4 - Response Data:", response?.data);
+                        
+                        // Verify experience data was saved
+                        if (response?.data && Array.isArray(response.data)) {
+                            console.log("🔍 [DEBUG] Tab 4 - Response contains experience array, length:", response.data.length);
+                            console.log("🔍 [DEBUG] Tab 4 - Response Experiences:", response.data);
+                            
+                            // Compare sent vs received
+                            if (response.data.length === experiencesPayload.length) {
+                                console.log("✅ [DEBUG] Tab 4 - Experience count matches!");
+                                experiencesPayload.forEach((sent, index) => {
+                                    const received = response.data[index];
+                                    if (received) {
+                                        console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
+                                            sent: sent,
+                                            received: received
+                                        });
+                                        
+                                        // Check key fields
+                                        const keyFields = ['hrmE_Id', 'hrmeE_OrganisationName', 'hrmeE_Department', 'hrmeE_Designation', 'hrmeE_NoOfYears'];
+                                        const mismatches: string[] = [];
+                                        keyFields.forEach(field => {
+                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
+                                                mismatches.push(`${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`);
+                                            }
+                                        });
+                                        
+                                        if (mismatches.length > 0) {
+                                            console.warn(`⚠️ [DEBUG] Tab 4 - Experience #${index + 1} mismatches:`, mismatches);
+                                        } else {
+                                            console.log(`✅ [DEBUG] Tab 4 - Experience #${index + 1} key fields match!`);
+                                        }
+                                    }
+                                });
+                            } else {
+                                console.warn(`⚠️ [DEBUG] Tab 4 - Experience count mismatch: Sent=${experiencesPayload.length}, Received=${response.data.length}`);
+                            }
+                        } else {
+                            console.warn("⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing");
+                        }
+                        
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        } else if (response?.success === false) {
+                            console.warn("⚠️ [DEBUG] Tab 4 - API returned success: false");
+                            toast.warning("Experience saved but API returned success: false. Please verify the data was saved.");
+                        }
+                        
                         setCurrentStep(5);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save experience details');
+                        console.error("❌ [DEBUG] Tab 4 (Experience) - Save Error:", error);
+                        console.error("❌ [DEBUG] Tab 4 - Error Details:", JSON.stringify(error, null, 2));
+                        console.error("❌ [DEBUG] Tab 4 - Error Response:", error?.response);
+                        console.error("❌ [DEBUG] Tab 4 - Error Message:", error?.message);
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 5) {
@@ -957,12 +1753,19 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     };
                 });
                 saveDocumentDetails(documentsPayload, {
-                    onSuccess: () => {
-                        toast.success('Document details saved successfully!');
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(6);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save document details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 6) {
@@ -975,12 +1778,19 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId;
                 saveMedicalDetails(payload, {
-                    onSuccess: () => {
-                        toast.success('Medical details saved successfully!');
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(7);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save medical details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 7) {
@@ -993,12 +1803,19 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId;
                 savePersonalDetails(payload, {
-                    onSuccess: () => {
-                        toast.success('Other details saved successfully!');
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(8);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save other details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 8) {
@@ -1379,8 +2196,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 .filter((et: IEmployeeTypeDropdown) => {
                                                                                     return (
                                                                                         et.key != null &&
-                                                                                        et.key !== '' &&
-                                                                                        String(et.key).trim() !== ''
+                                                                                        et.key !== undefined &&
+                                                                                        et.key !== 0
                                                                                     );
                                                                                 })
                                                                                 .map((et: IEmployeeTypeDropdown) => {
@@ -1435,8 +2252,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 .filter((gt: IGroupTypeDropdown) => {
                                                                                     return (
                                                                                         gt.key != null &&
-                                                                                        gt.key !== '' &&
-                                                                                        String(gt.key).trim() !== ''
+                                                                                        gt.key !== undefined &&
+                                                                                        gt.key !== 0
                                                                                     );
                                                                                 })
                                                                                 .map((gt: IGroupTypeDropdown) => {
@@ -1491,8 +2308,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 .filter((inst: IInstitutionDropdown) => {
                                                                                     return (
                                                                                         inst.key != null &&
-                                                                                        inst.key !== '' &&
-                                                                                        String(inst.key).trim() !== ''
+                                                                                        inst.key !== undefined &&
+                                                                                        inst.key !== 0
                                                                                     );
                                                                                 })
                                                                                 .map((inst: IInstitutionDropdown) => {
@@ -1538,8 +2355,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter((dg: IDesignationDropdown) => {
                                                                                 return (
                                                                                     dg.key != null &&
-                                                                                    dg.key !== '' &&
-                                                                                    String(dg.key).trim() !== ''
+                                                                                    dg.key !== undefined &&
+                                                                                    dg.key !== 0
                                                                                 );
                                                                             })
                                                                             .map((dg: IDesignationDropdown) => {
@@ -1592,8 +2409,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter((gr: IGradeDropdown) => {
                                                                                 return (
                                                                                     gr.key != null &&
-                                                                                    gr.key !== '' &&
-                                                                                    String(gr.key).trim() !== ''
+                                                                                    gr.key !== undefined &&
+                                                                                    gr.key !== 0
                                                                                 );
                                                                             })
                                                                             .map((gr: IGradeDropdown) => {
@@ -1974,8 +2791,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter((rel: IReligionDropdown) => {
                                                                                 return (
                                                                                     rel.key != null &&
-                                                                                    rel.key !== '' &&
-                                                                                    String(rel.key).trim() !== ''
+                                                                                    rel.key !== undefined &&
+                                                                                    rel.key !== 0
                                                                                 );
                                                                             })
                                                                             .map((rel: IReligionDropdown) => {
@@ -2020,8 +2837,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter((cc: ICasteCategoryDropdown) => {
                                                                                 return (
                                                                                     cc.key != null &&
-                                                                                    cc.key !== '' &&
-                                                                                    String(cc.key).trim() !== ''
+                                                                                    cc.key !== undefined &&
+                                                                                    cc.key !== 0
                                                                                 );
                                                                             })
                                                                             .map((cc: ICasteCategoryDropdown) => {
@@ -2061,8 +2878,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter((c: ICasteDropdown) => {
                                                                                 return (
                                                                                     c.key != null &&
-                                                                                    c.key !== '' &&
-                                                                                    String(c.key).trim() !== ''
+                                                                                    c.key !== undefined &&
+                                                                                    c.key !== 0
                                                                                 );
                                                                             })
                                                                             .map((c: ICasteDropdown) => {
@@ -2152,8 +2969,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter((g: IGenderDropdown) => {
                                                                                 return (
                                                                                     g.key != null &&
-                                                                                    g.key !== '' &&
-                                                                                    String(g.key).trim() !== ''
+                                                                                    g.key !== undefined &&
+                                                                                    g.key !== 0
                                                                                 );
                                                                             })
                                                                             .map((g: IGenderDropdown) => {
@@ -2198,8 +3015,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             .filter((ms: IMaritalStatusDropdown) => {
                                                                                 return (
                                                                                     ms.key != null &&
-                                                                                    ms.key !== '' &&
-                                                                                    String(ms.key).trim() !== ''
+                                                                                    ms.key !== undefined &&
+                                                                                    ms.key !== 0
                                                                                 );
                                                                             })
                                                                             .map((ms: IMaritalStatusDropdown) => {
@@ -2850,8 +3667,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                         .filter((country: ICountryDropdown) => {
                                                                                             return (
                                                                                                 country.key != null &&
-                                                                                                country.key !== '' &&
-                                                                                                String(country.key).trim() !== ''
+                                                                                                country.key !== undefined &&
+                                                                                                country.key !== 0
                                                                                             );
                                                                                         })
                                                                                         .map((country: ICountryDropdown) => {
@@ -2902,8 +3719,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                             .filter((state: IStateDropdown) => {
                                                                                                 return (
                                                                                                     state.key != null &&
-                                                                                                    state.key !== '' &&
-                                                                                                    String(state.key).trim() !== ''
+                                                                                                    state.key !== undefined &&
+                                                                                                    state.key !== 0
                                                                                                 );
                                                                                             })
                                                                                             .map((state: IStateDropdown) => {
@@ -2913,7 +3730,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                     state.value || String(state.key);
                                                                                                 return (
                                                                                                     <SafeSelectItem
-                                                                                                        key={state.key}
+                                                                                                        key={`contact-state-${state.key}`}
                                                                                                         value={key}>
                                                                                                         {value}
                                                                                                     </SafeSelectItem>
@@ -3023,8 +3840,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                         .filter((country: ICountryDropdown) => {
                                                                                             return (
                                                                                                 country.key != null &&
-                                                                                                country.key !== '' &&
-                                                                                                String(country.key).trim() !== ''
+                                                                                                country.key !== undefined &&
+                                                                                                country.key !== 0
                                                                                             );
                                                                                         })
                                                                                         .map((country: ICountryDropdown) => {
@@ -3078,8 +3895,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                             .filter((state: IStateDropdown) => {
                                                                                                 return (
                                                                                                     state.key != null &&
-                                                                                                    state.key !== '' &&
-                                                                                                    String(state.key).trim() !== ''
+                                                                                                    state.key !== undefined &&
+                                                                                                    state.key !== 0
                                                                                                 );
                                                                                             })
                                                                                             .map((state: IStateDropdown) => {
@@ -3089,7 +3906,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                     state.value || String(state.key);
                                                                                                 return (
                                                                                                     <SafeSelectItem
-                                                                                                        key={state.key}
+                                                                                                        key={`permanent-state-${state.key}`}
                                                                                                         value={key}>
                                                                                                         {value}
                                                                                                     </SafeSelectItem>
@@ -3251,7 +4068,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                             ) : (
                                                                                                 courses
                                                                                                     .filter((course: ICourseDropdown) => {
-                                                                                                        return course.key != null && course.key !== '' && String(course.key).trim() !== '';
+                                                                                                        return course.key != null && course.key !== undefined && course.key !== 0;
                                                                                                     })
                                                                                                     .map((course: ICourseDropdown) => {
                                                                                                         const key = course.key?.toString().trim();
@@ -3344,7 +4161,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                             .filter((country: ICountryDropdown) => {
                                                                                                 return (
                                                                                                     country.key != null &&
-                                                                                                    country.key !== '' &&
+                                                                                                    country.key !== 0 &&
                                                                                                     String(country.key).trim() !== ''
                                                                                                 );
                                                                                             })
@@ -3513,8 +4330,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                 .filter((spec: ISpecializationDropdown) => {
                                                                                                     return (
                                                                                                         spec.key != null &&
-                                                                                                        spec.key !== '' &&
-                                                                                                        String(spec.key).trim() !== ''
+                                                                                                        spec.key !== undefined &&
+                                                                                                        spec.key !== 0
                                                                                                     );
                                                                                                 })
                                                                                                 .map((spec: ISpecializationDropdown) => {
@@ -4278,8 +5095,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                     .filter((reason: ILeaveReasonDropdown) => {
                                                                                         return (
                                                                                             reason.key != null &&
-                                                                                            reason.key !== '' &&
-                                                                                            String(reason.key).trim() !== ''
+                                                                                            reason.key !== undefined &&
+                                                                                            reason.key !== 0
                                                                                         );
                                                                                     })
                                                                                     .map((reason: ILeaveReasonDropdown) => {

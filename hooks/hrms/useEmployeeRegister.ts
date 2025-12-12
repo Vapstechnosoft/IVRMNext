@@ -30,6 +30,8 @@ import {
     getContactTypeDropdown,
     getStateDropdown,
     saveEmployee,
+    saveEmployeeQualification,
+    saveEmployeeExperience,
     toggleEmployee
 } from '@/server/hrms/hrmsConfig/employee/register';
 import type {
@@ -502,6 +504,52 @@ export function useSaveEmployee() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'An error occurred while saving employee');
+        }
+    });
+}
+
+/**
+ * Hook to save employee qualification details
+ */
+export function useSaveEmployeeQualification() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any[]) => saveEmployeeQualification(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Qualification details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving qualification details');
+        }
+    });
+}
+
+/**
+ * Hook to save employee experience details
+ */
+export function useSaveEmployeeExperience() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any[]) => saveEmployeeExperience(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Experience details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving experience details');
         }
     });
 }

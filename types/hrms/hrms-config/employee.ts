@@ -1,81 +1,81 @@
 // Dropdown Interfaces - All follow the key/value pattern from /api/MasterDropDown endpoints
 export interface IGradeDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IEmployeeTypeDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IGroupTypeDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IDepartmentDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IDesignationDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IGenderDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IMaritalStatusDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IReligionDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface ICasteCategoryDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface ICasteDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IBankDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface ICountryDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IStateDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface ICourseDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface ISpecializationDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
 export interface IInstitutionDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
@@ -85,7 +85,7 @@ export interface IPaymentModeDropdown {
 }
 
 export interface ILeaveReasonDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 
@@ -127,8 +127,8 @@ export interface IEmployeeList {
     hrmE_EmployeeMiddleName: string | null;
     hrmE_EmployeeLastName: string;
     hrmE_EmployeeCode: string;
-    hrmE_BiometricCode: string;
-    hrmE_RFCardId: string;
+    hrmE_BiometricCode: string | null;
+    hrmE_RFCardId: string | null;
     hrmE_PerStreet: string;
     hrmE_PerArea: string;
     hrmE_PerCity: string;
@@ -174,8 +174,9 @@ export interface IEmployeeList {
     hrmE_ESIApplicableFlag: boolean;
     hrmE_Photo: string | null;
     hrmE_LeftFlag: boolean;
-    hrmE_DOL: string;
-    hrmE_LeavingReason: string;
+    hrmE_DOC: string | null;
+    hrmE_DOL: string | null;
+    hrmE_LeavingReason: string | null;
     hrmE_Height: string;
     hrmE_HeightUOM: string;
     hrmE_Weight: number;
@@ -190,8 +191,7 @@ export interface IEmployeeList {
     hrmE_EmployeeOrder: number;
     hrmE_ActiveFlag: boolean;
     hrmE_UINumber: string;
-    hrmE_doc: string;
-    hrmE_SubjectsTaught: string;
+    hrmE_SubjectsTaught: string | null;
     hrmE_AppDownloadedDeviceId: string | null;
     hrmE_PHDResearchGuideFlg: boolean;
     hrmE_TechNonTeachingFlg: string;
@@ -200,12 +200,12 @@ export interface IEmployeeList {
     hrmE_EyeSightIssue: string;
     hrmE_TransfferedTo: number;
     hrmE_RecordTransferredFlg: boolean;
-    hrmE_MSTeamsUserId: string;
+    hrmE_MSTeamsUserId: string | null;
     hrmE_MSTeamsEmailId: string | null;
-    hrmE_MSTeamsPassword: string;
+    hrmE_MSTeamsPassword: string | null;
     hrmE_ExcPunch: boolean;
     hrmE_RetiredFlg: boolean;
-    hrmE_PensionStoppedDate: string;
+    hrmE_PensionStoppedDate: string | null;
     hrmE_FPFNotApplicableFlg: boolean;
     hrmE_EPFNotApplicableFlg: boolean;
     hrmE_AllowSoftwareAccessFlg: boolean;
