@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 
 import { useStudentTcReport } from '@/hooks/admission/preadmission/useReports';
 import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
-import { CheckSquare, RotateCcw, Search, Square } from 'lucide-react';
+import { CheckSquare, FileText, RotateCcw, Search, Square } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { use, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -82,8 +82,9 @@ export default function StudentTcReportPage(props: {
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [classId, setClassId] = useState<number>(0);
     const [statusId, setStatusId] = useState<number>(0);
+    const [showTable, setShowTable] = useState(false);
 
-    const [viewMode, setViewMode] = useState<'all' | 'ind'>('all');
+    const [viewMode, setViewMode] = useState<'all' | 'indi'>('all');
     const [tcType, setTcType] = useState<'TTC' | 'PTC'>('PTC');
 
     const availableColumns = ['Student Name', 'Registration No.', 'TC No.', 'Leaving Class', 'Admission Class Name'];
@@ -100,8 +101,8 @@ export default function StudentTcReportPage(props: {
         const payload = {
             ASMAY_Id: academicYearId || 0,
             AllOrInd: viewMode,
-            ASMCL_Id: viewMode === 'ind' ? classId : 0,
-            ASMC_Id: viewMode === 'ind' ? statusId : 0,
+            ASMCL_Id: viewMode === 'indi' ? classId : 0,
+            ASMC_Id: viewMode === 'indi' ? statusId : 0,
             TempararyArrayheadList: selectedColumns.map((col) => ({
                 columnID: COLUMN_ID_MAP[col] || col
             })),
@@ -113,7 +114,7 @@ export default function StudentTcReportPage(props: {
 
     const tablePayload = buildApiPayload();
 
-    const { data, isLoading, error, refetch } = useStudentTcReport(tablePayload, searchParams);
+    const { data, isLoading, error, refetch } = useStudentTcReport(tablePayload, searchParams, false);
     console.log('Student TC Report Data:', data);
     const tableProps = useDataTableProps({
         data: data?.data || [],
@@ -123,6 +124,36 @@ export default function StudentTcReportPage(props: {
 
     const handleSelectStudent = (selectedRows: IStudentYearlyAttendenceReportList[]) => {
         setSelectedStudents(selectedRows);
+    };
+
+    const handleReport = async () => {
+        try {
+            if (!academicYearId || academicYearId === 0) {
+                toast.error('Please select an academic year');
+                return;
+            }
+
+            if (selectedColumns.length === 0) {
+                toast.error('Please select at least one column');
+                return;
+            }
+
+            toast.loading('Loading report...', { id: 'tc-report' });
+
+            // Call API only now
+            const response = await refetch();
+
+            if (response) {
+                setShowTable(true);
+                toast.success('TC Report fetched successfully', { id: 'tc-report' });
+            } else {
+                setShowTable(false);
+                toast.error('No data found', { id: 'tc-report' });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to load report', { id: 'tc-report' });
+        }
     };
 
     const handleReset = () => {
@@ -156,7 +187,7 @@ export default function StudentTcReportPage(props: {
                                 <span>All</span>
                             </label>
                             <label className='flex items-center gap-2'>
-                                <input type='radio' name='viewMode' checked={viewMode === 'ind'} onChange={() => setViewMode('ind')} />
+                                <input type='radio' name='viewMode' checked={viewMode === 'indi'} onChange={() => setViewMode('indi')} />
                                 <span>Individual</span>
                             </label>
                         </div>
@@ -194,7 +225,7 @@ export default function StudentTcReportPage(props: {
                     </div>
 
                     {/* Class & Section only when Individual selected */}
-                    {viewMode === 'ind' && (
+                    {viewMode === 'indi' && (
                         <>
                             <div className='flex w-full flex-col gap-2 sm:w-56'>
                                 <Label htmlFor='class' className='mb-1 font-semibold'>
@@ -372,47 +403,51 @@ export default function StudentTcReportPage(props: {
                         </Popover>
                     </div>
                 </div>
-                <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                <div className='flex flex-col gap-3 sm:flex-row sm:justify-center'>
+                    <Button type='button' onClick={handleReport} className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                        <FileText className='mr-2 h-4 w-4' />
+                        Report
+                    </Button>
+
+                    <Button variant='outline' className='w-full transition-all duration-200 hover:scale-105 sm:w-fit' onClick={handleReset}>
                         <RotateCcw className='mr-2 h-4 w-4' />
-                        Reset
+                        Cancel
                     </Button>
                 </div>
             </div>
 
             <div className='container space-y-4 p-1'>
                 {/* Data Table Section */}
-                <CollapsibleSection
-                    defaultOpen={true}
-                    variant='default'
-                    size='lg'
-                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    {selectedStudents.length > 0 && (
-                        <div className='flex w-full justify-end'>
-                            <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 w-fit gap-2'>
-                                <CheckSquare className='h-4 w-4' />
-                                Update Status ({selectedStudents.length})
-                            </Button>
-                        </div>
-                    )}
-                    <GenericDataTable<IStudentYearlyAttendenceReportList>
-                        {...tableProps}
-                        ref={tableRef}
-                        columns={StudentTcReportColumns}
-                        isLoading={activePreadmissionDeLoading || isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        loadingMessage='Loading preadmission admissions...'
-                        noDataTitle='No Data Found'
-                        noDataDescription='No preadmission admissions found.'
-                        errorTitle='Error Loading Preadmission Admissions'
-                        onRowSelectionChange={handleSelectStudent}
-                    />
-                </CollapsibleSection>
+                {showTable && (
+                    <CollapsibleSection
+                        defaultOpen={true}
+                        variant='default'
+                        size='lg'
+                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        {selectedStudents.length > 0 && (
+                            <div className='flex w-full justify-end'>
+                                <Button onClick={() => setIsStatusDialogOpen(true)} variant='default' className='h-8 w-fit gap-2'>
+                                    <CheckSquare className='h-4 w-4' />
+                                    Update Status ({selectedStudents.length})
+                                </Button>
+                            </div>
+                        )}
+
+                        <GenericDataTable<IStudentYearlyAttendenceReportList>
+                            {...tableProps}
+                            ref={tableRef}
+                            columns={StudentTcReportColumns}
+                            isLoading={activePreadmissionDeLoading || isLoading}
+                            error={error}
+                            showViewOptions={false}
+                            loadingMessage='Loading preadmission admissions...'
+                            noDataTitle='No Data Found'
+                            noDataDescription='No preadmission admissions found.'
+                            errorTitle='Error Loading Preadmission Admissions'
+                            onRowSelectionChange={handleSelectStudent}
+                        />
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );
