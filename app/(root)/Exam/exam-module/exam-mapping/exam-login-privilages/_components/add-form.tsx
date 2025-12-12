@@ -1,26 +1,25 @@
 'use client';
 
-import React, { use, useEffect, useMemo, useRef, useState } from 'react';
-import { Controller, useForm, FormProvider, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { examLoginPrivilegesSchema } from '@/schemas/exam/exam-module/exam-mapping';
-import { addorUpdateExamLoginPrivileges } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
-import { getClassDropDownByAcademicYearlist, getSectionsDropDownByAcademicYearandClasslist } from '@/server/exam/exam-module/reports/cumulative-report';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { useClassTeacherEmployee, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
-import type { z } from 'zod';
-import type { IClass } from '@/types/exam/exam-module/masters';
-import type { IAcademicYearDropDown, IMasterClassSectionDropDown } from '@/types/admission/preadmission/masters';
 import { useGetMasterSubjectDropdownList, useMasterSubSubjectDropdownList } from '@/hooks/exam/exammodule/usemasters';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { examLoginPrivilegesSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
+import { addorUpdateExamLoginPrivileges } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
+import type { IMasterClassSectionDropDown } from '@/types/admission/preadmission/masters';
+import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
+import type { IClass } from '@/types/exam/exam-module/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Edit, Trash2 } from 'lucide-react';
-import { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, FormProvider, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import type { z } from 'zod';
 
 // form fields type
 type FormFields = z.infer<typeof examLoginPrivilegesSchema.addOrUpdate>;
@@ -40,7 +39,7 @@ type DetailRow = {
     ssub: any[]; // sub-subjects array
 };
 
-export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSuccess?: () => void, rowData?: IExamLoginPrivileges }) {
+export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSuccess?: () => void; rowData?: IExamLoginPrivileges }) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(examLoginPrivilegesSchema.addOrUpdate),
         defaultValues: {
@@ -53,33 +52,24 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             subSubjectList: [],
             entryType: 'BY_CLASS_TEACHER',
             remarks: '',
-            elp_ActiveFlag: true,
-        },
+            elp_ActiveFlag: true
+        }
     });
 
-    const {
-        control,
-        handleSubmit,
-        reset,
-        watch,
-        setValue,
-        getValues,
-        formState
-    } = methods;
+    const { control, handleSubmit, reset, watch, setValue, getValues, formState } = methods;
 
     // Then you can access:
     const { errors, isSubmitted } = formState;
 
     useEffect(() => {
         if (isSubmitted && Object.keys(errors).length > 0) {
-            console.log("Validation Errors:", errors);
+            console.log('Validation Errors:', errors);
 
             Object.values(errors).forEach((err: any) => {
                 if (err?.message) toast.error(err.message);
             });
         }
     }, [errors, isSubmitted]);
-
 
     // dropdowns
     const [classes, setClasses] = useState<IClass[]>([]);
@@ -100,6 +90,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
     // tabs: 0 = by class teacher, 1 = by subject teacher, 2 = by others
     const [activeTab, setActiveTab] = useState<number>(0);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
     // watchers
     const asmaY_Id = watch('asmaY_Id');
@@ -111,48 +103,52 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     // Academic years / employees from hooks
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: employeeData, isLoading: employeeLoading, error: employeeError } = useClassTeacherEmployee(asmaY_Id);
-    const { data: masterSection, isLoading: masterSectionLoading, error: masterSectionError, refetchAll: refetchMasterSection } = useMasterSectionDropdown();
-    const { data: masterClass, isLoading: masterClassLoading, error: masterClassError, refetchAll: refetchMasterClass } = useMasterClassDropdown();
+    const { data: masterSection, isLoading: masterSectionLoading, error: masterSectionError } = useMasterSectionDropdown();
+    const {
+        data: masterClass,
+        isLoading: masterClassLoading,
+        error: masterClassError,
+        refetchAll: refetchMasterClass
+    } = useMasterClassDropdown();
     const { data: masterSubject, isLoading: masterSubjectLoading, error: masterSubjectError } = useGetMasterSubjectDropdownList();
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading, error: masterSubSubjectError } = useMasterSubSubjectDropdownList();
 
-
     useEffect(() => {
-        setUserLogins([{ ivrmulF_Id: 1, userName: 'admin' }, { ivrmulF_Id: 2, userName: 'teacher1' }]);
-
+        setUserLogins([
+            { ivrmulF_Id: 1, userName: 'admin' },
+            { ivrmulF_Id: 2, userName: 'teacher1' }
+        ]);
     }, []);
 
     useEffect(() => {
         if (masterSection && Array.isArray(masterSection.data)) {
-            setSections(masterSection.data);  // set the API data to state
+            setSections(masterSection.data); // set the API data to state
         }
     }, [masterSection]);
 
-
     useEffect(() => {
         if (masterClass && Array.isArray(masterClass.data)) {
-            setClasses(masterClass.data);  // set the API data to state
+            setClasses(masterClass.data); // set the API data to state
         }
     }, [masterClass]);
 
     useEffect(() => {
         if (masterSubject && Array.isArray(masterSubject.data)) {
-            setSubjects(masterSubject.data);  // set the API data to state
+            setSubjects(masterSubject.data); // set the API data to state
         }
     }, [masterSubject]);
 
     useEffect(() => {
         if (masterSubSubject && Array.isArray(masterSubSubject.data)) {
-            setSubSubjects(masterSubSubject.data);  // set the API data to state
+            setSubSubjects(masterSubSubject.data); // set the API data to state
         }
     }, [masterSubSubject]);
 
     useEffect(() => {
         if (employeeData && Array.isArray(employeeData.data)) {
-            setEmployees(employeeData.data);  // set the API data to state
+            setEmployees(employeeData.data); // set the API data to state
         }
-    })
-
+    });
 
     // ---------- When user chooses employee in Tab 1, fetch teacher mapped classes & sections and lock them ----------
     useEffect(() => {
@@ -191,18 +187,17 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                 const classList = Array.from(classMap.values());
                 setValue(
-                    "classList",
+                    'classList',
                     classList.map((c) => ({
                         asmcL_Id: c.asmcL_Id,
                         asmcL_ClassName: c.asmcL_ClassName
                     }))
                 );
-                setValue("asmcL_Id", classList[0]?.asmcL_Id ?? 0);
-                setValue("sectionList", sectionList);
+                setValue('asmcL_Id', classList[0]?.asmcL_Id ?? 0);
+                setValue('sectionList', sectionList);
                 setDisableClassSection(true);
-
             } catch (err: any) {
-                toast.error(err.message || "Failed to fetch teacher mapping");
+                toast.error(err.message || 'Failed to fetch teacher mapping');
                 setDisableClassSection(false);
             }
         }
@@ -214,7 +209,6 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         }
     }, [asmaY_Id, hrmE_Id, activeTab]);
 
-
     // ---------- Helpers ----------
     const makeUniqueId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
@@ -222,24 +216,19 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         const v = getValues();
 
         // ---- FIX 1: Remove duplicate classes by asmcL_Id ----
-        const rawClasses: any[] = Array.isArray(v['classList']) && v['classList'].length
-            ? v['classList']
-            : (v['asmcL_Id']
-                ? classes.filter((c) => c.asmcL_Id === v['asmcL_Id'])
-                : classes);
+        const rawClasses: any[] =
+            Array.isArray(v['classList']) && v['classList'].length
+                ? v['classList']
+                : v['asmcL_Id']
+                  ? classes.filter((c) => c.asmcL_Id === v['asmcL_Id'])
+                  : classes;
 
-        const selectedClassesFromForm = Array.from(
-            new Map(rawClasses.map((c: any) => [c.asmcL_Id, c])).values()
-        );
+        const selectedClassesFromForm = Array.from(new Map(rawClasses.map((c: any) => [c.asmcL_Id, c])).values());
 
         // ---- FIX 2: Remove duplicate sections by asmS_Id ----
-        const rawSections: any[] = Array.isArray(v['sectionList']) && v['sectionList'].length
-            ? v['sectionList']
-            : sections;
+        const rawSections: any[] = Array.isArray(v['sectionList']) && v['sectionList'].length ? v['sectionList'] : sections;
 
-        const selectedSectionsFromForm = Array.from(
-            new Map(rawSections.map((s: any) => [s.asmS_Id, s])).values()
-        );
+        const selectedSectionsFromForm = Array.from(new Map(rawSections.map((s: any) => [s.asmS_Id, s])).values());
 
         // Subjects
         const selectedSubjects: any[] = Array.isArray(v['subjectList']) ? v['subjectList'] : [];
@@ -253,18 +242,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     id: makeUniqueId(),
                     yearid: v.asmaY_Id ?? 0,
                     user_id: v.ivrmulF_Id ?? 0,
-                    year:
-                        academicYear?.data?.find((y: any) => y.asmaY_Id === v.asmaY_Id)
-                            ?.asmaY_Year ?? '',
-                    emp_name:
-                        employees.find((e) => e.hrmE_Id === v.hrmE_Id)?.employee_name ??
-                        '',
+                    year: academicYear?.data?.find((y: any) => y.asmaY_Id === v.asmaY_Id)?.asmaY_Year ?? '',
+                    emp_name: employees.find((e) => e.hrmE_Id === v.hrmE_Id)?.employee_name ?? '',
                     emp_Id: v.hrmE_Id ?? 0,
                     elpflg: 'Y',
                     clas: cls,
                     secs: sec,
                     sub: selectedSubjects.length ? selectedSubjects : [],
-                    ssub: selectedSSubjects.length ? selectedSSubjects : [],
+                    ssub: selectedSSubjects.length ? selectedSSubjects : []
                 });
             });
         });
@@ -282,13 +267,10 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         }
 
         // ---- FIX: maintain unique class-section pairs ----
-        const existingPairs = new Set(
-            details.map((d) => `${d.clas?.asmcL_Id}_${d.secs?.asmS_Id}_${d.yearid}_${d.user_id}_${d.emp_Id}`)
-        );
+        const existingPairs = new Set(details.map((d) => `${d.clas?.asmcL_Id}_${d.secs?.asmS_Id}_${d.yearid}_${d.user_id}_${d.emp_Id}`));
 
         const filtered = rowsToAdd.filter(
-            (r) =>
-                !existingPairs.has(`${r.clas?.asmcL_Id}_${r.secs?.asmS_Id}_${r.yearid}_${r.user_id}_${r.emp_Id}`)
+            (r) => !existingPairs.has(`${r.clas?.asmcL_Id}_${r.secs?.asmS_Id}_${r.yearid}_${r.user_id}_${r.emp_Id}`)
         );
 
         if (filtered.length === 0) {
@@ -297,9 +279,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         }
 
         setDetails((prev) => [...prev, ...filtered]);
-        toast.success(`${filtered.length} row(s) added`);
+        toast.info(`${filtered.length} Login Privilages added`);
     }
-
 
     // Delete row
     function handleDeleteRow(id: string) {
@@ -323,10 +304,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             const topPosition = formRef.current.getBoundingClientRect().top + window.pageYOffset;
             window.scrollTo({
                 top: topPosition - 70,
-                behavior: "smooth"
+                behavior: 'smooth'
             });
         }
-
     }
 
     // Update edited row after user modifies subject/sub-subject
@@ -343,7 +323,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             ssub: Array.isArray(v.subSubjectList) ? v.subSubjectList : details[rowIndex].ssub,
             yearid: v.asmaY_Id ?? details[rowIndex].yearid,
             user_id: v.ivrmulF_Id ?? details[rowIndex].user_id,
-            emp_name: employees.find((e) => e.hrmE_Id === v.hrmE_Id)?.employee_name ?? details[rowIndex].emp_name,
+            emp_name: employees.find((e) => e.hrmE_Id === v.hrmE_Id)?.employee_name ?? details[rowIndex].emp_name
         };
 
         setDetails((prev) => prev.map((r) => (r.id === editingId ? updated : r)));
@@ -362,10 +342,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     // Build final payload according to your exact required structure and call API helper
     // inside your component
 
-
     const onSubmit: SubmitHandler<FormFields> = async () => {
         if (details.length === 0) {
-            toast.error("Add at least one row to save");
+            toast.error('Add at least one row to save');
             return;
         }
 
@@ -377,8 +356,8 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 const sub = (d.sub || []).map((s: any) => ({
                     ismS_Id: s.ismS_Id ?? 0,
                     mI_Id: 0,
-                    ismS_SubjectName: s.ismS_SubjectName ?? s.name ?? "",
-                    ismS_SubjectCode: s.ismS_SubjectCode ?? "",
+                    ismS_SubjectName: s.ismS_SubjectName ?? s.name ?? '',
+                    ismS_SubjectCode: s.ismS_SubjectCode ?? '',
                     ismS_Max_Marks: s.ismS_Max_Marks ?? 0,
                     ismS_Min_Marks: s.ismS_Min_Marks ?? 0,
                     ismS_ExamFlag: s.ismS_ExamFlag ?? 0,
@@ -387,31 +366,29 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     ismS_BatchAppl: s.ismS_BatchAppl ?? 0,
                     ismS_ActiveFlag: s.ismS_ActiveFlag ?? 1,
                     ismS_OrderFlag: s.ismS_OrderFlag ?? 0,
-                    ismS_TTFlag: typeof s.ismS_TTFlag === "boolean" ? s.ismS_TTFlag : true,
-                    ismS_AttendanceFlag:
-                        typeof s.ismS_AttendanceFlag === "boolean" ? s.ismS_AttendanceFlag : true,
+                    ismS_TTFlag: typeof s.ismS_TTFlag === 'boolean' ? s.ismS_TTFlag : true,
+                    ismS_AttendanceFlag: typeof s.ismS_AttendanceFlag === 'boolean' ? s.ismS_AttendanceFlag : true
                 }));
 
                 const ssub = (d.ssub || []).map((ss: any) => ({
                     emsS_Id: ss.emsS_Id ?? ss.issS_Id ?? 0,
                     mI_Id: 0,
-                    emsS_SubSubjectName: ss.emsS_SubSubjectName ?? ss.name ?? "",
-                    emsS_SubSubjectCode: ss.emsS_SubSubjectCode ?? "",
+                    emsS_SubSubjectName: ss.emsS_SubSubjectName ?? ss.name ?? '',
+                    emsS_SubSubjectCode: ss.emsS_SubSubjectCode ?? '',
                     emsS_Order: ss.emsS_Order ?? 0,
-                    emsS_ActiveFlag:
-                        typeof ss.emsS_ActiveFlag === "boolean" ? ss.emsS_ActiveFlag : true,
+                    emsS_ActiveFlag: typeof ss.emsS_ActiveFlag === 'boolean' ? ss.emsS_ActiveFlag : true
                 }));
 
                 return {
                     yearid: d.yearid ?? 0,
                     user_id: d.user_id ?? 0,
-                    year: d.year ?? "",
-                    emp_name: d.emp_name ?? "",
-                    elpflg: d.elpflg ?? "Y",
+                    year: d.year ?? '',
+                    emp_name: d.emp_name ?? '',
+                    elpflg: d.elpflg ?? 'Y',
 
                     clas: {
                         asmcL_Id: d.clas?.asmcL_Id ?? 0,
-                        asmcL_ClassName: d.clas?.asmcL_ClassName ?? "",
+                        asmcL_ClassName: d.clas?.asmcL_ClassName ?? '',
                         asmcL_Order: d.clas?.asmcL_Order ?? 0,
                         mI_Id: 0,
                         asmcL_MinAgeYear: d.clas?.asmcL_MinAgeYear ?? 0,
@@ -421,24 +398,21 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                         asmcL_MaxAgeMonth: d.clas?.asmcL_MaxAgeMonth ?? 0,
                         asmcL_MaxAgeDays: d.clas?.asmcL_MaxAgeDays ?? 0,
                         asmcL_MaxCapacity: d.clas?.asmcL_MaxCapacity ?? 0,
-                        asmcL_ActiveFlag:
-                            typeof d.clas?.asmcL_ActiveFlag === "boolean"
-                                ? d.clas.asmcL_ActiveFlag
-                                : true,
+                        asmcL_ActiveFlag: typeof d.clas?.asmcL_ActiveFlag === 'boolean' ? d.clas.asmcL_ActiveFlag : true
                     },
 
                     secs: {
                         asmS_Id: d.secs?.asmS_Id ?? 0,
                         mI_Id: 0,
-                        asmC_SectionName: d.secs?.asmC_SectionName ?? "",
-                        asmC_SectionCode: d.secs?.asmC_SectionCode ?? "",
+                        asmC_SectionName: d.secs?.asmC_SectionName ?? '',
+                        asmC_SectionCode: d.secs?.asmC_SectionCode ?? '',
                         asmC_Order: d.secs?.asmC_Order ?? 0,
                         asmC_ActiveFlag: d.secs?.asmC_ActiveFlag ?? 1,
-                        asmC_MaxCapacity: d.secs?.asmC_MaxCapacity ?? 0,
+                        asmC_MaxCapacity: d.secs?.asmC_MaxCapacity ?? 0
                     },
 
                     sub,
-                    ssub,
+                    ssub
                 };
             });
 
@@ -446,7 +420,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             const payload = {
                 mI_Id: 0,
                 selectedclass,
-                action: "ADD",
+                action: 'ADD'
             };
             console.log('login privilages payload', payload);
 
@@ -454,15 +428,15 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             const res = await addorUpdateExamLoginPrivileges(payload as any);
 
             if (res?.success) {
-                toast.success("Saved successfully");
+                toast.success('Saved successfully');
                 setDetails([]);
                 reset();
-                onSuccess && onSuccess();
+                onSuccess?.();
             } else {
-                toast.error(res?.message || "Save failed");
+                toast.error(res?.message || 'Save failed');
             }
         } catch (err: any) {
-            toast.error(err.message || "Failed to save");
+            toast.error(err.message || 'Failed to save');
         } finally {
             setIsSubmitting(false);
         }
@@ -477,7 +451,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
     useEffect(() => {
         if (details.length > 0) {
-            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            tableRef.current?.scrollIntoView({ behavior: 'smooth' });
             setTimeout(scrollToBottom, 50);
         }
     }, [details]);
@@ -485,59 +459,58 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     const detailsTable = useMemo(() => {
         return (
             <div ref={tableRef}>
-                <table className="w-full text-sm border-collapse">
+                <table className='w-full border-collapse text-sm'>
                     <thead>
                         <tr style={{ background: 'hsl(277 90% 52%)', color: '#fff' }}>
-                            <th className="p-2 border">SLNO</th>
-                            <th className="p-2 border">Academic Year</th>
-                            <th className="p-2 border">user_id</th>
-                            <th className="p-2 border">Employee Name</th>
-                            <th className="p-2 border">Class</th>
-                            <th className="p-2 border">Section</th>
-                            <th className="p-2 border">Subject</th>
-                            <th className="p-2 border">Sub Subject</th>
-                            <th className="p-2 border">Actions</th>
+                            <th className='border p-2'>SLNO</th>
+                            <th className='border p-2'>Academic Year</th>
+                            <th className='border p-2'>user_id</th>
+                            <th className='border p-2'>Employee Name</th>
+                            <th className='border p-2'>Class</th>
+                            <th className='border p-2'>Section</th>
+                            <th className='border p-2'>Subject</th>
+                            <th className='border p-2'>Sub Subject</th>
+                            <th className='border p-2'>Actions</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         {details.map((d, idx) => (
-                            <tr key={d.id} className="even:bg-gray-50">
-                                <td className="p-2 border text-center">{idx + 1}</td>
-                                <td className="p-2 border text-center">{d.year}</td>
-                                <td className="p-2 border text-center">{d.user_id}</td>
-                                <td className="p-2 border">{d.emp_name}</td>
-                                <td className="p-2 border">{d.clas?.asmcL_ClassName ?? ''}</td>
-                                <td className="p-2 border">
+                            <tr key={d.id} className='even:bg-gray-50'>
+                                <td className='border p-2 text-center'>{idx + 1}</td>
+                                <td className='border p-2 text-center'>{d.year}</td>
+                                <td className='border p-2 text-center'>{d.user_id}</td>
+                                <td className='border p-2'>{d.emp_name}</td>
+                                <td className='border p-2'>{d.clas?.asmcL_ClassName ?? ''}</td>
+                                <td className='border p-2'>
                                     {sections.find((s) => s.asmS_Id === d.secs?.asmS_Id)?.asmC_SectionName ?? ''}
                                 </td>
-                                <td className="p-2 border">
-                                    {(d.sub || []).map((s) => s.ismS_SubjectName).join(', ')}
-                                </td>
-                                <td className="p-2 border">
+                                <td className='border p-2'>{(d.sub || []).map((s) => s.ismS_SubjectName).join(', ')}</td>
+                                <td className='border p-2'>
                                     {(d.ssub || []).map((ss) => ss.emsS_SubSubjectName ?? ss.issS_SubSubjectName).join(', ')}
                                 </td>
 
-                                <td className="p-2 border">
-                                    <div className="flex gap-2 justify-center">
+                                <td className='border p-2'>
+                                    <div className='flex justify-center gap-2'>
                                         <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
+                                            type='button'
+                                            variant='ghost'
+                                            size='sm'
                                             onClick={() => handleEditRow(d.id)}
-                                            className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600"
-                                        >
-                                            <Edit className="h-4 w-4" />
+                                            className='h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600'>
+                                            <Edit className='h-4 w-4' />
                                         </Button>
 
                                         <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => handleDeleteRow(d.id)}
-                                            className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
-                                        >
-                                            <Trash2 className="h-4 w-4" />
+                                            type='button'
+                                            variant='ghost'
+                                            size='sm'
+                                            onClick={() => {
+                                                setDeleteIndex(idx); // store the row index to delete
+                                                setConfirmOpen(true); // open confirmation popup
+                                            }}
+                                            className='h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600'>
+                                            <Trash2 className='h-4 w-4' />
                                         </Button>
                                     </div>
                                 </td>
@@ -546,7 +519,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
 
                         {details.length === 0 && (
                             <tr>
-                                <td className="p-4 border text-center" colSpan={9}>
+                                <td className='border p-4 text-center' colSpan={9}>
                                     No rows added yet.
                                 </td>
                             </tr>
@@ -555,28 +528,35 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                 </table>
 
                 {/* ✅ Save button — OUTSIDE table & centered */}
-                <div className="w-full flex justify-center mt-5">
-                    <div className="w-fit">
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? "Saving..." : "Save"}
+                <div className='mt-5 flex w-full justify-center'>
+                    <div className='w-fit'>
+                        <Button type='submit' disabled={isSubmitting}>
+                            {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
                     </div>
                 </div>
-
             </div>
         );
     }, [details]);
+    const handleDeleteRowByIndex = (index: number) => {
+        setDetails((prev) => prev.filter((_, i) => i !== index));
+        if (editingId === details[index]?.id) setEditingId(null); // cancel edit if editing deleted row
+        toast.info('Row deleted successfully');
+    };
+
     const formRef = useRef<HTMLDivElement | null>(null);
     // Render
     return (
-        <div className="w-full space-y-6" ref={formRef}>
-            <FormProvider {...methods} >
-                <div className="bg-white p-3 rounded shadow">
+        <div className='w-full space-y-6' ref={formRef}>
+            <FormProvider {...methods}>
+                <div className='rounded bg-white p-3 shadow'>
                     {/* Tabs */}
-                    <div className="flex gap-2 mb-4 bg-gray-200 rounded-full w-max p-1">
+                    <div className='mb-4 flex w-max gap-2 rounded-full bg-gray-200 p-1'>
                         <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${activeTab === 0 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                                }`}
+                            type='button'
+                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${
+                                activeTab === 0 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+                            }`}
                             onClick={() => {
                                 setActiveTab(0);
                                 setDisableClassSection(false);
@@ -585,14 +565,15 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 setValue('subjectList', []);
                                 setValue('subSubjectList', []);
                                 setEditingId(null);
-                            }}
-                        >
+                            }}>
                             Entry By Class teacher
                         </button>
 
                         <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${activeTab === 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                                }`}
+                            type='button'
+                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${
+                                activeTab === 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+                            }`}
                             onClick={() => {
                                 setActiveTab(1);
                                 setDisableClassSection(false);
@@ -601,14 +582,15 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 setValue('subjectList', []);
                                 setValue('subSubjectList', []);
                                 setEditingId(null);
-                            }}
-                        >
+                            }}>
                             Entry By Subject Teacher
                         </button>
 
                         <button
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${activeTab === 2 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
-                                }`}
+                            type='button'
+                            className={`rounded-full px-6 py-2 font-medium text-sm transition-colors duration-200 ${
+                                activeTab === 2 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-600'
+                            }`}
                             onClick={() => {
                                 setActiveTab(2);
                                 setDisableClassSection(false);
@@ -617,43 +599,39 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 setValue('subjectList', []);
                                 setValue('subSubjectList', []);
                                 setEditingId(null);
-                            }}
-                        >
+                            }}>
                             Entry By Others
                         </button>
                     </div>
 
-
-                    <form onSubmit={handleSubmit(onSubmit)}
-                        className="space-y-6"
-                    >
-
+                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                         {/* 2 Column Layout */}
-                        <div className="grid grid-cols-2 gap-6">
-
+                        <div className='grid grid-cols-2 gap-6'>
                             {/* LEFT COLUMN ------------------------------------------ */}
-                            <div className="flex flex-col gap-6">
-
+                            <div className='flex flex-col gap-6'>
                                 {/* Academic Year */}
                                 <Controller
                                     control={control}
-                                    name="asmaY_Id"
+                                    name='asmaY_Id'
                                     disabled={editingId !== null}
                                     render={({ field, fieldState }) => (
-                                        <div className="w-full">
+                                        <div className='w-full'>
                                             <Label>Academic Year *</Label>
                                             <Select
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Academic Year" />
+                                                    <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {!academicYear ? (
-                                                        <SelectItem value="0" disabled>Loading...</SelectItem>
+                                                        <SelectItem value='0' disabled>
+                                                            Loading...
+                                                        </SelectItem>
                                                     ) : academicYear?.data?.length === 0 ? (
-                                                        <SelectItem value="0" disabled>No academic years</SelectItem>
+                                                        <SelectItem value='0' disabled>
+                                                            No academic years
+                                                        </SelectItem>
                                                     ) : (
                                                         academicYear?.data?.map((y) => (
                                                             <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -667,21 +645,66 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                         </div>
                                     )}
                                 />
-                                <Controller control={control} name="hrmE_Id" disabled={editingId !== null} render={({ field, fieldState }) => (<div className="w-full"> <Label>Employee Name *</Label> <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''} > <SelectTrigger> <SelectValue placeholder="Select Employee" /> </SelectTrigger> <SelectContent> {employeeLoading ? (<SelectItem value="loading" disabled>Loading...</SelectItem>) : employeeError ? (<SelectItem value="error" disabled>Error loading staff</SelectItem>) : !asmaY_Id ? (<SelectItem value="no-year" disabled>Select Academic Year first</SelectItem>) : !employeeData?.data || employeeData.data.length === 0 ? (<SelectItem value="empty" disabled>No Employee found</SelectItem>) : (employeeData.data.map((e: any) => (<SelectItem key={e.hrmE_Id} value={String(e.hrmE_Id)}> {e.employee_name} </SelectItem>)))} </SelectContent> </Select> {fieldState.error && <FormError>{fieldState.error.message}</FormError>} </div>)} />
+                                <Controller
+                                    control={control}
+                                    name='hrmE_Id'
+                                    disabled={editingId !== null}
+                                    render={({ field, fieldState }) => (
+                                        <div className='w-full'>
+                                            {' '}
+                                            <Label>Employee Name *</Label>{' '}
+                                            <Select
+                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                value={field.value ? String(field.value) : ''}>
+                                                {' '}
+                                                <SelectTrigger>
+                                                    {' '}
+                                                    <SelectValue placeholder='Select Employee' />{' '}
+                                                </SelectTrigger>{' '}
+                                                <SelectContent>
+                                                    {' '}
+                                                    {employeeLoading ? (
+                                                        <SelectItem value='loading' disabled>
+                                                            Loading...
+                                                        </SelectItem>
+                                                    ) : employeeError ? (
+                                                        <SelectItem value='error' disabled>
+                                                            Error loading staff
+                                                        </SelectItem>
+                                                    ) : !asmaY_Id ? (
+                                                        <SelectItem value='no-year' disabled>
+                                                            Select Academic Year first
+                                                        </SelectItem>
+                                                    ) : !employeeData?.data || employeeData.data.length === 0 ? (
+                                                        <SelectItem value='empty' disabled>
+                                                            No Employee found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        employeeData.data.map((e: any) => (
+                                                            <SelectItem key={e.hrmE_Id} value={String(e.hrmE_Id)}>
+                                                                {' '}
+                                                                {e.employee_name}{' '}
+                                                            </SelectItem>
+                                                        ))
+                                                    )}{' '}
+                                                </SelectContent>{' '}
+                                            </Select>{' '}
+                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}{' '}
+                                        </div>
+                                    )}
+                                />
 
                                 {/* Classes */}
                                 <Controller
                                     control={control}
-                                    name="classList"
+                                    name='classList'
                                     render={({ field, fieldState }) => {
                                         const options = classes.map((c: any) => ({
                                             label: c.asmcL_ClassName ?? c.name ?? '',
-                                            value: String(c.asmcL_Id ?? c.id),
+                                            value: String(c.asmcL_Id ?? c.id)
                                         }));
 
-                                        const selectedValues = (field.value || []).map((c: any) =>
-                                            String(c?.asmcL_Id ?? c)
-                                        );
+                                        const selectedValues = (field.value || []).map((c: any) => String(c?.asmcL_Id ?? c));
 
                                         return (
                                             <CustomMultiSelectBox
@@ -692,13 +715,13 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                         (v) =>
                                                             classes.find((c) => String(c.asmcL_Id) === v) || {
                                                                 asmcL_Id: Number(v),
-                                                                asmcL_ClassName: '',
+                                                                asmcL_ClassName: ''
                                                             }
                                                     );
                                                     field.onChange(selected);
                                                 }}
-                                                label="Classes"
-                                                height="200px"
+                                                label='Classes'
+                                                height='200px'
                                                 isSearchRequired
                                                 disabled={disableClassSection}
                                                 error={fieldState?.error?.message}
@@ -711,16 +734,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 {/* Subjects */}
                                 <Controller
                                     control={control}
-                                    name="subjectList"
+                                    name='subjectList'
                                     render={({ field, fieldState }) => {
                                         const options = subjects.map((s: any) => ({
                                             label: s.ismS_SubjectName,
-                                            value: String(s.ismS_Id),
+                                            value: String(s.ismS_Id)
                                         }));
 
-                                        const selectedValues = (field.value || []).map((s: any) =>
-                                            String(s?.ismS_Id ?? s)
-                                        );
+                                        const selectedValues = (field.value || []).map((s: any) => String(s?.ismS_Id ?? s));
 
                                         return (
                                             <CustomMultiSelectBox
@@ -731,13 +752,13 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                         (v) =>
                                                             subjects.find((s) => String(s.ismS_Id) === v) || {
                                                                 ismS_Id: Number(v),
-                                                                ismS_SubjectName: '',
+                                                                ismS_SubjectName: ''
                                                             }
                                                     );
                                                     field.onChange(selected);
                                                 }}
-                                                label="Subjects"
-                                                height="200px"
+                                                label='Subjects'
+                                                height='200px'
                                                 isSearchRequired
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubjectLoading}
@@ -745,26 +766,23 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                         );
                                     }}
                                 />
-
                             </div>
 
                             {/* RIGHT COLUMN ------------------------------------------ */}
-                            <div className="flex flex-col gap-6">
-
+                            <div className='flex flex-col gap-6'>
                                 {/* User Name */}
                                 <Controller
                                     control={control}
-                                    name="ivrmulF_Id"
+                                    name='ivrmulF_Id'
                                     disabled={editingId !== null}
                                     render={({ field }) => (
-                                        <div className="w-full">
+                                        <div className='w-full'>
                                             <Label>User Name</Label>
                                             <Select
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select User --" />
+                                                    <SelectValue placeholder='Select User --' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {userLogins.map((u) => (
@@ -781,16 +799,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 {/* Sections */}
                                 <Controller
                                     control={control}
-                                    name="sectionList"
+                                    name='sectionList'
                                     render={({ field, fieldState }) => {
                                         const options = sections.map((s: any) => ({
                                             label: s.asmC_SectionName,
-                                            value: String(s.asmS_Id),
+                                            value: String(s.asmS_Id)
                                         }));
 
-                                        const selectedValues = (field.value || []).map((s: any) =>
-                                            String(s?.asmS_Id ?? s)
-                                        );
+                                        const selectedValues = (field.value || []).map((s: any) => String(s?.asmS_Id ?? s));
 
                                         return (
                                             <CustomMultiSelectBox
@@ -801,13 +817,13 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                         (v) =>
                                                             sections.find((s) => String(s.asmS_Id) === v) || {
                                                                 asmS_Id: Number(v),
-                                                                asmC_SectionName: '',
+                                                                asmC_SectionName: ''
                                                             }
                                                     );
                                                     field.onChange(selected);
                                                 }}
-                                                label="Sections"
-                                                height="200px"
+                                                label='Sections'
+                                                height='200px'
                                                 isSearchRequired
                                                 disabled={disableClassSection}
                                                 error={fieldState?.error?.message}
@@ -820,16 +836,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 {/* Sub-subjects */}
                                 <Controller
                                     control={control}
-                                    name="subSubjectList"
+                                    name='subSubjectList'
                                     render={({ field, fieldState }) => {
                                         const options = subSubjects.map((s: any) => ({
                                             label: s.emsS_SubSubjectName ?? s.issS_SubSubjectName ?? '',
-                                            value: String(s.emsS_Id ?? s.issS_Id),
+                                            value: String(s.emsS_Id ?? s.issS_Id)
                                         }));
 
-                                        const selectedValues = (field.value || []).map((s: any) =>
-                                            String(s?.emsS_Id ?? s?.issS_Id ?? s)
-                                        );
+                                        const selectedValues = (field.value || []).map((s: any) => String(s?.emsS_Id ?? s?.issS_Id ?? s));
 
                                         return (
                                             <CustomMultiSelectBox
@@ -838,17 +852,15 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 onChange={(vals) => {
                                                     const selected = vals.map(
                                                         (v) =>
-                                                            subSubjects.find(
-                                                                (s) => String(s.emsS_Id ?? s.issS_Id) === v
-                                                            ) || {
+                                                            subSubjects.find((s) => String(s.emsS_Id ?? s.issS_Id) === v) || {
                                                                 emsS_Id: Number(v),
-                                                                emsS_SubSubjectName: '',
+                                                                emsS_SubSubjectName: ''
                                                             }
                                                     );
                                                     field.onChange(selected);
                                                 }}
-                                                label="Sub-Subjects"
-                                                height="200px"
+                                                label='Sub-Subjects'
+                                                height='200px'
                                                 isSearchRequired
                                                 error={fieldState?.error?.message}
                                                 isLoading={masterSubSubjectLoading}
@@ -860,54 +872,85 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                 {/* Remarks */}
                                 <Controller
                                     control={control}
-                                    name="remarks"
-                                    render={({ field }) => (
-                                        <InputText
-                                            {...field}
-                                            label="Remarks"
-                                            placeholder="Enter remarks"
-                                        />
-                                    )}
+                                    name='remarks'
+                                    render={({ field }) => <InputText {...field} label='Remarks' placeholder='Enter remarks' />}
                                 />
-
                             </div>
                         </div>
 
                         {/* Buttons */}
-                        <div className="w-full flex justify-center">
-                            <div className="w-fit flex justify-center gap-3 mt-4">
+                        <div className='flex w-full justify-center'>
+                            <div className='mt-4 flex w-fit justify-center gap-3'>
                                 {editingId ? (
                                     <>
-                                        <Button type="button" onClick={handleUpdateRow}>Update Row</Button>
-                                        <Button type="button" variant="outline" onClick={cancelEdit}>Cancel Edit</Button>
+                                        <Button type='button' onClick={handleUpdateRow}>
+                                            Update Row
+                                        </Button>
+                                        <Button type='button' variant='outline' onClick={cancelEdit}>
+                                            Cancel Edit
+                                        </Button>
                                     </>
                                 ) : (
                                     <>
-                                        <Button type="button" onClick={handleAddRows}>+ ADD</Button>
+                                        <Button type='button' onClick={handleAddRows}>
+                                            + ADD
+                                        </Button>
 
-                                        <Button type="button" variant="outline" onClick={() => { reset(); setDetails([]); }}>Reset</Button>
+                                        <Button
+                                            type='button'
+                                            variant='outline'
+                                            onClick={() => {
+                                                reset();
+                                                setDetails([]);
+                                            }}>
+                                            Reset
+                                        </Button>
                                     </>
                                 )}
                             </div>
                         </div>
-
-
                     </form>
-
-
                 </div>
                 {details.length > 0 && (
-                    <div className="bg-white p-4 rounded shadow">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-semibold">DETAILS</h3>
+                    <div className='rounded bg-white p-4 shadow'>
+                        <div className='mb-2 flex items-center justify-between'>
+                            <h3 className='font-semibold text-lg'>DETAILS</h3>
                             {/* collapse/expand or additional controls can go here */}
                         </div>
 
-                        <div className="overflow-x-auto">{detailsTable}</div>
+                        <div className='overflow-x-auto'>{detailsTable}</div>
                     </div>
                 )}
-
             </FormProvider>
+            {confirmOpen && deleteIndex !== null && (
+                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+                    <div className='w-[360px] rounded-md bg-white p-6 text-center shadow-xl'>
+                        <h2 className='mb-3 font-semibold text-lg'>Confirm Delete</h2>
+                        <p className='mb-6 text-gray-700'>Are you sure you want to delete this row?</p>
+
+                        <div className='flex justify-center gap-4'>
+                            <Button
+                                variant='outline'
+                                onClick={() => {
+                                    setConfirmOpen(false); // close popup
+                                    setDeleteIndex(null); // reset index
+                                }}>
+                                Cancel
+                            </Button>
+
+                            <Button
+                                variant='destructive'
+                                onClick={() => {
+                                    if (deleteIndex !== null) handleDeleteRowByIndex(deleteIndex); // delete row
+                                    setConfirmOpen(false); // close popup
+                                    setDeleteIndex(null); // reset index
+                                }}>
+                                Yes, Delete
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

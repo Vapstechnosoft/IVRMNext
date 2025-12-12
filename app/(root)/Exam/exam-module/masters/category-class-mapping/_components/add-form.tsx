@@ -12,10 +12,9 @@ import {
     getClassMappedSections,
     getClasses
 } from '@/server/exam/exam-module/masters/category-class-mapping';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
-import type { IAcademicYear, ICategory, IClass } from '@/types/exam/exam-module/masters';
+import type { ICategory, IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Edit, Save, Trash, Trash2, X } from 'lucide-react';
+import { Edit, Save, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -209,10 +208,9 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     };
     useEffect(() => {
         if (mappingList.length > 0) {
-            tableRef.current?.scrollIntoView({ behavior: "smooth" });
+            tableRef.current?.scrollIntoView({ behavior: 'smooth' });
         }
-    }, [mappingList]);  // <-- Watch this
-
+    }, [mappingList]); // <-- Watch this
 
     const handleEdit = (index: number) => {
         const row = mappingList[index];
@@ -485,7 +483,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                                     {
                                                         // academicYears stores ids as string in formatted list
                                                         academicYears.find((y) => String(y.asmaY_Id) === String(m.asmaY_Id))?.asmaY_Year ||
-                                                        String(m.asmaY_Id)
+                                                            String(m.asmaY_Id)
                                                     }
                                                 </td>
                                                 <td className='border p-2 text-center'>
@@ -513,13 +511,12 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                                         variant='ghost'
                                                         size='sm'
                                                         onClick={() => {
-                                                            setDeleteIndex(i);   // store selected row index
-                                                            setConfirmOpen(true);    // open confirmation popup
+                                                            setDeleteIndex(i); // store selected row index
+                                                            setConfirmOpen(true); // open confirmation popup
                                                         }}
                                                         className='h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600'>
                                                         <Trash2 className='h-4 w-4' />
                                                     </Button>
-
                                                 </td>
                                             </tr>
                                         ))
@@ -569,33 +566,29 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                         <h2 className='mb-3 font-semibold text-lg'>Confirm Delete</h2>
                         <p className='mb-6 text-gray-700'>Are you sure you want to delete this mapping?</p>
 
-                        <div className="flex justify-center gap-4">
+                        <div className='flex justify-center gap-4'>
                             <Button
-                                variant="outline"
+                                variant='outline'
                                 onClick={() => {
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}
-                            >
+                                }}>
                                 Cancel
                             </Button>
 
                             <Button
-                                variant="destructive"
+                                variant='destructive'
                                 onClick={() => {
                                     if (deleteIndex !== null) handleDelete(deleteIndex); // 🔥 call your function
                                     setConfirmOpen(false);
                                     setDeleteIndex(null);
-                                }}
-                            >
+                                }}>
                                 Yes, Delete
                             </Button>
                         </div>
                     </div>
                 </div>
             )}
-
-
         </form>
     );
 }

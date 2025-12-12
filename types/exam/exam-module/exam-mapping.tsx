@@ -55,6 +55,20 @@ export interface IExamLoginPrivilegesForm {
     subjectIds: number[];
     subSubjectIds?: number[];
 }
+export interface ILoginPrivilegeDetails {
+    slno: number;
+    classId: number;
+    className: string;
+
+    sectionId: number;
+    sectionName: string;
+
+    subjectId: number;
+    subjectName: string;
+
+    subSubjectId: number;
+    subSubjectName: string; // Allow backend extra fields safely
+}
 
 export interface IExamLoginPrivilegesView {
     elp_Id: number;
@@ -398,7 +412,6 @@ export interface IHallTicketGeneratedItem {
     emE_Id: number;
 }
 
-
 // Student List Response
 export interface IHallTicketStudentItem {
     amsT_Id: number;
@@ -413,11 +426,11 @@ export interface IHallTicketStudentItem {
 }
 
 export interface IPromotionRemarksGrid {
-    slNo: number;          // Serial number
-    admNo: string;         // Admission number
-    studentName: string;   // Student's full name
-    studentId: number;     // Student ID
-    remarks?: string;      // Remarks for the student
+    slNo: number; // Serial number
+    admNo: string; // Admission number
+    studentName: string; // Student's full name
+    studentId: number; // Student ID
+    remarks?: string; // Remarks for the student
 }
 
 export interface IPromotionSetting {
@@ -433,9 +446,9 @@ export interface IPromotionSetting {
 }
 
 export interface IExamPromotionalSettingDetails {
-    eycsE_Id: number;            // Subject Mapping ID  (Row ID)
-    eycE_Id: number;             // Parent ExamId (FK)
-    emS_Id: number;              // Subject Id
+    eycsE_Id: number; // Subject Mapping ID  (Row ID)
+    eycE_Id: number; // Parent ExamId (FK)
+    emS_Id: number; // Subject Id
     subjectName: string;
     maxMarks: number;
     minMarks: number;
@@ -443,7 +456,5 @@ export interface IExamPromotionalSettingDetails {
     isActive: boolean;
 
     // Navigation Forward → Page-2
-    groups?: IExamSubjectGroupDetails[];
+    groups?: IExamSubjectGroupingDetails[];
 }
-
-

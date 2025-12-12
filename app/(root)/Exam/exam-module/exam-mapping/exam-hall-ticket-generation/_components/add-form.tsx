@@ -1,6 +1,5 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
@@ -14,9 +13,10 @@ import { GenerateHalltickets } from '@/server/exam/exam-module/exam-mapping/hall
 import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
-    getSectionsDropDownByAcademicYearandClasslist,
+    getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -61,8 +61,8 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
             startingNo: '',
             increment: '',
             prefixNoFlag: 'N',
-            leadingzeros: 0,
-        } as any,
+            leadingzeros: 0
+        } as any
     });
 
     // Destructure commonly used helpers from the methods object (still keep methods to feed FormProvider)
@@ -74,7 +74,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
         getValues,
         watch,
         trigger,
-        formState: { errors, isSubmitting },
+        formState: { errors, isSubmitting }
     } = methods;
 
     // ---------- Local state for dropdown options ----------
@@ -91,11 +91,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
     const { refetchAll } = useHallTicketGeneratedList();
 
     // Academic year dropdown hook
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     // ---------- Watchers (live) ----------
     // Watch fields — useWatch ensures we get updated values when user interacts
@@ -181,7 +177,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
 
     // ---------- Load Exams when section(s) selected ----------
     useEffect(() => {
-        if (!selectedYear || !selectedClass || !(selectedSections?.length)) return;
+        if (!selectedYear || !selectedClass || !selectedSections?.length) return;
 
         let mounted = true;
         (async () => {
@@ -189,7 +185,11 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
             try {
                 // For api we pick first selected section id (same as your code)
                 const firstSectionId = selectedSections?.[0]?.asmS_Id ?? selectedSections?.[0];
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, Number(firstSectionId));
+                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(
+                    selectedYear,
+                    selectedClass,
+                    Number(firstSectionId)
+                );
                 if (!mounted) return;
                 const safeData = Array.isArray(data) ? data : [];
                 setExams(safeData);
@@ -215,7 +215,10 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
         // canonicalize section list (array of { asmS_Id })
         const sectionArray = Array.isArray((data as any).sectionList) ? (data as any).sectionList : [];
         const sectionlist = sectionArray.map((s: any) => ({ asmS_Id: Number(s.asmS_Id) || 0 }));
-        const sectionids = sectionArray.map((s: any) => String(s.asmS_Id ?? '')).filter(Boolean).join(',');
+        const sectionids = sectionArray
+            .map((s: any) => String(s.asmS_Id ?? ''))
+            .filter(Boolean)
+            .join(',');
 
         // read leadingzeros from the form if present (some schemas may call it 'leadingzeros')
         const leadingzerosVal = (data as any).leadingzeros !== undefined ? safeNumber((data as any).leadingzeros, 0) : 0;
@@ -230,7 +233,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
             startno: safeNumber((data as any).startingNo ?? (data as any).startno ?? 0, 0),
             increment: safeNumber((data as any).increment ?? 0, 0),
             leadingzeros: leadingzerosVal,
-            sectionlist,
+            sectionlist
         };
 
         return payload;
@@ -249,6 +252,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
             const res = await GenerateHalltickets(payload);
 
             // Expecting res.success / res.message
+            // biome-ignore lint/complexity/useOptionalChain: <explanation>
             if (res && res.success) {
                 toast.success(res.message || 'Hall tickets generated successfully!');
                 // re-fetch generated list if available
@@ -272,9 +276,10 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                     startingNo: '',
                     increment: '',
                     prefixNoFlag: 'N',
-                    leadingzeros: 0,
+                    leadingzeros: 0
                 } as any);
             } else {
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 toast.error((res && res.message) || 'Update failed');
             }
         } catch (err: any) {
@@ -305,37 +310,36 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
 
     // ---------- Render ----------
     return (
-        <div className="w-full rounded-2xl bg-white p-8 shadow-lg">
+        <div className='w-full rounded-2xl bg-white p-8 shadow-lg'>
             {/* Provide form methods to children */}
             <FormProvider {...methods}>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-8" noValidate>
-                    <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                <form onSubmit={handleSubmit(onSubmit)} className='space-y-8' noValidate>
+                    <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
                         {/* LEFT COLUMN */}
-                        <div className="space-y-6">
-
+                        <div className='space-y-6'>
                             {/* Academic Year */}
                             <Controller
                                 control={control}
-                                name="asmaY_Id"
+                                name='asmaY_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex items-center gap-4">
-                                        <Label className="w-40 text-right">
-                                            Academic Year <span className="text-red-500">*</span>
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right'>
+                                            Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-                                        <div className="flex-1">
+                                        <div className='flex-1'>
                                             <Select
                                                 onValueChange={(v) => field.onChange(Number(v))}
                                                 value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Academic Year" />
+                                                    <SelectValue placeholder='Select Academic Year' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {academicYearLoading ? (
-                                                        <SelectItem value="loading" disabled>
+                                                        <SelectItem value='loading' disabled>
                                                             Loading Academic Year...
                                                         </SelectItem>
                                                     ) : academicYearError ? (
-                                                        <SelectItem value="error" disabled>
+                                                        <SelectItem value='error' disabled>
                                                             Error loading Academic Year
                                                         </SelectItem>
                                                     ) : (
@@ -356,28 +360,27 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             {/* Class - Single Select */}
                             <Controller
                                 control={control}
-                                name="asmcL_Id"
+                                name='asmcL_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex items-center gap-4">
-                                        <Label className="w-40 text-right">
-                                            Class <span className="text-red-500">*</span>
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right'>
+                                            Class <span className='text-red-500'>*</span>
                                         </Label>
-                                        <div className="flex-1">
+                                        <div className='flex-1'>
                                             <Select
                                                 disabled={!selectedYear || loadingClasses}
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Class" />
+                                                    <SelectValue placeholder='Select Class' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {!selectedYear ? (
-                                                        <SelectItem value="none" disabled>
+                                                        <SelectItem value='none' disabled>
                                                             First select Academic Year
                                                         </SelectItem>
                                                     ) : loadingClasses ? (
-                                                        <SelectItem value="loading" disabled>
+                                                        <SelectItem value='loading' disabled>
                                                             Loading classes...
                                                         </SelectItem>
                                                     ) : (
@@ -398,13 +401,13 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             {/* Section - Multi Select */}
                             <Controller
                                 control={control}
-                                name="sectionList"
+                                name='sectionList'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex items-start gap-4">
-                                        <Label className="w-40 text-right pt-2">
-                                            Section <span className="text-red-500">*</span>
+                                    <div className='flex items-start gap-4'>
+                                        <Label className='w-40 pt-2 text-right'>
+                                            Section <span className='text-red-500'>*</span>
                                         </Label>
-                                        <div className="flex-1">
+                                        <div className='flex-1'>
                                             <CustomMultiSelectBox
                                                 options={sections.map((s) => ({ label: s.asmC_SectionName, value: String(s.asmS_Id) }))}
                                                 value={field.value?.map((s: any) => String(s.asmS_Id)) || []}
@@ -412,7 +415,7 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                                     field.onChange(vals.map((id: string | number) => ({ asmS_Id: Number(id) })))
                                                 }
                                                 disabled={!selectedYear || sections.length === 0}
-                                                height="200px"
+                                                height='200px'
                                                 isSearchRequired
                                                 isLoading={loadingSections}
                                                 error={fieldState.error?.message}
@@ -425,35 +428,34 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             {/* Exam Name */}
                             <Controller
                                 control={control}
-                                name="emE_Id"
+                                name='emE_Id'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex items-center gap-4">
-                                        <Label className="w-40 text-right">
-                                            Exam Name <span className="text-red-500">*</span>
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right'>
+                                            Exam Name <span className='text-red-500'>*</span>
                                         </Label>
-                                        <div className="flex-1">
+                                        <div className='flex-1'>
                                             <Select
                                                 onValueChange={(v) => field.onChange(Number(v))}
-                                                value={field.value ? String(field.value) : ''}
-                                            >
+                                                value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select Exam" />
+                                                    <SelectValue placeholder='Select Exam' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {!selectedYear ? (
-                                                        <SelectItem value="loading" disabled>
+                                                        <SelectItem value='loading' disabled>
                                                             select academic year
                                                         </SelectItem>
                                                     ) : !selectedClass ? (
-                                                        <SelectItem value="noclass" disabled>
+                                                        <SelectItem value='noclass' disabled>
                                                             select Class
                                                         </SelectItem>
                                                     ) : isEmptyArray(sections) ? (
-                                                        <SelectItem value="nosection" disabled>
+                                                        <SelectItem value='nosection' disabled>
                                                             Select Sections
                                                         </SelectItem>
                                                     ) : loadingExams ? (
-                                                        <SelectItem value="loading" disabled>
+                                                        <SelectItem value='loading' disabled>
                                                             Loading exams...
                                                         </SelectItem>
                                                     ) : (
@@ -473,17 +475,15 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                         </div>
 
                         {/* RIGHT COLUMN */}
-                        <div className="space-y-6">
+                        <div className='space-y-6'>
                             {/* Prefix */}
-                            <div className="flex items-center gap-4">
-                                <Label className="w-40 text-right">Prefix</Label>
-                                <div className="flex-1">
+                            <div className='flex items-center gap-4'>
+                                <Label className='w-40 text-right'>Prefix</Label>
+                                <div className='flex-1'>
                                     <Controller
                                         control={control}
-                                        name="prefixNo"
-                                        render={({ field }) => (
-                                            <Input {...field} placeholder="Enter Prefix" className="w-full" />
-                                        )}
+                                        name='prefixNo'
+                                        render={({ field }) => <Input {...field} placeholder='Enter Prefix' className='w-full' />}
                                     />
                                 </div>
                             </div>
@@ -491,14 +491,14 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             {/* Starting No */}
                             <Controller
                                 control={control}
-                                name="startingNo"
+                                name='startingNo'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex items-center gap-4">
-                                        <Label className="w-40 text-right">
-                                            Starting No.notes <span className="text-red-500">*</span>
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right'>
+                                            Starting No.notes <span className='text-red-500'>*</span>
                                         </Label>
-                                        <div className="flex-1">
-                                            <Input {...field} placeholder="Enter Starting No." className="w-full" />
+                                        <div className='flex-1'>
+                                            <Input {...field} placeholder='Enter Starting No.' className='w-full' />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -508,14 +508,14 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             {/* Increment */}
                             <Controller
                                 control={control}
-                                name="increment"
+                                name='increment'
                                 render={({ field, fieldState }) => (
-                                    <div className="flex items-center gap-4">
-                                        <Label className="w-40 text-right">
-                                            Increment <span className="text-red-500">*</span>
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right'>
+                                            Increment <span className='text-red-500'>*</span>
                                         </Label>
-                                        <div className="flex-1">
-                                            <Input {...field} placeholder="Enter Increment" className="w-full" />
+                                        <div className='flex-1'>
+                                            <Input {...field} placeholder='Enter Increment' className='w-full' />
                                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                         </div>
                                     </div>
@@ -525,16 +525,16 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             {/* Leading Zeros */}
                             <Controller
                                 control={control}
-                                name="leadingzeros"
+                                name='leadingzeros'
                                 defaultValue={0 as any}
                                 render={({ field }) => (
-                                    <div className="flex items-center gap-4">
-                                        <Label className="w-40 text-right">Leading Zeros</Label>
-                                        <div className="flex-1">
+                                    <div className='flex items-center gap-4'>
+                                        <Label className='w-40 text-right'>Leading Zeros</Label>
+                                        <div className='flex-1'>
                                             <Input
-                                                type="number"
-                                                placeholder="Enter Leading Zeros"
-                                                className="w-full"
+                                                type='number'
+                                                placeholder='Enter Leading Zeros'
+                                                className='w-full'
                                                 value={field.value ?? 0}
                                                 onChange={(e) => {
                                                     const val = Number(e.target.value || 0);
@@ -547,35 +547,47 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                             />
 
                             {/* PrefixNo Yes/No */}
-                            <div className="flex items-center gap-4">
-                                <Label className="w-40 text-right">PrefixNo.</Label>
-                                <div className="flex items-center gap-6">
+                            <div className='flex items-center gap-4'>
+                                <Label className='w-40 text-right'>PrefixNo.</Label>
+                                <div className='flex items-center gap-6'>
                                     <Controller
                                         control={control}
-                                        name="prefixNoFlag"
+                                        name='prefixNoFlag'
                                         render={({ field }) => (
                                             <>
-                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                {/* YES OPTION */}
+                                                <div className='flex items-center gap-2'>
                                                     <Checkbox
+                                                        id='prefixYes'
                                                         checked={field.value === 'Y'}
                                                         onCheckedChange={(checked) => field.onChange(checked ? 'Y' : 'N')}
                                                     />
-                                                    <span>Yes</span>
-                                                </label>
-                                                <label className="flex items-center gap-2 cursor-pointer">
+
+                                                    <label htmlFor='prefixYes' className='cursor-pointer font-medium text-sm'>
+                                                        Yes
+                                                    </label>
+                                                </div>
+
+                                                {/* NO OPTION */}
+                                                <div className='flex items-center gap-2'>
                                                     <Checkbox
+                                                        id='prefixNo'
                                                         checked={field.value === 'N'}
                                                         onCheckedChange={(checked) => field.onChange(checked ? 'N' : 'Y')}
                                                     />
-                                                    <span>No</span>
-                                                </label>
 
+                                                    <label htmlFor='prefixNo' className='cursor-pointer font-medium text-sm'>
+                                                        No
+                                                    </label>
+                                                </div>
+
+                                                {/* INPUT BOX */}
                                                 <Input
-                                                    placeholder="Enter Prefix No."
+                                                    placeholder='Enter Prefix No.'
                                                     value={field.value === 'Y' ? getValues('prefixNo') : ''}
                                                     onChange={(e) => setValue('prefixNo', e.target.value)}
                                                     disabled={field.value !== 'Y'}
-                                                    className="w-48 transition-opacity"
+                                                    className='w-48 transition-opacity'
                                                 />
                                             </>
                                         )}
@@ -586,11 +598,11 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                     </div>
 
                     {/* ACTION BUTTONS */}
-                    <div className="w-fit flex justify-center gap-4 pt-6">
+                    <div className='flex w-fit justify-center gap-4 pt-6'>
                         <Button
-                            type="button"
-                            variant="outline"
-                            size="lg"
+                            type='button'
+                            variant='outline'
+                            size='lg'
                             onClick={() => {
                                 // Full reset but keep academic year (common UX)
                                 const curYear = getValues('asmaY_Id');
@@ -606,15 +618,14 @@ export default function HallTicketGenerationForm({ onSuccess }: { onSuccess?: ()
                                     startingNo: '',
                                     increment: '',
                                     prefixNoFlag: 'N',
-                                    leadingzeros: 0,
+                                    leadingzeros: 0
                                 } as any);
                             }}
-                            className="min-w-[120px]"
-                        >
+                            className='min-w-[120px]'>
                             CANCEL
                         </Button>
 
-                        <Button type="submit" size="lg" disabled={isSubmitting} className="w-fit">
+                        <Button type='submit' size='lg' disabled={isSubmitting} className='w-fit'>
                             {isSubmitting ? 'Generating...' : 'SAVE AND GENERATE'}
                         </Button>
                     </div>

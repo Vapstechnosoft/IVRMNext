@@ -1,39 +1,36 @@
 // app/exam/student-subject-mapping/_components/student-mapping-table.tsx
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { forwardRef } from 'react';
-import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import type React from 'react';
+import { useMemo, useState } from 'react';
+import { forwardRef } from 'react';
 
 /* Reusable Cells */
-const TableCell = forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(
-    ({ className, ...props }, ref) => (
-        <td
-            ref={ref}
-            className={cn(
-                'p-2 align-middle border-t border-b border-gray-300 whitespace-nowrap text-[#0C0A09] text-[14px]',
-                className
-            )}
-            {...props}
-        />
-    )
-);
+const TableCell = forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<HTMLTableCellElement>>(({ className, ...props }, ref) => (
+    <td
+        ref={ref}
+        className={cn(
+            'whitespace-nowrap border-gray-300 border-t border-r border-b p-2 align-middle text-[#0C0A09] text-[14px]',
+            className
+        )}
+        {...props}
+    />
+));
 TableCell.displayName = 'TableCell';
 
-const TableHeaderCell = forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(
-    ({ className, ...props }, ref) => (
-        <th
-            ref={ref}
-            className={cn(
-                'p-2 align-middle text-center border border-gray-300 bg-[hsl(277_90%_52%)] text-white text-sm font-medium',
-                className
-            )}
-            {...props}
-        />
-    )
-);
+const TableHeaderCell = forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<HTMLTableCellElement>>(({ className, ...props }, ref) => (
+    <th
+        ref={ref}
+        className={cn(
+            'border border-black-300 bg-[hsl(277_90%_52%)] p-2 text-center align-middle font-medium text-sm text-white',
+            className
+        )}
+        {...props}
+    />
+));
 TableHeaderCell.displayName = 'TableHeaderCell';
 
 /* ================== TYPES ================== */
@@ -63,17 +60,12 @@ interface Props {
 }
 
 /* ================== MAIN COMPONENT ================== */
-export default function StudentSubjectMappingTable({
-    students,
-    subjects,
-    onUpdateMapping,
-    isloading = false
-}: Props) {
+export default function StudentSubjectMappingTable({ students, subjects, onUpdateMapping, isloading = false }: Props) {
     const [searchTerm, setSearchTerm] = useState('');
 
     // Normalize student data to handle both old and new structures
     const normalizedStudents = useMemo(() => {
-        return students.map(s => ({
+        return students.map((s) => ({
             id: s.amsT_Id ?? s.studentId ?? 0,
             name: s.amsT_FirstName ?? s.name ?? '',
             admNo: s.amsT_AdmNo ?? s.admNo ?? '',
@@ -87,10 +79,7 @@ export default function StudentSubjectMappingTable({
         if (!searchTerm) return normalizedStudents;
         const q = searchTerm.toLowerCase();
         return normalizedStudents.filter(
-            (s) =>
-                s.name.toLowerCase().includes(q) ||
-                s.admNo.toLowerCase().includes(q) ||
-                String(s.rollNo).includes(q)
+            (s) => s.name.toLowerCase().includes(q) || s.admNo.toLowerCase().includes(q) || String(s.rollNo).includes(q)
         );
     }, [normalizedStudents, searchTerm]);
 
@@ -122,9 +111,9 @@ export default function StudentSubjectMappingTable({
     }
 
     return (
-        <div className='overflow-x-auto bg-white border rounded shadow-sm'>
+        <div className='overflow-x-auto rounded border bg-white shadow-sm'>
             {/* 🔎 SEARCH */}
-            <div className='p-3 border-b bg-gray-50 flex justify-end'>
+            <div className='flex justify-end border-b bg-gray-50 p-3'>
                 <Input
                     placeholder='Search student...'
                     value={searchTerm}
@@ -158,24 +147,17 @@ export default function StudentSubjectMappingTable({
                 <tbody>
                     {filteredStudents.length === 0 ? (
                         <tr>
-                            <TableCell colSpan={subjects.length + 2} className='text-center py-6 text-gray-500'>
+                            <TableCell colSpan={subjects.length + 2} className='py-6 text-center text-gray-500'>
                                 No Records Found
                             </TableCell>
                         </tr>
                     ) : (
                         filteredStudents.map((s, i) => (
-                            <tr
-                                key={`student-${s.id}`}
-                                className={
-                                    'bg-white hover:bg-accent/90 transition-colors duration-200'
-                                }
-                            >
-
-
+                            <tr key={`student-${s.id}`} className={'bg-white transition-colors duration-200 hover:bg-accent/90'}>
                                 <TableCell className='text-center'>{i + 1}</TableCell>
                                 <TableCell>
                                     <div className='font-semibold'>{s.name}</div>
-                                    <div className='text-xs text-gray-600'>
+                                    <div className='text-gray-600 text-xs'>
                                         Adm: {s.admNo} | Roll: {s.rollNo}
                                     </div>
                                 </TableCell>

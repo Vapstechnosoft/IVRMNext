@@ -1,23 +1,23 @@
 // app/exam/student-subject-mapping/page.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useForm, Controller, FormProvider } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
+import { getStudentsForSubjectMapping } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import { getStudentsForSubjectMapping } from '@/server/exam/exam-module/exam-mapping/student-subject-mapping';
+import { getSubjectGroupDropDownByYearCategoryList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { useEffect, useState } from 'react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import StudentSubjectMappingTable from './_components/student-mapping-table';
-import { Label } from '@/components/ui/extension/field';
-import { getSubjectGroupDropDownByYearCategoryList } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
 
 type FormValues = {
     asmaY_Id?: number;
@@ -68,11 +68,7 @@ function StudentSubjectMappingContent() {
     const watchedClass = watch('asmcL_Id');
     const watchedCategory = watch('emcA_Id');
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
@@ -187,7 +183,7 @@ function StudentSubjectMappingContent() {
             setLoadingSG(true);
             try {
                 const data = await getSubjectGroupDropDownByYearCategoryList(watchedAcademicYear, watchedCategory);
-                const groups = Array.isArray(data) ? data : data?.data ?? [];
+                const groups = Array.isArray(data) ? data : (data?.data ?? []);
                 setSubjectGroups(groups);
                 setValue('subject_group_id', undefined);
             } catch (err: any) {
@@ -249,7 +245,6 @@ function StudentSubjectMappingContent() {
             setStudents(data);
             setSubjects(transformedSubjects);
             setIsGridOpen(true);
-
         } catch (err: any) {
             console.error(err);
             toast.error(err?.message ?? 'Failed to fetch students');
@@ -264,14 +259,10 @@ function StudentSubjectMappingContent() {
             prev.map((student) =>
                 student.amsT_Id === studentId
                     ? {
-                        ...student,
-                        sub_list: student.sub_list.map((sub) =>
-                            sub.id === subjectId ? { ...sub, abc: checked } : sub
-                        ),
-                        sub_list_view: student.sub_list_view.map((sub) =>
-                            sub.id === subjectId ? { ...sub, abc: checked } : sub
-                        )
-                    }
+                          ...student,
+                          sub_list: student.sub_list.map((sub) => (sub.id === subjectId ? { ...sub, abc: checked } : sub)),
+                          sub_list_view: student.sub_list_view.map((sub) => (sub.id === subjectId ? { ...sub, abc: checked } : sub))
+                      }
                     : student
             )
         );
@@ -310,7 +301,7 @@ function StudentSubjectMappingContent() {
             <div className='min-h-screen bg-gray-50 p-4'>
                 <div className='container mx-auto space-y-4'>
                     <div className='rounded-md border bg-white p-4 shadow-sm'>
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* LEFT */}
                             <div className='space-y-4'>
                                 <Controller
@@ -318,7 +309,7 @@ function StudentSubjectMappingContent() {
                                     name='asmaY_Id'
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label className='block text-sm font-medium text-slate-700 mb-1'>
+                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>
                                                 Academic Year <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
@@ -345,7 +336,7 @@ function StudentSubjectMappingContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <p className='text-red-500 text-xs mt-1'>{fieldState.error.message}</p>}
+                                            {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
                                         </div>
                                     )}
                                 />
@@ -355,7 +346,7 @@ function StudentSubjectMappingContent() {
                                     name='emcA_Id'
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label className='block text-sm font-medium text-slate-700 mb-1'>
+                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>
                                                 Exam Category <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
@@ -379,7 +370,7 @@ function StudentSubjectMappingContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <p className='text-red-500 text-xs mt-1'>{fieldState.error.message}</p>}
+                                            {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
                                         </div>
                                     )}
                                 />
@@ -389,7 +380,7 @@ function StudentSubjectMappingContent() {
                                     name='eme_Id'
                                     render={({ field }) => (
                                         <div>
-                                            <Label className='block text-sm font-medium text-slate-700 mb-1'>Exam</Label>
+                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>Exam</Label>
                                             <Select
                                                 value={field.value !== undefined ? String(field.value) : undefined}
                                                 onValueChange={(v) => field.onChange(Number(v))}>
@@ -412,7 +403,7 @@ function StudentSubjectMappingContent() {
                                     name='asmcL_Id'
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label className='block text-sm font-medium text-slate-700 mb-1'>
+                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>
                                                 Class <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
@@ -436,7 +427,7 @@ function StudentSubjectMappingContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <p className='text-red-500 text-xs mt-1'>{fieldState.error.message}</p>}
+                                            {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
                                         </div>
                                     )}
                                 />
@@ -446,7 +437,7 @@ function StudentSubjectMappingContent() {
                                     name='asmS_Id'
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label className='block text-sm font-medium text-slate-700 mb-1'>
+                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>
                                                 Section <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
@@ -470,7 +461,7 @@ function StudentSubjectMappingContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <p className='text-red-500 text-xs mt-1'>{fieldState.error.message}</p>}
+                                            {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
                                         </div>
                                     )}
                                 />
@@ -480,7 +471,7 @@ function StudentSubjectMappingContent() {
                                     name='subject_group_id'
                                     render={({ field, fieldState }) => (
                                         <div>
-                                            <Label className='block text-sm font-medium text-slate-700 mb-1'>Subject Group</Label>
+                                            <Label className='mb-1 block font-medium text-slate-700 text-sm'>Subject Group</Label>
                                             <Select
                                                 value={field.value ? String(field.value) : undefined}
                                                 onValueChange={(v) => field.onChange(Number(v))}
@@ -502,31 +493,47 @@ function StudentSubjectMappingContent() {
                                                     )}
                                                 </SelectContent>
                                             </Select>
-                                            {fieldState.error && <p className='text-red-500 text-xs mt-1'>{fieldState.error.message}</p>}
+                                            {fieldState.error && <p className='mt-1 text-red-500 text-xs'>{fieldState.error.message}</p>}
                                         </div>
                                     )}
                                 />
 
-                                <div className='flex flex-wrap gap-8 mt-4'>
+                                <div className='mt-4 flex flex-wrap gap-8'>
+                                    {/* LEFT STUDENTS */}
                                     <Controller
                                         control={control}
                                         name='Left_Flag'
                                         render={({ field }) => (
-                                            <label className='flex items-center gap-2'>
-                                                <Checkbox checked={!!field.value} onCheckedChange={(c) => field.onChange(!!c)} />
-                                                <span className='text-sm'>Include Left Students</span>
-                                            </label>
+                                            <div className='flex items-center gap-2'>
+                                                <Checkbox
+                                                    id='leftFlag'
+                                                    checked={!!field.value}
+                                                    onCheckedChange={(c) => field.onChange(!!c)}
+                                                />
+
+                                                <label htmlFor='leftFlag' className='cursor-pointer text-sm'>
+                                                    Include Left Students
+                                                </label>
+                                            </div>
                                         )}
                                     />
 
+                                    {/* DEACTIVE STUDENTS */}
                                     <Controller
                                         control={control}
                                         name='Deactive_Flag'
                                         render={({ field }) => (
-                                            <label className='flex items-center gap-2'>
-                                                <Checkbox checked={!!field.value} onCheckedChange={(c) => field.onChange(!!c)} />
-                                                <span className='text-sm'>Include Deactive Students</span>
-                                            </label>
+                                            <div className='flex items-center gap-2'>
+                                                <Checkbox
+                                                    id='deactiveFlag'
+                                                    checked={!!field.value}
+                                                    onCheckedChange={(c) => field.onChange(!!c)}
+                                                />
+
+                                                <label htmlFor='deactiveFlag' className='cursor-pointer text-sm'>
+                                                    Include Deactive Students
+                                                </label>
+                                            </div>
                                         )}
                                     />
                                 </div>
@@ -534,7 +541,7 @@ function StudentSubjectMappingContent() {
                         </div>
 
                         {/* Search Button */}
-                        <div className='w-fit mt-6 flex justify-center'>
+                        <div className='mt-6 flex w-fit justify-center'>
                             <Button type='button' className='px-8 py-2 shadow-lg' onClick={handleSearch} disabled={isLoading}>
                                 {isLoading ? 'Searching...' : 'Search'}
                             </Button>
@@ -551,11 +558,11 @@ function StudentSubjectMappingContent() {
                                 isloading={isLoading}
                             />
 
-                            <div className='p-4 flex justify-end gap-3 border-t'>
+                            <div className='flex w-fit justify-end gap-3 border-t p-4'>
                                 <Button variant='outline' onClick={() => setIsGridOpen(false)}>
                                     Cancel
                                 </Button>
-                                <Button className='bg-green-600 hover:bg-green-700' onClick={handleSave}>
+                                <Button type='submit' onClick={handleSave}>
                                     Save Mapping
                                 </Button>
                             </div>

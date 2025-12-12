@@ -1,6 +1,6 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
 import { getCoScholasticActivityAreaMapping } from '@/server/exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping';
-import { getExamLoginPrivileges } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
+import { getExamLoginPrivileges, getLoginPrivilegesDetails } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
 import { getExamMarksProcessCondition } from '@/server/exam/exam-module/exam-mapping/exam-marks-process-condition';
 import {
     getExamSubjectGroupMapping,
@@ -55,6 +55,24 @@ export const useExamLoginPrivileges = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.EXAM_LOGIN_PRIVILAGES]
+            });
+        }
+    };
+};
+
+export const useExamLoginPrivilegesDetails = (elp_id: number, asmcl_id: number, asms_id: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EXAM_LOGIN_PRIVILAGES_DETAILS, elp_id, asmcl_id, asms_id],
+            queryFn: async () => getLoginPrivilegesDetails(elp_id, asmcl_id, asms_id),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EXAM_LOGIN_PRIVILAGES_DETAILS]
             });
         }
     };
@@ -275,7 +293,6 @@ export const useExamMarksProcessCondition = (searchParams?: ApiSearchparams) => 
     };
 };
 
-
 export const useHallTicketGeneratedList = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -330,22 +347,21 @@ export const usePromotionalSetting = (params: any, searchParams?: ApiSearchparam
     };
 };
 
+// export const usePromotionalSettingDetails = (subjectId: number, searchParams?: ApiSearchparams) => {
+//     const queryClient = useQueryClient();
 
-export const usePromotionalSettingDetails = (subjectId: number, searchParams?: ApiSearchparams) => {
-    const queryClient = useQueryClient();
+//     return {
+//         ...useQuery({
+//             queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS, subjectId, searchParams ?? {}],
+//             queryFn: async () => getGroupMappings(subjectId),
+//             enabled: !!subjectId,
+//             staleTime: 0
+//         }),
 
-    return {
-        ...useQuery({
-            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS, subjectId, searchParams ?? {}],
-            queryFn: async () => getGroupMappings(subjectId),
-            enabled: !!subjectId,
-            staleTime: 0
-        }),
-
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [EXAM_QUERY_KEYS.GROUP_MAPPING_LIST]
-            });
-        }
-    };
-};
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [EXAM_QUERY_KEYS.GROUP_MAPPING_LIST]
+//             });
+//         }
+//     };
+// };

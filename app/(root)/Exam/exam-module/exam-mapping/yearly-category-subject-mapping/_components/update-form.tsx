@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,7 +15,6 @@ import {
     getYearlyCategorySubjectMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import { getMasterSubjectGroupDetails } from '@/server/exam/exam-module/masters/subject-group';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IYearlyCategorySubjectMapping, IYearlyCategorySubjectMappingViewDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -34,14 +34,14 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         resolver: zodResolver(categorySubjectMappingSchema.addOrUpdate),
         mode: 'all',
         defaultValues: {
-            userId: 1,
-            eycG_Id: 0,
+            userId: 0,
+            eycG_Id: rowData?.eycG_Id || 0,
             mI_Id: 30,
-            asmaY_Id: 0,
-            emcA_Id: 0,
-            emG_Id: 0,
+            asmaY_Id: rowData?.asmaY_Id || 0,
+            emcA_Id: rowData?.emcA_Id || 0,
+            emG_Id: rowData?.emG_Id || 0,
             subjects_list: [],
-            eyC_BasedOnPaperTypeFlg: false
+            eyC_BasedOnPaperTypeFlg: rowData?.eyC_BasedOnPaperTypeFlg || false
         }
     });
 
@@ -111,8 +111,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
             asmaY_Id: rowData.asmaY_Id ?? 0,
             emcA_Id: rowData.emcA_Id ?? 0,
             emG_Id: rowData.emG_Id ?? 0,
-            eyC_BasedOnPaperTypeFlg: rowData.eyC_BasedOnPaperTypeFlg ?? false,
-            subjects_list: []
+            eyC_BasedOnPaperTypeFlg: rowData.eyC_BasedOnPaperTypeFlg ?? false
         });
 
         // Fetch subjects for the selected group on load
@@ -218,7 +217,10 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Academic Year' />
                                             </SelectTrigger>
@@ -254,7 +256,10 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                                         <Label>
                                             Category <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
@@ -280,7 +285,10 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                                         <Label>
                                             Subject Group <span className='text-red-500'>*</span>
                                         </Label>
-                                        <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                        <Select
+                                            key={field.value} // <— forces remount when value changes
+                                            value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Subject Group' />
                                             </SelectTrigger>
@@ -297,21 +305,26 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                                 )}
                             />
 
-                            {/* Checkbox */}
                             <Controller
                                 control={control}
                                 name='eyC_BasedOnPaperTypeFlg'
-                                render={({ field }) => (
-                                    <label className='flex items-center space-x-2'>
-                                        <input
-                                            type='checkbox'
-                                            checked={field.value}
-                                            onChange={(e) => field.onChange(e.target.checked)}
-                                            className='h-4 w-4'
-                                        />
-                                        <span>Based on Paper Type</span>
-                                    </label>
-                                )}
+                                render={({ field }) => {
+                                    const checkboxId = 'eyc_based_on_paper_type_flag';
+
+                                    return (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                id={checkboxId}
+                                                checked={field.value}
+                                                onCheckedChange={(checked) => field.onChange(!!checked)}
+                                            />
+
+                                            <label htmlFor={checkboxId} className='cursor-pointer font-medium text-sm leading-none'>
+                                                Based on Paper Type
+                                            </label>
+                                        </div>
+                                    );
+                                }}
                             />
                         </div>
 

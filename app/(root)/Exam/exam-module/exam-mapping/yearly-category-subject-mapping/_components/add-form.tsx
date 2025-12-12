@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -11,7 +12,6 @@ import { categorySubjectMappingSchema } from '@/schemas/exam/exam-module/exam-ma
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { addOrUpdateYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import { getMasterSubjectGroupDetails } from '@/server/exam/exam-module/masters/subject-group';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IYearlyCategorySubjectMapping } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -42,11 +42,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [subjectGroups, setSubjectGroups] = useState<{ emG_Id: number; emG_GroupName: string }[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
     useEffect(() => {
         reset({
@@ -98,7 +94,6 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
         name: 'emG_Id'
     });
 
-    // Fetch categories whenever Academic Year changes
     useEffect(() => {
         if (!selectedGroupSubjectId) return;
         async function fetchSubjects() {
@@ -106,7 +101,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                 const { data: subj } = await getMasterSubjectGroupDetails(selectedGroupSubjectId);
 
                 setSubjects(Array.isArray(subj) ? subj : []);
-                setValue('subjects_list', []); // reset selected category whenever year changes
+                setValue('subjects_list', Array.isArray(subj) ? subj : []); // reset selected category whenever year changes
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
             }
@@ -251,21 +246,27 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                     </div>
                                 )}
                             />
+
                             <Controller
                                 control={control}
                                 name='eyC_BasedOnPaperTypeFlg'
-                                render={({ field }) => (
-                                    <label className='flex items-center space-x-2'>
-                                        <input
-                                            type='checkbox'
-                                            checked={field.value}
-                                            value={field.value ? 'true' : 'false'}
-                                            onChange={(e) => field.onChange(e.target.checked)}
-                                        />
+                                render={({ field }) => {
+                                    const checkboxId = 'eyc_based_on_paper_type_flag';
 
-                                        <span>Based on Paper Type</span>
-                                    </label>
-                                )}
+                                    return (
+                                        <div className='flex items-center space-x-2'>
+                                            <Checkbox
+                                                id={checkboxId}
+                                                checked={field.value}
+                                                onCheckedChange={(checked) => field.onChange(!!checked)}
+                                            />
+
+                                            <label htmlFor={checkboxId} className='cursor-pointer font-medium text-sm leading-none'>
+                                                Based on Paper Type
+                                            </label>
+                                        </div>
+                                    );
+                                }}
                             />
                         </div>
 

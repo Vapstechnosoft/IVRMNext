@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Eye, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import type { GroupItem, SubjectRow } from '../../promotion-setting/_components/add-from';
+import type { GroupItem, SubjectRow } from './add-from';
 
 export function ViewGroupsModal({
     subject,
@@ -85,8 +85,13 @@ export function ViewGroupsModal({
                 {/* HEADER */}
                 <div className='flex items-center justify-between bg-gray-100 px-4 py-2 font-semibold text-lg'>
                     <span>{subject.name.toUpperCase()} - GROUP MAPPING</span>
-                    <Button variant='ghost' onClick={onClose} className='p-1 hover:bg-white/20'>
-                        <X className='h-5 w-5' />
+                    <Button
+                        type='button'
+                        onClick={onClose}
+                        variant='ghost'
+                        size='sm'
+                        className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                        <X className='h-4 w-4 text-destructive' /> Close
                     </Button>
                 </div>
 
@@ -172,7 +177,7 @@ export function ViewGroupsModal({
                                     setDisplayName('');
                                     setSelectedExamIds({});
                                 }}>
-                                Clear
+                                Actions
                             </Button>
                         </div>
                     </div>
@@ -197,7 +202,7 @@ export function ViewGroupsModal({
                                 </tr>
                             </thead>
 
-                            <tbody className="[&>tr:hover>td]:!bg-accent/90" >
+                            <tbody className='[&>tr:hover>td]:!bg-accent/90'>
                                 {groups.length === 0 ? (
                                     <tr>
                                         <td colSpan={11} className='p-3 text-center'>
@@ -209,12 +214,7 @@ export function ViewGroupsModal({
                                         <tr
                                             key={g.id}
                                             className={`
-                                                ${i % 2 ? 'bg-gray-50' : 'bg-white'}
-                                                hover:[&>td]:!bg-accent/90
-                                                text-sm transition-colors
-                                            `}
-                                        >
-
+                                                ${i % 2 ? 'bg-gray-50' : 'bg-white'}hover:[&>td]:!bg-accent/90 text-sm transition-colors `}>
                                             <td className='p-2 text-center'>{i + 1}</td>
                                             <td className='p-2'>{g.groupName}</td>
                                             <td className='p-2'>{g.displayName}</td>
@@ -230,8 +230,13 @@ export function ViewGroupsModal({
                                             </td>
                                             <td className='p-2 text-center'>{g.roundOffFlag ? '✔' : ''}</td>
                                             <td className='p-2 text-center'>
-                                                <Button variant='ghost'>
-                                                    <X className='h-4 w-4 text-red-600' />
+                                                <Button
+                                                    type='button'
+                                                    onClick={onClose}
+                                                    variant='ghost'
+                                                    size='sm'
+                                                    className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                                    <X className='h-4 w-4 text-destructive' /> Close
                                                 </Button>
                                             </td>
                                         </tr>
@@ -245,7 +250,6 @@ export function ViewGroupsModal({
                         </div>
                     </div>
                 )}
-
             </div>
         </div>
     );
@@ -259,8 +263,13 @@ export function ViewExamsModal({ group, onClose }: { group: GroupItem; onClose: 
             <div className='relative z-[10000] w-[90%] max-w-xl overflow-hidden rounded-xl border bg-white shadow-xl'>
                 <div className='flex items-center justify-between bg-gray-100 px-4 py-2 font-semibold text-lg'>
                     <span>{group.displayName} — EXAM MAPPING</span>
-                    <Button variant='ghost' onClick={onClose} className='w-fit p-1 hover:bg-white/20'>
-                        Close <X className='h-5 w-5' />
+                    <Button
+                        type='button'
+                        onClick={onClose}
+                        variant='ghost'
+                        size='sm'
+                        className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                        <X className='h-4 w-4 text-destructive' /> Close
                     </Button>
                 </div>
 
