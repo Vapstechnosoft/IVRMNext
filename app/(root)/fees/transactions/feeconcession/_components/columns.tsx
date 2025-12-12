@@ -4,7 +4,6 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IFeeConcessionStudentConcessionGrid } from '@/types/fees/transactions/transactions';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useCallback } from 'react';
 
 export const concessionColumns: ColumnDef<IFeeConcessionStudentConcessionGrid>[] = [
     {
@@ -75,15 +74,17 @@ export const concessionColumns: ColumnDef<IFeeConcessionStudentConcessionGrid>[]
     }
 ];
 
-const ActionButtonsCell = ({ rowData }: { rowData: IFeeConcessionStudentConcessionGrid }) => {
-    const { openToggleForm, openDeleteForm } = useFormContext<IFeeConcessionStudentConcessionGrid>();
+// _components/columns.tsx
 
-    const handleEdit = useCallback(() => openToggleForm(rowData), [rowData, openToggleForm]);
-    const handleDelete = useCallback(() => openDeleteForm(rowData), [rowData, openDeleteForm]);
+const ActionButtonsCell = ({ rowData }: { rowData: IFeeConcessionStudentConcessionGrid }) => {
+    const { openEditForm, openDeleteForm } = useFormContext<IFeeConcessionStudentConcessionGrid>();
+
+    const handleEdit = () => openEditForm(rowData);
+    const handleDelete = () => openDeleteForm(rowData);
 
     return (
         <div className='flex justify-center gap-1'>
-            <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onToggle={handleEdit} onDelete={handleDelete} />
+            <ActionButtons rowData={rowData} buttons={{ edit: true, delete: true }} onEdit={handleEdit} onDelete={handleDelete} />
         </div>
     );
 };

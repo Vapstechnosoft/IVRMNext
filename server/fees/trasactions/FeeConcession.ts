@@ -9,6 +9,7 @@ import type {
     IFeeConcessionAcademicyearDropDownList,
     IFeeConcessionCategoryDropDownList,
     IFeeConcessionClassDropDownList,
+    IFeeConcessionEdit,
     IFeeConcessionHeadList,
     IFeeConcessionOthersList,
     IFeeConcessionStaffList,
@@ -108,4 +109,9 @@ export async function getFeeConcessionOthersList(asmaY_Id: number) {
 export async function getConcessionFeeConcessionCategoryDropdownData() {
     const url = 'FeesCommon/fee-concession-category-dropdown';
     return await api.get<IFeeCategoryConcessionDropDownList[]>('fees', url);
+}
+
+export async function getFeeConcessionEdit(asmaY_Id: number, fscI_ID: number) {
+    const url = `FeeConcessionFacade/edit-fee-concession?asmayId=${asmaY_Id || 0}&fsciId=${fscI_ID || 0}`;
+    return await api.get<IFeeConcessionEdit[]>('fees', url);
 }
