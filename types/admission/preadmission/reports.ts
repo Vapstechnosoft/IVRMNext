@@ -40,3 +40,10 @@ export interface IStudentYearlyAttendenceReportList {
     totalPresent: number;
     percentage: string;
 }
+export interface IRigistrationReportList {
+    user_Name: string;
+    email_Id: string;
+    mob_No: string;
+    name: string;
+    created_Date: string;
+}
