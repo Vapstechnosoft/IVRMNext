@@ -851,3 +851,39 @@ export const useFeeConcessionEdit = (asmaY_Id: number, fscI_ID: number, searchPa
         }
     };
 };
+
+export const useFeeConcessionAdmissionNo = (asmaY_Id: number, searchfilter: string, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ADMISSION_NO, asmaY_Id, searchfilter, searchParams ?? {}],
+            queryFn: async () => getFeeConcessionAdmissionNo(asmaY_Id, searchfilter),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ADMISSION_NO]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionStudentData = (asmaY_Id: number, amsT_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_DATA, asmaY_Id, amsT_Id, searchParams ?? {}],
+            queryFn: async () => getFeesConcessionStudentData(asmaY_Id, amsT_Id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_DATA]
+            });
+        }
+    };
+};

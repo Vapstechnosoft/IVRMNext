@@ -133,3 +133,102 @@ export const YearlyFeeCollectionReportColumns: ColumnDef<IFeeDefaulterReportRow>
         enableSorting: false
     }
 ];
+
+// 'use client';
+
+// import { Checkbox } from '@/components/ui/checkbox';
+// import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+// import type { ColumnDef, HeaderContext } from '@tanstack/react-table';
+
+// export const getDynamicColumns = (data: any[]): ColumnDef<any>[] => {
+//     if (!data || data.length === 0) return [];
+
+//     const keys = Object.keys(data[0]);
+
+//     return [
+//         // 🔹 Checkbox column
+//         {
+//             id: 'select',
+//             header: ({ table }) => (
+//                 <Checkbox
+//                     checked={
+//                         table.getIsAllPageRowsSelected() ||
+//                         (table.getIsSomePageRowsSelected() && 'indeterminate')
+//                     }
+//                     onCheckedChange={(value) =>
+//                         table.toggleAllPageRowsSelected(!!value)
+//                     }
+//                     aria-label="Select all"
+//                 />
+//             ),
+//             cell: ({ row }) => (
+//                 <Checkbox
+//                     checked={row.getIsSelected()}
+//                     onCheckedChange={(value) =>
+//                         row.toggleSelected(!!value)
+//                     }
+//                     aria-label="Select row"
+//                 />
+//             ),
+//             enableSorting: false,
+//             enableHiding: false,
+//             size: 40
+//         },
+
+//         // 🔹 Serial No
+//         {
+//             id: 'serial',
+//             header: () => <div className="text-center">Sl.No.</div>,
+//             cell: ({ row, table }) => {
+//                 const pageIndex = table.getState().pagination.pageIndex;
+//                 const pageSize = table.getState().pagination.pageSize;
+//                 return (
+//                     <div className="text-center font-medium">
+//                         {pageIndex * pageSize + row.index + 1}
+//                     </div>
+//                 );
+//             },
+//             enableSorting: false,
+//             enableHiding: false,
+//             size: 80
+//         },
+
+//         // 🔹 Dynamic columns
+//         ...keys.map(
+//             (key): ColumnDef<any> => ({
+//                 accessorKey: key,
+//                 header: ({ column }: HeaderContext<any, unknown>) => (
+//                     <DataTableColumnHeader
+//                         column={column}
+//                         title={key
+//                             .replace(/_/g, ' ')
+//                             .replace(/([A-Z])/g, ' $1')
+//                             .trim()}
+//                     />
+//                 ),
+//                 cell: ({ row }) => {
+//                     const value = row.getValue(key);
+
+//                     if (value === null || value === undefined) {
+//                         return <div>-</div>;
+//                     }
+
+//                     if (typeof value === 'object') {
+//                         return <div>{JSON.stringify(value)}</div>;
+//                     }
+
+//                     if (typeof value === 'number') {
+//                         return (
+//                             <div className="text-right font-medium">
+//                                 {value.toLocaleString()}
+//                             </div>
+//                         );
+//                     }
+
+//                     return <div className="font-medium">{String(value)}</div>;
+//                 }
+
+//             })
+//         )
+//     ];
+// };

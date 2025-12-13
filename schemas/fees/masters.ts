@@ -781,7 +781,8 @@ export const masterFeeOtherStudentSchema = {
 export const specialFeeHeadSchema = {
     addOrUpdate: z.object({
         heads: z.array(z.string()).nonempty('Please select at least one Head'),
-        fmsfH_Name: z.string().min(1, { message: 'Special Fee Head Name is required' })
+        //fmsfH_Name: z.string().min(4, { message: 'Special Fee Head Name is required' })
+        fmsfH_Name: createStringOnlySchema('Special Fee Head Name', 4, 50)
     }),
     delete: z.object({
         fmsfhfH_Id: deleteIdSchema('fmsfhfH_Id')

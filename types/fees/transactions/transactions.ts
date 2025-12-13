@@ -876,3 +876,19 @@ export interface IFeeConcessionEdit {
     fsC_ConcessionReason: string;
     amst_Id: number;
 }
+
+export interface IFeeConcessionAdmissionNo {
+    amst_Id: number;
+    amsT_FirstName: string;
+    amsT_AdmNo: string;
+}
+
+export interface IFeeConcessionStudentData {
+    amsT_Id: number;
+    amsT_MiddleName: string;
+    amsT_LastName: string;
+    amsT_AdmNo: string;
+    amsT_RegistrationNo: string;
+    amaY_RollNo: number;
+    asmcL_ClassName: string;
+}

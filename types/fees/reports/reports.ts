@@ -101,3 +101,19 @@ export interface IFeeInstallmentDropdownList {
     createdDate: string;
     updatedDate: string;
 }
+
+export interface FeeHeadAmounts {
+    [feeHeadName: string]: number;
+}
+
+export interface HeadwiseListItem {
+    date: string; // ISO string: "2025-01-02T00:00:00"
+    totalPaidAmount: number;
+    feeHeadAmounts: FeeHeadAmounts;
+}
+
+export interface FeeDailyCollectionHeadwiseResponse {
+    listCode: string;
+    listName: string;
+    list: HeadwiseListItem[];
+}

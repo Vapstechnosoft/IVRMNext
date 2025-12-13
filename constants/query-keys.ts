@@ -199,7 +199,9 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_STAFF_LIST: 'fee_concession_staff_list',
     FEE_CONCESSION_OTHERS_LIST: 'fee_concession_others_list',
     FEE_ADJUSTMENT_GRIDDATA: 'fee_adjustment_griddata',
-    FEE_CONCESSION_EDIT: 'fee_concession_edit'
+    FEE_CONCESSION_EDIT: 'fee_concession_edit',
+    FEE_CONCESSION_ADMISSION_NO: 'fee_concession_admission_no',
+    FEE_CONCESSION_STUDENT_DATA: 'fee_concession_student_data'
 };
 
 export const EXAM_QUERY_KEYS = {

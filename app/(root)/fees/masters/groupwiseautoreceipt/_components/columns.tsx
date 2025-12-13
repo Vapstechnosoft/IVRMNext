@@ -6,7 +6,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import parse from 'html-react-parser';
+
 import { Eye } from 'lucide-react';
 import { useCallback, useState } from 'react';
 
@@ -224,16 +224,61 @@ function TemplatePreviewCell({ templateHtml }: { templateHtml?: string | null })
                         </DialogClose>
                     </DialogHeader>
 
-                    <div
+                    {/* <div
                         className='h-[calc(90vh-80px)] w-full overflow-auto bg-white p-6'
                         style={{
                             zoom: 0.9,
                             fontFamily: 'Arial, sans-serif'
                         }}>
-                        {parse(safeHtml)}
+
+                             {parse(safeHtml)}
+
+
+                       <div dangerouslySetInnerHTML={{ __html: safeHtml }} />
+
+                    </div> */}
+
+                    <div className='h-[calc(90vh-80px)] w-full bg-white'>
+                        <iframe title='Template Preview' className='h-full w-full border-0' sandbox='' srcDoc={safeHtml} />
                     </div>
                 </DialogContent>
             </Dialog>
         </>
     );
 }
+
+// function TemplatePreviewCell({ templateHtml }: { templateHtml?: string | null }) {
+//     const [open, setOpen] = useState(false);
+//     const safeHtml = templateHtml ?? '';
+
+//     return (
+//         <>
+//             <Button
+//                 variant="ghost"
+//                 size="sm"
+//                 className="h-8 w-8 p-0 hover:bg-blue-50"
+//                 onClick={() => setOpen(true)}
+//                 title="Preview Template"
+//             >
+//                 <Eye className="h-4 w-4 text-blue-600" />
+//             </Button>
+
+//             <Dialog open={open} onOpenChange={setOpen}>
+//                 <DialogContent className="max-h-[90vh] max-w-[95vw] overflow-hidden p-0">
+//                     <DialogHeader className="border-b p-4">
+//                         <DialogTitle>Receipt Template Preview</DialogTitle>
+//                     </DialogHeader>
+
+//                     <div className="h-[calc(90vh-80px)] w-full bg-white">
+//                         <iframe
+//                             title="Template Preview"
+//                             className="h-full w-full border-0"
+//                             sandbox=""
+//                             srcDoc={safeHtml}
+//                         />
+//                     </div>
+//                 </DialogContent>
+//             </Dialog>
+//         </>
+//     );
+// }

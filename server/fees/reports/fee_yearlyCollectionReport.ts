@@ -7,3 +7,8 @@ export async function getFeesInstallmentDropDown() {
     const url = '/FeesCommon/installment-dropdown';
     return await api.get<IFeeInstallmentDropdownList[]>('fees', url);
 }
+
+export async function getFeeYearlyCollectionReport(data: any) {
+    const url = '/YearlyFeeCollectionReport/yearly-fee-collection-report';
+    return await api.post<any>('fees', url, data);
+}
