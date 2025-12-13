@@ -3,11 +3,9 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
 import type { ColumnDef } from '@tanstack/react-table';
 
-import { format } from 'date-fns';
-
 export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
     {
-        accessorKey: 'user_Name',
+        accessorKey: 'rowNumber',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -27,30 +25,16 @@ export const registrationColumns: ColumnDef<IRigistrationReportList>[] = [
         enableHiding: true
     },
     {
-        accessorKey: 'email_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Email' />,
-        cell: ({ row }) => <div>{row.getValue('email_Id')}</div>,
+        accessorKey: 'smsCount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SMS Count' />,
+        cell: ({ row }) => <div>{row.getValue('smsCount')}</div>,
         enableSorting: true,
         enableHiding: true
     },
     {
-        accessorKey: 'mob_No',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile No' />,
-        cell: ({ row }) => <div>{row.getValue('mob_No')}</div>,
-        enableSorting: true,
-        enableHiding: true
-    },
-    {
-        accessorKey: 'created_Date',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
-        cell: ({ row }) => {
-            const raw = row.getValue('created_Date');
-            const dateStr = typeof raw === 'string' || typeof raw === 'number' ? raw : '';
-
-            const formattedDate = dateStr ? format(new Date(dateStr), 'dd-MM-yyyy') : '';
-
-            return <div>{formattedDate}</div>;
-        },
+        accessorKey: 'emailCount',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Email Count' />,
+        cell: ({ row }) => <div>{row.getValue('emailCount')}</div>,
         enableSorting: true,
         enableHiding: true
     }

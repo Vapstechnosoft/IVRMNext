@@ -32,7 +32,34 @@ const COLUMN_ID_MAP: Record<string, string> = {
     'Registration No.': 'AMST_AdmNo',
     'TC No.': 'AMST_Id',
     'Leaving Class': 'ASTC_ASMCL_ID',
-    'Admission Class Name': 'ASTC_TCDate'
+    'Admission Class Name': 'ASTC_TCDate',
+
+    'Leaving Reason': 'ASTC_LeavingReason',
+    Remark: 'ASTC_Remarks',
+    'Adm. No.': 'AMST_AdmNo',
+    Section: 'ASMCL_SectionName',
+    'Date Of Admission': 'AMST_DateOfAdmission',
+    'Left Date': 'ASTC_LeftDate',
+    'Issue Date': 'ASTC_IssueDate',
+
+    'Father Name': 'AMST_FatherName',
+    'Mother Name': 'AMST_MotherName',
+    'Contact No.': 'AMST_MobileNo',
+    'Email ID': 'AMST_EmailId',
+    'Date Of Birth': 'AMST_DOB',
+
+    Caste: 'AMST_Caste',
+    'Caste Category': 'AMST_CasteCategory',
+    Religion: 'AMST_Religion',
+    Place: 'AMST_Place',
+
+    'Permanent Address': 'AMST_PermanentAddress',
+    'Present Address': 'AMST_PresentAddress',
+
+    'Government ID': 'AMST_GovtId',
+    'STS No.': 'AMST_STSNo',
+    'Application Date': 'AMST_ApplicationDate',
+    'Govt Adm No.': 'AMST_GovtAdmNo'
 };
 
 export default function StudentTcReportPage(props: {
@@ -87,7 +114,35 @@ export default function StudentTcReportPage(props: {
     const [viewMode, setViewMode] = useState<'all' | 'indi'>('all');
     const [tcType, setTcType] = useState<'TTC' | 'PTC'>('PTC');
 
-    const availableColumns = ['Student Name', 'Registration No.', 'TC No.', 'Leaving Class', 'Admission Class Name'];
+    const availableColumns = [
+        'Student Name',
+        'Registration No.',
+        'TC No.',
+        'Leaving Class',
+        'Admission Class Name',
+        'Leaving Reason',
+        'Remark',
+        'Adm. No.',
+        'Section',
+        'Date Of Admission',
+        'Left Date',
+        'Issue Date',
+        'Father Name',
+        'Mother Name',
+        'Contact No.',
+        'Email ID',
+        'Date Of Birth',
+        'Caste',
+        'Caste Category',
+        'Religion',
+        'Place',
+        'Permanent Address',
+        'Present Address',
+        'Government ID',
+        'STS No.',
+        'Application Date',
+        'Govt Adm No.'
+    ];
 
     const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
     const [columnsSearch, setColumnsSearch] = useState('');

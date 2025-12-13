@@ -235,7 +235,7 @@ export default function RegistrationPageprops(props: {
             {showTable && (
                 <div className='container space-y-4 p-1'>
                     <CollapsibleSection
-                        title='Student Yearly Attendance Report'
+                        title='Registration Report'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

@@ -15,13 +15,13 @@ import { use, useRef, useState } from 'react';
 import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
 import { registrationColumns } from './_components/columns';
 
-import { CalendarIcon, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
+import { CalendarIcon, RotateCcw } from 'lucide-react';
 
 import { usePreAdmissionEmailSmsReport } from '@/hooks/admission/preadmission/useReports';
 import { format } from 'date-fns';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-export default function RegistrationPageprops(props: {
+export default function EmailSmsPageprops(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
@@ -62,7 +62,7 @@ export default function RegistrationPageprops(props: {
     } = usePreAdmissionEmailSmsReport(academicIdParam, fromDateParam, toDateParam, searchParams);
 
     const tableProps = useDataTableProps({
-        data: response?.data?.searchstudentDetails ?? []
+        data: response?.data?.combined_listarray ?? []
     });
 
     const handleReport = () => {
@@ -207,23 +207,13 @@ export default function RegistrationPageprops(props: {
 
                 {/* ---------------------- Action Buttons ---------------------- */}
                 <div className='flex items-center justify-center gap-3 border-t pt-4'>
-                    <Button variant='outline' onClick={handleReset}>
+                    <Button variant='outline' onClick={handleReset} className='w-fit'>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Reset
                     </Button>
 
-                    <Button type='button' onClick={handleReport}>
+                    <Button type='button' onClick={handleReport} className='w-fit'>
                         Report
-                    </Button>
-
-                    <Button variant='outline'>
-                        <FileSpreadsheet className='mr-2 h-4 w-4' />
-                        Export to Excel
-                    </Button>
-
-                    <Button variant='outline'>
-                        <Printer className='mr-2 h-4 w-4' />
-                        Print
                     </Button>
                 </div>
             </div>
@@ -232,7 +222,7 @@ export default function RegistrationPageprops(props: {
             {showTable && (
                 <div className='container space-y-4 p-1'>
                     <CollapsibleSection
-                        title='Student Yearly Attendance Report'
+                        title='Email SMS Report'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
