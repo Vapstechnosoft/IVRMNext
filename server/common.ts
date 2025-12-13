@@ -320,6 +320,38 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/student-search',
                                             title: 'Student Search',
                                             description: 'Student Search'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/month-end-report',
+                                            title: 'Month End Report',
+                                            description: 'Month End Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'PreAdmission Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/preadmission-month-end-report',
+                                            title: 'PreAdmission Month End Report',
+                                            description: 'PreAdmission Month End Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'Registration Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/registration-report',
+                                            title: 'Registration Report',
+                                            description: 'Registration Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'EMAIL SMS Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/email-sms',
+                                            title: 'EMAIL SMS Report',
+                                            description: 'EMAIL SMS Report'
                                         }
                                     ]
                                 }

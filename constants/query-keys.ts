@@ -31,7 +31,10 @@ export const ADMISSION_QUERY_KEYS = {
     ADMISSION_SECTION_DROPDOWN: 'admission_section_dropdown',
     ADMISSION_STUDENT_LISTS: 'admission_student_lists',
     ADMISSION_CLASS_TEACHER_REPORT: 'admission_class_teacher_report',
-    STUDENT_TC_REPORT: 'student_tc_report'
+    STUDENT_TC_REPORT: 'student_tc_report',
+    MONTH_END_REPORT: 'month_end_report',
+    PRE_ADMISSION_MONTH_END_REPORT: 'pre_admission_month_end_report',
+    PRE_ADMISSION_REGISTRATION_REPORT: 'pre_admission_registration_report'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
