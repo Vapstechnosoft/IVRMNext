@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
-import * as XLSX from 'xlsx';
+
 import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,7 @@ import { dailyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getDailyFeeCollectionReport, getGroupsDropdown } from '@/server/fees/reports/daily_fee_collection_report';
 import type { ApiSearchparams } from '@/types';
 import type { IDailyFeeCollectionRequest } from '@/types/fees/reports/reports';
+import { exportToExcel, printTable } from './_components/print-and-export-excel';
 
 type FormFields = z.infer<typeof dailyFeeCollectionSchema>;
 
@@ -1118,57 +1119,4 @@ export default function DailyFeeCollectionReportForm() {
             )}
         </div>
     );
-}
-
-export function printTable(columns: string[], rows: any[], sumRow?: any) {
-    const printWindow = window.open('', '', 'width=1200,height=800');
-    if (!printWindow) return;
-
-    const tableHead = columns.map((col) => `<th>${col}</th>`).join('');
-
-    const tableRows = rows.map((row) => `<tr>${columns.map((col) => `<td>${row[col] ?? ''}</td>`).join('')}</tr>`).join('');
-
-    const totalRow = sumRow
-        ? `<tr style="font-weight:bold;background:#f3f3f3">
-            ${columns.map((col) => `<td>${sumRow[col] ?? ''}</td>`).join('')}
-           </tr>`
-        : '';
-
-    printWindow.document.write(`
-        <html>
-        <head>
-            <title>Print Report</title>
-            <style>
-                body { font-family: Arial; }
-                table { width: 100%; border-collapse: collapse; }
-                th, td { border: 1px solid #333; padding: 6px; font-size: 12px; }
-                th { background: #eaeaea; }
-            </style>
-        </head>
-        <body>
-            <h3>Daily Fee Collection Report</h3>
-            <table>
-                <thead><tr>${tableHead}</tr></thead>
-                <tbody>
-                    ${tableRows}
-                    ${totalRow}
-                </tbody>
-            </table>
-        </body>
-        </html>
-    `);
-
-    printWindow.document.close();
-    printWindow.print();
-}
-
-export function exportToExcel(rows: any[], fileName: string) {
-    if (!rows || rows.length === 0) return;
-
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
-
-    XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
