@@ -4,7 +4,7 @@ import type { IClassTeacherReportList } from '@/types/admission/preadmission/rep
 import type { ColumnDef } from '@tanstack/react-table';
 
 const serialNumberColumn: ColumnDef<IClassTeacherReportList> = {
-    accessorKey: 'id',
+    accessorKey: 'RowNo',
     header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
     cell: ({ row, table }) => {
         const pageIndex = table.getState().pagination.pageIndex;
@@ -55,5 +55,3 @@ export const getClassTeacherReportColumns = (reportType: string): ColumnDef<ICla
             return [...baseColumns, subjectColumn];
     }
 };
-
-export const classTeacherReportColumns = getClassTeacherReportColumns('class_teacher');

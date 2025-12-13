@@ -34,7 +34,7 @@ interface MonthInfo {
 
 interface StudentAttendanceRecord {
     TOTAL_PRESENT: number;
-    AMST_Id: number;
+    RowNo: number;
     name: string;
     AMST_AdmNo: string;
     AMST_RegistrationNo: string;
@@ -126,20 +126,21 @@ export default function StudentsYearlyAttendenceReport(props: {
         const studentMap = new Map<number, IStudentYearlyAttendenceReportList>();
 
         studentAttendanceList.forEach((record: any) => {
-            if (!studentMap.has(record.AMST_Id)) {
-                studentMap.set(record.AMST_Id, {
-                    AMST_Id: record.AMST_Id,
+            if (!studentMap.has(record.RowNo)) {
+                studentMap.set(record.RowNo, {
+                    RowNo: record.RowNo,
                     name: record.name,
                     AMST_AdmNo: record.AMST_AdmNo,
                     AMST_RegistrationNo: record.AMST_RegistrationNo,
                     AMAY_RollNo: record.AMAY_RollNo,
                     monthlyAttendance: {},
                     totalPresent: 0,
-                    percentage: '0.00'
+                    percentage: '0.00',
+                    AMST_Id: 0
                 });
             }
 
-            const student = studentMap.get(record.AMST_Id)!;
+            const student = studentMap.get(record.RowNo)!;
             const monthKey = `${record.yearidname}-${record.monthidname}`;
 
             student.monthlyAttendance[monthKey] = record.TOTAL_PRESENT;

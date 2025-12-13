@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
+import { usePreadmissionClassDropdown1 } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 import { TotalStrengthSchema } from '@/schemas/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,22 +19,6 @@ import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof TotalStrengthSchema>;
-
-const CLASS_OPTIONS = [
-    'Nursery',
-    'LKG',
-    'UKG',
-    'I Std',
-    'II Std',
-    'III Std',
-    'IV Std',
-    'V Std',
-    'VI Std',
-    'VII Std',
-    'VIII Std',
-    'IX Std',
-    'X Std'
-];
 
 const SECTION_OPTIONS = ['A', 'B', 'C', 'D', 'E'];
 
@@ -49,6 +34,12 @@ export default function TotalStrengthPage() {
     const [showReport, setShowReport] = useState(false);
     const [searchParams, setSearchParams] = useState<any>(null);
     const [selectAll, setSelectAll] = useState(false);
+
+    const {
+        data: preadmissionClass,
+        isLoading: preadmissionClassLoading,
+        isError: preadmissionClassError
+    } = usePreadmissionClassDropdown1();
 
     const { data: response, isLoading, error } = useStudentCountReport(searchParams);
 
@@ -117,7 +108,7 @@ export default function TotalStrengthPage() {
     const generateClassData = (): Record<string, ClassSectionData[]> => {
         const classData: Record<string, ClassSectionData[]> = {};
 
-        CLASS_OPTIONS.forEach((className) => {
+        preadmissionClass?.data?.forEach((className) => {
             classData[className] = SECTION_OPTIONS.map((section) => ({
                 class: className,
                 section,
@@ -331,11 +322,21 @@ export default function TotalStrengthPage() {
                                                                 <SelectValue placeholder='Select Class' />
                                                             </SelectTrigger>
                                                             <SelectContent className='max-h-60'>
-                                                                {CLASS_OPTIONS.map((cls) => (
-                                                                    <SelectItem key={cls} value={cls}>
-                                                                        {cls}
+                                                                {preadmissionClassLoading ? (
+                                                                    <SelectItem value='loading' disabled>
+                                                                        Loading...
                                                                     </SelectItem>
-                                                                ))}
+                                                                ) : preadmissionClassError ? (
+                                                                    <SelectItem value='error' disabled>
+                                                                        Error loading
+                                                                    </SelectItem>
+                                                                ) : (
+                                                                    preadmissionClass?.data?.map((item) => (
+                                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                            {item.asmcL_ClassName}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                     )}

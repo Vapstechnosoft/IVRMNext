@@ -29,6 +29,7 @@ export interface IClassTeacherReportList {
 }
 
 export interface IStudentYearlyAttendenceReportList {
+    RowNo: number;
     AMST_Id: number;
     name: string;
     AMST_AdmNo: string;

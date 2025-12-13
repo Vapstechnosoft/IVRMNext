@@ -32,7 +32,7 @@ export const createStudentsYearlyAttendenceReportColumns = (monthList: MonthInfo
             size: 24
         },
         {
-            accessorKey: 'AMST_Id',
+            accessorKey: 'RowNo',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
             cell: ({ row, table }) => {
                 const pageIndex = table.getState().pagination.pageIndex;
