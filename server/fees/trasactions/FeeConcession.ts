@@ -7,6 +7,7 @@ import type {
     IFeeCategoryConcessionDropDownList,
     IFeeCommonSettingConfigSet,
     IFeeConcessionAcademicyearDropDownList,
+    IFeeConcessionAdmissionNo,
     IFeeConcessionCategoryDropDownList,
     IFeeConcessionClassDropDownList,
     IFeeConcessionEdit,
@@ -14,6 +15,7 @@ import type {
     IFeeConcessionOthersList,
     IFeeConcessionStaffList,
     IFeeConcessionStudentConcessionGrid,
+    IFeeConcessionStudentData,
     IFeeConcessionStudentList
 } from '@/types/fees/transactions/transactions';
 
@@ -114,4 +116,14 @@ export async function getConcessionFeeConcessionCategoryDropdownData() {
 export async function getFeeConcessionEdit(asmaY_Id: number, fscI_ID: number) {
     const url = `FeeConcessionFacade/edit-fee-concession?asmayId=${asmaY_Id || 0}&fsciId=${fscI_ID || 0}`;
     return await api.get<IFeeConcessionEdit[]>('fees', url);
+}
+
+export async function getFeeConcessionAdmissionNo(asmaY_Id: number, searchfilter: string) {
+    const url = `FeeConcessionFacade/get-admno-search-filtter?asmayId=${asmaY_Id || 0}&searchfilter=${searchfilter || ''}`;
+    return await api.get<IFeeConcessionAdmissionNo[]>('fees', url);
+}
+
+export async function getFeesConcessionStudentData(asmaY_Id: number, amsT_Id: number) {
+    const url = `/FeeConcessionFacade/get-student-data?asmayId=${asmaY_Id || 0}&amst_id=${amsT_Id || 0}`;
+    return await api.get<IFeeConcessionStudentData[]>('fees', url);
 }
