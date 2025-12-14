@@ -8,7 +8,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { useClassTeacherReport } from '@/hooks/admission/preadmission/useTransactions';
+import { useClassTeacherReport } from '@/hooks/admission/preadmission/useReports';
 import type { IClassTeacherReportList } from '@/types/admission/preadmission/reports';
 import { FileSpreadsheet, FileText, Printer, RotateCcw, X } from 'lucide-react';
 import { use, useEffect, useMemo, useRef, useState } from 'react';

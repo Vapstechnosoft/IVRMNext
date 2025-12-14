@@ -10,7 +10,6 @@ import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMaste
 import {
     useActivePreadmissionDetails,
     usePreadmissionClassDropdown1,
-    useStudentYearlyAttendance,
     useadmissionSectionDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
 
@@ -20,6 +19,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { use, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { useStudentYearlyAttendance } from '@/hooks/admission/preadmission/useReports';
 import { createStudentsYearlyAttendenceReportColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;

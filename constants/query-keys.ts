@@ -34,7 +34,8 @@ export const ADMISSION_QUERY_KEYS = {
     STUDENT_TC_REPORT: 'student_tc_report',
     MONTH_END_REPORT: 'month_end_report',
     PRE_ADMISSION_MONTH_END_REPORT: 'pre_admission_month_end_report',
-    PRE_ADMISSION_REGISTRATION_REPORT: 'pre_admission_registration_report'
+    PRE_ADMISSION_REGISTRATION_REPORT: 'pre_admission_registration_report',
+    TOTAL_STRENGTH_REPORT: 'total_strength_report'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

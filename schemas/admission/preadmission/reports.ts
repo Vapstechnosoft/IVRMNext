@@ -46,8 +46,8 @@ export const TotalStrengthSchema = z
     .object({
         reportType: z.enum(['All', 'Individual']),
         status: z.string().min(1, 'Status is required'),
-        withTc: z.boolean().optional(),
-        withDeactive: z.boolean().optional(),
+        withTc: z.boolean().optional().default(false),
+        withDeactive: z.boolean().optional().default(false),
         academicYear: z.number().min(1, 'Academic year is required'),
         class: z.string().optional(),
         section: z.string().optional()

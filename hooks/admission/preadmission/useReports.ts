@@ -7,6 +7,12 @@ import {
     getStudentTcReport
 } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
+import {
+    type ElectiveItem,
+    GetClassTeacherReport,
+    GetStudentYearlyAttendance,
+    getTotalStrengthReport
+} from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -166,5 +172,77 @@ export const usePreAdmissionEmailSmsReport = (
             queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.PRE_ADMISSION_REGISTRATION_REPORT]
             })
+    };
+};
+export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_STUDENT_LISTS, ASMAY_Id, ASMCL_Id, ASMS_Id, searchParams ?? {}],
+            queryFn: async () => GetStudentYearlyAttendance(ASMAY_Id, ASMCL_Id, ASMS_Id, searchParams),
+            staleTime: 0,
+            enabled: !!ASMAY_Id && !!ASMS_Id && ASMCL_Id !== undefined
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_STUDENT_LISTS]
+            });
+        }
+    };
+};
+
+export const useClassTeacherReport = (ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT, ASMAY_Id, flag, searchParams ?? {}],
+            queryFn: async () => GetClassTeacherReport(ASMAY_Id, flag, searchParams),
+            staleTime: 0,
+            enabled: !!ASMAY_Id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT]
+            });
+        }
+    };
+};
+
+export const useTotalStrengthReport = (
+    asmay_Id: number,
+    asmcL_Id: number,
+    amC_Id: number,
+    statusFlag: string,
+    amsT_SOL: string,
+    withtc: string,
+    withdeactive: string,
+    electivearray: ElectiveItem[]
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [
+                ADMISSION_QUERY_KEYS.TOTAL_STRENGTH_REPORT,
+                asmay_Id,
+                asmcL_Id,
+                amC_Id,
+                statusFlag,
+                amsT_SOL,
+                withtc,
+                withdeactive,
+                electivearray
+            ],
+            queryFn: () => getTotalStrengthReport(asmay_Id, asmcL_Id, amC_Id, statusFlag, amsT_SOL, withtc, withdeactive, electivearray),
+            enabled: asmay_Id > 0 && statusFlag !== '' && amsT_SOL !== '' && withtc !== '' && withdeactive !== '',
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.TOTAL_STRENGTH_REPORT]
+            });
+        }
     };
 };

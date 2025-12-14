@@ -1,7 +1,5 @@
 import { ADMISSION_QUERY_KEYS, PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    GetClassTeacherReport,
-    GetStudentYearlyAttendance,
     getPreadmissionClassDropdown1,
     getadmissionSectionDropdown
 } from '@/server/admission/preadmission/reports/student_yearly_attendance';
@@ -412,42 +410,6 @@ export const useStudentApplicationForm = (pasr_id: number) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_APPLICATION_FORM]
-            });
-        }
-    };
-};
-
-export const useStudentYearlyAttendance = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, searchParams?: ApiSearchparams) => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_STUDENT_LISTS, ASMAY_Id, ASMCL_Id, ASMS_Id, searchParams ?? {}],
-            queryFn: async () => GetStudentYearlyAttendance(ASMAY_Id, ASMCL_Id, ASMS_Id, searchParams),
-            staleTime: 0,
-            enabled: !!ASMAY_Id && !!ASMS_Id && ASMCL_Id !== undefined
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_STUDENT_LISTS]
-            });
-        }
-    };
-};
-
-export const useClassTeacherReport = (ASMAY_Id: number, flag: number, searchParams?: ApiSearchparams) => {
-    const queryClient = useQueryClient();
-
-    return {
-        ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT, ASMAY_Id, flag, searchParams ?? {}],
-            queryFn: async () => GetClassTeacherReport(ASMAY_Id, flag, searchParams),
-            staleTime: 0,
-            enabled: !!ASMAY_Id
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_TEACHER_REPORT]
             });
         }
     };
