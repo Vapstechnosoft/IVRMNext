@@ -142,16 +142,16 @@ export default function UpdateSpecalFeeHeadForm({ onSuccess, termname = '', sele
                                 <InputText
                                     id='fmsfH_Name'
                                     {...register('fmsfH_Name', {
-                                        required: 'Term Name is required',
-                                        validate: (value) => {
-                                            if (!/^[a-zA-Z0-9]+$/.test(value)) {
-                                                return 'Only letters and numbers allowed (no spaces)';
-                                            }
-                                            return true;
-                                        },
-                                        onChange: (e) => {
-                                            e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
-                                        }
+                                        required: 'Term Name is required'
+                                        // validate: (value) => {
+                                        //     if (!/^[a-zA-Z0-9]+$/.test(value)) {
+                                        //         return 'Only letters and numbers allowed (no spaces)';
+                                        //     }
+                                        //     return true;
+                                        // },
+                                        // onChange: (e) => {
+                                        //     e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                                        // }
                                     })}
                                     error={errors.fmsfH_Name?.message}
                                     className='w-full rounded-none border-0 border-gray-300 px-0 py-1 focus:border-primary focus:ring-0'

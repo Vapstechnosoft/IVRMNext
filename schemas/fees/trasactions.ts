@@ -204,139 +204,147 @@ export const feePreadmissionTransactionSchema = {
     })
 };
 
+// export const feesStudentTransactionSchema = {
+//     addOrUpdate: z
+//         .object({
+//             // Academic Year
+//             asmaY_Id: z.number().int().positive('Academic Year is required'),
+
+//             // Optional when class-wise / section-wise is not checked
+//             asmcl_Id: z.number().int().optional(),
+//             asms_Id: z.number().int().optional(),
+
+//             // Student selection
+//             amst_Id: z.number().int().positive('Student is required'),
+
+//             // Fee groups (array of selected FMG_Id)
+//             feeGroupIds: z.array(z.number().int()).min(1, 'Select at least one Fee Group'),
+
+//             // Receipt No. (required only when `showReceiptNo` is true)
+//             receiptNo: z.string().optional(),
+
+//             // Amount checkbox → paying amount (required when checked)
+//             payingAmount: z.number().positive().optional(),
+
+//             // Payment mode (Single / Multiple)
+//             payModeType: z.enum(['Single', 'Multiple']),
+//             date: z.date({ required_error: 'Date is required' }),
+//             bankName: z.string().optional(),
+
+//             // Payment rows (at least one must be filled)
+//             paymentRows: z
+//                 .array(
+//                     z.object({
+//                         modeId: z.number().int(),
+//                         modeFlag: z.enum(['C', 'B']), // C = Cash, B = Bank/Cheque/Card
+//                         chequeDate: z.string().optional(),
+//                         chequeNo: z.string().optional(),
+//                         bankName: z.string().optional(),
+//                         amount: z.number().positive('Amount required'),
+//                         selected: z.boolean()
+//                     })
+//                 )
+//                 .refine((rows) => rows.some((r) => r.selected), {
+//                     message: 'Select at least one payment mode'
+//                 }),
+
+//             // Narration
+//             narrationId: z.number().int().optional(),
+//             narrationText: z.string().optional(),
+
+//             // Grid rows (selected + edited values)
+//             gridRows: z
+//                 .array(
+//                     z.object({
+//                         fmA_Id: z.number().int(),
+//                         fmH_Id: z.number().int(),
+//                         ftI_Id: z.number().int(),
+//                         fmG_Id: z.number().int(),
+//                         totalamount: z.number(),
+//                         fsS_TotalToBePaid: z.number(),
+//                         fsS_ConcessionAmount: z.number(),
+//                         fsS_FineAmount: z.number(),
+//                         fsS_ToBePaid: z.number().positive('Payable amount required'),
+//                         fsS_TotalToBePaidaddfine: z.number(),
+//                         fsS_RebateAmount: z.number(),
+//                         isSelected: z.boolean()
+//                     })
+//                 )
+//                 .min(1, 'Select at least one fee row'),
+
+//             // Flags
+//             amountCheck: z.boolean(),
+//             showReceiptNo: z.boolean(),
+//             rebateFlag: z.boolean()
+//         })
+
+//         // ------------------------------------------------------------------ //
+//         // 2. Conditional Validations (refine)
+//         // ------------------------------------------------------------------ //
+
+//         // Receipt No. required only when showReceiptNo = true
+//         .refine((data) => !data.showReceiptNo || (data.receiptNo && data.receiptNo.trim() !== ''), {
+//             message: 'Receipt No. is required',
+//             path: ['receiptNo']
+//         })
+
+//         // payingAmount required only when amountCheck = true
+//         .refine((data) => !data.amountCheck || (data.payingAmount !== undefined && data.payingAmount > 0), {
+//             message: 'Enter paying amount',
+//             path: ['payingAmount']
+//         })
+
+//         // At least one grid row must be selected (isSelected = true)
+//         .refine((data) => data.gridRows.some((row) => row.isSelected), {
+//             message: 'Select at least one fee row',
+//             path: ['gridRows']
+//         })
+
+//         // Total of selected gridRows.fsS_ToBePaid must equal payingAmount (if amountCheck) OR sum of paymentRows.amount
+//         .refine(
+//             (data) => {
+//                 const totalPayable = data.gridRows.filter((r) => r.isSelected).reduce((sum, r) => sum + r.fsS_ToBePaid, 0);
+
+//                 const totalPaid = data.paymentRows.filter((r) => r.selected).reduce((sum, r) => sum + r.amount, 0);
+
+//                 const expected = data.amountCheck ? data.payingAmount || 0 : totalPayable;
+
+//                 return Math.abs(totalPaid - expected) < 0.01; // floating point tolerance
+//             },
+//             {
+//                 message: 'Total payment must match payable amount',
+//                 path: ['paymentRows']
+//             }
+//         )
+
+//         // For Bank modes (B), require date, no, bank when selected
+//         .refine(
+//             (data) => {
+//                 return data.paymentRows.every((row) => {
+//                     if (!row.selected || row.modeFlag !== 'B') return true;
+//                     return (
+//                         row.chequeDate &&
+//                         row.chequeDate.trim() !== '' &&
+//                         row.chequeNo &&
+//                         row.chequeNo.trim() !== '' &&
+//                         row.bankName &&
+//                         row.bankName.trim() !== ''
+//                     );
+//                 });
+//             },
+//             {
+//                 message: 'Cheque/DD Date, No., and Bank Name are required for bank payment',
+//                 path: ['paymentRows']
+//             }
+//         )
+// };
+
 export const feesStudentTransactionSchema = {
-    addOrUpdate: z
-        .object({
-            // Academic Year
-            asmaY_Id: z.number().int().positive('Academic Year is required'),
-
-            // Optional when class-wise / section-wise is not checked
-            asmcl_Id: z.number().int().optional(),
-            asms_Id: z.number().int().optional(),
-
-            // Student selection
-            amst_Id: z.number().int().positive('Student is required'),
-
-            // Fee groups (array of selected FMG_Id)
-            feeGroupIds: z.array(z.number().int()).min(1, 'Select at least one Fee Group'),
-
-            // Receipt No. (required only when `showReceiptNo` is true)
-            receiptNo: z.string().optional(),
-
-            // Amount checkbox → paying amount (required when checked)
-            payingAmount: z.number().positive().optional(),
-
-            // Payment mode (Single / Multiple)
-            payModeType: z.enum(['Single', 'Multiple']),
-            date: z.date({ required_error: 'Date is required' }),
-            bankName: z.string().optional(),
-
-            // Payment rows (at least one must be filled)
-            paymentRows: z
-                .array(
-                    z.object({
-                        modeId: z.number().int(),
-                        modeFlag: z.enum(['C', 'B']), // C = Cash, B = Bank/Cheque/Card
-                        chequeDate: z.string().optional(),
-                        chequeNo: z.string().optional(),
-                        bankName: z.string().optional(),
-                        amount: z.number().positive('Amount required'),
-                        selected: z.boolean()
-                    })
-                )
-                .refine((rows) => rows.some((r) => r.selected), {
-                    message: 'Select at least one payment mode'
-                }),
-
-            // Narration
-            narrationId: z.number().int().optional(),
-            narrationText: z.string().optional(),
-
-            // Grid rows (selected + edited values)
-            gridRows: z
-                .array(
-                    z.object({
-                        fmA_Id: z.number().int(),
-                        fmH_Id: z.number().int(),
-                        ftI_Id: z.number().int(),
-                        fmG_Id: z.number().int(),
-                        totalamount: z.number(),
-                        fsS_TotalToBePaid: z.number(),
-                        fsS_ConcessionAmount: z.number(),
-                        fsS_FineAmount: z.number(),
-                        fsS_ToBePaid: z.number().positive('Payable amount required'),
-                        fsS_TotalToBePaidaddfine: z.number(),
-                        fsS_RebateAmount: z.number(),
-                        isSelected: z.boolean()
-                    })
-                )
-                .min(1, 'Select at least one fee row'),
-
-            // Flags
-            amountCheck: z.boolean(),
-            showReceiptNo: z.boolean(),
-            rebateFlag: z.boolean()
-        })
-
-        // ------------------------------------------------------------------ //
-        // 2. Conditional Validations (refine)
-        // ------------------------------------------------------------------ //
-
-        // Receipt No. required only when showReceiptNo = true
-        .refine((data) => !data.showReceiptNo || (data.receiptNo && data.receiptNo.trim() !== ''), {
-            message: 'Receipt No. is required',
-            path: ['receiptNo']
-        })
-
-        // payingAmount required only when amountCheck = true
-        .refine((data) => !data.amountCheck || (data.payingAmount !== undefined && data.payingAmount > 0), {
-            message: 'Enter paying amount',
-            path: ['payingAmount']
-        })
-
-        // At least one grid row must be selected (isSelected = true)
-        .refine((data) => data.gridRows.some((row) => row.isSelected), {
-            message: 'Select at least one fee row',
-            path: ['gridRows']
-        })
-
-        // Total of selected gridRows.fsS_ToBePaid must equal payingAmount (if amountCheck) OR sum of paymentRows.amount
-        .refine(
-            (data) => {
-                const totalPayable = data.gridRows.filter((r) => r.isSelected).reduce((sum, r) => sum + r.fsS_ToBePaid, 0);
-
-                const totalPaid = data.paymentRows.filter((r) => r.selected).reduce((sum, r) => sum + r.amount, 0);
-
-                const expected = data.amountCheck ? data.payingAmount || 0 : totalPayable;
-
-                return Math.abs(totalPaid - expected) < 0.01; // floating point tolerance
-            },
-            {
-                message: 'Total payment must match payable amount',
-                path: ['paymentRows']
-            }
-        )
-
-        // For Bank modes (B), require date, no, bank when selected
-        .refine(
-            (data) => {
-                return data.paymentRows.every((row) => {
-                    if (!row.selected || row.modeFlag !== 'B') return true;
-                    return (
-                        row.chequeDate &&
-                        row.chequeDate.trim() !== '' &&
-                        row.chequeNo &&
-                        row.chequeNo.trim() !== '' &&
-                        row.bankName &&
-                        row.bankName.trim() !== ''
-                    );
-                });
-            },
-            {
-                message: 'Cheque/DD Date, No., and Bank Name are required for bank payment',
-                path: ['paymentRows']
-            }
-        )
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' }),
+        asmcl_Id: z.number().optional(),
+        asms_Id: z.number().optional()
+    })
 };
 
 export const feesRefundableSchema = {
@@ -357,7 +365,22 @@ export const feesRefundableSchema = {
         groups: z.array(z.string()).min(1, 'Select at least one group')
     }),
     delete: z.object({
-        fR_Id: deleteIdSchema('fR_Id')
+        fR_ID: deleteIdSchema('fR_ID')
+    })
+};
+
+export const feeAdjustmentSchema = {
+    addOrUpdate: z.object({
+        //asmaY_Id: z.number().int({ message: 'Academic Year is required' }),
+        asmaY_Id: z.number({ message: 'Academic Year is required' }),
+        // feeGroupId: z.number({ message: 'Fee Group is required' }),
+        // categoryId: z.number({ message: 'Category is required' })
+
+        feeGroupId: z.number().optional(),
+        categoryId: z.number().optional()
+    }),
+    delete: z.object({
+        fsA_Id: deleteIdSchema('fsA_Id')
     })
 };
 

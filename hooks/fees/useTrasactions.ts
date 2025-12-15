@@ -14,11 +14,18 @@ import {
     getConcessionStudentConcessionGrid,
     getConcessionStudentList,
     getConcessionTermDropdownData,
+    getFeeConcessionAdmissionNo,
+    getFeeConcessionEdit,
     getFeeConcessionOthersList,
     getFeeConcessionStaffList,
-    getFeesCommonSettingConfigSet
+    getFeesCommonSettingConfigSet,
+    getFeesConcessionStudentData
 } from '@/server/fees/trasactions/FeeConcession';
-import { getFeeAdjutmentGridList } from '@/server/fees/trasactions/fee_adjustment';
+import {
+    getFeeAdjustmentFromHeadDropDown,
+    getFeeAdjustmentGroupDropDown,
+    getFeeAdjutmentGridList
+} from '@/server/fees/trasactions/fee_adjustment';
 import {
     getOpeningAcademicYearDropdownData,
     getOpeningBalanceList,
@@ -703,7 +710,7 @@ export const useFeeConcessionStudentConcessionGrid = (
 export const useFeeConcessionHeadDetailsList = (
     asmaY_Id: number,
     amsT_Id: number,
-    fmT_Id: number,
+    fmT_Id: number[],
     configSet: string,
     searchParams?: ApiSearchparams
 ) => {
@@ -828,6 +835,102 @@ export const useFeeAdjustment = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GRIDDATA]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionEdit = (asmaY_Id: number, fscI_ID: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_EDIT, asmaY_Id, fscI_ID, searchParams ?? {}],
+            queryFn: async () => getFeeConcessionEdit(asmaY_Id, fscI_ID),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_EDIT]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionAdmissionNo = (asmaY_Id: number, searchfilter: string, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ADMISSION_NO, asmaY_Id, searchfilter, searchParams ?? {}],
+            queryFn: async () => getFeeConcessionAdmissionNo(asmaY_Id, searchfilter),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_ADMISSION_NO]
+            });
+        }
+    };
+};
+
+export const useFeeConcessionStudentData = (asmaY_Id: number, amsT_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_DATA, asmaY_Id, amsT_Id, searchParams ?? {}],
+            queryFn: async () => getFeesConcessionStudentData(asmaY_Id, amsT_Id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_DATA]
+            });
+        }
+    };
+};
+
+export const useFeeAdjustmentGroupDropDown = (filterrefund: string, asmaY_Id: number, amsT_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GROUP_DROPDOWN, filterrefund, asmaY_Id, amsT_Id, searchParams ?? {}],
+            queryFn: async () => getFeeAdjustmentGroupDropDown(filterrefund, asmaY_Id, amsT_Id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GROUP_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeAdjustmentHeadDropDown = (
+    filterrefund: string,
+    asmaY_Id: number,
+    amsT_Id: number,
+    fmG_id: number,
+    searchParams?: ApiSearchparams
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_HEAD_DROPDOWN, filterrefund, asmaY_Id, amsT_Id, fmG_id, searchParams ?? {}],
+            queryFn: async () => getFeeAdjustmentFromHeadDropDown(filterrefund, asmaY_Id, amsT_Id, fmG_id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_HEAD_DROPDOWN]
             });
         }
     };

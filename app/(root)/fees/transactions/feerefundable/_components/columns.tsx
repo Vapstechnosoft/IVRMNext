@@ -26,7 +26,7 @@ export const feeRefundableColumns: ColumnDef<IFeeRefundableList>[] = [
     //     size: 24
     // },
     {
-        accessorKey: 'slno',
+        accessorKey: 'fR_ID',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;

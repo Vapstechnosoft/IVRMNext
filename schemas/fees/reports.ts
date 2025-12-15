@@ -9,6 +9,7 @@ export const feeAuditSchema = z.object({
 
 export const dailyFeeCollectionSchema = z.object({
     report: z.enum(['All', 'students', 'staff', 'others']).default('students'),
+
     rpttyp: z.enum(['All', 'Individual']).default('Individual'),
     reportdate: z.enum(['transdate', 'settdate', 'SettledOnline']).default('transdate'),
 
@@ -34,4 +35,10 @@ export const dailyFeeCollectionSchema = z.object({
     storedTrans: z.boolean().default(false),
     thirdPartyTrans: z.boolean().default(false),
     pdaTrans: z.boolean().default(false)
+});
+
+export const yearlyFeeCollectionSchema = z.object({
+    fromDate: z.string().optional(),
+
+    toDate: z.string().optional()
 });

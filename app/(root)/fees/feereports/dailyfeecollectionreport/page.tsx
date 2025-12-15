@@ -3,6 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
+
 import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import { dailyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getDailyFeeCollectionReport, getGroupsDropdown } from '@/server/fees/reports/daily_fee_collection_report';
 import type { ApiSearchparams } from '@/types';
 import type { IDailyFeeCollectionRequest } from '@/types/fees/reports/reports';
+import { exportToExcel, printTable } from './_components/print-and-export-excel';
 
 type FormFields = z.infer<typeof dailyFeeCollectionSchema>;
 
@@ -76,6 +78,11 @@ export default function DailyFeeCollectionReportForm() {
     const selectedGroupIds = useWatch({ control, name: 'groupIds' }) || [];
 
     const [refreshAY, setRefreshAY] = useState(0);
+    const [tableSumRow, setTableSumRow] = useState<any>(null);
+
+    const [reporttype, setReportType] = useState('');
+
+    const sumRow: any = {};
 
     const handleGroupChange = (values: string[]) => {
         const ids = values.map(Number);
@@ -139,15 +146,21 @@ export default function DailyFeeCollectionReportForm() {
 
             setAcademicYears(years);
 
-            if (years.length > 0) {
-                const firstYearId = years[0].asmaY_Id;
+            const firstYearId = years[0].asmaY_Id;
+            setValue('asmaY_Id', firstYearId, {
+                shouldValidate: true,
+                shouldDirty: false
+            });
 
-                // ⭐ ALWAYS PICK FIRST YEAR
-                setValue('asmaY_Id', firstYearId, { shouldValidate: true });
+            // if (years.length > 0) {
+            //     const firstYearId = years[0].asmaY_Id;
 
-                // ⭐ ALWAYS reload groups for first year
-                onYearChange(firstYearId);
-            }
+            //     // ⭐ ALWAYS PICK FIRST YEAR
+            //     setValue('asmaY_Id', firstYearId, { shouldValidate: true });
+
+            //     // ⭐ ALWAYS reload groups for first year
+            //     onYearChange(firstYearId);
+            // }
         }
     }, [academicData, academicError, refreshAY]);
 
@@ -239,9 +252,27 @@ export default function DailyFeeCollectionReportForm() {
         return res.json();
     }
 
-    // ===================================================
-    // SUBMIT (REPORT CLICK)
-    // ===================================================
+    const formatDate = (date: string) => new Date(date).toLocaleDateString('en-GB');
+
+    const flattenData = (data: any[]) => {
+        return data.map((item) => ({
+            Date: formatDate(item.date),
+            ...item.feeHeadAmounts,
+            TotalPaidAmount: item.totalPaidAmount
+        }));
+    };
+
+    const handlePrint = () => {
+        printTable(tableColumns, tableRows, tableSumRow);
+    };
+
+    const handleExportExcel = () => {
+        exportToExcel(
+            [...tableRows, tableSumRow], // include TOTAL row
+            'Daily_Fee_Collection_Report'
+        );
+    };
+
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setSubmitClicked(true);
 
@@ -260,100 +291,385 @@ export default function DailyFeeCollectionReportForm() {
             All_List: [{ columnID: '1' }]
         };
 
-        // ===================================================
-        // REPORT 1 → HEADWISE
-        // ===================================================
-        if (data.headwise === true && data.paymentwise === false) {
-            params.Headwise = true;
-            params.Paymentwise = false;
+        // // ===================================================
+        // // REPORT 1 → HEADWISE
+        // // ===================================================
+        // if (data.headwise === true && data.paymentwise === false) {
+        //     params.Headwise = true;
+        //     params.Paymentwise = false;
 
-            console.log('REPORT 1 (HEADWISE) PARAMS', params);
-        }
+        //     console.log('REPORT 1 (HEADWISE) PARAMS', params);
+        // }
 
-        // ===================================================
-        // REPORT 2 → PAYMENTWISE
-        // ===================================================
-        if (data.paymentwise === true) {
-            params.Paymentwise = true;
-            params.Headwise = false;
+        // // ===================================================
+        // // REPORT 2 → PAYMENTWISE
+        // // ===================================================
+        // if (data.paymentwise === true) {
+        //     params.Paymentwise = true;
+        //     params.Headwise = false;
 
-            console.log('REPORT 2 (PAYMENTWISE) PARAMS', params);
-        }
+        //     console.log('REPORT 2 (PAYMENTWISE) PARAMS', params);
+        // }
 
-        // ===================================================
-        // REPORT 3 → MULTIPLE PAYMENT (students only)
-        // Trigger:
-        // Fmc_allorsudentorother === "stud"
-        // Fmc_allorcorddorop === "multiplepaymentmode"
-        // ===================================================
-        if (data.Fmc_allorsudentorother === 'stud' && data.Fmc_allorcorddorop === 'All') {
-            params.regornamedetails = 'students';
-            params.allorstdorothersflag = 'multiplepaymentmode';
+        // // ===================================================
+        // // REPORT 3 → MULTIPLE PAYMENT (students only)
+        // // Trigger:
+        // // Fmc_allorsudentorother === "stud"
+        // // Fmc_allorcorddorop === "multiplepaymentmode"
+        // // ===================================================
+        // if (data.Fmc_allorsudentorother === 'stud' && data.Fmc_allorcorddorop === 'All') {
+        //     params.regornamedetails = 'students';
+        //     params.allorstdorothersflag = 'multiplepaymentmode';
 
-            console.log('REPORT 3 (MULTIPLE PAYMENT STUDENTS) PARAMS', params);
-        }
+        //     console.log('REPORT 3 (MULTIPLE PAYMENT STUDENTS) PARAMS', params);
+        // }
 
-        // ===================================================
-        // REPORT 4 → STUDENTS / ALL (NOT multiplepaymentmode)
-        // Trigger:
-        // Fmc_allorsudentorother = "stud" OR "All"
-        // AND Fmc_allorcorddorop != "multiplepaymentmode"
-        // ===================================================
-        if ((data.Fmc_allorsudentorother === 'stud' || data.Fmc_allorsudentorother === 'All') && data.Fmc_allorcorddorop !== 'All') {
-            params.regornamedetails = data.Fmc_allorsudentorother.toLowerCase();
-            params.allorstdorothersflag = 'all';
-            params.allorindivflag = data.rpttyp === 'All' ? 'all' : 'individual';
-            params.allorcorchoronlineflag = data.Fmc_allorcorddorop.toLowerCase();
+        // // ===================================================
+        // // REPORT 4 → STUDENTS / ALL (NOT multiplepaymentmode)
+        // // Trigger:
+        // // Fmc_allorsudentorother = "stud" OR "All"
+        // // AND Fmc_allorcorddorop != "multiplepaymentmode"
+        // // ===================================================
+        // if ((data.Fmc_allorsudentorother === 'stud' || data.Fmc_allorsudentorother === 'All') && data.Fmc_allorcorddorop !== 'All') {
+        //     params.regornamedetails = data.Fmc_allorsudentorother.toLowerCase();
+        //     params.allorstdorothersflag = 'all';
+        //     params.allorindivflag = data.rpttyp === 'All' ? 'all' : 'individual';
+        //     params.allorcorchoronlineflag = data.Fmc_allorcorddorop.toLowerCase();
 
-            params.ClassFlag = data.enableAllClasses ? '0' : '1';
-            params.GroupFlag = data.groupIds.length > 0 ? '1' : '0';
-            params.Cheque = data.chequeDate ? '1' : '0';
-            params.TempararyArrayListstring = 'all';
+        //     params.ClassFlag = data.enableAllClasses ? '0' : '1';
+        //     params.GroupFlag = data.groupIds.length > 0 ? '1' : '0';
+        //     params.Cheque = data.chequeDate ? '1' : '0';
+        //     params.TempararyArrayListstring = 'all';
 
-            console.log('REPORT 4 (STUDENTS/ALL) PARAMS', params);
-        }
+        //     console.log('REPORT 4 (STUDENTS/ALL) PARAMS', params);
+        // }
 
-        // ===================================================
-        // REPORT 5 → STAFF / OTHERS
-        // Trigger: Fmc_allorsudentorother = "staff" | "other"
-        // ===================================================
-        if (data.Fmc_allorsudentorother === 'Trpt' || data.Fmc_allorsudentorother === 'other') {
-            params.regornamedetails = data.Fmc_allorsudentorother;
-            params.allorstdorothersflag = 'all';
-            params.ClassFlag = data.enableAllClasses ? '0' : '1';
+        // // ===================================================
+        // // REPORT 5 → STAFF / OTHERS
+        // // Trigger: Fmc_allorsudentorother = "staff" | "other"
+        // // ===================================================
+        // if (data.Fmc_allorsudentorother === 'Trpt' || data.Fmc_allorsudentorother === 'other') {
+        //     params.regornamedetails = data.Fmc_allorsudentorother;
+        //     params.allorstdorothersflag = 'all';
+        //     params.ClassFlag = data.enableAllClasses ? '0' : '1';
 
-            console.log('REPORT 5 (STAFF / OTHERS) PARAMS', params);
-        }
+        //     console.log('REPORT 5 (STAFF / OTHERS) PARAMS', params);
+        // }
 
-        console.log('FINAL PARAM SENT:', params);
+        // console.log('FINAL PARAM SENT:', params);
 
         // ===================================================
         // API CALL
         // ===================================================
         try {
             setLoading(true);
-            const tempParams: IDailyFeeCollectionRequest = {
-                AsmayId: 176,
-                FromDate: '2025-01-01',
-                ToDate: '2025-01-31',
-                Headwise: true,
-                Paymentwise: false
-            };
+            // const tempParams: IDailyFeeCollectionRequest = {
+            //     AsmayId: 176,
+            //     FromDate: '2025-01-01',
+            //     ToDate: '2025-01-31',
+            //     Headwise: true,
+            //     Paymentwise: false
+            // };
 
-            console.log('tempParams', tempParams);
+            //console.log('tempParams', tempParams);
+            const formatDate = (date: string) => new Date(date).toISOString().split('T')[0];
+            const { asmaY_Id, fromDate, toDate, Fmc_allorsudentorother, Fmc_allorcorddorop } = data;
 
-            const { data: resp } = await getDailyFeeCollectionReport(tempParams);
+            let payload = {};
 
-            console.log('resp', resp);
+            if (data.headwise === true && data.paymentwise === false) {
+                payload = {
+                    AsmayId: asmaY_Id,
+                    FromDate: formatDate(fromDate),
+                    ToDate: formatDate(toDate),
+                    Headwise: true,
+                    Paymentwise: false
+                };
+            } else if (data.headwise === false && data.paymentwise === true) {
+                payload = {
+                    AsmayId: asmaY_Id,
+                    FromDate: formatDate(fromDate),
+                    ToDate: formatDate(toDate),
+                    Headwise: false,
+                    Paymentwise: true
+                };
+            } else if (
+                ((data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'All') &&
+                    data.Fmc_allorcorddorop === 'All') ||
+                report === 'students'
+            ) {
+                const allList = selectedGroupIds.map((id) => ({
+                    columnID: String(id)
+                }));
+                payload = {
+                    AsmayId: asmaY_Id,
+                    FromDate: formatDate(fromDate),
+                    ToDate: formatDate(toDate),
+                    regornamedetails: report,
+                    allorstdorothersflag: Fmc_allorsudentorother,
+                    All_List: allList
+                };
+            } else if (report === 'All' && data.Fmc_allorsudentorother !== 'multiplepaymentmode') {
+                const allList = selectedGroupIds.map((id) => ({
+                    columnID: String(id)
+                }));
+                payload = {
+                    AsmayId: asmaY_Id,
+                    FromDate: formatDate(fromDate),
+                    ToDate: formatDate(toDate),
+                    regornamedetails: report,
+                    allorstdorothersflag: Fmc_allorsudentorother,
+                    All_List: allList,
+                    ClassFlag: data.enableAllClasses ? '0' : '1',
+                    allorindivflag: data.rpttyp === 'All' ? 'all' : 'individual',
+                    allorcorchoronlineflag: Fmc_allorcorddorop,
+                    TempararyArrayListstring: 'all',
+                    Cheque: data.chequeDate ? '1' : '0'
+                };
+            }
 
-            const list = resp?.data?.list ?? [];
+            console.log('payload', payload);
+            const response = await getDailyFeeCollectionReport(payload);
 
-            if (list.length > 0) {
-                setTableColumns(Object.keys(list[0]));
-                setTableRows(list);
-            } else {
-                setTableColumns([]);
-                setTableRows([]);
+            console.log('response', response);
+
+            const rawData: any = response?.data;
+
+            if (!Array.isArray(rawData?.list) || rawData.list.length === 0) {
+                toast.error('No data found');
+                setShowTable(false);
+                return;
+            }
+
+            toast.success('Report Data Fetched Successfully');
+
+            console.log('rawData', rawData);
+
+            const currentReportType = rawData?.listName || '';
+            setReportType(currentReportType);
+
+            if (currentReportType === 'Headwise') {
+                const list = Array.isArray(rawData?.list) ? rawData.list : [];
+
+                console.log('list', list);
+
+                // 🔹 Collect all fee heads
+                const feeHeadSet = new Set<string>();
+
+                list.forEach((item: any) => {
+                    Object.keys(item.feeHeadAmounts || {}).forEach((head) => feeHeadSet.add(head));
+                });
+
+                const allFeeHeads = Array.from(feeHeadSet);
+                const rows = list.map((item: any, index: number) => {
+                    const row: any = {
+                        SLNO: index + 1,
+                        Date: new Date(item.date).toLocaleDateString('en-GB')
+                    };
+
+                    allFeeHeads.forEach((head) => {
+                        row[head] = Number(item.feeHeadAmounts?.[head] ?? 0); // 🔥 force number
+                    });
+
+                    row.Total = Number(item.totalPaidAmount ?? 0); // 🔥 force number
+
+                    return row;
+                });
+
+                const columns = ['SLNO', 'Date', ...allFeeHeads, 'Total'];
+
+                setTableColumns(columns);
+                setTableRows(rows);
+
+                const sumRow: any = {
+                    SLNO: '',
+                    Date: 'Total'
+                };
+
+                // First columns
+                sumRow.SLNO = '';
+                sumRow.Date = 'Total';
+
+                // Initialize sums
+                columns.forEach((col) => {
+                    if (col !== 'SLNO' && col !== 'Date') {
+                        sumRow[col] = 0;
+                    }
+                });
+
+                rows.forEach((row: any) => {
+                    columns.forEach((col) => {
+                        if (col !== 'SLNO' && col !== 'Date') {
+                            sumRow[col] += Number(row[col]); // 🔥 GUARANTEED NUMBER
+                        }
+                    });
+                });
+
+                setTableSumRow(sumRow);
+            } else if (currentReportType === 'Paymentwise') {
+                const list = Array.isArray(rawData?.list) ? rawData.list : [];
+
+                // 🔹 Collect payment modes
+                const paymentModeSet = new Set<string>();
+                list.forEach((item: any) => {
+                    if (item.paymentMode) {
+                        paymentModeSet.add(item.paymentMode);
+                    }
+                });
+
+                const paymentModes = Array.from(paymentModeSet);
+                // Example: ['Bank', 'Cash', 'RTGS/NEFT', 'Swipe/Card', 'UPI']
+
+                // 🔹 Group by Date + HeadName
+                const grouped: Record<string, any> = {};
+
+                list.forEach((item: any) => {
+                    const date = new Date(item.date).toLocaleDateString('en-GB');
+                    const headName = item.headName;
+                    const key = `${date}_${headName}`;
+
+                    if (!grouped[key]) {
+                        grouped[key] = {
+                            Date: date,
+                            HeadName: headName
+                        };
+
+                        // Initialize payment columns
+                        paymentModes.forEach((mode) => {
+                            grouped[key][mode] = 0;
+                        });
+                    }
+
+                    const mode = item.paymentMode;
+                    const amount = Number(item.amount ?? 0);
+
+                    grouped[key][mode] += amount;
+                });
+
+                // 🔹 Convert to rows
+                const rows = Object.values(grouped).map((row: any, index: number) => ({
+                    SLNO: index + 1,
+                    ...row
+                }));
+
+                const columns = ['SLNO', 'Date', 'HeadName', ...paymentModes];
+
+                setTableColumns(columns);
+                setTableRows(rows);
+
+                // 🔹 Sum row
+                const sumRow: any = {
+                    SLNO: '',
+                    Date: '',
+                    HeadName: 'Total'
+                };
+
+                columns.forEach((col) => {
+                    if (!['SLNO', 'Date', 'HeadName'].includes(col)) {
+                        sumRow[col] = 0;
+                    }
+                });
+
+                rows.forEach((row: any) => {
+                    columns.forEach((col) => {
+                        if (!['SLNO', 'Date', 'HeadName'].includes(col)) {
+                            sumRow[col] += Number(row[col] || 0);
+                        }
+                    });
+                });
+
+                setTableSumRow(sumRow);
+            } else if (currentReportType === 'Student') {
+                const list = Array.isArray(rawData?.list) ? rawData.list : [];
+
+                const rows = list.map((item: any, index: number) => ({
+                    SLNO: index + 1,
+                    StudentName: item.name ?? '',
+                    AdmissionNo: item.amsT_AdmNo ?? '',
+                    ClassName: item.asmcL_ClassName ?? '',
+                    SectionName: item.asmC_SectionName ?? '',
+                    MobileNo: item.mobileNo ?? '',
+                    ReceiptNo: item.fyP_Receipt_No ?? '',
+                    BankName: item.fyppM_BankName ?? '',
+                    ChequeNo: item.fyP_DD_Cheque_No ?? '',
+                    Date: item.date ?? '',
+
+                    Bank: Number(item.bank ?? 0),
+                    Cash: Number(item.cash ?? 0),
+                    Online: Number(item.online ?? 0),
+                    Card: Number(item.card ?? 0),
+                    RTGS: Number(item.rtgs ?? 0),
+                    ECS: Number(item.ecs ?? 0),
+                    Total: Number(item.total ?? 0)
+                }));
+
+                const columns = [
+                    'SLNO',
+                    'StudentName',
+                    'AdmissionNo',
+                    'ClassName',
+                    'SectionName',
+                    'MobileNo',
+                    'ReceiptNo',
+                    'BankName',
+                    'ChequeNo',
+                    'Date',
+                    'Bank',
+                    'Cash',
+                    'Online',
+                    'Card',
+                    'RTGS',
+                    'ECS',
+                    'Total'
+                ];
+
+                setTableColumns(columns);
+                setTableRows(rows);
+
+                // 🔹 SUM ROW
+                const sumRow: any = {
+                    SLNO: '',
+                    StudentName: '',
+                    AdmissionNo: '',
+                    ClassName: '',
+                    SectionName: '',
+                    MobileNo: '',
+                    ReceiptNo: '',
+                    BankName: '',
+                    ChequeNo: '',
+                    Date: 'Total'
+                };
+
+                // Initialize numeric sums
+                columns.forEach((col) => {
+                    if (
+                        ![
+                            'SLNO',
+                            'StudentName',
+                            'AdmissionNo',
+                            'ClassName',
+                            'SectionName',
+                            'MobileNo',
+                            'ReceiptNo',
+                            'BankName',
+                            'ChequeNo',
+                            'Date'
+                        ].includes(col)
+                    ) {
+                        sumRow[col] = 0;
+                    }
+                });
+
+                // Calculate totals
+                rows.forEach((row: any) => {
+                    columns.forEach((col) => {
+                        if (typeof sumRow[col] === 'number') {
+                            sumRow[col] += Number(row[col] || 0);
+                        }
+                    });
+                });
+
+                setTableSumRow(sumRow);
             }
 
             setShowTable(true);
@@ -441,76 +757,53 @@ export default function DailyFeeCollectionReportForm() {
                         </div>
 
                         {/* ACADEMIC YEAR */}
-                        <Controller
+                        {/* <Controller
                             name='asmaY_Id'
                             control={control}
-                            render={({ field, fieldState }) => (
-                                <div className='flex items-center gap-4'>
-                                    <Label className='w-40 font-medium'>
-                                        Academic Year <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='asmaY_Id'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                value={field.value?.toString()}
-                                                onValueChange={(v) => {
-                                                    const num = Number(v);
-                                                    field.onChange(num);
-                                                    onYearChange(num);
-                                                }}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
-                                                </SelectTrigger>
+                            render={({ field, fieldState }) => ( */}
+                        <div className='flex items-center gap-4'>
+                            <Label className='w-40 font-medium'>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='asmaY_Id'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        value={field.value?.toString()}
+                                        onValueChange={(v) => {
+                                            const num = Number(v);
+                                            field.onChange(num);
+                                            onYearChange(num);
+                                        }}>
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
+                                        </SelectTrigger>
 
-                                                <SelectContent>
-                                                    <SelectItem value='all'>All</SelectItem>
-                                                    {loadingAcademic ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : academicError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Failed to load years
-                                                        </SelectItem>
-                                                    ) : (
-                                                        academicYears.map((item) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-
-                                    {/* <div className='flex-1'>
-                                        <Select
-                                            value={field.value?.toString()}
-                                            onValueChange={(v) => {
-                                                const num = Number(v);
-                                                field.onChange(num);
-                                                onYearChange(num);
-                                            }}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Academic Year' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                        <SelectContent>
+                                            <SelectItem value='all'>All</SelectItem>
+                                            {loadingAcademic ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
+                                                </SelectItem>
+                                            ) : academicError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Failed to load years
+                                                </SelectItem>
+                                            ) : (
+                                                academicYears.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
                                                     </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div> */}
-                                </div>
-                            )}
-                        />
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                        </div>
+                        {/* )}
+                        /> */}
 
                         <div className='flex items-start gap-4'>
                             {/* LABEL */}
@@ -650,22 +943,59 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* DATES & CLASS */}
                         <div className='space-y-5 rounded-lg border p-4'>
-                            {/* FROM DATE */}
-                            <div className='flex items-center gap-4'>
+                            {/* <div className='flex items-center gap-4'>
                                 <Label className='w-32'>
                                     From Date <span className='text-red-500'>*</span>
                                 </Label>
-                                <input type='date' className='flex-1 rounded-md border px-3 py-2' {...register('fromDate')} />
+                                <input type='date'
+                                 className='flex-1 rounded-md border px-3 py-2' 
+                                 {...register('fromDate')} />
                                 {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
                             </div>
 
-                            {/* TO DATE */}
+                           
                             <div className='flex items-center gap-4'>
                                 <Label className='w-32'>
                                     To Date <span className='text-red-500'>*</span>
                                 </Label>
                                 <input type='date' className='flex-1 rounded-md border px-3 py-2' {...register('toDate')} />
                                 {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
+                            </div> */}
+
+                            {/* FROM DATE */}
+                            <div className='flex flex-col gap-1'>
+                                <div className='flex items-center gap-4'>
+                                    <Label className='w-32'>
+                                        From Date <span className='text-red-500'>*</span>
+                                    </Label>
+
+                                    <input
+                                        type='date'
+                                        className='flex-1 rounded-md border px-3 py-2'
+                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
+                                        {...register('fromDate')}
+                                    />
+                                </div>
+
+                                {errors.fromDate && <FormError className='ml-32'>{errors.fromDate.message}</FormError>}
+                            </div>
+
+                            {/* TO DATE */}
+                            <div className='flex flex-col gap-1'>
+                                <div className='flex items-center gap-4'>
+                                    <Label className='w-32'>
+                                        To Date <span className='text-red-500'>*</span>
+                                    </Label>
+
+                                    <input
+                                        type='date'
+                                        className='flex-1 rounded-md border px-3 py-2'
+                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
+                                        {...register('toDate')}
+                                    />
+                                </div>
+
+                                {errors.toDate && <FormError className='ml-32'>{errors.toDate.message}</FormError>}
                             </div>
 
                             {/* CLASS */}
@@ -725,122 +1055,80 @@ export default function DailyFeeCollectionReportForm() {
                     </Button>
                 </div>
             </form>
+            <div className='my-6 border-gray-300 border-t' />
 
-            {/* =====================================================
-                DYNAMIC RESULT TABLE AFTER REPORT CLICK
-            ====================================================== */}
-            {/* {showTable && (
+            {!loading && tableRows.length > 0 && (
                 <div className='mt-10'>
-                    {loading && <p className='py-6 text-center font-semibold'>Loading Report...</p>}
+                    {/* 🔹 REPORT HEADER */}
+                    <div className='mb-6 text-center'>
+                        <h2 className='font-bold text-lg uppercase tracking-wide'>Daily Fee Collection Report</h2>
+                        {/* <div className="mt-1 text-sm text-gray-600">
+                From {formatDate(fromDate)} To {formatDate(toDate)}
+            </div> */}
+                    </div>
+                    <div className='my-6 border-gray-300 border-t' />
 
-                    {!loading && tableRows.length > 0 && (
-                        <div className='overflow-auto rounded-md border'>
-                            <table className='w-full border-collapse text-sm'>
-                                <thead className='bg-gray-200'>
-                                    <tr>
-                                        {tableColumns.map((col) => (
-                                            <th key={col} className='border px-3 py-2 text-left'>
-                                                {col}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
+                    {/* 🔹 ACTION BUTTONS */}
+                    {/* <div className='mb-4 flex justify-end gap-2'>
+                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
+                            Export Excel
+                        </Button>
 
-                                <tbody>
-                                    {tableRows.map((row, rowIndex) => (
-                                        <tr key={rowIndex}>
-                                            {tableColumns.map((col) => (
-                                                <td key={col} className='border px-3 py-2'>
-                                                    {row[col] ?? ''}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
+                            Print
+                        </Button>
+                    </div> */}
+
+                    <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
+                        {/* <div className="font-semibold text-lg text-primary">
+                                                            Report Actions
+                                                        </div> */}
+
+                        <div className='flex gap-3'>
+                            <Button variant='outline' onClick={handlePrint}>
+                                🖨 Print
+                            </Button>
+
+                            <Button variant='outline' onClick={handleExportExcel}>
+                                📊 Export Excel
+                            </Button>
                         </div>
-                    )}
+                    </div>
 
-                    {!loading && tableRows.length === 0 && <p className='py-6 text-center text-gray-500'>No Records Found</p>}
-                </div>
-            )} */}
-
-            {showTable && (
-                <div className='mt-10'>
-                    {/* REPORT TITLE */}
-                    <h2 className='mb-6 text-center font-bold text-2xl text-gray-800 tracking-wide'>DAILY FEE COLLECTION REPORT</h2>
-
-                    {/* Glass Card Container */}
-                    <div className='overflow-auto rounded-2xl border bg-white/60 shadow-xl backdrop-blur-lg'>
+                    {/* 🔹 TABLE */}
+                    <div className='overflow-auto rounded-md border'>
                         <table className='w-full border-collapse text-sm'>
-                            {/* Table Header (Improved UI) */}
-                            <thead className='sticky top-0 z-20 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'>
+                            <thead className='bg-gray-200'>
                                 <tr>
-                                    <th className='border px-3 py-2 font-semibold'>Student Name</th>
-                                    <th className='border px-3 py-2 font-semibold'>Adm No</th>
-                                    <th className='border px-3 py-2 font-semibold'>Class</th>
-                                    <th className='border px-3 py-2 font-semibold'>Section</th>
-                                    <th className='border px-3 py-2 font-semibold'>MobileNo</th>
-                                    <th className='border px-3 py-2 font-semibold'>EmailId</th>
-                                    <th className='border px-3 py-2 font-semibold'>Gender</th>
-                                    <th className='border px-3 py-2 font-semibold'>DOB</th>
-                                    <th className='border px-3 py-2 font-semibold'>TermName</th>
-                                    <th className='border px-3 py-2 font-semibold'>ReceiptNo</th>
-                                    <th className='border px-3 py-2 font-semibold'>Bank</th>
-                                    <th className='border px-3 py-2 font-semibold'>Mode Of Payment</th>
-                                    <th className='border px-3 py-2 font-semibold'>Reference Id</th>
-                                    <th className='border px-3 py-2 font-semibold'>Cheque/DD Details</th>
-                                    <th className='border px-3 py-2 font-semibold'>Transaction Id</th>
-                                    <th className='border px-3 py-2 font-semibold'>Date</th>
-                                    <th className='border px-3 py-2 font-semibold'>Cheque Date</th>
-                                    <th className='border px-3 py-2 font-semibold'>Remarks</th>
-                                    <th className='border px-3 py-2 font-semibold'>AccName</th>
-                                    <th className='border px-3 py-2 font-semibold'>FYP</th>
+                                    {tableColumns.map((col) => (
+                                        <th key={col} className='border px-3 py-2 text-left'>
+                                            {col}
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
 
-                            {/* Alternating Rows */}
-                            <tbody className='[&>tr:nth-child(odd)]:bg-gray-50/60'>
-                                {[
-                                    'Rahul Sharma',
-                                    'Anjali Verma',
-                                    'Karan Patel',
-                                    'Neha Gupta',
-                                    'Rohan Mehta',
-                                    'Simran Kaur',
-                                    'Arjun Reddy',
-                                    'Pooja Singh',
-                                    'Manish Kumar',
-                                    'Sneha Nair',
-                                    'Vikas Rao',
-                                    'Divya Jain',
-                                    'Harsh Thakur',
-                                    'Meena Yadav',
-                                    'Jay Shah'
-                                ].map((name, index) => (
-                                    <tr key={index} className='backdrop-blur-sm transition hover:bg-blue-50/60'>
-                                        <td className='border px-3 py-2'>{name}</td>
-                                        <td className='border px-3 py-2'>20{100 + index}</td>
-                                        <td className='border px-3 py-2'>{6 + (index % 6)}</td>
-                                        <td className='border px-3 py-2'>{['A', 'B', 'C', 'D'][index % 4]}</td>
-                                        <td className='border px-3 py-2'>98{Math.floor(100000 + index * 321)}</td>
-                                        <td className='border px-3 py-2'>{name.split(' ')[0].toLowerCase()}@example.com</td>
-                                        <td className='border px-3 py-2'>{index % 2 === 0 ? 'Male' : 'Female'}</td>
-                                        <td className='border px-3 py-2'>201{index}-01-10</td>
-                                        <td className='border px-3 py-2'>Term {index % 2 === 0 ? '1' : '2'}</td>
-                                        <td className='border px-3 py-2'>RCPT40{index + 20}</td>
-                                        <td className='border px-3 py-2'>{['HDFC', 'SBI', 'ICICI', 'Axis'][index % 4]}</td>
-                                        <td className='border px-3 py-2'>{['Cash', 'Online', 'UPI', 'Cheque'][index % 4]}</td>
-                                        <td className='border px-3 py-2'>REF99{index + 300}</td>
-                                        <td className='border px-3 py-2'>{index % 4 === 3 ? 'Cheque No: 55' + index : '---'}</td>
-                                        <td className='border px-3 py-2'>TXN23{index + 555}</td>
-                                        <td className='border px-3 py-2'>2025-01-{(index % 28) + 1}</td>
-                                        <td className='border px-3 py-2'>{index % 4 === 3 ? '2025-01-10' : '---'}</td>
-                                        <td className='border px-3 py-2'>Paid</td>
-                                        <td className='border px-3 py-2'>General Account</td>
-                                        <td className='border px-3 py-2'>2024-25</td>
+                            <tbody>
+                                {tableRows.map((row, rowIndex) => (
+                                    <tr key={rowIndex}>
+                                        {tableColumns.map((col) => (
+                                            <td key={col} className='border px-3 py-2 text-right'>
+                                                {row[col]}
+                                            </td>
+                                        ))}
                                     </tr>
                                 ))}
+
+                                {/* 🔹 SUM ROW */}
+                                {tableSumRow && (
+                                    <tr className='bg-gray-100 font-semibold'>
+                                        {tableColumns.map((col) => (
+                                            <td key={col} className='border px-3 py-2 text-right'>
+                                                {col === 'SLNO' ? '' : col === 'Date' ? 'Total' : `Sum: ${tableSumRow[col] ?? 0}`}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>

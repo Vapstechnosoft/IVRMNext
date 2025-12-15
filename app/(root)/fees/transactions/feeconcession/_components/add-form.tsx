@@ -1,23 +1,31 @@
+// file: _components/add-form.tsx
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command'; // Add this import for Combobox
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { useFormContext as useGlobalFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'; // Add this for Combobox
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+    useFeeConcessionAdmissionNo,
+    useFeeConcessionCategoryDropdowndata,
     useFeeConcessionCategoryFeeConcessionDropdowndata,
     useFeeConcessionClassDropdowndata,
     useFeeConcessionConfigSet,
+    useFeeConcessionEdit,
     useFeeConcessionHeadDetailsList,
+    useFeeConcessionStudentData,
     useFeeConcessionStudentList,
     useFeeConcessionTermDropdowndata,
-    useconcessionacademicyerdropdowndatafee,
-    useopeningCategorydropdowndatafee
+    useconcessionacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
 import { saveFeeHead } from '@/server/fees/trasactions/FeeConcession';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -54,38 +62,46 @@ interface HeadRow {
     checked: boolean;
 }
 
-export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => void }) {
+type AddFeeConcessionFormProps = {
+    onSuccess?: () => void;
+    pageAcademicYear?: number | null;
+};
+
+export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: AddFeeConcessionFormProps) {
     const { control, watch, reset, setValue } = useForm();
+    const { isEditFormOpen, selectedRow } = useGlobalFormContext<any>();
+
     const [selectionType, setSelectionType] = useState<
         'classwise' | 'categorywise' | 'leftstudent' | 'feecategorywise' | 'Admissionnosearch' | 'Staff' | 'Others'
     >('classwise');
+
     const [studentSearch, setStudentSearch] = useState('');
     const [headSearch, setHeadSearch] = useState('');
     const [students, setStudents] = useState<StudentRow[]>([]);
     const [heads, setHeads] = useState<HeadRow[]>([]);
     const [saving, setSaving] = useState(false);
-
+    const [selectedStudentAmstId, setSelectedStudentAmstId] = useState<number>(0);
     const searchParams = useSearchParams();
     const academicYearId = watch('academicYearId');
     const classId = watch('classId');
     const categoryId = watch('categoryId');
     const feeCategoryId = watch('feeCategoryId');
     const termIds: string[] = watch('termIds') || [];
-    const admissionNo = watch('admissionNo');
+    const admissionNo = watch('admissionNo'); // selected adm no from dropdown
 
     const { data: configSetData } = useFeeConcessionConfigSet(Number(academicYearId || 0));
     const configSettings = configSetData?.data?.[0];
-    const groupOrTermFlg = configSettings?.fmC_GroupOrTermFlg || 'G';
+    const groupOrTermFlg = configSettings?.fmC_GroupOrTermFlg;
     const enableStaffTrans = configSettings?.fmC_EableStaffTrans === 1;
     const enableOtherStudentTrans = configSettings?.fmC_EableOtherStudentTrans === 1;
 
     const { data: academicYears, isLoading: loadingAY } = useconcessionacademicyerdropdowndatafee(MI_ID);
-    const { data: terms, isLoading: loadingTerms } = useFeeConcessionTermDropdowndata(groupOrTermFlg, Number(academicYearId || 0));
+    const { data: terms, isLoading: loadingTerms } = useFeeConcessionTermDropdowndata(String(groupOrTermFlg), Number(academicYearId || 0));
     const { data: classes, isLoading: loadingClasses } = useFeeConcessionClassDropdowndata(MI_ID);
-    const { data: categories, isLoading: loadingCategories } = useopeningCategorydropdowndatafee();
+    const { data: categories, isLoading: loadingCategories } = useFeeConcessionCategoryDropdowndata(MI_ID);
     const { data: feeConcessionCategories, isLoading: loadingfeeConcessionCategories } =
         useFeeConcessionCategoryFeeConcessionDropdowndata();
-
+    const selectedAmstIdFromAdm = selectedStudentAmstId;
     const apiSearchParams = searchParams ? Object.fromEntries(searchParams.entries()) : {};
 
     const hasFilterId =
@@ -99,7 +115,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                   ? !!admissionNo
                   : false;
 
-    const shouldFetchStudents = !!academicYearId && hasFilterId;
+    const shouldFetchStudentsNormally = !!academicYearId && hasFilterId && selectionType !== 'Admissionnosearch';
 
     const studentQuery = useFeeConcessionStudentList(
         String(selectionType || ''),
@@ -110,73 +126,117 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
         apiSearchParams as any
     );
 
+    const normalizeArray = (resp: any): any[] => {
+        if (!resp) return [];
+        if (Array.isArray(resp)) return resp;
+        if (resp.data && Array.isArray(resp.data)) return resp.data;
+        if (resp.result && Array.isArray(resp.result)) return resp.result;
+        if (typeof resp === 'object') {
+            for (const v of Object.values(resp)) {
+                if (Array.isArray(v)) return v;
+            }
+        }
+        return [];
+    };
+
     useEffect(() => {
-        if (studentQuery.data?.data && shouldFetchStudents) {
-            const mapped = studentQuery.data.data.map((s: any) => ({
-                amst_Id: s.amsT_Id,
-                amsT_FirstName: s.amsT_FirstName,
-                amsT_MiddleName: s.amsT_MiddleName,
-                amsT_LastName: s.amsT_LastName,
-                registrationNo: s.amsT_RegistrationNo || '—',
-                admNo: s.amsT_AdmNo || '—',
-                rollNo: s.amaY_RollNo || 0,
+        if (pageAcademicYear && !watch('academicYearId')) {
+            setValue('academicYearId', Number(pageAcademicYear));
+        }
+    }, [pageAcademicYear, setValue, watch]);
+
+    // Normal student fetch (non-Admissionnosearch modes)
+    useEffect(() => {
+        if (isEditFormOpen || selectionType === 'Admissionnosearch') return;
+
+        const rows = normalizeArray(studentQuery.data);
+        if (rows.length > 0 && shouldFetchStudentsNormally) {
+            const mapped = rows.map((s: any) => ({
+                amst_Id: s.amsT_Id ?? s.AMST_Id ?? 0,
+                amsT_FirstName: s.amsT_FirstName ?? '',
+                amsT_MiddleName: s.amsT_MiddleName ?? '',
+                amsT_LastName: s.amsT_LastName ?? '',
+                registrationNo: s.amsT_RegistrationNo ?? '—',
+                admNo: s.amsT_AdmNo ?? '—',
+                rollNo: s.amaY_RollNo ?? 0,
                 checked: false
             }));
             setStudents(mapped);
             setStudentSearch('');
-            if (mapped.length > 0) {
-                setTimeout(() => {
-                    setStudents((prev) => prev.map((s, i) => ({ ...s, checked: i === 0 })));
-                }, 0);
-            }
         } else {
             setStudents([]);
         }
-    }, [studentQuery.data, shouldFetchStudents]);
+    }, [studentQuery.data, shouldFetchStudentsNormally, isEditFormOpen, selectionType]);
+
+    // New: Fetch full student data when admissionNo is selected
+    const { data: singleStudentData } = useFeeConcessionStudentData(
+        Number(academicYearId || 0),
+        selectedAmstIdFromAdm,
+        apiSearchParams as any
+    );
+
+    // Admissionnosearch mode: load single student
+    useEffect(() => {
+        if (selectionType !== 'Admissionnosearch' || !singleStudentData || isEditFormOpen) return;
+
+        const rows = normalizeArray(singleStudentData);
+        if (rows.length > 0) {
+            const s = rows[0];
+            const studentRow: StudentRow = {
+                amst_Id: s.amsT_Id ?? 0,
+                amsT_FirstName: s.amsT_FirstName ?? '',
+                amsT_MiddleName: s.amsT_MiddleName ?? '',
+                amsT_LastName: s.amsT_LastName ?? '',
+                registrationNo: s.amsT_RegistrationNo ?? '—',
+                admNo: s.amsT_AdmNo ?? '—',
+                rollNo: s.amaY_RollNo ?? 0,
+                checked: true
+            };
+            setStudents([studentRow]);
+        } else {
+            setStudents([]);
+        }
+    }, [singleStudentData, selectionType, isEditFormOpen]);
 
     const selectedStudent = students.find((s) => s.checked);
     const selectedAmsT_Id = selectedStudent?.amst_Id || 0;
 
-    const shouldShowHeads = students.length > 0 && termIds.length > 0 && selectedAmsT_Id > 0;
+    const shouldShowHeads = students.length > 0 && (termIds.length > 0 || isEditFormOpen);
 
-    // FIXED: Stable key to prevent infinite re-renders
-    const termIdsKey = termIds.join(',');
-
-    // Convert to proper format for API (axios will repeat fmgIds automatically)
-    const termIdsForApi: number | number[] =
-        termIds.length === 0 ? 0 : termIds.length === 1 ? Number(termIds[0]) : termIds.map((id) => Number(id));
+    const selectedTermIds: number[] = Array.from(new Set(termIds.map(Number).filter((id) => id > 0)));
 
     const headQuery = useFeeConcessionHeadDetailsList(
         Number(academicYearId || 0),
         selectedAmsT_Id,
-        termIdsForApi as any, // axios handles number[] correctly → fmgIds=142&fmgIds=140
-        groupOrTermFlg,
+        selectedTermIds,
+        String(groupOrTermFlg),
         apiSearchParams
     );
 
-    // FIXED: Use stable primitive `termIdsKey` in deps → no infinite loop
     useEffect(() => {
-        if (shouldShowHeads && headQuery.data?.data) {
-            setHeads(
-                headQuery.data.data.map((h: any, i: number) => ({
-                    slno: i + 1,
-                    fmH_Id: h.fmH_Id,
-                    fmG_Id: h.fmG_Id || 0,
-                    ftI_Id: h.ftI_Id || 0,
-                    fmH_FeeName: h.fmH_FeeName,
-                    ftI_Name: h.ftI_Name || 'Yearly',
-                    fmA_Amount: h.fmA_Amount || 0,
-                    type: '' as 'Amount' | 'Percentage' | '',
-                    concessionValue: 0,
-                    remarks: '',
-                    checked: true
-                }))
-            );
+        if (isEditFormOpen) return;
+
+        const rows = normalizeArray(headQuery.data);
+        if (rows.length > 0 && shouldShowHeads) {
+            const mappedHeads = rows.map((h: any, i: number) => ({
+                slno: i + 1,
+                fmH_Id: h.fmH_Id ?? 0,
+                fmG_Id: h.fmG_Id ?? 0,
+                ftI_Id: h.ftI_Id ?? 0,
+                fmH_FeeName: h.fmH_FeeName ?? '',
+                ftI_Name: h.ftI_Name ?? 'Yearly',
+                fmA_Amount: h.fmA_Amount ?? 0,
+                type: '' as 'Amount' | 'Percentage' | '',
+                concessionValue: 0,
+                remarks: '',
+                checked: false
+            }));
+            setHeads(mappedHeads);
             setHeadSearch('');
         } else {
             setHeads([]);
         }
-    }, [headQuery.data, shouldShowHeads, termIdsKey, groupOrTermFlg]);
+    }, [headQuery.data, shouldShowHeads, isEditFormOpen]);
 
     useEffect(() => {
         setStudents([]);
@@ -185,23 +245,30 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
         setHeadSearch('');
         setValue('classId', undefined);
         setValue('categoryId', undefined);
+        setValue('feeCategoryId', undefined);
         setValue('admissionNo', undefined);
+        setValue('termIds', []);
+        setSelectedStudentAmstId(0);
     }, [selectionType, setValue]);
 
-    const filteredStudents = useMemo(() => {
-        return students.filter((s) => {
-            const fullName = `${s.amsT_FirstName} ${s.amsT_MiddleName} ${s.amsT_LastName}`.trim().toLowerCase();
-            const search = studentSearch.toLowerCase();
-            return fullName.includes(search) || s.admNo.toLowerCase().includes(search);
-        });
-    }, [students, studentSearch]);
+    const filteredStudents = useMemo(
+        () =>
+            students.filter((s) => {
+                const fullName = `${s.amsT_FirstName} ${s.amsT_MiddleName} ${s.amsT_LastName}`.trim().toLowerCase();
+                const search = studentSearch.toLowerCase();
+                return fullName.includes(search) || s.admNo.toLowerCase().includes(search);
+            }),
+        [students, studentSearch]
+    );
 
-    const filteredHeads = useMemo(() => {
-        return heads.filter((h) => {
-            const search = headSearch.toLowerCase();
-            return h.fmH_FeeName.toLowerCase().includes(search) || (h.ftI_Name || '').toLowerCase().includes(search);
-        });
-    }, [heads, headSearch]);
+    const filteredHeads = useMemo(
+        () =>
+            heads.filter((h) => {
+                const search = headSearch.toLowerCase();
+                return h.fmH_FeeName.toLowerCase().includes(search) || (h.ftI_Name || '').toLowerCase().includes(search);
+            }),
+        [heads, headSearch]
+    );
 
     const toggleStudent = (amst_Id: number) => {
         setStudents((prev) => prev.map((s) => ({ ...s, checked: s.amst_Id === amst_Id })));
@@ -238,16 +305,21 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
     ];
 
     const headColumns: ColumnDef<HeadRow>[] = [
-        { accessorKey: 'slno', header: 'S.No', size: 70, cell: ({ row }) => <div className='text-center'>{row.original.slno}</div> },
+        {
+            accessorKey: 'slno',
+            header: 'S.No',
+            size: 70,
+            cell: ({ row }) => <div className='text-center'>{row.original.slno}</div>
+        },
         {
             id: 'select',
             header: () => <></>,
             cell: ({ row }) => (
                 <Checkbox
                     checked={row.original.checked}
-                    onCheckedChange={(v) =>
-                        setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, checked: !!v } : h)))
-                    }
+                    onCheckedChange={(checked) => {
+                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, checked: !!checked } : item)));
+                    }}
                 />
             ),
             size: 60
@@ -260,12 +332,14 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
             size: 160,
             cell: ({ row }) => (
                 <Select
-                    value={row.original.type}
-                    onValueChange={(value) =>
+                    value={row.original.type || ''}
+                    onValueChange={(value) => {
                         setHeads((prev) =>
-                            prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, type: value as any, concessionValue: 0 } : h))
-                        )
-                    }>
+                            prev.map((item, idx) =>
+                                idx === row.index ? { ...item, type: value as 'Amount' | 'Percentage', concessionValue: 0 } : item
+                            )
+                        );
+                    }}>
                     <SelectTrigger className='h-9'>
                         <SelectValue placeholder='Select' />
                     </SelectTrigger>
@@ -291,12 +365,14 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                     type='number'
                     min='0'
                     max={row.original.type === 'Percentage' ? 100 : undefined}
-                    placeholder={row.original.type === 'Percentage' ? '0-100' : 'Amount'}
+                    placeholder={row.original.type === 'Percentage' ? '0-100' : '0'}
                     className='text-right'
-                    value={row.original.concessionValue || ''}
+                    value={row.original.concessionValue ?? ''}
                     onChange={(e) => {
-                        const val = Number(e.target.value) || 0;
-                        setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, concessionValue: val } : h)));
+                        const inputVal = e.target.value;
+                        const val = inputVal === '' ? 0 : Number(inputVal);
+
+                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: val } : item)));
                     }}
                 />
             )
@@ -308,39 +384,132 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
             cell: ({ row }) => (
                 <Input
                     placeholder='Optional'
-                    value={row.original.remarks}
-                    onChange={(e) =>
-                        setHeads((prev) => prev.map((h) => (h.fmH_Id === row.original.fmH_Id ? { ...h, remarks: e.target.value } : h)))
-                    }
+                    value={row.original.remarks || ''}
+                    onChange={(e) => {
+                        setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, remarks: e.target.value } : item)));
+                    }}
                 />
             )
         }
     ];
 
+    const editAsmaY = Number(selectedRow?.asmaY_Id ?? selectedRow?.asmaYId ?? selectedRow?.ASMAY_Id ?? pageAcademicYear ?? 0);
+    const editFsciId = Number(selectedRow?.fscI_ID ?? selectedRow?.fscIId ?? selectedRow?.fsciId ?? selectedRow?.fsC_Id ?? 0);
+    const { data: editResponse } = useFeeConcessionEdit(editAsmaY, editFsciId, apiSearchParams as any);
+
+    useEffect(() => {
+        if (!isEditFormOpen || !editResponse) return;
+
+        const rows = normalizeArray(editResponse);
+        if (rows.length === 0) return;
+
+        const firstRow = rows[0];
+
+        const ayId = Number(firstRow.asmaY_Id ?? firstRow.ASMAY_Id ?? editAsmaY ?? 0);
+        if (ayId > 0) setValue('academicYearId', ayId);
+
+        let newSelectionType: typeof selectionType = 'Admissionnosearch';
+
+        if (firstRow.asmcL_ID || firstRow.asmcL_Id || firstRow.classname) {
+            newSelectionType = 'classwise';
+            setValue('classId', Number(firstRow.asmcL_ID ?? firstRow.asmcL_Id ?? 0));
+        } else if (firstRow.fmcC_Id || firstRow.fmcCId) {
+            setValue('feeCategoryId', String(firstRow.fmcC_Id ?? firstRow.fmcCId ?? ''));
+        } else if (firstRow.amsT_AdmNo) {
+            newSelectionType = 'Admissionnosearch';
+            setValue('admissionNo', String(firstRow.amsT_AdmNo));
+        }
+
+        setSelectionType(newSelectionType);
+
+        const termIdsFromData = Array.from(new Set(rows.map((r: any) => r.fmT_Id ?? r.fmG_Id ?? r.ftI_Id).filter(Boolean))).map(String);
+
+        if (termIdsFromData.length > 0) {
+            setValue('termIds', termIdsFromData);
+        }
+
+        const studentEntry: StudentRow = {
+            amst_Id: Number(firstRow.amst_Id ?? firstRow.AMST_Id ?? 0),
+            amsT_FirstName: firstRow.amsT_FirstName ?? '',
+            amsT_MiddleName: firstRow.amsT_MiddleName ?? '',
+            amsT_LastName: firstRow.amsT_LastName ?? '',
+            registrationNo: firstRow.amsT_RegistrationNo ?? '—',
+            admNo: firstRow.amsT_AdmNo ?? '—',
+            rollNo: firstRow.amaY_RollNo ?? 0,
+            checked: true
+        };
+        setStudents([studentEntry]);
+
+        const mappedHeads: HeadRow[] = rows.map((r: any, i: number) => ({
+            slno: i + 1,
+            fmH_Id: Number(r.fmH_Id ?? 0),
+            fmG_Id: Number(r.fmG_Id ?? 0),
+            ftI_Id: Number(r.ftI_Id ?? 0),
+            fmH_FeeName: r.fmH_FeeName ?? '',
+            ftI_Name: r.ftI_Name ?? 'Yearly',
+            fmA_Amount: Number(r.fmA_Amount ?? 0),
+            type: (r.fsC_ConcessionType || '').toLowerCase() === 'percentage' ? 'Percentage' : ('Amount' as any),
+            concessionValue: Number(r.fscI_ConcessionAmount ?? 0),
+            remarks: r.fsC_ConcessionReason ?? '',
+            checked: true
+        }));
+
+        setHeads(mappedHeads);
+    }, [isEditFormOpen, editResponse, setValue, editAsmaY]);
+
     const onSubmit = async () => {
+        const selectedStudent = students.find((s) => s.checked);
         if (!selectedStudent) return toast.error('Please select a student');
-        if (!termIds.length) return toast.error('Select Term');
+
+        if (!termIds.length && !isEditFormOpen) return toast.error('Select Term');
+
         if (heads.length === 0) return toast.error('No fee heads loaded');
-        const selectedHeads = heads.filter((h) => h.checked && h.type && h.concessionValue > 0);
+
+        const selectedHeads = heads.filter((h) => h.checked && h.concessionValue > 0);
         if (selectedHeads.length === 0) return toast.error('Please apply concession on at least one head');
 
         try {
             setSaving(true);
-            const payload = {
+
+            const SaveTempData = [{ AMST_Id: selectedStudent.amst_Id }];
+
+            const SaveTempData1 = selectedHeads.map((h) => ({
+                FMG_Id: h.fmG_Id || 0,
+                FMH_Id: h.fmH_Id,
+                FTI_Id: h.ftI_Id || 0,
+                FSC_ConcessionReason: h.remarks || '',
+                FSCI_ConcessionAmount: h.concessionValue
+            }));
+
+            const payload: any = {
                 ASMAY_Id: Number(academicYearId),
-                RadioBtnValue: selectionType,
-                SaveTempData: [{ AMST_Id: selectedStudent.amst_Id }],
-                SaveTempData1: selectedHeads.map((h) => ({
-                    FMG_Id: h.fmG_Id || 0,
-                    FMH_Id: h.fmH_Id,
-                    FTI_Id: h.ftI_Id || 0,
-                    FSC_ConcessionReason: h.remarks || '',
-                    FSC_ConcessionType: h.type === 'Percentage' ? 'Percentage' : 'Amount',
-                    FSCI_ConcessionAmount: h.concessionValue
-                }))
+                SaveTempData,
+                SaveTempData1
             };
-            await saveFeeHead(payload);
-            toast.success('Fee Concession Saved Successfully!');
+
+            if (isEditFormOpen && selectedRow) {
+                payload.FSC_Id = Number(selectedRow?.FSC_Id ?? selectedRow?.fsc_Id ?? selectedRow?.fsC_Id ?? 0);
+                payload.FSCI_ID = Number(selectedRow?.FSCI_ID ?? selectedRow?.fsci_Id ?? selectedRow?.fscI_ID ?? selectedRow?.fscIId ?? 0);
+            } else {
+                payload.RadioBtnValue = selectionType;
+                payload.SaveTempData1 = SaveTempData1.map((item) => {
+                    const head = heads.find((h) => h.fmH_Id === item.FMH_Id);
+                    return {
+                        ...item,
+                        FSC_ConcessionType: head?.type === 'Percentage' ? 'Percentage' : 'Amount'
+                    };
+                });
+            }
+
+            const response = await saveFeeHead(payload);
+
+            const message =
+                response?.data?.message ||
+                response?.message ||
+                (isEditFormOpen ? 'Fee Concession Updated Successfully!' : 'Fee Concession Saved Successfully!');
+
+            toast.success(message);
+
             reset();
             setStudents([]);
             setHeads([]);
@@ -348,14 +517,16 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
             setHeadSearch('');
             onSuccess?.();
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || 'Failed to save');
+            const errorMessage = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Failed to save concession';
+
+            toast.error(errorMessage);
         } finally {
             setSaving(false);
         }
     };
 
-    const showTermField = selectionType === 'Admissionnosearch' ? !!academicYearId : !!academicYearId && hasFilterId;
-    const showStudentTable = students.length > 0 && termIds.length > 0;
+    const showTermField = selectionType === 'Admissionnosearch' ? !!academicYearId && !!admissionNo : !!academicYearId && hasFilterId;
+    const showStudentTable = students.length > 0 && (termIds.length > 0 || isEditFormOpen);
 
     const radioOptions = [
         { value: 'classwise', label: 'Class Wise' },
@@ -426,7 +597,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                             <SelectTrigger className='h-12'>
-                                                <SelectValue placeholder='Select Class' />
+                                                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {classes?.data?.map((cls: any) => (
@@ -452,12 +623,12 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                             <SelectTrigger className='h-12'>
-                                                <SelectValue placeholder='Select Category' />
+                                                <SelectValue placeholder={loadingCategories ? 'Loading...' : 'Select Category'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {categories?.data?.map((cat: any) => (
                                                     <SelectItem key={cat.fmcC_Id} value={String(cat.fmcC_Id)}>
-                                                        {cat.fmcC_ClassCategoryName}
+                                                        {cat.fmcC_ConcessionName}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
@@ -478,7 +649,9 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                     render={({ field }) => (
                                         <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                             <SelectTrigger className='h-12'>
-                                                <SelectValue placeholder='Select Category' />
+                                                <SelectValue
+                                                    placeholder={loadingfeeConcessionCategories ? 'Loading...' : 'Select Category'}
+                                                />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {feeConcessionCategories?.data?.map((cat: any) => (
@@ -501,14 +674,85 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                 <Controller
                                     control={control}
                                     name='admissionNo'
-                                    render={({ field }) => (
-                                        <Input
-                                            placeholder='Enter Admission No'
-                                            value={field.value || ''}
-                                            onChange={field.onChange}
-                                            className='h-12'
-                                        />
-                                    )}
+                                    render={({ field }) => {
+                                        const [searchQuery, setSearchQuery] = useState('');
+                                        const [open, setOpen] = useState(false);
+
+                                        // Search on every keystroke (even 1 character)
+                                        const { data: admissionNoData, isLoading: loadingAdmNo } = useFeeConcessionAdmissionNo(
+                                            Number(academicYearId || 0),
+                                            searchQuery,
+                                            apiSearchParams as any
+                                        );
+
+                                        const admissionOptions = useMemo(() => {
+                                            let items: any[] = [];
+                                            const raw = admissionNoData?.data || admissionNoData;
+
+                                            if (Array.isArray(raw)) {
+                                                items = raw;
+                                            } else if (raw && typeof raw === 'object' && 'amsT_AdmNo' in raw) {
+                                                items = [raw];
+                                            }
+
+                                            return items.map((item: any) => ({
+                                                value: String(item.amsT_AdmNo ?? ''),
+                                                label: String(item.amsT_AdmNo ?? ''),
+                                                amst_Id: Number(item.amst_Id ?? 0)
+                                            }));
+                                        }, [admissionNoData]);
+
+                                        return (
+                                            <Popover open={open} onOpenChange={setOpen}>
+                                                <PopoverTrigger asChild>
+                                                    <Button
+                                                        variant='outline'
+                                                        // role="combobox"
+                                                        aria-expanded={open}
+                                                        className='h-12 w-full justify-between text-left font-normal'>
+                                                        {field.value
+                                                            ? field.value
+                                                            : loadingAdmNo
+                                                              ? 'Searching...'
+                                                              : 'Search Admission No...'}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-full p-0' align='start'>
+                                                    <Command>
+                                                        <CommandInput
+                                                            placeholder='Type to search admission no...'
+                                                            value={searchQuery}
+                                                            onValueChange={(value) => {
+                                                                setSearchQuery(value);
+                                                                // Keep dropdown open while typing
+                                                                if (value.length > 0) setOpen(true);
+                                                            }}
+                                                            // Optional: auto-focus and open on click
+                                                            autoFocus
+                                                        />
+                                                        <CommandEmpty>
+                                                            {searchQuery ? 'No results found' : 'Start typing to search'}
+                                                        </CommandEmpty>
+                                                        <CommandGroup className='max-h-48 overflow-auto'>
+                                                            {/* ← This makes it scrollable and fixed height */}
+                                                            {admissionOptions.map((opt) => (
+                                                                <CommandItem
+                                                                    key={opt.value}
+                                                                    onSelect={() => {
+                                                                        field.onChange(opt.value);
+                                                                        setSelectedStudentAmstId(opt.amst_Id);
+                                                                        setOpen(false);
+                                                                        setSearchQuery(opt.label); // Show selected value in input
+                                                                    }}>
+                                                                    {opt.label}
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </Command>
+                                                </PopoverContent>
+                                            </Popover>
+                                        );
+                                    }}
                                 />
                             </div>
                         )}
@@ -528,7 +772,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                                             }
                                             onValueChange={field.onChange}
                                             defaultValue={field.value || []}
-                                            placeholder='Select Terms'
+                                            placeholder={loadingTerms ? 'Loading...' : 'Select Terms'}
                                             className='h-12'
                                         />
                                     )}
@@ -557,7 +801,7 @@ export default function AddFeeConcessionForm({ onSuccess }: { onSuccess?: () => 
                             <GenericDataTable
                                 columns={studentColumns}
                                 data={filteredStudents}
-                                isLoading={studentQuery.isLoading}
+                                isLoading={studentQuery.isLoading || (selectionType === 'Admissionnosearch' && !singleStudentData)}
                                 totalItems={filteredStudents.length}
                                 isPaginationRequired={false}
                                 isSearchRequired={false}

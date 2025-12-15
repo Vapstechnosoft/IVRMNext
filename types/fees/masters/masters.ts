@@ -214,24 +214,24 @@ export interface IMasterpaymentGatewayDropdownList {
     impG_PGName: string;
 }
 
-export interface IMasterGroupWiseAutoReciptList {
-    feeGroupslist: any;
-    asmaY_Id: any;
-    asmcL_Id: number;
-    fmcC_Id: any;
-    fyccC_Id: number;
-    asmaY_Year: string;
-    fmcC_ClassCategoryName: string;
-    asmcL_ClassName: string;
-    prefix: string;
-    suffix: string;
-    startingNumber: string;
-    groups: string;
-    autoGroupName: string;
-    address: string;
-    receiptTemplateFormat: string;
-    fycC_ActiveFlag: boolean;
-}
+// export interface IMasterGroupWiseAutoReciptList {
+//     feeGroupslist: any;
+//     asmaY_Id: any;
+//     asmcL_Id: number;
+//     fmcC_Id: any;
+//     fyccC_Id: number;
+//     asmaY_Year: string;
+//     fmcC_ClassCategoryName: string;
+//     asmcL_ClassName: string;
+//     prefix: string;
+//     suffix: string;
+//     startingNumber: string;
+//     groups: string;
+//     autoGroupName: string;
+//     address: string;
+//     receiptTemplateFormat: string;
+//     fycC_ActiveFlag: boolean;
+// }
 
 //used rebate settings
 export interface IMasterYearlyRebateSettingsList {
@@ -526,6 +526,7 @@ export interface IMasterGroupWiseAutoReciptList {
     academicyear: string;
     fgaR_Id: number;
     fgaR_Starting_No: number;
+    feeGroupslist: IGroupOption[];
 }
 
 export interface IConcessionCategoryDropdownList {
@@ -799,4 +800,9 @@ export interface IMasterFeeClassCategoryList {
 export interface IMasterFeeBusAreaList {
     trmA_Id: number;
     trmA_AreaName: string;
+}
+
+export interface IGroupOption {
+    fmG_Id: number;
+    fmG_GroupName: string;
 }

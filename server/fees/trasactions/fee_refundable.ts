@@ -62,3 +62,10 @@ export async function getFeeRefundableHeadDetails(ASMAY_Id: number, amsT_Id: num
     console.info('getFeeRefundableHeadDetails api', url);
     return await api.get<IFeeRefundableHeadList[]>('fees', url);
 }
+
+export async function getFeeRefundableReceiptDetails(asmay_id: number, amst_Id: number, fr_refundno: number) {
+    const url = `/FeeRefundableFacade/get-refundable-recepts?asmayId=${asmay_id}&amst_id=${amst_Id}&fr_refundno=${fr_refundno}`;
+
+    //const url='/FeeRefundableFacade/get-refundable-recepts?asmayId=231&amst_id=16286&fr_refundno=132222222222222222';
+    return await api.get<any>('fees', url);
+}

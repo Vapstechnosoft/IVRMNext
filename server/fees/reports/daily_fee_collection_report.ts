@@ -43,5 +43,5 @@ export async function getClassDropDown() {
 export async function getDailyFeeCollectionReport(data: any) {
     const url = '/FeeDailycollection/daily-fee-collection-report';
 
-    return await api.post<any>('fees', url, data);
+    return await api.post<any[]>('fees', url, data);
 }
