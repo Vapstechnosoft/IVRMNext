@@ -9,9 +9,16 @@ import {
     addOrUpdateEmployeeShiftMapping,
     deleteEmployeeShiftMapping,
     getEmployeeShiftMapping,
+    getEmployeeShiftMappingDepartments,
+    getEmployeeShiftMappingDesignations,
     getEmployeeShiftMappingDropdowns,
-    getEmployeeShiftMappingEmployees,
-    getEmployeeShiftMappingShiftNames
+    getEmployeeShiftMappingEmployeesFiltered,
+    getEmployeeShiftMappingEmployeesOld,
+    getEmployeeShiftMappingGroupTypes,
+    getEmployeeShiftMappingHolidayTypes,
+    getEmployeeShiftMappingShiftDetails,
+    getEmployeeShiftMappingShiftNames,
+    getEmployeeShiftMappingShiftNamesList
 } from '@/server/hrms/attendance-management/masters/employee-shift-mapping';
 import {
     addOrUpdateMasterDriverShift,
@@ -295,9 +302,72 @@ export const useEmployeeShiftMappingShiftNames = (data?: any) => {
 export const useEmployeeShiftMappingEmployees = (data?: any) => {
     return useQuery({
         queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'employees', data],
-        queryFn: async () => getEmployeeShiftMappingEmployees(data),
+        queryFn: async () => getEmployeeShiftMappingEmployeesOld(data),
         enabled: !!data, // Only fetch when data is provided
         staleTime: 2 * 60 * 1000 // Cache for 2 minutes
+    });
+};
+
+export const useEmployeeShiftMappingGroupTypes = () => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'groupTypes'],
+        queryFn: async () => getEmployeeShiftMappingGroupTypes(),
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingHolidayTypes = () => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'holidayTypes'],
+        queryFn: async () => getEmployeeShiftMappingHolidayTypes(),
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingShiftNamesList = () => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'shiftNamesList'],
+        queryFn: async () => getEmployeeShiftMappingShiftNamesList(),
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingShiftDetails = (id?: number) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'shiftDetails', id],
+        queryFn: async () => getEmployeeShiftMappingShiftDetails(id!),
+        enabled: !!id && id > 0, // Only fetch when id is provided and valid
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingDepartments = (groupTypeIds?: number[]) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'departments', groupTypeIds],
+        queryFn: async () => getEmployeeShiftMappingDepartments(groupTypeIds || []),
+        enabled: !!groupTypeIds && groupTypeIds.length > 0, // Only fetch when group type IDs are provided
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingDesignations = (departmentIds?: number[]) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'designations', departmentIds],
+        queryFn: async () => getEmployeeShiftMappingDesignations(departmentIds || []),
+        enabled: !!departmentIds && departmentIds.length > 0, // Only fetch when department IDs are provided
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
+    });
+};
+
+export const useEmployeeShiftMappingEmployeesFiltered = (groupTypeIds?: number[], departmentIds?: number[], designationIds?: number[]) => {
+    return useQuery({
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_SHIFT_MAPPING, 'employees', groupTypeIds, departmentIds, designationIds],
+        queryFn: async () => getEmployeeShiftMappingEmployeesFiltered(groupTypeIds || [], departmentIds || [], designationIds || []),
+        enabled:
+            (!!groupTypeIds && groupTypeIds.length > 0) ||
+            (!!departmentIds && departmentIds.length > 0) ||
+            (!!designationIds && designationIds.length > 0), // Only fetch when at least one filter is provided
+        staleTime: 5 * 60 * 1000 // Cache for 5 minutes
     });
 };
 export const useMasterDriverShift = () => {

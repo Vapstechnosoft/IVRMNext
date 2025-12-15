@@ -115,7 +115,7 @@ export default function UpdateReligionCategoryMappingForm({
     const categoryOptions = useMemo(() => {
         return casteCategoryDropdown
             .filter((category: ICasteCategoryDropdown) => {
-                return category.key != null && category.key !== '' && String(category.key).trim() !== '';
+                return category.key != null && category.key !== undefined && category.key !== 0;
             })
             .map((category: ICasteCategoryDropdown) => ({
                 label: category.value || String(category.key),
@@ -153,11 +153,7 @@ export default function UpdateReligionCategoryMappingForm({
                                             <SelectContent>
                                                 {religionDropdown
                                                     .filter((religion: IReligionDropdown) => {
-                                                        return (
-                                                            religion.key != null &&
-                                                            religion.key !== '' &&
-                                                            String(religion.key).trim() !== ''
-                                                        );
+                                                        return religion.key != null && religion.key !== undefined && religion.key !== 0;
                                                     })
                                                     .map((religion: IReligionDropdown) => {
                                                         const key = religion.key?.toString().trim();

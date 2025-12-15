@@ -29,7 +29,7 @@ export const employeeShiftMappingColumns: ColumnDef<IMasterEmployeeShiftMappingL
     {
         accessorKey: 'EmployeeName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee' />,
-        cell: ({ row }) => <div>{row.getValue('EmployeeName') || 'All Employees'}</div>,
+        cell: ({ row }) => <div>{row.getValue('EmployeeName') || '-'}</div>,
         enableSorting: true,
         enableHiding: true
     },

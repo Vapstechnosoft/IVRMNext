@@ -29,6 +29,8 @@ import {
     useReligionDropdown,
     useSalaryTypeDropdown,
     useSaveEmployee,
+    useSaveEmployeeExperience,
+    useSaveEmployeeQualification,
     useScoreTypeDropdown,
     useSpecializationDropdown,
     useTeachingTypeDropdown
@@ -72,12 +74,19 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 import {
     employeeRegisterSteps,
-    ensureNonEmptyValue,
+    mapApiResponseToTab1Fields,
+    mapApiResponseToTab2Fields,
+    mapApiResponseToTab3Fields,
+    mapApiResponseToTab4Fields,
+    mapApiResponseToTab5Fields,
+    mapApiResponseToTab6Fields,
+    mapApiResponseToTab7Fields,
+    mapApiResponseToTab8Fields,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
     tabFieldMap
 } from './employee-register-helper';
-import { PayrollTab } from './tabs/payroll-tab-new';
+import { PayrollTab } from './payroll-tab';
 
 // Helper component for Qualification State Dropdown (needs to be separate component to use hooks)
 function QualificationStateDropdown({
@@ -130,7 +139,7 @@ function QualificationStateDropdown({
                             ) : (
                                 availableStates
                                     .filter((state: IStateDropdown) => {
-                                        return state.key != null && state.key !== '' && String(state.key).trim() !== '';
+                                        return state.key != null && state.key !== undefined && state.key !== 0;
                                     })
                                     .map((state: IStateDropdown) => {
                                         const key = state.key?.toString().trim();
@@ -206,17 +215,45 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Group Type dropdown - API: /api/MasterDropDown/GroupType
     const { data: groupTypeDropdownResponse, isLoading: isLoadingGroupTypes } = useGroupTypeDropdown();
-    // Extract data from response (handle ApiResponse wrapper if needed)
-    const groupTypeDropdown: IGroupTypeDropdown[] = Array.isArray(groupTypeDropdownResponse)
+    // Extract and transform data from response (handle ApiResponse wrapper if needed)
+    const rawGroupTypes = Array.isArray(groupTypeDropdownResponse)
         ? groupTypeDropdownResponse
         : (groupTypeDropdownResponse as any)?.data || [];
+    // Transform to { key, value } format if needed
+    const groupTypeDropdown: IGroupTypeDropdown[] = rawGroupTypes
+        .map((item: any) => {
+            // If already in { key, value } format, return as is
+            if (item.key !== undefined && item.value !== undefined) {
+                return item;
+            }
+            // Otherwise transform from API structure { HRMGT_Id, HRMGT_EmployeeGroupType }
+            return {
+                key: String(item.HRMGT_Id ?? item.key ?? ''),
+                value: String(item.HRMGT_EmployeeGroupType ?? item.value ?? item.label ?? '')
+            };
+        })
+        .filter((item: IGroupTypeDropdown) => item.key != null && item.key !== undefined && item.key !== 0);
 
     // Employee Type dropdown - API: /api/MasterDropDown/GetEmployeeType
     const { data: employeeTypeDropdownResponse, isLoading: isLoadingEmployeeTypes } = useEmployeeTypeDropdown();
-    // Extract data from response (handle ApiResponse wrapper if needed)
-    const employeeTypeDropdown: IEmployeeTypeDropdown[] = Array.isArray(employeeTypeDropdownResponse)
+    // Extract and transform data from response (handle ApiResponse wrapper if needed)
+    const rawEmployeeTypes = Array.isArray(employeeTypeDropdownResponse)
         ? employeeTypeDropdownResponse
         : (employeeTypeDropdownResponse as any)?.data || [];
+    // Transform to { key, value } format if needed
+    const employeeTypeDropdown: IEmployeeTypeDropdown[] = rawEmployeeTypes
+        .map((item: any) => {
+            // If already in { key, value } format, return as is
+            if (item.key !== undefined && item.value !== undefined) {
+                return item;
+            }
+            // Otherwise transform from API structure { HRMET_Id, HRMET_EmployeeType }
+            return {
+                key: String(item.HRMET_Id ?? item.key ?? ''),
+                value: String(item.HRMET_EmployeeType ?? item.value ?? item.label ?? '')
+            };
+        })
+        .filter((item: IEmployeeTypeDropdown) => item.key != null && item.key !== undefined && item.key !== 0);
 
     // Institution dropdown - API: /api/MasterDropDown/GetInstitutionList
     const { data: institutionDropdownResponse, isLoading: isLoadingInstitutions } = useInstitutionDropdown();
@@ -387,14 +424,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     ]);
 
     const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
+    const { mutate: saveQualificationMutation, isPending: isSavingQualification } = useSaveEmployeeQualification();
+    const { mutate: saveExperienceDetails, isPending: isSavingExperience } = useSaveEmployeeExperience();
     const savePersonalDetails = saveEmployeeMutation;
-    const saveQualificationDetails = saveEmployeeMutation;
-    const saveExperienceDetails = saveEmployeeMutation;
+    const saveQualificationDetails = saveQualificationMutation;
     const saveDocumentDetails = saveEmployeeMutation;
     const saveMedicalDetails = saveEmployeeMutation;
     const _saveBankDetails = saveEmployeeMutation;
-    const isSavingQualification = isPending;
-    const isSavingExperience = isPending;
     const isSavingDocument = isPending;
     const isSavingMedical = isPending;
     const isSavingBank = isPending;
@@ -405,6 +441,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const [_photoFile, setPhotoFile] = useState<File | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(selectedRow?.hrmE_Id || null);
+    const [isFormInitialized, setIsFormInitialized] = useState(false);
 
     // Helper to get current tab key from step
     const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
@@ -416,17 +453,446 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Function to go to next step
     const nextStep = async () => {
+        // Prevent duplicate submissions
+        if (isSavingQualification || isSavingExperience || isSubmittingAny) {
+            console.warn('⚠️ [DEBUG] nextStep - Already saving, ignoring duplicate call');
+            return;
+        }
+
         const currentTabKey = getCurrentTabKey();
         const currentTabFields = tabFieldMap[currentTabKey] || [];
 
+        console.log('🔍 [DEBUG] nextStep called - Step:', currentStep, 'TabKey:', currentTabKey);
+
         if (currentTabFields.length > 0) {
             const isValid = await trigger(currentTabFields as any);
+            console.log('🔍 [DEBUG] Validation result:', isValid);
             if (!isValid) {
+                const formErrors = formState.errors;
+                console.log('🔍 [DEBUG] Form errors:', formErrors);
+
+                // Function to extract error message from nested structure
+                const extractErrorMessage = (errors: any): string | null => {
+                    if (!errors) return null;
+
+                    // If it's a direct error with message
+                    if (typeof errors === 'string') return errors;
+                    if (errors?.message) return errors.message;
+
+                    // If it's an array (like qualificationDetails)
+                    if (Array.isArray(errors)) {
+                        for (const item of errors) {
+                            if (item && typeof item === 'object') {
+                                // Check each field in the array item
+                                for (const key in item) {
+                                    const fieldError = item[key];
+                                    if (fieldError) {
+                                        const msg = extractErrorMessage(fieldError);
+                                        if (msg) return msg;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // If it's an object, check nested properties
+                    if (typeof errors === 'object') {
+                        for (const key in errors) {
+                            const nestedError = errors[key];
+                            const msg = extractErrorMessage(nestedError);
+                            if (msg) return msg;
+                        }
+                    }
+
+                    return null;
+                };
+
+                // Extract and show first error message
+                const errorMessage = extractErrorMessage(formErrors);
+                if (errorMessage) {
+                    toast.error(errorMessage);
+                } else {
+                    toast.error('Please fix the validation errors before proceeding');
+                }
                 return;
             }
         }
 
-        setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+        const data = getValues();
+        const currentStepId = currentStep;
+
+        console.log('🔍 [DEBUG] Proceeding to save - Step ID:', currentStepId);
+        console.log('🔍 [DEBUG] nextStep - Checking conditions:');
+        console.log('  - currentStepId === 1:', currentStepId === 1);
+        console.log('  - currentStepId === 2:', currentStepId === 2);
+        console.log('  - currentStepId === 3:', currentStepId === 3);
+        console.log('  - currentStepId === 4:', currentStepId === 4);
+        console.log('  - currentStepId type:', typeof currentStepId);
+        console.log('  - currentStepId value:', currentStepId);
+
+        // For steps 1 and 2, we need to save data via API before moving to next step
+        if (currentStepId === 1) {
+            // Employee Information tab - call /api/EmployeeRegistration/SavePersonalDetails
+            // Save employee details without address (address fields will be null)
+            const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
+            payload.hrmE_Id = selectedRow?.hrmE_Id || 0; // Use existing employee ID
+
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Form Data:', data);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Payload:', payload);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Employee ID:', payload.hrmE_Id);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Address Fields Check:');
+            console.log('  - Contact Address:', payload.hrmE_LocStreet, payload.hrmE_LocCity, payload.hrmE_LocStateId);
+            console.log('  - Permanent Address:', payload.hrmE_PerStreet, payload.hrmE_PerCity, payload.hrmE_PerStateId);
+            console.log('🔍 [DEBUG] Tab 1 (Employee Information) - Calling savePersonalDetails...');
+
+            savePersonalDetails(payload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [DEBUG] Tab 1 (Employee Information) - Save Success:', response);
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    }
+                    // API returns hrmE_Id (lowercase) in response
+                    const employeeId =
+                        response?.data?.hrmE_Id ||
+                        response?.data?.HRME_Id ||
+                        response?.hrmE_Id ||
+                        response?.HRME_Id ||
+                        selectedRow?.hrmE_Id ||
+                        0;
+                    console.log('🔍 [DEBUG] Tab 1 - Extracted Employee ID:', employeeId);
+                    if (employeeId && employeeId > 0) {
+                        setSavedEmployeeId(employeeId);
+                        setCurrentStep(2);
+                    } else {
+                        console.error('❌ [DEBUG] Tab 1 - Failed to get employee ID from response');
+                        toast.error('Failed to get employee ID from response');
+                    }
+                },
+                onError: (error: any) => {
+                    console.error('❌ [DEBUG] Tab 1 (Employee Information) - Save Error:', error);
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 2) {
+            // Address Information tab - call same endpoint /api/EmployeeRegistration/SavePersonalDetails
+            // Update with address details using the hrmE_Id
+            const employeeId = savedEmployeeId || selectedRow?.hrmE_Id;
+            if (!employeeId) {
+                console.error('❌ [DEBUG] Tab 2 - No employee ID found');
+                toast.error('Please save Employee details first');
+                setCurrentStep(1);
+                return;
+            }
+            const payload = mapFormDataToApiFormatLocal(data);
+            payload.hrmE_Id = employeeId; // Use the employee ID
+
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Form Data:', data);
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Payload:', payload);
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Employee ID:', employeeId);
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Address Fields:');
+            console.log('  - Contact Address:', {
+                street: payload.hrmE_LocStreet,
+                area: payload.hrmE_LocArea,
+                city: payload.hrmE_LocCity,
+                stateId: payload.hrmE_LocStateId,
+                countryId: payload.hrmE_LocCountryId,
+                pincode: payload.hrmE_LocPincode
+            });
+            console.log('  - Permanent Address:', {
+                street: payload.hrmE_PerStreet,
+                area: payload.hrmE_PerArea,
+                city: payload.hrmE_PerCity,
+                stateId: payload.hrmE_PerStateId,
+                countryId: payload.hrmE_PerCountryId,
+                pincode: payload.hrmE_PerPincode
+            });
+            console.log('🔍 [DEBUG] Tab 2 (Address Information) - Calling savePersonalDetails...');
+
+            savePersonalDetails(payload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [DEBUG] Tab 2 (Address Information) - Save Success:', response);
+                    console.log('🔍 [DEBUG] Tab 2 - Full API Response:', JSON.stringify(response, null, 2));
+                    console.log('🔍 [DEBUG] Tab 2 - Response Success:', response?.success);
+                    console.log('🔍 [DEBUG] Tab 2 - Response Message:', response?.message);
+                    console.log('🔍 [DEBUG] Tab 2 - Response Data:', response?.data);
+
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
+                        toast.warning('Address saved but API returned success: false. Please verify the data was saved.');
+                    }
+
+                    // Verify address fields were sent
+                    console.log('🔍 [DEBUG] Tab 2 - Verification - Address fields sent in payload:');
+                    console.log('  Contact:', {
+                        street: payload.hrmE_LocStreet,
+                        area: payload.hrmE_LocArea,
+                        city: payload.hrmE_LocCity,
+                        stateId: payload.hrmE_LocStateId,
+                        countryId: payload.hrmE_LocCountryId,
+                        pincode: payload.hrmE_LocPincode
+                    });
+                    console.log('  Permanent:', {
+                        street: payload.hrmE_PerStreet,
+                        area: payload.hrmE_PerArea,
+                        city: payload.hrmE_PerCity,
+                        stateId: payload.hrmE_PerStateId,
+                        countryId: payload.hrmE_PerCountryId,
+                        pincode: payload.hrmE_PerPincode
+                    });
+
+                    setCurrentStep(3);
+                },
+                onError: (error: any) => {
+                    console.error('❌ [DEBUG] Tab 2 (Address Information) - Save Error:', error);
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else if (currentStepId === 3) {
+            // Qualification tab - save qualification details
+            console.log('🔍 [DEBUG] Qualification tab - Starting save process');
+            const employeeId = savedEmployeeId || selectedRow?.hrmE_Id;
+            console.log(
+                '🔍 [DEBUG] Employee ID:',
+                employeeId,
+                'savedEmployeeId:',
+                savedEmployeeId,
+                'selectedRow?.hrmE_Id:',
+                selectedRow?.hrmE_Id
+            );
+
+            if (!employeeId) {
+                console.error('❌ [DEBUG] No employee ID found');
+                toast.error('Please save Employee and Address details first');
+                setCurrentStep(1);
+                return;
+            }
+
+            const qualificationList = data.qualificationDetails || [];
+            console.log('🔍 [DEBUG] Qualification list:', qualificationList, 'Length:', qualificationList.length);
+
+            if (qualificationList.length === 0) {
+                console.error('❌ [DEBUG] No qualifications found');
+                setError('qualificationDetails', {
+                    type: 'required',
+                    message: 'Please add at least one qualification'
+                });
+                toast.error('Please add at least one qualification');
+                return;
+            }
+            // Map qualification data to new API format
+            console.log(
+                '🔍 [DEBUG] Qualification IDs Check (nextStep):',
+                qualificationList.map((q: any, i: number) => ({
+                    index: i,
+                    hrmeQ_Id: q.hrmeQ_Id,
+                    HRMEQ_Id: q.HRMEQ_Id,
+                    hasId: !!(q.hrmeQ_Id || q.HRMEQ_Id)
+                }))
+            );
+            const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
+                const id = qual.hrmeQ_Id || qual.HRMEQ_Id || 0; // Check both cases
+                console.log(`🔍 [DEBUG] Qualification #${index + 1} (nextStep) - ID from form:`, id);
+                return {
+                    hrmeQ_Id: id, // Use existing ID if updating, 0 for new
+                    hrmC_Id: Number(qual.course) || 0,
+                    hrmE_Id: employeeId,
+                    hrmE_QualificationName: qual.qualification || '',
+                    hrmeQ_CollegeName: qual.college || '',
+                    hrmeQ_UniversityName: qual.university || '',
+                    hrmeQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
+                    hrmeQ_RegistrationNo: qual.registrationNo || '',
+                    hrmeQ_Result: qual.result || '',
+                    hrmeQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
+                    hrmeQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
+                    hrmeQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
+                    hrmeQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
+                    hrmeQ_PHDFlg: qual.phdFlag || false,
+                    hrmeQ_StateId: Number(qual.qualificationState) || 0,
+                    hrmeQ_CountryId: Number(qual.qualificationCountry) || 0,
+                    hrmeQ_ThesisTitle: qual.thesisTitle || '',
+                    hrmeQ_RegistrationYear: Number(qual.registrationYear) || 0,
+                    hrmeQ_GuideName: qual.guideName || '',
+                    hrmeQ_Date: qual.qualifiedDate ? new Date(qual.qualifiedDate).toISOString() : null,
+                    hrmeQ_MedicalCouncil: qual.medicalCouncil || '',
+                    hrmeQ_Hardcopy: qual.hardcopy || '',
+                    retrunMsg: ''
+                };
+            });
+
+            console.log('🔍 [DEBUG] Qualification Payload Count:', qualificationsPayload.length);
+            console.log('🔍 [DEBUG] Qualification Payload:', qualificationsPayload);
+            console.log('🔍 [DEBUG] Employee ID:', employeeId);
+            console.log('🔍 [DEBUG] Calling saveQualificationDetails mutation ONCE with array of', qualificationsPayload.length, 'items');
+            console.log('🔍 [DEBUG] saveQualificationDetails function:', typeof saveQualificationDetails);
+            console.log('🔍 [DEBUG] isSavingQualification:', isSavingQualification);
+
+            if (!saveQualificationDetails) {
+                console.error('❌ [DEBUG] saveQualificationDetails is not defined!');
+                toast.error('Save qualification function is not available');
+                return;
+            }
+
+            if (isSavingQualification) {
+                console.warn('⚠️ [DEBUG] Already saving qualification, ignoring duplicate call');
+                return;
+            }
+
+            // Ensure we only call the API once with the entire array
+            saveQualificationDetails(qualificationsPayload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [DEBUG] Qualification Save Success:', response);
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    }
+                    setCurrentStep(4);
+                },
+                onError: (error: any) => {
+                    console.error('❌ [DEBUG] Qualification Save Error:', error);
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
+                    toast.error(errorMessage);
+                }
+            });
+
+            console.log('🔍 [DEBUG] Mutation call completed');
+        } else if (currentStepId === 4) {
+            // Experience tab - save experience details
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Starting save process in nextStep');
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Employee ID:', savedEmployeeId || selectedRow?.hrmE_Id);
+
+            const employeeId = savedEmployeeId || selectedRow?.hrmE_Id;
+
+            if (!employeeId) {
+                console.error('❌ [DEBUG] Tab 4 - No employee ID found');
+                toast.error('Please save Employee and Address details first');
+                setCurrentStep(1);
+                return;
+            }
+
+            const experienceList = data.experienceDetails || [];
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Form Data:', data);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
+
+            if (experienceList.length === 0) {
+                console.error('❌ [DEBUG] Tab 4 - No experiences found');
+                setError('experienceDetails', {
+                    type: 'required',
+                    message: 'Please add at least one experience'
+                });
+                return;
+            }
+
+            // Map experience data to API format (matching API request body format)
+            console.log(
+                '🔍 [DEBUG] Experience IDs Check:',
+                experienceList.map((e: any, i: number) => ({
+                    index: i,
+                    hrmeE_Id: e.hrmeE_Id,
+                    HRMEE_Id: e.HRMEE_Id,
+                    hasId: !!(e.hrmeE_Id || e.HRMEE_Id)
+                }))
+            );
+            const experiencesPayload = experienceList.map((exp: any, index: number) => {
+                const id = exp.hrmeE_Id || exp.HRMEE_Id || 0; // Check both cases
+                console.log(`🔍 [DEBUG] Experience #${index + 1} - ID from form:`, id, 'Full exp:', exp);
+                const mapped = {
+                    hrmeE_Id: id, // Use existing ID if updating, 0 for new
+                    hrmE_Id: employeeId,
+                    hrmeE_OrganisationName: exp.organisationName || '',
+                    hrmeE_OrganisationAddress: exp.organisationAddress || '',
+                    hrmeE_Department: exp.department || '',
+                    hrmeE_Designation: exp.designation || '',
+                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
+                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                    hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                    hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                    hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
+                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                };
+                console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
+                    raw: exp,
+                    mapped: mapped
+                });
+                return mapped;
+            });
+
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload Count:', experiencesPayload.length);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
+            console.log(
+                '🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails ONCE with array of',
+                experiencesPayload.length,
+                'items'
+            );
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
+
+            if (!saveExperienceDetails) {
+                console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
+                toast.error('Experience save function is not available. Please refresh the page.');
+                return;
+            }
+
+            // Ensure we only call the API once with the entire array
+            saveExperienceDetails(experiencesPayload, {
+                onSuccess: (response: any) => {
+                    console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
+                    console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
+                    console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
+                    console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
+                    console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
+
+                    // Verify experience data was saved
+                    if (response?.data && Array.isArray(response.data)) {
+                        console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
+                        console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
+                    }
+
+                    // Show API response message
+                    if (response?.success && response?.message) {
+                        toast.success(response.message);
+                    } else if (response?.message) {
+                        toast.info(response.message);
+                    } else if (response?.success === false) {
+                        console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
+                        toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
+                    }
+
+                    setCurrentStep(5);
+                },
+                onError: (error: any) => {
+                    console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
+                    console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
+                    console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
+                    console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
+                    // Show API error message
+                    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
+                    toast.error(errorMessage);
+                }
+            });
+        } else {
+            // For other steps, just move to next step without API call
+            console.log('🔍 [DEBUG] nextStep - Falling through to else clause');
+            console.log('🔍 [DEBUG] nextStep - Current Step ID:', currentStepId);
+            console.log('🔍 [DEBUG] nextStep - This means Tab 4 condition was NOT met!');
+            console.warn('⚠️ [DEBUG] nextStep - Tab 4 API call was skipped - moving to next step without saving');
+            setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+        }
     };
 
     // Function to go to specific step
@@ -434,21 +900,33 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         setCurrentStep(step);
     };
 
-    // Refs to track initialization
-    const _hasInitializedDropdowns = useRef(false);
-    const _hasInitializedAddress = useRef(false);
-    const _hasInitializedBank = useRef(false);
-    const hasInitializedArrays = useRef(false);
+    // Refs to track initialization per tab
+    const _hasInitializedTab1 = useRef(false);
+    const _hasInitializedTab2 = useRef(false);
+    const _hasInitializedTab3 = useRef(false);
+    const _hasInitializedTab4 = useRef(false);
+    const _hasInitializedTab5 = useRef(false);
+    const _hasInitializedTab6 = useRef(false);
+    const _hasInitializedTab7 = useRef(false);
+
+    // Track originally loaded IDs to identify deleted items
+    const _originalQualificationIds = useRef<number[]>([]);
+    const _originalExperienceIds = useRef<number[]>([]);
+    const _hasInitializedTab8 = useRef(false);
     const _lastEmployeeId = useRef<number | null>(null);
-    const _resetInProgress = useRef(false);
+    const _employeeDetailsRef = useRef<any>(null);
 
     // Fetch full employee details when in edit mode
-    // NOTE: Old API mapping removed - endpoints not provided yet
-    // For now, use empty defaults until endpoints are provided
     const { data: employeeDetails, isLoading: isLoadingEmployee } = useEmployeeById(selectedRow?.hrmE_Id || null);
 
-    // Empty default values for update form (old API mapping removed - endpoints not provided yet)
-    // TODO: When endpoints are provided, map employeeDetails to formDefaultValues here
+    // Store employeeDetails in ref to avoid dependency issues
+    useEffect(() => {
+        if (employeeDetails) {
+            _employeeDetailsRef.current = employeeDetails;
+        }
+    }, [employeeDetails]);
+
+    // Empty default values for update form
     const formDefaultValues = useMemo(
         () => ({
             firstName: '',
@@ -498,7 +976,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const contactCountry = useWatch({ control, name: 'contactCountry' });
     const permanentCountry = useWatch({ control, name: 'permanentCountry' });
     const dateOfBirth = useWatch({ control, name: 'dateOfBirth' });
-    const sameAsCommunicationAddress = useWatch({ control, name: 'sameAsCommunicationAddress' });
+    const sameAsCommunicationAddress = useWatch({
+        control,
+        name: 'sameAsCommunicationAddress'
+    });
     const contactAddress = useWatch({ control, name: 'contactAddress' });
     const contactArea = useWatch({ control, name: 'contactArea' });
     const contactState = useWatch({ control, name: 'contactState' });
@@ -569,6 +1050,198 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         }
     }, [sameAsCommunicationAddress, contactAddress, contactArea, contactCity, contactState, contactPincode, contactCountry, setValue]);
 
+    // Get employee ID from employeeDetails to use as dependency - memoize to prevent unnecessary re-renders
+    const employeeIdFromDetails = useMemo(() => {
+        return employeeDetails?.data?.hrmE_Id || null;
+    }, [employeeDetails?.data?.hrmE_Id]);
+
+    // DEBUG: Watch form values for dropdown fields
+    const designationValue = useWatch({ control, name: 'designation' });
+    const typeOfEmploymentValue = useWatch({ control, name: 'typeOfEmployment' });
+    const employeeGroupValue = useWatch({ control, name: 'employeeGroup' });
+    const schoolValue = useWatch({ control, name: 'school' });
+    const gradeValue = useWatch({ control, name: 'grade' });
+
+    useEffect(() => {
+        if (designationValue && designationDropdown.length > 0) {
+            const matchingDesignation = designationDropdown.find(
+                (dg: IDesignationDropdown) => dg.key?.toString().trim() === designationValue?.toString().trim()
+            );
+            console.log('🔍 [DEBUG] Designation Value Watcher:', {
+                formValue: designationValue,
+                formValueType: typeof designationValue,
+                dropdownLength: designationDropdown.length,
+                matchingDesignation: matchingDesignation
+                    ? {
+                          key: matchingDesignation.key,
+                          value: matchingDesignation.value
+                      }
+                    : null,
+                firstFewKeys: designationDropdown.slice(0, 3).map((dg) => dg.key?.toString().trim())
+            });
+        }
+    }, [designationValue, designationDropdown]);
+
+    // Initialize Tab 1 (Employee Information) when employee details are loaded
+    useEffect(() => {
+        const currentEmployeeDetails = _employeeDetailsRef.current;
+        if (
+            employeeIdFromDetails &&
+            currentEmployeeDetails?.data &&
+            !_hasInitializedTab1.current &&
+            _lastEmployeeId.current !== employeeIdFromDetails
+        ) {
+            _lastEmployeeId.current = employeeIdFromDetails;
+
+            try {
+                const tab1Data = mapApiResponseToTab1Fields(currentEmployeeDetails);
+
+                // DEBUG: Log API response and mapped data
+                console.log('🔍 [DEBUG] Tab 1 Data Loading:', {
+                    employeeId: employeeIdFromDetails,
+                    apiData: {
+                        hrmdeS_Id: currentEmployeeDetails?.data?.hrmdeS_Id,
+                        hrmeT_Id: currentEmployeeDetails?.data?.hrmeT_Id,
+                        hrmgT_Id: currentEmployeeDetails?.data?.hrmgT_Id,
+                        hrmD_Id: currentEmployeeDetails?.data?.hrmD_Id,
+                        hrmG_Id: currentEmployeeDetails?.data?.hrmG_Id
+                    },
+                    mappedData: {
+                        designation: tab1Data.designation,
+                        typeOfEmployment: tab1Data.typeOfEmployment,
+                        employeeGroup: tab1Data.employeeGroup,
+                        school: tab1Data.school,
+                        grade: tab1Data.grade
+                    },
+                    dropdownsLoaded: {
+                        designations: designationDropdown?.length || 0,
+                        employeeTypes: employeeTypeDropdown?.length || 0,
+                        groupTypes: groupTypeDropdown?.length || 0,
+                        institutions: institutionDropdown?.length || 0,
+                        grades: gradeDropdown?.length || 0
+                    }
+                });
+
+                // Set Tab 1 fields using setValue to avoid resetting the entire form
+                Object.entries(tab1Data).forEach(([key, value]) => {
+                    setValue(key as keyof FormFields, value as any, {
+                        shouldValidate: false,
+                        shouldDirty: false
+                    });
+                });
+
+                // DEBUG: Log after setting values
+                console.log('🔍 [DEBUG] After setValue - Form values:', {
+                    designation: tab1Data.designation,
+                    typeOfEmployment: tab1Data.typeOfEmployment,
+                    employeeGroup: tab1Data.employeeGroup,
+                    school: tab1Data.school,
+                    grade: tab1Data.grade
+                });
+
+                // Set saved employee ID
+                setSavedEmployeeId(employeeIdFromDetails);
+
+                // Mark Tab 1 as initialized
+                _hasInitializedTab1.current = true;
+                setIsFormInitialized(true);
+            } catch (error) {
+                console.error('Error loading Tab 1 data:', error);
+                toast.error('Failed to load employee information');
+            }
+        } else if (!employeeIdFromDetails && !isLoadingEmployee && !_hasInitializedTab1.current) {
+            // If no employee ID and not loading, mark as initialized to show empty form
+            _hasInitializedTab1.current = true;
+            setIsFormInitialized(true);
+        }
+    }, [
+        employeeIdFromDetails,
+        setValue,
+        setSavedEmployeeId,
+        isLoadingEmployee,
+        designationDropdown,
+        employeeTypeDropdown,
+        groupTypeDropdown,
+        institutionDropdown,
+        gradeDropdown
+    ]);
+
+    // Load Tab 2 (Address) data when user navigates to Tab 2
+    useEffect(() => {
+        if (currentStep === 2 && !_hasInitializedTab2.current && _employeeDetailsRef.current?.data) {
+            try {
+                const tab2Data = mapApiResponseToTab2Fields(_employeeDetailsRef.current);
+
+                // Check if permanent address is same as contact address
+                const isSameAddress =
+                    tab2Data.contactAddress === tab2Data.permanentAddress &&
+                    tab2Data.contactArea === tab2Data.permanentArea &&
+                    tab2Data.contactCity === tab2Data.permanentCity &&
+                    tab2Data.contactState === tab2Data.permanentState &&
+                    tab2Data.contactCountry === tab2Data.permanentCountry &&
+                    tab2Data.contactPincode === tab2Data.permanentPincode;
+
+                if (isSameAddress) {
+                    tab2Data.sameAsCommunicationAddress = true;
+                }
+
+                // Set Tab 2 fields
+                Object.entries(tab2Data).forEach(([key, value]) => {
+                    setValue(key as keyof FormFields, value as any, {
+                        shouldValidate: false,
+                        shouldDirty: false
+                    });
+                });
+
+                _hasInitializedTab2.current = true;
+            } catch (error) {
+                console.error('Error loading Tab 2 data:', error);
+            }
+        }
+    }, [currentStep, setValue]);
+
+    // Load Tab 6 (Medical) data when user navigates to Tab 6
+    useEffect(() => {
+        if (currentStep === 6 && !_hasInitializedTab6.current && _employeeDetailsRef.current?.data) {
+            try {
+                const tab6Data = mapApiResponseToTab6Fields(_employeeDetailsRef.current);
+
+                // Set Tab 6 fields
+                Object.entries(tab6Data).forEach(([key, value]) => {
+                    setValue(key as keyof FormFields, value as any, {
+                        shouldValidate: false,
+                        shouldDirty: false
+                    });
+                });
+
+                _hasInitializedTab6.current = true;
+            } catch (error) {
+                console.error('Error loading Tab 6 data:', error);
+            }
+        }
+    }, [currentStep, setValue]);
+
+    // Load Tab 7 (Other Details) data when user navigates to Tab 7
+    useEffect(() => {
+        if (currentStep === 7 && !_hasInitializedTab7.current && _employeeDetailsRef.current?.data) {
+            try {
+                const tab7Data = mapApiResponseToTab7Fields(_employeeDetailsRef.current);
+
+                // Set Tab 7 fields
+                Object.entries(tab7Data).forEach(([key, value]) => {
+                    setValue(key as keyof FormFields, value as any, {
+                        shouldValidate: false,
+                        shouldDirty: false
+                    });
+                });
+
+                _hasInitializedTab7.current = true;
+            } catch (error) {
+                console.error('Error loading Tab 7 data:', error);
+            }
+        }
+    }, [currentStep, setValue]);
+
     // Auto-calculate retirement date from DOB
     useEffect(() => {
         if (dateOfBirth) {
@@ -578,7 +1251,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     const retirementDate = new Date(dob);
                     retirementDate.setFullYear(retirementDate.getFullYear() + 60);
                     const formattedDate = format(retirementDate, 'yyyy-MM-dd');
-                    setValue('dateOfRetirement', formattedDate, { shouldValidate: false, shouldDirty: false });
+                    setValue('dateOfRetirement', formattedDate, {
+                        shouldValidate: false,
+                        shouldDirty: false
+                    });
                 }
             } catch (_error) {
                 // Invalid date, ignore
@@ -591,7 +1267,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         if (!options?.banks) return [];
         return (options.banks || [])
             .filter((b: IBankDropdown) => {
-                return b.key != null && b.key !== '' && String(b.key).trim() !== '';
+                return b.key != null && b.key !== undefined && b.key !== 0;
             })
             .map((b: IBankDropdown) => {
                 const key = b.key?.toString().trim();
@@ -689,6 +1365,130 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         name: 'documentList'
     });
 
+    // Load Tab 3 (Qualification) data when user navigates to Tab 3
+    useEffect(() => {
+        if (currentStep === 3 && !_hasInitializedTab3.current && _employeeDetailsRef.current?.data) {
+            try {
+                const tab3Data = mapApiResponseToTab3Fields(_employeeDetailsRef.current);
+
+                // Use replace to update qualificationDetails array
+                if (tab3Data.qualificationDetails && Array.isArray(tab3Data.qualificationDetails)) {
+                    // Clear existing qualifications first (remove from end to avoid index issues)
+                    const currentLength = qualificationFields.length;
+                    for (let i = currentLength - 1; i >= 0; i--) {
+                        removeQualification(i);
+                    }
+
+                    // Add qualifications from API
+                    console.log('🔍 [DEBUG] Loading Qualifications from API:', tab3Data.qualificationDetails);
+                    // Track original IDs for deletion detection
+                    _originalQualificationIds.current = tab3Data.qualificationDetails
+                        .map((qual: any) => qual.hrmeQ_Id || qual.HRMEQ_Id || 0)
+                        .filter((id: number) => id > 0);
+                    console.log('🔍 [DEBUG] Original Qualification IDs:', _originalQualificationIds.current);
+
+                    tab3Data.qualificationDetails.forEach((qual: any, index: number) => {
+                        console.log(`🔍 [DEBUG] Qualification #${index + 1} - ID:`, qual.hrmeQ_Id || qual.HRMEQ_Id, 'Full object:', qual);
+                        appendQualification(qual);
+                    });
+                }
+
+                _hasInitializedTab3.current = true;
+            } catch (error) {
+                console.error('Error loading Tab 3 data:', error);
+            }
+        }
+    }, [currentStep, appendQualification, removeQualification, qualificationFields.length]);
+
+    // Load Tab 4 (Experience) data when user navigates to Tab 4
+    useEffect(() => {
+        if (currentStep === 4 && !_hasInitializedTab4.current && _employeeDetailsRef.current?.data) {
+            try {
+                const tab4Data = mapApiResponseToTab4Fields(_employeeDetailsRef.current);
+
+                // Use replace to update experienceDetails array
+                if (tab4Data.experienceDetails && Array.isArray(tab4Data.experienceDetails)) {
+                    // Clear existing experiences first (remove from end to avoid index issues)
+                    const currentLength = experienceFields.length;
+                    for (let i = currentLength - 1; i >= 0; i--) {
+                        removeExperience(i);
+                    }
+
+                    // Add experiences from API
+                    console.log('🔍 [DEBUG] Loading Experiences from API:', tab4Data.experienceDetails);
+                    // Track original IDs for deletion detection
+                    _originalExperienceIds.current = tab4Data.experienceDetails
+                        .map((exp: any) => exp.hrmeE_Id || exp.HRMEE_Id || 0)
+                        .filter((id: number) => id > 0);
+                    console.log('🔍 [DEBUG] Original Experience IDs:', _originalExperienceIds.current);
+
+                    tab4Data.experienceDetails.forEach((exp: any, index: number) => {
+                        console.log(`🔍 [DEBUG] Experience #${index + 1} - ID:`, exp.hrmeE_Id, 'Full object:', exp);
+                        appendExperience(exp);
+                    });
+                }
+
+                _hasInitializedTab4.current = true;
+            } catch (error) {
+                console.error('Error loading Tab 4 data:', error);
+            }
+        }
+    }, [currentStep, appendExperience, removeExperience, experienceFields.length]);
+
+    // Load Tab 5 (Documents) data when user navigates to Tab 5
+    useEffect(() => {
+        if (currentStep === 5 && !_hasInitializedTab5.current && _employeeDetailsRef.current?.data) {
+            try {
+                const tab5Data = mapApiResponseToTab5Fields(_employeeDetailsRef.current);
+
+                // Use replace to update documentList array
+                if (tab5Data.documentList && Array.isArray(tab5Data.documentList)) {
+                    // Clear existing documents first (remove from end to avoid index issues)
+                    const currentLength = documentFields.length;
+                    for (let i = currentLength - 1; i >= 0; i--) {
+                        removeDocument(i);
+                    }
+
+                    // Add documents from API
+                    tab5Data.documentList.forEach((doc: any) => {
+                        appendDocument(doc);
+                    });
+                }
+
+                _hasInitializedTab5.current = true;
+            } catch (error) {
+                console.error('Error loading Tab 5 data:', error);
+            }
+        }
+    }, [currentStep, appendDocument, removeDocument, documentFields.length]);
+
+    // Load Tab 8 (Bank Details) data when user navigates to Tab 8
+    useEffect(() => {
+        if (currentStep === 8 && !_hasInitializedTab8.current && _employeeDetailsRef.current?.data) {
+            try {
+                const tab8Data = mapApiResponseToTab8Fields(_employeeDetailsRef.current);
+
+                // Use replace to update bankDetails array
+                if (tab8Data.bankDetails && Array.isArray(tab8Data.bankDetails)) {
+                    // Clear existing bank details first (remove from end to avoid index issues)
+                    const currentLength = bankFields.length;
+                    for (let i = currentLength - 1; i >= 0; i--) {
+                        removeBank(i);
+                    }
+
+                    // Add bank details from API
+                    tab8Data.bankDetails.forEach((bank: any) => {
+                        appendBank(bank);
+                    });
+                }
+
+                _hasInitializedTab8.current = true;
+            } catch (error) {
+                console.error('Error loading Tab 8 data:', error);
+            }
+        }
+    }, [currentStep, appendBank, removeBank, bankFields.length]);
+
     // Map form data to API format - use helper functions
     const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
         return mapFormDataToApiFormat(data, savedEmployeeId || 0, selectedPhoto);
@@ -702,6 +1502,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
+
+        // Prevent duplicate submissions
+        if (isSavingQualification || isSavingExperience || isSubmittingAny) {
+            console.warn('⚠️ [DEBUG] onFormSubmit - Already saving, ignoring duplicate call');
+            return;
+        }
 
         const currentTabKey = getCurrentTabKey();
         const currentTabFields = tabFieldMap[currentTabKey] || [];
@@ -736,17 +1542,24 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 const payload = mapFormDataToApiFormatWithoutAddressLocal(data);
                 savePersonalDetails(payload, {
                     onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         const employeeId = response?.data?.HRME_Id || response?.HRME_Id || savedEmployeeId || 0;
                         if (employeeId) {
                             setSavedEmployeeId(employeeId);
-                            toast.success('Employee details saved successfully!');
                             setCurrentStep(2);
                         } else {
                             toast.error('Failed to get employee ID from response');
                         }
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save employee details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save employee details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 2) {
@@ -759,12 +1572,19 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId;
                 savePersonalDetails(payload, {
-                    onSuccess: () => {
-                        toast.success('Address details saved successfully!');
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(3);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save address details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save address details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 3) {
@@ -782,71 +1602,200 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     });
                     return;
                 }
-                const qualificationsPayload = qualificationList.map((qual: any) => ({
-                    HRME_Id: savedEmployeeId,
-                    HRMC_Id: Number(qual.course) || 0,
-                    HRMEQ_CollegeName: qual.college || '',
-                    HRMEQ_UniversityName: qual.university || '',
-                    HRMEQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
-                    HRMEQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
-                    HRMEQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
-                    HRMEQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
-                    HRMEQ_CountryId: Number(qual.qualificationCountry) || 0,
-                    HRMEQ_StateId: Number(qual.qualificationState) || 0,
-                    HRMEQ_RegistrationNo: qual.registrationNo || '',
-                    HRMEQ_Result: qual.result || '',
-                    HRMEQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
-                    HRMEQ_MedicalCouncil: qual.medicalCouncil || '',
-                    HRMEQ_PHDFlg: qual.phdFlag || false,
-                    HRMEQ_ThesisTitle: qual.thesisTitle || '',
-                    HRMEQ_RegistrationYear: Number(qual.registrationYear) || 0,
-                    HRMEQ_GuideName: qual.guideName || '',
-                    HRMEQ_Date: qual.qualifiedDate || ''
-                }));
+
+                console.log('🔍 [DEBUG] Qualification List Count:', qualificationList.length);
+                console.log('🔍 [DEBUG] Qualification List:', qualificationList);
+                console.log(
+                    '🔍 [DEBUG] Qualification IDs Check:',
+                    qualificationList.map((q: any, i: number) => ({
+                        index: i,
+                        hrmeQ_Id: q.hrmeQ_Id,
+                        HRMEQ_Id: q.HRMEQ_Id,
+                        hasId: !!(q.hrmeQ_Id || q.HRMEQ_Id)
+                    }))
+                );
+
+                // Map qualification data to new API format
+                const qualificationsPayload = qualificationList.map((qual: any, index: number) => {
+                    const id = qual.hrmeQ_Id || qual.HRMEQ_Id || 0; // Check both cases
+                    console.log(`🔍 [DEBUG] Qualification #${index + 1} - ID from form:`, id, 'Full qual:', qual);
+                    return {
+                        hrmeQ_Id: id, // Use existing ID if updating, 0 for new
+                        hrmC_Id: Number(qual.course) || 0,
+                        hrmE_Id: savedEmployeeId,
+                        hrmE_QualificationName: qual.qualification || '',
+                        hrmeQ_CollegeName: qual.college || '',
+                        hrmeQ_UniversityName: qual.university || '',
+                        hrmeQ_YearOfPassing: Number(qual.yearOfPassing) || 0,
+                        hrmeQ_RegistrationNo: qual.registrationNo || '',
+                        hrmeQ_Result: qual.result || '',
+                        hrmeQ_CGPAOrPerFlag: qual.cgpaOrPercentage || 'CGPA',
+                        hrmeQ_CGPA: qual.cgpaOrPercentage === 'CGPA' ? qual.cgpa || '' : '',
+                        hrmeQ_Percentage: qual.cgpaOrPercentage === 'Percentage' ? qual.cgpa || '' : '',
+                        hrmeQ_AreaOfSpecialisation: qual.areaOfSpecialisation || qual.specialisation || '',
+                        hrmeQ_PHDFlg: qual.phdFlag || false,
+                        hrmeQ_StateId: Number(qual.qualificationState) || 0,
+                        hrmeQ_CountryId: Number(qual.qualificationCountry) || 0,
+                        hrmeQ_ThesisTitle: qual.thesisTitle || '',
+                        hrmeQ_RegistrationYear: Number(qual.registrationYear) || 0,
+                        hrmeQ_GuideName: qual.guideName || '',
+                        hrmeQ_Date: qual.qualifiedDate ? new Date(qual.qualifiedDate).toISOString() : null,
+                        hrmeQ_MedicalCouncil: qual.medicalCouncil || '',
+                        hrmeQ_Hardcopy: qual.hardcopy || '',
+                        retrunMsg: ''
+                    };
+                });
+
+                console.log('🔍 [DEBUG] Qualification Payload Count:', qualificationsPayload.length);
+                console.log('🔍 [DEBUG] Qualification Payload:', qualificationsPayload);
+                console.log('🔍 [DEBUG] Employee ID:', savedEmployeeId);
+                console.log('🔍 [DEBUG] Calling saveQualificationDetails ONCE with array of', qualificationsPayload.length, 'items');
+                console.log('🔍 [DEBUG] isSavingQualification:', isSavingQualification);
+
+                if (isSavingQualification) {
+                    console.warn('⚠️ [DEBUG] Already saving qualification, ignoring duplicate call');
+                    return;
+                }
+
+                // Ensure we only call the API once with the entire array
                 saveQualificationDetails(qualificationsPayload, {
-                    onSuccess: () => {
-                        toast.success('Qualification details saved successfully!');
+                    onSuccess: (response: any) => {
+                        console.log('✅ [DEBUG] Qualification Save Success:', response);
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(4);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save qualification details');
+                        console.error('❌ [DEBUG] Qualification Save Error:', error);
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save qualification details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 4) {
-                // Experience tab
+                // Experience tab - save experience details
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Condition check: currentStepId === 4', currentStepId === 4);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Starting save process');
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Employee ID:', savedEmployeeId);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Current Step ID:', currentStepId);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Type of currentStepId:', typeof currentStepId);
+
                 if (!savedEmployeeId) {
+                    console.error('❌ [DEBUG] Tab 4 - No employee ID found');
                     toast.error('Please save Employee and Address details first');
                     setCurrentStep(1);
                     return;
                 }
+
                 const experienceList = data.experienceDetails || [];
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Form Data:', data);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
+
                 if (experienceList.length === 0) {
+                    console.error('❌ [DEBUG] Tab 4 - No experiences found');
                     setError('experienceDetails', {
                         type: 'required',
                         message: 'Please add at least one experience'
                     });
                     return;
                 }
-                const experiencesPayload = experienceList.map((exp: any) => ({
-                    HRME_Id: savedEmployeeId,
-                    HRMEE_OrganisationName: exp.organisationName || '',
-                    HRMEE_OrganisationAddress: exp.organisationAddress || '',
-                    HRMEE_Department: exp.department || '',
-                    HRMEE_Designation: exp.designation || '',
-                    HRMEE_JoinDate: exp.joinDate || '',
-                    HRMEE_ExitDate: exp.exitDate || '',
-                    HRMEE_NoOfYears: Number(exp.noOfYears) || 0,
-                    HRMEE_NoOfMonths: Number(exp.noOfMonths) || 0,
-                    HRMEE_AnnualSalary: Number(exp.annualSalary) || 0,
-                    HRMEE_ReasonForLeaving: exp.reasonForLeaving || ''
-                }));
+
+                // Map experience data to API format (matching API request body format)
+                console.log(
+                    '🔍 [DEBUG] Experience IDs Check:',
+                    experienceList.map((e: any, i: number) => ({
+                        index: i,
+                        hrmeE_Id: e.hrmeE_Id,
+                        HRMEE_Id: e.HRMEE_Id,
+                        hasId: !!(e.hrmeE_Id || e.HRMEE_Id)
+                    }))
+                );
+                const experiencesPayload = experienceList.map((exp: any, index: number) => {
+                    const id = exp.hrmeE_Id || exp.HRMEE_Id || 0; // Check both cases
+                    console.log(`🔍 [DEBUG] Experience #${index + 1} - ID from form:`, id, 'Full exp:', exp);
+                    const mapped = {
+                        hrmeE_Id: id, // Use existing ID if updating, 0 for new
+                        hrmE_Id: savedEmployeeId,
+                        hrmeE_OrganisationName: exp.organisationName || '',
+                        hrmeE_OrganisationAddress: exp.organisationAddress || '',
+                        hrmeE_Department: exp.department || '',
+                        hrmeE_Designation: exp.designation || '',
+                        hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
+                        hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                        hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                        hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                        hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
+                        hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                    };
+                    console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
+                        raw: exp,
+                        mapped: mapped
+                    });
+                    return mapped;
+                });
+
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload Count:', experiencesPayload.length);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
+                console.log(
+                    '🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails ONCE with array of',
+                    experiencesPayload.length,
+                    'items'
+                );
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
+                console.log('🔍 [DEBUG] Tab 4 (Experience) - isSavingExperience:', isSavingExperience);
+
+                if (!saveExperienceDetails) {
+                    console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
+                    toast.error('Experience save function is not available. Please refresh the page.');
+                    return;
+                }
+
+                if (isSavingExperience) {
+                    console.warn('⚠️ [DEBUG] Tab 4 - Already saving experience, ignoring duplicate call');
+                    return;
+                }
+
+                // Ensure we only call the API once with the entire array
                 saveExperienceDetails(experiencesPayload, {
-                    onSuccess: () => {
-                        toast.success('Experience details saved successfully!');
+                    onSuccess: (response: any) => {
+                        console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
+                        console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
+                        console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
+                        console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
+                        console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
+
+                        // Verify experience data was saved
+                        if (response?.data && Array.isArray(response.data)) {
+                            console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
+                            console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
+                        }
+
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        } else if (response?.success === false) {
+                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
+                            toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
+                        }
+
                         setCurrentStep(5);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save experience details');
+                        console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
+                        console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
+                        console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
+                        console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 5) {
@@ -878,12 +1827,19 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     };
                 });
                 saveDocumentDetails(documentsPayload, {
-                    onSuccess: () => {
-                        toast.success('Document details saved successfully!');
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(6);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save document details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 6) {
@@ -896,12 +1852,19 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId;
                 saveMedicalDetails(payload, {
-                    onSuccess: () => {
-                        toast.success('Medical details saved successfully!');
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(7);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save medical details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 7) {
@@ -914,12 +1877,19 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId;
                 savePersonalDetails(payload, {
-                    onSuccess: () => {
-                        toast.success('Other details saved successfully!');
+                    onSuccess: (response: any) => {
+                        // Show API response message
+                        if (response?.success && response?.message) {
+                            toast.success(response.message);
+                        } else if (response?.message) {
+                            toast.info(response.message);
+                        }
                         setCurrentStep(8);
                     },
                     onError: (error: any) => {
-                        toast.error(error.message || 'Failed to save other details');
+                        // Show API error message
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
+                        toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 8) {
@@ -980,20 +1950,18 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         );
     }
 
-    // TODO: When employeeDetails is loaded, populate formDefaultValues
-    // For now, form starts with empty defaults (old API mapping removed)
-    useEffect(() => {
-        if (employeeDetails && !hasInitializedArrays.current) {
-            // TODO: Map employeeDetails to form values when endpoints are provided
-            // For now, form remains empty
-            hasInitializedArrays.current = true;
-        }
-    }, [employeeDetails]);
-
     // Form UI - standalone update form (old API mapping removed, using empty defaults until endpoints are provided)
     return (
         <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
-            <form onSubmit={onFormSubmit} className='space-y-6'>
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    // Only handle form submit for the last step, otherwise let nextStep handle it
+                    if (currentStep === steps.length) {
+                        onFormSubmit(e);
+                    }
+                }}
+                className='space-y-6'>
                 {/* Main Layout: Vertical Stepper + Form */}
                 <div className='flex flex-col gap-6 lg:flex-row'>
                     {/* Stepper - Vertical on desktop, horizontal on mobile */}
@@ -1311,230 +2279,270 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <Controller
                                                         name='typeOfEmployment'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Type of Employment <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.empTypes || [])
-                                                                            .filter((it: any) => {
-                                                                                const id1 = it.HRMET_Id;
-                                                                                const id2 = it.value;
-                                                                                const id3 = it;
-                                                                                const valid1 =
-                                                                                    id1 != null &&
-                                                                                    id1 !== undefined &&
-                                                                                    id1 !== '' &&
-                                                                                    String(id1).trim() !== '';
-                                                                                const valid2 =
-                                                                                    id2 != null &&
-                                                                                    id2 !== undefined &&
-                                                                                    id2 !== '' &&
-                                                                                    String(id2).trim() !== '';
-                                                                                const valid3 =
-                                                                                    id3 != null &&
-                                                                                    id3 !== undefined &&
-                                                                                    id3 !== '' &&
-                                                                                    String(id3).trim() !== '';
-                                                                                return valid1 || valid2 || valid3;
-                                                                            })
-                                                                            .map((it: any) => {
-                                                                                let val: string | null = null;
-                                                                                if (
-                                                                                    it.HRMET_Id != null &&
-                                                                                    it.HRMET_Id !== '' &&
-                                                                                    String(it.HRMET_Id).trim() !== ''
-                                                                                ) {
-                                                                                    val = ensureNonEmptyValue(it.HRMET_Id);
-                                                                                } else if (
-                                                                                    it.value != null &&
-                                                                                    it.value !== '' &&
-                                                                                    String(it.value).trim() !== ''
-                                                                                ) {
-                                                                                    val = ensureNonEmptyValue(it.value);
-                                                                                } else if (
-                                                                                    it != null &&
-                                                                                    it !== '' &&
-                                                                                    String(it).trim() !== ''
-                                                                                ) {
-                                                                                    val = ensureNonEmptyValue(it);
-                                                                                }
-                                                                                if (
-                                                                                    !val ||
-                                                                                    val === '' ||
-                                                                                    val.trim() === '' ||
-                                                                                    val.length === 0
-                                                                                )
-                                                                                    return null;
-                                                                                return (
-                                                                                    <SafeSelectItem key={val} value={val}>
-                                                                                        {it.HRMET_EmployeeType || it.label || String(it)}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.empTypes || []).filter(
+                                                                (it: IEmployeeTypeDropdown) =>
+                                                                    it.key != null && it.key !== undefined && it.key !== 0
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Type of Employment <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`typeOfEmployment-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {(options?.empTypes || [])
+                                                                                .filter((it: IEmployeeTypeDropdown) => {
+                                                                                    return (
+                                                                                        it.key != null &&
+                                                                                        it.key !== undefined &&
+                                                                                        it.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((it: IEmployeeTypeDropdown) => {
+                                                                                    const val = it.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={it.key} value={val}>
+                                                                                            {it.value || String(it.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='employeeGroup'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Employee Group <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.groupTypes || [])
-                                                                            .filter((gt: any) => {
-                                                                                const val = gt.HRMGT_Id ?? gt.value ?? gt;
-                                                                                return (
-                                                                                    val != null && val !== '' && String(val).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((gt: any) => {
-                                                                                const val = (gt.HRMGT_Id ?? gt.value ?? gt)?.toString();
-                                                                                if (!val || val.trim() === '' || val === '') return null;
-                                                                                const finalVal = String(val).trim();
-                                                                                if (finalVal === '') return null;
-                                                                                return (
-                                                                                    <SafeSelectItem
-                                                                                        key={gt.HRMGT_Id || gt.value || String(gt)}
-                                                                                        value={finalVal}>
-                                                                                        {gt.HRMGT_EmployeeGroupType ||
-                                                                                            gt.label ||
-                                                                                            String(gt)}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.groupTypes || []).filter(
+                                                                (gt: IGroupTypeDropdown) =>
+                                                                    gt.key != null && gt.key !== undefined && gt.key !== 0
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Employee Group <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`employeeGroup-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {(options?.groupTypes || [])
+                                                                                .filter((gt: IGroupTypeDropdown) => {
+                                                                                    return (
+                                                                                        gt.key != null &&
+                                                                                        gt.key !== undefined &&
+                                                                                        gt.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((gt: IGroupTypeDropdown) => {
+                                                                                    const val = gt.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={gt.key} value={val}>
+                                                                                            {gt.value || String(gt.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='school'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    School <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.institutions || [])
-                                                                            .filter((inst: IInstitutionDropdown) => {
-                                                                                return (
-                                                                                    inst.key != null &&
-                                                                                    inst.key !== '' &&
-                                                                                    String(inst.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((inst: IInstitutionDropdown) => {
-                                                                                const val = inst.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
-                                                                                return (
-                                                                                    <SafeSelectItem key={inst.key} value={val}>
-                                                                                        {inst.value || String(inst.key)}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.institutions || []).filter(
+                                                                (inst: IInstitutionDropdown) => {
+                                                                    return inst.key != null && inst.key !== undefined && inst.key !== 0;
+                                                                }
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        School <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`school-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {(options?.institutions || [])
+                                                                                .filter((inst: IInstitutionDropdown) => {
+                                                                                    return (
+                                                                                        inst.key != null &&
+                                                                                        inst.key !== undefined &&
+                                                                                        inst.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((inst: IInstitutionDropdown) => {
+                                                                                    const val = inst.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={inst.key} value={val}>
+                                                                                            {inst.value || String(inst.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='designation'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Designation <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.designations || [])
-                                                                            .filter((dg: IDesignationDropdown) => {
-                                                                                return (
-                                                                                    dg.key != null &&
-                                                                                    dg.key !== '' &&
-                                                                                    String(dg.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((dg: IDesignationDropdown) => {
-                                                                                const val = dg.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
-                                                                                return (
-                                                                                    <SafeSelectItem key={dg.key} value={val}>
-                                                                                        {dg.value || String(dg.key)}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                        render={({ field, fieldState }) => {
+                                                            // DEBUG: Log designation dropdown binding
+                                                            const availableOptions = (options?.designations || []).filter(
+                                                                (dg: IDesignationDropdown) => {
+                                                                    return dg.key != null && dg.key !== undefined && dg.key !== 0;
+                                                                }
+                                                            );
+
+                                                            // Normalize both values for comparison
+                                                            const fieldValueNormalized = field.value?.toString().trim();
+
+                                                            const matchingOption = availableOptions.find((dg: IDesignationDropdown) => {
+                                                                const keyNormalized = dg.key?.toString().trim();
+                                                                return keyNormalized === fieldValueNormalized;
+                                                            });
+
+                                                            // DEBUG: Always log when there's a value (first time only)
+                                                            if (field.value && availableOptions.length > 0) {
+                                                                const hasMatch = !!matchingOption;
+                                                                console.log(
+                                                                    `🔍 [DEBUG] Designation Dropdown - Field Value: "${fieldValueNormalized}" (${typeof field.value}), Match Found: ${hasMatch}`,
+                                                                    {
+                                                                        fieldValue: field.value,
+                                                                        fieldValueNormalized: fieldValueNormalized,
+                                                                        fieldValueType: typeof field.value,
+                                                                        matchingOption: matchingOption
+                                                                            ? {
+                                                                                  key: matchingOption.key,
+                                                                                  value: matchingOption.value
+                                                                              }
+                                                                            : null,
+                                                                        sampleKeys: availableOptions.slice(0, 3).map((dg) => ({
+                                                                            key: dg.key,
+                                                                            keyNormalized: dg.key?.toString().trim(),
+                                                                            keyType: typeof dg.key,
+                                                                            value: dg.value
+                                                                        })),
+                                                                        totalOptions: availableOptions.length
+                                                                    }
+                                                                );
+                                                            }
+
+                                                            // If no match found, log warning
+                                                            if (field.value && !matchingOption && availableOptions.length > 0) {
+                                                                console.warn('⚠️ [DEBUG] Designation Dropdown - NO MATCH FOUND:', {
+                                                                    fieldValue: field.value,
+                                                                    fieldValueNormalized: fieldValueNormalized,
+                                                                    allAvailableKeys: availableOptions.map((dg) =>
+                                                                        dg.key?.toString().trim()
+                                                                    )
+                                                                });
+                                                            }
+
+                                                            // Ensure value is set as string and matches dropdown format
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Designation <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`designation-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions
+                                                                                .map((dg: IDesignationDropdown) => {
+                                                                                    const val = dg.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={dg.key} value={val}>
+                                                                                            {dg.value || String(dg.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <InputText
                                                         label='Subject Taught'
@@ -1547,48 +2555,59 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <Controller
                                                         name='grade'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Grade <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.grades || [])
-                                                                            .filter((gr: IGradeDropdown) => {
-                                                                                return (
-                                                                                    gr.key != null &&
-                                                                                    gr.key !== '' &&
-                                                                                    String(gr.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((gr: IGradeDropdown) => {
-                                                                                const val = gr.key?.toString().trim();
-                                                                                if (!val || val === '') return null;
-                                                                                return (
-                                                                                    <SafeSelectItem key={gr.key} value={val}>
-                                                                                        {gr.value || String(gr.key)}
-                                                                                    </SafeSelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.grades || []).filter(
+                                                                (gr: IGradeDropdown) => {
+                                                                    return gr.key != null && gr.key !== undefined && gr.key !== 0;
+                                                                }
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Grade <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`grade-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {(options?.grades || [])
+                                                                                .filter((gr: IGradeDropdown) => {
+                                                                                    return (
+                                                                                        gr.key != null &&
+                                                                                        gr.key !== undefined &&
+                                                                                        gr.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((gr: IGradeDropdown) => {
+                                                                                    const val = gr.key?.toString().trim();
+                                                                                    if (!val || val === '') return null;
+                                                                                    return (
+                                                                                        <SafeSelectItem key={gr.key} value={val}>
+                                                                                            {gr.value || String(gr.key)}
+                                                                                        </SafeSelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='dateOfJoining'
@@ -1693,30 +2712,32 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <Controller
                                                         name='teachingNonTeaching'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Teaching/NonTeaching <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.teachingNonTeaching || [])
-                                                                            .filter((tt: ITeachingTypeDropdown) => {
-                                                                                return (
-                                                                                    tt.key != null &&
-                                                                                    tt.key !== '' &&
-                                                                                    String(tt.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((tt: ITeachingTypeDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            // Normalize value for string-based dropdown
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.teachingNonTeaching || []).filter(
+                                                                (tt: ITeachingTypeDropdown) =>
+                                                                    tt.key != null && tt.key !== '' && String(tt.key).trim() !== ''
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Teaching/NonTeaching <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`teachingNonTeaching-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((tt: ITeachingTypeDropdown) => {
                                                                                 const val = tt.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -1724,17 +2745,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {tt.value || String(tt.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='pfApplicable'
@@ -1929,30 +2950,31 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <Controller
                                                         name='religion'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Religion <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.religions || [])
-                                                                            .filter((rel: IReligionDropdown) => {
-                                                                                return (
-                                                                                    rel.key != null &&
-                                                                                    rel.key !== '' &&
-                                                                                    String(rel.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((rel: IReligionDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.religions || []).filter(
+                                                                (rel: IReligionDropdown) =>
+                                                                    rel.key != null && rel.key !== undefined && rel.key !== 0
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Religion <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`religion-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((rel: IReligionDropdown) => {
                                                                                 const val = rel.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -1960,45 +2982,46 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {rel.value || String(rel.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='casteCategory'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Caste Category <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.casteCategories || [])
-                                                                            .filter((cc: ICasteCategoryDropdown) => {
-                                                                                return (
-                                                                                    cc.key != null &&
-                                                                                    cc.key !== '' &&
-                                                                                    String(cc.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((cc: ICasteCategoryDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.casteCategories || []).filter(
+                                                                (cc: ICasteCategoryDropdown) =>
+                                                                    cc.key != null && cc.key !== undefined && cc.key !== 0
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Caste Category <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`casteCategory-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((cc: ICasteCategoryDropdown) => {
                                                                                 const val = cc.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -2006,40 +3029,45 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {cc.value || String(cc.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='caste'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Caste <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='Select Caste' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.castes || [])
-                                                                            .filter((c: ICasteDropdown) => {
-                                                                                return (
-                                                                                    c.key != null &&
-                                                                                    c.key !== '' &&
-                                                                                    String(c.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((c: ICasteDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.castes || []).filter(
+                                                                (c: ICasteDropdown) => c.key != null && c.key !== undefined && c.key !== 0
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Caste <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`caste-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='Select Caste' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((c: ICasteDropdown) => {
                                                                                 const val = c.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -2047,17 +3075,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {c.value || String(c.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='dateOfBirth'
@@ -2107,30 +3135,30 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <Controller
                                                         name='gender'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Gender <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.genders || [])
-                                                                            .filter((g: IGenderDropdown) => {
-                                                                                return (
-                                                                                    g.key != null &&
-                                                                                    g.key !== '' &&
-                                                                                    String(g.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((g: IGenderDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.genders || []).filter(
+                                                                (g: IGenderDropdown) => g.key != null && g.key !== undefined && g.key !== 0
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Gender <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`gender-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((g: IGenderDropdown) => {
                                                                                 const val = g.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -2138,45 +3166,46 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {g.value || String(g.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='maritalStatus'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Marital Status <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.maritalStatuses || [])
-                                                                            .filter((ms: IMaritalStatusDropdown) => {
-                                                                                return (
-                                                                                    ms.key != null &&
-                                                                                    ms.key !== '' &&
-                                                                                    String(ms.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((ms: IMaritalStatusDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.maritalStatuses || []).filter(
+                                                                (ms: IMaritalStatusDropdown) =>
+                                                                    ms.key != null && ms.key !== undefined && ms.key !== 0
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Marital Status <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`maritalStatus-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((ms: IMaritalStatusDropdown) => {
                                                                                 const val = ms.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -2184,12 +3213,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {ms.value || String(ms.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     {/* Multiple Mobile Numbers */}
                                                     <div className='flex flex-col gap-1.5'>
@@ -2272,7 +3306,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 variant='outline'
                                                                 size='sm'
                                                                 className='w-full'
-                                                                onClick={() => appendMobile({ mobileNo: '', type: 'Default' })}>
+                                                                onClick={() =>
+                                                                    appendMobile({
+                                                                        mobileNo: '',
+                                                                        type: 'Default'
+                                                                    })
+                                                                }>
                                                                 <Plus className='mr-1 h-4 w-4' /> Add Mobile
                                                             </Button>
                                                         </div>
@@ -2422,28 +3461,30 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <Controller
                                                         name='bloodGroup'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>Blood Group</Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.bloodGroups || [])
-                                                                            .filter((bg: IBloodGroupDropdown) => {
-                                                                                return (
-                                                                                    bg.key != null &&
-                                                                                    bg.key !== '' &&
-                                                                                    String(bg.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((bg: IBloodGroupDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            // Normalize value for string-based dropdown
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.bloodGroups || []).filter(
+                                                                (bg: IBloodGroupDropdown) =>
+                                                                    bg.key != null && bg.key !== '' && String(bg.key).trim() !== ''
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>Blood Group</Label>
+                                                                    <Select
+                                                                        key={`bloodGroup-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((bg: IBloodGroupDropdown) => {
                                                                                 const val = bg.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -2451,43 +3492,45 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {bg.value || String(bg.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='salaryType'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>Salary Type</Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.salaryTypes || [])
-                                                                            .filter((st: ISalaryTypeDropdown) => {
-                                                                                return (
-                                                                                    st.key != null &&
-                                                                                    st.key !== '' &&
-                                                                                    String(st.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((st: ISalaryTypeDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            // Normalize value for string-based dropdown
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.salaryTypes || []).filter(
+                                                                (st: ISalaryTypeDropdown) =>
+                                                                    st.key != null && st.key !== '' && String(st.key).trim() !== ''
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>Salary Type</Label>
+                                                                    <Select
+                                                                        key={`salaryType-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((st: ISalaryTypeDropdown) => {
                                                                                 const val = st.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -2495,45 +3538,47 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {st.value || String(st.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     <Controller
                                                         name='modeOfPayment'
                                                         control={control}
-                                                        render={({ field, fieldState }) => (
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label>
-                                                                    Mode of Payment <span className='text-red-500'>*</span>
-                                                                </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                                    <SelectTrigger
-                                                                        className={cn(
-                                                                            fieldState.error
-                                                                                ? 'border-destructive focus-visible:ring-destructive'
-                                                                                : 'border-input focus-visible:ring-ring'
-                                                                        )}>
-                                                                        <SelectValue placeholder='--Select--' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {(options?.modeOfPayment || [])
-                                                                            .filter((pm: IPaymentModeDropdown) => {
-                                                                                return (
-                                                                                    pm.key != null &&
-                                                                                    pm.key !== '' &&
-                                                                                    String(pm.key).trim() !== ''
-                                                                                );
-                                                                            })
-                                                                            .map((pm: IPaymentModeDropdown) => {
+                                                        render={({ field, fieldState }) => {
+                                                            // Normalize value for string-based dropdown
+                                                            const selectValue = field.value ? String(field.value).trim() : '';
+                                                            const availableOptions = (options?.modeOfPayment || []).filter(
+                                                                (pm: IPaymentModeDropdown) =>
+                                                                    pm.key != null && pm.key !== '' && String(pm.key).trim() !== ''
+                                                            );
+                                                            return (
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>
+                                                                        Mode of Payment <span className='text-red-500'>*</span>
+                                                                    </Label>
+                                                                    <Select
+                                                                        key={`modeOfPayment-${selectValue}-${availableOptions.length}`}
+                                                                        onValueChange={field.onChange}
+                                                                        value={selectValue || undefined}>
+                                                                        <SelectTrigger
+                                                                            className={cn(
+                                                                                fieldState.error
+                                                                                    ? 'border-destructive focus-visible:ring-destructive'
+                                                                                    : 'border-input focus-visible:ring-ring'
+                                                                            )}>
+                                                                            <SelectValue placeholder='--Select--' />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {availableOptions.map((pm: IPaymentModeDropdown) => {
                                                                                 const val = pm.key?.toString().trim();
                                                                                 if (!val || val === '') return null;
                                                                                 return (
@@ -2541,17 +3586,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         {pm.value || String(pm.key)}
                                                                                     </SafeSelectItem>
                                                                                 );
-                                                                            })
-                                                                            .filter(Boolean)}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {fieldState.error && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                            })}
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                    {fieldState.error && (
+                                                                        <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                            {fieldState.error.message}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        }}
                                                     />
                                                     {/* Employee Photo Upload */}
                                                     <div className='space-y-2'>
@@ -2824,8 +3869,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         .filter((country: ICountryDropdown) => {
                                                                                             return (
                                                                                                 country.key != null &&
-                                                                                                country.key !== '' &&
-                                                                                                String(country.key).trim() !== ''
+                                                                                                country.key !== undefined &&
+                                                                                                country.key !== 0
                                                                                             );
                                                                                         })
                                                                                         .map((country: ICountryDropdown) => {
@@ -2876,8 +3921,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                             .filter((state: IStateDropdown) => {
                                                                                                 return (
                                                                                                     state.key != null &&
-                                                                                                    state.key !== '' &&
-                                                                                                    String(state.key).trim() !== ''
+                                                                                                    state.key !== undefined &&
+                                                                                                    state.key !== 0
                                                                                                 );
                                                                                             })
                                                                                             .map((state: IStateDropdown) => {
@@ -2887,7 +3932,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                     state.value || String(state.key);
                                                                                                 return (
                                                                                                     <SafeSelectItem
-                                                                                                        key={state.key}
+                                                                                                        key={`contact-state-${state.key}`}
                                                                                                         value={key}>
                                                                                                         {value}
                                                                                                     </SafeSelectItem>
@@ -2997,8 +4042,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         .filter((country: ICountryDropdown) => {
                                                                                             return (
                                                                                                 country.key != null &&
-                                                                                                country.key !== '' &&
-                                                                                                String(country.key).trim() !== ''
+                                                                                                country.key !== undefined &&
+                                                                                                country.key !== 0
                                                                                             );
                                                                                         })
                                                                                         .map((country: ICountryDropdown) => {
@@ -3052,8 +4097,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                             .filter((state: IStateDropdown) => {
                                                                                                 return (
                                                                                                     state.key != null &&
-                                                                                                    state.key !== '' &&
-                                                                                                    String(state.key).trim() !== ''
+                                                                                                    state.key !== undefined &&
+                                                                                                    state.key !== 0
                                                                                                 );
                                                                                             })
                                                                                             .map((state: IStateDropdown) => {
@@ -3063,7 +4108,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                     state.value || String(state.key);
                                                                                                 return (
                                                                                                     <SafeSelectItem
-                                                                                                        key={state.key}
+                                                                                                        key={`permanent-state-${state.key}`}
                                                                                                         value={key}>
                                                                                                         {value}
                                                                                                     </SafeSelectItem>
@@ -3143,6 +4188,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
                                                         onClick={() => {
                                                             appendQualification({
+                                                                hrmeQ_Id: 0, // New record - use lowercase to match form field
                                                                 qualification: '',
                                                                 course: '',
                                                                 college: '',
@@ -3161,7 +4207,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 registrationYear: '',
                                                                 guideName: '',
                                                                 qualifiedDate: '',
-                                                                HRMEQ_Id: 0
+                                                                hardcopy: ''
                                                             } as any as z.infer<typeof qualificationDetailSchema>);
                                                         }}>
                                                         <Plus className='mr-1 h-3.5 w-3.5' /> Add Qualification
@@ -3228,8 +4274,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                     .filter((course: ICourseDropdown) => {
                                                                                                         return (
                                                                                                             course.key != null &&
-                                                                                                            course.key !== '' &&
-                                                                                                            String(course.key).trim() !== ''
+                                                                                                            course.key !== undefined &&
+                                                                                                            course.key !== 0
                                                                                                         );
                                                                                                     })
                                                                                                     .map((course: ICourseDropdown) => {
@@ -3329,8 +4375,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                             .filter((country: ICountryDropdown) => {
                                                                                                 return (
                                                                                                     country.key != null &&
-                                                                                                    country.key !== '' &&
-                                                                                                    String(country.key).trim() !== ''
+                                                                                                    country.key !== undefined &&
+                                                                                                    country.key !== 0
                                                                                                 );
                                                                                             })
                                                                                             .map((country: ICountryDropdown) => {
@@ -3500,8 +4546,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                 .filter((spec: ISpecializationDropdown) => {
                                                                                                     return (
                                                                                                         spec.key != null &&
-                                                                                                        spec.key !== '' &&
-                                                                                                        String(spec.key).trim() !== ''
+                                                                                                        spec.key !== undefined &&
+                                                                                                        spec.key !== 0
                                                                                                     );
                                                                                                 })
                                                                                                 .map((spec: ISpecializationDropdown) => {
@@ -3644,7 +4690,21 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                     <Button
                                                         type='button'
                                                         className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
-                                                        onClick={() => appendExperience({} as any)}>
+                                                        onClick={() =>
+                                                            appendExperience({
+                                                                hrmeE_Id: 0, // New record - use lowercase to match form field
+                                                                organisationName: '',
+                                                                organisationAddress: '',
+                                                                department: '',
+                                                                designation: '',
+                                                                joinDate: '',
+                                                                exitDate: '',
+                                                                noOfYears: '',
+                                                                noOfMonths: '',
+                                                                annualSalary: '',
+                                                                reasonForLeaving: ''
+                                                            } as any)
+                                                        }>
                                                         <Plus className='mr-1 h-3.5 w-3.5' /> Add Experience
                                                     </Button>
                                                 </div>
@@ -4273,8 +5333,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     .filter((reason: ILeaveReasonDropdown) => {
                                                                                         return (
                                                                                             reason.key != null &&
-                                                                                            reason.key !== '' &&
-                                                                                            String(reason.key).trim() !== ''
+                                                                                            reason.key !== undefined &&
+                                                                                            reason.key !== 0
                                                                                         );
                                                                                     })
                                                                                     .map((reason: ILeaveReasonDropdown) => {

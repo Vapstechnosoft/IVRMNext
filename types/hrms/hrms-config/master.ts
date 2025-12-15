@@ -288,6 +288,6 @@ export interface ISalaryComponentTypeDropdown {
 
 //Month Dropdown
 export interface IMonthDropdown {
-    key: string;
+    key: number;
     value: string;
 }

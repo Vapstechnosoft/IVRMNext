@@ -30,7 +30,10 @@ export default function ToggleShiftSettingMasterForm({ rowData, onClose }: Toggl
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.shiftSettingMaster.delete),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            fomsT_Id: Number(rowData.FOMST_Id) || 0
+        }
     });
 
     function closeDialog() {
@@ -58,7 +61,13 @@ export default function ToggleShiftSettingMasterForm({ rowData, onClose }: Toggl
         <AdaptiveDialog title='Toggle Shift Setting Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
-                    <input type='hidden' {...register('fomsT_Id')} defaultValue={rowData.FOMST_Id} />
+                    <input
+                        type='hidden'
+                        {...register('fomsT_Id', {
+                            valueAsNumber: true,
+                            value: Number(rowData.FOMST_Id) || 0
+                        })}
+                    />
                     <p>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'} <strong>{rowData.FOMS_ShiftName}</strong>?
                     </p>

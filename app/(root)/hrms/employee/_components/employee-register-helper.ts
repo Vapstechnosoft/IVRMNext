@@ -1,5 +1,6 @@
 import type { employeeRegisterSchemas } from '@/schemas/hrms/employee-register-schemas';
 import type { SavePersonalDetailsApiRequest } from '@/types/hrms/employee-register';
+import { format } from 'date-fns';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof employeeRegisterSchemas.add>;
@@ -365,4 +366,603 @@ export function ensureNonEmptyValue(value: any, fallback: any = null): string | 
         return null;
     }
     return trimmed;
+}
+
+/**
+ * Map API response from GetEmployeeDetailsById to form fields
+ * Converts API response structure to form field structure
+ */
+export function mapApiResponseToFormFields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Helper to format date from API (ISO string) to form format (YYYY-MM-DD)
+    const formatDate = (dateStr: string | null | undefined): string => {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            if (Number.isNaN(date.getTime())) return '';
+            return format(date, 'yyyy-MM-dd');
+        } catch {
+            return '';
+        }
+    };
+
+    // Helper to convert number to string for form fields
+    const numToString = (val: number | null | undefined): string => {
+        if (val === null || val === undefined || val === 0) return '';
+        return String(val);
+    };
+
+    // Map qualification details
+    const qualificationDetails = Array.isArray(data.qualificationDetails)
+        ? data.qualificationDetails.map((qual: any) => ({
+              hrmeQ_Id: qual.hrmeQ_Id || qual.HRMEQ_Id || 0, // Preserve ID for updates
+              qualification: qual.hrmE_QualificationName || '',
+              course: numToString(qual.hrmC_Id),
+              college: qual.hrmeQ_CollegeName || '',
+              university: qual.hrmeQ_UniversityName || '',
+              yearOfPassing: numToString(qual.hrmeQ_YearOfPassing),
+              qualificationCountry: numToString(qual.hrmeQ_CountryId),
+              qualificationState: numToString(qual.hrmeQ_StateId),
+              registrationNo: qual.hrmeQ_RegistrationNo || '',
+              result: qual.hrmeQ_Result || '',
+              cgpaOrPercentage: qual.hrmeQ_CGPAOrPerFlag || 'CGPA',
+              cgpa: qual.hrmeQ_CGPA || '',
+              percentage: qual.hrmeQ_Percentage || '',
+              areaOfSpecialisation: qual.hrmeQ_AreaOfSpecialisation || '',
+              phdFlag: qual.hrmeQ_PHDFlg || false,
+              medicalCouncil: qual.hrmeQ_MedicalCouncil || '',
+              thesisTitle: qual.hrmeQ_ThesisTitle || '',
+              registrationYear: numToString(qual.hrmeQ_RegistrationYear),
+              guideName: qual.hrmeQ_GuideName || '',
+              qualifiedDate: formatDate(qual.hrmeQ_Date),
+              hardcopy: qual.hrmeQ_Hardcopy || ''
+          }))
+        : [];
+
+    // Map experience details
+    const experienceDetails = Array.isArray(data.experienceDetails)
+        ? data.experienceDetails.map((exp: any) => ({
+              hrmeE_Id: exp.hrmeE_Id || exp.HRMEE_Id || 0, // Preserve ID for updates
+              organisationName: exp.hrmeE_OrganisationName || '',
+              organisationAddress: exp.hrmeE_OrganisationAddress || '',
+              department: exp.hrmeE_Department || '',
+              designation: exp.hrmeE_Designation || '',
+              joinDate: formatDate(exp.hrmeE_JoinDate),
+              exitDate: formatDate(exp.hrmeE_ExitDate),
+              noOfYears: numToString(exp.hrmeE_NoOfYears),
+              noOfMonths: numToString(exp.hrmeE_NoOfMonths),
+              annualSalary: numToString(exp.hrmeE_AnnualSalary),
+              reasonForLeaving: exp.hrmeE_ReasonForLeaving || ''
+          }))
+        : [];
+
+    // Map document list
+    const documentList = Array.isArray(data.documentList)
+        ? data.documentList.map((doc: any) => ({
+              documentName: doc.hrmedS_DocumentName || '',
+              documentDescription: doc.hrmedS_DucumentDescription || '',
+              document: null, // File will be handled separately if needed
+              imageName: doc.hrmedS_DocumentImageName || ''
+          }))
+        : [];
+
+    // Map bank details
+    const bankDetails = Array.isArray(data.employeebankDetails)
+        ? data.employeebankDetails.map((bank: any) => ({
+              bank: numToString(bank.hrmbD_Id),
+              bankAccountNo: bank.hrmeB_AccountNo || '',
+              isActive: bank.hrmeB_ActiveFlag === 'Y' || bank.hrmeB_ActiveFlag === true
+          }))
+        : [];
+
+    // Map mobile details (from selectedmobile_list_dto or use hrmE_MobileNo)
+    const mobileDetails =
+        Array.isArray(data.selectedmobile_list_dto) && data.selectedmobile_list_dto.length > 0
+            ? data.selectedmobile_list_dto.map((mobile: any) => ({
+                  mobileNo: numToString(mobile.hrmemno_MobileNo || mobile.hrmemnO_MobileNo || mobile.hrmemno_MobileNo),
+                  type: mobile.hrmemno_DeFaultFlag || mobile.hrmemno_DeFaultFlag || 'Default'
+              }))
+            : data.hrmE_MobileNo
+              ? [{ mobileNo: numToString(data.hrmE_MobileNo), type: 'Default' }]
+              : [{ mobileNo: '', type: 'Default' }];
+
+    // Map email details (from selectedemail_list_dto or use hrmE_EmailId)
+    const emailDetails =
+        Array.isArray(data.selectedemail_list_dto) && data.selectedemail_list_dto.length > 0
+            ? data.selectedemail_list_dto.map((email: any) => ({
+                  emailId: email.hrmem_EmailId || email.hrmeM_EmailId || '',
+                  type: email.hrmem_DeFaultFlag || email.hrmem_DeFaultFlag || 'Default'
+              }))
+            : data.hrmE_EmailId
+              ? [{ emailId: data.hrmE_EmailId, type: 'Default' }]
+              : [{ emailId: '', type: 'Default' }];
+
+    // Return mapped form fields
+    return {
+        // Basic employee info
+        firstName: data.hrmE_EmployeeFirstName || '',
+        middleName: data.hrmE_EmployeeMiddleName || '',
+        lastName: data.hrmE_EmployeeLastName || '',
+        employeeCode: data.hrmE_EmployeeCode || '',
+        typeOfEmployment: numToString(data.hrmeT_Id),
+        employeeGroup: numToString(data.hrmgT_Id),
+        school: numToString(data.hrmD_Id),
+        designation: numToString(data.hrmdeS_Id),
+        grade: numToString(data.hrmG_Id),
+        gender: numToString(data.ivrmmG_Id),
+        maritalStatus: numToString(data.ivrmmmS_Id),
+        religion: numToString(data.religionId),
+        casteCategory: numToString(data.casteCategoryId),
+        caste: numToString(data.casteId),
+        bloodGroup: data.hrmE_BloodGroup || '',
+        salaryType: data.hrmE_SalaryType || '',
+        modeOfPayment: data.hrmE_PaymentType || '',
+        subjectTaught: data.hrmE_SubjectsTaught || '',
+        // Personal details
+        fatherName: data.hrmE_FatherName || '',
+        motherName: data.hrmE_MotherName || '',
+        // Dates
+        dateOfBirth: formatDate(data.hrmE_DOB),
+        dateOfJoining: formatDate(data.hrmE_DOJ),
+        dateOfConfirmation: formatDate(data.hrmE_DOC || data.hrmE_doc),
+        dateOfRetirement: formatDate(data.hrmE_ExpectedRetirementDate),
+        // Address - Contact/Local
+        contactAddress: data.hrmE_LocStreet || '',
+        contactArea: data.hrmE_LocArea || '',
+        contactCity: data.hrmE_LocCity || '',
+        contactState: numToString(data.hrmE_LocStateId),
+        contactCountry: numToString(data.hrmE_LocCountryId),
+        contactPincode: numToString(data.hrmE_LocPincode),
+        // Address - Permanent
+        permanentAddress: data.hrmE_PerStreet || '',
+        permanentArea: data.hrmE_PerArea || '',
+        permanentCity: data.hrmE_PerCity || '',
+        permanentState: numToString(data.hrmE_PerStateId),
+        permanentCountry: numToString(data.hrmE_PerCountryId),
+        permanentPincode: numToString(data.hrmE_PerPincode),
+        sameAsCommunicationAddress: false, // Will be set based on comparison
+        // PF Details
+        pfApplicable: data.hrmE_PFApplicableFlag || false,
+        pfMaxAmount: data.hrmE_PFMaxFlag || false,
+        pfFixedAmount: data.hrmE_PFFixedFlag || false,
+        pfAccNo: data.hrmE_PFAccNo || '',
+        uanNumber: data.hrmE_UINumber || '',
+        pfDate: formatDate(data.hrmE_PFDate),
+        // ESI Details
+        esiApplicable: data.hrmE_ESIApplicableFlag || false,
+        esiAccNo: data.hrmE_ESIAccNo || '',
+        gratuityAccNo: data.hrmE_GratuityAccNo || '',
+        esiDate: formatDate(data.hrmE_ESIDate),
+        // Other flags
+        epf: !data.hrmE_EPFNotApplicableFlg,
+        ppf: !data.hrmE_FPFNotApplicableFlg,
+        // Biometric and RFID
+        biometricCode: data.hrmE_BiometricCode || '',
+        rfCardId: data.hrmE_RFCardId || '',
+        // Bank account is in bankDetails array
+        // Contact arrays
+        mobileDetails,
+        emailDetails,
+        bankDetails,
+        // Arrays
+        qualificationDetails,
+        experienceDetails,
+        documentList,
+        // Other details tab
+        employeeLeft: data.hrmE_LeftFlag || false,
+        lastWorkingDay: formatDate(data.hrmE_DOL),
+        reasonForLeaving: data.hrmE_LeavingReason || '',
+        stopPension: data.hrmE_RetiredFlg || false,
+        dateOfStopPension: formatDate(data.hrmE_PensionStoppedDate),
+        // Medical details
+        employeeHeight: data.hrmE_Height || '',
+        employeeHeightUnit: data.hrmE_HeightUOM || '',
+        employeeWeight: numToString(data.hrmE_Weight),
+        employeeWeightUnit: data.hrmE_WeightUOM || '',
+        identificationMark: data.hrmE_IdentificationMark || '',
+        anyHealthIssue: data.hrmE_AnyHealthIssue || '',
+        eyeSightIssue: data.hrmE_EyeSightIssue || '',
+        // Documents
+        panCardNo: data.hrmE_PANCardNo || '',
+        aadharNo: numToString(data.hrmE_AadharCardNo),
+        nationalSSN: data.hrmE_NationalSSN || '',
+        // Other flags
+        phdResearchGuide: data.hrmE_PHDResearchGuideFlg || false,
+        teachingNonTeaching: data.hrmE_TechNonTeachingFlg || '',
+        recognitionYear: numToString(data.hrmE_RGRecognitionYear),
+        msTeamsUserName: data.hrmE_MSTeamsUserId || '',
+        msTeamsPassword: data.hrmE_MSTeamsPassword || '',
+        punchRelaxation: data.hrmE_ExcPunch || false
+    };
+}
+
+/**
+ * Map API response to form fields for Tab 1 (Employee Information) only
+ */
+export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Helper to format date from API (ISO string) to form format (YYYY-MM-DD)
+    const formatDate = (dateStr: string | null | undefined): string => {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            if (Number.isNaN(date.getTime())) return '';
+            return format(date, 'yyyy-MM-dd');
+        } catch {
+            return '';
+        }
+    };
+
+    // Helper to convert number to string for form fields
+    const numToString = (val: number | null | undefined): string => {
+        if (val === null || val === undefined || val === 0) return '';
+        return String(val);
+    };
+
+    // Map mobile details (from selectedmobile_list_dto or use hrmE_MobileNo)
+    const mobileDetails =
+        Array.isArray(data.selectedmobile_list_dto) && data.selectedmobile_list_dto.length > 0
+            ? data.selectedmobile_list_dto.map((mobile: any) => ({
+                  mobileNo: numToString(mobile.hrmemno_MobileNo || mobile.hrmemnO_MobileNo || mobile.hrmemno_MobileNo),
+                  type: mobile.hrmemno_DeFaultFlag || mobile.hrmemno_DeFaultFlag || 'Default'
+              }))
+            : data.hrmE_MobileNo
+              ? [{ mobileNo: numToString(data.hrmE_MobileNo), type: 'Default' }]
+              : [{ mobileNo: '', type: 'Default' }];
+
+    // Map email details (from selectedemail_list_dto or use hrmE_EmailId)
+    const emailDetails =
+        Array.isArray(data.selectedemail_list_dto) && data.selectedemail_list_dto.length > 0
+            ? data.selectedemail_list_dto.map((email: any) => ({
+                  emailId: email.hrmem_EmailId || email.hrmeM_EmailId || '',
+                  type: email.hrmem_DeFaultFlag || email.hrmem_DeFaultFlag || 'Default'
+              }))
+            : data.hrmE_EmailId
+              ? [{ emailId: data.hrmE_EmailId, type: 'Default' }]
+              : [{ emailId: '', type: 'Default' }];
+
+    // Return only Tab 1 fields (Employee Information)
+    return {
+        // Basic employee info
+        firstName: data.hrmE_EmployeeFirstName || '',
+        middleName: data.hrmE_EmployeeMiddleName || '',
+        lastName: data.hrmE_EmployeeLastName || '',
+        employeeCode: data.hrmE_EmployeeCode || '',
+        typeOfEmployment: numToString(data.hrmeT_Id),
+        employeeGroup: numToString(data.hrmgT_Id),
+        school: numToString(data.hrmD_Id),
+        designation: numToString(data.hrmdeS_Id),
+        grade: numToString(data.hrmG_Id),
+        gender: numToString(data.ivrmmG_Id),
+        maritalStatus: numToString(data.ivrmmmS_Id),
+        religion: numToString(data.religionId),
+        casteCategory: numToString(data.casteCategoryId),
+        caste: numToString(data.casteId),
+        bloodGroup: data.hrmE_BloodGroup || '',
+        salaryType: data.hrmE_SalaryType || '',
+        modeOfPayment: data.hrmE_PaymentType || '',
+        subjectTaught: data.hrmE_SubjectsTaught || '',
+        // Personal details
+        fatherName: data.hrmE_FatherName || '',
+        motherName: data.hrmE_MotherName || '',
+        // Dates
+        dateOfBirth: formatDate(data.hrmE_DOB),
+        dateOfJoining: formatDate(data.hrmE_DOJ),
+        dateOfConfirmation: formatDate(data.hrmE_DOC || data.hrmE_doc),
+        dateOfRetirement: formatDate(data.hrmE_ExpectedRetirementDate),
+        // Contact arrays (for Tab 1)
+        mobileDetails,
+        emailDetails,
+        // PF Details
+        pfApplicable: data.hrmE_PFApplicableFlag || false,
+        pfMaxAmount: data.hrmE_PFMaxFlag || false,
+        pfFixedAmount: data.hrmE_PFFixedFlag || false,
+        pfAccNo: data.hrmE_PFAccNo || '',
+        uanNumber: data.hrmE_UINumber || '',
+        pfDate: formatDate(data.hrmE_PFDate),
+        // ESI Details
+        esiApplicable: data.hrmE_ESIApplicableFlag || false,
+        esiAccNo: data.hrmE_ESIAccNo || '',
+        gratuityAccNo: data.hrmE_GratuityAccNo || '',
+        esiDate: formatDate(data.hrmE_ESIDate),
+        // Other flags
+        epf: !data.hrmE_EPFNotApplicableFlg,
+        ppf: !data.hrmE_FPFNotApplicableFlg,
+        // Biometric and RFID
+        biometricCode: data.hrmE_BiometricCode || '',
+        rfCardId: data.hrmE_RFCardId || '',
+        // Bank account is in bankDetails array
+        // Documents (Tab 1)
+        panCardNo: data.hrmE_PANCardNo || '',
+        aadharNo: numToString(data.hrmE_AadharCardNo),
+        nationalSSN: data.hrmE_NationalSSN || ''
+    };
+}
+
+/**
+ * Map API response to form fields for Tab 2 (Address Information) only
+ */
+export function mapApiResponseToTab2Fields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Helper to convert number to string for form fields
+    const numToString = (val: number | null | undefined): string => {
+        if (val === null || val === undefined || val === 0) return '';
+        return String(val);
+    };
+
+    // Return only Tab 2 fields (Address Information)
+    return {
+        // Address - Contact/Local
+        contactAddress: data.hrmE_LocStreet || '',
+        contactArea: data.hrmE_LocArea || '',
+        contactCity: data.hrmE_LocCity || '',
+        contactState: numToString(data.hrmE_LocStateId),
+        contactCountry: numToString(data.hrmE_LocCountryId),
+        contactPincode: numToString(data.hrmE_LocPincode),
+        // Address - Permanent
+        permanentAddress: data.hrmE_PerStreet || '',
+        permanentArea: data.hrmE_PerArea || '',
+        permanentCity: data.hrmE_PerCity || '',
+        permanentState: numToString(data.hrmE_PerStateId),
+        permanentCountry: numToString(data.hrmE_PerCountryId),
+        permanentPincode: numToString(data.hrmE_PerPincode),
+        sameAsCommunicationAddress: false // Will be set based on comparison
+    };
+}
+
+/**
+ * Map API response to form fields for Tab 3 (Qualification) only
+ */
+export function mapApiResponseToTab3Fields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Helper to format date from API (ISO string) to form format (YYYY-MM-DD)
+    const formatDate = (dateStr: string | null | undefined): string => {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            if (Number.isNaN(date.getTime())) return '';
+            return format(date, 'yyyy-MM-dd');
+        } catch {
+            return '';
+        }
+    };
+
+    // Helper to convert number to string for form fields
+    const numToString = (val: number | null | undefined): string => {
+        if (val === null || val === undefined || val === 0) return '';
+        return String(val);
+    };
+
+    // Map qualification details
+    const qualificationDetails = Array.isArray(data.qualificationDetails)
+        ? data.qualificationDetails.map((qual: any) => ({
+              hrmeQ_Id: qual.hrmeQ_Id || qual.HRMEQ_Id || 0, // Preserve ID for updates - CRITICAL!
+              qualification: qual.hrmE_QualificationName || '',
+              course: numToString(qual.hrmC_Id),
+              college: qual.hrmeQ_CollegeName || '',
+              university: qual.hrmeQ_UniversityName || '',
+              yearOfPassing: numToString(qual.hrmeQ_YearOfPassing),
+              qualificationCountry: numToString(qual.hrmeQ_CountryId),
+              qualificationState: numToString(qual.hrmeQ_StateId),
+              registrationNo: qual.hrmeQ_RegistrationNo || '',
+              result: qual.hrmeQ_Result || '',
+              cgpaOrPercentage: qual.hrmeQ_CGPAOrPerFlag || 'CGPA',
+              cgpa: qual.hrmeQ_CGPA || '',
+              percentage: qual.hrmeQ_Percentage || '',
+              areaOfSpecialisation: qual.hrmeQ_AreaOfSpecialisation || '',
+              phdFlag: qual.hrmeQ_PHDFlg || false,
+              medicalCouncil: qual.hrmeQ_MedicalCouncil || '',
+              thesisTitle: qual.hrmeQ_ThesisTitle || '',
+              registrationYear: numToString(qual.hrmeQ_RegistrationYear),
+              guideName: qual.hrmeQ_GuideName || '',
+              qualifiedDate: formatDate(qual.hrmeQ_Date),
+              hardcopy: qual.hrmeQ_Hardcopy || ''
+          }))
+        : [];
+
+    return {
+        qualificationDetails
+    };
+}
+
+/**
+ * Map API response to form fields for Tab 4 (Experience) only
+ */
+export function mapApiResponseToTab4Fields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Helper to format date from API (ISO string) to form format (YYYY-MM-DD)
+    const formatDate = (dateStr: string | null | undefined): string => {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            if (Number.isNaN(date.getTime())) return '';
+            return format(date, 'yyyy-MM-dd');
+        } catch {
+            return '';
+        }
+    };
+
+    // Helper to convert number to string for form fields
+    const numToString = (val: number | null | undefined): string => {
+        if (val === null || val === undefined || val === 0) return '';
+        return String(val);
+    };
+
+    // Map experience details
+    const experienceDetails = Array.isArray(data.experienceDetails)
+        ? data.experienceDetails.map((exp: any) => ({
+              hrmeE_Id: exp.hrmeE_Id || exp.HRMEE_Id || 0, // Preserve ID for updates
+              organisationName: exp.hrmeE_OrganisationName || '',
+              organisationAddress: exp.hrmeE_OrganisationAddress || '',
+              department: exp.hrmeE_Department || '',
+              designation: exp.hrmeE_Designation || '',
+              joinDate: formatDate(exp.hrmeE_JoinDate),
+              exitDate: formatDate(exp.hrmeE_ExitDate),
+              noOfYears: numToString(exp.hrmeE_NoOfYears),
+              noOfMonths: numToString(exp.hrmeE_NoOfMonths),
+              annualSalary: numToString(exp.hrmeE_AnnualSalary),
+              reasonForLeaving: exp.hrmeE_ReasonForLeaving || ''
+          }))
+        : [];
+
+    return {
+        experienceDetails
+    };
+}
+
+/**
+ * Map API response to form fields for Tab 5 (Documents) only
+ */
+export function mapApiResponseToTab5Fields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Map document list
+    const documentList = Array.isArray(data.documentList)
+        ? data.documentList.map((doc: any) => ({
+              documentName: doc.hrmedS_DocumentName || '',
+              documentDescription: doc.hrmedS_DucumentDescription || '',
+              document: null, // File will be handled separately if needed
+              imageName: doc.hrmedS_DocumentImageName || ''
+          }))
+        : [];
+
+    return {
+        documentList
+    };
+}
+
+/**
+ * Map API response to form fields for Tab 6 (Medical) only
+ */
+export function mapApiResponseToTab6Fields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Helper to convert number to string for form fields
+    const numToString = (val: number | null | undefined): string => {
+        if (val === null || val === undefined || val === 0) return '';
+        return String(val);
+    };
+
+    return {
+        // Medical details
+        employeeHeight: data.hrmE_Height || '',
+        employeeHeightUnit: data.hrmE_HeightUOM || '',
+        employeeWeight: numToString(data.hrmE_Weight),
+        employeeWeightUnit: data.hrmE_WeightUOM || '',
+        identificationMark: data.hrmE_IdentificationMark || '',
+        anyHealthIssue: data.hrmE_AnyHealthIssue || '',
+        eyeSightIssue: data.hrmE_EyeSightIssue || ''
+    };
+}
+
+/**
+ * Map API response to form fields for Tab 7 (Other Details) only
+ */
+export function mapApiResponseToTab7Fields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Helper to format date from API (ISO string) to form format (YYYY-MM-DD)
+    const formatDate = (dateStr: string | null | undefined): string => {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            if (Number.isNaN(date.getTime())) return '';
+            return format(date, 'yyyy-MM-dd');
+        } catch {
+            return '';
+        }
+    };
+
+    // Helper to convert number to string for form fields
+    const numToString = (val: number | null | undefined): string => {
+        if (val === null || val === undefined || val === 0) return '';
+        return String(val);
+    };
+
+    return {
+        // Other details tab
+        employeeLeft: data.hrmE_LeftFlag || false,
+        lastWorkingDay: formatDate(data.hrmE_DOL),
+        reasonForLeaving: data.hrmE_LeavingReason || '',
+        stopPension: data.hrmE_RetiredFlg || false,
+        dateOfStopPension: formatDate(data.hrmE_PensionStoppedDate),
+        // Documents
+        panCardNo: data.hrmE_PANCardNo || '',
+        aadharNo: numToString(data.hrmE_AadharCardNo),
+        nationalSSN: data.hrmE_NationalSSN || '',
+        // Other flags
+        phdResearchGuide: data.hrmE_PHDResearchGuideFlg || false,
+        teachingNonTeaching: data.hrmE_TechNonTeachingFlg || '',
+        recognitionYear: numToString(data.hrmE_RGRecognitionYear),
+        msTeamsUserName: data.hrmE_MSTeamsUserId || '',
+        msTeamsPassword: data.hrmE_MSTeamsPassword || '',
+        punchRelaxation: data.hrmE_ExcPunch || false
+    };
+}
+
+/**
+ * Map API response to form fields for Tab 8 (Bank Details) only
+ */
+export function mapApiResponseToTab8Fields(apiData: any): Partial<FormFields> {
+    if (!apiData || !apiData.data) {
+        return {};
+    }
+
+    const data = apiData.data;
+
+    // Helper to convert number to string for form fields
+    const numToString = (val: number | null | undefined): string => {
+        if (val === null || val === undefined || val === 0) return '';
+        return String(val);
+    };
+
+    // Map bank details
+    const bankDetails = Array.isArray(data.employeebankDetails)
+        ? data.employeebankDetails.map((bank: any) => ({
+              bank: numToString(bank.hrmbD_Id),
+              bankAccountNo: bank.hrmeB_AccountNo || '',
+              isActive: bank.hrmeB_ActiveFlag === 'Y' || bank.hrmeB_ActiveFlag === true
+          }))
+        : [];
+
+    return {
+        bankDetails
+    };
 }

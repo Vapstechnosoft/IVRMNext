@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useMasterPayrollStandard, useMonthDropdown } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
-import type { IMasterPayrollStandardList } from '@/types/hrms/hrms-config/master';
+import type { IMasterPayrollStandardList, IMonthDropdown } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -40,10 +40,11 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
     const arrearSalaryReport = watch('HRC_ArrearSalaryReport');
     // Month dropdown - API: /api/MasterDropDown/GetMonths
     const { data: monthDropdownResponse, isLoading: isLoadingMonths } = useMonthDropdown();
-    const monthDropdown = useMemo(
-        () => (Array.isArray(monthDropdownResponse?.data) ? monthDropdownResponse.data : []),
-        [monthDropdownResponse?.data]
-    );
+    const monthDropdown = useMemo(() => {
+        const data = Array.isArray(monthDropdownResponse?.data) ? monthDropdownResponse.data : [];
+        // Filter out invalid entries (null, undefined, or 0 keys) for numeric dropdown
+        return data.filter((month: IMonthDropdown) => month.key != null && month.key !== undefined && month.key !== 0);
+    }, [monthDropdownResponse?.data]);
 
     // Pre-populate form with existing data (only if hrC_Id > 0)
     useEffect(() => {

@@ -24,30 +24,67 @@ export interface IMasterShiftSettingList {
 
 // Master Holiday Types
 export interface IMasterHolidayList {
-    fohwdT_Id: number;
-    fomhwdD_Id: number;
-    fomhwdD_Name: string;
-    fomhwdD_FromDate: string;
-    fomhwdD_ToDate: string;
-    fomhwD_ActiveFlg: boolean;
-    fohtwD_HolidayWDType: string;
-    hrmD_DepartmentName: string;
+    FOHWDT_Id: number;
+    FOMHWDD_Id: number;
+    FOMHWDD_Name: string;
+    FOMHWDD_FromDate: string;
+    FOMHWDD_ToDate: string;
+    FOMHWDD_ActiveFlg: boolean;
+    FOMHWDD_HolidayWDType: string;
+    HRMD_DepartmentName: string;
 }
 
 // Employee Shift Mapping Types
 export interface IMasterEmployeeShiftMappingList {
-    FOEST_Id: number | null;
-    EmployeeName: string | null;
-    ShiftName: string | null;
-    DayType: string | null;
-    Date: string | null;
-    FDWHrMin: string | null;
-    HDWHrMin: string | null;
-    IHalfLogin: string | null;
-    IHalfLogout: string | null;
-    IIHalfLogin: string | null;
-    IIHalfLogout: string | null;
-    DelayPerShift: string | null;
-    EarlyPerShift: string | null;
-    LunchDuration: string | null;
+    FOEST_Id: number;
+    EmployeeName: string;
+    ShiftName: string;
+    DayType: string;
+    Date: string;
+    FDWHrMin: string;
+    HDWHrMin: string;
+    IHalfLogin: string;
+    IHalfLogout: string;
+    IIHalfLogin: string;
+    IIHalfLogout: string;
+    DelayPerShift: string;
+    EarlyPerShift: string;
+    LunchDuration: string;
+}
+
+// Employee Shift Mapping Dropdown Types
+export interface IGroupType {
+    HRMGT_Id: number;
+    MI_Id: number;
+    HRMGT_EmployeeGroupType: string;
+    HRMGT_Code: string;
+    HRMGT_Order: number;
+    HRMGT_ActiveFlag: boolean;
+    CreatedDate: string;
+    UpdatedDate: string;
+}
+
+export interface IHolidayType {
+    Key: number;
+    Value: string;
+}
+
+export interface IShiftName {
+    Key: number;
+    Value: string;
+}
+
+export interface IDepartment {
+    Key: number;
+    Value: string;
+}
+
+export interface IDesignation {
+    Key: number;
+    Value: string;
+}
+
+export interface IEmployee {
+    Key: number;
+    Value: string;
 }
