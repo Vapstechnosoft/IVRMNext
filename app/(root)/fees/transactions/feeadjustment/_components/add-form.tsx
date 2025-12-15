@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
+    useFeeAdjustmentGroupDropDown,
+    useFeeAdjustmentHeadDropDown,
     useFeeOpeningRefundable,
     useopeningClassdropdowndatafee,
     useopeningSectiondropdowndatafee,
@@ -42,10 +44,10 @@ export default function AddFeeAdjustmentForm({
 
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [nameType, setNameType] = useState<'Name:Adm.No' | 'Adm.No:Name'>('Name:Adm.No');
-    const [refundableType, setRefundableType] = useState<'Refundable' | 'NonRefundable'>('Refundable');
+    const [refundableType, setRefundableType] = useState<'Refunable' | 'NonRefundable'>('Refunable');
     const [studentWise, setStudentWise] = useState<string>('');
     const [fromGroupSelections, setFromGroupSelections] = useState<Set<number>>(new Set());
-    const [toGroupSelections, setToGroupSelections] = useState<Set<number>>(new Set());
+    const [toHeadSelections, setToHeadSelections] = useState<Set<number>>(new Set()); // Now head IDs for "To"
     const [loadingDropdown, setLoadingDropdown] = useState(false);
     const [studentDropdownList, setStudentDropdownList] = useState<{ value: string; label: string }[]>([]);
 
@@ -56,40 +58,52 @@ export default function AddFeeAdjustmentForm({
         classId ? Number(classId) : 0
     );
 
-    // Fee heads loaded based on selected student and refundable type
     const { data: refundabledata, isLoading: loadingRefundable } = useFeeOpeningRefundable(
         studentWise ? Number(studentWise) : 0,
         refundableType
+    );
+
+    const { data: groupdata, isLoading: loadingGroup } = useFeeAdjustmentGroupDropDown(
+        refundableType,
+        academicYearId ? Number(academicYearId) : 0,
+        studentWise ? Number(studentWise) : 0
+    );
+
+    // Pick first selected "From" group to pass to head dropdown
+    const selectedFromGroupId = useMemo(() => {
+        if (fromGroupSelections.size === 0) return undefined;
+        return [...fromGroupSelections][0];
+    }, [fromGroupSelections]);
+
+    const { data: headdata, isLoading: loadingHead } = useFeeAdjustmentHeadDropDown(
+        refundableType,
+        academicYearId ? Number(academicYearId) : 0,
+        studentWise ? Number(studentWise) : 0,
+        selectedFromGroupId ?? 0
     );
 
     const canShowAdjustmentBoxes = useMemo(() => {
         return !!academicYearId && !!classId && !!sectionId && !!studentWise;
     }, [academicYearId, classId, sectionId, studentWise]);
 
-    const canSelectToGroup = fromGroupSelections.size > 0;
+    const canSelectTo = fromGroupSelections.size > 0;
 
-    const toggleFromGroup = (headId: number) => {
+    const toggleFromGroup = (groupId: number) => {
         setFromGroupSelections((prev) => {
             const newSet = new Set(prev);
-            if (newSet.has(headId)) {
-                newSet.delete(headId);
-                // Remove from To Group if it was selected there
-                setToGroupSelections((toPrev) => {
-                    const toNew = new Set(toPrev);
-                    toNew.delete(headId);
-                    return toNew;
-                });
+            if (newSet.has(groupId)) {
+                newSet.delete(groupId);
             } else {
-                newSet.add(headId);
+                newSet.add(groupId);
             }
             return newSet;
         });
     };
 
-    const toggleToGroup = (headId: number) => {
-        if (!canSelectToGroup) return;
+    const toggleToHead = (headId: number) => {
+        if (!canSelectTo) return;
 
-        setToGroupSelections((prev) => {
+        setToHeadSelections((prev) => {
             const newSet = new Set(prev);
             if (newSet.has(headId)) {
                 newSet.delete(headId);
@@ -100,17 +114,20 @@ export default function AddFeeAdjustmentForm({
         });
     };
 
-    const selectedFromHeads = refundabledata?.data?.filter((head: any) => fromGroupSelections.has(head.fmH_Id)) || [];
-    const selectedToHeads = refundabledata?.data?.filter((head: any) => toGroupSelections.has(head.fmH_Id)) || [];
+    // Heads for "To" table — selected individual heads
+    const selectedToHeads = useMemo(() => {
+        if (!refundabledata?.data || toHeadSelections.size === 0) return [];
+        return refundabledata.data.filter((head: any) => toHeadSelections.has(head.fmH_Id));
+    }, [refundabledata?.data, toHeadSelections]);
 
     const handleReset = () => {
         reset();
         setSelectedDate(new Date());
         setNameType('Name:Adm.No');
-        setRefundableType('Refundable');
+        setRefundableType('Refunable');
         setStudentWise('');
         setFromGroupSelections(new Set());
-        setToGroupSelections(new Set());
+        setToHeadSelections(new Set());
         setStudentDropdownList([]);
     };
 
@@ -164,19 +181,18 @@ export default function AddFeeAdjustmentForm({
         };
     }, [academicYearId, classId, sectionId, nameType]);
 
-    // Reset selections when student or refundable type changes
     useEffect(() => {
         setFromGroupSelections(new Set());
-        setToGroupSelections(new Set());
+        setToHeadSelections(new Set());
     }, [studentWise, refundableType]);
 
     const handleSave = () => {
         if (fromGroupSelections.size === 0) {
-            toast.error('Please select at least one fee head from "Adjustment From Group"');
+            toast.error('Please select at least one group from "Adjustment From Group"');
             return;
         }
-        if (toGroupSelections.size === 0) {
-            toast.error('Please select at least one fee head from "Adjustment To Group"');
+        if (toHeadSelections.size === 0) {
+            toast.error('Please select at least one head from "Adjustment To Group"');
             return;
         }
         toast.success('Fee adjustment saved successfully!');
@@ -334,9 +350,9 @@ export default function AddFeeAdjustmentForm({
                         <label className='flex cursor-pointer items-center gap-3'>
                             <input
                                 type='radio'
-                                name='refundable'
-                                checked={refundableType === 'Refundable'}
-                                onChange={() => setRefundableType('Refundable')}
+                                name='Refunable'
+                                checked={refundableType === 'Refunable'}
+                                onChange={() => setRefundableType('Refunable')}
                                 className='h-5 w-5 text-blue-600'
                             />
                             <span className='font-medium'>Refundable</span>
@@ -344,7 +360,7 @@ export default function AddFeeAdjustmentForm({
                         <label className='flex cursor-pointer items-center gap-3'>
                             <input
                                 type='radio'
-                                name='refundable'
+                                name='Refunable'
                                 checked={refundableType === 'NonRefundable'}
                                 onChange={() => setRefundableType('NonRefundable')}
                                 className='h-5 w-5 text-blue-600'
@@ -357,71 +373,67 @@ export default function AddFeeAdjustmentForm({
 
             {canShowAdjustmentBoxes && (
                 <>
-                    {/* Adjustment Groups - Side by Side */}
                     <div className='grid grid-cols-1 gap-6 pt-4 lg:grid-cols-2'>
-                        {/* From Group */}
+                        {/* Adjustment From Group — Groups */}
                         <div className='overflow-hidden rounded-lg border-2 border-blue-400'>
                             <div className='justify-center bg-blue-100 px-4 py-3 font-semibold text-black'>Adjustment From Group</div>
                             <div className='relative min-h-48 bg-gray-50 p-6'>
-                                {loadingRefundable ? (
-                                    <p className='absolute inset-0 flex items-center justify-center bg-gray-50 text-gray-500'>
-                                        Loading fee heads...
-                                    </p>
-                                ) : !refundabledata?.data || refundabledata.data.length === 0 ? (
-                                    <p className='absolute inset-0 flex items-center justify-center bg-gray-50 text-gray-500'>
-                                        No fee heads available
+                                {loadingGroup ? (
+                                    <p className='absolute inset-0 flex items-center justify-center text-gray-500'>Loading fee groups...</p>
+                                ) : !groupdata?.data || groupdata.data.length === 0 ? (
+                                    <p className='absolute inset-0 flex items-center justify-center text-gray-500'>
+                                        No fee group available
                                     </p>
                                 ) : (
-                                    refundabledata.data.map((head: any) => (
-                                        <div key={head.fmH_Id} className='mb-3 flex items-center space-x-3'>
+                                    groupdata.data.map((group: any) => (
+                                        <div key={group.fsA_From_FMG_Id} className='mb-3 flex items-center space-x-3'>
                                             <Checkbox
-                                                checked={fromGroupSelections.has(head.fmH_Id)}
-                                                onCheckedChange={() => toggleFromGroup(head.fmH_Id)}
+                                                checked={fromGroupSelections.has(group.fsA_From_FMG_Id)}
+                                                onCheckedChange={() => toggleFromGroup(group.fsA_From_FMG_Id)}
                                             />
-                                            <Label className='cursor-pointer select-none text-lg'>{head.fmH_FeeName}</Label>
+                                            <Label className='cursor-pointer select-none text-lg'>{group.fmG_GroupNameF}</Label>
                                         </div>
                                     ))
                                 )}
                             </div>
                         </div>
 
-                        {/* To Group */}
+                        {/* Adjustment To — Heads (as per your current design) */}
                         <div className='relative overflow-hidden rounded-lg border-2 border-blue-400'>
-                            <div className='justify-center bg-blue-100 px-4 py-3 font-semibold text-black'>Adjustment To Group</div>
-                            <div className={`min-h-48 bg-gray-50 p-6 ${!canSelectToGroup ? 'opacity-50' : ''}`}>
+                            <div className='justify-center bg-blue-100 px-4 py-3 font-semibold text-black'>Adjustment To Head</div>
+                            <div className={`min-h-48 bg-gray-50 p-6 ${!canSelectTo ? 'opacity-50' : ''}`}>
                                 {loadingRefundable ? (
-                                    <p className='text-center text-gray-500'>Loading...</p>
+                                    <p className='text-center text-gray-500'>Loading heads...</p>
                                 ) : !refundabledata?.data || refundabledata.data.length === 0 ? (
                                     <p className='text-center text-gray-500'>No fee heads available</p>
                                 ) : (
                                     refundabledata.data.map((head: any) => (
                                         <div key={head.fmH_Id} className='mb-3 flex items-center space-x-3'>
                                             <Checkbox
-                                                checked={toGroupSelections.has(head.fmH_Id)}
-                                                onCheckedChange={() => toggleToGroup(head.fmH_Id)}
-                                                disabled={!canSelectToGroup || fromGroupSelections.has(head.fmH_Id)}
+                                                checked={toHeadSelections.has(head.fmH_Id)}
+                                                onCheckedChange={() => toggleToHead(head.fmH_Id)}
+                                                disabled={!canSelectTo}
                                             />
-                                            <Label
-                                                className={`select-none text-lg ${!canSelectToGroup || fromGroupSelections.has(head.fmH_Id) ? 'text-gray-500' : 'cursor-pointer'}`}>
+                                            <Label className={`select-none text-lg ${!canSelectTo ? 'text-gray-500' : 'cursor-pointer'}`}>
                                                 {head.fmH_FeeName}
                                             </Label>
                                         </div>
                                     ))
                                 )}
                             </div>
-                            {/* {!canSelectToGroup && fromGroupSelections.size === 0 && !loadingRefundable && refundabledata?.data?.length > 0 && (
-                                <div className='absolute inset-0 flex items-center justify-center bg-gray-100/80 rounded-lg pointer-events-none'>
-                                    <p className='text-gray-700 font-medium'>
-                                        Select at least one head from "Adjustment From Group" first
-                                    </p>
+
+                            {!canSelectTo && (
+                                <div className='pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-gray-100/80'>
+                                    <p className='font-medium text-gray-700'>Select a group from "Adjustment From Group" first</p>
                                 </div>
-                            )} */}
+                            )}
                         </div>
                     </div>
 
-                    {/* Adjusted Tables - Side by Side */}
-                    {(fromGroupSelections.size > 0 || toGroupSelections.size > 0) && (
+                    {/* Tables */}
+                    {(fromGroupSelections.size > 0 || toHeadSelections.size > 0) && (
                         <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                            {/* Adjusted From Head — Now uses headdata (correctly filtered by selected group) */}
                             {fromGroupSelections.size > 0 && (
                                 <div className='overflow-hidden rounded-lg border-2 border-blue-400'>
                                     <div className='rounded-t-lg bg-blue-900 px-4 py-2 font-semibold text-white'>Adjusted From Head</div>
@@ -431,28 +443,43 @@ export default function AddFeeAdjustmentForm({
                                                 <th className='px-4 py-3 text-left' />
                                                 <th className='px-4 py-3 text-left'>Head</th>
                                                 <th className='px-4 py-3 text-left'>Installment</th>
-                                                <th className='px-4 py-3 text-left'>Amount</th>
+                                                <th className='px-4 py-3 text-left'>Excess Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {selectedFromHeads.map((head: any) => (
-                                                <tr key={head.fmH_Id} className='border-b'>
-                                                    <td className='px-4 py-3'>
-                                                        <Checkbox checked={true} disabled />
-                                                    </td>
-                                                    <td className='px-4 py-3 font-medium'>{head.fmH_FeeName}</td>
-                                                    <td className='px-4 py-3'>Yearly</td>
-                                                    <td className='px-4 py-3'>
-                                                        <Input type='number' defaultValue='0' className='w-24' />
+                                            {loadingHead ? (
+                                                <tr>
+                                                    <td colSpan={4} className='px-4 py-3 text-center text-gray-500'>
+                                                        Loading heads...
                                                     </td>
                                                 </tr>
-                                            ))}
+                                            ) : headdata?.data && headdata.data.length > 0 ? (
+                                                headdata.data.map((head: any) => (
+                                                    <tr key={head.fmH_Id} className='border-b'>
+                                                        <td className='px-4 py-3'>
+                                                            <Checkbox checked={true} disabled />
+                                                        </td>
+                                                        <td className='px-4 py-3 font-medium'>{head.fmH_FeeName || head.fmH_FeeNameF}</td>
+                                                        <td className='px-4 py-3'>{head.ftI_Name || head.ftI_NameF || 'One Time'}</td>
+                                                        <td className='px-4 py-3 font-medium text-green-600'>
+                                                            {head.fsS_RunningExcessAmount || 0}
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan={4} className='px-4 py-3 text-center text-gray-500'>
+                                                        No excess amount in selected group
+                                                    </td>
+                                                </tr>
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>
                             )}
 
-                            {toGroupSelections.size > 0 && (
+                            {/* Adjusted To Head */}
+                            {toHeadSelections.size > 0 && (
                                 <div className='overflow-hidden rounded-lg border-2 border-blue-400'>
                                     <div className='rounded-t-lg bg-blue-900 px-4 py-2 font-semibold text-white'>Adjusted To Head</div>
                                     <table className='w-full bg-white'>
@@ -462,7 +489,7 @@ export default function AddFeeAdjustmentForm({
                                                 <th className='px-4 py-3 text-left'>Head</th>
                                                 <th className='px-4 py-3 text-left'>Installment</th>
                                                 <th className='px-4 py-3 text-left'>Balance</th>
-                                                <th className='px-4 py-3 text-left'>Amount</th>
+                                                <th className='px-4 py-3 text-left'>Adjust Amount</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -472,10 +499,12 @@ export default function AddFeeAdjustmentForm({
                                                         <Checkbox checked={true} disabled />
                                                     </td>
                                                     <td className='px-4 py-3 font-medium'>{head.fmH_FeeName}</td>
-                                                    <td className='px-4 py-3'>1 Installment</td>
-                                                    <td className='px-4 py-3 font-medium text-blue-600'>2000</td>
+                                                    <td className='px-4 py-3'>{head.ftI_Name || 'One Time'}</td>
+                                                    <td className='px-4 py-3 font-medium text-red-600'>
+                                                        {head.dueAmount || head.balance || 'N/A'}
+                                                    </td>
                                                     <td className='px-4 py-3'>
-                                                        <Input type='number' defaultValue='0' className='w-24' />
+                                                        <Input type='number' defaultValue='0' min='0' className='w-24' />
                                                     </td>
                                                 </tr>
                                             ))}
@@ -489,15 +518,11 @@ export default function AddFeeAdjustmentForm({
             )}
 
             <div className='flex justify-center gap-6 border-t pt-8'>
-                <Button size='lg' onClick={handleSave} className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'>
+                <Button size='lg' onClick={handleSave} className='w-full sm:w-auto'>
                     <Save className='mr-2 h-5 w-5' />
                     Save
                 </Button>
-                <Button
-                    size='lg'
-                    variant='outline'
-                    className='w-full transition-all duration-200 hover:scale-105 sm:w-auto'
-                    onClick={handleReset}>
+                <Button size='lg' variant='outline' onClick={handleReset} className='w-full sm:w-auto'>
                     CANCEL
                 </Button>
             </div>
