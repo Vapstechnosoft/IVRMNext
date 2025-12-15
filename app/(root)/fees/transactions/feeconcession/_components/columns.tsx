@@ -52,7 +52,7 @@ export const concessionColumns: ColumnDef<IFeeConcessionStudentConcessionGrid>[]
     {
         accessorKey: 'fmcC_ConcessionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Concession' />,
-        cell: ({ row }) => <div className='font-medium text-blue-700'>{row.original.fmcC_ConcessionName || '—'}</div>,
+        cell: ({ row }) => <div>{row.original.fmcC_ConcessionName || '—'}</div>,
         size: 200
     },
     {
@@ -60,7 +60,7 @@ export const concessionColumns: ColumnDef<IFeeConcessionStudentConcessionGrid>[]
         header: ({ column }) => <DataTableColumnHeader column={column} title='Amount' />,
         cell: ({ row }) => {
             const amount = row.original.fsC_ConcessionAmount || 0;
-            return <div className='text-right font-bold text-green-700'>₹{amount.toLocaleString('en-IN')}</div>;
+            return <div>₹{amount.toLocaleString('en-IN')}</div>;
         },
         size: 140
     },
