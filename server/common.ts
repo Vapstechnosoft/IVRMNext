@@ -1037,6 +1037,21 @@ export async function getUserAccessibleModules() {
                                     ]
                                 },
                                 {
+                                    id: 11,
+                                    name: 'Marks Calculation',
+                                    icon: 'BookOpen',
+                                    pages: [
+                                        {
+                                            id: 72,
+                                            name: 'Exam Marks Calculation',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/marks-calculation/calculation',
+                                            title: 'Exam Marks Calculation',
+                                            description: 'Manage Exam Marks Calculation Details'
+                                        }
+                                    ]
+                                },
+                                {
                                     id: 10,
                                     name: 'Reports',
                                     icon: 'Settings',
