@@ -33,7 +33,22 @@ export const studentSearchSchema = z.object({
             })
         )
         .min(1, 'At least one search criteria is required')
+        .refine(
+            (criteria) => {
+                for (let i = 0; i < criteria.length - 1; i++) {
+                    if (!criteria[i].condition || criteria[i].condition === '') {
+                        return false;
+                    }
+                }
+                return true;
+            },
+            {
+                message: 'All criteria except the last one must have a condition (AND/OR)'
+            }
+        )
 });
+
+export type StudentSearchFormData = z.infer<typeof studentSearchSchema>;
 
 export const admissionReportSchema = z.object({
     academicYear: z.number().min(1, 'Academic year is required'),

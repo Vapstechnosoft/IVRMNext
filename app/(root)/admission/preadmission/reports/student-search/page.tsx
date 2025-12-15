@@ -1,30 +1,32 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useStudentSearch } from '@/hooks/admission/preadmission/useReports';
 import { studentSearchSchema } from '@/schemas/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileSpreadsheet, Plus, Printer, RotateCcw, Search, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { type StudentData, studentSearchColumns } from './_components/columns';
 
 type FormFields = z.infer<typeof studentSearchSchema>;
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 const FIELD_OPTIONS = [
-    { value: 'asmcL_ClassName', label: 'Class Name' },
-    { value: 'amsT_FirstName', label: 'First Name' },
-    { value: 'amsT_FatherName', label: 'Father Name' },
-    { value: 'amsT_MotherName', label: 'Mother Name' },
-    { value: 'amsT_emailId', label: 'Email' },
-    { value: 'amsT_MobileNo', label: 'Mobile Number' },
-    { value: 'amsT_AdmNo', label: 'Admission Number' },
-    { value: 'asmC_SectionName', label: 'Section' }
+    { value: 'AMST_ClassName', label: 'Class Name' },
+    { value: 'AMST_FirstName', label: 'First Name' },
+    { value: 'AMST_FatherName', label: 'Father Name' },
+    { value: 'AMST_MotherName', label: 'Mother Name' },
+    { value: 'AMST_emailId', label: 'Email' },
+    { value: 'AMST_MobileNo', label: 'Mobile Number' },
+    { value: 'AMST_AdmNo', label: 'Admission Number' },
+    { value: 'AMST_SectionName', label: 'Section' }
 ];
 
 const OPERATOR_OPTIONS = [
@@ -40,50 +42,18 @@ const CONDITION_OPTIONS = [
     { value: 'OR', label: 'OR' }
 ];
 
-const generateMockData = (): StudentData[] => {
-    const classes = ['Nursery', 'LKG', 'UKG', 'Class 1', 'Class 2'];
-    const sections = ['A', 'B', 'C'];
-    const firstNames = [
-        'AADHYA V',
-        'RAHUL SHARMA',
-        'PRIYA SINGH',
-        'AMIT KUMAR',
-        'SNEHA PATEL',
-        'ARJUN REDDY',
-        'KAVYA MENON',
-        'ROHAN GUPTA',
-        'ANANYA RAO',
-        'VIKRAM NAIR'
-    ];
-
-    return Array.from({ length: 20 }, (_, i) => ({
-        amsT_RegistrationNo: `${String(i + 1).padStart(2, '0')}/2025-26`,
-        AMST_Id: 24487 + i,
-        amsT_FirstName: firstNames[i % firstNames.length],
-        amsT_Date: '31/03/2025',
-        amsT_DOB: `0${(i % 9) + 1}/01/202${i % 3}`,
-        amsT_Sex: i % 2 === 0 ? 'Female' : 'Male',
-        amsT_MotherName: `Mother ${i + 1}`,
-        amsT_FatherName: `Father ${i + 1}`,
-        amsT_emailId: `student${i + 1}@example.com`,
-        amsT_MobileNo: 9876543210 + i,
-        amsT_StuBankAccNo: null,
-        amsT_AadharNo: null,
-        amsT_AdmNo: `${String(i + 1).padStart(2, '0')}/2025-26`,
-        amsT_BirthCertNO: null,
-        amsT_BloodGroup: ['A+', 'B+', 'O+', 'AB+'][i % 4],
-        amsT_FatherAadharNo: null,
-        amsT_FatherBankAccNo: null,
-        asmcL_ClassName: classes[i % classes.length],
-        asmC_SectionName: sections[i % sections.length],
-        AMST_Photoname: 'https://via.placeholder.com/150',
-        addressd1: `Address ${i + 1}, City, State, India`
-    }));
-};
-
-export default function StudentSearchPage() {
+export default function StudentSearchPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
     const [showReport, setShowReport] = useState(false);
-    const [tableData, setTableData] = useState<StudentData[]>([]);
+    const [searchQuery, setSearchQuery] = useState<{
+        stuStatus: string;
+        field: string;
+        operator: string;
+        value: string;
+        condition: string;
+    } | null>(null);
 
     const {
         control,
@@ -102,6 +72,43 @@ export default function StudentSearchPage() {
 
     const criteria = watch('criteria');
 
+    const buildQueryParams = (data: FormFields) => {
+        const fields = data.criteria.map((c) => c.field).join(',');
+        const operators = data.criteria.map((c) => c.operator).join(',');
+        const values = data.criteria.map((c) => c.value).join(',');
+        const conditions = data.criteria
+            .map((c) => c.condition || '')
+            .filter(Boolean)
+            .join(',');
+
+        return {
+            stuStatus: data.status,
+            field: fields,
+            operator: operators,
+            value: values,
+            condition: conditions
+        };
+    };
+
+    const {
+        data: response,
+        isLoading,
+        error,
+        refetch: refetchStudentSearch
+    } = useStudentSearch(
+        searchQuery?.stuStatus || '',
+        searchQuery?.field || '',
+        searchQuery?.operator || '',
+        searchQuery?.value || '',
+        searchQuery?.condition || '',
+        searchParams
+    );
+
+    const tableProps = useDataTableProps({
+        ...response,
+        data: response?.data?.searchResult || []
+    });
+
     const addCriteria = () => {
         setValue('criteria', [...criteria, { field: '', operator: '', value: '', condition: '' }]);
     };
@@ -116,8 +123,8 @@ export default function StudentSearchPage() {
     };
 
     const onSubmit = async (data: FormFields) => {
-        const mockData = generateMockData();
-        setTableData(mockData);
+        const queryParams = buildQueryParams(data);
+        setSearchQuery(queryParams);
         setShowReport(true);
     };
 
@@ -127,7 +134,7 @@ export default function StudentSearchPage() {
             criteria: [{ field: '', operator: '', value: '', condition: '' }]
         });
         setShowReport(false);
-        setTableData([]);
+        setSearchQuery(null);
     };
 
     return (
@@ -189,7 +196,7 @@ export default function StudentSearchPage() {
                                                 Field <span className='text-red-500'>*</span>
                                             </th>
                                             <th className='border-gray-300 border-b px-4 py-3 text-left font-semibold text-sm'>
-                                                Like <span className='text-red-500'>*</span>
+                                                Operator <span className='text-red-500'>*</span>
                                             </th>
                                             <th className='border-gray-300 border-b px-4 py-3 text-left font-semibold text-sm'>
                                                 Value <span className='text-red-500'>*</span>
@@ -233,7 +240,7 @@ export default function StudentSearchPage() {
                                                         render={({ field }) => (
                                                             <Select value={field.value} onValueChange={field.onChange}>
                                                                 <SelectTrigger className='w-full'>
-                                                                    <SelectValue placeholder='Select' />
+                                                                    <SelectValue placeholder='Select Operator' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {OPERATOR_OPTIONS.map((opt) => (
@@ -271,9 +278,12 @@ export default function StudentSearchPage() {
                                                         name={`criteria.${index}.condition`}
                                                         control={control}
                                                         render={({ field }) => (
-                                                            <Select value={field.value} onValueChange={field.onChange}>
+                                                            <Select
+                                                                value={field.value}
+                                                                onValueChange={field.onChange}
+                                                                disabled={index === criteria.length - 1}>
                                                                 <SelectTrigger className='w-full'>
-                                                                    <SelectValue placeholder='Select' />
+                                                                    <SelectValue placeholder='Select Condition' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     {CONDITION_OPTIONS.map((opt) => (
@@ -325,11 +335,19 @@ export default function StudentSearchPage() {
                                 <RotateCcw className='mr-2 h-4 w-4' />
                                 Reset
                             </Button>
-                            <Button type='button' variant='outline' disabled={!showReport} className='w-full sm:w-fit'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                disabled={!showReport || !response?.data?.searchResult || response.data.searchResult.length === 0}
+                                className='w-full sm:w-fit'>
                                 <FileSpreadsheet className='mr-2 h-4 w-4' />
                                 Export to Excel
                             </Button>
-                            <Button type='button' variant='outline' disabled={!showReport} className='w-full sm:w-fit'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                disabled={!showReport || !response?.data?.searchResult || response.data.searchResult.length === 0}
+                                className='w-full sm:w-fit'>
                                 <Printer className='mr-2 h-4 w-4' />
                                 Print
                             </Button>
@@ -337,16 +355,26 @@ export default function StudentSearchPage() {
                     </CollapsibleSection>
                 </form>
 
-                {showReport && (
+                {showReport && response?.data?.searchResult && response.data.searchResult.length > 0 && (
                     <CollapsibleSection
                         title='Search Results'
-                        description={`${tableData.length} students found`}
+                        description={`${response.data.searchResult.length} students found`}
                         defaultOpen={true}
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <div className='p-4'>
-                            <GenericDataTable data={tableData} isLoading={!showReport} columns={studentSearchColumns} />
+                            <GenericDataTable<StudentData>
+                                {...tableProps}
+                                columns={studentSearchColumns}
+                                isLoading={isLoading}
+                                error={error}
+                                showViewOptions={false}
+                                loadingMessage='Loading student search results...'
+                                noDataTitle='No Data Found'
+                                noDataDescription='No students found matching your criteria.'
+                                errorTitle='Error Loading Student Search'
+                            />
                         </div>
                     </CollapsibleSection>
                 )}

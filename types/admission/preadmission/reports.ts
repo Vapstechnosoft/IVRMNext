@@ -42,6 +42,7 @@ export interface IStudentYearlyAttendenceReportList {
     percentage: string;
 }
 export interface IRigistrationReportList {
+    rowNumber: number;
     user_Name: string;
     email_Id: string;
     mob_No: string;
