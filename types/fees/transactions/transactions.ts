@@ -892,3 +892,18 @@ export interface IFeeConcessionStudentData {
     amaY_RollNo: number;
     asmcL_ClassName: string;
 }
+
+export interface IFeeAdjustmentGroupDropDown {
+    fsA_From_FMG_Id: number;
+    fmG_GroupNameF: string;
+}
+
+export interface IFeeAdjustmentHeadDropDown {
+    fsA_From_FMH_Id: number;
+    fmH_FeeNameF: string;
+    fsA_From_FTI_Id: number;
+    ftI_NameF: string;
+    fsA_From_FMG_Id: number;
+    fsA_From_FMA_Id: number;
+    fsS_RunningExcessAmount: number;
+}

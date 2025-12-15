@@ -117,3 +117,19 @@ export interface FeeDailyCollectionHeadwiseResponse {
     listName: string;
     list: HeadwiseListItem[];
 }
+
+export interface IFeeYearlyCollectionReportRow {
+    slNo: number;
+    studentName: string;
+    classSection: string;
+    admissionNo: string;
+    installmentName: string;
+    totalPayable: number;
+    paidAmount: number;
+    balance: number;
+    concession: number;
+    arrear: number;
+    excess: number;
+    charge: number;
+    adjustment: number;
+}

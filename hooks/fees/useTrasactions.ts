@@ -889,3 +889,45 @@ export const useFeeConcessionStudentData = (asmaY_Id: number, amsT_Id: number, s
         }
     };
 };
+
+export const useFeeAdjustmentGroupDropDown = (filterrefund: string, asmaY_Id: number, amsT_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GROUP_DROPDOWN, filterrefund, asmaY_Id, amsT_Id, searchParams ?? {}],
+            queryFn: async () => getFeeAdjustmentGroupDropDown(filterrefund, asmaY_Id, amsT_Id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_GROUP_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeAdjustmentHeadDropDown = (
+    filterrefund: string,
+    asmaY_Id: number,
+    amsT_Id: number,
+    fmG_id: number,
+    searchParams?: ApiSearchparams
+) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_HEAD_DROPDOWN, filterrefund, asmaY_Id, amsT_Id, fmG_id, searchParams ?? {}],
+            queryFn: async () => getFeeAdjustmentFromHeadDropDown(filterrefund, asmaY_Id, amsT_Id, fmG_id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_HEAD_DROPDOWN]
+            });
+        }
+    };
+};

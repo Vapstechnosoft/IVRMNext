@@ -25,17 +25,31 @@ import type {
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
-    IFeeDefaulterReportRow,
     IFeeGroupDropdownList,
     IFeeInstallmentDropdownList,
     IFeeSectionDropdownList,
-    IFeeTermDropdownList
+    IFeeTermDropdownList,
+    IFeeYearlyCollectionReportRow
 } from '@/types/fees/reports/reports';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { YearlyFeeCollectionReportColumns } from './_components/columns';
+
+import { yearlyFeeCollectionSchema } from '@/schemas/fees/reports';
+import { getFeeYearlyCollectionReport } from '@/server/fees/reports/fee_yearlyCollectionReport';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitHandler, useForm } from 'react-hook-form';
+import type { z } from 'zod';
+import {
+    type BreakdownType,
+    type FeeYearlyTableRow,
+    createTotalRow,
+    exportToExcelDynamic,
+    getDynamicColumns,
+    mapYearlyCollectionReport,
+    printTableDynamic
+} from './_components/columns';
 
 // Checkbox with full indeterminate support
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
@@ -50,6 +64,8 @@ const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) =>
     return <BaseCheckbox ref={ref} checked={checked} onCheckedChange={onCheckedChange} {...props} />;
 };
 
+type FormFields = z.infer<typeof yearlyFeeCollectionSchema>;
+
 interface IAcademicYear {
     asmaY_Id: string | number;
     asmaY_Year: string;
@@ -57,13 +73,46 @@ interface IAcademicYear {
 }
 
 export default function FeeDefaulterReport() {
+    // ---------------------------- FORM ----------------------------
+    const {
+        control,
+        handleSubmit,
+        reset,
+        register,
+        setValue,
+
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(yearlyFeeCollectionSchema),
+        mode: 'all'
+        // ,
+
+        // defaultValues: {
+        //     report: 'students',
+        //     rpttyp: 'Individual',
+        //     reportdate: 'transdate',
+        //     asmaY_Id: 0,
+        //     groupIds: [],
+        //     chequeDate: false,
+        //     acdmyr: false,
+        //     headwise: false,
+        //     paymentwise: false,
+        //     fromDate: today,
+        //     toDate: today,
+        //     enableAllClasses: false,
+        //     Fmc_allorsudentorother: 'All',
+        //     Fmc_allorcorddorop: 'All'
+        // }
+    });
+
     const [loading, setLoading] = useState(false);
 
     const [filters, setFilters] = useState({
         userType: 'Students' as 'Students' | 'Staff' | 'Others',
         viewMode: 'year' as 'year' | 'date',
 
-        breakdown: 'Fee Group Wise',
+        //breakdown: 'Fee Group Wise',
+        breakdown: 'FGW',
         academicYearId: '',
         classId: 0,
         sectionId: 0,
@@ -94,7 +143,9 @@ export default function FeeDefaulterReport() {
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeDefaulterReportRow[]>([]);
+    // const [reportData, setReportData] = useState<IFeeYearlyCollectionReportRow[]>([]);
+    const [reportData, setReportData] = useState<FeeYearlyTableRow[]>([]);
+
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
     const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
@@ -196,6 +247,15 @@ export default function FeeDefaulterReport() {
         else if (customGroupResponse?.data) setCustomGroups(customGroupResponse.data);
     }, [customGroupResponse, customGroupError]);
 
+    useEffect(() => {
+        if (customGroups.length > 0 && filters.customGroupIds.length === 0) {
+            setFilters((prev) => ({
+                ...prev,
+                customGroupIds: customGroups.map((g) => g.fmgG_Id)
+            }));
+        }
+    }, [customGroups]);
+
     // Toggle handlers
     const toggleCustomGroup = (id: number) =>
         setFilters((prev) => ({
@@ -227,8 +287,16 @@ export default function FeeDefaulterReport() {
             busRouteIds: prev.busRouteIds.includes(id) ? prev.busRouteIds.filter((x) => x !== id) : [...prev.busRouteIds, id]
         }));
 
+    // const selectAllCustomGroups = (checked: boolean) => {
+    //     setFilters((prev) => ({ ...prev, customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : [] }));
+
+    // };
+
     const selectAllCustomGroups = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : [] }));
+        setFilters((prev) => ({
+            ...prev,
+            customGroupIds: checked ? customGroups.map((g) => g.fmgG_Id) : []
+        }));
     };
 
     const selectAllFeeGroups = (checked: boolean) => {
@@ -253,143 +321,201 @@ export default function FeeDefaulterReport() {
             status: { ...prev.status, [status]: !prev.status[status] }
         }));
     };
-    // const handleSubmit = async () => {
 
-    //   if (!filters.academicYearId) return toast.error('Please select an Academic Year');
-    //   if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
-    //   if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+    const handleReset = () => {
+        reset();
+    };
 
-    //   setReportLoading(true);
-    //   setShowReport(false);
+    const totalRow = createTotalRow(reportData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r)));
 
-    //   try {   // Call your server function (make sure it returns Promise!)
-    //     const result = await feedefaluerreportdata(5855, 55);
+    const tableData: FeeYearlyTableRow[] = [...reportData.filter((r) => !('__isTotal' in r)), totalRow];
 
-    //     const data = Array.isArray(result) ? result : (result?.data || []);
-
-    //     setReportData(data as IFeeDefaulterReportRow[]);
-    //     setShowReport(true);
-
-    //     // Feedback
-    //     if (data.length > 0) {
-    //       toast.success(`Report generated: ${data.length} defaulter(s) found`);
-    //     } else {
-    //       toast.info('No defaulters found for the selected criteria');
-    //     }
-
-    //     setTimeout(() => {
-    //       window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    //     }, 100);
-
-    //   } catch (error: any) {
-    //     console.error('Fee Defaulter Report Error:', error);
-    //     toast.error(error.message || 'Failed to generate report');
-
-    //     setReportData([]);
-    //     setShowReport(true);
-    //   } finally {
-    //     setReportLoading(false);
-    //     setLoading(false);
-    //   }
-    // };
-
-    const handleSubmit = async () => {
+    const onSubmit: SubmitHandler<FormFields> = async (data) => {
         // Optional: Keep validation
         if (!filters.academicYearId) return toast.error('Please select an Academic Year');
         if (filters.feeGroupIds.length === 0) return toast.error('Please select at least one Fee Group');
-        if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
+        // if (filters.termIds.length === 0) return toast.error('Please select at least one Term');
 
         setReportLoading(true);
         setShowReport(false);
 
-        // Simulate API delay
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+        const { fromDate, toDate } = data;
+        const today = new Date();
 
-        // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeDefaulterReportRow[] = [
-            {
-                feeGroup: 'Tuition Fee',
-                totalDue: 12500,
-                fsS_TotalToBePaid: 3000,
-                fsS_CurrentYrCharges: 10000,
-                fsS_AdjustedAmount: 1200,
-                fsS_ConcessionAmount: 1000,
-                fsS_FineAmount: 1000,
-                fsS_RefundAmount: 10000,
-                fsS_RunningExcessAmount: 1000,
-                fsS_PaidAmount: 2000,
-                fsS_WaivedAmount: 6000,
-                fsS_ToBePaid: 10000
-            },
-            {
-                feeGroup: 'Transport + Tuition',
-                totalDue: 28500,
-                fsS_TotalToBePaid: 100,
-                fsS_CurrentYrCharges: 10000,
-                fsS_AdjustedAmount: 4000,
-                fsS_ConcessionAmount: 1000,
-                fsS_FineAmount: 1000,
-                fsS_RefundAmount: 9800,
-                fsS_RunningExcessAmount: 1000,
-                fsS_PaidAmount: 2000,
-                fsS_WaivedAmount: 20000,
-                fsS_ToBePaid: 10000
-            },
-            {
-                feeGroup: 'Annual Charges',
-                totalDue: 200,
-                fsS_TotalToBePaid: 100,
-                fsS_CurrentYrCharges: 10000,
-                fsS_AdjustedAmount: 3000,
-                fsS_ConcessionAmount: 1000,
-                fsS_FineAmount: 1000,
-                fsS_RefundAmount: 10000,
-                fsS_RunningExcessAmount: 1000,
-                fsS_PaidAmount: 2000,
-                fsS_WaivedAmount: 4500,
-                fsS_ToBePaid: 4500
-            },
-            {
-                feeGroup: 'Tuition Fee',
-                totalDue: 15000,
-                fsS_TotalToBePaid: 100,
-                fsS_CurrentYrCharges: 10000,
-                fsS_AdjustedAmount: 1200,
-                fsS_ConcessionAmount: 4000,
-                fsS_FineAmount: 1000,
-                fsS_RefundAmount: 10000,
-                fsS_RunningExcessAmount: 1000,
-                fsS_PaidAmount: 2000,
-                fsS_WaivedAmount: 20000,
-                fsS_ToBePaid: 10000
-            },
-            {
-                feeGroup: 'Lab + Tuition',
-                totalDue: 42000,
-                fsS_TotalToBePaid: 100,
-                fsS_CurrentYrCharges: 10000,
-                fsS_AdjustedAmount: 1200,
-                fsS_ConcessionAmount: 1000,
-                fsS_FineAmount: 1000,
-                fsS_RefundAmount: 6000,
-                fsS_RunningExcessAmount: 1000,
-                fsS_PaidAmount: 2000,
-                fsS_WaivedAmount: 7000,
-                fsS_ToBePaid: 10000
-            }
-        ];
+        try {
+            const payload = {
+                // // Fee Group Ids
+                // FMG_Ids: filters.feeGroupIds,
 
-        setReportData(mockData);
-        setShowReport(true);
-        setReportLoading(false);
-        setLoading(false);
+                // // Term OR Installment Ids
+                // FTI_ids:
+                //     filters.breakdown === 'INMW'
+                //         ? filters.installmentIds
+                //         : filters.termIds,
 
-        toast.success(`Report generated successfully! Found ${mockData.length} defaulters`);
+                FMG_Ids: [385, 385, 377, 378],
+                FTI_ids: [83],
 
-        // Auto scroll to report
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
+                // Academic Year
+                ASMAY_Id: Number(filters.academicYearId),
+
+                // Year / Date wise
+                reporttype: filters.viewMode, // "year" | "date"
+
+                // Breakdown radio value
+                radioval: filters.breakdown, // e.g. "INMW"
+
+                // Status flags (1 / 0)
+                active: filters.status.active ? 1 : 0,
+                deactive: filters.status.deactive ? 1 : 0,
+                left: filters.status.left ? 1 : 0,
+                From_Date: '2025-12-15',
+                To_Date: '2025-12-15',
+
+                // // Date filters
+                // From_Date:
+                //     filters.viewMode === 'date'
+                //         ? format(fromDate ?? today, 'yyyy-MM-dd')
+                //         : null,
+
+                // To_Date:
+                //     filters.viewMode === 'date'
+                //         ? format(toDate ?? today, 'yyyy-MM-dd')
+                //         : null,
+
+                // Term Group (Hardcoded / configurable)
+                term_group: 'T',
+                //filters.breakdown === 'INMW' ? 'I' : 'T',
+
+                // Category / Class / Section
+                FMCC_Id: 1, // static (change if required)
+                ASMCL_Id: filters.classId ?? 0,
+                AMSC_Id: filters.sectionId ?? 0
+            };
+
+            const js = JSON.stringify(payload);
+
+            console.log('Fee Defaulter Payload 👉', js);
+
+            // 🔹 API CALL HERE
+            // const response = await fetchFeeDefaulterReport(payload);
+            const response = await getFeeYearlyCollectionReport(payload);
+
+            const apiList = response?.data?.list ?? [];
+
+            const tableData = mapYearlyCollectionReport(apiList, filters.breakdown as BreakdownType);
+
+            setReportData(tableData);
+            setShowReport(true);
+
+            toast.success(`Report generated (${tableData.length} records)`);
+
+            toast.success('Report generated successfully');
+        } catch (error: any) {
+            console.error(error);
+            toast.error('Failed to generate report');
+        } finally {
+            setReportLoading(false);
+        }
+
+        // await new Promise((resolve) => setTimeout(resolve, 1200));
+
+        // // STATIC MOCK DATA - Looks 100% real!
+        // const mockData: IFeeDefaulterReportRow[] = [
+        //     {
+        //         feeGroup: 'Tuition Fee',
+        //         totalDue: 12500,
+        //         fsS_TotalToBePaid: 3000,
+        //         fsS_CurrentYrCharges: 10000,
+        //         fsS_AdjustedAmount: 1200,
+        //         fsS_ConcessionAmount: 1000,
+        //         fsS_FineAmount: 1000,
+        //         fsS_RefundAmount: 10000,
+        //         fsS_RunningExcessAmount: 1000,
+        //         fsS_PaidAmount: 2000,
+        //         fsS_WaivedAmount: 6000,
+        //         fsS_ToBePaid: 10000
+        //     },
+        //     {
+        //         feeGroup: 'Transport + Tuition',
+        //         totalDue: 28500,
+        //         fsS_TotalToBePaid: 100,
+        //         fsS_CurrentYrCharges: 10000,
+        //         fsS_AdjustedAmount: 4000,
+        //         fsS_ConcessionAmount: 1000,
+        //         fsS_FineAmount: 1000,
+        //         fsS_RefundAmount: 9800,
+        //         fsS_RunningExcessAmount: 1000,
+        //         fsS_PaidAmount: 2000,
+        //         fsS_WaivedAmount: 20000,
+        //         fsS_ToBePaid: 10000
+        //     },
+        //     {
+        //         feeGroup: 'Annual Charges',
+        //         totalDue: 200,
+        //         fsS_TotalToBePaid: 100,
+        //         fsS_CurrentYrCharges: 10000,
+        //         fsS_AdjustedAmount: 3000,
+        //         fsS_ConcessionAmount: 1000,
+        //         fsS_FineAmount: 1000,
+        //         fsS_RefundAmount: 10000,
+        //         fsS_RunningExcessAmount: 1000,
+        //         fsS_PaidAmount: 2000,
+        //         fsS_WaivedAmount: 4500,
+        //         fsS_ToBePaid: 4500
+        //     },
+        //     {
+        //         feeGroup: 'Tuition Fee',
+        //         totalDue: 15000,
+        //         fsS_TotalToBePaid: 100,
+        //         fsS_CurrentYrCharges: 10000,
+        //         fsS_AdjustedAmount: 1200,
+        //         fsS_ConcessionAmount: 4000,
+        //         fsS_FineAmount: 1000,
+        //         fsS_RefundAmount: 10000,
+        //         fsS_RunningExcessAmount: 1000,
+        //         fsS_PaidAmount: 2000,
+        //         fsS_WaivedAmount: 20000,
+        //         fsS_ToBePaid: 10000
+        //     },
+        //     {
+        //         feeGroup: 'Lab + Tuition',
+        //         totalDue: 42000,
+        //         fsS_TotalToBePaid: 100,
+        //         fsS_CurrentYrCharges: 10000,
+        //         fsS_AdjustedAmount: 1200,
+        //         fsS_ConcessionAmount: 1000,
+        //         fsS_FineAmount: 1000,
+        //         fsS_RefundAmount: 6000,
+        //         fsS_RunningExcessAmount: 1000,
+        //         fsS_PaidAmount: 2000,
+        //         fsS_WaivedAmount: 7000,
+        //         fsS_ToBePaid: 10000
+        //     }
+        // ];
+
+        // setReportData(mockData);
+        // setShowReport(true);
+        // setReportLoading(false);
+        // setLoading(false);
+
+        // toast.success(`Report generated successfully! Found ${mockData.length} defaulters`);
+
+        // // Auto scroll to report
+        // setTimeout(() => {
+        //     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        // }, 100);
+    };
+    const handlePrint = () => {
+        const rows = tableData.filter((r): r is IFeeYearlyCollectionReportRow => !('__isTotal' in r));
+
+        const totalRow = tableData.find((r): r is FeeYearlyTableRow => '__isTotal' in r);
+
+        printTableDynamic(filters.breakdown as BreakdownType, rows, totalRow);
+    };
+
+    const handleExportExcel = () => {
+        exportToExcelDynamic(filters.breakdown as BreakdownType, reportData, 'Yearly_Fee_Collection_Report');
     };
 
     const isAcademicYearSelected = !!filters.academicYearId;
@@ -399,538 +525,522 @@ export default function FeeDefaulterReport() {
 
     return (
         <div className='min-h-screen bg-gray-50 py-8'>
-            <div className='mx-auto max-w-7xl'>
-                <Card className='border-0 shadow-xl'>
-                    <div className='p-8'>
-                        {/* <h1 className='mb-8 font-bold text-3xl text-gray-900'>Yearly Fee Collection Report</h1> */}
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
+                <div className='mx-auto max-w-7xl'>
+                    <Card className='border-0 shadow-xl'>
+                        <div className='p-8'>
+                            {/* <h1 className='mb-8 font-bold text-3xl text-gray-900'>Yearly Fee Collection Report</h1> */}
 
-                        <div className='space-y-8'>
-                            <Card className='border bg-gray-50 p-5 shadow-sm'>
-                                <div className='flex flex-wrap items-center justify-center gap-10'>
-                                    {/* {(['Students', 'Staff', 'Others'] as const).map((type) => (
-                                        <label key={type} className='flex cursor-pointer items-center gap-3'>
-                                            <input
-                                                type='radio'
-                                                name='userType'
-                                                checked={filters.userType === type}
-                                                onChange={() => setFilters((prev) => ({ ...prev, userType: type }))}
-                                                className='h-5 w-5 text-primary'
-                                            />
-                                            <span className='font-medium text-base'>{type}</span>
-                                        </label>
-                                    ))} */}
-
-                                    {/* {(['year', 'date'] as const).map((mode) => (
-                                            <label key={mode} className='flex cursor-pointer items-center gap-3'>
+                            <div className='space-y-8'>
+                                <Card className='border bg-gray-50 p-5 shadow-sm'>
+                                    <div className='flex flex-wrap items-center justify-center gap-10'>
+                                        {(
+                                            [
+                                                { label: 'Yearly Wise', value: 'year' },
+                                                { label: 'Date Wise', value: 'date' }
+                                            ] as const
+                                        ).map((mode) => (
+                                            <label key={mode.value} className='flex cursor-pointer items-center gap-3'>
                                                 <input
                                                     type='radio'
                                                     name='viewMode'
-                                                    checked={filters.viewMode === mode}
-                                                    onChange={() => setFilters((prev) => ({ ...prev, viewMode: mode }))}
+                                                    checked={filters.viewMode === mode.value}
+                                                    onChange={() => setFilters((prev) => ({ ...prev, viewMode: mode.value }))}
                                                     className='h-5 w-5 text-primary'
                                                 />
-                                                <span className='font-medium text-base'>{mode}</span>
-                                            </label>
-                                        ))} */}
-
-                                    {(
-                                        [
-                                            { label: 'Yearly Wise', value: 'year' },
-                                            { label: 'Date Wise', value: 'date' }
-                                        ] as const
-                                    ).map((mode) => (
-                                        <label key={mode.value} className='flex cursor-pointer items-center gap-3'>
-                                            <input
-                                                type='radio'
-                                                name='viewMode'
-                                                checked={filters.viewMode === mode.value}
-                                                onChange={() => setFilters((prev) => ({ ...prev, viewMode: mode.value }))}
-                                                className='h-5 w-5 text-primary'
-                                            />
-                                            <span className='font-medium text-base'>{mode.label}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </Card>
-
-                            {/* View Mode + Academic Year */}
-                            {/* View Mode + Academic Year + Full Breakdown Radio Group */}
-                            <div className='flex flex-wrap gap-8'>
-                                {/* Full Breakdown Radio Group */}
-                                <Card className='min-w-[400px] flex-1 border bg-gray-50 p-5 shadow-sm'>
-                                    <div className='flex flex-wrap gap-4'>
-                                        {[
-                                            { label: 'Fee Group Wise', value: 'FGW' },
-                                            { label: 'Fee Head Wise', value: 'FHW' },
-                                            { label: 'Class Wise', value: 'FCW' },
-                                            { label: 'Student Wise', value: 'FSW' },
-                                            { label: 'Term Wise', value: 'TRMW' },
-                                            { label: 'Installment Wise', value: 'INMW' },
-                                            { label: 'Student Term Wise', value: 'STRMW' },
-                                            { label: 'Category Wise', value: 'CW' },
-                                            { label: 'Class-Section-Installmentwise Consolidated', value: 'CTW' },
-                                            { label: 'Class-Installmentwise Consolidated', value: 'CTC' },
-                                            { label: 'Student Wise Total Paid Count', value: 'SWTPC' },
-                                            { label: 'Class-Section Wise Total Paid Count', value: 'CWTPC' },
-                                            { label: 'Parent Wise', value: 'FPW' }
-                                        ].map((option) => (
-                                            <label key={option.value} className='flex cursor-pointer items-center gap-3 whitespace-nowrap'>
-                                                <input
-                                                    type='radio'
-                                                    name='breakdown'
-                                                    checked={filters.breakdown === option.value}
-                                                    onChange={() => setFilters((prev) => ({ ...prev, breakdown: option.value }))}
-                                                    className='h-5 w-5 text-primary'
-                                                />
-                                                <span className='font-medium text-sm'>{option.label}</span>
+                                                <span className='font-medium text-base'>{mode.label}</span>
                                             </label>
                                         ))}
                                     </div>
                                 </Card>
 
-                                {/* Academic Year */}
-                                <div className='min-w-[300px] space-y-3'>
-                                    <Label className='font-semibold text-lg'>
-                                        Academic Year <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Select
-                                        value={filters.academicYearId}
-                                        onValueChange={(val) => setFilters((prev) => ({ ...prev, academicYearId: val }))}
-                                        disabled={loadingAcademic}>
-                                        <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {academicYears.map((year) => (
-                                                <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
-                                                    {year.asmaY_Year}
-                                                </SelectItem>
+                                {/* View Mode + Academic Year */}
+                                {/* View Mode + Academic Year + Full Breakdown Radio Group */}
+                                <div className='flex flex-wrap gap-8'>
+                                    {/* Full Breakdown Radio Group */}
+                                    <Card className='min-w-[400px] flex-1 border bg-gray-50 p-5 shadow-sm'>
+                                        <div className='flex flex-wrap gap-4'>
+                                            {[
+                                                { label: 'Fee Group Wise', value: 'FGW' },
+                                                { label: 'Fee Head Wise', value: 'FHW' },
+                                                { label: 'Class Wise', value: 'FCW' },
+                                                { label: 'Student Wise', value: 'FSW' },
+                                                { label: 'Term Wise', value: 'TRMW' },
+                                                { label: 'Installment Wise', value: 'INMW' },
+                                                { label: 'Student Term Wise', value: 'STRMW' },
+                                                { label: 'Category Wise', value: 'CW' },
+                                                { label: 'Class-Section-Installmentwise Consolidated', value: 'CTW' },
+                                                { label: 'Class-Installmentwise Consolidated', value: 'CTC' },
+                                                { label: 'Student Wise Total Paid Count', value: 'SWTPC' },
+                                                { label: 'Class-Section Wise Total Paid Count', value: 'CWTPC' },
+                                                { label: 'Parent Wise', value: 'FPW' }
+                                            ].map((option) => (
+                                                <label
+                                                    key={option.value}
+                                                    className='flex cursor-pointer items-center gap-3 whitespace-nowrap'>
+                                                    <input
+                                                        type='radio'
+                                                        name='breakdown'
+                                                        checked={filters.breakdown === option.value}
+                                                        onChange={() => setFilters((prev) => ({ ...prev, breakdown: option.value }))}
+                                                        className='h-5 w-5 text-primary'
+                                                    />
+                                                    <span className='font-medium text-sm'>{option.label}</span>
+                                                </label>
                                             ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
-                                {/* Column 1: Custom Group */}
-                                <div className='space-y-3'>
-                                    <Label className='font-semibold text-lg'>Custom Group</Label>
-                                    <Card className='border bg-gray-50 p-4'>
-                                        <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                            <label
-                                                htmlFor='customGroupSelectAll'
-                                                className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                <Checkbox
-                                                    id='customGroupSelectAll'
-                                                    checked={
-                                                        customGroups.length > 0 && filters.customGroupIds.length === customGroups.length
-                                                    }
-                                                    indeterminate={
-                                                        filters.customGroupIds.length > 0 &&
-                                                        filters.customGroupIds.length < customGroups.length
-                                                    }
-                                                    onCheckedChange={(checked: any) => selectAllCustomGroups(!!checked)}
-                                                />
-                                                <span>Select All</span>
-                                            </label>
-
-                                            {loadingCustomGroup ? (
-                                                <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                            ) : customGroups.length > 0 ? (
-                                                customGroups.map((group) => (
-                                                    <label
-                                                        key={group.fmgG_Id}
-                                                        htmlFor={`customGroup-${group.fmgG_Id}`}
-                                                        className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                        <Checkbox
-                                                            id={`customGroup-${group.fmgG_Id}`}
-                                                            checked={filters.customGroupIds.includes(group.fmgG_Id)}
-                                                            onCheckedChange={() => toggleCustomGroup(group.fmgG_Id)}
-                                                        />
-                                                        <span className='font-medium text-sm'>{group.fmgG_GroupName}</span>
-                                                    </label>
-                                                ))
-                                            ) : (
-                                                <div className='py-4 text-center text-gray-500'>No custom groups</div>
-                                            )}
                                         </div>
                                     </Card>
-                                </div>
 
-                                {/* Column 2: Fee Group */}
-                                <div className='space-y-3'>
-                                    <Label className='font-semibold text-lg'>
-                                        Fee Group <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Card className='border bg-gray-50 p-4'>
-                                        <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                            <label
-                                                htmlFor='feeGroupSelectAll'
-                                                className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                <Checkbox
-                                                    id='feeGroupSelectAll'
-                                                    checked={feeGroups.length > 0 && filters.feeGroupIds.length === feeGroups.length}
-                                                    indeterminate={
-                                                        filters.feeGroupIds.length > 0 && filters.feeGroupIds.length < feeGroups.length
-                                                    }
-                                                    onCheckedChange={(checked: any) => selectAllFeeGroups(!!checked)}
-                                                />
-                                                <span>Select All</span>
-                                            </label>
-
-                                            {loadingfeegroup ? (
-                                                <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                            ) : feeGroups.length > 0 ? (
-                                                feeGroups.map((group) => (
-                                                    <label
-                                                        key={group.fmG_Id}
-                                                        htmlFor={`feeGroup-${group.fmG_Id}`}
-                                                        className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                        <Checkbox
-                                                            id={`feeGroup-${group.fmG_Id}`}
-                                                            checked={filters.feeGroupIds.includes(group.fmG_Id)}
-                                                            onCheckedChange={() => toggleFeeGroup(group.fmG_Id)}
-                                                        />
-                                                        <span className='text-sm'>{group.fmG_GroupName}</span>
-                                                    </label>
-                                                ))
-                                            ) : (
-                                                <div className='py-4 text-center text-gray-500'>No fee groups</div>
-                                            )}
-                                        </div>
-                                    </Card>
-                                </div>
-
-                                {/* Column 3: Term OR Installment */}
-                                <div className='space-y-3'>
-                                    {filters.breakdown !== 'INMW' && (
-                                        <>
-                                            <Label className='font-semibold text-lg'>
-                                                Term Name <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <Card className='border bg-gray-50 p-4'>
-                                                <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                                    <label
-                                                        htmlFor='termSelectAll'
-                                                        className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                        <Checkbox
-                                                            id='termSelectAll'
-                                                            checked={feeTerms.length > 0 && filters.termIds.length === feeTerms.length}
-                                                            indeterminate={
-                                                                filters.termIds.length > 0 && filters.termIds.length < feeTerms.length
-                                                            }
-                                                            onCheckedChange={(checked: any) => selectAllTerms(!!checked)}
-                                                        />
-                                                        <span>Select All</span>
-                                                    </label>
-
-                                                    {loadingfeeterm ? (
-                                                        <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                    ) : feeTerms.length > 0 ? (
-                                                        feeTerms.map((term) => (
-                                                            <label
-                                                                key={term.fmT_Id}
-                                                                htmlFor={`term-${term.fmT_Id}`}
-                                                                className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                                <Checkbox
-                                                                    id={`term-${term.fmT_Id}`}
-                                                                    checked={filters.termIds.includes(term.fmT_Id)}
-                                                                    onCheckedChange={() => toggleTerm(term.fmT_Id)}
-                                                                />
-                                                                <span className='text-sm'>{term.fmT_Name}</span>
-                                                            </label>
-                                                        ))
-                                                    ) : (
-                                                        <div className='py-4 text-center text-gray-500'>No terms</div>
-                                                    )}
-                                                </div>
-                                            </Card>
-                                        </>
-                                    )}
-
-                                    {filters.breakdown === 'INMW' && (
-                                        <>
-                                            <Label className='font-semibold text-lg'>
-                                                Installment Name <span className='text-red-500'>*</span>
-                                            </Label>
-                                            <Card className='border bg-gray-50 p-4'>
-                                                <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                                    <label
-                                                        htmlFor='installmentSelectAll'
-                                                        className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                        <Checkbox
-                                                            id='installmentSelectAll'
-                                                            checked={
-                                                                feeInstallments.length > 0 &&
-                                                                filters.installmentIds.length === feeInstallments.length
-                                                            }
-                                                            indeterminate={
-                                                                filters.installmentIds.length > 0 &&
-                                                                filters.installmentIds.length < feeInstallments.length
-                                                            }
-                                                            onCheckedChange={(checked: any) => selectAllInstallments(!!checked)}
-                                                        />
-                                                        <span>Select All</span>
-                                                    </label>
-
-                                                    {feeInstallmentLoading ? (
-                                                        <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                    ) : feeInstallments.length > 0 ? (
-                                                        feeInstallments.map((installment) => (
-                                                            <label
-                                                                key={installment.fmI_Id}
-                                                                htmlFor={`installment-${installment.fmI_Id}`}
-                                                                className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                                <Checkbox
-                                                                    id={`installment-${installment.fmI_Id}`}
-                                                                    checked={filters.installmentIds.includes(installment.fmI_Id)}
-                                                                    onCheckedChange={() => toggleInstallment(installment.fmI_Id)}
-                                                                />
-                                                                <span className='text-sm'>{installment.fmI_Name}</span>
-                                                            </label>
-                                                        ))
-                                                    ) : (
-                                                        <div className='py-4 text-center text-gray-500'>No installments</div>
-                                                    )}
-                                                </div>
-                                            </Card>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Class & Section + Status + Date (Date section is conditional) */}
-                            <div className='space-y-6 border-t pt-8'>
-                                <div className='flex w-full flex-wrap justify-between gap-6'>
-                                    {/* Status Checkboxes */}
-                                    <div className='flex flex-grow flex-wrap items-center gap-4'>
-                                        <div className='flex items-center gap-2'>
-                                            <Checkbox checked={filters.status.active} onCheckedChange={() => toggleStatus('active')} />
-                                            <Label className='cursor-pointer'>Active</Label>
-                                        </div>
-                                        <div className='flex items-center gap-2'>
-                                            <Checkbox checked={filters.status.deactive} onCheckedChange={() => toggleStatus('deactive')} />
-                                            <Label className='cursor-pointer'>Deactive</Label>
-                                        </div>
-                                        <div className='flex items-center gap-2'>
-                                            <Checkbox checked={filters.status.left} onCheckedChange={() => toggleStatus('left')} />
-                                            <Label className='cursor-pointer'>Left</Label>
-                                        </div>
-                                        {showBalancecheckbox && (
-                                            <div className='flex items-center gap-2'>
-                                                <Checkbox
-                                                    checked={filters.status.balance}
-                                                    onCheckedChange={() => toggleStatus('balance')}
-                                                />
-                                                <Label className='cursor-pointer'>Balance</Label>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {(filters.breakdown === 'FSW' ||
-                                        filters.breakdown === 'STRMW' ||
-                                        filters.breakdown === 'SWTPC' ||
-                                        filters.breakdown === 'CWTPC') && (
-                                        <>
-                                            {/* Class */}
-                                            <div className='flex min-w-[220px] flex-grow items-center gap-3'>
-                                                <Label htmlFor='includeClass' className='whitespace-nowrap font-medium'>
-                                                    Class:
-                                                </Label>
-                                                <Select
-                                                    value={filters.classId === 0 ? '' : String(filters.classId)}
-                                                    onValueChange={(val) => {
-                                                        const id = Number(val);
-                                                        setFilters((prev) => ({ ...prev, classId: id, sectionId: 0 }));
-                                                    }}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {classes.map((cls) => (
-                                                            <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                                {cls.asmcL_ClassName}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-
-                                            {/* Section */}
-                                            <div className='flex min-w-[220px] flex-grow items-center gap-3'>
-                                                <Label className='whitespace-nowrap font-medium'>
-                                                    Section <span className='text-red-500'>*</span>:
-                                                </Label>
-                                                <Select
-                                                    value={filters.sectionId === 0 ? '' : String(filters.sectionId)}
-                                                    onValueChange={(val) => setFilters((prev) => ({ ...prev, sectionId: Number(val) }))}>
-                                                    <SelectTrigger className='w-full'>
-                                                        <SelectValue
-                                                            placeholder={
-                                                                !filters.classId
-                                                                    ? 'Select Class first'
-                                                                    : loadingSections
-                                                                      ? 'Loading...'
-                                                                      : 'Select Section'
-                                                            }
-                                                        />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {sections.map((sec) => (
-                                                            <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
-                                                                {sec.asmC_SectionName}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-
-                                {/* Date section - ONLY shown when Date Wise is selected */}
-                                {showDateSection && (
-                                    <div className='fade-in flex animate-in flex-wrap items-center gap-6 duration-300'>
-                                        <Label className='min-w-32 font-medium'>
-                                            Date <span className='text-red-500'>*</span>
+                                    {/* Academic Year */}
+                                    <div className='min-w-[300px] space-y-3'>
+                                        <Label className='font-semibold text-lg'>
+                                            Academic Year <span className='text-red-500'>*</span>
                                         </Label>
+                                        <Select
+                                            value={filters.academicYearId}
+                                            onValueChange={(val) => setFilters((prev) => ({ ...prev, academicYearId: val }))}
+                                            disabled={loadingAcademic}>
+                                            <SelectTrigger className='w-full'>
+                                                <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {academicYears.map((year) => (
+                                                    <SelectItem key={year.asmaY_Id} value={String(year.asmaY_Id)}>
+                                                        {year.asmaY_Year}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
 
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant='outline' className='w-[240px] justify-start text-left font-normal'>
-                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                    {format(filters.dueDate, 'dd-MM-yyyy')}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                <Calendar
-                                                    mode='single'
-                                                    selected={filters.dueDate}
-                                                    onSelect={(date) => date && setFilters((prev) => ({ ...prev, dueDate: date }))}
-                                                    initialFocus
-                                                />
-                                            </PopoverContent>
-                                        </Popover>
+                                <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
+                                    {/* Column 1: Custom Group */}
+                                    <div className='space-y-3'>
+                                        <Label className='font-semibold text-lg'>Custom Group</Label>
+                                        <Card className='border bg-gray-50 p-4'>
+                                            <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                                <Label
+                                                    htmlFor='customGroupSelectAll'
+                                                    className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                                    <Checkbox
+                                                        id='customGroupSelectAll'
+                                                        checked={
+                                                            customGroups.length > 0 && filters.customGroupIds.length === customGroups.length
+                                                        }
+                                                        indeterminate={
+                                                            filters.customGroupIds.length > 0 &&
+                                                            filters.customGroupIds.length < customGroups.length
+                                                        }
+                                                        onCheckedChange={(checked: any) => selectAllCustomGroups(!!checked)}
+                                                    />
+                                                    <span>Select All</span>
+                                                </Label>
 
-                                        <Card className='border bg-gray-50 p-4 shadow-sm'>
-                                            <div className='flex items-center gap-10'>
-                                                <label className='flex cursor-pointer items-center gap-3'>
-                                                    <input
-                                                        type='radio'
-                                                        name='dueDateType'
-                                                        checked={filters.dueDateType === 'Due Date'}
-                                                        onChange={() => setFilters((prev) => ({ ...prev, dueDateType: 'Due Date' }))}
-                                                        className='h-4 w-4 text-primary'
-                                                    />
-                                                    <span className='font-medium'>Due Date</span>
-                                                </label>
-                                                <label className='flex cursor-pointer items-center gap-3'>
-                                                    <input
-                                                        type='radio'
-                                                        name='dueDateType'
-                                                        checked={filters.dueDateType === 'Till Due Date'}
-                                                        onChange={() => setFilters((prev) => ({ ...prev, dueDateType: 'Till Due Date' }))}
-                                                        className='h-4 w-4 text-primary'
-                                                    />
-                                                    <span className='font-medium'>Till Due Date</span>
-                                                </label>
+                                                {loadingCustomGroup ? (
+                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                                ) : customGroups.length > 0 ? (
+                                                    customGroups.map((group) => (
+                                                        <Label
+                                                            key={group.fmgG_Id}
+                                                            htmlFor={`customGroup-${group.fmgG_Id}`}
+                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                            <Checkbox
+                                                                id={`customGroup-${group.fmgG_Id}`}
+                                                                checked={filters.customGroupIds.includes(group.fmgG_Id)}
+                                                                onCheckedChange={() => toggleCustomGroup(group.fmgG_Id)}
+                                                            />
+                                                            <span className='font-medium text-sm'>{group.fmgG_GroupName}</span>
+                                                        </Label>
+                                                    ))
+                                                ) : (
+                                                    <div className='py-4 text-center text-gray-500'>No custom groups</div>
+                                                )}
                                             </div>
                                         </Card>
                                     </div>
-                                )}
-                            </div>
-                            {filters.viewMode === 'date' && (
-                                <div className='mt-4 flex items-center justify-between rounded border bg-gray-50 p-4 shadow-sm'>
-                                    <div className='flex flex-wrap items-center gap-6'>
-                                        <label className='flex cursor-pointer items-center gap-3'>
-                                            <input
-                                                type='radio'
-                                                name='dateFilter'
-                                                value='1'
-                                                checked={filters.dateFilter === '1'}
-                                                onChange={() => setFilters((prev) => ({ ...prev, dateFilter: '1' }))}
-                                                className='h-4 w-4'
-                                            />
-                                            Transaction Date
-                                        </label>
 
-                                        <label className='flex cursor-pointer items-center gap-3'>
-                                            <input
-                                                type='radio'
-                                                name='dateFilter'
-                                                value='2'
-                                                checked={filters.dateFilter === '2'}
-                                                onChange={() => setFilters((prev) => ({ ...prev, dateFilter: '2' }))}
-                                                className='h-4 w-4'
-                                            />
-                                            Cheque Date
-                                        </label>
+                                    {/* Column 2: Fee Group */}
+                                    <div className='space-y-3'>
+                                        <Label className='font-semibold text-lg'>
+                                            Fee Group <span className='text-red-500'>*</span>
+                                        </Label>
+                                        <Card className='border bg-gray-50 p-4'>
+                                            <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                                <Label
+                                                    htmlFor='feeGroupSelectAll'
+                                                    className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                                    <Checkbox
+                                                        id='feeGroupSelectAll'
+                                                        checked={feeGroups.length > 0 && filters.feeGroupIds.length === feeGroups.length}
+                                                        indeterminate={
+                                                            filters.feeGroupIds.length > 0 && filters.feeGroupIds.length < feeGroups.length
+                                                        }
+                                                        onCheckedChange={(checked: any) => selectAllFeeGroups(!!checked)}
+                                                    />
+                                                    <span>Select All</span>
+                                                </Label>
 
-                                        <label className='flex cursor-pointer items-center gap-3'>
-                                            <input
-                                                type='radio'
-                                                name='dateFilter'
-                                                value='4'
-                                                checked={filters.dateFilter === '4'}
-                                                onChange={() => setFilters((prev) => ({ ...prev, dateFilter: '4' }))}
-                                                className='h-4 w-4'
-                                            />
-                                            Transaction & Cheque
-                                        </label>
-
-                                        <label className='flex cursor-pointer items-center gap-3'>
-                                            <input
-                                                type='radio'
-                                                name='dateFilter'
-                                                value='3'
-                                                checked={filters.dateFilter === '3'}
-                                                onChange={() => setFilters((prev) => ({ ...prev, dateFilter: '3' }))}
-                                                className='h-4 w-4'
-                                            />
-                                            All
-                                        </label>
+                                                {loadingfeegroup ? (
+                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                                ) : feeGroups.length > 0 ? (
+                                                    feeGroups.map((group) => (
+                                                        <Label
+                                                            key={group.fmG_Id}
+                                                            htmlFor={`feeGroup-${group.fmG_Id}`}
+                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                            <Checkbox
+                                                                id={`feeGroup-${group.fmG_Id}`}
+                                                                checked={filters.feeGroupIds.includes(group.fmG_Id)}
+                                                                onCheckedChange={() => toggleFeeGroup(group.fmG_Id)}
+                                                            />
+                                                            <span className='text-sm'>{group.fmG_GroupName}</span>
+                                                        </Label>
+                                                    ))
+                                                ) : (
+                                                    <div className='py-4 text-center text-gray-500'>No fee groups</div>
+                                                )}
+                                            </div>
+                                        </Card>
                                     </div>
 
-                                    <div className='flex items-center gap-6'>
-                                        <div className='flex flex-col'>
-                                            <label htmlFor='fromDate' className='font-medium'>
-                                                From Date:
-                                            </label>
-                                            <input
-                                                id='fromDate'
-                                                type='date'
-                                                onChange={(e) =>
-                                                    setFilters((prev) => ({
-                                                        ...prev,
-                                                        fromDate: e.target.value ? new Date(e.target.value) : null
-                                                    }))
-                                                }
-                                                className='rounded border px-3 py-1'
-                                            />
-                                        </div>
+                                    {/* Column 3: Term OR Installment */}
+                                    <div className='space-y-3'>
+                                        {filters.breakdown !== 'INMW' && (
+                                            <>
+                                                <Label className='font-semibold text-lg'>
+                                                    Term Name <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Card className='border bg-gray-50 p-4'>
+                                                    <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                                        <Label
+                                                            htmlFor='termSelectAll'
+                                                            className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                                            <Checkbox
+                                                                id='termSelectAll'
+                                                                checked={feeTerms.length > 0 && filters.termIds.length === feeTerms.length}
+                                                                indeterminate={
+                                                                    filters.termIds.length > 0 && filters.termIds.length < feeTerms.length
+                                                                }
+                                                                onCheckedChange={(checked: any) => selectAllTerms(!!checked)}
+                                                            />
+                                                            <span>Select All</span>
+                                                        </Label>
 
-                                        <div className='flex flex-col'>
-                                            <label htmlFor='toDate' className='font-medium'>
-                                                To Date:
-                                            </label>
-                                            <input
-                                                id='toDate'
-                                                type='date'
-                                                onChange={(e) =>
-                                                    setFilters((prev) => ({
-                                                        ...prev,
-                                                        toDate: e.target.value ? new Date(e.target.value) : null
-                                                    }))
-                                                }
-                                                className='rounded border px-3 py-1'
-                                            />
-                                        </div>
+                                                        {loadingfeeterm ? (
+                                                            <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                                        ) : feeTerms.length > 0 ? (
+                                                            feeTerms.map((term) => (
+                                                                <Label
+                                                                    key={term.fmT_Id}
+                                                                    htmlFor={`term-${term.fmT_Id}`}
+                                                                    className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                                    <Checkbox
+                                                                        id={`term-${term.fmT_Id}`}
+                                                                        checked={filters.termIds.includes(term.fmT_Id)}
+                                                                        onCheckedChange={() => toggleTerm(term.fmT_Id)}
+                                                                    />
+                                                                    <span className='text-sm'>{term.fmT_Name}</span>
+                                                                </Label>
+                                                            ))
+                                                        ) : (
+                                                            <div className='py-4 text-center text-gray-500'>No terms</div>
+                                                        )}
+                                                    </div>
+                                                </Card>
+                                            </>
+                                        )}
+
+                                        {filters.breakdown === 'INMW' && (
+                                            <>
+                                                <Label className='font-semibold text-lg'>
+                                                    Installment Name <span className='text-red-500'>*</span>
+                                                </Label>
+                                                <Card className='border bg-gray-50 p-4'>
+                                                    <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                                        <Label
+                                                            htmlFor='installmentSelectAll'
+                                                            className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
+                                                            <Checkbox
+                                                                id='installmentSelectAll'
+                                                                checked={
+                                                                    feeInstallments.length > 0 &&
+                                                                    filters.installmentIds.length === feeInstallments.length
+                                                                }
+                                                                indeterminate={
+                                                                    filters.installmentIds.length > 0 &&
+                                                                    filters.installmentIds.length < feeInstallments.length
+                                                                }
+                                                                onCheckedChange={(checked: any) => selectAllInstallments(!!checked)}
+                                                            />
+                                                            <span>Select All</span>
+                                                        </Label>
+
+                                                        {feeInstallmentLoading ? (
+                                                            <div className='py-4 text-center text-gray-500'>Loading...</div>
+                                                        ) : feeInstallments.length > 0 ? (
+                                                            feeInstallments.map((installment) => (
+                                                                <Label
+                                                                    key={installment.fmI_Id}
+                                                                    htmlFor={`installment-${installment.fmI_Id}`}
+                                                                    className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                                    <Checkbox
+                                                                        id={`installment-${installment.fmI_Id}`}
+                                                                        checked={filters.installmentIds.includes(installment.fmI_Id)}
+                                                                        onCheckedChange={() => toggleInstallment(installment.fmI_Id)}
+                                                                    />
+                                                                    <span className='text-sm'>{installment.fmI_Name}</span>
+                                                                </Label>
+                                                            ))
+                                                        ) : (
+                                                            <div className='py-4 text-center text-gray-500'>No installments</div>
+                                                        )}
+                                                    </div>
+                                                </Card>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
-                            )}
 
-                            <div>
-                                {/* ==================== ACTION BUTTONS ==================== */}
-                                <div className='flex justify-end gap-4 border-t pt-8'>
+                                {/* Class & Section + Status + Date (Date section is conditional) */}
+                                <div className='space-y-6 border-t pt-8'>
+                                    <div className='flex w-full flex-wrap justify-between gap-6'>
+                                        {/* Status Checkboxes */}
+                                        <div className='flex flex-grow flex-wrap items-center gap-4'>
+                                            <div className='flex items-center gap-2'>
+                                                <Checkbox checked={filters.status.active} onCheckedChange={() => toggleStatus('active')} />
+                                                <Label className='cursor-pointer'>Active</Label>
+                                            </div>
+                                            <div className='flex items-center gap-2'>
+                                                <Checkbox
+                                                    checked={filters.status.deactive}
+                                                    onCheckedChange={() => toggleStatus('deactive')}
+                                                />
+                                                <Label className='cursor-pointer'>Deactive</Label>
+                                            </div>
+                                            <div className='flex items-center gap-2'>
+                                                <Checkbox checked={filters.status.left} onCheckedChange={() => toggleStatus('left')} />
+                                                <Label className='cursor-pointer'>Left</Label>
+                                            </div>
+                                            {showBalancecheckbox && (
+                                                <div className='flex items-center gap-2'>
+                                                    <Checkbox
+                                                        checked={filters.status.balance}
+                                                        onCheckedChange={() => toggleStatus('balance')}
+                                                    />
+                                                    <Label className='cursor-pointer'>Balance</Label>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {(filters.breakdown === 'FSW' ||
+                                            filters.breakdown === 'STRMW' ||
+                                            filters.breakdown === 'SWTPC' ||
+                                            filters.breakdown === 'CWTPC') && (
+                                            <>
+                                                {/* Class */}
+                                                <div className='flex min-w-[220px] flex-grow items-center gap-3'>
+                                                    <Label htmlFor='includeClass' className='whitespace-nowrap font-medium'>
+                                                        Class:
+                                                    </Label>
+                                                    <Select
+                                                        value={filters.classId === 0 ? '' : String(filters.classId)}
+                                                        onValueChange={(val) => {
+                                                            const id = Number(val);
+                                                            setFilters((prev) => ({ ...prev, classId: id, sectionId: 0 }));
+                                                        }}>
+                                                        <SelectTrigger className='w-full'>
+                                                            <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {classes.map((cls) => (
+                                                                <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                                    {cls.asmcL_ClassName}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                {/* Section */}
+                                                <div className='flex min-w-[220px] flex-grow items-center gap-3'>
+                                                    <Label className='whitespace-nowrap font-medium'>
+                                                        Section <span className='text-red-500'>*</span>:
+                                                    </Label>
+                                                    <Select
+                                                        value={filters.sectionId === 0 ? '' : String(filters.sectionId)}
+                                                        onValueChange={(val) =>
+                                                            setFilters((prev) => ({ ...prev, sectionId: Number(val) }))
+                                                        }>
+                                                        <SelectTrigger className='w-full'>
+                                                            <SelectValue
+                                                                placeholder={
+                                                                    !filters.classId
+                                                                        ? 'Select Class first'
+                                                                        : loadingSections
+                                                                          ? 'Loading...'
+                                                                          : 'Select Section'
+                                                                }
+                                                            />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {sections.map((sec) => (
+                                                                <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                                                    {sec.asmC_SectionName}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Date section - ONLY shown when Date Wise is selected */}
+                                    {showDateSection && (
+                                        <div className='fade-in flex animate-in flex-wrap items-center gap-6 duration-300'>
+                                            <Label className='min-w-32 font-medium'>
+                                                Date <span className='text-red-500'>*</span>
+                                            </Label>
+
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <Button variant='outline' className='w-[240px] justify-start text-left font-normal'>
+                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                        {format(filters.dueDate, 'dd-MM-yyyy')}
+                                                    </Button>
+                                                </PopoverTrigger>
+                                                <PopoverContent className='w-auto p-0' align='start'>
+                                                    <Calendar
+                                                        mode='single'
+                                                        selected={filters.dueDate}
+                                                        onSelect={(date) => date && setFilters((prev) => ({ ...prev, dueDate: date }))}
+                                                        initialFocus
+                                                    />
+                                                </PopoverContent>
+                                            </Popover>
+
+                                            <Card className='border bg-gray-50 p-4 shadow-sm'>
+                                                <div className='flex items-center gap-10'>
+                                                    <Label className='flex cursor-pointer items-center gap-3'>
+                                                        <input
+                                                            type='radio'
+                                                            name='dueDateType'
+                                                            checked={filters.dueDateType === 'Due Date'}
+                                                            onChange={() => setFilters((prev) => ({ ...prev, dueDateType: 'Due Date' }))}
+                                                            className='h-4 w-4 text-primary'
+                                                        />
+                                                        <span className='font-medium'>Due Date</span>
+                                                    </Label>
+                                                    <Label className='flex cursor-pointer items-center gap-3'>
+                                                        <input
+                                                            type='radio'
+                                                            name='dueDateType'
+                                                            checked={filters.dueDateType === 'Till Due Date'}
+                                                            onChange={() =>
+                                                                setFilters((prev) => ({ ...prev, dueDateType: 'Till Due Date' }))
+                                                            }
+                                                            className='h-4 w-4 text-primary'
+                                                        />
+                                                        <span className='font-medium'>Till Due Date</span>
+                                                    </Label>
+                                                </div>
+                                            </Card>
+                                        </div>
+                                    )}
+                                </div>
+                                {filters.viewMode === 'date' && (
+                                    <div className='mt-4 flex items-center justify-between rounded border bg-gray-50 p-4 shadow-sm'>
+                                        <div className='flex flex-wrap items-center gap-6'>
+                                            <Label className='flex cursor-pointer items-center gap-3'>
+                                                <input
+                                                    type='radio'
+                                                    name='dateFilter'
+                                                    value='1'
+                                                    checked={filters.dateFilter === '1'}
+                                                    onChange={() => setFilters((prev) => ({ ...prev, dateFilter: '1' }))}
+                                                    className='h-4 w-4'
+                                                />
+                                                Transaction Date
+                                            </Label>
+
+                                            <Label className='flex cursor-pointer items-center gap-3'>
+                                                <input
+                                                    type='radio'
+                                                    name='dateFilter'
+                                                    value='2'
+                                                    checked={filters.dateFilter === '2'}
+                                                    onChange={() => setFilters((prev) => ({ ...prev, dateFilter: '2' }))}
+                                                    className='h-4 w-4'
+                                                />
+                                                Cheque Date
+                                            </Label>
+
+                                            <Label className='flex cursor-pointer items-center gap-3'>
+                                                <input
+                                                    type='radio'
+                                                    name='dateFilter'
+                                                    value='4'
+                                                    checked={filters.dateFilter === '4'}
+                                                    onChange={() => setFilters((prev) => ({ ...prev, dateFilter: '4' }))}
+                                                    className='h-4 w-4'
+                                                />
+                                                Transaction & Cheque
+                                            </Label>
+
+                                            <Label className='flex cursor-pointer items-center gap-3'>
+                                                <input
+                                                    type='radio'
+                                                    name='dateFilter'
+                                                    value='3'
+                                                    checked={filters.dateFilter === '3'}
+                                                    onChange={() => setFilters((prev) => ({ ...prev, dateFilter: '3' }))}
+                                                    className='h-4 w-4'
+                                                />
+                                                All
+                                            </Label>
+                                        </div>
+
+                                        <div className='flex items-center gap-6'>
+                                            <div className='flex flex-col'>
+                                                <Label htmlFor='fromDate' className='font-medium'>
+                                                    From Date:
+                                                </Label>
+                                                <input
+                                                    id='fromDate'
+                                                    type='date'
+                                                    onChange={(e) =>
+                                                        setFilters((prev) => ({
+                                                            ...prev,
+                                                            fromDate: e.target.value ? new Date(e.target.value) : null
+                                                        }))
+                                                    }
+                                                    className='rounded border px-3 py-1'
+                                                />
+                                            </div>
+
+                                            <div className='flex flex-col'>
+                                                <Label htmlFor='toDate' className='font-medium'>
+                                                    To Date:
+                                                </Label>
+                                                <input
+                                                    id='toDate'
+                                                    type='date'
+                                                    onChange={(e) =>
+                                                        setFilters((prev) => ({
+                                                            ...prev,
+                                                            toDate: e.target.value ? new Date(e.target.value) : null
+                                                        }))
+                                                    }
+                                                    className='rounded border px-3 py-1'
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div>
+                                    {/* ==================== ACTION BUTTONS ==================== */}
+                                    {/* <div className='flex justify-end gap-4 border-t pt-8'>
                                     <Button size='lg' variant='outline' className='px-8' onClick={() => window.location.reload()}>
                                         Cancel
                                     </Button>
@@ -954,42 +1064,71 @@ export default function FeeDefaulterReport() {
                                             'Generate Report'
                                         )}
                                     </Button>
-                                </div>
+                                </div> */}
 
-                                {/* ==================== REPORT SECTION ==================== */}
-                                {/* ==================== REPORT SECTION ==================== */}
-                                {showReport && (
-                                    <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
-                                        {/* Loading State */}
-                                        {reportLoading ? (
-                                            <div className='p-24 text-center'>
-                                                <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                                                <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
-                                            </div>
-                                        ) : (
-                                            /* Table Inside CollapsibleSection */
-                                            <CollapsibleSection
-                                                defaultOpen={true}
-                                                variant='default'
-                                                size='lg'
-                                                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                <div className='border-b bg-primary/5 px-8 py-6'>
-                                                    <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
-                                                </div>
-                                                <GenericDataTable<IFeeDefaulterReportRow>
-                                                    columns={YearlyFeeCollectionReportColumns}
-                                                    data={reportData}
-                                                    isLoading={reportLoading}
-                                                />
-                                            </CollapsibleSection>
-                                        )}
+                                    <div className='flex justify-center gap-4 border-t pt-6'>
+                                        <Button type='submit' disabled={isSubmitting} className='min-w-32'>
+                                            {isSubmitting ? 'Generating...' : 'Report'}
+                                        </Button>
+
+                                        <Button type='button' variant='outline' onClick={handleReset}>
+                                            Cancel
+                                        </Button>
                                     </div>
-                                )}
+
+                                    {/* ==================== REPORT SECTION ==================== */}
+                                    {/* ==================== REPORT SECTION ==================== */}
+                                    {showReport && (
+                                        <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
+                                            {/* Loading State */}
+                                            {reportLoading ? (
+                                                <div className='p-24 text-center'>
+                                                    <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                                                    <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
+                                                </div>
+                                            ) : (
+                                                /* Table Inside CollapsibleSection */
+                                                <CollapsibleSection
+                                                    defaultOpen={true}
+                                                    variant='default'
+                                                    size='lg'
+                                                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                                                    <div className='border-b bg-primary/5 px-8 py-6'>
+                                                        <h2 className='font-bold text-2xl text-primary'>Yearly Fee Collection Report</h2>
+                                                    </div>
+
+                                                    <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
+                                                        {/* <div className="font-semibold text-lg text-primary">
+                                                            Report Actions
+                                                        </div> */}
+
+                                                        <div className='flex gap-3'>
+                                                            <Button variant='outline' onClick={handlePrint}>
+                                                                🖨 Print
+                                                            </Button>
+
+                                                            <Button variant='outline' onClick={handleExportExcel}>
+                                                                📊 Export Excel
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <GenericDataTable
+                                                        data={tableData}
+                                                        columns={getDynamicColumns(filters.breakdown as 'FGW' | 'INMW')}
+                                                        isLoading={reportLoading}
+                                                        isPaginationRequired={false}
+                                                        isSearchRequired={false}
+                                                    />
+                                                </CollapsibleSection>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </Card>
-            </div>
+                    </Card>
+                </div>
+            </form>
         </div>
     );
 }

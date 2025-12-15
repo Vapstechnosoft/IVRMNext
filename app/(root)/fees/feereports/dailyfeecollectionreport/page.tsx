@@ -146,15 +146,21 @@ export default function DailyFeeCollectionReportForm() {
 
             setAcademicYears(years);
 
-            if (years.length > 0) {
-                const firstYearId = years[0].asmaY_Id;
+            const firstYearId = years[0].asmaY_Id;
+            setValue('asmaY_Id', firstYearId, {
+                shouldValidate: true,
+                shouldDirty: false
+            });
 
-                // ⭐ ALWAYS PICK FIRST YEAR
-                setValue('asmaY_Id', firstYearId, { shouldValidate: true });
+            // if (years.length > 0) {
+            //     const firstYearId = years[0].asmaY_Id;
 
-                // ⭐ ALWAYS reload groups for first year
-                onYearChange(firstYearId);
-            }
+            //     // ⭐ ALWAYS PICK FIRST YEAR
+            //     setValue('asmaY_Id', firstYearId, { shouldValidate: true });
+
+            //     // ⭐ ALWAYS reload groups for first year
+            //     onYearChange(firstYearId);
+            // }
         }
     }, [academicData, academicError, refreshAY]);
 
@@ -388,8 +394,9 @@ export default function DailyFeeCollectionReportForm() {
                     Paymentwise: true
                 };
             } else if (
-                (data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'All') &&
-                data.Fmc_allorcorddorop === 'All'
+                ((data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'All') &&
+                    data.Fmc_allorcorddorop === 'All') ||
+                report === 'students'
             ) {
                 const allList = selectedGroupIds.map((id) => ({
                     columnID: String(id)
@@ -401,6 +408,23 @@ export default function DailyFeeCollectionReportForm() {
                     regornamedetails: report,
                     allorstdorothersflag: Fmc_allorsudentorother,
                     All_List: allList
+                };
+            } else if (report === 'All' && data.Fmc_allorsudentorother !== 'multiplepaymentmode') {
+                const allList = selectedGroupIds.map((id) => ({
+                    columnID: String(id)
+                }));
+                payload = {
+                    AsmayId: asmaY_Id,
+                    FromDate: formatDate(fromDate),
+                    ToDate: formatDate(toDate),
+                    regornamedetails: report,
+                    allorstdorothersflag: Fmc_allorsudentorother,
+                    All_List: allList,
+                    ClassFlag: data.enableAllClasses ? '0' : '1',
+                    allorindivflag: data.rpttyp === 'All' ? 'all' : 'individual',
+                    allorcorchoronlineflag: Fmc_allorcorddorop,
+                    TempararyArrayListstring: 'all',
+                    Cheque: data.chequeDate ? '1' : '0'
                 };
             }
 
@@ -733,76 +757,53 @@ export default function DailyFeeCollectionReportForm() {
                         </div>
 
                         {/* ACADEMIC YEAR */}
-                        <Controller
+                        {/* <Controller
                             name='asmaY_Id'
                             control={control}
-                            render={({ field, fieldState }) => (
-                                <div className='flex items-center gap-4'>
-                                    <Label className='w-40 font-medium'>
-                                        Academic Year <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Controller
-                                        name='asmaY_Id'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                value={field.value?.toString()}
-                                                onValueChange={(v) => {
-                                                    const num = Number(v);
-                                                    field.onChange(num);
-                                                    onYearChange(num);
-                                                }}>
-                                                <SelectTrigger className='w-full'>
-                                                    <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
-                                                </SelectTrigger>
+                            render={({ field, fieldState }) => ( */}
+                        <div className='flex items-center gap-4'>
+                            <Label className='w-40 font-medium'>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
+                            <Controller
+                                name='asmaY_Id'
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        value={field.value?.toString()}
+                                        onValueChange={(v) => {
+                                            const num = Number(v);
+                                            field.onChange(num);
+                                            onYearChange(num);
+                                        }}>
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder={loadingAcademic ? 'Loading...' : 'Select Academic Year'} />
+                                        </SelectTrigger>
 
-                                                <SelectContent>
-                                                    <SelectItem value='all'>All</SelectItem>
-                                                    {loadingAcademic ? (
-                                                        <SelectItem value='loading' disabled>
-                                                            Loading...
-                                                        </SelectItem>
-                                                    ) : academicError ? (
-                                                        <SelectItem value='error' disabled>
-                                                            Failed to load years
-                                                        </SelectItem>
-                                                    ) : (
-                                                        academicYears.map((item) => (
-                                                            <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                                {item.asmaY_Year}
-                                                            </SelectItem>
-                                                        ))
-                                                    )}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-
-                                    {/* <div className='flex-1'>
-                                        <Select
-                                            value={field.value?.toString()}
-                                            onValueChange={(v) => {
-                                                const num = Number(v);
-                                                field.onChange(num);
-                                                onYearChange(num);
-                                            }}>
-                                            <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Academic Year' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {academicYears.map((y) => (
-                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                        {y.asmaY_Year}
+                                        <SelectContent>
+                                            <SelectItem value='all'>All</SelectItem>
+                                            {loadingAcademic ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
+                                                </SelectItem>
+                                            ) : academicError ? (
+                                                <SelectItem value='error' disabled>
+                                                    Failed to load years
+                                                </SelectItem>
+                                            ) : (
+                                                academicYears.map((item) => (
+                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                        {item.asmaY_Year}
                                                     </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-
-                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                    </div> */}
-                                </div>
-                            )}
-                        />
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                        </div>
+                        {/* )}
+                        /> */}
 
                         <div className='flex items-start gap-4'>
                             {/* LABEL */}
@@ -1060,7 +1061,7 @@ export default function DailyFeeCollectionReportForm() {
                 <div className='mt-10'>
                     {/* 🔹 REPORT HEADER */}
                     <div className='mb-6 text-center'>
-                        <h2 className='font-bold text-lg uppercase tracking-wide'>FeeDaily Collection Report</h2>
+                        <h2 className='font-bold text-lg uppercase tracking-wide'>Daily Fee Collection Report</h2>
                         {/* <div className="mt-1 text-sm text-gray-600">
                 From {formatDate(fromDate)} To {formatDate(toDate)}
             </div> */}
@@ -1068,7 +1069,7 @@ export default function DailyFeeCollectionReportForm() {
                     <div className='my-6 border-gray-300 border-t' />
 
                     {/* 🔹 ACTION BUTTONS */}
-                    <div className='mb-4 flex justify-end gap-2'>
+                    {/* <div className='mb-4 flex justify-end gap-2'>
                         <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
                             Export Excel
                         </Button>
@@ -1076,6 +1077,22 @@ export default function DailyFeeCollectionReportForm() {
                         <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
                             Print
                         </Button>
+                    </div> */}
+
+                    <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
+                        {/* <div className="font-semibold text-lg text-primary">
+                                                            Report Actions
+                                                        </div> */}
+
+                        <div className='flex gap-3'>
+                            <Button variant='outline' onClick={handlePrint}>
+                                🖨 Print
+                            </Button>
+
+                            <Button variant='outline' onClick={handleExportExcel}>
+                                📊 Export Excel
+                            </Button>
+                        </div>
                     </div>
 
                     {/* 🔹 TABLE */}
