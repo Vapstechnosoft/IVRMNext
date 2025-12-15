@@ -21,7 +21,11 @@ import {
     getFeesCommonSettingConfigSet,
     getFeesConcessionStudentData
 } from '@/server/fees/trasactions/FeeConcession';
-import { getFeeAdjutmentGridList } from '@/server/fees/trasactions/fee_adjustment';
+import {
+    getFeeAdjustmentFromHeadDropDown,
+    getFeeAdjustmentGroupDropDown,
+    getFeeAdjutmentGridList
+} from '@/server/fees/trasactions/fee_adjustment';
 import {
     getOpeningAcademicYearDropdownData,
     getOpeningBalanceList,
