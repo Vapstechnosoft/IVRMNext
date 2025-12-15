@@ -6,10 +6,10 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { useMasterCategoryMappedSections } from '@/hooks/exam/exammodule/usemasters';
 import type { ICategoryClassMappingDetails, ICategoryMapping } from '@/types/exam/exam-module/masters';
+import { X } from 'lucide-react';
 import { useEffect } from 'react';
 import { CategoryClassMappingDetalisColumns } from './subject-group-details-columns';
 import ToggleCategoryClassMappingForm from './toggle-form';
-import { X } from 'lucide-react';
 
 interface CategoryClassMappingDetailsPageProps {
     rowData: ICategoryMapping;
@@ -31,14 +31,14 @@ export default function CategoryClassMappingDetailsPage({ rowData, onClose }: Ca
 
     const mappedData: ICategoryClassMappingDetails[] = sections.map((section: any, index: number) => ({
         mI_Id: rowData.mI_Id,
-        ecaC_Id: rowData.ecaC_Id,
+        ecaC_Id: section.ecaC_Id,
         asmS_Id: section.asmS_Id,
         asmcL_ClassName: rowData.asmcL_ClassName,
         asmC_SectionCode: section.asmC_SectionCode!,
         asmC_SectionName: section.asmC_SectionName,
         asmC_MaxCapacity: 40,
         asmC_Order: index + 1,
-        asmC_ActiveFlag: section.ecaC_ActiveFlag
+        ecaC_ActiveFlag: section.ecaC_ActiveFlag
     }));
 
     const tableProps = useDataTableProps({
@@ -86,20 +86,25 @@ export default function CategoryClassMappingDetailsPage({ rowData, onClose }: Ca
                     />
 
                     {/* Toggle Modal */}
-                    <FormSections refetchAll={refetchAll} />
+                    <FormSections refetchAll={refetchAll} rowData={rowData} />
                 </div>
             </div>
         </FormProvider>
     );
 }
 
-function FormSections({ refetchAll }: { refetchAll: () => void }) {
+function FormSections({ refetchAll, rowData }: { refetchAll: () => void; rowData: ICategoryMapping }) {
     const { isToggleFormOpen, selectedRow, closeToggleForm } = useFormContext<ICategoryClassMappingDetails>();
 
     return (
         <>
             {isToggleFormOpen && selectedRow && (
-                <ToggleCategoryClassMappingForm rowData={selectedRow} onClose={closeToggleForm} refetchAll={refetchAll} />
+                <ToggleCategoryClassMappingForm
+                    rowData={selectedRow}
+                    parentRowData={rowData}
+                    onClose={closeToggleForm}
+                    refetchAll={refetchAll}
+                />
             )}
         </>
     );

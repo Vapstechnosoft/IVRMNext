@@ -3,8 +3,9 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
+import { useMasterCategoryMappedSections } from '@/hooks/exam/exammodule/usemasters';
 import { toggleMasterExamCategoryClassSection } from '@/server/exam/exam-module/masters/category-class-mapping';
-import type { ICategoryClassMappingDetails } from '@/types/exam/exam-module/masters';
+import type { ICategoryClassMappingDetails, ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -15,14 +16,15 @@ interface FormFields {
 interface ToggleCategoryClassMappingFormProps {
     rowData: ICategoryClassMappingDetails;
     onClose: () => void;
+    parentRowData: ICategoryMapping;
 }
 
 export default function ToggleCategoryClassMappingForm({
     rowData,
     onClose,
-    refetchAll
+    parentRowData
 }: ToggleCategoryClassMappingFormProps & { refetchAll: () => void }) {
-    const isActive = rowData.asmC_ActiveFlag;
+    const isActive = rowData.ecaC_ActiveFlag;
     const {
         register,
         handleSubmit,
@@ -31,6 +33,7 @@ export default function ToggleCategoryClassMappingForm({
     } = useForm<FormFields>({
         defaultValues: { ecaC_Id: rowData.ecaC_Id }
     });
+    const { refetchAll } = useMasterCategoryMappedSections(parentRowData?.asmaY_Id, parentRowData?.emcA_Id, parentRowData?.asmcL_Id);
 
     function closeDialog() {
         onClose();
@@ -39,7 +42,7 @@ export default function ToggleCategoryClassMappingForm({
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMasterExamCategoryClassSection(30, Number(rowData.ecaC_Id));
+            const response = await toggleMasterExamCategoryClassSection(rowData.ecaC_Id);
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();

@@ -28,7 +28,7 @@ interface GenericDataTableProps<T> {
     // Row selection
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: T[]) => void;
-
+    showSearchColumns?: boolean;
     // Custom messages
     loadingMessage?: string;
     errorTitle?: string;
@@ -69,7 +69,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         LoadingIcon = RefreshCw,
         ErrorIcon = Database,
         LoadingComponent,
-        ErrorComponent
+        ErrorComponent,
+        showSearchColumns = false
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -129,6 +130,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     isSearchRequired={isSearchRequired}
                     isPaginationRequired={isPaginationRequired}
                     columnPinning={columnPinning}
+                    showSearchColumns={showSearchColumns}
                     maxSelectableRows={maxSelectableRows}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
@@ -153,6 +155,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 isPaginationRequired={isPaginationRequired}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
+                showSearchColumns={showSearchColumns}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);

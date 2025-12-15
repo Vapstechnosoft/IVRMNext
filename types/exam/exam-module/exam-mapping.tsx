@@ -465,3 +465,63 @@ export interface IExamSubjectGroupDetails {
     emE_Id: number;
     emE_ExamName: string;
 }
+
+// types/exam/student-transaction.ts
+
+export interface IStudentTransactionGrid {
+    slNo: number;
+    studentId: number;
+    studentName: string;
+    regNo: string;
+    rollNo: number;
+    score: number;
+    checked?: boolean;
+}
+
+export interface IAcademicYear {
+    asmaY_Id: number;
+    asmaY_Year: string;
+}
+
+export interface IClass {
+    asmcL_Id: number;
+    asmcL_ClassName: string;
+}
+
+export interface ISection {
+    asmS_Id: number;
+    asmC_SectionName: string;
+}
+
+export interface IExamTerm {
+    ect_Id: number;
+    ect_TermName: string;
+}
+
+export interface ISkillActivity {
+    id: number;
+    name: string;
+    type: 'skill' | 'activity';
+}
+
+export interface ISkillName {
+    id: number;
+    name: string;
+}
+
+export interface ISkillArea {
+    id: number;
+    name: string;
+    skillNameId: number;
+}
+
+export interface IActivityName {
+    id: number;
+    name: string;
+}
+
+export interface IActivityArea {
+    id: number;
+    name: string;
+    activityNameId: number;
+}

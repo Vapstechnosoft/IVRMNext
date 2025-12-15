@@ -16,9 +16,8 @@ import {
     getSubjectsForIndividualExam,
     getSubjectsForPromotionalExam
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IESubject } from '@/types/exam/exam-module/exam-mapping';
-import type { IAcademicYear, ICategory } from '@/types/exam/exam-module/masters';
+import type { ICategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -54,11 +53,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [subjects, setSubjects] = useState<IESubject[]>([]);
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const esG_ExamPromotionFlag = useWatch({ control, name: 'esG_ExamPromotionFlag' });
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const emcA_Id = useWatch({ control, name: 'emcA_Id' });
@@ -87,7 +82,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                 try {
                     const { data } = await getExamGroupsByCategory(asmaY_Id, emcA_Id);
                     setExams(data ?? []);
-                    if (data && data.length === 0) toast.info("No exams found for this category");
+                    if (data && data.length === 0) toast.info('No exams found for this category');
                     setValue('emE_Id', 0);
                 } catch (err: any) {
                     toast.error(err?.message ?? 'Failed to load exams');
@@ -149,8 +144,6 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                                 Promotional Exam
                             </TabsTrigger>
                         </TabsList>
-
-                        {/* Individual Exam Tab */}
                         <TabsContent value='IE'>
                             <div className='grid grid-cols-2 gap-6'>
                                 <div className='space-y-4'>

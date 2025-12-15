@@ -13,7 +13,6 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-t
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
 import { addOrUpdateExamStudentRemarks, getStudentDetails } from '@/server/exam/exam-module/marks-entry/exam-wise-student-remarks';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IExamWiseRemarksGrid, IExamWiseStudentRemarksStudent } from '@/types/exam/exam-module/exam-mapping';
 
 import { useExamWiseRemarksDataGrid } from '@/hooks/exam/exammodule/marks-entry';
@@ -79,6 +78,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [isStudentsGridOpen, setIsStudentsGridOpen] = useState(false);
+    const [validationErrors, setValidationErrors] = useState<Record<number, string>>({});
 
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const asmcL_Id = useWatch({ control, name: 'asmcL_Id' });
@@ -101,10 +101,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         );
     }, [rowData, classes, sections, exams]);
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     // ---------- Load Classes ----------
     useEffect(() => {
@@ -192,9 +189,31 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
 
     async function onSubmit(data: FormFields) {
         if (!selectedStudents.length) {
-            toast.error('No students found to save');
+            setValidationErrors({});
+            setTableProps((tp: any) => ({
+                ...tp,
+                lastUpdated: Date.now()
+            }));
+            toast.error('No students Selected to save');
             return;
         }
+
+        // Validate selected students have remarks
+        const validationErrors: Record<number, string> = {};
+        selectedStudents.forEach((student) => {
+            if (!student.emeR_Remarks || student.emeR_Remarks.trim() === '') {
+                validationErrors[student.amsT_Id] = 'Remarks are required for selected students';
+            }
+        });
+
+        if (Object.keys(validationErrors).length > 0) {
+            setValidationErrors(validationErrors);
+            toast.error('Please add remarks for all selected students');
+            return;
+        }
+
+        // Clear validation errors if validation passes
+        setValidationErrors({});
 
         setIsSaving(true);
         try {
@@ -238,10 +257,18 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
         });
         setStudents([]);
     };
-
     const updateStudent = (id: number, remarks: string) => {
         setStudents((prev) => {
             const updated = prev.map((s) => (s.amsT_Id === id ? { ...s, emeR_Remarks: remarks } : s));
+
+            // Clear validation error for this student if remarks are now filled
+            if (remarks && remarks.trim() !== '') {
+                setValidationErrors((prevErrors) => {
+                    const newErrors = { ...prevErrors };
+                    delete newErrors[id];
+                    return newErrors;
+                });
+            }
 
             // also update table props
             setTableProps((tp: any) => ({
@@ -254,7 +281,7 @@ export default function AddEditStudentRemarks({ orgId = 30, onSuccess, rowData }
     };
 
     // Pass to columns
-    const columns = ExamWiseStudentRemarksColumns(updateStudent);
+    const columns = ExamWiseStudentRemarksColumns(updateStudent, validationErrors);
 
     return (
         <FormProvider {...methods}>

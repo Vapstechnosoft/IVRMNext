@@ -8,8 +8,10 @@ import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
 // Get All Exam Subject Wizard Records
 // --------------------------------------------
 export async function getExamSubjectWizard(searchParams?: ApiSearchparams) {
+    console.info('searchParams', searchParams);
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `exam_subject_mapping/30?${urlParams}`;
+    console.info(url);
     return await api.get<IExamSubjectWizard>('exam', url);
 }
 

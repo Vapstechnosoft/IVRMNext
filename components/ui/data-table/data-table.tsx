@@ -37,6 +37,7 @@ interface DataTableProps<TData, TValue> {
     // ✅ updated
     maxSelectableRows?: number;
     onRowSelectionChange?: (selectedRows: TData[]) => void;
+    showSearchColumns?: boolean;
 }
 
 export interface DataTableRef {
@@ -56,7 +57,8 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
         isSearchRequired = true,
         isPaginationRequired = true,
         maxSelectableRows = 0,
-        onRowSelectionChange
+        onRowSelectionChange,
+        showSearchColumns = false
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -176,6 +178,7 @@ export const DataTable = forwardRef<DataTableRef, DataTableProps<any, any>>(func
                     showExportOptions={showExportOptions}
                     showViewOptions={showViewOptions}
                     columns={columns}
+                    showSearchColumns={showSearchColumns}
                 />
             )}
 

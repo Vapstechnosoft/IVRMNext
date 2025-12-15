@@ -994,6 +994,14 @@ export async function getUserAccessibleModules() {
                                             url: '/Exam/exam-module/exam-mapping/promotion-setting',
                                             title: 'Promotion Setting',
                                             description: 'Manage Promotion Setting Details'
+                                        },
+                                        {
+                                            id: 95,
+                                            name: 'Student Transaction',
+                                            icon: 'BookOpen',
+                                            url: '/Exam/exam-module/exam-mapping/student-transactioncce',
+                                            title: 'Student Transaction',
+                                            description: 'Manage Student Transaction Details'
                                         }
                                     ]
                                 },

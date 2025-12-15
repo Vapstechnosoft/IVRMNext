@@ -130,7 +130,7 @@ class ApiService {
             const instance = this.getOrCreateInstance(baseUrlKey);
             const baseURL = instance.defaults.baseURL;
             const fullUrl = `${baseURL}${url}`;
-            
+
             console.log('🌐 [API SERVICE] Request initiated');
             console.log('📤 [API SERVICE] Request details:', {
                 method,
@@ -141,13 +141,13 @@ class ApiService {
                 hasData: !!data,
                 dataSize: data ? JSON.stringify(data).length : 0
             });
-            
+
             // Warn if base URL is not set
             if (!baseURL && baseUrlKey === 'hmslms') {
                 console.warn('⚠️ [API SERVICE] WARNING: hmslms base URL is not set!');
                 console.warn('⚠️ [API SERVICE] Check NEXT_PUBLIC_HRMS_LMS_BASE_URL environment variable');
             }
-            
+
             if (data && method === 'POST') {
                 console.log('📦 [API SERVICE] Request payload:', JSON.stringify(data, null, 2));
             }
@@ -160,7 +160,7 @@ class ApiService {
                 ...config
             });
             const duration = Date.now() - startTime;
-            
+
             console.log('✅ [API SERVICE] Response received');
             console.log('📥 [API SERVICE] Response details:', {
                 status: response.status,
@@ -170,7 +170,7 @@ class ApiService {
                 success: response.data?.success,
                 message: response.data?.message
             });
-            
+
             if (response.data) {
                 console.log('📊 [API SERVICE] Response data structure:', {
                     hasSuccess: 'success' in response.data,
@@ -179,7 +179,7 @@ class ApiService {
                     keys: Object.keys(response.data || {})
                 });
             }
-            
+
             return response.data;
         } catch (error: any) {
             console.error('❌ [API SERVICE] Request failed');
@@ -327,6 +327,7 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
     const sort_column = searchParams?.sort_column || '';
     const sort_direction = searchParams?.sort_direction || 'asc';
     const search_query = searchParams?.search_query || '';
+    const search_columns = searchParams?.search_columns || '';
 
     let url = `page=${page}&page_size=${page_size}&sort_column=${sort_column}&sort_direction=${sort_direction}`;
 
@@ -334,6 +335,8 @@ export function getSearchParamsUrl(searchParams: ApiSearchparams | undefined, se
         url += `&search_query=${encodeURIComponent(search_query)}`;
         if (searchColumns) {
             url += `&search_column=${encodeURIComponent(searchColumns)}`;
+        } else if (search_columns && search_columns !== '') {
+            url += `&search_column=${encodeURIComponent(search_columns)}`;
         }
     }
 

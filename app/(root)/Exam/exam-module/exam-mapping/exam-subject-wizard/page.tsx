@@ -124,6 +124,7 @@ function ExamSubjectWizardPageContent({
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['subject_order', 'actions'] }}
+                        showSearchColumns={true}
                         loadingMessage='Loading exam subject wizard data...'
                         noDataTitle='No Exam Subject Wizard Records Found'
                         noDataDescription='Get started by creating your first exam subject wizard entry'

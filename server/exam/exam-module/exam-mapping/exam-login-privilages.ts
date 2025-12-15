@@ -13,11 +13,8 @@ export async function getExamLoginPrivileges(searchParams?: ApiSearchparams) {
 
 export async function getLoginPrivilegesDetails(elp_id: number, asmcl_id: number, asms_id: number) {
     const url = `exam_login_privileges/exm_login_privilege_view_by_id/${elp_id}/${asmcl_id}/${asms_id}`;
-
     try {
         const response = await api.get<ILoginPrivilegeDetails[]>('exam', url);
-
-        // Validate correct array response
         if (!response || !Array.isArray(response.data)) {
             throw new Error('Invalid API response');
         }
@@ -29,10 +26,6 @@ export async function getLoginPrivilegesDetails(elp_id: number, asmcl_id: number
         };
     } catch (error) {
         console.error('API Failed → Returning static fallback data', error);
-
-        // ----------------------------
-        // STATIC FALLBACK DATA (10 ROWS)
-        // ----------------------------
         const fallback: ILoginPrivilegeDetails[] = Array.from({ length: 10 }).map((_, i) => ({
             slno: i + 1,
 
@@ -40,7 +33,7 @@ export async function getLoginPrivilegesDetails(elp_id: number, asmcl_id: number
             className: `Class ${i + 1}`,
 
             sectionId: 200 + i,
-            sectionName: `Section ${String.fromCharCode(65 + (i % 5))}`, // A,B,C,D,E
+            sectionName: `Section ${String.fromCharCode(65 + (i % 5))}`,
 
             subjectId: 300 + i,
             subjectName: `Subject ${i + 1}`,

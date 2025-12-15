@@ -109,7 +109,6 @@ export const examLoginPrivilegesSchema = {
     })
 };
 
-
 const parseDate = (val: unknown) => {
     if (typeof val === 'string' && val.trim() !== '') {
         const t = Date.parse(val);
@@ -717,27 +716,108 @@ export const examMarksProcessConditionSchema = {
         )
 };
 
-
-export const hallTicketGenerationSchema = z.object({
-    mI_Id: z.number().int().positive().optional().default(30),
-    asmaY_Id: z.number().int().positive(),
-    asmcL_Id: z.number().int().positive(),
-    sectionList: z.array(z.object({ asmS_Id: z.number().int().positive() })).min(1, 'At least one section is required'),
-    emE_Id: z.number().int().positive(),
-    prefixNo: z.string().optional(),
-    leadingzeros: z.number().int().nonnegative().optional().default(0)
-        .refine((val) => val <= 9, 'Leading zeros must be less than or equal to 9'),
-    startingNo: z.string().regex(/^\d+$/, 'Starting No. must be a number').min(1, 'Starting No. is required'),
-    increment: z.string().regex(/^\d+$/, 'Increment must be a number').min(1, 'Increment is required'),
-    prefixNoFlag: z.enum(['Y', 'N']),
-}).superRefine((data, ctx) => {
-    if (data.prefixNoFlag === 'Y') {
-        if (!data.prefixNo || data.prefixNo.trim() === '') {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Prefix No. is required when PrefixNo is Yes',
-                path: ['prefixNo'],
-            });
+export const hallTicketGenerationSchema = z
+    .object({
+        mI_Id: z.number().int().positive().optional().default(30),
+        asmaY_Id: z.number().int().positive(),
+        asmcL_Id: z.number().int().positive(),
+        sectionList: z.array(z.object({ asmS_Id: z.number().int().positive() })).min(1, 'At least one section is required'),
+        emE_Id: z.number().int().positive(),
+        prefixNo: z.string().optional(),
+        leadingzeros: z
+            .number()
+            .int()
+            .nonnegative()
+            .optional()
+            .default(0)
+            .refine((val) => val <= 9, 'Leading zeros must be less than or equal to 9'),
+        startingNo: z.string().regex(/^\d+$/, 'Starting No. must be a number').min(1, 'Starting No. is required'),
+        increment: z.string().regex(/^\d+$/, 'Increment must be a number').min(1, 'Increment is required'),
+        prefixNoFlag: z.enum(['Y', 'N'])
+    })
+    .superRefine((data, ctx) => {
+        if (data.prefixNoFlag === 'Y') {
+            if (!data.prefixNo || data.prefixNo.trim() === '') {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Prefix No. is required when PrefixNo is Yes',
+                    path: ['prefixNo']
+                });
+            }
         }
-    }
-});
+    });
+
+export const StudentTransactionSchema = {
+    search: z
+        .object({
+            academicYearId: z
+                .number({
+                    required_error: 'Academic Year is required'
+                })
+                .min(1, 'Select Academic Year'),
+
+            classId: z
+                .number({
+                    required_error: 'Class is required'
+                })
+                .min(1, 'Select Class'),
+
+            sectionId: z
+                .number({
+                    required_error: 'Section is required'
+                })
+                .min(1, 'Select Section'),
+
+            examTermId: z
+                .number({
+                    required_error: 'Exam Term is required'
+                })
+                .min(1, 'Select Exam Term'),
+
+            // Use .optional() after enum - this makes type: 'skill' | 'activity' | undefined
+            skillActivityType: z.enum(['skill', 'activity']).optional(),
+
+            nameId: z.number().min(1).optional(),
+
+            areaId: z.number().min(1).optional()
+        })
+        .superRefine((data, ctx) => {
+            // Conditional validation: If examTermId is selected, then skillActivityType is required
+            if (data.examTermId && data.examTermId > 0) {
+                if (!data.skillActivityType) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: 'Select Skill/Activities type',
+                        path: ['skillActivityType']
+                    });
+                }
+
+                // If skillActivityType is selected, then nameId is required
+                if (data.skillActivityType && (!data.nameId || data.nameId === 0)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: data.skillActivityType === 'skill' ? 'Select Skill Name' : 'Select Activities Name',
+                        path: ['nameId']
+                    });
+                }
+
+                // If nameId is selected, then areaId is required
+                if (data.nameId && data.nameId > 0 && (!data.areaId || data.areaId === 0)) {
+                    ctx.addIssue({
+                        code: z.ZodIssueCode.custom,
+                        message: data.skillActivityType === 'skill' ? 'Select Skill Area' : 'Select Activities Area',
+                        path: ['areaId']
+                    });
+                }
+            }
+        }),
+
+    score: z.object({
+        studentId: z.number().positive(),
+        score: z.number().min(0).max(100, 'Score must be between 0-100')
+    })
+};
+
+// The inferred type will now be:
+
+export type StudentTransactionFormData = z.infer<typeof StudentTransactionSchema.search>;
