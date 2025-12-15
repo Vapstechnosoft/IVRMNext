@@ -1,19 +1,18 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGetEmployeeDetailsBySelection, useMassUpdationOnload, useSearchMassUpdationEmployees } from '@/hooks/hrms/useTransactions';
+import { useDesignationDropdownForMassUpdation, useDepartmentDropdownForMassUpdation, useGetEmployeeDetailsBySelection, useGroupTypeDropdownForMassUpdation, useMassUpdationOnload, useSearchMassUpdationEmployees } from '@/hooks/hrms/useTransactions';
+import { getMassUpdationColumns } from './_components/columns';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { EmployeeDropdown } from '@/types/hrms/mass-updation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Search, Users, X } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -36,6 +35,7 @@ export default function MassUpdationPage() {
         watch,
         control,
         getValues,
+        setValue,
         formState: { errors }
     } = useForm<MassUpdateForm>({
         resolver: zodResolver(hrmsTransactionSchemas.massUpdation.form),
@@ -58,29 +58,115 @@ export default function MassUpdationPage() {
     const watchedEarningDeduction = watch('earningDeduction');
     const watchedUpdateType = watch('updateType');
     const { data: onloadData, isLoading } = useMassUpdationOnload({
-        MI_Id: 30,
-        roleId: 2
+        MI_Id: 0,
+        roleId: 0
     });
     const searchMutation = useSearchMassUpdationEmployees();
     const saveMutation = useGetEmployeeDetailsBySelection();
-    // Debug logging - onloadData handled by data loading logic
-    // Handle both field name variants (with and without 'list' suffix)
-    // Memoize arrays to prevent unnecessary re-renders
-    const groupTypes = useMemo(() => {
-        return onloadData?.groupTypedropdownlist && onloadData.groupTypedropdownlist.length > 0
-            ? onloadData.groupTypedropdownlist
-            : onloadData?.groupTypedropdown || [];
-    }, [onloadData?.groupTypedropdownlist, onloadData?.groupTypedropdown]);
-    const departments = useMemo(() => {
-        return onloadData?.departmentdropdownlist && onloadData.departmentdropdownlist.length > 0
-            ? onloadData.departmentdropdownlist
-            : onloadData?.departmentdropdown || [];
-    }, [onloadData?.departmentdropdownlist, onloadData?.departmentdropdown]);
-    const designations = useMemo(() => {
-        return onloadData?.designationdropdownlist && onloadData.designationdropdownlist.length > 0
-            ? onloadData.designationdropdownlist
-            : onloadData?.designationdropdown || [];
-    }, [onloadData?.designationdropdownlist, onloadData?.designationdropdown]);
+    
+    // Dropdown hooks - individual APIs following salary-approval pattern
+    const { data: groupTypeData, isLoading: isLoadingGroupType } = useGroupTypeDropdownForMassUpdation();
+    
+    // Extract Group Type IDs from selected group types for cascading department dropdown
+    const selectedGroupTypeIds = useMemo(() => {
+        if (!watchedGroupType || !Array.isArray(watchedGroupType) || watchedGroupType.length === 0) {
+            return undefined;
+        }
+        // Map selected group type values (names) to their IDs (keys)
+        const rawData = Array.isArray(groupTypeData) ? groupTypeData : (groupTypeData as any)?.data || [];
+        const ids = watchedGroupType
+            .map((selectedValue: string) => {
+                const groupType = rawData.find((item: any) => 
+                    item.value === selectedValue || 
+                    item.HRMGT_EmployeeGroupType === selectedValue ||
+                    (item.key !== undefined && item.value === selectedValue)
+                );
+                return groupType?.key || groupType?.HRMGT_Id;
+            })
+            .filter((id: number | undefined): id is number => id !== undefined && id > 0);
+        return ids.length > 0 ? ids : undefined;
+    }, [watchedGroupType, groupTypeData]);
+    
+    const { data: departmentData, isLoading: isLoadingDepartment } = useDepartmentDropdownForMassUpdation(selectedGroupTypeIds);
+    
+    // Extract Department IDs from selected departments for cascading designation dropdown
+    const selectedDepartmentIds = useMemo(() => {
+        if (!watchedDepartment || !Array.isArray(watchedDepartment) || watchedDepartment.length === 0) {
+            return undefined;
+        }
+        // Map selected department values (names) to their IDs (keys)
+        const rawData = Array.isArray(departmentData) ? departmentData : (departmentData as any)?.data || [];
+        const ids = watchedDepartment
+            .map((selectedValue: string) => {
+                const department = rawData.find((item: any) => 
+                    item.value === selectedValue || 
+                    item.HRMD_DepartmentName === selectedValue ||
+                    (item.key !== undefined && item.value === selectedValue)
+                );
+                return department?.key || department?.HRMD_Id;
+            })
+            .filter((id: number | undefined): id is number => id !== undefined && id > 0);
+        return ids.length > 0 ? ids : undefined;
+    }, [watchedDepartment, departmentData]);
+    
+    const { data: designationData, isLoading: isLoadingDesignation } = useDesignationDropdownForMassUpdation(selectedDepartmentIds);
+    
+    // Transform GroupType dropdown from { key, value } format
+    const groupTypeOptions = useMemo(() => {
+        const rawData = Array.isArray(groupTypeData) ? groupTypeData : (groupTypeData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMGT_Id: item.key,
+                    HRMGT_EmployeeGroupType: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [groupTypeData]);
+    
+    // Transform Department dropdown from { key, value } format
+    const departmentOptions = useMemo(() => {
+        const rawData = Array.isArray(departmentData) ? departmentData : (departmentData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMD_Id: item.key,
+                    HRMD_DepartmentName: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [departmentData]);
+    
+    // Transform Designation dropdown from { key, value } format
+    const designationOptions = useMemo(() => {
+        const rawData = Array.isArray(designationData) ? designationData : (designationData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMDES_Id: item.key,
+                    HRMDES_DesignationName: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [designationData]);
     const heads = useMemo(() => onloadData?.headdropdown || [], [onloadData?.headdropdown]);
     // Debug log the final values - dependencies tracked for memoization
     const filteredHeads = React.useMemo(() => {
@@ -92,20 +178,38 @@ export default function MassUpdationPage() {
         });
         return filtered;
     }, [heads, watchedEarningDeduction, watchedUpdateType]);
+    // Reset department and designation when group type changes
+    useEffect(() => {
+        if (!watchedGroupType || (Array.isArray(watchedGroupType) && watchedGroupType.length === 0)) {
+            setValue('department', []);
+            setValue('designation', []);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedGroupType]);
+    
+    // Reset designation when department changes
+    useEffect(() => {
+        if (!watchedDepartment || (Array.isArray(watchedDepartment) && watchedDepartment.length === 0)) {
+            setValue('designation', []);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [watchedDepartment]);
+    
     // Memoize filterEmployees to prevent infinite loops
     const filterEmployees = useCallback(() => {
         let filtered = employees;
         if (watchedGroupType && watchedGroupType.length > 0) {
-            const groupTypeIds = new Set(watchedGroupType.map((v) => Number(v)));
-            filtered = filtered.filter((emp: any) => groupTypeIds.has(emp.HRMGT_Id));
+            // watchedGroupType contains the value (group type name) from MultiSelect
+            const groupTypeNames = new Set(watchedGroupType);
+            filtered = filtered.filter((emp: any) => groupTypeNames.has(emp.HRMGT_EmployeeGroupType));
         }
         if (watchedDepartment && watchedDepartment.length > 0) {
-            const departmentIds = new Set(watchedDepartment.map((v) => Number(v)));
-            filtered = filtered.filter((emp: any) => departmentIds.has(emp.HRMD_Id));
+            const departmentNames = new Set(watchedDepartment);
+            filtered = filtered.filter((emp: any) => departmentNames.has(emp.HRMD_DepartmentName));
         }
         if (watchedDesignation && watchedDesignation.length > 0) {
-            const designationIds = new Set(watchedDesignation.map((v) => Number(v)));
-            filtered = filtered.filter((emp: any) => designationIds.has(emp.HRMDES_Id));
+            const designationNames = new Set(watchedDesignation);
+            filtered = filtered.filter((emp: any) => designationNames.has(emp.HRMDES_DesignationName));
         }
         setFilteredEmployees(filtered);
     }, [watchedGroupType, watchedDepartment, watchedDesignation, employees]);
@@ -126,14 +230,51 @@ export default function MassUpdationPage() {
             toast.error(firstError.message);
             return;
         }
+        // Map selected group type values (names) to their IDs (keys)
+        const groupTypeIds: number[] = [];
+        if (data.groupType && Array.isArray(data.groupType) && data.groupType.length > 0) {
+            data.groupType.forEach((gt: string) => {
+                const groupType = groupTypeOptions.find((g: any) => 
+                    g.value === gt || g.HRMGT_EmployeeGroupType === gt
+                );
+                if (groupType) {
+                    groupTypeIds.push(groupType.key || groupType.HRMGT_Id);
+                }
+            });
+        }
+        // Map selected department values (names) to their IDs (keys)
+        const departmentIds: number[] = [];
+        if (data.department && Array.isArray(data.department) && data.department.length > 0) {
+            data.department.forEach((dept: string) => {
+                const department = departmentOptions.find((d: any) => 
+                    d.value === dept || d.HRMD_DepartmentName === dept
+                );
+                if (department) {
+                    departmentIds.push(department.key || department.HRMD_Id);
+                }
+            });
+        }
+        // Map selected designation values (names) to their IDs (keys)
+        const designationIds: number[] = [];
+        if (data.designation && Array.isArray(data.designation) && data.designation.length > 0) {
+            data.designation.forEach((desg: string) => {
+                const designation = designationOptions.find((d: any) => 
+                    d.value === desg || d.HRMDES_DesignationName === desg
+                );
+                if (designation) {
+                    designationIds.push(designation.key || designation.HRMDES_Id);
+                }
+            });
+        }
+        
         const searchPayload = {
-            MI_Id: 30,
-            roleId: 2,
+            MI_Id: 0,
+            roleId: 0,
             Type: '',
             HRME_Id: 0,
-            groupTypeselected: data.groupType.map((v) => Number(v)),
-            departmentselected: data.department.map((v) => Number(v)),
-            designationselected: data.designation.map((v) => Number(v)),
+            groupTypeselected: groupTypeIds,
+            departmentselected: departmentIds,
+            designationselected: designationIds,
             employeeselected: [0],
             EarningDeduction: '',
             AmountPercentage: '',
@@ -142,11 +283,11 @@ export default function MassUpdationPage() {
             HRMED_Id: 0,
             AddRemove: '',
             LogInUserId: 0,
-            hrmgT_IdList: data.groupType.map((v) => Number(v)),
+            hrmgT_IdList: groupTypeIds,
             employeeTypeIdList: [0],
-            hrmD_IdList: data.department.map((v) => Number(v)),
-            hrmdeS_IdList: data.designation.map((v) => Number(v)),
-            groupTypeIdList: data.groupType.map((v) => Number(v))
+            hrmD_IdList: departmentIds,
+            hrmdeS_IdList: designationIds,
+            groupTypeIdList: groupTypeIds
         };
         searchMutation.mutate(searchPayload, {
             onSuccess: (responseData) => {
@@ -221,8 +362,7 @@ export default function MassUpdationPage() {
             return;
         }
         const payload = {
-            MI_Id: 30,
-            roleId: 2,
+            roleId: 0,
             Type: '',
             HRME_Id: 0,
             employeeselected: selectedEmployees,
@@ -233,13 +373,104 @@ export default function MassUpdationPage() {
             HRMED_Id: Number(values.selectedHead),
             AddRemove: values.addRemove,
             LogInUserId: 0,
-            groupTypeselected: values.groupType.map((v) => Number(v)),
-            departmentselected: values.department.map((v) => Number(v)),
-            designationselected: values.designation.map((v) => Number(v)),
-            hrmgT_IdList: values.groupType.map((v) => Number(v)),
-            hrmD_IdList: values.department.map((v) => Number(v)),
-            hrmdeS_IdList: values.designation.map((v) => Number(v)),
-            groupTypeIdList: values.groupType.map((v) => Number(v))
+            groupTypeselected: (() => {
+                const ids: number[] = [];
+                if (values.groupType && Array.isArray(values.groupType) && values.groupType.length > 0) {
+                    values.groupType.forEach((gt: string) => {
+                        const groupType = groupTypeOptions.find((g: any) => 
+                            g.value === gt || g.HRMGT_EmployeeGroupType === gt
+                        );
+                        if (groupType) {
+                            ids.push(groupType.key || groupType.HRMGT_Id);
+                        }
+                    });
+                }
+                return ids;
+            })(),
+            departmentselected: (() => {
+                const ids: number[] = [];
+                if (values.department && Array.isArray(values.department) && values.department.length > 0) {
+                    values.department.forEach((dept: string) => {
+                        const department = departmentOptions.find((d: any) => 
+                            d.value === dept || d.HRMD_DepartmentName === dept
+                        );
+                        if (department) {
+                            ids.push(department.key || department.HRMD_Id);
+                        }
+                    });
+                }
+                return ids;
+            })(),
+            designationselected: (() => {
+                const ids: number[] = [];
+                if (values.designation && Array.isArray(values.designation) && values.designation.length > 0) {
+                    values.designation.forEach((desg: string) => {
+                        const designation = designationOptions.find((d: any) => 
+                            d.value === desg || d.HRMDES_DesignationName === desg
+                        );
+                        if (designation) {
+                            ids.push(designation.key || designation.HRMDES_Id);
+                        }
+                    });
+                }
+                return ids;
+            })(),
+            hrmgT_IdList: (() => {
+                const ids: number[] = [];
+                if (values.groupType && Array.isArray(values.groupType) && values.groupType.length > 0) {
+                    values.groupType.forEach((gt: string) => {
+                        const groupType = groupTypeOptions.find((g: any) => 
+                            g.value === gt || g.HRMGT_EmployeeGroupType === gt
+                        );
+                        if (groupType) {
+                            ids.push(groupType.key || groupType.HRMGT_Id);
+                        }
+                    });
+                }
+                return ids;
+            })(),
+            hrmD_IdList: (() => {
+                const ids: number[] = [];
+                if (values.department && Array.isArray(values.department) && values.department.length > 0) {
+                    values.department.forEach((dept: string) => {
+                        const department = departmentOptions.find((d: any) => 
+                            d.value === dept || d.HRMD_DepartmentName === dept
+                        );
+                        if (department) {
+                            ids.push(department.key || department.HRMD_Id);
+                        }
+                    });
+                }
+                return ids;
+            })(),
+            hrmdeS_IdList: (() => {
+                const ids: number[] = [];
+                if (values.designation && Array.isArray(values.designation) && values.designation.length > 0) {
+                    values.designation.forEach((desg: string) => {
+                        const designation = designationOptions.find((d: any) => 
+                            d.value === desg || d.HRMDES_DesignationName === desg
+                        );
+                        if (designation) {
+                            ids.push(designation.key || designation.HRMDES_Id);
+                        }
+                    });
+                }
+                return ids;
+            })(),
+            groupTypeIdList: (() => {
+                const ids: number[] = [];
+                if (values.groupType && Array.isArray(values.groupType) && values.groupType.length > 0) {
+                    values.groupType.forEach((gt: string) => {
+                        const groupType = groupTypeOptions.find((g: any) => 
+                            g.value === gt || g.HRMGT_EmployeeGroupType === gt
+                        );
+                        if (groupType) {
+                            ids.push(groupType.key || groupType.HRMGT_Id);
+                        }
+                    });
+                }
+                return ids;
+            })()
         } as any;
         saveMutation.mutate(payload, {
             onSuccess: (responseData) => {
@@ -254,65 +485,6 @@ export default function MassUpdationPage() {
                 }
             }
         });
-    };
-    const EmployeeTable = ({
-        employees,
-        isLoading,
-        onSelectAll,
-        onEmployeeSelect
-    }: {
-        employees: Employee[];
-        isLoading: boolean;
-        onSelectAll: (selected: boolean) => void;
-        onEmployeeSelect: (employeeId: number, selected: boolean) => void;
-    }) => {
-        const columns: ColumnDef<Employee>[] = [
-            {
-                id: 'select',
-                header: () => (
-                    <Checkbox
-                        checked={employees.length > 0 && selectedEmployees.length === employees.length}
-                        onCheckedChange={(value) => onSelectAll(!!value)}
-                        aria-label='Select all'
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={selectedEmployees.includes(row.original.HRME_Id)}
-                        onCheckedChange={(value) => onEmployeeSelect(row.original.HRME_Id, !!value)}
-                        aria-label='Select row'
-                    />
-                ),
-                enableSorting: false,
-                enableHiding: false
-            },
-            {
-                accessorKey: 'HRME_EmployeeCode',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-                cell: ({ row }) => <div>{row.getValue('HRME_EmployeeCode')}</div>,
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                accessorKey: 'HRME_EmployeeFirstName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                cell: ({ row }) => {
-                    const emp = row.original;
-                    return (
-                        <div>
-                            {`${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim()}
-                        </div>
-                    );
-                },
-                enableSorting: true,
-                enableHiding: true
-            }
-        ];
-        return (
-            <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable<Employee, any> columns={columns} data={employees} totalItems={employees.length} isLoading={isLoading} />
-            </div>
-        );
     };
     return (
         <div className='min-h-screen'>
@@ -331,14 +503,16 @@ export default function MassUpdationPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={groupTypes.map((gt) => ({
-                                                value: gt.HRMGT_Id.toString(),
-                                                label: gt.HRMGT_EmployeeGroupType
+                                            options={groupTypeOptions.map((gt: any) => ({
+                                                label: gt.value || gt.HRMGT_EmployeeGroupType || '',
+                                                value: gt.value || gt.HRMGT_EmployeeGroupType || ''
                                             }))}
-                                            defaultValue={field.value}
                                             onValueChange={field.onChange}
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
                                             placeholder='Select Group Types'
                                             className='w-full'
+                                            maxHeight={240}
+                                            disabled={isLoadingGroupType}
                                         />
                                     )}
                                 />
@@ -351,14 +525,22 @@ export default function MassUpdationPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={departments.map((d) => ({
-                                                value: d.HRMD_Id.toString(),
-                                                label: d.HRMD_DepartmentName
+                                            options={departmentOptions.map((d: any) => ({
+                                                label: d.value || d.HRMD_DepartmentName || '',
+                                                value: d.value || d.HRMD_DepartmentName || ''
                                             }))}
-                                            defaultValue={field.value}
                                             onValueChange={field.onChange}
-                                            placeholder='Select Departments'
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
+                                            placeholder={
+                                                !selectedGroupTypeIds || selectedGroupTypeIds.length === 0
+                                                    ? 'Select Group Type first'
+                                                    : isLoadingDepartment
+                                                    ? 'Loading departments...'
+                                                    : 'Select Departments'
+                                            }
                                             className='w-full'
+                                            maxHeight={240}
+                                            disabled={isLoadingDepartment || !selectedGroupTypeIds || selectedGroupTypeIds.length === 0}
                                         />
                                     )}
                                 />
@@ -371,14 +553,22 @@ export default function MassUpdationPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={designations.map((d) => ({
-                                                value: d.HRMDES_Id.toString(),
-                                                label: d.HRMDES_DesignationName
+                                            options={designationOptions.map((d: any) => ({
+                                                label: d.value || d.HRMDES_DesignationName || '',
+                                                value: d.value || d.HRMDES_DesignationName || ''
                                             }))}
-                                            defaultValue={field.value}
                                             onValueChange={field.onChange}
-                                            placeholder='Select Designations'
+                                            defaultValue={Array.isArray(field.value) ? field.value : []}
+                                            placeholder={
+                                                !selectedDepartmentIds || selectedDepartmentIds.length === 0
+                                                    ? 'Select Department first'
+                                                    : isLoadingDesignation
+                                                    ? 'Loading designations...'
+                                                    : 'Select Designations'
+                                            }
                                             className='w-full'
+                                            maxHeight={240}
+                                            disabled={isLoadingDesignation || !selectedDepartmentIds || selectedDepartmentIds.length === 0}
                                         />
                                     )}
                                 />
@@ -555,11 +745,22 @@ export default function MassUpdationPage() {
                                     </Button>
                                 </div>
                             )}
-                            <EmployeeTable
-                                employees={filteredEmployees}
+                            <GenericDataTable<Employee>
+                                data={filteredEmployees}
+                                totalItems={filteredEmployees.length}
+                                columns={getMassUpdationColumns({
+                                    selectedEmployees,
+                                    onSelectAll: handleSelectAll,
+                                    onEmployeeSelect: handleEmployeeSelect,
+                                    employees: filteredEmployees
+                                })}
                                 isLoading={isLoading || searchMutation.isPending}
-                                onSelectAll={handleSelectAll}
-                                onEmployeeSelect={handleEmployeeSelect}
+                                error={null}
+                                showViewOptions={true}
+                                loadingMessage='Loading employees...'
+                                noDataTitle='No Employees Found'
+                                noDataDescription='No employees match your search criteria'
+                                errorTitle='Error Loading Employees'
                             />
                         </div>
                     </CollapsibleSection>

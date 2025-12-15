@@ -1,7 +1,8 @@
 'use server';
-import { api } from '@/lib/apiService';
+
+import { api, getSearchParamsUrl, type ApiResponse } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type {
-    ApiResponse,
     SalaryUpdationDepartmentRequest,
     SalaryUpdationDepartmentResponse,
     SalaryUpdationDesignationRequest,
@@ -9,301 +10,115 @@ import type {
     SalaryUpdationEmployeeDetailsRequest,
     SalaryUpdationEmployeeDetailsResponse,
     SalaryUpdationFilterRequest,
-    SalaryUpdationOnloadRequest,
     SalaryUpdationOnloadResponse,
     SalaryUpdationSaveRequest,
     SalaryUpdationSaveResponse
 } from '@/types/hrms/salary-updation';
-export async function getSalaryUpdationOnload(
-    payload: SalaryUpdationOnloadRequest
-): Promise<ApiResponse<SalaryUpdationOnloadResponse> & { total?: number | null; page?: number | null; page_size?: number | null }> {
-    console.log('📥 [SALARY UPDATION - BACKEND] Request payload:', JSON.stringify(payload, null, 2));
-    const url = '/api/salaryUpdationFacade/onloadgetdetails';
-    // Prepare request body
-    const requestBody = {
-        page: payload.page ?? 1,
-        page_size: payload.page_size ?? 10,
-        search_query: payload.search_query ?? '',
-        search_column: payload.search_column ?? '',
-        sort_column: payload.sort_column ?? '',
-        sort_direction: payload.sort_direction ?? '',
-        is_export: payload.is_export ?? false,
-        MIID: payload.MIID ?? 30,
-        LoginUserId: payload.LoginUserId ?? 0,
-        UserRole: payload.UserRole ?? ''
-    };
-    console.log('📤 [SALARY UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    try {
-        const response = await api.post<{ success: boolean; message?: string; data?: SalaryUpdationOnloadResponse; total?: number | null; page?: number | null; page_size?: number | null }>('hrms', url, requestBody);
-        // The backend returns data wrapped in ApiResponse format
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped
-            const responseData = response.data as unknown as SalaryUpdationOnloadResponse;
-            console.log('📊 [SALARY UPDATION - BACKEND] Response data summary:', {
-                hasMI_Id: !!responseData?.MI_Id,
-                hasRoleId: !!responseData?.roleId,
-                hasEmployeeDropdown: !!responseData?.employeedropdown,
-                employeeCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0,
-                hasDepartmentDropdown: !!responseData?.departmentdropdown,
-                departmentCount: Array.isArray(responseData?.departmentdropdown) ? responseData.departmentdropdown.length : 0,
-                hasDesignationDropdown: !!responseData?.designationdropdown,
-                designationCount: Array.isArray(responseData?.designationdropdown) ? responseData.designationdropdown.length : 0,
-                hasGroupTypeDropdown: !!responseData?.groupTypedropdown,
-                groupTypeCount: Array.isArray(responseData?.groupTypedropdown) ? responseData.groupTypedropdown.length : 0,
-                hasHeadDropdown: !!responseData?.headdropdown,
-                headCount: Array.isArray(responseData?.headdropdown) ? responseData.headdropdown.length : 0,
-                hasEarningDropdown: !!responseData?.earningdropdown,
-                earningCount: Array.isArray(responseData?.earningdropdown) ? responseData.earningdropdown.length : 0,
-                hasDeductionDropdown: !!responseData?.detectiondropdown,
-                deductionCount: Array.isArray(responseData?.detectiondropdown) ? responseData.detectiondropdown.length : 0
-            });
-            return {
-                success: response.success ?? true,
-                message: response.message || 'Data found',
-                data: responseData,
-                total: typeof response.total === 'number' ? response.total : undefined,
-                page: typeof response.page === 'number' ? response.page : undefined,
-                page_size: typeof response.page_size === 'number' ? response.page_size : undefined
-            };
-        } else {
-            // Not wrapped, wrap it
-            return {
-                success: true,
-                message: 'Data found',
-                data: response as unknown as SalaryUpdationOnloadResponse,
-                total: undefined,
-                page: undefined,
-                page_size: undefined
-            };
-        }
-    } catch (error: any) {
-        return {
-            success: false,
-            message: error?.message || 'Failed to fetch salary updation onload data',
-            data: undefined,
-            total: undefined,
-            page: undefined,
-            page_size: undefined
-        };
+import type { IGroupTypeDropdown, IDepartmentDropdown, IDesignationDropdown } from '@/types/hrms/hrms-config/employee';
+
+// Dropdown APIs - following salary-approval pattern
+/**
+ * Get Group Type List for dropdowns
+ * GET /api/MasterDropDown/GroupType
+ * Returns: ApiResponse with array of { key: number, value: string }
+ */
+export async function getGroupTypeDropdown(): Promise<ApiResponse<IGroupTypeDropdown[]>> {
+    const url = '/api/MasterDropDown/GroupType';
+    return await api.get<IGroupTypeDropdown[]>('hrms', url);
+}
+
+/**
+ * Get Department List for dropdowns based on selected Group Type IDs
+ * GET /api/MasterDropDown/get_departments?GroupTypeIds=33&GroupTypeIds=44
+ * Returns: ApiResponse with array of { key: number, value: string }
+ * @param groupTypeIds - Array of Group Type IDs to filter departments
+ */
+export async function getDepartmentDropdown(groupTypeIds?: number[]): Promise<ApiResponse<IDepartmentDropdown[]>> {
+    let url = '/api/MasterDropDown/get_departments';
+    if (groupTypeIds && groupTypeIds.length > 0) {
+        // Build query string with multiple GroupTypeIds parameters
+        const queryParams = groupTypeIds.map((id) => `GroupTypeIds=${id}`).join('&');
+        url = `${url}?${queryParams}`;
     }
+    return await api.get<IDepartmentDropdown[]>('hrms', url);
 }
-// Legacy function for backwards compatibility
-export async function getSalaryUpdationList(roleId: number) {
-    return await getSalaryUpdationOnload({
-        page: 1,
-        page_size: 10,
-        search_query: '',
-        search_column: '',
-        sort_column: '',
-        sort_direction: '',
-        is_export: false,
-        MIID: 30,
-        LoginUserId: roleId,
-        UserRole: ''
-    });
+
+/**
+ * Get Designation List for dropdowns based on selected Department IDs
+ * GET /api/MasterDropDown/get_designation?DepartmentIds=33&DepartmentIds=44
+ * Returns: ApiResponse with array of { key: number, value: string }
+ * @param departmentIds - Array of Department IDs to filter designations
+ */
+export async function getDesignationDropdown(departmentIds?: number[]): Promise<ApiResponse<IDesignationDropdown[]>> {
+    let url = '/api/MasterDropDown/get_designation';
+    if (departmentIds && departmentIds.length > 0) {
+        // Build query string with multiple DepartmentIds parameters
+        const queryParams = departmentIds.map((id) => `DepartmentIds=${id}`).join('&');
+        url = `${url}?${queryParams}`;
+    }
+    return await api.get<IDesignationDropdown[]>('hrms', url);
 }
+
+/**
+ * Get salary updation list with searchParams
+ * POST /api/salaryUpdationFacade/onloadgetdetails
+ */
+export async function getSalaryUpdationList(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'EmployeeName,HRMD_DepartmentName');
+    const url = `/api/salaryUpdationFacade/onloadgetdetails?${urlParams}`;
+    return await api.post<SalaryUpdationOnloadResponse>('hrms', url, {});
+}
+
 export async function saveSalaryUpdation(data: SalaryUpdationSaveRequest) {
     const url = '/api/salaryUpdation/';
-    return await api.post<SalaryUpdationSaveResponse>('hrms', url, data);
+    // Remove MI_Id - handled by JWT
+    const { MI_Id, ...restData } = data;
+    return await api.post<SalaryUpdationSaveResponse>('hrms', url, restData);
 }
-export async function deleteSalaryUpdation(data: { HRESU_Id: number; roleId: number }) {
-    const url = `/api/salaryUpdation/${data.HRESU_Id}`;
+
+export async function deleteSalaryUpdation(id: number) {
+    const url = `/api/salaryUpdation/${id}`;
     return await api.delete<any>('hrms', url);
 }
+
 /**
  * Filter employee data by selection criteria
  * POST /api/salaryUpdationFacade/FilterEmployeeData
  */
 export async function filterSalaryUpdationEmployees(data: SalaryUpdationFilterRequest) {
-    console.log('📥 [SALARY UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
     const url = '/api/salaryUpdationFacade/FilterEmployeeData';
-    // Prepare request body with proper defaults - empty arrays for empty selections
-    const requestBody = {
-        MI_Id: data.MI_Id ?? 30,
-        LogInUserId: data.LogInUserId ?? 0,
-        designationselected: data.designationselected && data.designationselected.length > 0 ? data.designationselected : [],
-        departmentselected: data.departmentselected && data.departmentselected.length > 0 ? data.departmentselected : [],
-        groupTypeselected: data.groupTypeselected && data.groupTypeselected.length > 0 ? data.groupTypeselected : [],
-        headselected: data.headselected && data.headselected.length > 0 ? data.headselected : []
-    };
-    console.log('📤 [SALARY UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    try {
-        const response = await api.post<SalaryUpdationOnloadResponse>('hrms', url, requestBody);
-        // The backend returns data wrapped in ApiResponse format
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped
-            const responseData = response.data as unknown as SalaryUpdationOnloadResponse;
-            console.log('📊 [SALARY UPDATION - BACKEND] Response data summary:', {
-                hasMI_Id: !!responseData?.MI_Id,
-                hasEmployeeDropdown: !!responseData?.employeedropdown,
-                employeeCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0
-            });
-            return {
-                success: response.success ?? true,
-                message: response.message || 'Data found',
-                data: responseData
-            };
-        } else {
-            // Not wrapped, wrap it
-            return {
-                success: true,
-                message: 'Data found',
-                data: response as unknown as SalaryUpdationOnloadResponse
-            };
-        }
-    } catch (error: any) {
-        return {
-            success: false,
-            message: error?.message || 'Failed to filter salary updation employees',
-            data: undefined
-        };
-    }
+    // Remove MI_Id - handled by JWT
+    const { MI_Id, ...restData } = data;
+    return await api.post<SalaryUpdationOnloadResponse>('hrms', url, restData);
 }
+
 /**
  * Get employee details by selection (earnings and deductions)
  * POST /api/salaryUpdationFacade/getEmployeedetailsBySelection
  */
 export async function getSalaryUpdationEmployeeDetailsBySelection(data: SalaryUpdationEmployeeDetailsRequest) {
-    console.log('📥 [SALARY UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
     const url = '/api/salaryUpdationFacade/getEmployeedetailsBySelection';
-    // Prepare request body
-    const requestBody = {
-        earningresult: data.earningresult || [],
-        deductionresult: data.deductionresult || [],
-        LogInUserId: data.LogInUserId ?? 0
-    };
-    console.log('📤 [SALARY UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    try {
-        const response = await api.post<SalaryUpdationEmployeeDetailsResponse>('hrms', url, requestBody);
-        // The backend returns data wrapped in ApiResponse format
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped
-            const responseData = response.data as unknown as SalaryUpdationEmployeeDetailsResponse;
-            console.log('📊 [SALARY UPDATION - BACKEND] Response data summary:', {
-                hasEmployeeDropdown: !!responseData?.employeedropdown,
-                employeeCount: Array.isArray(responseData?.employeedropdown) ? responseData.employeedropdown.length : 0
-            });
-            return {
-                success: response.success ?? true,
-                message: response.message || 'Data found',
-                data: responseData
-            };
-        } else {
-            // Not wrapped, wrap it
-            return {
-                success: true,
-                message: 'Data found',
-                data: response as unknown as SalaryUpdationEmployeeDetailsResponse
-            };
-        }
-    } catch (error: any) {
-        return {
-            success: false,
-            message: error?.message || 'Failed to get employee details by selection',
-            data: undefined
-        };
-    }
+    return await api.post<SalaryUpdationEmployeeDetailsResponse>('hrms', url, data);
 }
+
 /**
  * Get departments by group type selection
  * POST /api/salaryUpdationFacade/get_depts
  */
 export async function getSalaryUpdationDepartments(data: SalaryUpdationDepartmentRequest) {
-    console.log('📥 [SALARY UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
     const url = '/api/salaryUpdationFacade/get_depts';
-    // Prepare request body
-    const requestBody = {
-        MI_Id: data.MI_Id ?? 30,
-        hrmgT_IdList: data.hrmgT_IdList && data.hrmgT_IdList.length > 0 ? data.hrmgT_IdList : []
-    };
-    console.log('📤 [SALARY UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    try {
-        const response = await api.post<SalaryUpdationDepartmentResponse>('hrms', url, requestBody);
-        // The backend returns data wrapped in ApiResponse format
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped
-            const responseData = response.data as unknown as SalaryUpdationDepartmentResponse;
-            console.log('📊 [SALARY UPDATION - BACKEND] Response data summary:', {
-                hasDepartmentDropdown: !!responseData?.departmentdropdown,
-                departmentCount: Array.isArray(responseData?.departmentdropdown) ? responseData.departmentdropdown.length : 0
-            });
-            return {
-                success: response.success ?? true,
-                message: response.message || 'Data found',
-                data: responseData
-            };
-        } else {
-            // Not wrapped, wrap it
-            return {
-                success: true,
-                message: 'Data found',
-                data: response as unknown as SalaryUpdationDepartmentResponse
-            };
-        }
-    } catch (error: any) {
-        return {
-            success: false,
-            message: error?.message || 'Failed to get departments',
-            data: undefined
-        };
-    }
+    // Remove MI_Id - handled by JWT
+    const { MI_Id, ...restData } = data;
+    return await api.post<SalaryUpdationDepartmentResponse>('hrms', url, restData);
 }
+
 /**
  * Get designations by group type and department selection
  * POST /api/salaryUpdationFacade/get_desig
  */
 export async function getSalaryUpdationDesignations(data: SalaryUpdationDesignationRequest) {
-    console.log('📥 [SALARY UPDATION - BACKEND] Request payload:', JSON.stringify(data, null, 2));
     const url = '/api/salaryUpdationFacade/get_desig';
-    // Prepare request body
-    const requestBody = {
-        MI_Id: data.MI_Id ?? 30,
-        hrmgT_IdList: data.hrmgT_IdList && data.hrmgT_IdList.length > 0 ? data.hrmgT_IdList : [],
-        hrmD_IdList: data.hrmD_IdList && data.hrmD_IdList.length > 0 ? data.hrmD_IdList : []
-    };
-    console.log('📤 [SALARY UPDATION - BACKEND] Request body prepared:', JSON.stringify(requestBody, null, 2));
-    try {
-        const response = await api.post<SalaryUpdationDesignationResponse>('hrms', url, requestBody);
-        // The backend returns data wrapped in ApiResponse format
-        if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
-            // Already wrapped
-            const responseData = response.data as unknown as SalaryUpdationDesignationResponse;
-            console.log('📊 [SALARY UPDATION - BACKEND] Response data summary:', {
-                hasDesignationDropdown: !!responseData?.designationdropdown,
-                designationCount: Array.isArray(responseData?.designationdropdown) ? responseData.designationdropdown.length : 0
-            });
-            return {
-                success: response.success ?? true,
-                message: response.message || 'Data found',
-                data: responseData
-            };
-        } else {
-            // Not wrapped, wrap it
-            return {
-                success: true,
-                message: 'Data found',
-                data: response as unknown as SalaryUpdationDesignationResponse
-            };
-        }
-    } catch (error: any) {
-        return {
-            success: false,
-            message: error?.message || 'Failed to get designations',
-            data: undefined
-        };
-    }
-}
-export async function testSalaryUpdationAPI(roleId = 2) {
-    return await getSalaryUpdationOnload({
-        page: 1,
-        page_size: 10,
-        search_query: '',
-        search_column: '',
-        sort_column: '',
-        sort_direction: '',
-        is_export: false,
-        MIID: 30,
-        LoginUserId: roleId,
-        UserRole: ''
-    });
+    // Remove MI_Id - handled by JWT
+    const { MI_Id, ...restData } = data;
+    return await api.post<SalaryUpdationDesignationResponse>('hrms', url, restData);
 }

@@ -152,13 +152,11 @@ export const documentSchema = z.object({
             if (!actualFile) return true;
             const maxSize = 2 * 1024 * 1024; // 2MB
             const allowedTypes = [
-                'image/jpeg',
-                'application/msword',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'application/pdf'
+                'image/jpeg', // Covers both .jpg and .jpeg files
+                'image/png'
             ];
             return actualFile.size <= maxSize && allowedTypes.includes(actualFile.type);
-        }, 'File must be JPEG, DOC, DOCX, or PDF and not exceed 2MB')
+        }, 'File must be JPG, JPEG, or PNG and not exceed 2MB')
 });
 
 // Main employee register form schema

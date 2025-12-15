@@ -6,6 +6,35 @@ import { format } from 'date-fns';
 type FormFields = z.infer<typeof employeeRegisterSchemas.add>;
 
 /**
+ * Convert File to base64 string
+ */
+export async function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = reader.result as string;
+            // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
+            const base64 = result.split(',')[1] || result;
+            resolve(base64);
+        };
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Generate random image name: random number + random character
+ * Example: "12345A", "67890B"
+ */
+export function generateRandomImageName(): string {
+    // Generate random number (5-6 digits)
+    const randomNumber = Math.floor(Math.random() * 900000) + 100000; // 100000-999999
+    // Generate random uppercase character
+    const randomChar = String.fromCharCode(65 + Math.floor(Math.random() * 26)); // A-Z
+    return `${randomNumber}${randomChar}`;
+}
+
+/**
  * Helper function to convert empty string to null
  */
 function toNullIfEmpty(value: any): string | null {
@@ -440,6 +469,7 @@ export function mapApiResponseToFormFields(apiData: any): Partial<FormFields> {
     // Map document list
     const documentList = Array.isArray(data.documentList)
         ? data.documentList.map((doc: any) => ({
+            hrmedS_Id: doc.hrmedS_Id || doc.HRMEDS_Id || 0, // Preserve ID for updates
             documentName: doc.hrmedS_DocumentName || '',
             documentDescription: doc.hrmedS_DucumentDescription || '',
             document: null, // File will be handled separately if needed
@@ -677,7 +707,11 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
         // Documents (Tab 1)
         panCardNo: data.hrmE_PANCardNo || '',
         aadharNo: numToString(data.hrmE_AadharCardNo),
-        nationalSSN: data.hrmE_NationalSSN || ''
+        nationalSSN: data.hrmE_NationalSSN || '',
+        // Other flags (Tab 1)
+        phdResearchGuide: data.hrmE_PHDResearchGuideFlg || false,
+        teachingNonTeaching: data.hrmE_TechNonTeachingFlg || '',
+        recognitionYear: numToString(data.hrmE_RGRecognitionYear)
     };
 }
 
@@ -840,6 +874,7 @@ export function mapApiResponseToTab5Fields(apiData: any): Partial<FormFields> {
     // Map document list
     const documentList = Array.isArray(data.documentList)
         ? data.documentList.map((doc: any) => ({
+            hrmedS_Id: doc.hrmedS_Id || doc.HRMEDS_Id || 0, // Preserve ID for updates
             documentName: doc.hrmedS_DocumentName || '',
             documentDescription: doc.hrmedS_DucumentDescription || '',
             document: null, // File will be handled separately if needed

@@ -12,7 +12,7 @@ import type { IMasterPayrollStandardList, IMonthDropdown } from '@/types/hrms/hr
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -180,9 +180,20 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
     };
     // Add debug logging for form state changes
     const _formValues = watch();
+    
+    const onError = (errors: FieldErrors<FormFields>) => {
+        // Show first error message
+        const firstError = Object.values(errors)[0];
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        } else {
+            toast.error('Please fix the validation errors before submitting');
+        }
+    };
+    
     // Error handling for HRC_SalaryFromDay and HRC_SalaryToDay done in form validation
     const handleFormSubmit = (e?: React.FormEvent) => {
-        return handleSubmit(onSubmit)(e);
+        return handleSubmit(onSubmit, onError)(e);
     };
     return (
         <div className={className}>
@@ -1358,7 +1369,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     3: '(Earning - Deduction) Here Basic and every other heads will change.',
                                     4: '(Earning - Deduction) Here Basic and all Percentage heads will change.',
                                     5: '(Only Earning Heads are revised When LOP Applies)',
-                                    6: ''
+                                    6: '(Only heads with revised flag will change when LOP changes)'
                                 };
                                 const tooltipText = methodTooltips[method];
 

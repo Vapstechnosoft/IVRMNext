@@ -8,7 +8,7 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterProfessionalTax } from '@/server/hrms/hrmsConfig/master/professional-tax';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -61,9 +61,21 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
         reset();
     };
 
+    const onError = (errors: FieldErrors<FormFields>) => {
+        // Show first error message
+        const firstError = Object.values(errors)[0];
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        } else if (errors.root?.message) {
+            toast.error(errors.root.message);
+        } else {
+            toast.error('Please fix the validation errors before submitting');
+        }
+    };
+
     return (
         <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit, onError)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <Controller
@@ -149,18 +161,6 @@ export default function AddProfessionalTaxForm({ onSuccess, className = '' }: Ad
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        onClick={async () => {
-                            // Trigger validation to show errors
-                            const isValid = await trigger();
-                            if (!isValid) {
-                                // If validation fails, check for the specific error
-                                if (errors.hrmpT_SalaryTo?.message) {
-                                    toast.error(errors.hrmpT_SalaryTo.message);
-                                } else if (errors.root?.message) {
-                                    toast.error(errors.root.message);
-                                }
-                            }
-                        }}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>

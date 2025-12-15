@@ -52,7 +52,7 @@ export const columns: ColumnDef<IMasterEarningsDeductionsList>[] = [
     },
     {
         accessorKey: 'hrmeD_AmountPercent',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Value' className='whitespace-nowrap' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Amount/Per' className='whitespace-nowrap' />
     },
     {
         accessorKey: 'hrmeD_Order',

@@ -99,12 +99,29 @@ export interface EmployeeDetail {
     HRMGT_EmployeeGroupType: string;
     HRMD_DepartmentName: string;
     HRMDES_DesignationName: string;
-    TotalEarning: number;
-    TotalDeduction: number;
-    NetSalary: number;
+    // Working Days and LOP
     HRES_WorkingDays: number;
+    HRES_LOPDays?: number;
+    // Gross Salary
+    GrossSalary?: number;
+    // Earnings
+    DA?: number;
+    HRA?: number;
+    Conveyance?: number;
+    Medical?: number;
+    SplAllowance?: number;
+    TotalEarning: number;
+    // Deductions
+    PF?: number;
+    ESI?: number;
+    OthersCD?: number;
+    PT?: number;
+    TotalDeduction: number;
+    // Net Salary
+    NetSalary: number;
     HRES_Year: string;
     HRES_Month: string;
+    [key: string]: any;
 }
 
 // Search Response

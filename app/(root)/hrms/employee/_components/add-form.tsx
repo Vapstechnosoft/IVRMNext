@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DateField } from '@/components/ui/dateField';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Label } from '@/components/ui/extension/field';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
@@ -29,6 +30,9 @@ import {
     useSaveEmployee,
     useSaveEmployeeQualification,
     useSaveEmployeeExperience,
+    useSaveEmployeeDocument,
+    useSaveEmployeeMedical,
+    useSaveEmployeeOtherDetails,
     useScoreTypeDropdown,
     useContactTypeDropdown,
     useSpecializationDropdown,
@@ -64,7 +68,7 @@ import type {
 } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Plus, Save, Trash2, Upload, X, Eye } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
@@ -75,7 +79,8 @@ import {
     ensureNonEmptyValue,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
-    tabFieldMap
+    tabFieldMap,
+    fileToBase64
 } from './employee-register-helper';
 import { PayrollTab } from './payroll-tab';
 
@@ -461,12 +466,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const { mutate: saveEmployeeMutation, isPending } = useSaveEmployee();
     const { mutate: saveQualificationDetails, isPending: isSavingQualification } = useSaveEmployeeQualification();
     const { mutate: saveExperienceDetails, isPending: isSavingExperience } = useSaveEmployeeExperience();
+    const { mutate: saveDocumentDetailsMutation, isPending: isSavingDocument } = useSaveEmployeeDocument();
+    const { mutate: saveMedicalDetailsMutation, isPending: isSavingMedical } = useSaveEmployeeMedical();
+    const { mutate: saveOtherDetailsMutation, isPending: isSavingOther } = useSaveEmployeeOtherDetails();
     const savePersonalDetails = saveEmployeeMutation;
-    const saveDocumentDetails = saveEmployeeMutation;
-    const saveMedicalDetails = saveEmployeeMutation;
+    const saveDocumentDetails = saveDocumentDetailsMutation;
+    const saveMedicalDetails = saveMedicalDetailsMutation;
+    const saveOtherDetails = saveOtherDetailsMutation;
     const _saveBankDetails = saveEmployeeMutation;
-    const isSavingDocument = isPending;
-    const isSavingMedical = isPending;
     const isSavingBank = isPending;
 
     // Add form - no edit mode (removed isEditMode variable - not needed)
@@ -474,6 +481,26 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const [_photoFile, setPhotoFile] = useState<File | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+    // Cleanup object URLs when dialog closes or component unmounts
+    useEffect(() => {
+        return () => {
+            if (previewImage && previewImage.startsWith('blob:')) {
+                URL.revokeObjectURL(previewImage);
+            }
+        };
+    }, [previewImage]);
+
+    // Cleanup when dialog closes
+    const handlePreviewClose = (open: boolean) => {
+        setIsPreviewOpen(open);
+        if (!open && previewImage && previewImage.startsWith('blob:')) {
+            URL.revokeObjectURL(previewImage);
+            setPreviewImage(null);
+        }
+    };
 
     // Helper to get current tab key from step
     const getCurrentTabKey = () => steps.find((s) => s.id === currentStep)?.tabKey || 'employee';
@@ -1724,95 +1751,238 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     }
                 });
             } else if (currentStepId === 5) {
-                // Document tab
+                // Document Upload tab - save document details
+                console.log('🔍 [DEBUG] Tab 5 (Document Upload) - Starting save process');
                 if (!savedEmployeeId) {
+                    console.error('❌ [DEBUG] Tab 5 - No employee ID found');
                     toast.error('Please save Employee and Address details first');
                     setCurrentStep(1);
                     return;
                 }
+                
                 const documentList = data.documentList || [];
+                console.log('🔍 [DEBUG] Tab 5 - Document List (Raw):', documentList);
+                console.log('🔍 [DEBUG] Tab 5 - Document Count:', documentList.length);
+                
                 if (documentList.length === 0) {
+                    console.error('❌ [DEBUG] Tab 5 - No documents found');
                     setError('documentList', {
                         type: 'required',
                         message: 'Please add at least one document'
                     });
+                    toast.error('Please add at least one document');
                     return;
                 }
-                // Map form data to API format
-                const documentsPayload = documentList.map((doc: any) => {
-                    const documentName = doc.documentName || doc.name || '';
-                    const documentImageName = doc.document?.[0]?.name || doc.imageName || '';
-                    const documentDescription = doc.description || doc.documentDescription || '';
-                    return {
-                        CreatedDate: new Date().toISOString(),
-                        UpdatedDate: new Date().toISOString(),
-                        HRME_Id: savedEmployeeId,
-                        HRMEDS_DocumentName: documentName,
-                        HRMEDS_DucumentDescription: documentDescription,
-                        HRMEDS_DocumentImageName: documentImageName
-                    };
-                });
-                saveDocumentDetails(documentsPayload, {
-                    onSuccess: (response: any) => {
-                        // Show API response message
-                        if (response?.success && response?.message) {
-                            toast.success(response.message);
-                        } else if (response?.message) {
-                            toast.info(response.message);
-                        }
-                        setCurrentStep(6);
-                    },
-                    onError: (error: any) => {
-                        // Show API error message
-                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
-                        toast.error(errorMessage);
+                
+                // Map documents to API format with base64 conversion
+                const mapDocumentsToPayload = async () => {
+                    const documentsPayload = await Promise.all(
+                        documentList.map(async (doc: any, index: number) => {
+                            const documentName = doc.documentName || '';
+                            const documentDescription = doc.documentDescription || '';
+                            
+                            // Get file from document field (could be FileList, File, or array)
+                            let file: File | null = null;
+                            if (doc.document) {
+                                if (doc.document instanceof FileList) {
+                                    file = doc.document[0] || null;
+                                } else if (doc.document instanceof File) {
+                                    file = doc.document;
+                                } else if (Array.isArray(doc.document) && doc.document[0] instanceof File) {
+                                    file = doc.document[0];
+                                }
+                            }
+                            
+                            // Convert file to base64 if new file is uploaded
+                            let blobBase64 = '';
+                            let fileName = '';
+                            // Always send empty string for hrmedS_DocumentImageName - backend will generate and return the URL
+                            let documentImageName = '';
+                            
+                            if (file) {
+                                console.log(`🔍 [DEBUG] Tab 5 - Document #${index + 1} - Converting file to base64:`, file.name);
+                                blobBase64 = await fileToBase64(file);
+                                fileName = file.name;
+                            }
+                            
+                            const payload = {
+                                hrmedS_Id: 0, // New record
+                                hrmE_Id: savedEmployeeId,
+                                hrmedS_DocumentName: documentName,
+                                hrmedS_DocumentImageName: documentImageName,
+                                hrmedS_DucumentDescription: documentDescription, // Note: API has typo "Ducument"
+                                blobBase64: blobBase64,
+                                fileName: fileName,
+                            };
+                            
+                            console.log(`🔍 [DEBUG] Tab 5 - Document #${index + 1} Mapping:`, {
+                                raw: doc,
+                                mapped: { ...payload, blobBase64: blobBase64 ? `${blobBase64.substring(0, 50)}...` : '' }
+                            });
+                            
+                            return payload;
+                        })
+                    );
+                    
+                    return documentsPayload;
+                };
+                
+                mapDocumentsToPayload().then((documentsPayload) => {
+                    console.log('🔍 [DEBUG] Tab 5 - Final Payload Count:', documentsPayload.length);
+                    console.log('🔍 [DEBUG] Tab 5 - Final Payload:', documentsPayload.map(d => ({ ...d, blobBase64: d.blobBase64 ? `${d.blobBase64.substring(0, 50)}...` : '' })));
+                    console.log('🔍 [DEBUG] Tab 5 - Calling saveDocumentDetails...');
+                    console.log('🔍 [DEBUG] Tab 5 - saveDocumentDetails function type:', typeof saveDocumentDetails);
+                    
+                    if (!saveDocumentDetails) {
+                        console.error('❌ [DEBUG] Tab 5 - saveDocumentDetails is not defined!');
+                        toast.error('Document save function is not available. Please refresh the page.');
+                        return;
                     }
+                    
+                    saveDocumentDetails(documentsPayload, {
+                        onSuccess: (response: any) => {
+                            console.log('✅ [DEBUG] Tab 5 (Document Upload) - Save Success:', response);
+                            console.log('🔍 [DEBUG] Tab 5 - Full API Response:', JSON.stringify(response, null, 2));
+                            
+                            // Show API response message
+                            if (response?.success && response?.message) {
+                                toast.success(response.message);
+                            } else if (response?.message) {
+                                toast.info(response.message);
+                            }
+                            
+                            setCurrentStep(6);
+                        },
+                        onError: (error: any) => {
+                            console.error('❌ [DEBUG] Tab 5 (Document Upload) - Save Error:', error);
+                            console.error('❌ [DEBUG] Tab 5 - Error Details:', JSON.stringify(error, null, 2));
+                            // Show API error message
+                            const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save document details';
+                            toast.error(errorMessage);
+                        }
+                    });
+                }).catch((error) => {
+                    console.error('❌ [DEBUG] Tab 5 - Error converting files to base64:', error);
+                    toast.error('Failed to process document files. Please try again.');
                 });
             } else if (currentStepId === 6) {
-                // Medical tab
+                // Medical Record tab - save medical details
+                console.log('🔍 [DEBUG] Tab 6 (Medical Record) - Starting save process');
                 if (!savedEmployeeId) {
+                    console.error('❌ [DEBUG] Tab 6 - No employee ID found');
                     toast.error('Please save Employee and Address details first');
                     setCurrentStep(1);
                     return;
                 }
+                
+                // Map form data to API format (same format as Tab 2 - includes all employee data)
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId;
+                
+                console.log('🔍 [DEBUG] Tab 6 (Medical Record) - Form Data:', data);
+                console.log('🔍 [DEBUG] Tab 6 (Medical Record) - Payload:', payload);
+                console.log('🔍 [DEBUG] Tab 6 (Medical Record) - Employee ID:', savedEmployeeId);
+                console.log('🔍 [DEBUG] Tab 6 (Medical Record) - Medical Fields:');
+                console.log('  - Height:', payload.hrmE_Height, 'Unit:', payload.hrmE_HeightUOM);
+                console.log('  - Weight:', payload.hrmE_Weight, 'Unit:', payload.hrmE_WeightUOM);
+                console.log('  - Identification Mark:', payload.hrmE_IdentificationMark);
+                console.log('  - Any Health Issue:', payload.hrmE_AnyHealthIssue);
+                console.log('  - Eye Sight Issue:', payload.hrmE_EyeSightIssue);
+                console.log('🔍 [DEBUG] Tab 6 (Medical Record) - Calling saveMedicalDetails...');
+                
+                if (!saveMedicalDetails) {
+                    console.error('❌ [DEBUG] Tab 6 - saveMedicalDetails is not defined!');
+                    toast.error('Medical save function is not available. Please refresh the page.');
+                    return;
+                }
+                
                 saveMedicalDetails(payload, {
                     onSuccess: (response: any) => {
+                        console.log('✅ [DEBUG] Tab 6 (Medical Record) - Save Success:', response);
+                        console.log('🔍 [DEBUG] Tab 6 - Full API Response:', JSON.stringify(response, null, 2));
+                        console.log('🔍 [DEBUG] Tab 6 - Response Success:', response?.success);
+                        console.log('🔍 [DEBUG] Tab 6 - Response Message:', response?.message);
+                        console.log('🔍 [DEBUG] Tab 6 - Response Data:', response?.data);
+                        
                         // Show API response message
                         if (response?.success && response?.message) {
                             toast.success(response.message);
                         } else if (response?.message) {
                             toast.info(response.message);
+                        } else if (response?.success === false) {
+                            console.warn('⚠️ [DEBUG] Tab 6 - API returned success: false');
+                            toast.warning('Medical details saved but API returned success: false. Please verify the data was saved.');
                         }
+                        
                         setCurrentStep(7);
                     },
                     onError: (error: any) => {
+                        console.error('❌ [DEBUG] Tab 6 (Medical Record) - Save Error:', error);
+                        console.error('❌ [DEBUG] Tab 6 - Error Details:', JSON.stringify(error, null, 2));
                         // Show API error message
                         const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save medical details';
                         toast.error(errorMessage);
                     }
                 });
             } else if (currentStepId === 7) {
-                // Other details tab
+                // Other Details tab - save other details
+                console.log('🔍 [DEBUG] Tab 7 (Other Details) - Starting save process');
                 if (!savedEmployeeId) {
+                    console.error('❌ [DEBUG] Tab 7 - No employee ID found');
                     toast.error('Please save Employee and Address details first');
                     setCurrentStep(1);
                     return;
                 }
+                
+                // Map form data to API format (same format as Tab 2 and Tab 6 - includes all employee data)
                 const payload = mapFormDataToApiFormatLocal(data);
                 payload.hrmE_Id = savedEmployeeId;
-                savePersonalDetails(payload, {
+                
+                console.log('🔍 [DEBUG] Tab 7 (Other Details) - Form Data:', data);
+                console.log('🔍 [DEBUG] Tab 7 (Other Details) - Payload:', payload);
+                console.log('🔍 [DEBUG] Tab 7 (Other Details) - Employee ID:', savedEmployeeId);
+                console.log('🔍 [DEBUG] Tab 7 (Other Details) - Other Details Fields:');
+                console.log('  - Biometric Code:', payload.hrmE_BiometricCode);
+                console.log('  - RF Card ID:', payload.hrmE_RFCardId);
+                console.log('  - MS Teams User ID:', payload.hrmE_MSTeamsUserId);
+                console.log('  - MS Teams Password:', payload.hrmE_MSTeamsPassword ? '***' : '');
+                console.log('  - Punch Relaxation:', payload.hrmE_ExcPunch);
+                console.log('  - Employee Left:', payload.hrmE_LeftFlag);
+                console.log('  - Last Working Day:', payload.hrmE_DOL);
+                console.log('  - Reason for Leaving:', payload.hrmE_LeavingReason);
+                console.log('  - Stop Pension:', payload.hrmE_RetiredFlg);
+                console.log('  - Pension Stopped Date:', payload.hrmE_PensionStoppedDate);
+                console.log('🔍 [DEBUG] Tab 7 (Other Details) - Calling saveOtherDetails...');
+                
+                if (!saveOtherDetails) {
+                    console.error('❌ [DEBUG] Tab 7 - saveOtherDetails is not defined!');
+                    toast.error('Other details save function is not available. Please refresh the page.');
+                    return;
+                }
+                
+                saveOtherDetails(payload, {
                     onSuccess: (response: any) => {
+                        console.log('✅ [DEBUG] Tab 7 (Other Details) - Save Success:', response);
+                        console.log('🔍 [DEBUG] Tab 7 - Full API Response:', JSON.stringify(response, null, 2));
+                        console.log('🔍 [DEBUG] Tab 7 - Response Success:', response?.success);
+                        console.log('🔍 [DEBUG] Tab 7 - Response Message:', response?.message);
+                        console.log('🔍 [DEBUG] Tab 7 - Response Data:', response?.data);
+                        
                         // Show API response message
                         if (response?.success && response?.message) {
                             toast.success(response.message);
                         } else if (response?.message) {
                             toast.info(response.message);
+                        } else if (response?.success === false) {
+                            console.warn('⚠️ [DEBUG] Tab 7 - API returned success: false');
+                            toast.warning('Other details saved but API returned success: false. Please verify the data was saved.');
                         }
+                        
                         setCurrentStep(8);
                     },
                     onError: (error: any) => {
+                        console.error('❌ [DEBUG] Tab 7 (Other Details) - Save Error:', error);
+                        console.error('❌ [DEBUG] Tab 7 - Error Details:', JSON.stringify(error, null, 2));
                         // Show API error message
                         const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save other details';
                         toast.error(errorMessage);
@@ -4697,12 +4867,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <div className='rounded-md border'>
                                                 <div className='flex items-center justify-between border-b bg-muted px-4 py-2'>
                                                     <h3 className='font-semibold text-base text-gray-900 uppercase'>
-                                                        DOCUMENT UPLOAD DETAILS [ONLY JPEG,DOCX,DOC,PDF FILES (0-2MB)]
+                                                        DOCUMENT UPLOAD DETAILS [ONLY JPG, JPEG, PNG FILES (0-2MB)]
                                                     </h3>
                                                     <Button
                                                         type='button'
                                                         className='h-7 w-auto rounded-md bg-secondary px-2.5 py-1.5 text-secondary-foreground text-xs shadow-sm hover:bg-secondary/80'
-                                                        onClick={() => appendDocument({} as any)}>
+                                                        onClick={() => appendDocument({
+                                                          documentName: "",
+                                                          documentDescription: "",
+                                                          document: null,
+                                                          imageName: "",
+                                                          hrmedS_Id: 0 // New record - use lowercase to match form field
+                                                        } as any)}>
                                                         <Plus className='mr-1 h-3.5 w-3.5' /> Add Document
                                                     </Button>
                                                 </div>
@@ -4754,7 +4930,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         <input
                                                                             type='file'
                                                                             id={`documentList.${index}.document`}
-                                                                            accept='.jpeg,.jpg,.docx,.doc,.pdf'
+                                                                            accept='.jpg,.jpeg,.png,image/jpeg,image/png'
                                                                             {...register(`documentList.${index}.document`)}
                                                                             className='hidden'
                                                                         />
@@ -4770,22 +4946,26 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             }>
                                                                             <Upload className='mr-1 h-4 w-4' /> Choose File
                                                                         </Button>
-                                                                        {displayFileName && (
-                                                                            <div className='flex items-center gap-2 rounded-md bg-muted px-3 py-2'>
-                                                                                <span className='text-muted-foreground text-sm'>
-                                                                                    Selected:
-                                                                                </span>
-                                                                                <span className='max-w-xs truncate font-medium text-sm'>
-                                                                                    {displayFileName}
-                                                                                </span>
-                                                                                {selectedFile && (
-                                                                                    <Badge variant='secondary' className='ml-2'>
-                                                                                        {(selectedFile.size / 1024).toFixed(2)} KB
-                                                                                    </Badge>
-                                                                                )}
-                                                                            </div>
+                                                                        {selectedFile && (
+                                                                            <Button
+                                                                                type='button'
+                                                                                variant='outline'
+                                                                                size='sm'
+                                                                                onClick={() => {
+                                                                                    if (selectedFile) {
+                                                                                        // For new files, create object URL
+                                                                                        const objectUrl = URL.createObjectURL(selectedFile);
+                                                                                        setPreviewImage(objectUrl);
+                                                                                        setIsPreviewOpen(true);
+                                                                                    }
+                                                                                }}
+                                                                                className='h-7 w-auto px-2 text-xs flex items-center gap-1'
+                                                                            >
+                                                                                <Eye className='h-3 w-3' />
+                                                                                View
+                                                                            </Button>
                                                                         )}
-                                                                        {!displayFileName && (
+                                                                        {!selectedFile && (
                                                                             <span className='text-muted-foreground text-sm'>
                                                                                 No file selected
                                                                             </span>
@@ -5200,9 +5380,38 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </div>
-                </div>
-            </form>
-        </div>
-    );
-}
+                </form>
+                
+                {/* Image Preview Dialog */}
+                <Dialog open={isPreviewOpen} onOpenChange={handlePreviewClose}>
+                    <DialogContent className='max-w-4xl max-h-[90vh]'>
+                        <DialogHeader>
+                            <DialogTitle>Document Preview</DialogTitle>
+                        </DialogHeader>
+                        <div className='flex items-center justify-center p-4'>
+                            {previewImage && (
+                                <img
+                                    src={previewImage}
+                                    alt='Document preview'
+                                    className='max-w-full max-h-[70vh] object-contain rounded-md'
+                                    onError={(e) => {
+                                        console.error('Error loading image:', previewImage);
+                                        // Only show error if it's a valid URL attempt, not a random string
+                                        if (previewImage && (previewImage.startsWith('http') || previewImage.startsWith('blob:'))) {
+                                            e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23999'%3EImage not available%3C/text%3E%3C/svg%3E";
+                                        } else {
+                                            // Close dialog if invalid image source
+                                            setIsPreviewOpen(false);
+                                            setPreviewImage(null);
+                                        }
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        );
+    }

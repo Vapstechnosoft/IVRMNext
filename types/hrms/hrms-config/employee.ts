@@ -24,6 +24,31 @@ export interface IDesignationDropdown {
     value: string;
 }
 
+export interface IMonthDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IYearDropdown {
+    key: string;
+    value: string;
+}
+
+export interface IEmployeeDropdown {
+    key: number;
+    value: string;
+}
+
+export interface IModeOfPaymentDropdown {
+    key: string;
+    value: string;
+}
+
+export interface ILoanTypeDropdown {
+    key: number;
+    value: string;
+}
+
 export interface IGenderDropdown {
     key: number;
     value: string;

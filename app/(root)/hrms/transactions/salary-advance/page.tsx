@@ -1,42 +1,60 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import { DataTable } from '@/components/ui/data-table/data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useSalaryAdvanceList } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import type { EmployeeDropdown, LeaveYearDropdown, MonthDropdown, SalaryAdvanceItem } from '@/types/hrms/salary-advance';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { ActionsCell } from './_components/actions-cell';
-import FormSections from './_components/form-sections';
+import AddSalaryAdvanceForm from './_components/add-form';
+import { getSalaryAdvanceColumns } from './_components/columns';
+import ToggleSalaryAdvanceForm from './_components/toggle-form';
+import UpdateSalaryAdvanceForm from './_components/update-form';
+import { use } from 'react';
+import { X } from 'lucide-react';
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 interface SalaryAdvance extends SalaryAdvanceItem {
     selected?: boolean;
 }
-export default function SalaryAdvancePage() {
-    const roleId = 2;
-    const { data: advanceData, isLoading, refetch } = useSalaryAdvanceList({ roleId });
+export default function SalaryAdvancePage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error, refetchAll } = useSalaryAdvanceList(searchParams);
     return (
         <FormProvider<SalaryAdvanceItem>>
-            <SalaryAdvancePageContent advanceData={advanceData} isLoading={isLoading} refetch={refetch} />
+            <SalaryAdvancePageContent response={response} isLoading={isLoading} error={error} refetch={refetchAll} />
         </FormProvider>
     );
 }
 function SalaryAdvancePageContent({
-    advanceData,
+    response,
     isLoading,
+    error,
     refetch
 }: {
-    advanceData: any;
+    response: any;
     isLoading: boolean;
+    error: any;
     refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<SalaryAdvanceItem>();
+    const {
+        openAddForm,
+        isAddFormOpen,
+        closeAddForm,
+        addFormRef,
+        isEditFormOpen,
+        closeEditForm,
+        editFormRef,
+        isToggleFormOpen,
+        closeToggleForm,
+        selectedRow
+    } = useFormContext<SalaryAdvanceItem>();
     const [selectedAdvances, setSelectedAdvances] = useState<number[]>([]);
+    const advanceData = response?.data || response;
     const _salaryAdvances: SalaryAdvance[] = (advanceData?.empadvaList || []).map((advance: any) => ({
         ...advance,
         selected: false
@@ -45,6 +63,7 @@ function SalaryAdvancePageContent({
     const employees = advanceData?.employeedropdown || [];
     const leaveYears = advanceData?.leaveyeardropdown || [];
     const months = advanceData?.monthdropdown || [];
+    const tableProps = useDataTableProps(response);
     const _modeOfPayments = advanceData?.modeOfPaymentdropdown || [];
     const handleSelectAll = (selected: boolean) => {
         if (selected) {
@@ -80,144 +99,6 @@ function SalaryAdvancePageContent({
         const year = leaveYears.find((y: LeaveYearDropdown) => y.HRMLY_Id === yearId);
         return year?.HRMLY_LeaveYear || `Year ${yearId}`;
     };
-    const getMonthName = (monthId: number) => {
-        const month = months.find((m: MonthDropdown) => m.IVRM_Month_Id === monthId);
-        return month?.IVRM_Month_Name || `Month ${monthId}`;
-    };
-    const SalaryAdvanceTable = ({
-        advances,
-        isLoading,
-        onSelectAll,
-        onAdvanceSelect,
-        getEmployeeCode,
-        getEmployeeName,
-        getEmployeeNameById,
-        getLeaveYearName,
-        getMonthName
-    }: {
-        advances: SalaryAdvance[];
-        isLoading: boolean;
-        onSelectAll: (selected: boolean) => void;
-        onAdvanceSelect: (advanceId: number, selected: boolean) => void;
-        getEmployeeCode: (employeeId: number) => string;
-        getEmployeeName: (employee: EmployeeDropdown | null | undefined) => string;
-        getEmployeeNameById: (employeeId: number) => string;
-        getLeaveYearName: (yearId: number) => string;
-        getMonthName: (monthId: number) => string;
-    }) => {
-        const columns: ColumnDef<SalaryAdvance>[] = [
-            {
-                id: 'select',
-                header: () => (
-                    <Checkbox
-                        checked={advances.length > 0 && selectedAdvances.length === advances.length}
-                        onCheckedChange={(value) => onSelectAll(!!value)}
-                        aria-label='Select all'
-                    />
-                ),
-                cell: ({ row }) => (
-                    <Checkbox
-                        checked={selectedAdvances.includes(row.original.HRESA_Id)}
-                        onCheckedChange={(value) => onAdvanceSelect(row.original.HRESA_Id, !!value)}
-                        aria-label='Select row'
-                    />
-                ),
-                enableSorting: false,
-                enableHiding: false
-            },
-            {
-                accessorKey: 'HRESA_Id',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No.' />,
-                cell: ({ row, table }) => {
-                    const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                    return <div>{index + 1}</div>;
-                },
-                enableSorting: false,
-                enableHiding: false
-            },
-            {
-                accessorKey: 'HRME_Id',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
-                cell: ({ row }) => <div>{getEmployeeCode(row.getValue('HRME_Id'))}</div>,
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                accessorKey: 'HRME_Id',
-                id: 'employeeName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
-                cell: ({ row }) => {
-                    // Try to get employee name from MasterEmployee first, then fallback to lookup
-                    const masterEmployee = (row.original as any).MasterEmployee as EmployeeDropdown | undefined;
-                    const employeeId = row.original.HRME_Id;
-                    if (masterEmployee) {
-                        return <div>{getEmployeeName(masterEmployee)}</div>;
-                    }
-                    // Fallback to lookup from employeedropdown
-                    return <div>{getEmployeeNameById(employeeId)}</div>;
-                },
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                accessorKey: 'HRESA_AdvYear',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Advance Year' />,
-                cell: ({ row }) => <div>{getLeaveYearName(row.getValue('HRESA_AdvYear'))}</div>,
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                accessorKey: 'HRESA_AdvMonth',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Advance Month' />,
-                cell: ({ row }) => <div>{getMonthName(Number(row.getValue('HRESA_AdvMonth')))}</div>,
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                accessorKey: 'HRESA_AppliedAmount',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Applied Amount' />,
-                cell: ({ row }) => <div>₹{row.getValue('HRESA_AppliedAmount')?.toLocaleString()}</div>,
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                accessorKey: 'HRESA_AdvStatus',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-                cell: ({ row }) => {
-                    const status = row.getValue('HRESA_AdvStatus') as string;
-                    return (
-                        <span
-                            className={cn(
-                                'rounded-full px-2 py-1 font-medium text-xs',
-                                status === 'Approved'
-                                    ? 'bg-green-100 text-green-800'
-                                    : status === 'Rejected'
-                                      ? 'bg-red-100 text-red-800'
-                                      : 'bg-yellow-100 text-yellow-800'
-                            )}>
-                            {status}
-                        </span>
-                    );
-                },
-                enableSorting: true,
-                enableHiding: true
-            },
-            {
-                id: 'actions',
-                header: 'Actions',
-                enableSorting: false,
-                cell: ({ row }) => {
-                    const advance = row.original;
-                    return <ActionsCell rowData={advance} />;
-                }
-            }
-        ];
-        return (
-            <div className='overflow-hidden rounded-lg bg-card'>
-                <DataTable<SalaryAdvance, any> columns={columns} data={advances} totalItems={advances.length} isLoading={isLoading} />
-            </div>
-        );
-    };
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -250,22 +131,113 @@ function SalaryAdvancePageContent({
                                 </Button>
                             </div>
                         )}
-                        <SalaryAdvanceTable
-                            advances={filteredAdvances}
+                        <GenericDataTable<SalaryAdvance>
+                            {...tableProps}
+                            columns={getSalaryAdvanceColumns({
+                                selectedAdvances,
+                                onSelectAll: handleSelectAll,
+                                onAdvanceSelect: handleAdvanceSelect,
+                                employees,
+                                leaveYears,
+                                months,
+                                advances: filteredAdvances
+                            })}
                             isLoading={isLoading}
-                            onSelectAll={handleSelectAll}
-                            onAdvanceSelect={handleAdvanceSelect}
-                            getEmployeeCode={getEmployeeCode}
-                            getEmployeeName={getEmployeeName}
-                            getEmployeeNameById={getEmployeeNameById}
-                            getLeaveYearName={getLeaveYearName}
-                            getMonthName={getMonthName}
+                            error={error}
+                            showViewOptions={true}
+                            loadingMessage='Loading salary advances...'
+                            noDataTitle='No Salary Advances Found'
+                            noDataDescription='Get started by creating your first salary advance'
+                            errorTitle='Error Loading Salary Advances'
                         />
                     </div>
                 </CollapsibleSection>
-                {/* Forms Section - Moved after table */}
-                <FormSections onloadData={advanceData} onSuccess={refetch} />
+                {/* Forms */}
+                <FormSections response={response} onSuccess={refetch} />
             </div>
         </div>
+    );
+}
+
+function FormSections({ response, onSuccess }: { response: any; onSuccess: () => void }) {
+    const {
+        isAddFormOpen,
+        closeAddForm,
+        addFormRef,
+        isEditFormOpen,
+        closeEditForm,
+        editFormRef,
+        isToggleFormOpen,
+        closeToggleForm,
+        selectedRow
+    } = useFormContext<SalaryAdvanceItem>();
+    const onloadData = response?.data || response;
+
+    return (
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add Salary Advance'
+                        description='Fill in the details below to add a new salary advance'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddSalaryAdvanceForm
+                                onloadData={onloadData}
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+            {/* Edit Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Salary Advance'
+                        description='Update the details below to edit the salary advance'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateSalaryAdvanceForm
+                                selectedRow={selectedRow}
+                                onloadData={onloadData}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
+                            />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+            {/* Toggle Form */}
+            {isToggleFormOpen && selectedRow && <ToggleSalaryAdvanceForm rowData={selectedRow} onClose={closeToggleForm} />}
+        </>
     );
 }

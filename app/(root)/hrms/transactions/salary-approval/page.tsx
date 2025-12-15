@@ -5,8 +5,16 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useApproveSalaries, useSalaryApprovalOnload, useSearchSalaryApproval } from '@/hooks/hrms/useTransactions';
-import type { EmployeeDetail, SalaryApprovalRequest, SalaryApprovalSearchRequest } from '@/types/hrms/salary-approval';
+import {
+    useDepartmentDropdown,
+    useDesignationDropdown,
+    useGroupTypeDropdown,
+    useMonthDropdown,
+    useYearDropdown,
+    useSalaryApprovalList
+} from '@/hooks/hrms/useTransactions';
+import type { EmployeeDetail } from '@/types/hrms/hrms-config/transaction';
+import type { SalaryApprovalRequest } from '@/types/hrms/salary-approval';
 import { CheckCircle, RefreshCw, X, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -27,7 +35,7 @@ export default function SalaryApprovalPage() {
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
     const [currentSearchData, setCurrentSearchData] = useState<SearchForm | null>(null);
-    const { handleSubmit, reset, watch, control } = useForm<SearchForm>({
+    const { handleSubmit, reset, watch, control, setValue } = useForm<SearchForm>({
         mode: 'onChange',
         defaultValues: {
             groupType: [],
@@ -40,25 +48,186 @@ export default function SalaryApprovalPage() {
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
-    const {
-        data: onloadData,
-        isLoading,
-        error: onloadError
-    } = useSalaryApprovalOnload({
-        MI_Id: 30
-    });
-    const searchMutation = useSearchSalaryApproval();
-    const approveMutation = useApproveSalaries();
+    // Dropdown hooks - individual APIs following preadmission pattern
+    const { data: groupTypeData, isLoading: isLoadingGroupType } = useGroupTypeDropdown();
+    
+    // Extract Group Type IDs from selected group types for cascading department dropdown
+    const selectedGroupTypeIds = useMemo(() => {
+        if (!watchedGroupType || !Array.isArray(watchedGroupType) || watchedGroupType.length === 0) {
+            return undefined;
+        }
+        // Map selected group type values (names) to their IDs (keys)
+        const rawData = Array.isArray(groupTypeData) ? groupTypeData : (groupTypeData as any)?.data || [];
+        const ids = watchedGroupType
+            .map((selectedValue: string) => {
+                const groupType = rawData.find((item: any) => 
+                    item.value === selectedValue || 
+                    item.HRMGT_EmployeeGroupType === selectedValue ||
+                    (item.key !== undefined && item.value === selectedValue)
+                );
+                return groupType?.key || groupType?.HRMGT_Id;
+            })
+            .filter((id: number | undefined): id is number => id !== undefined && id > 0);
+        return ids.length > 0 ? ids : undefined;
+    }, [watchedGroupType, groupTypeData]);
+    
+    const { data: departmentData, isLoading: isLoadingDepartment } = useDepartmentDropdown(selectedGroupTypeIds);
+    
+    // Extract Department IDs from selected departments for cascading designation dropdown
+    const selectedDepartmentIds = useMemo(() => {
+        if (!watchedDepartment || !Array.isArray(watchedDepartment) || watchedDepartment.length === 0) {
+            return undefined;
+        }
+        // Map selected department values (names) to their IDs (keys)
+        const rawData = Array.isArray(departmentData) ? departmentData : (departmentData as any)?.data || [];
+        const ids = watchedDepartment
+            .map((selectedValue: string) => {
+                const department = rawData.find((item: any) => 
+                    item.value === selectedValue || 
+                    item.HRMD_DepartmentName === selectedValue ||
+                    (item.key !== undefined && item.value === selectedValue)
+                );
+                return department?.key || department?.HRMD_Id;
+            })
+            .filter((id: number | undefined): id is number => id !== undefined && id > 0);
+        return ids.length > 0 ? ids : undefined;
+    }, [watchedDepartment, departmentData]);
+    
+    const { data: designationData, isLoading: isLoadingDesignation } = useDesignationDropdown(selectedDepartmentIds);
+    const { data: monthData, isLoading: isLoadingMonth } = useMonthDropdown();
+    const { data: yearData, isLoading: isLoadingYear } = useYearDropdown();
+
+    const isLoading = isLoadingGroupType || isLoadingDepartment || isLoadingDesignation || isLoadingMonth || isLoadingYear;
+
     // Memoize arrays to prevent unnecessary re-renders
-    const monthOptions = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
-    const leaveYearOptions = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
-    const departmentOptions = useMemo(() => onloadData?.departmentdropdownlist || [], [onloadData?.departmentdropdownlist]);
-    const designationOptions = useMemo(() => onloadData?.designationdropdownlist || [], [onloadData?.designationdropdownlist]);
-    const groupTypeOptions = useMemo(() => onloadData?.groupTypedropdownlist || [], [onloadData?.groupTypedropdownlist]);
+    // Transform GroupType dropdown from { key, value } format
+    const groupTypeOptions = useMemo(() => {
+        const rawData = Array.isArray(groupTypeData) ? groupTypeData : (groupTypeData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMGT_Id: item.key,
+                    HRMGT_EmployeeGroupType: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [groupTypeData]);
+    
+    // Transform Department dropdown from { key, value } format
+    const departmentOptions = useMemo(() => {
+        const rawData = Array.isArray(departmentData) ? departmentData : (departmentData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMD_Id: item.key,
+                    HRMD_DepartmentName: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [departmentData]);
+    
+    // Transform Designation dropdown from { key, value } format
+    const designationOptions = useMemo(() => {
+        const rawData = Array.isArray(designationData) ? designationData : (designationData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMDES_Id: item.key,
+                    HRMDES_DesignationName: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [designationData]);
+    
+    // Transform Month dropdown from { key, value } format
+    const monthOptions = useMemo(() => {
+        const rawData = Array.isArray(monthData) ? monthData : (monthData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value.trim(), // Trim whitespace from month names
+                    // For backward compatibility with existing code
+                    IVRM_Month_Id: item.key,
+                    IVRM_Month_Name: item.value.trim()
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [monthData]);
+    
+    // Transform Year dropdown from { key, value } format
+    const yearOptions = useMemo(() => {
+        const rawData = Array.isArray(yearData) ? yearData : (yearData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMLY_LeaveYear: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [yearData]);
+
+    // Reset department selection when group types change
+    useEffect(() => {
+        if (watchedGroupType && Array.isArray(watchedGroupType) && watchedGroupType.length > 0) {
+            // Department dropdown will be refetched with new group type IDs
+            // Optionally reset department selection when group types change
+            // Uncomment if you want to auto-reset department on group type change:
+            // setValue('department', []);
+        } else if (!watchedGroupType || (Array.isArray(watchedGroupType) && watchedGroupType.length === 0)) {
+            // Reset department when no group types selected
+            setValue('department', []);
+        }
+    }, [watchedGroupType, setValue]);
+    
+    // Reset designation selection when departments change
+    useEffect(() => {
+        if (watchedDepartment && Array.isArray(watchedDepartment) && watchedDepartment.length > 0) {
+            // Designation dropdown will be refetched with new department IDs
+            // Optionally reset designation selection when departments change
+            // Uncomment if you want to auto-reset designation on department change:
+            // setValue('designation', []);
+        } else if (!watchedDepartment || (Array.isArray(watchedDepartment) && watchedDepartment.length === 0)) {
+            // Reset designation when no departments selected
+            setValue('designation', []);
+        }
+    }, [watchedDepartment, setValue]);
+    
+    // TODO: Add search and approve/reject functionality
+    const searchMutation = { mutate: (_payload: any, _options?: any) => {}, isPending: false };
+    const approveMutation = { mutate: (_payload: any, _options?: any) => {}, isPending: false };
     // Memoize filterEmployees to prevent infinite loops
     const filterEmployees = useCallback(() => {
         let filtered = employees;
         if (watchedGroupType && watchedGroupType.length > 0) {
+            // watchedGroupType contains the value (group type name) from MultiSelect
             const groupTypeNames = new Set(watchedGroupType);
             filtered = filtered.filter((emp) => groupTypeNames.has(emp.HRMGT_EmployeeGroupType));
         }
@@ -77,44 +246,43 @@ export default function SalaryApprovalPage() {
             filterEmployees();
         }
     }, [hasSearched, filterEmployees]);
-    // Handle API errors gracefully - show toast but don't crash the UI
-    useEffect(() => {
-        if (onloadError && !isLoading) {
-            // Only show error toast once, and make it less intrusive
-            // Don't show toast for backend errors - they're expected if the API is down
-            // The component will continue to work with empty dropdowns
-        }
-    }, [onloadError, isLoading]);
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
-        const payload: SalaryApprovalSearchRequest = {
+        // TODO: Implement search functionality with new pattern
+        const payload: any = {
             MI_Id: 30,
             HRES_Year: data.salaryYear || '',
             HRES_Month: data.salaryMonth || '',
             groupTypeIdList:
                 (data.groupType || []).length > 0
                     ? (data.groupType || []).map((v) => {
-                          const groupType = groupTypeOptions.find((g) => g.HRMGT_EmployeeGroupType === v);
-                          return groupType?.HRMGT_Id || 0;
+                          // v is the value (group type name) from MultiSelect
+                          const groupType = groupTypeOptions.find((g: any) => g.value === v || g.HRMGT_EmployeeGroupType === v);
+                          // Return the key (ID) from the { key, value } format
+                          return groupType?.key || groupType?.HRMGT_Id || 0;
                       })
                     : [0],
             hrmD_IdList:
                 (data.department || []).length > 0
                     ? (data.department || []).map((v) => {
-                          const dept = departmentOptions.find((d) => d.HRMD_DepartmentName === v);
-                          return dept?.HRMD_Id || 0;
+                          // v is the value (department name) from MultiSelect
+                          const dept = departmentOptions.find((d: any) => d.value === v || d.HRMD_DepartmentName === v);
+                          // Return the key (ID) from the { key, value } format
+                          return dept?.key || dept?.HRMD_Id || 0;
                       })
                     : [0],
             hrmdeS_IdList:
                 (data.designation || []).length > 0
                     ? (data.designation || []).map((v) => {
-                          const desg = designationOptions.find((d) => d.HRMDES_DesignationName === v);
-                          return desg?.HRMDES_Id || 0;
+                          // v is the value (designation name) from MultiSelect
+                          const desg = designationOptions.find((d: any) => d.value === v || d.HRMDES_DesignationName === v);
+                          // Return the key (ID) from the { key, value } format
+                          return desg?.key || desg?.HRMDES_Id || 0;
                       })
                     : [0],
             LogInUserId: 0
         };
         searchMutation.mutate(payload, {
-            onSuccess: (responseData) => {
+            onSuccess: (responseData: any) => {
                 const employeeList = responseData.ReportData || [];
                 setEmployees(employeeList);
                 setFilteredEmployees(employeeList);
@@ -136,7 +304,7 @@ export default function SalaryApprovalPage() {
                 }
                 toast.success(`Search completed successfully. Found ${employeeList.length} employees`);
             },
-            onError: (_error) => {
+            onError: (_error: any) => {
                 setEmployees([]);
                 setFilteredEmployees([]);
                 setHasSearched(true);
@@ -175,13 +343,13 @@ export default function SalaryApprovalPage() {
             approvalStatus: 'Approved'
         };
         approveMutation.mutate(payload, {
-            onSuccess: (data) => {
+            onSuccess: (data: any) => {
                 if (data.approvedCount > 0) {
                     toast.success(`Successfully approved ${data.approvedCount} employee(s)`);
                 }
                 setSelectedEmployees([]);
             },
-            onError: (_error) => {
+            onError: (_error: any) => {
                 toast.error('Failed to approve employees');
             }
         });
@@ -204,13 +372,13 @@ export default function SalaryApprovalPage() {
             approvalStatus: 'Rejected'
         };
         approveMutation.mutate(payload, {
-            onSuccess: (data) => {
+            onSuccess: (data: any) => {
                 if (data.approvedCount > 0) {
                     toast.success(`Successfully rejected ${data.approvedCount} employee(s)`);
                 }
                 setSelectedEmployees([]);
             },
-            onError: (_error) => {
+            onError: (_error: any) => {
                 toast.error('Failed to reject employees');
             }
         });
@@ -230,9 +398,9 @@ export default function SalaryApprovalPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={groupTypeOptions.map((g) => ({
-                                                label: g.HRMGT_EmployeeGroupType,
-                                                value: g.HRMGT_EmployeeGroupType
+                                            options={groupTypeOptions.map((g: any) => ({
+                                                label: g.value || g.HRMGT_EmployeeGroupType || '',
+                                                value: g.value || g.HRMGT_EmployeeGroupType || ''
                                             }))}
                                             onValueChange={field.onChange}
                                             defaultValue={Array.isArray(field.value) ? field.value : []}
@@ -251,15 +419,20 @@ export default function SalaryApprovalPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={departmentOptions.map((d) => ({
-                                                label: d.HRMD_DepartmentName,
-                                                value: d.HRMD_DepartmentName
+                                            options={departmentOptions.map((d: any) => ({
+                                                label: d.value || d.HRMD_DepartmentName || '',
+                                                value: d.value || d.HRMD_DepartmentName || ''
                                             }))}
                                             onValueChange={field.onChange}
                                             defaultValue={Array.isArray(field.value) ? field.value : []}
-                                            placeholder='Select Departments'
+                                            placeholder={
+                                                selectedGroupTypeIds && selectedGroupTypeIds.length > 0
+                                                    ? 'Select Departments'
+                                                    : 'Select Group Types first'
+                                            }
                                             className='w-full'
                                             maxHeight={240}
+                                            disabled={!selectedGroupTypeIds || selectedGroupTypeIds.length === 0}
                                         />
                                     )}
                                 />
@@ -272,15 +445,20 @@ export default function SalaryApprovalPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={designationOptions.map((d) => ({
-                                                label: d.HRMDES_DesignationName,
-                                                value: d.HRMDES_DesignationName
+                                            options={designationOptions.map((d: any) => ({
+                                                label: d.value || d.HRMDES_DesignationName || '',
+                                                value: d.value || d.HRMDES_DesignationName || ''
                                             }))}
                                             onValueChange={field.onChange}
                                             defaultValue={Array.isArray(field.value) ? field.value : []}
-                                            placeholder='Select Designations'
+                                            placeholder={
+                                                selectedDepartmentIds && selectedDepartmentIds.length > 0
+                                                    ? 'Select Designations'
+                                                    : 'Select Departments first'
+                                            }
                                             className='w-full'
                                             maxHeight={240}
+                                            disabled={!selectedDepartmentIds || selectedDepartmentIds.length === 0}
                                         />
                                     )}
                                 />
@@ -300,9 +478,9 @@ export default function SalaryApprovalPage() {
                                                 {Array.isArray(monthOptions) && monthOptions.length > 0
                                                     ? monthOptions.map((month: any) => (
                                                           <SelectItem
-                                                              key={month.IVRM_Month_Id || month.value}
-                                                              value={month.IVRM_Month_Name || month.value || month.label}>
-                                                              {month.IVRM_Month_Name || month.label || month.value}
+                                                              key={month.key || month.IVRM_Month_Id || month.value}
+                                                              value={month.value || month.IVRM_Month_Name || month.label || ''}>
+                                                              {month.value || month.IVRM_Month_Name || month.label || ''}
                                                           </SelectItem>
                                                       ))
                                                     : null}
@@ -323,10 +501,12 @@ export default function SalaryApprovalPage() {
                                                 <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Array.isArray(leaveYearOptions) && leaveYearOptions.length > 0
-                                                    ? leaveYearOptions.map((year) => (
-                                                          <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
-                                                              {year.HRMLY_LeaveYear}
+                                                {Array.isArray(yearOptions) && yearOptions.length > 0
+                                                    ? yearOptions.map((year: any) => (
+                                                          <SelectItem
+                                                              key={year.key || year.HRMLY_LeaveYear || year.value}
+                                                              value={year.value || year.HRMLY_LeaveYear || ''}>
+                                                              {year.value || year.HRMLY_LeaveYear || ''}
                                                           </SelectItem>
                                                       ))
                                                     : null}

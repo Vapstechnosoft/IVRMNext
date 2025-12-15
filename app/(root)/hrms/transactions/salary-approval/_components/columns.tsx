@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { EmployeeDetail } from '@/types/hrms/salary-approval';
+import type { EmployeeDetail } from '@/types/hrms/hrms-config/transaction';
 import type { ColumnDef } from '@tanstack/react-table';
 interface SalaryApprovalColumnsProps {
     employees: EmployeeDetail[];
@@ -37,13 +37,15 @@ export function getSalaryApprovalColumns({
             enableHiding: false
         },
         {
-            accessorKey: 'slNo',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='SL. No' />,
+            accessorKey: 'HRME_Id',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
             cell: ({ row, table }) => {
-                const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                return <div>{index + 1}</div>;
+                const pageIndex = table.getState().pagination.pageIndex;
+                const pageSize = table.getState().pagination.pageSize;
+                const continuousIndex = pageIndex * pageSize + row.index + 1;
+                return <div className='w-full pl-6'>{continuousIndex}</div>;
             },
-            enableSorting: false,
+            enableSorting: true,
             enableHiding: false
         },
         {
@@ -73,11 +75,124 @@ export function getSalaryApprovalColumns({
             enableHiding: true
         },
         {
+            accessorKey: 'HRES_LOPDays',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='LOP Days' />,
+            cell: ({ row }) => <div className='text-right'>{row.getValue('HRES_LOPDays') || 0}</div>,
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'GrossSalary',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Gross Salary' />,
+            cell: ({ row }) => {
+                const value = row.getValue('GrossSalary') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'DA',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='DA' />,
+            cell: ({ row }) => {
+                const value = row.getValue('DA') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'HRA',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='HRA' />,
+            cell: ({ row }) => {
+                const value = row.getValue('HRA') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'Conveyance',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Conveyance' />,
+            cell: ({ row }) => {
+                const value = row.getValue('Conveyance') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'Medical',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Medical' />,
+            cell: ({ row }) => {
+                const value = row.getValue('Medical') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'SplAllowance',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Spl Allowance' />,
+            cell: ({ row }) => {
+                const value = row.getValue('SplAllowance') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
             accessorKey: 'TotalEarning',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Total Earning' />,
             cell: ({ row }) => {
-                const value = row.getValue('TotalEarning') as number;
-                return <div className='text-right font-semibold'>₹{Number(value || 0).toFixed(2)}</div>;
+                const employee = row.original;
+                // Auto-calculate: sum of all earnings
+                const totalEarning = Number(employee.DA || 0) + 
+                    Number(employee.HRA || 0) + 
+                    Number(employee.Conveyance || 0) + 
+                    Number(employee.Medical || 0) + 
+                    Number(employee.SplAllowance || 0);
+                return <div className='text-right font-semibold'>₹{totalEarning.toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'PF',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='PF' />,
+            cell: ({ row }) => {
+                const value = row.getValue('PF') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'ESI',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='ESI' />,
+            cell: ({ row }) => {
+                const value = row.getValue('ESI') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'OthersCD',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Others (C.D)' />,
+            cell: ({ row }) => {
+                const value = row.getValue('OthersCD') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
+            },
+            enableSorting: true,
+            enableHiding: true
+        },
+        {
+            accessorKey: 'PT',
+            header: ({ column }) => <DataTableColumnHeader column={column} title='PT' />,
+            cell: ({ row }) => {
+                const value = row.getValue('PT') as number;
+                return <div className='text-right'>₹{Number(value || 0).toFixed(2)}</div>;
             },
             enableSorting: true,
             enableHiding: true
@@ -86,21 +201,37 @@ export function getSalaryApprovalColumns({
             accessorKey: 'TotalDeduction',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Total Deduction' />,
             cell: ({ row }) => {
-                const value = row.getValue('TotalDeduction') as number;
-                return <div className='text-right font-semibold'>₹{Number(value || 0).toFixed(2)}</div>;
+                const employee = row.original;
+                // Auto-calculate: sum of all deductions
+                const totalDeduction = Number(employee.PF || 0) + 
+                    Number(employee.ESI || 0) + 
+                    Number(employee.OthersCD || 0) + 
+                    Number(employee.PT || 0);
+                return <div className='text-right font-semibold'>₹{totalDeduction.toFixed(2)}</div>;
             },
             enableSorting: true,
             enableHiding: true
         },
         {
             accessorKey: 'NetSalary',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Net Salary' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Salary' />,
             cell: ({ row }) => {
-                const value = row.getValue('NetSalary') as number;
+                const employee = row.original;
+                // Auto-calculate: Net Salary = Total Earning - Total Deduction
+                const totalEarning = Number(employee.DA || 0) + 
+                    Number(employee.HRA || 0) + 
+                    Number(employee.Conveyance || 0) + 
+                    Number(employee.Medical || 0) + 
+                    Number(employee.SplAllowance || 0);
+                const totalDeduction = Number(employee.PF || 0) + 
+                    Number(employee.ESI || 0) + 
+                    Number(employee.OthersCD || 0) + 
+                    Number(employee.PT || 0);
+                const netSalary = totalEarning - totalDeduction;
                 return (
                     <div className='text-right'>
                         <Badge variant='default' className='font-semibold'>
-                            ₹{Number(value || 0).toFixed(2)}
+                            ₹{netSalary.toFixed(2)}
                         </Badge>
                     </div>
                 );

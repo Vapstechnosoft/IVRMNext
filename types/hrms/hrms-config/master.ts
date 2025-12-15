@@ -269,7 +269,7 @@ export interface IMasterPayrollStandardList {
 
 // Dropdown Interfaces for Master Forms
 export interface IEarningsDeductionsTypeDropdown {
-    key: string;
+    key: number;
     value: string;
 }
 

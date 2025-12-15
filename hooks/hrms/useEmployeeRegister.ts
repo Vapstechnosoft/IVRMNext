@@ -32,6 +32,9 @@ import {
     saveEmployee,
     saveEmployeeQualification,
     saveEmployeeExperience,
+    saveEmployeeDocument,
+    saveEmployeeMedical,
+    saveEmployeeOtherDetails,
     toggleEmployee
 } from '@/server/hrms/hrmsConfig/employee/register';
 import type {
@@ -550,6 +553,78 @@ export function useSaveEmployeeExperience() {
         },
         onError: (error: Error) => {
             toast.error(error.message || 'An error occurred while saving experience details');
+        }
+    });
+}
+
+/**
+ * Save Employee Document Details
+ * POST /api/EmployeeRegistration/SaveDocumentDetails
+ */
+export function useSaveEmployeeDocument() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any[]) => saveEmployeeDocument(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Document details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving document details');
+        }
+    });
+}
+
+/**
+ * Save Employee Medical Details
+ * POST /api/EmployeeRegistration/SaveMedicalDetails
+ */
+export function useSaveEmployeeMedical() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveEmployeeMedical(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Medical details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving medical details');
+        }
+    });
+}
+
+/**
+ * Save Employee Other Details
+ * POST /api/EmployeeRegistration/SaveOtherDetails
+ */
+export function useSaveEmployeeOtherDetails() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data: any) => saveEmployeeOtherDetails(data),
+        onSuccess: (response) => {
+            if (response?.success) {
+                toast.success(response.message || 'Other details saved successfully');
+                queryClient.invalidateQueries({
+                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                });
+            } else if (response?.message) {
+                toast.info(response.message);
+            }
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || 'An error occurred while saving other details');
         }
     });
 }

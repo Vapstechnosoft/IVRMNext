@@ -4,13 +4,27 @@
  * All transaction-related hooks consolidated in one file
  */
 import { HRMS_QUERY_KEYS } from '@/constants/query-keys';
-import { activateDeactivateEmployeeLoan, getEmployeeLoanById, getEmployeeLoanByEmployee, getEmployeeLoanList, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
-import { getSalaryAdvanceById, getSalaryAdvanceDetailsByEmployee, getSalaryAdvanceList, saveSalaryAdvance, searchSalaryAdvanceFilter, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
-import { approveSalaries, getSalaryApprovalOnload, searchSalaryApprovalEmployees } from '@/server/hrms/hrmsConfig/transaction/salary-approval';
-import { generateSalaryForSelectedEmployees, getSalaryCalculationOnload, searchSalaryCalculationBySelection } from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
-import { deleteSalaryIncrement, getSalaryIncrementOnload, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
-import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, getSalaryUpdationOnload, saveSalaryUpdation } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
-import { getEmployeeDetailsBySelection, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
+import { activateDeactivateEmployeeLoan, getEmployeeDropdown as getEmployeeDropdownLoan, getEmployeeLoanById, getEmployeeLoanByEmployee, getEmployeeLoanList, getLoanTypeDropdown, getModeOfPaymentDropdown as getModeOfPaymentDropdownLoan, saveEmployeeLoan } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
+import { getEmployeeDropdown as getEmployeeDropdownAdvance, getModeOfPaymentDropdown as getModeOfPaymentDropdownAdvance, getMonthDropdown as getMonthDropdownAdvance, getSalaryAdvanceById, getSalaryAdvanceDetailsByEmployee, getSalaryAdvanceList, getYearDropdown as getYearDropdownAdvance, saveSalaryAdvance, searchSalaryAdvanceFilter, toggleSalaryAdvanceStatus } from '@/server/hrms/hrmsConfig/transaction/salary-advance';
+import {
+    getDepartmentDropdown as getDepartmentDropdownApproval,
+    getDesignationDropdown as getDesignationDropdownApproval,
+    getGroupTypeDropdown as getGroupTypeDropdownApproval,
+    getMonthDropdown as getMonthDropdownApproval,
+    getYearDropdown,
+    getSalaryApprovalList
+} from '@/server/hrms/hrmsConfig/transaction/salary-approval';
+import {
+    generateSalaryForSelectedEmployees,
+    getSalaryCalculationList,
+    getGroupTypeDropdown,
+    getDepartmentDropdown,
+    getDesignationDropdown,
+    getMonthDropdown
+} from '@/server/hrms/hrmsConfig/transaction/salary-calculation';
+import { deleteSalaryIncrement, getEmployeeDropdown, getEarningsDeductionsTypeDropdown, getSalaryIncrementList, saveSalaryIncrement } from '@/server/hrms/hrmsConfig/transaction/salary-increment';
+import { deleteSalaryUpdation, filterSalaryUpdationEmployees, getDepartmentDropdown as getDepartmentDropdownUpdation, getDesignationDropdown as getDesignationDropdownUpdation, getGroupTypeDropdown as getGroupTypeDropdownUpdation, getSalaryUpdationDepartments, getSalaryUpdationDesignations, getSalaryUpdationEmployeeDetailsBySelection, getSalaryUpdationList, saveSalaryUpdation } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
+import { getDepartmentDropdown as getDepartmentDropdownMass, getDesignationDropdown as getDesignationDropdownMass, getEmployeeDetailsBySelection, getGroupTypeDropdown as getGroupTypeDropdownMass, getMassUpdationOnload, saveMassUpdation, searchMassUpdationEmployees } from '@/server/hrms/hrmsConfig/transaction/mass-updation';
 import type {
     EmployeeLoanDeleteRequest,
     EmployeeLoanOnloadRequest,
@@ -25,14 +39,8 @@ import type {
     SalaryAdvanceSaveRequest,
     SalaryAdvanceSaveResponse
 } from '@/types/hrms/salary-advance';
-import type {
-    SalaryApprovalOnloadRequest,
-    SalaryApprovalOnloadResponse,
-    SalaryApprovalRequest,
-    SalaryApprovalResponse,
-    SalaryApprovalSearchRequest,
-    SalaryApprovalSearchResponse
-} from '@/types/hrms/salary-approval';
+import type { EmployeeDetail } from '@/types/hrms/hrms-config/transaction';
+import type { ApiSearchparams } from '@/types';
 import type {
     SalaryCalculationGenerateRequest,
     SalaryCalculationGenerateResponse,
@@ -74,19 +82,68 @@ import { toast } from 'sonner';
 // ============================================================================
 // EMPLOYEE LOAN
 // ============================================================================
-export function useEmployeeLoanList(payload: EmployeeLoanOnloadRequest) {
-    return useQuery<EmployeeLoanOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, payload],
-        queryFn: () =>
-            getEmployeeLoanList(payload).then((res: any) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        staleTime: 1000 * 60 * 5,
-        enabled: !!(payload.MIID || payload.roleId)
-    });
+export function useEmployeeDropdownForLoan() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'employee'],
+            queryFn: async () => getEmployeeDropdownLoan(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'employee']
+            });
+        }
+    };
+}
+
+export function useModeOfPaymentDropdownForLoan() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'modeOfPayment'],
+            queryFn: async () => getModeOfPaymentDropdownLoan(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'modeOfPayment']
+            });
+        }
+    };
+}
+
+export function useLoanTypeDropdownForLoan() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'loanType'],
+            queryFn: async () => getLoanTypeDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'loanType']
+            });
+        }
+    };
+}
+
+export function useEmployeeLoanList(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, searchParams ?? {}],
+            queryFn: async () => getEmployeeLoanList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST]
+            });
+        }
+    };
 }
 export function useSaveEmployeeLoan() {
     const queryClient = useQueryClient();
@@ -130,11 +187,11 @@ export function useGetEmployeeLoanById(id: number) {
         enabled: !!id && id > 0
     });
 }
-export function useGetEmployeeLoanByEmployee(employeeId: number, miId: number = 30) {
+export function useGetEmployeeLoanByEmployee(employeeId: number) {
     return useQuery<EmployeeLoanOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'by-employee', employeeId, miId],
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'by-employee', employeeId],
         queryFn: () =>
-            getEmployeeLoanByEmployee(employeeId, miId).then((res: any) => {
+            getEmployeeLoanByEmployee(employeeId).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
@@ -182,20 +239,88 @@ export function useActivateDeactivateEmployeeLoan() {
 // ============================================================================
 // SALARY ADVANCE
 // ============================================================================
-export function useSalaryAdvanceList(payload: SalaryAdvanceOnloadRequest) {
-    return useQuery<SalaryAdvanceOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, payload],
-        queryFn: () =>
-            getSalaryAdvanceList(payload.roleId ?? 30).then((res: any) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        staleTime: 1000 * 60 * 5,
-        enabled: !!payload.roleId
-    });
+export function useEmployeeDropdownForAdvance() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'employee'],
+            queryFn: async () => getEmployeeDropdownAdvance(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'employee']
+            });
+        }
+    };
 }
+
+export function useMonthDropdownForAdvance() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'month'],
+            queryFn: async () => getMonthDropdownAdvance(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'month']
+            });
+        }
+    };
+}
+
+export function useYearDropdownForAdvance() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'year'],
+            queryFn: async () => getYearDropdownAdvance(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'year']
+            });
+        }
+    };
+}
+
+export function useModeOfPaymentDropdownForAdvance() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'modeOfPayment'],
+            queryFn: async () => getModeOfPaymentDropdownAdvance(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'modeOfPayment']
+            });
+        }
+    };
+}
+
+export function useSalaryAdvanceList(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, searchParams ?? {}],
+            queryFn: async () => {
+                return getSalaryAdvanceList(searchParams);
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
+            });
+        }
+    };
+}
+
 export function useSaveSalaryAdvance() {
     const queryClient = useQueryClient();
     return useMutation<SalaryAdvanceSaveResponse | SalaryAdvanceOnloadResponse, Error, SalaryAdvanceSaveRequest>({
@@ -285,142 +410,231 @@ export function useGetSalaryAdvanceDetailsByEmployee(employeeId: number) {
         enabled: !!employeeId && employeeId > 0
     });
 }
-export function useSearchSalaryAdvanceFilter(miId: number, searchFilter: string) {
+export function useSearchSalaryAdvanceFilter(searchFilter: string) {
     return useQuery<SalaryAdvanceOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'search', miId, searchFilter],
+        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'search', searchFilter],
         queryFn: () =>
-            searchSalaryAdvanceFilter(miId, searchFilter).then((res: any) => {
+            searchSalaryAdvanceFilter(searchFilter).then((res: any) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
                 return res.data!;
             }),
         staleTime: 1000 * 60 * 2,
-        enabled: !!miId && miId > 0
+        enabled: !!searchFilter && searchFilter.length > 0
     });
 }
 // ============================================================================
 // SALARY APPROVAL
 // ============================================================================
-export function useSalaryApprovalOnload(payload: SalaryApprovalOnloadRequest) {
-    return useQuery<SalaryApprovalOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_ONLOAD, payload],
-        queryFn: async () => {
-            try {
-                const res = await getSalaryApprovalOnload(payload);
-                if (!res.success) {
-                    // Return empty data structure instead of throwing to prevent UI crash
-                    // The error will be available in the error state for the component to handle
-                    return {
-                        MI_Id: 0,
-                        groupTypedropdownlist: [],
-                        departmentdropdownlist: [],
-                        designationdropdownlist: [],
-                        monthdropdown: [],
-                        leaveyeardropdown: []
-                    } as SalaryApprovalOnloadResponse;
-                }
-                return res.data!;
-            } catch (error) {
-                // Return empty data structure instead of throwing to prevent UI crash
-                // This allows the component to continue rendering with empty dropdowns
-                return {
-                    MI_Id: 0,
-                    groupTypedropdownlist: [],
-                    departmentdropdownlist: [],
-                    designationdropdownlist: [],
-                    monthdropdown: [],
-                    leaveyeardropdown: []
-                } as SalaryApprovalOnloadResponse;
-            }
-        },
-        staleTime: 1000 * 60 * 5,
-        enabled: !!payload.MI_Id,
-        retry: false, // Don't retry on error to avoid repeated failed requests
-        refetchOnWindowFocus: false // Don't refetch on window focus to avoid repeated errors
-    });
-}
-export function useSearchSalaryApproval() {
-    return useMutation<SalaryApprovalSearchResponse, Error, SalaryApprovalSearchRequest>({
-        mutationFn: (data: SalaryApprovalSearchRequest) => {
-            return searchSalaryApprovalEmployees(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                const employeeCount = res.data?.ReportData?.length || 0;
-                if (employeeCount > 0) {
-                }
-                return res.data!;
-            }).catch((error) => {
-                throw error;
-            });
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Failed to search employees for approval.');
-        }
-    });
-}
-export function useApproveSalaries() {
+export function useGroupTypeDropdown() {
     const queryClient = useQueryClient();
-    return useMutation<SalaryApprovalResponse, Error, SalaryApprovalRequest>({
-        mutationFn: (data: SalaryApprovalRequest) => {
-            return approveSalaries(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }).catch((error) => {
-                throw error;
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'groupType'],
+            queryFn: async () => getGroupTypeDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'groupType']
             });
-        },
-        onSuccess: (data, variables) => {
-            if (data.approvedCount > 0) {
-                toast.success(
-                    data.message || `${data.approvedCount} salary record(s) ${variables.approvalStatus.toLowerCase()} successfully!`
-                );
-            }
-            if (data.failedCount > 0) {
-                toast.warning(`Failed to process ${data.failedCount} record(s).`);
-            }
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_ONLOAD]
-            });
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Failed to process salary approval.');
         }
-    });
+    };
+}
+
+export function useDepartmentDropdown(groupTypeIds?: number[]) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'department', groupTypeIds],
+            queryFn: async () => getDepartmentDropdown(groupTypeIds),
+            staleTime: 0,
+            enabled: groupTypeIds === undefined || groupTypeIds.length > 0 // Enable if no filter or has group type IDs
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'department']
+            });
+        }
+    };
+}
+
+export function useDesignationDropdown(departmentIds?: number[]) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'designation', departmentIds],
+            queryFn: async () => getDesignationDropdown(departmentIds),
+            staleTime: 0,
+            enabled: departmentIds === undefined || departmentIds.length > 0 // Enable if no filter or has department IDs
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'designation']
+            });
+        }
+    };
+}
+
+export function useMonthDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'month'],
+            queryFn: async () => getMonthDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'month']
+            });
+        }
+    };
+}
+
+export function useYearDropdown() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'year'],
+            queryFn: async () => getYearDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, 'year']
+            });
+        }
+    };
+}
+
+// Legacy export for backward compatibility
+export function useLeaveYearDropdown() {
+    return useYearDropdown();
+}
+
+export function useSalaryApprovalList(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES, searchParams ?? {}],
+            queryFn: async () => {
+                return getSalaryApprovalList(searchParams);
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_APPROVAL_EMPLOYEES]
+            });
+        }
+    };
 }
 // ============================================================================
 // SALARY CALCULATION
 // ============================================================================
-export function useSalaryCalculationOnload(payload: SalaryCalculationOnloadRequest) {
-    return useQuery<SalaryCalculationOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, payload],
-        queryFn: () =>
-            getSalaryCalculationOnload(payload).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        staleTime: 1000 * 60 * 5,
-        enabled: !!payload.MI_Id
-    });
-}
-export function useSearchSalaryCalculation() {
-    return useMutation<SalaryCalculationOnloadResponse, Error, SalaryCalculationSearchRequest>({
-        mutationFn: (data: SalaryCalculationSearchRequest) =>
-            searchSalaryCalculationBySelection(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        onError: (error) => {
-            toast.error(error.message || 'Failed to search employees for salary calculation.');
+export function useGroupTypeDropdownForCalculation() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'groupType'],
+            queryFn: async () => getGroupTypeDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'groupType']
+            });
         }
-    });
+    };
+}
+
+export function useDepartmentDropdownForCalculation(groupTypeIds?: number[]) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'department', groupTypeIds],
+            queryFn: async () => getDepartmentDropdown(groupTypeIds),
+            staleTime: 0,
+            enabled: groupTypeIds === undefined || groupTypeIds.length > 0 // Enable if no filter or has group type IDs
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'department']
+            });
+        }
+    };
+}
+
+export function useDesignationDropdownForCalculation(departmentIds?: number[]) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'designation', departmentIds],
+            queryFn: async () => getDesignationDropdown(departmentIds),
+            staleTime: 0,
+            enabled: departmentIds === undefined || departmentIds.length > 0 // Enable if no filter or has department IDs
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'designation']
+            });
+        }
+    };
+}
+
+export function useMonthDropdownForCalculation() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'month'],
+            queryFn: async () => getMonthDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'month']
+            });
+        }
+    };
+}
+
+export function useLeaveYearDropdownForCalculation() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'leaveYear'],
+            queryFn: async () => {
+                const { getLeaveYearDropdown } = await import('@/server/hrms/hrmsConfig/transaction/salary-calculation');
+                return getLeaveYearDropdown();
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, 'leaveYear']
+            });
+        }
+    };
+}
+
+export function useSalaryCalculationList(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD, searchParams ?? {}],
+            queryFn: async () => {
+                return getSalaryCalculationList(searchParams);
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_CALCULATION_ONLOAD]
+            });
+        }
+    };
 }
 export function useGenerateSalary() {
     const queryClient = useQueryClient();
@@ -451,20 +665,56 @@ export function useGenerateSalary() {
 // ============================================================================
 // SALARY INCREMENT
 // ============================================================================
-export function useSalaryIncrementOnload(payload: SalaryIncrementOnloadRequest) {
-    return useQuery<SalaryIncrementOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD, payload],
-        queryFn: async () => {
-            const res = await getSalaryIncrementOnload(payload);
-            if (!res.success || !res.data) {
-                throw new Error(res.message || 'Failed to load salary increment data');
-            }
-            return res.data;
-        },
-        staleTime: 1000 * 60 * 5,
-        enabled: !!(payload.MIID || payload.MI_Id) && (payload.LoginUserId !== undefined || payload.roleId !== undefined)
-    });
+export function useEmployeeDropdownForIncrement() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD, 'employee'],
+            queryFn: async () => getEmployeeDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD, 'employee']
+            });
+        }
+    };
 }
+
+export function useEarningsDeductionsTypeDropdownForIncrement() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD, 'earningsDeductionsType'],
+            queryFn: async () => getEarningsDeductionsTypeDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD, 'earningsDeductionsType']
+            });
+        }
+    };
+}
+
+export function useSalaryIncrementList(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD, searchParams ?? {}],
+            queryFn: async () => {
+                return getSalaryIncrementList(searchParams);
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_INCREMENT_ONLOAD]
+            });
+        }
+    };
+}
+
 export function useSaveSalaryIncrement() {
     const queryClient = useQueryClient();
     return useMutation<SalaryIncrementSaveResponse, Error, SalaryIncrementSaveRequest>({
@@ -513,78 +763,74 @@ export function useDeleteSalaryIncrement() {
 // ============================================================================
 // SALARY UPDATION
 // ============================================================================
-export function useSalaryUpdationList(payload: SalaryUpdationOnloadRequest) {
+export function useSalaryUpdationList(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
-    // Support both new and legacy request formats
-    const requestPayload: SalaryUpdationOnloadRequest = {
-        page: payload.page ?? 1,
-        page_size: payload.page_size ?? 10,
-        search_query: payload.search_query ?? '',
-        search_column: payload.search_column ?? '',
-        sort_column: payload.sort_column ?? '',
-        sort_direction: payload.sort_direction ?? '',
-        is_export: payload.is_export ?? false,
-        MIID: payload.MIID ?? 30,
-        LoginUserId: payload.LoginUserId ?? payload.roleId ?? 0,
-        UserRole: payload.UserRole ?? ''
-    };
-    const listQuery = useQuery<SalaryUpdationOnloadResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, requestPayload],
-        queryFn: () =>
-            getSalaryUpdationOnload(requestPayload).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        staleTime: 1000 * 60 * 5,
-        enabled: !!(requestPayload.LoginUserId || requestPayload.roleId || requestPayload.MIID)
-    });
-    const saveMutation = useMutation<SalaryUpdationSaveResponse, Error, SalaryUpdationSaveRequest>({
-        mutationFn: (data: SalaryUpdationSaveRequest) =>
-            saveSalaryUpdation(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        onSuccess: (data, variables) => {
-            toast.success(
-                data.retrunMsg ||
-                    (variables.HRESU_Id === 0 ? 'Salary updation created successfully!' : 'Salary updation updated successfully!')
-            );
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
-            });
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Failed to save salary updation.');
-        }
-    });
-    const deleteMutation = useMutation<any, Error, SalaryUpdationDeleteRequest>({
-        mutationFn: (data: SalaryUpdationDeleteRequest) =>
-            deleteSalaryUpdation(data).then((res) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data;
-            }),
-        onSuccess: () => {
-            toast.success('Salary updation deleted successfully!');
-            queryClient.invalidateQueries({
-                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
-            });
-        },
-        onError: (error) => {
-            toast.error(error.message || 'Failed to delete salary updation.');
-        }
-    });
     return {
-        listQuery,
-        saveMutation,
-        deleteMutation
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, searchParams ?? {}],
+            queryFn: async () => {
+                return getSalaryUpdationList(searchParams);
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD]
+            });
+        }
     };
 }
+
+export function useGroupTypeDropdownForUpdation() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, 'groupType'],
+            queryFn: async () => getGroupTypeDropdownUpdation(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, 'groupType']
+            });
+        }
+    };
+}
+
+export function useDepartmentDropdownForUpdation(groupTypeIds?: number[]) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, 'department', groupTypeIds ?? []],
+            queryFn: async () => getDepartmentDropdownUpdation(groupTypeIds),
+            enabled: groupTypeIds !== undefined && groupTypeIds.length > 0,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, 'department']
+            });
+        }
+    };
+}
+
+export function useDesignationDropdownForUpdation(departmentIds?: number[]) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, 'designation', departmentIds ?? []],
+            queryFn: async () => getDesignationDropdownUpdation(departmentIds),
+            enabled: departmentIds !== undefined && departmentIds.length > 0,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_UPDATION_ONLOAD, 'designation']
+            });
+        }
+    };
+}
+
 // Legacy exports for backwards compatibility
 export function useSaveSalaryUpdation() {
     const queryClient = useQueryClient();
@@ -612,9 +858,9 @@ export function useSaveSalaryUpdation() {
 }
 export function useDeleteSalaryUpdation() {
     const queryClient = useQueryClient();
-    return useMutation<any, Error, SalaryUpdationDeleteRequest>({
-        mutationFn: (data: SalaryUpdationDeleteRequest) =>
-            deleteSalaryUpdation(data).then((res) => {
+    return useMutation<any, Error, number>({
+        mutationFn: (id: number) =>
+            deleteSalaryUpdation(id).then((res) => {
                 if (!res.success) {
                     throw new Error(res.message);
                 }
@@ -722,6 +968,56 @@ export function useGetSalaryUpdationDesignations() {
 // ============================================================================
 // MASS UPDATION
 // ============================================================================
+export function useGroupTypeDropdownForMassUpdation() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD, 'groupType'],
+            queryFn: async () => getGroupTypeDropdownMass(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD, 'groupType']
+            });
+        }
+    };
+}
+
+export function useDepartmentDropdownForMassUpdation(groupTypeIds?: number[]) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD, 'department', groupTypeIds ?? []],
+            queryFn: async () => getDepartmentDropdownMass(groupTypeIds),
+            enabled: groupTypeIds !== undefined && groupTypeIds.length > 0,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD, 'department']
+            });
+        }
+    };
+}
+
+export function useDesignationDropdownForMassUpdation(departmentIds?: number[]) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD, 'designation', departmentIds ?? []],
+            queryFn: async () => getDesignationDropdownMass(departmentIds),
+            enabled: departmentIds !== undefined && departmentIds.length > 0,
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD, 'designation']
+            });
+        }
+    };
+}
+
 export function useMassUpdationOnload(payload: MassUpdationOnloadRequest) {
     return useQuery<MassUpdationOnloadResponse, Error>({
         queryKey: [HRMS_QUERY_KEYS.MASS_UPDATION_ONLOAD, payload],
@@ -733,7 +1029,7 @@ export function useMassUpdationOnload(payload: MassUpdationOnloadRequest) {
                 return res.data!;
             }),
         staleTime: 1000 * 60 * 5,
-        enabled: !!payload.MI_Id && !!payload.roleId
+        enabled: true
     });
 }
 export function useSaveMassUpdation() {
@@ -794,3 +1090,33 @@ export function useGetEmployeeDetailsBySelection() {
         }
     });
 }
+
+// ============================================================================
+// TRANSACTION DROPDOWNS - Add dropdown hooks here as APIs are provided
+// ============================================================================
+// Following the pattern from employee module (useEmployeeRegister.ts)
+// Each dropdown will have its own hook that can be used in transaction forms
+
+// TODO: Add dropdown hooks here as APIs are provided
+// Example structure (uncomment and update when API is provided):
+/*
+export function useEmployeeDropdownForTransactions() {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.TRANSACTION_DROPDOWNS, 'employee'],
+            queryFn: async () => {
+                // TODO: Replace with actual server function when API is provided
+                // return await getEmployeeDropdownForTransactions();
+                return [];
+            },
+            staleTime: 1000 * 60 * 5 // 5 minutes
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.TRANSACTION_DROPDOWNS, 'employee']
+            });
+        }
+    };
+}
+*/

@@ -8,11 +8,9 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useSaveSalaryIncrement } from '@/hooks/hrms/useTransactions';
+import { useEarningsDeductionsTypeDropdownForIncrement, useEmployeeDropdownForIncrement, useSaveSalaryIncrement } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
-import type { SalaryIncrementOnloadResponse } from '@/types/hrms/salary-increment';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save, X } from 'lucide-react';
@@ -22,11 +20,11 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 type FormFields = z.infer<typeof hrmsTransactionSchemas.salaryIncrement.addOrUpdate>;
 interface AddFormProps {
-    onloadData: SalaryIncrementOnloadResponse | undefined;
+    response: any;
     onSuccess: () => void;
     className?: string;
 }
-export default function AddSalaryIncrementForm({ onloadData, onSuccess, className = '' }: AddFormProps) {
+export default function AddSalaryIncrementForm({ response, onSuccess, className = '' }: AddFormProps) {
     const { mutate: saveIncrement, isPending } = useSaveSalaryIncrement();
     const {
         control,
@@ -40,14 +38,12 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
         mode: 'onChange',
         defaultValues: {
             HRESI_Id: 0,
-            MI_Id: HRMS_MI_ID,
             HRME_Id: 0,
             HRMED_Id: 0,
             HRESI_IncrementType: 'Percentage',
             HRESI_IncrementAmount: 0,
             HRESI_IncrementPercentage: 0,
             HRESI_EffectiveDate: undefined as Date | undefined,
-            HRESI_Remarks: '',
             HRESI_ActiveFlg: true,
             LogInUserId: 2
         }
@@ -55,7 +51,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         const payload = {
             HREIC_Id: data.HRESI_Id || 0,
-            MI_Id: data.MI_Id,
             HRME_Id: data.HRME_Id,
             HREIC_IncrementDate: data.HRESI_EffectiveDate ? data.HRESI_EffectiveDate.toISOString() : new Date().toISOString(),
             HREIC_ArrearApplicableFlg: false,
@@ -82,9 +77,52 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
     const handleReset = () => {
         reset();
     };
-    // Memoize arrays to prevent unnecessary re-renders
-    const employees = useMemo(() => onloadData?.employeelist || [], [onloadData?.employeelist]);
-    const earningDeductions = useMemo(() => onloadData?.earningdeductiontype || [], [onloadData?.earningdeductiontype]);
+    
+    // Fetch employee dropdown from API
+    const { data: employeeData, isLoading: isLoadingEmployees } = useEmployeeDropdownForIncrement();
+    
+    // Fetch earnings deductions type dropdown from API (Head dropdown)
+    const { data: earningsDeductionsTypeData, isLoading: isLoadingEarningsDeductionsType } = useEarningsDeductionsTypeDropdownForIncrement();
+    
+    // Transform Employee dropdown from { key, value } format
+    const employeeOptions = useMemo(() => {
+        const rawData = Array.isArray(employeeData) ? employeeData : (employeeData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility
+                    HRME_Id: item.key,
+                    HRME_EmployeeFirstName: item.value.split(' ')[0] || '',
+                    HRME_EmployeeMiddleName: item.value.split(' ').slice(1, -1).join(' ') || '',
+                    HRME_EmployeeLastName: item.value.split(' ').slice(-1)[0] || ''
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [employeeData]);
+    
+    // Transform Earnings Deductions Type dropdown from { key, value } format
+    const earningsDeductionsTypeOptions = useMemo(() => {
+        const rawData = Array.isArray(earningsDeductionsTypeData) ? earningsDeductionsTypeData : (earningsDeductionsTypeData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility
+                    HRMED_Id: item.key,
+                    HRMED_Name: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [earningsDeductionsTypeData]);
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -100,21 +138,35 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                 control={control}
                                 render={({ field, fieldState }) => (
                                     <MultiSelect
-                                        options={employees.map((emp) => ({
-                                            label: `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim(),
-                                            value: String(emp.HRME_Id)
+                                        options={employeeOptions.map((emp: any) => ({
+                                            label: emp.value || `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim() || '',
+                                            value: emp.value || `${emp.HRME_EmployeeFirstName || ''} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.trim() || ''
                                         }))}
                                         onValueChange={(vals) => {
                                             if (vals.length > 0) {
-                                                field.onChange(Number(vals[0]));
+                                                // Find the employee by the selected value (name) and get its ID (key)
+                                                const selectedEmployee = employeeOptions.find((emp: any) => 
+                                                    emp.value === vals[0]
+                                                );
+                                                field.onChange(selectedEmployee?.key || selectedEmployee?.HRME_Id || 0);
                                             } else {
                                                 field.onChange(0);
                                             }
                                         }}
-                                        defaultValue={field.value ? [String(field.value)] : []}
-                                        placeholder='Select employee'
+                                        defaultValue={
+                                            field.value && field.value > 0
+                                                ? (() => {
+                                                      const selectedEmployee = employeeOptions.find(
+                                                          (emp: any) => emp.key === field.value || emp.HRME_Id === field.value
+                                                      );
+                                                      return selectedEmployee ? [selectedEmployee.value] : [];
+                                                  })()
+                                                : []
+                                        }
+                                        placeholder={isLoadingEmployees ? 'Loading employees...' : 'Select employee'}
                                         className='w-full'
                                         maxHeight={240}
+                                        disabled={isLoadingEmployees}
                                     />
                                 )}
                             />
@@ -130,16 +182,33 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                        onValueChange={(value) => field.onChange(Number(value))}
-                                        value={field.value ? String(field.value) : ''}>
+                                        onValueChange={(value) => {
+                                            // Find the head by the selected value (name) and get its ID (key)
+                                            const selectedHead = earningsDeductionsTypeOptions.find((head: any) => 
+                                                head.value === value || String(head.key) === value || String(head.HRMED_Id) === value
+                                            );
+                                            field.onChange(selectedHead?.key || selectedHead?.HRMED_Id || Number(value));
+                                        }}
+                                        value={
+                                            field.value && field.value > 0
+                                                ? (() => {
+                                                      const selectedHead = earningsDeductionsTypeOptions.find(
+                                                          (head: any) => head.key === field.value || head.HRMED_Id === field.value
+                                                      );
+                                                      return selectedHead ? selectedHead.value : '';
+                                                  })()
+                                                : ''
+                                        }>
                                         <SelectTrigger id='HRMED_Id' className='transition-colors focus:ring-2 focus:ring-primary/20'>
-                                            <SelectValue placeholder='Select Head' />
+                                            <SelectValue placeholder={isLoadingEarningsDeductionsType ? 'Loading heads...' : 'Select Head'} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {Array.isArray(earningDeductions) && earningDeductions.length > 0
-                                                ? earningDeductions.map((head) => (
-                                                      <SelectItem key={head.HRMED_Id} value={String(head.HRMED_Id)}>
-                                                          {head.HRMED_Name}
+                                            {Array.isArray(earningsDeductionsTypeOptions) && earningsDeductionsTypeOptions.length > 0
+                                                ? earningsDeductionsTypeOptions.map((head: any) => (
+                                                      <SelectItem
+                                                          key={head.key || head.HRMED_Id}
+                                                          value={head.value || head.HRMED_Name || ''}>
+                                                          {head.value || head.HRMED_Name || ''}
                                                       </SelectItem>
                                                   ))
                                                 : null}
@@ -259,55 +328,6 @@ export default function AddSalaryIncrementForm({ onloadData, onSuccess, classNam
                                 />
                             </div>
                         )}
-                        {/* Arrear fields commented out - not in schema */}
-                        {/* <InputNumber
-                            label='Arrear Months'
-                            id='HREIC_ArrearMonths'
-                            {...register('HREIC_ArrearMonths', { valueAsNumber: true })}
-                            error={errors.HREIC_ArrearMonths?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                        /> */}
-                        {/* <div className='group flex flex-col gap-1.5'>
-                            <div className='flex items-center space-x-3 rounded-md border p-4'>
-                                <Controller
-                                    name='HREIC_ArrearApplicableFlg'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Checkbox id='HREIC_ArrearApplicableFlg' checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
-                                />
-                                <Label htmlFor='HREIC_ArrearApplicableFlg' className='cursor-pointer font-normal'>
-                                    Arrear Applicable
-                                </Label>
-                            </div>
-                            {errors.HREIC_ArrearApplicableFlg && <FormError>{errors.HREIC_ArrearApplicableFlg.message}</FormError>}
-                        </div> */}
-                        {/* <div className='group flex flex-col gap-1.5'>
-                            <div className='flex items-center space-x-3 rounded-md border p-4'>
-                                <Controller
-                                    name='HREIC_ArrearGivenFlg'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Checkbox id='HREIC_ArrearGivenFlg' checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
-                                />
-                                <Label htmlFor='HREIC_ArrearGivenFlg' className='cursor-pointer font-normal'>
-                                    Arrear Given
-                                </Label>
-                            </div>
-                            {errors.HREIC_ArrearGivenFlg && <FormError>{errors.HREIC_ArrearGivenFlg.message}</FormError>}
-                        </div> */}
-                        {/* Remarks */}
-                        <div className='group col-span-full flex flex-col gap-1.5'>
-                            <Label htmlFor='HRESI_Remarks'>Remarks</Label>
-                            <InputText
-                                id='HRESI_Remarks'
-                                placeholder='Enter remarks (max 256 characters)'
-                                {...register('HRESI_Remarks')}
-                                error={errors.HRESI_Remarks?.message}
-                                className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            />
-                        </div>
                     </div>
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>

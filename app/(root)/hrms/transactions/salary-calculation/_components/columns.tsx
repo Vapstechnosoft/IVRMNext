@@ -11,6 +11,9 @@ export interface Employee extends EmployeeDropdown {
     allowances?: number;
     deductions?: number;
     netSalary?: number;
+    HRMGT_EmployeeGroupType?: string;
+    HRMD_DepartmentName?: string;
+    HRMDES_DesignationName?: string;
 }
 interface SalaryCalculationColumnsProps {
     employees: Employee[];

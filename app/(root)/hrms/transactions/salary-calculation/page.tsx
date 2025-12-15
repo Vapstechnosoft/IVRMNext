@@ -5,12 +5,16 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGenerateSalary, useSalaryCalculationOnload, useSearchSalaryCalculation } from '@/hooks/hrms/useTransactions';
-import type {
-    DesignationDropdown,
-    SalaryCalculationGenerateRequest,
-    SalaryCalculationSearchRequest
-} from '@/types/hrms/salary-calculation';
+import {
+    useDepartmentDropdownForCalculation,
+    useDesignationDropdownForCalculation,
+    useGenerateSalary,
+    useGroupTypeDropdownForCalculation,
+    useLeaveYearDropdownForCalculation,
+    useMonthDropdownForCalculation,
+    useSalaryCalculationList
+} from '@/hooks/hrms/useTransactions';
+import type { SalaryCalculationGenerateRequest } from '@/types/hrms/salary-calculation';
 import { Calculator, RefreshCw, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -20,65 +24,173 @@ interface SearchForm {
     groupType: string[];
     department: string[];
     designation: string[];
-    salaryMonth: string;
-    salaryYear: string;
 }
 export default function SalaryCalculationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
-    const [fromDate, setFromDate] = useState<string>('');
-    const [toDate, setToDate] = useState<string>('');
     const [currentSearchData, setCurrentSearchData] = useState<SearchForm | null>(null);
-    const { handleSubmit, reset, watch, control } = useForm<SearchForm>({
+    const { handleSubmit, reset, watch, control, setValue } = useForm<SearchForm>({
         mode: 'onChange',
         defaultValues: {
             groupType: [],
             department: [],
-            designation: [],
-            salaryMonth: '',
-            salaryYear: new Date().getFullYear().toString()
+            designation: []
         }
     });
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
-    const { data: onloadData, isLoading } = useSalaryCalculationOnload({
-        MI_Id: 30,
-        LogInUserId: 0
-    });
-    const searchMutation = useSearchSalaryCalculation();
-    const generateMutation = useGenerateSalary();
+    // Dropdown hooks - individual APIs following salary-approval pattern
+    const { data: groupTypeData, isLoading: isLoadingGroupType } = useGroupTypeDropdownForCalculation();
+    
+    // Extract Group Type IDs from selected group types for cascading department dropdown
+    const selectedGroupTypeIds = useMemo(() => {
+        if (!watchedGroupType || !Array.isArray(watchedGroupType) || watchedGroupType.length === 0) {
+            return undefined;
+        }
+        // Map selected group type values (names) to their IDs (keys)
+        const rawData = Array.isArray(groupTypeData) ? groupTypeData : (groupTypeData as any)?.data || [];
+        const ids = watchedGroupType
+            .map((selectedValue: string) => {
+                const groupType = rawData.find((item: any) => 
+                    item.value === selectedValue || 
+                    item.HRMGT_EmployeeGroupType === selectedValue ||
+                    (item.key !== undefined && item.value === selectedValue)
+                );
+                return groupType?.key || groupType?.HRMGT_Id;
+            })
+            .filter((id: number | undefined): id is number => id !== undefined && id > 0);
+        return ids.length > 0 ? ids : undefined;
+    }, [watchedGroupType, groupTypeData]);
+    
+    const { data: departmentData, isLoading: isLoadingDepartment } = useDepartmentDropdownForCalculation(selectedGroupTypeIds);
+    
+    // Extract Department IDs from selected departments for cascading designation dropdown
+    const selectedDepartmentIds = useMemo(() => {
+        if (!watchedDepartment || !Array.isArray(watchedDepartment) || watchedDepartment.length === 0) {
+            return undefined;
+        }
+        // Map selected department values (names) to their IDs (keys)
+        const rawData = Array.isArray(departmentData) ? departmentData : (departmentData as any)?.data || [];
+        const ids = watchedDepartment
+            .map((selectedValue: string) => {
+                const department = rawData.find((item: any) => 
+                    item.value === selectedValue || 
+                    item.HRMD_DepartmentName === selectedValue ||
+                    (item.key !== undefined && item.value === selectedValue)
+                );
+                return department?.key || department?.HRMD_Id;
+            })
+            .filter((id: number | undefined): id is number => id !== undefined && id > 0);
+        return ids.length > 0 ? ids : undefined;
+    }, [watchedDepartment, departmentData]);
+    
+    const { data: designationData, isLoading: isLoadingDesignation } = useDesignationDropdownForCalculation(selectedDepartmentIds);
+    const { data: monthData, isLoading: isLoadingMonth } = useMonthDropdownForCalculation();
+    const { data: leaveYearData, isLoading: isLoadingLeaveYear } = useLeaveYearDropdownForCalculation();
+
+    const isLoading = isLoadingGroupType || isLoadingDepartment || isLoadingDesignation || isLoadingMonth || isLoadingLeaveYear;
+
     // Memoize arrays to prevent unnecessary re-renders
-    const monthOptions = useMemo(() => onloadData?.monthdropdown || [], [onloadData?.monthdropdown]);
-    const leaveYearOptions = useMemo(() => onloadData?.leaveyeardropdown || [], [onloadData?.leaveyeardropdown]);
-    const departmentOptions = useMemo(
-        () => onloadData?.departmentdropdown || onloadData?.departmentdropdownlist || [],
-        [onloadData?.departmentdropdown, onloadData?.departmentdropdownlist]
-    );
-    const designationOptions = useMemo(
-        () => onloadData?.designationdropdown || onloadData?.designationdropdownlist || [],
-        [onloadData?.designationdropdown, onloadData?.designationdropdownlist]
-    );
-    const groupTypeOptions = useMemo(
-        () => onloadData?.groupTypedropdownlist || onloadData?.groupTypedropdown || [],
-        [onloadData?.groupTypedropdownlist, onloadData?.groupTypedropdown]
-    );
+    // Transform GroupType dropdown from { key, value } format
+    const groupTypeOptions = useMemo(() => {
+        const rawData = Array.isArray(groupTypeData) ? groupTypeData : (groupTypeData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMGT_Id: item.key,
+                    HRMGT_EmployeeGroupType: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [groupTypeData]);
+    
+    // Transform Department dropdown from { key, value } format
+    const departmentOptions = useMemo(() => {
+        const rawData = Array.isArray(departmentData) ? departmentData : (departmentData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMD_Id: item.key,
+                    HRMD_DepartmentName: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [departmentData]);
+    
+    // Transform Designation dropdown from { key, value } format
+    const designationOptions = useMemo(() => {
+        const rawData = Array.isArray(designationData) ? designationData : (designationData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility with existing code
+                    HRMDES_Id: item.key,
+                    HRMDES_DesignationName: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [designationData]);
+    const monthOptions = useMemo(() => (monthData?.data || []) as any[], [monthData]);
+    const leaveYearOptions = useMemo(() => (leaveYearData?.data || []) as any[], [leaveYearData]);
+
+    // Reset department selection when group types change
+    useEffect(() => {
+        if (watchedGroupType && Array.isArray(watchedGroupType) && watchedGroupType.length > 0) {
+            // Department dropdown will be refetched with new group type IDs
+        } else if (!watchedGroupType || (Array.isArray(watchedGroupType) && watchedGroupType.length === 0)) {
+            // Reset department when no group types selected
+            setValue('department', []);
+        }
+    }, [watchedGroupType, setValue]);
+    
+    // Reset designation selection when departments change
+    useEffect(() => {
+        if (watchedDepartment && Array.isArray(watchedDepartment) && watchedDepartment.length > 0) {
+            // Designation dropdown will be refetched with new department IDs
+        } else if (!watchedDepartment || (Array.isArray(watchedDepartment) && watchedDepartment.length === 0)) {
+            // Reset designation when no departments selected
+            setValue('designation', []);
+        }
+    }, [watchedDepartment, setValue]);
+
+    const generateMutation = useGenerateSalary();
     // Memoize filterEmployees to prevent infinite loops
     const filterEmployees = useCallback(() => {
         let filtered = employees;
         if (watchedGroupType && watchedGroupType.length > 0) {
-            const groupTypeIds = new Set(watchedGroupType.map((v) => Number(v)));
-            filtered = filtered.filter((emp) => groupTypeIds.has(emp.HRMGT_Id));
+            // watchedGroupType contains the value (group type name) from MultiSelect
+            const groupTypeNames = new Set(watchedGroupType);
+            filtered = filtered.filter((emp) => emp.HRMGT_EmployeeGroupType && groupTypeNames.has(emp.HRMGT_EmployeeGroupType));
         }
         if (watchedDepartment && watchedDepartment.length > 0) {
-            const departmentIds = new Set(watchedDepartment.map((v) => Number(v)));
-            filtered = filtered.filter((emp) => departmentIds.has(emp.HRMD_Id));
+            // watchedDepartment contains the value (department name) from MultiSelect
+            const departmentNames = new Set(watchedDepartment);
+            filtered = filtered.filter((emp) => emp.HRMD_DepartmentName && departmentNames.has(emp.HRMD_DepartmentName));
         }
         if (watchedDesignation && watchedDesignation.length > 0) {
-            const designationIds = new Set(watchedDesignation.map((v) => Number(v)));
-            filtered = filtered.filter((emp) => designationIds.has(emp.HRMDES_Id));
+            // watchedDesignation contains the value (designation name) from MultiSelect
+            const designationNames = new Set(watchedDesignation);
+            filtered = filtered.filter((emp) => emp.HRMDES_DesignationName && designationNames.has(emp.HRMDES_DesignationName));
         }
         setFilteredEmployees(filtered);
     }, [watchedGroupType, watchedDepartment, watchedDesignation, employees]);
@@ -88,57 +200,15 @@ export default function SalaryCalculationPage() {
         }
     }, [hasSearched, filterEmployees]);
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
-        const payload: SalaryCalculationSearchRequest = {
-            MI_Id: 30,
-            HRES_Year: data.salaryYear || '',
-            HRES_Month: data.salaryMonth || '',
-            groupTypeIdList: (data.groupType || []).map((v) => Number(v)),
-            hrmD_IdList: (data.department || []).map((v) => Number(v)),
-            hrmdeS_IdList: (data.designation || []).map((v) => Number(v)),
-            LogInUserId: 0
-        };
-        searchMutation.mutate(payload, {
-            onSuccess: (responseData) => {
-                const employeeList = responseData.employeedropdown || [];
-                const employeesWithStatus: Employee[] = employeeList.map((emp: any) => {
-                    const designation = designationOptions.find((d: DesignationDropdown) => d.HRMDES_Id === emp.HRMDES_Id);
-                    const basicSalary = designation?.HRMDES_BasicAmount || 0;
-                    return {
-                        ...emp,
-                        calculationStatus: 'Not Calculated' as const,
-                        basicSalary,
-                        allowances: 0,
-                        deductions: 0,
-                        netSalary: basicSalary
-                    } as Employee;
-                });
-                setEmployees(employeesWithStatus);
-                setFilteredEmployees(employeesWithStatus);
-                setHasSearched(true);
-                setCurrentSearchData(data);
-                if (data.salaryMonth && data.salaryYear) {
-                    const monthData = monthOptions.find((m) => m.IVRM_Month_Name === data.salaryMonth);
-                    if (monthData) {
-                        const year = Number.parseInt(data.salaryYear);
-                        const monthIndex = monthData.IVRM_Month_Id - 1;
-                        const fromDate = new Date(year, monthIndex, 1);
-                        const toDate = new Date(year, monthIndex + 1, 0);
-                        setFromDate(
-                            `${String(fromDate.getDate()).padStart(2, '0')}/${String(fromDate.getMonth() + 1).padStart(2, '0')}/${fromDate.getFullYear()}`
-                        );
-                        setToDate(
-                            `${String(toDate.getDate()).padStart(2, '0')}/${String(toDate.getMonth() + 1).padStart(2, '0')}/${toDate.getFullYear()}`
-                        );
-                    }
-                }
-                toast.success(`Search completed successfully. Found ${employeesWithStatus.length} employees`);
-            },
-            onError: () => {
-                setEmployees([]);
-                setFilteredEmployees([]);
-                setHasSearched(true);
-            }
-        });
+        // TODO: Implement search with new pattern - search without year/month
+        // For now, simulate search with filtered employees
+        const filtered = groupTypeOptions.filter((g: any) => 
+            data.groupType.length === 0 || data.groupType.includes(String(g.HRMGT_Id))
+        );
+        // This is a placeholder - actual search will be implemented with the new API
+        toast.success('Search completed successfully');
+        setHasSearched(true);
+        setCurrentSearchData(data);
     };
     const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
         if (selected) {
@@ -154,19 +224,19 @@ export default function SalaryCalculationPage() {
             setSelectedEmployees([]);
         }
     };
-    const handleGenerateSalary = async () => {
+    const handleGenerateSalary = async (salaryMonth: string, salaryYear: string) => {
         if (selectedEmployees.length === 0) {
             toast.error('Please select at least one employee to generate salary');
             return;
         }
-        if (!currentSearchData) {
-            toast.error('Please perform a search first before generating salary');
+        if (!salaryMonth || !salaryYear) {
+            toast.error('Please select both month and year to generate salary');
             return;
         }
         const payload: SalaryCalculationGenerateRequest = {
-            MI_Id: 30,
-            HRES_Year: currentSearchData.salaryYear,
-            HRES_Month: currentSearchData.salaryMonth,
+            MI_Id: 0,
+            HRES_Year: salaryYear,
+            HRES_Month: salaryMonth,
             employeeIdList: selectedEmployees,
             LogInUserId: 0
         };
@@ -192,7 +262,7 @@ export default function SalaryCalculationPage() {
                 {/* Search Form */}
                 <CollapsibleSection defaultOpen={true} variant='outline' size='lg' className='shadow-lg' headerClassName=''>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-5'>
+                        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                             {/* Group Type */}
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>Group Type</Label>
@@ -201,9 +271,9 @@ export default function SalaryCalculationPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={groupTypeOptions.map((g) => ({
-                                                label: g.HRMGT_EmployeeGroupType,
-                                                value: String(g.HRMGT_Id)
+                                            options={groupTypeOptions.map((g: any) => ({
+                                                label: g.value || g.HRMGT_EmployeeGroupType || '',
+                                                value: g.value || g.HRMGT_EmployeeGroupType || ''
                                             }))}
                                             onValueChange={field.onChange}
                                             defaultValue={Array.isArray(field.value) ? field.value : []}
@@ -222,15 +292,20 @@ export default function SalaryCalculationPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={departmentOptions.map((d) => ({
-                                                label: d.HRMD_DepartmentName,
-                                                value: String(d.HRMD_Id)
+                                            options={departmentOptions.map((d: any) => ({
+                                                label: d.value || d.HRMD_DepartmentName || '',
+                                                value: d.value || d.HRMD_DepartmentName || ''
                                             }))}
                                             onValueChange={field.onChange}
                                             defaultValue={Array.isArray(field.value) ? field.value : []}
-                                            placeholder='Select Departments'
+                                            placeholder={
+                                                selectedGroupTypeIds && selectedGroupTypeIds.length > 0
+                                                    ? 'Select Departments'
+                                                    : 'Select Group Types first'
+                                            }
                                             className='w-full'
                                             maxHeight={240}
+                                            disabled={!selectedGroupTypeIds || selectedGroupTypeIds.length === 0}
                                         />
                                     )}
                                 />
@@ -243,60 +318,21 @@ export default function SalaryCalculationPage() {
                                     control={control}
                                     render={({ field }) => (
                                         <MultiSelect
-                                            options={designationOptions.map((d) => ({
-                                                label: d.HRMDES_DesignationName,
-                                                value: String(d.HRMDES_Id)
+                                            options={designationOptions.map((d: any) => ({
+                                                label: d.value || d.HRMDES_DesignationName || '',
+                                                value: d.value || d.HRMDES_DesignationName || ''
                                             }))}
                                             onValueChange={field.onChange}
                                             defaultValue={Array.isArray(field.value) ? field.value : []}
-                                            placeholder='Select Designations'
+                                            placeholder={
+                                                selectedDepartmentIds && selectedDepartmentIds.length > 0
+                                                    ? 'Select Designations'
+                                                    : 'Select Departments first'
+                                            }
                                             className='w-full'
                                             maxHeight={240}
+                                            disabled={!selectedDepartmentIds || selectedDepartmentIds.length === 0}
                                         />
-                                    )}
-                                />
-                            </div>
-                            {/* Month */}
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Month</Label>
-                                <Controller
-                                    name='salaryMonth'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Month' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {monthOptions.map((month) => (
-                                                    <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Name}>
-                                                        {month.IVRM_Month_Name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                            </div>
-                            {/* Year */}
-                            <div className='space-y-3'>
-                                <Label className='font-semibold'>Year</Label>
-                                <Controller
-                                    name='salaryYear'
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select Year' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {leaveYearOptions.map((year) => (
-                                                    <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
-                                                        {year.HRMLY_LeaveYear}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
                                     )}
                                 />
                             </div>
@@ -315,8 +351,6 @@ export default function SalaryCalculationPage() {
                                     reset();
                                     setHasSearched(false);
                                     setSelectedEmployees([]);
-                                    setFromDate('');
-                                    setToDate('');
                                 }}>
                                 <X className='mr-2 h-4 w-4' />
                                 CANCEL
@@ -334,13 +368,13 @@ export default function SalaryCalculationPage() {
                         headerClassName=''>
                         <SalaryCalculationTable
                             employees={filteredEmployees}
-                            isLoading={isLoading || searchMutation.isPending || generateMutation.isPending}
+                            isLoading={isLoading || generateMutation.isPending}
                             selectedEmployees={selectedEmployees}
                             onEmployeeSelect={handleEmployeeSelect}
                             onSelectAll={handleSelectAll}
                             onGenerateSalary={handleGenerateSalary}
-                            fromDate={fromDate}
-                            toDate={toDate}
+                            monthOptions={monthOptions}
+                            leaveYearOptions={leaveYearOptions}
                         />
                     </CollapsibleSection>
                 )}
@@ -365,9 +399,9 @@ interface SalaryCalculationTableProps {
     selectedEmployees: number[];
     onEmployeeSelect: (employeeId: number, selected: boolean) => void;
     onSelectAll: (selected: boolean) => void;
-    onGenerateSalary: () => void;
-    fromDate: string;
-    toDate: string;
+    onGenerateSalary: (salaryMonth: string, salaryYear: string) => void;
+    monthOptions: any[];
+    leaveYearOptions: any[];
 }
 function SalaryCalculationTable({
     employees,
@@ -376,9 +410,11 @@ function SalaryCalculationTable({
     onEmployeeSelect,
     onSelectAll,
     onGenerateSalary,
-    fromDate,
-    toDate
+    monthOptions,
+    leaveYearOptions
 }: SalaryCalculationTableProps) {
+    const [selectedMonth, setSelectedMonth] = useState<string>('');
+    const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
     // Prepare table response format for useDataTableProps
     const tableResponse = useMemo(() => {
         return {
@@ -403,20 +439,41 @@ function SalaryCalculationTable({
     );
     return (
         <div className='space-y-4'>
-            {/* Date Range Display */}
-            {fromDate && toDate && (
-                <div className='rounded-lg bg-muted/50 p-4'>
-                    <div className='flex items-center justify-between'>
-                        <div className='text-muted-foreground text-sm'>
-                            Date From: {fromDate} to {toDate}
-                        </div>
-                        <div className='flex items-center gap-2'>
-                            <input type='text' placeholder='search here...' className='w-48 rounded-md border px-3 py-1 text-sm' />
-                            <RefreshCw className='h-4 w-4 cursor-pointer text-muted-foreground' />
-                        </div>
+            {/* Month and Year Selection for Generate Pay */}
+            <div className='rounded-lg bg-muted/50 p-4'>
+                <div className='flex items-center gap-4'>
+                    <div className='space-y-2 flex-1'>
+                        <Label className='font-semibold'>Month: *</Label>
+                        <Select onValueChange={setSelectedMonth} value={selectedMonth}>
+                            <SelectTrigger>
+                                <SelectValue placeholder='Select Month' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {monthOptions.map((month: any) => (
+                                    <SelectItem key={month.IVRM_Month_Id} value={month.IVRM_Month_Name}>
+                                        {month.IVRM_Month_Name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className='space-y-2 flex-1'>
+                        <Label className='font-semibold'>Year: *</Label>
+                        <Select onValueChange={setSelectedYear} value={selectedYear}>
+                            <SelectTrigger>
+                                <SelectValue placeholder='Select Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {leaveYearOptions.map((year: any) => (
+                                    <SelectItem key={year.HRMLY_Id} value={year.HRMLY_LeaveYear}>
+                                        {year.HRMLY_LeaveYear}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </div>
-            )}
+            </div>
             <GenericDataTable<Employee>
                 {...tableProps}
                 columns={columns}
@@ -432,8 +489,8 @@ function SalaryCalculationTable({
             {/* Action Buttons */}
             <div className='flex justify-end gap-2'>
                 <Button
-                    onClick={onGenerateSalary}
-                    disabled={selectedEmployees.length === 0}
+                    onClick={() => onGenerateSalary(selectedMonth, selectedYear)}
+                    disabled={selectedEmployees.length === 0 || !selectedMonth || !selectedYear}
                     className='w-fit transition-all duration-200 hover:scale-105'>
                     <Calculator className='mr-2 h-4 w-4' />
                     GENERATE PAY

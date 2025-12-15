@@ -1,18 +1,24 @@
 'use client';
+
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ActionsCell } from './actions-cell';
+import { Trash2 } from 'lucide-react';
+import { useCallback } from 'react';
 export const salaryIncrementColumns: ColumnDef<SalaryIncrementGridItem>[] = [
     {
-        id: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.No.' />,
+        accessorKey: 'HREIC_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
-            return <div className='text-center font-medium'>{pageIndex * pageSize + row.index + 1}</div>;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='w-full pl-6'>{continuousIndex}</div>;
         },
-        enableSorting: false
+        enableSorting: true,
+        enableHiding: false
     },
     {
         accessorKey: 'EmployeeName',
@@ -89,8 +95,33 @@ export const salaryIncrementColumns: ColumnDef<SalaryIncrementGridItem>[] = [
     },
     {
         id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => <ActionsCell row={row} />,
-        enableSorting: false
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-center' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
+
+function ActionButtonsCell({ rowData }: { rowData: SalaryIncrementGridItem }) {
+    const { openDeleteForm } = useFormContext<SalaryIncrementGridItem>();
+
+    const handleDelete = useCallback(
+        (data: SalaryIncrementGridItem) => {
+            openDeleteForm(data);
+        },
+        [openDeleteForm]
+    );
+
+    return (
+        <div className='flex justify-center'>
+            <Button
+                variant='ghost'
+                size='sm'
+                className='h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive'
+                onClick={() => handleDelete(rowData)}>
+                <span className='sr-only'>Delete</span>
+                <Trash2 className='h-4 w-4' />
+            </Button>
+        </div>
+    );
+}

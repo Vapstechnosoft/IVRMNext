@@ -8,7 +8,7 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterBank } from '@/server/hrms/hrmsConfig/master/bank';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -61,9 +61,20 @@ export default function AddBankForm({ onSuccess, className = '' }: AddBankFormPr
     const handleReset = () => {
         reset();
     };
+
+    const onError = (errors: FieldErrors<FormFields>) => {
+        // Show first error message
+        const firstError = Object.values(errors)[0];
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        } else {
+            toast.error('Please fix the validation errors before submitting');
+        }
+    };
+
     return (
         <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit, onError)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText

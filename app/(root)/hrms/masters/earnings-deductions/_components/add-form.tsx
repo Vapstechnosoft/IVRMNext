@@ -22,7 +22,7 @@ import type {
 } from '@/types/hrms/hrms-config/master';
 import { Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { Controller, useForm, useWatch } from 'react-hook-form';
+import { Controller, type FieldErrors, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 // SafeSelectItem component to filter out invalid/empty dropdown items
@@ -130,9 +130,20 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
     const handleReset = () => {
         reset();
     };
+
+    const onError = (errors: FieldErrors<MasterEarningsDeductionsInput>) => {
+        // Show first error message
+        const firstError = Object.values(errors)[0];
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        } else {
+            toast.error('Please fix the validation errors before submitting');
+        }
+    };
+
     return (
         <div className={className}>
-            <form className='space-y-6' onSubmit={handleSubmit(onSubmit)}>
+            <form className='space-y-6' onSubmit={handleSubmit(onSubmit, onError)}>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <input type='hidden' {...register('MI_Id', { valueAsNumber: true })} />
                     <div className='group flex flex-col gap-1.5'>

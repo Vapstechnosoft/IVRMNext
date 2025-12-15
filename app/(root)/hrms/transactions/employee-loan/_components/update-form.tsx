@@ -5,8 +5,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
+import { useEmployeeDropdownForLoan, useLoanTypeDropdownForLoan, useModeOfPaymentDropdownForLoan, useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-validation';
 import type { EmployeeLoanItem, EmployeeLoanOnloadResponse } from '@/types/hrms/employee-loan';
@@ -34,11 +33,76 @@ interface UpdateFormProps {
 }
 export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSuccess, className = '' }: UpdateFormProps) {
     const { mutate: saveLoan, isPending } = useSaveEmployeeLoan();
-    // Memoize arrays to prevent unnecessary re-renders
-    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
-    const loanTypes = useMemo(() => onloadData?.masterloandropdown || [], [onloadData?.masterloandropdown]);
-    const paymentModes = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
-    // Debug logging
+    
+    // Fetch dropdowns from API
+    const { data: employeeData, isLoading: isLoadingEmployees } = useEmployeeDropdownForLoan();
+    const { data: loanTypeData, isLoading: isLoadingLoanTypes } = useLoanTypeDropdownForLoan();
+    const { data: modeOfPaymentData, isLoading: isLoadingModeOfPayment } = useModeOfPaymentDropdownForLoan();
+    
+    // Transform Employee dropdown from { key, value } format
+    const employeeOptions = useMemo(() => {
+        const rawData = Array.isArray(employeeData) ? employeeData : (employeeData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility
+                    HRME_Id: item.key,
+                    HRME_EmployeeCode: item.value.split(' ')[0] || '',
+                    HRME_EmployeeFirstName: item.value.split(' ')[0] || '',
+                    HRME_EmployeeMiddleName: item.value.split(' ').slice(1, -1).join(' ') || '',
+                    HRME_EmployeeLastName: item.value.split(' ').slice(-1)[0] || ''
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [employeeData]);
+    
+    // Transform Loan Type dropdown from { key, value } format
+    const loanTypeOptions = useMemo(() => {
+        const rawData = Array.isArray(loanTypeData) ? loanTypeData : (loanTypeData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility
+                    HRMLN_Id: item.key,
+                    HRML_LoanType: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [loanTypeData]);
+    
+    // Transform Mode Of Payment dropdown from { key, value } format
+    const modeOfPaymentOptions = useMemo(() => {
+        const rawData = Array.isArray(modeOfPaymentData) ? modeOfPaymentData : (modeOfPaymentData as any)?.data || [];
+        return rawData.map((item: any) => {
+            // Handle { key, value } format from API
+            if (item.key !== undefined && item.value !== undefined) {
+                return {
+                    key: item.key,
+                    value: item.value,
+                    // For backward compatibility
+                    IVRMMOD_Id: item.key,
+                    IVRMMOD_ModeOfPayment: item.value
+                };
+            }
+            // Fallback for other formats
+            return item;
+        });
+    }, [modeOfPaymentData]);
+    
+    // Use transformed options
+    const employees = employeeOptions;
+    const loanTypes = loanTypeOptions;
+    const paymentModes = modeOfPaymentOptions;
     const {
         register,
         handleSubmit,
@@ -90,7 +154,7 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
         }
         const loanData = {
             HREL_Id: selectedRow.HREL_Id,
-            MI_Id: HRMS_MI_ID,
+            MI_Id: 0,
             HRME_Id: data.employeeId,
             roleId: 2,
             HRMLN_Id: data.loanTypeId,
@@ -122,7 +186,7 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <Controller
                         name='employeeId'
                         control={control}
@@ -130,26 +194,42 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Employee *</Label>
-                                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
+                                <Select
+                                    onValueChange={(value) => {
+                                        // Find the employee by the selected value (name) and get its ID (key)
+                                        const selectedEmployee = employees.find((emp: any) => 
+                                            emp.value === value || String(emp.key) === value || String(emp.HRME_Id) === value
+                                        );
+                                        field.onChange(selectedEmployee?.key || selectedEmployee?.HRME_Id || Number(value));
+                                    }}
+                                    value={
+                                        field.value && field.value > 0
+                                            ? (() => {
+                                                  const selectedEmployee = employees.find(
+                                                      (emp: any) => emp.key === field.value || emp.HRME_Id === field.value
+                                                  );
+                                                  return selectedEmployee ? (selectedEmployee.value || `${selectedEmployee.HRME_EmployeeCode || ''} - ${selectedEmployee.HRME_EmployeeFirstName || ''} ${selectedEmployee.HRME_EmployeeMiddleName || ''} ${selectedEmployee.HRME_EmployeeLastName || ''}`.trim()) : '';
+                                              })()
+                                            : ''
+                                    }>
                                     <SelectTrigger
                                         className={cn(
                                             'transition-colors focus:ring-2 focus:ring-primary/20',
                                             errors.employeeId && 'border-destructive'
                                         )}>
-                                        <SelectValue placeholder='Select or search Employee in the list' />
+                                        <SelectValue placeholder={isLoadingEmployees ? 'Loading employees...' : 'Select or search Employee in the list'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {employees.length > 0 ? (
                                             employees
-                                                .filter((emp) => emp?.HRME_Id != null)
-                                                .map((employee) => (
-                                                    <SelectItem key={employee.HRME_Id} value={employee.HRME_Id.toString()}>
-                                                        {employee.HRME_EmployeeCode} - {employee.HRME_EmployeeFirstName}{' '}
-                                                        {employee.HRME_EmployeeMiddleName || ''} {employee.HRME_EmployeeLastName || ''}
+                                                .filter((emp: any) => (emp?.key || emp?.HRME_Id) != null)
+                                                .map((employee: any) => (
+                                                    <SelectItem key={employee.key || employee.HRME_Id} value={employee.value || `${employee.HRME_EmployeeCode || ''} - ${employee.HRME_EmployeeFirstName || ''} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim()}>
+                                                        {employee.value || `${employee.HRME_EmployeeCode || ''} - ${employee.HRME_EmployeeFirstName || ''} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim()}
                                                     </SelectItem>
                                                 ))
                                         ) : (
-                                            <div className='p-2 text-muted-foreground text-sm'>No employees available</div>
+                                            <div className='p-2 text-muted-foreground text-sm'>{isLoadingEmployees ? 'Loading employees...' : 'No employees available'}</div>
                                         )}
                                     </SelectContent>
                                 </Select>
@@ -190,30 +270,42 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                         {errors.startDate && <FormError>{errors.startDate.message}</FormError>}
                     </div>
                 </div>
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <div className='space-y-2'>
                         <Label>Loan Type *</Label>
                         <Select
-                            key={`loan-type-${loanTypes.length}`}
                             onValueChange={(value) => {
-                                setValue('loanTypeId', Number(value));
+                                // Find the loan type by the selected value (name) and get its ID (key)
+                                const selectedLoanType = loanTypes.find((lt: any) => 
+                                    lt.value === value || String(lt.key) === value || String(lt.HRMLN_Id) === value
+                                );
+                                setValue('loanTypeId', selectedLoanType?.key || selectedLoanType?.HRMLN_Id || Number(value));
                             }}
-                            value={watch('loanTypeId')?.toString() || ''}>
+                            value={
+                                watch('loanTypeId') && watch('loanTypeId') > 0
+                                    ? (() => {
+                                          const selectedLoanType = loanTypes.find(
+                                              (lt: any) => lt.key === watch('loanTypeId') || lt.HRMLN_Id === watch('loanTypeId')
+                                          );
+                                          return selectedLoanType ? (selectedLoanType.value || selectedLoanType.HRML_LoanType || '') : '';
+                                      })()
+                                    : ''
+                            }>
                             <SelectTrigger>
-                                <SelectValue placeholder='Select Loan Type' />
+                                <SelectValue placeholder={isLoadingLoanTypes ? 'Loading loan types...' : 'Select Loan Type'} />
                             </SelectTrigger>
                             <SelectContent>
                                 {loanTypes && loanTypes.length > 0 ? (
                                     loanTypes
-                                        .filter((type) => type && type.HRMLN_Id !== undefined && type.HRMLN_Id !== null)
-                                        .map((loanType) => (
-                                            <SelectItem key={`loan-${loanType.HRMLN_Id}`} value={loanType.HRMLN_Id.toString()}>
-                                                {`${loanType.HRML_LoanType} (Max: ₹${loanType.HRML_Max?.toLocaleString() || 0})`}
+                                        .filter((type: any) => type && (type.key !== undefined || type.HRMLN_Id !== undefined))
+                                        .map((loanType: any) => (
+                                            <SelectItem key={loanType.key || loanType.HRMLN_Id} value={loanType.value || loanType.HRML_LoanType || ''}>
+                                                {loanType.value || loanType.HRML_LoanType || ''}
                                             </SelectItem>
                                         ))
                                 ) : (
                                     <div className='p-2 text-muted-foreground text-sm'>
-                                        {onloadData === undefined ? 'Loading loan types...' : 'No loan types available'}
+                                        {isLoadingLoanTypes ? 'Loading loan types...' : 'No loan types available'}
                                     </div>
                                 )}
                             </SelectContent>
@@ -227,16 +319,33 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Mode Of Payment *</Label>
-                                <Select onValueChange={field.onChange} value={field.value}>
+                                <Select
+                                    onValueChange={(value) => {
+                                        // Find the mode of payment by the selected value (name) and get its key
+                                        const selectedMode = paymentModes.find((mode: any) => 
+                                            mode.value === value || mode.key === value || mode.IVRMMOD_ModeOfPayment === value
+                                        );
+                                        field.onChange(selectedMode?.key || selectedMode?.IVRMMOD_ModeOfPayment || value);
+                                    }}
+                                    value={
+                                        field.value
+                                            ? (() => {
+                                                  const selectedMode = paymentModes.find(
+                                                      (mode: any) => mode.key === field.value || mode.IVRMMOD_ModeOfPayment === field.value
+                                                  );
+                                                  return selectedMode ? (selectedMode.value || selectedMode.IVRMMOD_ModeOfPayment || '') : field.value;
+                                              })()
+                                            : ''
+                                    }>
                                     <SelectTrigger>
-                                        <SelectValue placeholder='--Select--' />
+                                        <SelectValue placeholder={isLoadingModeOfPayment ? 'Loading payment modes...' : '--Select--'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {paymentModes
-                                            .filter((mode) => mode?.IVRMMOD_Id != null && mode?.IVRMMOD_ModeOfPayment)
-                                            .map((mode) => (
-                                                <SelectItem key={mode.IVRMMOD_Id} value={mode.IVRMMOD_ModeOfPayment}>
-                                                    {mode.IVRMMOD_ModeOfPayment}
+                                            .filter((mode: any) => (mode?.key || mode?.IVRMMOD_Id) != null && (mode?.value || mode?.IVRMMOD_ModeOfPayment))
+                                            .map((mode: any) => (
+                                                <SelectItem key={mode.key || mode.IVRMMOD_Id} value={mode.value || mode.IVRMMOD_ModeOfPayment || ''}>
+                                                    {mode.value || mode.IVRMMOD_ModeOfPayment || ''}
                                                 </SelectItem>
                                             ))}
                                     </SelectContent>
@@ -246,7 +355,7 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                         )}
                     />
                 </div>
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <Controller
                         name='referenceNo'
                         control={control}
@@ -265,52 +374,60 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                         )}
                     />
                 </div>
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                    <InputText
-                        label='Loan Amount *'
-                        type='number'
-                        id='amount'
-                        step='0.01'
-                        placeholder='Enter loan amount (max 10 digits including decimals)'
-                        {...register('amount', EMPLOYEE_LOAN_VALIDATION.loanAmount)}
-                        error={errors.amount?.message}
-                        disabled={!isEmployeeSelected}
-                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                    />
-                    <InputText
-                        label='Loan Interest *'
-                        type='number'
-                        id='loanInterest'
-                        step='0.01'
-                        placeholder='Enter loan interest (max 5 digits including decimals)'
-                        {...register('loanInterest', EMPLOYEE_LOAN_VALIDATION.loanInterest)}
-                        error={errors.loanInterest?.message}
-                        disabled={!isEmployeeSelected}
-                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                    />
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    <div className='space-y-2'>
+                        <Label>Loan Amount *</Label>
+                        <InputText
+                            type='number'
+                            id='amount'
+                            step='0.01'
+                            placeholder='Enter loan amount (max 10 digits including decimals)'
+                            {...register('amount', EMPLOYEE_LOAN_VALIDATION.loanAmount)}
+                            error={errors.amount?.message}
+                            disabled={!isEmployeeSelected}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+                    <div className='space-y-2'>
+                        <Label>Loan Interest *</Label>
+                        <InputText
+                            type='number'
+                            id='loanInterest'
+                            step='0.01'
+                            placeholder='Enter loan interest (max 5 digits including decimals)'
+                            {...register('loanInterest', EMPLOYEE_LOAN_VALIDATION.loanInterest)}
+                            error={errors.loanInterest?.message}
+                            disabled={!isEmployeeSelected}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
                 </div>
-                <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
-                    <InputText
-                        label='Loan Installments (IN MONTHS) *'
-                        type='number'
-                        id='installments'
-                        placeholder='Enter loan installments (max 4 digits)'
-                        {...register('installments', EMPLOYEE_LOAN_VALIDATION.loanInstallments)}
-                        error={errors.installments?.message}
-                        disabled={!isEmployeeSelected}
-                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                    />
-                    <InputText
-                        label='Loan EMI *'
-                        type='number'
-                        id='loanEMI'
-                        step='0.01'
-                        placeholder='Enter loan EMI (max 10 digits including decimals)'
-                        {...register('loanEMI', EMPLOYEE_LOAN_VALIDATION.loanEMI)}
-                        error={errors.loanEMI?.message}
-                        disabled={!isEmployeeSelected}
-                        className='transition-colors focus:ring-2 focus:ring-primary/20'
-                    />
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                    <div className='space-y-2'>
+                        <Label>Loan Installments (IN MONTHS) *</Label>
+                        <InputText
+                            type='number'
+                            id='installments'
+                            placeholder='Enter loan installments (max 4 digits)'
+                            {...register('installments', EMPLOYEE_LOAN_VALIDATION.loanInstallments)}
+                            error={errors.installments?.message}
+                            disabled={!isEmployeeSelected}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
+                    <div className='space-y-2'>
+                        <Label>Loan EMI *</Label>
+                        <InputText
+                            type='number'
+                            id='loanEMI'
+                            step='0.01'
+                            placeholder='Enter loan EMI (max 10 digits including decimals)'
+                            {...register('loanEMI', EMPLOYEE_LOAN_VALIDATION.loanEMI)}
+                            error={errors.loanEMI?.message}
+                            disabled={!isEmployeeSelected}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                    </div>
                 </div>
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button

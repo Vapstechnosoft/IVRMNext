@@ -308,3 +308,30 @@ export async function saveEmployeeExperience(data: any[]) {
     const url = '/api/EmployeeRegistration/SaveExperienceDetails';
     return await api.post<any>('hrms', url, data);
 }
+
+/**
+ * Save Employee Document Details
+ * POST /api/EmployeeRegistration/SaveDocumentDetails
+ */
+export async function saveEmployeeDocument(data: any[]) {
+    const url = '/api/EmployeeRegistration/SaveDocumentDetails';
+    return await api.post<any>('hrms', url, data);
+}
+
+/**
+ * Save Employee Medical Details
+ * POST /api/EmployeeRegistration/SaveMedicalDetails
+ */
+export async function saveEmployeeMedical(data: any) {
+    const url = '/api/EmployeeRegistration/SaveMedicalDetails';
+    return await api.post<any>('hrms', url, data);
+}
+
+/**
+ * Save Employee Other Details
+ * POST /api/EmployeeRegistration/SaveOtherDetails
+ */
+export async function saveEmployeeOtherDetails(data: any) {
+    const url = '/api/EmployeeRegistration/SaveOtherDetails';
+    return await api.post<any>('hrms', url, data);
+}

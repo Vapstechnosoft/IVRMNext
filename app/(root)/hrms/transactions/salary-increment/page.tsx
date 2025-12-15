@@ -1,65 +1,54 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useDeleteSalaryIncrement, useSalaryIncrementOnload } from '@/hooks/hrms/useTransactions';
+import { useDeleteSalaryIncrement, useSalaryIncrementList } from '@/hooks/hrms/useTransactions';
 import type { SalaryIncrementGridItem } from '@/types/hrms/salary-increment';
-import { TrendingUp } from 'lucide-react';
-import { useMemo } from 'react';
+import { TrendingUp, X } from 'lucide-react';
+import { use } from 'react';
+import AddSalaryIncrementForm from './_components/add-form';
 import { salaryIncrementColumns } from './_components/columns';
-import FormSections from './_components/form-sections';
-export default function SalaryIncrementProcessPage() {
-    const { data: onloadData, isLoading } = useSalaryIncrementOnload({
-        page: 1,
-        page_size: 25,
-        search_query: undefined,
-        search_column: undefined,
-        sort_column: undefined,
-        sort_direction: undefined,
-        is_export: false,
-        MIID: 30, // Kept hardcoded as requested
-        roleId: 0 // Using roleId for hook compatibility
-    });
+import DeleteSalaryIncrementForm from './_components/delete-form';
+
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function SalaryIncrementProcessPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error, refetchAll } = useSalaryIncrementList(searchParams);
+
     return (
         <FormProvider<SalaryIncrementGridItem>>
-            <SalaryIncrementProcessPageContent onloadData={onloadData} isLoading={isLoading} />
+            <SalaryIncrementProcessPageContent response={response} isLoading={isLoading} error={error} refetch={refetchAll} />
         </FormProvider>
     );
 }
 function SalaryIncrementProcessPageContent({
-    onloadData,
-    isLoading
+    response,
+    isLoading,
+    error,
+    refetch
 }: {
-    onloadData: any;
+    response: any;
     isLoading: boolean;
+    error: any;
+    refetch: () => void;
 }) {
-    const { openAddForm } = useFormContext<SalaryIncrementGridItem>();
+    const {
+        openAddForm,
+        isAddFormOpen,
+        closeAddForm,
+        addFormRef,
+        isDeleteFormOpen,
+        closeDeleteForm,
+        selectedRow
+    } = useFormContext<SalaryIncrementGridItem>();
     const deleteMutation = useDeleteSalaryIncrement();
-    // Memoize grid data
-    const gridData = useMemo(() => onloadData?.griddata || [], [onloadData?.griddata]);
-    // Prepare table data - convert gridData to table format
-    const tableData = useMemo(() => {
-        if (!gridData || gridData.length === 0) return [];
-        return gridData.map((item: SalaryIncrementGridItem) => ({
-            ...item,
-            id: item.HREIC_Id || 0
-        }));
-    }, [gridData]);
-    // Prepare response format for useDataTableProps
-    const tableResponse = useMemo(() => {
-        return {
-            success: true,
-            data: tableData,
-            total: tableData.length,
-            page: 1,
-            page_size: tableData.length
-        };
-    }, [tableData]);
-    const tableProps = useDataTableProps(tableResponse);
-    const handleRefetch = () => {
-        // Refetch logic if needed
-    };
+    const tableProps = useDataTableProps(response);
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
@@ -73,6 +62,38 @@ function SalaryIncrementProcessPageContent({
                         Add Increment
                     </Button>
                 </div>
+                {/* Add Form */}
+                {isAddFormOpen && (
+                    <div ref={addFormRef}>
+                        <CollapsibleSection
+                            title='Add Salary Increment'
+                            description='Fill in the details below to add a new salary increment'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                            <div className='relative'>
+                                <Button
+                                    type='button'
+                                    onClick={closeAddForm}
+                                    variant='ghost'
+                                    size='sm'
+                                    className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                    <X className='h-4 w-4 text-destructive' /> Close
+                                </Button>
+                                <AddSalaryIncrementForm
+                                    response={response}
+                                    onSuccess={() => {
+                                        closeAddForm();
+                                        refetch();
+                                    }}
+                                />
+                            </div>
+                        </CollapsibleSection>
+                    </div>
+                )}
+                {/* Delete Form */}
+                {isDeleteFormOpen && selectedRow && <DeleteSalaryIncrementForm rowData={selectedRow} onClose={closeDeleteForm} />}
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -83,7 +104,7 @@ function SalaryIncrementProcessPageContent({
                         {...tableProps}
                         columns={salaryIncrementColumns}
                         isLoading={isLoading || deleteMutation.isPending}
-                        error={null}
+                        error={error}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading salary increments...'
@@ -92,8 +113,6 @@ function SalaryIncrementProcessPageContent({
                         errorTitle='Error Loading Salary Increments'
                     />
                 </CollapsibleSection>
-                {/* Forms */}
-                <FormSections onloadData={onloadData} onSuccess={handleRefetch} />
             </div>
         </div>
     );

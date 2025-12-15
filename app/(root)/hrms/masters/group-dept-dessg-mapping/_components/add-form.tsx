@@ -10,7 +10,7 @@ import type { IDepartmentDropdown, IDesignationDropdown, IGroupTypeDropdown } fr
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useMemo } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 type FormFields = z.infer<typeof hrmsMasterSchemas.groupDeptDessgMapping.addOrUpdate>;
@@ -79,6 +79,16 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
         reset();
     };
 
+    const onError = (errors: FieldErrors<FormFields>) => {
+        // Show first error message
+        const firstError = Object.values(errors)[0];
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        } else {
+            toast.error('Please fix the validation errors before submitting');
+        }
+    };
+
     // Transform designation dropdown for MultiSelect component
     const designationOptions = useMemo(() => {
         return designationDropdown
@@ -94,7 +104,7 @@ export default function AddGroupDeptDessgMappingForm({ onSuccess, className = ''
     }, [designationDropdown]);
     return (
         <div className={className}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit, onError)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <div className='group flex flex-col gap-1.5'>

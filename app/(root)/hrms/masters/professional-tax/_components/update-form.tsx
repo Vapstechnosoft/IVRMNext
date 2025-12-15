@@ -10,7 +10,7 @@ import type { IMasterProfessionalTaxList } from '@/types/hrms/hrms-config/master
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type FieldErrors, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -74,9 +74,21 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
         reset();
     };
 
+    const onError = (errors: FieldErrors<FormFields>) => {
+        // Show first error message
+        const firstError = Object.values(errors)[0];
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        } else if (errors.root?.message) {
+            toast.error(errors.root.message);
+        } else {
+            toast.error('Please fix the validation errors before submitting');
+        }
+    };
+
     return (
         <div className={className}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={handleSubmit(onSubmit, onError)} className='space-y-6'>
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         <Controller
