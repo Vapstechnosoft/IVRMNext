@@ -696,11 +696,11 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 507,
-                                            name: 'Fee Concession',
+                                            name: 'Fee Master Concession',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/transactions/feeconcession',
-                                            title: 'Fee Concession',
-                                            description: 'Manage Fee Concession'
+                                            title: 'Fee Master Concession',
+                                            description: 'Manage Fee Master Concession'
                                         }
                                     ]
                                 },
