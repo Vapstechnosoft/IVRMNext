@@ -68,7 +68,7 @@ export const StudentTransactionColumns = (onScoreUpdate: ScoreUpdateHandler): Co
     // ✅ SCORE — FIXED (NO FOCUS LOSS)
     {
         accessorKey: 'score',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Score' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} className='text-left' title='Score' />,
         cell: ({ row }) => {
             const { studentId, score } = row.original;
 
