@@ -4,7 +4,8 @@ import {
     getPreAdmissionEmailSmsReport,
     getPreAdmissionMonthEndReport,
     getPreAdmissionRegistrationReport,
-    getStudentTcReport
+    getStudentTcReport,
+    getStudyCertficateReport
 } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import {
@@ -249,26 +250,61 @@ export const useTotalStrengthReport = (
 };
 
 export const useStudentSearch = (
-    stuStatus: string,
-    field: string,
-    Operator: string,
-    value: string,
-    condition: string,
-    searchParams?: ApiSearchparams
+  stuStatus: string,
+  field: string,
+  Operator: string,
+  value: string,
+  condition: string,
+  searchParams?: ApiSearchparams
 ) => {
+  const queryClient = useQueryClient();
+
+  return {
+    ...useQuery({
+      queryKey: [
+        ADMISSION_QUERY_KEYS.STUDENT_SEARCH,
+        stuStatus,
+        field,
+        Operator,
+        value,
+        condition,
+        searchParams ?? {},
+      ],
+      queryFn: async () =>
+        getStudentSearch(
+          stuStatus,
+          field,
+          Operator,
+          value,
+          condition,
+          searchParams
+        ),
+      staleTime: 0,
+      enabled: !!stuStatus && !!field && !!Operator && !!value && !!condition,
+    }),
+    refetchAll: () => {
+      return queryClient.invalidateQueries({
+        queryKey: [ADMISSION_QUERY_KEYS.STUDENT_SEARCH],
+      });
+    },
+  };
+};
+export const useStudyCertificateReport = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.STUDENT_SEARCH, stuStatus, field, Operator, value, condition, searchParams ?? {}],
-            queryFn: async () => getStudentSearch(stuStatus, field, Operator, value, condition, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.STUDY_CERTIFICATE_REPORT, data],
+            queryFn: async () => getStudyCertficateReport(data),
             staleTime: 0,
-            enabled: !!stuStatus && !!field && !!Operator && !!value && !!condition
+            enabled: enabled && !!data,
+            refetchOnWindowFocus: false
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.STUDENT_SEARCH]
+                queryKey: [ADMISSION_QUERY_KEYS.STUDY_CERTIFICATE_REPORT]
             });
         }
     };
 };
+

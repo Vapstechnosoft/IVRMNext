@@ -79,3 +79,15 @@ export const TotalStrengthSchema = z
             path: ['class']
         }
     );
+export const studyCertificateReportSchema = z.object({
+    selectionMode: z.enum(['all', 'individual']),
+    studentStatus: z.enum(['studying', 'left', 'deactive']),
+    certificateType: z.enum(['character', 'study']),
+    addressType: z.enum(['permanent', 'communication']),
+    asmaY_Id: z.number().min(1, 'Academic year required'),
+    asmcL_Id: z.number().optional(),
+    asmS_Id: z.number().optional(),
+    studentId: z.number().optional(),
+    qrCode: z.string().optional(),
+    from_date: z.string().min(1, 'From date required')
+});

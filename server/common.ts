@@ -338,7 +338,7 @@ export async function getUserAccessibleModules() {
                                             description: 'PreAdmission Month End Report'
                                         },
                                         {
-                                            id: 10,
+                                            id: 11,
                                             name: 'Registration Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/registration-report',
@@ -346,12 +346,20 @@ export async function getUserAccessibleModules() {
                                             description: 'Registration Report'
                                         },
                                         {
-                                            id: 10,
+                                            id: 12,
                                             name: 'EMAIL SMS Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/email-sms',
                                             title: 'EMAIL SMS Report',
                                             description: 'EMAIL SMS Report'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Study Certificate Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/study-certificate-report',
+                                            title: 'Study Certificate Report',
+                                            description: 'Study Certificate Report'
                                         }
                                     ]
                                 }
