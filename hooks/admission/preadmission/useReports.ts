@@ -14,7 +14,8 @@ import {
     GetStudentYearlyAttendance,
     getAdmissionRegister,
     getStudentSearch,
-    getTotalStrengthReport
+    getTotalStrengthReport,
+    getadmissionStudentsDropdown
 } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -305,6 +306,34 @@ export const useAdmissionRegister = (ASMAY_Id: number, AttendanceType: number, p
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER]
+            });
+        }
+    };
+};
+
+export const useadmissionStudentsDropdown = (ASMAY_Id?: number, ASMCL_Id?: number, ASMS_Id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [
+                ADMISSION_QUERY_KEYS.ADMISSION_STUDENTS_DROPDOWN,
+                ASMAY_Id ?? ({} as number),
+                ASMCL_Id ?? ({} as number),
+                ASMS_Id ?? ({} as number)
+            ],
+            queryFn: async () => {
+                if (!ASMAY_Id || Number(ASMAY_Id) <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getadmissionStudentsDropdown(Number(ASMAY_Id), Number(ASMCL_Id), Number(ASMS_Id));
+            },
+            staleTime: 0,
+            enabled: Boolean(ASMAY_Id && Number(ASMAY_Id) > 0 && ASMCL_Id && Number(ASMCL_Id) > 0 && ASMS_Id && Number(ASMS_Id) > 0)
+        }),
+        refetchAll: (id?: number) => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_STUDENTS_DROPDOWN, id ?? {}]
             });
         }
     };

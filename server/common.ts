@@ -360,6 +360,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/study-certificate-report',
                                             title: 'Study Certificate Report',
                                             description: 'Study Certificate Report'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Date Of Birth Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/date-of-birth-report',
+                                            title: 'Date Of Birth Report',
+                                            description: 'Date Of Birth Report'
                                         }
                                     ]
                                 }

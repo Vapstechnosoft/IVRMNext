@@ -38,7 +38,8 @@ export const ADMISSION_QUERY_KEYS = {
     TOTAL_STRENGTH_REPORT: 'total_strength_report',
     STUDENT_SEARCH: 'student_search',
     ADMISSION_REGISTER: 'admission_register',
-    STUDY_CERTIFICATE_REPORT: 'study_certificate_report'
+    STUDY_CERTIFICATE_REPORT: 'study_certificate_report',
+    ADMISSION_STUDENTS_DROPDOWN: 'admission_students_dropdown'
 };
 
 export const PREADMISSION_QUERY_KEYS = {
