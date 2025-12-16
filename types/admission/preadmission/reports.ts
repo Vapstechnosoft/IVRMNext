@@ -48,3 +48,19 @@ export interface IRigistrationReportList {
     name: string;
     created_Date: string;
 }
+export type Student = {
+    studentnam: string;
+    AMST_Id: number;
+    admno: string;
+    fathername: string;
+    class: string;
+    acadamicyear: string;
+    dob: string;
+    caste_name: string;
+    addressd1: string;
+    city: string;
+};
+
+export type StudyCertificateResponse = {
+    studentList: Student[];
+};

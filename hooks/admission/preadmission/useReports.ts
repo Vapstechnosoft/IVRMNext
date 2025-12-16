@@ -4,7 +4,8 @@ import {
     getPreAdmissionEmailSmsReport,
     getPreAdmissionMonthEndReport,
     getPreAdmissionRegistrationReport,
-    getStudentTcReport
+    getStudentTcReport,
+    getStudyCertficateReport
 } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import {
@@ -242,6 +243,24 @@ export const useTotalStrengthReport = (
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.TOTAL_STRENGTH_REPORT]
+            });
+        }
+    };
+};
+export const useStudyCertificateReport = (data: any, enabled = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.STUDY_CERTIFICATE_REPORT, data],
+            queryFn: async () => getStudyCertficateReport(data),
+            staleTime: 0,
+            enabled: enabled && !!data,
+            refetchOnWindowFocus: false
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.STUDY_CERTIFICATE_REPORT]
             });
         }
     };
