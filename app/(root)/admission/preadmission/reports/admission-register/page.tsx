@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { admissionReportSchema } from '@/schemas/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -93,6 +94,8 @@ export default function AdmissionReportPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = use(props.searchParams);
+    const router = useRouter();
+    const currentSearchParams = useSearchParams();
     const tableRef = useRef<DataTableRef>(null);
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
@@ -144,10 +147,9 @@ export default function AdmissionReportPage(props: {
 
     useEffect(() => {
         if (showReport && requestPayload && refetchReport) {
-            console.log('Triggering refetch due to payload change');
             refetchReport();
         }
-    }, [requestPayload, showReport]);
+    }, [requestPayload, showReport, searchParams]);
 
     const filteredClasses = useMemo(() => {
         return classOptions.filter((cls: any) => cls.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase()));
@@ -157,10 +159,23 @@ export default function AdmissionReportPage(props: {
         return FIELD_OPTIONS.filter((field) => field.label.toLowerCase().includes(fieldSearch.toLowerCase()));
     }, [fieldSearch]);
 
-    // Generate columns dynamically based on selected fields
     const columns = useMemo(() => {
         return getMasterAdmissionReportColumns(selectedFields);
     }, [selectedFields]);
+
+    const transformedResponse = useMemo(() => {
+        if (!response) return response;
+
+        return {
+            ...response,
+            data: response.data?.searchstudentDetails || [],
+            total: response.total,
+            page: response.page,
+            page_size: response.page_size
+        };
+    }, [response]);
+
+    const tableProps = useDataTableProps(transformedResponse);
 
     const handleClassToggle = (classId: number) => {
         const current = selectedClasses || [];
@@ -219,9 +234,13 @@ export default function AdmissionReportPage(props: {
 
             setRequestPayload(payload);
             setShowReport(true);
+
+            const params = new URLSearchParams(currentSearchParams.toString());
+            params.set('page', '1');
+            router.push(`?${params.toString()}`, { scroll: false });
+
             toast.success('Generating report...');
         } else {
-            console.log('Form validation failed:', errors);
             toast.error('Please fill all required fields');
         }
     };
@@ -239,6 +258,10 @@ export default function AdmissionReportPage(props: {
         setRequestPayload(null);
         setSelectedStudents([]);
         tableRef.current?.resetSelection();
+
+        // Clear URL parameters
+        router.push(window.location.pathname, { scroll: false });
+
         toast.success('Filters reset successfully');
     };
 
@@ -276,11 +299,6 @@ export default function AdmissionReportPage(props: {
 
         window.print();
     };
-
-    const tableProps = useDataTableProps({
-        ...response,
-        data: response?.data?.searchstudentDetails || []
-    });
 
     return (
         <div className='min-h-screen'>
