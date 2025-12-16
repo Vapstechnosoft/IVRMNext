@@ -24,6 +24,8 @@ import {
 import {
     getFeeAdjustmentFromHeadDropDown,
     getFeeAdjustmentGroupDropDown,
+    getFeeAdjustmentToGroup,
+    getFeeAdjustmentToHeadDropDown,
     getFeeAdjutmentGridList
 } from '@/server/fees/trasactions/fee_adjustment';
 import {
