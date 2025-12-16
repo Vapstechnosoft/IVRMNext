@@ -52,8 +52,8 @@ export type StudentSearchFormData = z.infer<typeof studentSearchSchema>;
 
 export const admissionReportSchema = z.object({
     academicYear: z.number().min(1, 'Academic year is required'),
-    status: z.string().min(1, 'Status is required'),
-    selectedClasses: z.array(z.string()).min(1, 'Please select at least one class'),
+    status: z.number().min(0, 'Status is required'),
+    selectedClasses: z.array(z.number()).min(1, 'Please select at least one class'),
     selectedFields: z.array(z.string()).min(1, 'Please select at least one field')
 });
 

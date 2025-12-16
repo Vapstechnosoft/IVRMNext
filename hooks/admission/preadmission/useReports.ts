@@ -11,6 +11,7 @@ import {
     type ElectiveItem,
     GetClassTeacherReport,
     GetStudentYearlyAttendance,
+    getAdmissionRegister,
     getStudentSearch,
     getTotalStrengthReport
 } from '@/server/admission/preadmission/reports/student_yearly_attendance';
@@ -268,6 +269,24 @@ export const useStudentSearch = (
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.STUDENT_SEARCH]
+            });
+        }
+    };
+};
+
+export const useAdmissionRegister = (ASMAY_Id: number, AttendanceType: number, payload?: any, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER, ASMAY_Id, AttendanceType, payload, searchParams ?? {}],
+            queryFn: async () => getAdmissionRegister(ASMAY_Id, AttendanceType, payload, searchParams),
+            staleTime: 0,
+            enabled: !!ASMAY_Id && !!AttendanceType && !!payload
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER]
             });
         }
     };

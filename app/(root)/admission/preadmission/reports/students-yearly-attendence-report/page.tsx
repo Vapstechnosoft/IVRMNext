@@ -318,9 +318,6 @@ export default function StudentsYearlyAttendenceReport(props: {
                                         <SelectValue placeholder='Select Class' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem key={0} value={'0'}>
-                                            All
-                                        </SelectItem>
                                         {preadmissionClassLoading ? (
                                             <SelectItem value='loading' disabled>
                                                 Loading...

@@ -73,3 +73,10 @@ export async function getStudentSearch(
 
     return await api.post<any[]>('admission', url);
 }
+
+export async function getAdmissionRegister(ASMAY_Id: number, AttendanceType: number, payload?: any, searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
+    const url = `/AdmissionRegister/GetAdmissionReport?ASMAY_Id=${ASMAY_Id}&AttendanceType=${AttendanceType}&${urlParams}`;
+
+    return await api.post<any[]>('admission', url, payload);
+}
