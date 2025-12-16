@@ -894,6 +894,7 @@ export interface IFeeConcessionStudentData {
 }
 
 export interface IFeeAdjustmentGroupDropDown {
+    fmG_Id: number;
     fsA_From_FMG_Id: number;
     fmG_GroupNameF: string;
 }
@@ -906,4 +907,19 @@ export interface IFeeAdjustmentHeadDropDown {
     fsA_From_FMG_Id: number;
     fsA_From_FMA_Id: number;
     fsS_RunningExcessAmount: number;
+}
+
+export interface IFeeAdjustmentGroupToDropDown {
+    fsA_To_FMG_Id: number;
+    fmG_GroupNameT: string;
+}
+
+export interface IFeeAdjustmentToHead {
+    fsA_To_FMH_Id: number;
+    fmH_FeeNameT: string;
+    fsA_TO_FTI_Id: number;
+    ftI_NameT: string;
+    fsA_To_FMG_Id: number;
+    fsA_To_FMA_Id: number;
+    tobepaid: number;
 }

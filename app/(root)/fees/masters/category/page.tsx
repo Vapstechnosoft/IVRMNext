@@ -11,6 +11,7 @@ import { use, useEffect } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterClassYearlyCategoryColumns } from './_components/columns';
 import DeleteMasterClassForm from './_components/toggle-form';
+import UpdateMasterClassForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -85,8 +86,17 @@ function MasterClassPageContent({
 }
 
 function FormSections({ refetch }: { refetch: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
-        useFormContext<IMasterClassYearlyList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeDeleteForm,
+        closeEditForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterClassYearlyList>();
 
     useEffect(() => {
         if (isEditFormOpen && !selectedRow) {
@@ -141,6 +151,41 @@ function FormSections({ refetch }: { refetch: () => void }) {
                         closeDeleteForm();
                     }}
                 />
+            )}
+
+            {/* Edit Form */}
+            {/* {isEditFormOpen && selectedRow && (
+                <UpdateMasterClassForm
+                    rowData={selectedRow}
+                    onClose={closeDeleteForm}
+                    onSuccess={() => {
+                        handleSuccess();
+                        closeDeleteForm();
+                    }}
+                />
+            )} */}
+
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Yearly Class Category'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateMasterClassForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
             )}
         </>
     );

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, ChevronsUpDown, Save, Search, Square } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -91,9 +91,52 @@ export default function UpdateSpecalFeeHeadForm({ onSuccess, termname = '', sele
         setSelectedHeadsItems([]);
     }
 
+    const initialDataRef = useRef<{
+        fmsfH_Name: string;
+        heads: string[];
+    } | null>(null);
+
+    useEffect(() => {
+        if (!row || !heads?.data) return;
+
+        const preselectedHeads = Array.isArray(row.fmH_Id)
+            ? row.fmH_Id.map((id) => id.toString())
+            : row.fmH_Id
+              ? [row.fmH_Id.toString()]
+              : [];
+
+        setSelectedHeadsItems(preselectedHeads.map((id) => ({ fmH_Id: id })));
+
+        reset({
+            fmsfH_Name: row.fmsfH_Name ?? '',
+            heads: preselectedHeads as [string, ...string[]]
+        });
+
+        // ✅ Store initial values only once
+        initialDataRef.current = {
+            fmsfH_Name: row.fmsfH_Name ?? '',
+            heads: preselectedHeads
+        };
+    }, [row, heads?.data, reset]);
+
     // Handle submit
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const initial = initialDataRef.current;
+
+            if (initial) {
+                const currentName = data.fmsfH_Name.trim();
+                const currentHeads = selectedHeadsItems.map((h) => h.fmH_Id);
+
+                const isNameChanged = currentName !== initial.fmsfH_Name.trim();
+                const isHeadsChanged = JSON.stringify(currentHeads.sort()) !== JSON.stringify(initial.heads.sort());
+
+                if (!isNameChanged && !isHeadsChanged) {
+                    toast.info('No changes were made to update');
+                    return;
+                }
+            }
+
             const { fmsfH_Name } = data;
             const payload = {
                 fmsfhfH_Id: row.fmsfhfH_Id,

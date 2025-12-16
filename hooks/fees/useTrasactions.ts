@@ -935,3 +935,39 @@ export const useFeeAdjustmentHeadDropDown = (
         }
     };
 };
+
+export const useFeeAdjustmentToGroupDropDown = (asmaY_Id: number, amsT_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_TO_GROUP_DROPDOWN, asmaY_Id, amsT_Id, searchParams ?? {}],
+            queryFn: async () => getFeeAdjustmentToGroup(asmaY_Id, amsT_Id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_TO_GROUP_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeAdjustmentToHead = (asmaY_Id: number, amsT_Id: number, fmG_id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_TO_HEAD_DROPDOWN, asmaY_Id, amsT_Id, fmG_id, searchParams ?? {}],
+            queryFn: async () => getFeeAdjustmentToHeadDropDown(asmaY_Id, amsT_Id, fmG_id),
+
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_ADJUSTMENT_TO_HEAD_DROPDOWN]
+            });
+        }
+    };
+};

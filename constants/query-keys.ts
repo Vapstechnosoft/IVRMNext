@@ -203,7 +203,9 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_ADMISSION_NO: 'fee_concession_admission_no',
     FEE_CONCESSION_STUDENT_DATA: 'fee_concession_student_data',
     FEE_ADJUSTMENT_GROUP_DROPDOWN: 'fee_adjustment_group_drop_down',
-    FEE_ADJUSTMENT_HEAD_DROPDOWN: 'fee_adjustment_head_drop_down'
+    FEE_ADJUSTMENT_HEAD_DROPDOWN: 'fee_adjustment_head_drop_down',
+    FEE_ADJUSTMENT_TO_GROUP_DROPDOWN: 'fee_adjustment_to_group_drop_down',
+    FEE_ADJUSTMENT_TO_HEAD_DROPDOWN: 'fee_adjustment_to_head_drop_down'
 };
 
 export const EXAM_QUERY_KEYS = {
