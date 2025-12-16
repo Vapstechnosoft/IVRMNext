@@ -58,3 +58,7 @@ export async function getPreAdmissionEmailSmsReport(data: any, searchParams?: Ap
 
     return await api.post<any>('admission', url);
 }
+export async function getStudyCertficateReport(data: any) {
+    const url = `/StudyCertificateReport/GetStudyCertificateReport?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=15396`;
+    return await api.post<any>('admission', url, data);
+}

@@ -4,14 +4,14 @@ import {
     getPreAdmissionEmailSmsReport,
     getPreAdmissionMonthEndReport,
     getPreAdmissionRegistrationReport,
-    getStudentTcReport
+    getStudentTcReport,
+    getStudyCertficateReport
 } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import {
     type ElectiveItem,
     GetClassTeacherReport,
     GetStudentYearlyAttendance,
-    getAdmissionRegister,
     getStudentSearch,
     getTotalStrengthReport
 } from '@/server/admission/preadmission/reports/student_yearly_attendance';
@@ -273,20 +273,20 @@ export const useStudentSearch = (
         }
     };
 };
-
-export const useAdmissionRegister = (ASMAY_Id: number, AttendanceType: number, payload?: any, searchParams?: ApiSearchparams) => {
+export const useStudyCertificateReport = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER, ASMAY_Id, AttendanceType, payload, searchParams ?? {}],
-            queryFn: async () => getAdmissionRegister(ASMAY_Id, AttendanceType, payload, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.STUDY_CERTIFICATE_REPORT, data],
+            queryFn: async () => getStudyCertficateReport(data),
             staleTime: 0,
-            enabled: !!ASMAY_Id && !!AttendanceType && !!payload
+            enabled: enabled && !!data,
+            refetchOnWindowFocus: false
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER]
+                queryKey: [ADMISSION_QUERY_KEYS.STUDY_CERTIFICATE_REPORT]
             });
         }
     };
