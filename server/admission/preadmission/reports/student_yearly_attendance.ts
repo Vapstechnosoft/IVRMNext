@@ -1,5 +1,4 @@
 'use server';
-
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
@@ -59,4 +58,18 @@ export async function getTotalStrengthReport(
     const url = `/TotalStrengthReport/GetTotalStrengthReport?ASMAY_Id=${asmay_Id}&AMST_SOL=${amsT_SOL}&Status_Flag=${statusFlag}&withtc=${withtc}&withdeactive=${withdeactive}&ASMCL_Id=${asmcL_Id}&AMC_Id=${amC_Id}&electivearray=${electivearray}&${urlParams}`;
 
     return await api.post<IPreadmissionClassDropdown[]>('admission', url);
+}
+
+export async function getStudentSearch(
+    stuStatus: string,
+    field: string,
+    Operator: string,
+    value: string,
+    condition: string,
+    searchParams?: ApiSearchparams
+) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'amsT_RegistrationNo,amsT_FirstName,asmcL_ClassName');
+    const url = `/StudentSearch/GetStudentSearchData?stuStatus=${stuStatus}&field=${field}&Operator=${Operator}&value=${value}&condition=${condition}&${urlParams}`;
+
+    return await api.post<any[]>('admission', url);
 }
