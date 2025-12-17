@@ -91,3 +91,11 @@ export const studyCertificateReportSchema = z.object({
     qrCode: z.string().optional(),
     from_date: z.string().min(1, 'From date required')
 });
+export const classwiseStudentDetailsSchema = z.object({
+    asmaY_Id: z.number().min(1, 'Academic year is required'),
+    classes: z.array(z.number()).min(1, 'Classes is required'),
+    class_section: z.array(z.number()).min(1, 'Please select at least one section'),
+    selectedFields: z.array(z.string()).min(1, 'Please select at least one column'),
+    fmcC_Id: z.number().optional(),
+    flag: z.string().optional()
+});
