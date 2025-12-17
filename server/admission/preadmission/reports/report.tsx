@@ -2,6 +2,7 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
+import type { IConcessionDropDown } from '@/types/admission/preadmission/masters';
 
 export async function getStudentTcReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, ',ivrmmR_Name');
@@ -59,6 +60,22 @@ export async function getPreAdmissionEmailSmsReport(data: any, searchParams?: Ap
     return await api.post<any>('admission', url);
 }
 export async function getStudyCertficateReport(data: any) {
-    const url = `/StudyCertificateReport/GetStudyCertificateReport?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=15396`;
+    const url = `/StudyCertificateReport/GetStudyCertificateReport?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
     return await api.post<any>('admission', url, data);
+}
+export async function getConcessionDropdown() {
+    const url = '/Classwisestudentdetails/GetConcessionDropdown';
+    return await api.get<IConcessionDropDown[]>('admission', url);
+}
+export async function getclasswiseStudentDetails(
+    ASMAY_Id: number,
+    fmcC_Id: number,
+    // studentScope: string,
+    payload?: any,
+    searchParams?: ApiSearchparams
+) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
+    const url = `/Classwisestudentdetails/Getreportdetails?ASMAY_Id=${ASMAY_Id}&flag=${fmcC_Id}&${urlParams}`;
+
+    return await api.post<any[]>('admission', url, payload);
 }
