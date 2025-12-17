@@ -1,13 +1,10 @@
 'use client';
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterClassCategoryList } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import ViewDetailModal from './section-columns';
+import { useCallback } from 'react';
 
 export const masterClassCategoryColumns: ColumnDef<IMasterClassCategoryList>[] = [
     {
@@ -54,7 +51,6 @@ export const masterClassCategoryColumns: ColumnDef<IMasterClassCategoryList>[] =
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassCategoryList }) {
     const { openToggleForm } = useFormContext<IMasterClassCategoryList>();
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
     const handleToggle = useCallback(
         (data: IMasterClassCategoryList) => {
@@ -64,25 +60,11 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterClassCategoryList }) {
     );
 
     return (
-        <>
-            <div className='flex items-center gap-2'>
-                <Button
-                    type='button'
-                    variant='ghost'
-                    size='sm'
-                    onClick={() => setIsViewModalOpen(true)}
-                    title='View Details'
-                    className='flex justify-start'>
-                    <Eye className='h-4 w-4' />
-                </Button>
-                <ActionButtons
-                    rowData={rowData}
-                    buttons={{ edit: false, toggle: true, delete: false }}
-                    onToggle={handleToggle}
-                    toggleConditionKey='is_Active'
-                />
-            </div>
-            {isViewModalOpen && <ViewDetailModal rowData={rowData} isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} />}
-        </>
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: false, toggle: true, delete: false }}
+            onToggle={handleToggle}
+            toggleConditionKey='is_Active'
+        />
     );
 }
