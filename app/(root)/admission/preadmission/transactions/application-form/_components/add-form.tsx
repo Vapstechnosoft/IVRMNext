@@ -36,7 +36,7 @@ import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -135,6 +135,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const [isClassDisabled, setIsClassDisabled] = useState(true);
     const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
     const [ineligibleClasses, setIneligibleClasses] = useState<IPreadmissionClassDropdown[]>([]);
+    const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; name?: string; dial?: string }>>({});
 
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
     const [uploadedDocuments, setUploadedDocuments] = useState<
@@ -185,12 +186,49 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         error: conStateError,
         refetchAll: refetchConState
     } = useStateDropdown(Number(conConuntryId));
+    // Keep track of previous country values and clear/disable states only when appropriate
+    const prevConCountryRef = useRef<any>(conConuntryId);
+    useEffect(() => {
+        const prev = prevConCountryRef.current;
+        // If country is cleared, reset the state value.
+        if (!conConuntryId) {
+            setValue('pasR_ConState', undefined);
+        }
+
+        // If the country changed from a non-empty previous value to a different non-empty value, clear state so user re-selects
+        if (prev && String(prev) !== String(conConuntryId) && conConuntryId) {
+            // Clear state selection when country changes
+            setValue('pasR_ConState', undefined);
+        }
+
+        prevConCountryRef.current = conConuntryId;
+    }, [conConuntryId, setValue]);
     const {
         data: perState,
         isLoading: perStateLoading,
         error: perStateError,
         refetchAll: refetchPerState
     } = useStateDropdown(Number(perConuntryId));
+    // derived disabled flags for selects
+    const isConStateDisabled =
+        conConuntryId === undefined || conConuntryId === null || String(conConuntryId).trim() === '' || String(conConuntryId) === '0';
+    const isPerStateDisabled =
+        perConuntryId === undefined || perConuntryId === null || String(perConuntryId).trim() === '' || String(perConuntryId) === '0';
+    const prevPerCountryRef = useRef<any>(perConuntryId);
+    useEffect(() => {
+        const prev = prevPerCountryRef.current;
+
+        if (!perConuntryId) {
+            setValue('pasR_PerState', undefined);
+        }
+
+        if (prev && String(prev) !== String(perConuntryId) && perConuntryId) {
+            // Clear state selection when country changes
+            setValue('pasR_PerState', undefined);
+        }
+
+        prevPerCountryRef.current = perConuntryId;
+    }, [perConuntryId, setValue]);
     const { data: source, isLoading: sourceLoading, refetchAll: refetchSource } = useSourceDropdown();
     const { data: reference, isLoading: referenceLoading, refetchAll: refetchReference } = useReferenceDropdown();
     const {
@@ -237,6 +275,25 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 toast.error('Please upload student photo');
                 return;
             }
+            const fieldName = 'pasR_MobileNo';
+            const info = phoneExpectedInfo[fieldName];
+            console.log('info', info);
+            const rawVal = String(watch(fieldName) ?? '');
+
+            if (!rawVal || rawVal === '') {
+                toast.error('Mobile number is required');
+                return;
+            }
+
+            if (info?.expected) {
+                const digits = rawVal.replace(/\D/g, '');
+                console.log('digits', digits);
+                console.log('info.expected', info.expected);
+                if (digits.length !== info.expected) {
+                    toast.error(`Mobile number must be exactly ${info.expected} digits`);
+                    return;
+                }
+            }
         } else if (currentStep === 2) {
             fieldsToValidate = [
                 'pasR_ConStreet',
@@ -267,6 +324,26 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             if (!motherPhoto?.pasR_MotherPhoto) {
                 toast.error('Please upload mother photo');
                 return;
+            }
+            // Validate optional phone fields if they have values
+            const phoneFieldsToCheck = [
+                { name: 'pasR_FatherMobleNo', label: 'Father mobile number' },
+                { name: 'pasR_MotherMobleNo', label: 'Mother mobile number' },
+                { name: 'pasR_AltContactNo', label: 'Alternate contact number' }
+            ];
+
+            for (const phoneField of phoneFieldsToCheck) {
+                const rawVal = String(watch(phoneField.name as any) ?? '');
+                const info = phoneExpectedInfo[phoneField.name];
+
+                if (rawVal && rawVal !== '' && info?.expected) {
+                    const digits = rawVal.replace(/\D/g, '');
+
+                    if (digits.length !== info.expected) {
+                        toast.error(`${phoneField.label} must be ${info.expected} digits`);
+                        return;
+                    }
+                }
             }
         } else if (currentStep === 4) {
             // Get selected religion details
@@ -453,7 +530,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
             if (response.success) {
                 reset();
-                refetchDropdowns();
                 handleReset();
                 onSuccess?.();
             } else {
@@ -462,6 +538,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         } catch (error: any) {
             toast.error(error.message);
         }
+
+        refetchDropdowns();
     };
 
     const handleReset = () => {
@@ -520,13 +598,32 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             }
         }
     };
+    const getExpectedPhoneLength = (countryData: any): number | undefined => {
+        if (!countryData) return undefined;
+
+        const format = countryData?.format;
+        if (format && typeof format === 'string') {
+            const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
+            if (placeholders > 0) return placeholders;
+        }
+
+        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
+        const fallback: Record<string, number> = {
+            '91': 10,
+            '1': 10,
+            '44': 10,
+            '61': 9
+        };
+
+        return fallback[dial] ?? undefined;
+    };
 
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
         // If empty or equal to dial code only, clear
         if (!phone || phone === countryData?.dialCode) {
             setPhoneValues((prev) => ({ ...prev, [fieldName]: '' }));
             setValue(fieldName as any, '');
-            // trigger validation for this field
+            setPhoneExpectedInfo((prev) => ({ ...prev, [fieldName]: {} }));
             trigger(fieldName as any);
             return;
         }
@@ -538,8 +635,34 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         }
         const formattedPhone = `+${countryCode} ${numberPart}`;
         setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
-        // Store only digits as a number in form state
         setValue(fieldName as any, formattedPhone);
+
+        const expected = getExpectedPhoneLength(countryData);
+        setPhoneExpectedInfo((prev) => ({
+            ...prev,
+            [fieldName]: {
+                expected,
+                name: countryData?.name ?? countryData?.country,
+                dial: String(countryData?.dialCode ?? '')
+            }
+        }));
+
+        if (expected !== undefined && numberPart.length > 0) {
+            if (numberPart.length < expected) {
+                setError(fieldName as any, {
+                    type: 'manual',
+                    message: `Mobile number must be at least ${expected} digits for ${countryData?.name ?? countryData?.country ?? 'selected country'}`
+                });
+            } else if (numberPart.length > expected) {
+                setError(fieldName as any, {
+                    type: 'manual',
+                    message: `Mobile number must be exactly ${expected} digits for ${countryData?.name ?? countryData?.country ?? 'selected country'}`
+                });
+            } else {
+                clearErrors(fieldName as any);
+            }
+        }
+
         trigger(fieldName as any);
     };
 
@@ -1276,6 +1399,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 inputProps={{
                                                                     id: 'pasR_MobileNo',
                                                                     name: 'pasR_MobileNo',
+                                                                    maxLength: 25,
                                                                     required: false,
                                                                     style: {
                                                                         width: '87%',
@@ -1290,7 +1414,18 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 containerClass='w-full'
                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                 enableSearch
+                                                                disableCountryCode={false}
+                                                                enableLongNumbers={true}
+                                                                isValid={true}
+                                                                preserveOrder={['country', 'nationalNumber']}
                                                             />
+                                                            {phoneExpectedInfo.pasR_MobileNo?.expected && (
+                                                                <span className='mt-1 text-muted-foreground text-xs'>
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
+                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                    }`}
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     )}
                                                 />
@@ -1669,7 +1804,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <Select
                                                                     key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    value={field.value ? String(field.value) : undefined}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
@@ -1706,12 +1841,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <Select
                                                                     key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    value={field.value ? String(field.value) : undefined}
+                                                                    disabled={isConStateDisabled}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {conStateLoading ? (
+                                                                        {isConStateDisabled ? (
+                                                                            <SelectItem value='disabled' disabled>
+                                                                                Select country first
+                                                                            </SelectItem>
+                                                                        ) : conStateLoading ? (
                                                                             <SelectItem value='loading' disabled>
                                                                                 Loading...
                                                                             </SelectItem>
@@ -1885,13 +2025,19 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <Select
                                                                     key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}
-                                                                    disabled={sameAsResidential}>
+                                                                    value={field.value ? String(field.value) : undefined}
+                                                                    disabled={isPerStateDisabled || sameAsResidential}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {perStateLoading ? (
+                                                                        {isPerStateDisabled ? (
+                                                                            <SelectItem value='disabled' disabled>
+                                                                                {sameAsResidential
+                                                                                    ? 'Same as residential'
+                                                                                    : 'Select country first'}
+                                                                            </SelectItem>
+                                                                        ) : perStateLoading ? (
                                                                             <SelectItem value='loading' disabled>
                                                                                 Loading...
                                                                             </SelectItem>
@@ -2186,7 +2332,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <Select
                                                                     key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled={!perConuntryId || String(perConuntryId) === '0'}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select nationality' />
                                                                     </SelectTrigger>
@@ -2243,6 +2390,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputProps={{
                                                                             id: 'pasR_FatherMobleNo',
                                                                             name: 'pasR_FatherMobleNo',
+                                                                            maxLength: 25,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -2257,7 +2405,19 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         containerClass='w-full'
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
+                                                                        disableCountryCode={false}
+                                                                        enableLongNumbers={true}
+                                                                        isValid={true}
+                                                                        preserveOrder={['country', 'nationalNumber']}
                                                                     />
+                                                                    {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
+                                                                        <span className='mt-1 text-muted-foreground text-xs'>
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                                'selected country'
+                                                                            }`}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         />
@@ -2558,6 +2718,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputProps={{
                                                                             id: 'pasR_MotherMobleNo',
                                                                             name: 'pasR_MotherMobleNo',
+                                                                            maxLength: 25,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -2572,7 +2733,19 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         containerClass='w-full'
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
+                                                                        disableCountryCode={false}
+                                                                        enableLongNumbers={true}
+                                                                        isValid={true}
+                                                                        preserveOrder={['country', 'nationalNumber']}
                                                                     />
+                                                                    {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
+                                                                        <span className='mt-1 text-muted-foreground text-xs'>
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                                'selected country'
+                                                                            }`}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             )}
                                                         />
@@ -2653,6 +2826,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputProps={{
                                                                             id: 'pasR_AltContactNo',
                                                                             name: 'pasR_AltContactNo',
+                                                                            maxLength: 25,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -2667,6 +2841,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         containerClass='w-full'
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
+                                                                        disableCountryCode={false}
+                                                                        enableLongNumbers={true}
+                                                                        isValid={true}
+                                                                        preserveOrder={['country', 'nationalNumber']}
                                                                     />
                                                                 </div>
                                                             )}

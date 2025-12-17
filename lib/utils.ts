@@ -97,6 +97,56 @@ export function numberToWords(num: number) {
     return `${parts.join(' ')} Rupees Only`;
 }
 
+// Plain number-to-words helper (no currency suffix). Used for year conversion.
+export function numberToWordsPlain(num: number) {
+    if (num === 0) return 'Zero';
+    const units = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    const convertLessThanOneThousand = (n: number): string => {
+        let str = '';
+        let remainder = n;
+        if (remainder >= 100) {
+            const h = Math.floor(remainder / 100);
+            str += `${units[h]} Hundred`;
+            remainder = remainder % 100;
+            if (remainder > 0) str += ' ';
+        }
+        if (remainder >= 20) {
+            const t = Math.floor(remainder / 10);
+            str += tens[t];
+            const u = remainder % 10;
+            if (u) str += ` ${units[u]}`;
+        } else if (remainder >= 10) {
+            str += teens[remainder - 10];
+        } else if (remainder > 0) {
+            str += units[remainder];
+        }
+        return str;
+    };
+
+    const parts: string[] = [];
+    let remaining = num;
+    if (Math.floor(remaining / 10000000) > 0) {
+        parts.push(`${convertLessThanOneThousand(Math.floor(remaining / 10000000))} Crore`);
+        remaining %= 10000000;
+    }
+    if (Math.floor(remaining / 100000) > 0) {
+        parts.push(`${convertLessThanOneThousand(Math.floor(remaining / 100000))} Lakh`);
+        remaining %= 100000;
+    }
+    if (Math.floor(remaining / 1000) > 0) {
+        parts.push(`${convertLessThanOneThousand(Math.floor(remaining / 1000))} Thousand`);
+        remaining %= 1000;
+    }
+    if (remaining > 0) {
+        parts.push(convertLessThanOneThousand(remaining));
+    }
+
+    return parts.join(' ').trim();
+}
+
 export const formatDBDate = (dateString: Date | null | undefined) => {
     if (dateString === undefined || dateString === null) return 'N.A';
     try {
@@ -205,3 +255,97 @@ export function calculateAge(fromDate: Date, toDate: Date = new Date()) {
         ageString
     };
 }
+
+//Age calculated Example:
+
+// utils/dateUtils.ts
+
+/**
+ * Convert a number to words (0-99)
+ */
+
+/**
+ * Convert date to words format
+ * Example: 15/03/2010 -> "Fifteenth March Two Thousand Ten"
+ */
+export const dateToWords = (date: Date): string => {
+    if (!date || !(date instanceof Date) || Number.isNaN(date.getTime())) {
+        return '';
+    }
+
+    const day = date.getDate();
+    const month = date.toLocaleString('en-US', { month: 'long' });
+    const year = date.getFullYear();
+
+    // Convert day to ordinal words
+    const dayWords = (() => {
+        const ones = ['', 'First', 'Second', 'Third', 'Fourth', 'Fifth', 'Sixth', 'Seventh', 'Eighth', 'Ninth'];
+        const teens = [
+            'Tenth',
+            'Eleventh',
+            'Twelfth',
+            'Thirteenth',
+            'Fourteenth',
+            'Fifteenth',
+            'Sixteenth',
+            'Seventeenth',
+            'Eighteenth',
+            'Nineteenth'
+        ];
+        const tens = ['', '', 'Twentieth', 'Thirtieth'];
+        const tensRegular = ['', '', 'Twenty', 'Thirty'];
+
+        if (day < 10) return ones[day];
+        if (day < 20) return teens[day - 10];
+        if (day === 20 || day === 30) return tens[Math.floor(day / 10)];
+
+        const ten = Math.floor(day / 10);
+        const one = day % 10;
+        return `${tensRegular[ten]} ${ones[one]}`;
+    })();
+
+    // Convert year to words
+    const yearWords = (() => {
+        if (year < 2000) {
+            const thousands = Math.floor(year / 1000);
+            const remainder = year % 1000;
+            const hundreds = Math.floor(remainder / 100);
+            const lastTwo = remainder % 100;
+
+            let result = `${numberToWordsPlain(thousands)} Thousand`;
+            if (hundreds > 0) {
+                result += ` ${numberToWordsPlain(hundreds)} Hundred`;
+            }
+            if (lastTwo > 0) {
+                result += ` ${numberToWordsPlain(lastTwo)}`;
+            }
+            return result;
+        }
+        // For years 2000 and beyond
+        const thousands = Math.floor(year / 1000);
+        const remainder = year % 1000;
+
+        let result = `${numberToWordsPlain(thousands)} Thousand`;
+        if (remainder > 0) {
+            result += ` ${numberToWordsPlain(remainder)}`;
+        }
+        return result;
+    })();
+
+    return `${dayWords} ${month} ${yearWords}`;
+};
+
+/**
+ * Calculate age from date of birth
+ * Returns age in years
+ */
+
+/**
+ * Format age as "X Years"
+ */
+export const formatAge = (age: any): string => {
+    // Accept either a number (years) or the object returned by calculateAge
+    const years = typeof age === 'number' ? age : typeof age === 'object' && age !== null ? age.ageInYears : 0;
+    if (!years || years === 0) return '';
+    return `${years} Year${years !== 1 ? 's' : ''}`;
+};

@@ -61,16 +61,6 @@ function MasterConfigurationPageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    {!isLoading && (!tableProps.data || tableProps.data.length === 0) && (
-                        <div className='mb-4 rounded border border-yellow-200 bg-yellow-50 p-4'>
-                            <p className='font-semibold text-yellow-700'>⚠️ Warning: No data to display</p>
-                            <p className='mt-1 text-sm text-yellow-600'>
-                                The API returned successfully but with 0 records. This might be expected if you haven't added any
-                                configurations yet.
-                            </p>
-                        </div>
-                    )}
-
                     <GenericDataTable<IMasterConfiguration>
                         {...tableProps}
                         columns={masterConfigurationColumns}
@@ -146,6 +136,7 @@ function FormSections({ refetch }: { refetch?: () => void }) {
                                 Close
                             </Button>
                             <EditMasterConfiguration
+                                key={selectedRow.ispaC_Id ?? 'edit-form'}
                                 initialData={selectedRow}
                                 onSuccess={() => {
                                     refetch?.();

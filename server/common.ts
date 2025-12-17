@@ -163,6 +163,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/masters/class-teacher',
                                             title: 'Master Class Teacher',
                                             description: 'Manage Master Class Teacher Details'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'Active Deactive Students',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/masters/active-deactive-students',
+                                            title: 'Active Deactive Students',
+                                            description: 'Active Deactive Students'
                                         }
                                     ]
                                 },
@@ -368,6 +376,67 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/date-of-birth-report',
                                             title: 'Date Of Birth Report',
                                             description: 'Date Of Birth Report'
+                                        },
+                                  {
+                                    id: 4,
+                                    name: 'Section Allotment',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 21,
+                                            name: 'New Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/new-section',
+                                            title: 'New Section ',
+                                            description: 'New Section'
+                                        },
+                                        {
+                                            id: 22,
+                                            name: 'Change Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/change-section',
+                                            title: 'Change Section',
+                                            description: 'Change Section'
+                                        },
+                                        {
+                                            id: 23,
+                                            name: 'Delete Student Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/delete-student-section',
+                                            title: 'Delete Student Section',
+                                            description: 'Delete Student Section'
+                                        },
+                                        {
+                                            id: 24,
+                                            name: 'Promotion Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/promotion-section',
+                                            title: 'Promotion Section',
+                                            description: 'Promotion Section'
+                                        },
+                                        {
+                                            id: 25,
+                                            name: 'Year Loss Section',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/year-loss-section',
+                                            title: 'Year Loss Section',
+                                            description: 'Year Loss Section'
+                                        },
+                                        {
+                                            id: 26,
+                                            name: 'Update Roll Number',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/update-roll-number',
+                                            title: 'Update Roll Number',
+                                            description: 'Update Roll Number'
+                                        },
+                                        {
+                                            id: 27,
+                                            name: 'Change Class',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/section/change-class',
+                                            title: 'Change Class',
+                                            description: 'Change Class'
                                         }
                                     ]
                                 }
