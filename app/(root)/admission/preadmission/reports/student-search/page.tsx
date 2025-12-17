@@ -278,10 +278,7 @@ export default function StudentSearchPage(props: {
                                                         name={`criteria.${index}.condition`}
                                                         control={control}
                                                         render={({ field }) => (
-                                                            <Select
-                                                                value={field.value}
-                                                                onValueChange={field.onChange}
-                                                                disabled={index === criteria.length - 1}>
+                                                            <Select value={field.value} onValueChange={field.onChange}>
                                                                 <SelectTrigger className='w-full'>
                                                                     <SelectValue placeholder='Select Condition' />
                                                                 </SelectTrigger>

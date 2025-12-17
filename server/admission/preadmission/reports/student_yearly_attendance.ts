@@ -31,6 +31,11 @@ export async function getPreadmissionClassDropdown1() {
     return await api.get<IPreadmissionClassDropdown[]>('admission', url);
 }
 
+export async function getadmissionStudentsDropdown(ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number) {
+    const url = `/AdmissionRegister/GetStudentNamesByClassSection?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}`;
+    return await api.get('admission', url);
+}
+
 export async function getadmissionSectionDropdown(asmcl_id: number) {
     const url = `/master_class_held/class_section_drop_down_list/${asmcl_id}`;
     return await api.get('admission', url);
