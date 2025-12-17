@@ -64,9 +64,14 @@ const FIELD_OPTIONS = [
         accessor: 'AMST_MotherOccupation'
     },
     {
-        id: 'AMST_AnnualIncome',
-        label: "Parent's annual income",
-        accessor: 'AMST_AnnualIncome'
+        id: 'AMST_MotherMonIncome',
+        label: "Mother's Income",
+        accessor: 'AMST_MotherMonIncome'
+    },
+    {
+        id: 'AMST_FatherMonIncome',
+        label: "Father's Income",
+        accessor: 'AMST_FatherMonIncome'
     },
     {
         id: 'AMST_Nationality',
