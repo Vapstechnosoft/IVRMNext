@@ -309,3 +309,20 @@ export const useAdmissionRegister = (ASMAY_Id: number, AttendanceType: number, p
         }
     };
 };
+export const ClasswiseStudentDetails = (payload?: any, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER, payload, searchParams ?? {}],
+            queryFn: async () => getAdmissionRegister(payload, searchParams),
+            staleTime: 0,
+            enabled: !!payload
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER]
+            });
+        }
+    };
+};
