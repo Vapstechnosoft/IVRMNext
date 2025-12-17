@@ -231,7 +231,3 @@ export interface IMasterSectionSetOrderList {
     asmC_SectionName: string;
     asmC_Order: number;
 }
-export interface IConcessionDropDown {
-    fmcC_Id: number;
-    fmcC_ConcessionName: string;
-}

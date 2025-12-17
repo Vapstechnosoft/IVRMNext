@@ -5,8 +5,7 @@ import {
     getPreAdmissionMonthEndReport,
     getPreAdmissionRegistrationReport,
     getStudentTcReport,
-    getStudyCertficateReport,
-    getclasswiseStudentDetails
+    getStudyCertficateReport
 } from '@/server/admission/preadmission/reports/report';
 import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/server/admission/preadmission/reports/student_count_report';
 import {
@@ -311,33 +310,13 @@ export const useAdmissionRegister = (ASMAY_Id: number, AttendanceType: number, p
         }
     };
 };
-export const ClasswiseStudentDetails = (
-    asmaY_Id: number,
-    fmcC_Id: number,
-    // studentScope: string,
-    payload?: any,
-    searchParams?: ApiSearchparams
-) => {
+export const ClasswiseStudentDetails = (payload?: any, searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [
-                ADMISSION_QUERY_KEYS.ADMISSION_REGISTER,
-                asmaY_Id,
-                fmcC_Id,
-                // studentScope,
-                payload,
-                searchParams ?? {}
-            ],
-            queryFn: async () =>
-                getclasswiseStudentDetails(
-                    asmaY_Id,
-                    fmcC_Id,
-                    // studentScope,
-                    payload,
-                    searchParams
-                ),
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER, payload, searchParams ?? {}],
+            queryFn: async () => getAdmissionRegister(payload, searchParams),
             staleTime: 0,
             enabled: !!payload
         }),

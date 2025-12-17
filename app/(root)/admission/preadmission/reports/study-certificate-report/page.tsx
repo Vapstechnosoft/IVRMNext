@@ -15,7 +15,7 @@ import type { DataTableRef } from '@/components/ui/data-table/data-table';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { useStudyCertificateReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
+import { useStudyCertificateReport } from '@/hooks/admission/preadmission/useReports';
 import { toast } from 'sonner';
 import CharacterCertificate from './_components/columns';
 import StudyCertificate from './_components/study-certificate';
@@ -40,12 +40,6 @@ export default function CertificateReportPage() {
     const [academicYearId, setAcademicYearId] = useState<number | null>(null);
     const [classId, setClassId] = useState<number | null>(null);
     const [sectionId, setSectionId] = useState<number | null>(null);
-
-    const {
-        data: admissionStudents,
-        isLoading: admissionStudentsLoading,
-        isError: admissionStudentsError
-    } = useadmissionStudentsDropdown(academicYearId ?? undefined, classId ?? undefined, sectionId ?? undefined);
     const [studentId, setStudentId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [qrCode, setQrCode] = useState('');
@@ -65,7 +59,7 @@ export default function CertificateReportPage() {
 
     /* -------------------- Actions -------------------- */
     const handleReport = async () => {
-        if (!academicYearId || !classId || !sectionId || !selectedDate || !sectionId) {
+        if (!academicYearId || !classId || !sectionId || !selectedDate) {
             toast.error('Please select Academic Year, Class, Section and Date');
             return;
         }
@@ -85,7 +79,7 @@ export default function CertificateReportPage() {
                 setShowCertificate(true);
             }
         } catch (error) {
-            toast.error(`report error:${(error as Error).message}`);
+            toast.error('Report error:' + (error as Error).message);
         } finally {
             setIsLoading(false); // ✅ stop loader
         }
@@ -236,41 +230,15 @@ export default function CertificateReportPage() {
                                 </Popover>
                             </div>
 
-                            <div className='space-y-4'>
-                                <div className='space-y-2'>
-                                    <Label htmlFor='student' className='font-medium text-gray-900 text-sm'>
-                                        Student <span className='text-red-500'>*</span>
-                                    </Label>
-                                    <Select
-                                        onValueChange={(v) => setStudentId(Number(v))}
-                                        value={studentId !== 0 ? studentId?.toString() : undefined}
-                                        disabled={sectionId === 0}>
-                                        <SelectTrigger id='student' className='w-full'>
-                                            <SelectValue placeholder='Select Student' />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {admissionStudentsLoading ? (
-                                                <SelectItem value='loading' disabled>
-                                                    Loading...
-                                                </SelectItem>
-                                            ) : admissionStudentsError ? (
-                                                <SelectItem value='error' disabled>
-                                                    Error loading
-                                                </SelectItem>
-                                            ) : admissionStudents?.data?.length === 0 ? (
-                                                <SelectItem value='no-data' disabled>
-                                                    No students found
-                                                </SelectItem>
-                                            ) : (
-                                                admissionStudents?.data?.map((item: any) => (
-                                                    <SelectItem key={item.amsT_Id} value={item.amsT_Id.toString()}>
-                                                        {item.studentName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                            <div>
+                                <Label>
+                                    Student <span className='text-red-500'>*</span>
+                                </Label>
+                                <Select onValueChange={(v) => setStudentId(Number(v))} disabled={studentScope === 'all'}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Student' />
+                                    </SelectTrigger>
+                                </Select>
                             </div>
                         </div>
 

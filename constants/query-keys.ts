@@ -39,8 +39,7 @@ export const ADMISSION_QUERY_KEYS = {
     STUDENT_SEARCH: 'student_search',
     ADMISSION_REGISTER: 'admission_register',
     STUDY_CERTIFICATE_REPORT: 'study_certificate_report',
-    ADMISSION_STUDENTS_DROPDOWN: 'admission_students_dropdown',
-    CONCESSION_DROPDOWN_DATA: 'concession_dropdown_data'
+    ADMISSION_STUDENTS_DROPDOWN: 'admission_students_dropdown'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

@@ -21,7 +21,6 @@ import { use, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentYearlyAttendance, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
-import { birthCertificateColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -89,7 +88,8 @@ export default function BirthCertificatePageReport(props: {
     const {
         data: response,
         isLoading,
-        error
+        error,
+        refetch: refetchAdmissionStudents
     } = useStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId, searchParams);
 
     const transformedData = useMemo(() => {
@@ -161,19 +161,26 @@ export default function BirthCertificatePageReport(props: {
         toast.success('Filters cleared successfully');
     };
 
-    // const handleExportExcel = () => {
-    //     if (!transformedData || transformedData.length === 0) {
-    //         toast.error('No data available to export');
-    //         return;
-    //     }
+    const handleCancel = () => {
+        setShowReport(false);
+        setSelectedStudents([]);
+        handleResetSelection();
+        toast.info('Report cancelled');
+    };
 
-    //     if (selectedStudents.length === 0) {
-    //         toast.error('Please select at least one student to export');
-    //         return;
-    //     }
+    const handleExportExcel = () => {
+        if (!transformedData || transformedData.length === 0) {
+            toast.error('No data available to export');
+            return;
+        }
 
-    //     toast.info('Excel export feature coming soon');
-    // };
+        if (selectedStudents.length === 0) {
+            toast.error('Please select at least one student to export');
+            return;
+        }
+
+        toast.info('Excel export feature coming soon');
+    };
 
     const handlePrint = () => {
         if (!transformedData || transformedData.length === 0) {
@@ -441,7 +448,7 @@ export default function BirthCertificatePageReport(props: {
                             <GenericDataTable<IStudentYearlyAttendenceReportList>
                                 {...tableProps}
                                 ref={tableRef}
-                                columns={birthCertificateColumns as any}
+                                columns={columns}
                                 isLoading={activePreadmissionDeLoading || isLoading}
                                 error={error}
                                 showViewOptions={false}
