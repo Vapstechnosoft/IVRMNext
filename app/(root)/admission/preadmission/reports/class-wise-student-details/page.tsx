@@ -430,7 +430,7 @@ export default function AdmissionReportPage(props: {
 
             {/* Report */}
             {showReport && (
-                <CollapsibleSection title='Admission Register Report' defaultOpen>
+                <CollapsibleSection title='Class Wise Student Report' defaultOpen>
                     <GenericDataTable
                         {...tableProps}
                         ref={tableRef}
