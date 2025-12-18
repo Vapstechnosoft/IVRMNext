@@ -57,7 +57,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     const asmaY_Idrow = apiRow.asmaY_Id;
     const fycC_Idrow = apiRow.fycC_Id;
 
-    apiRow.asmcL_Id = 515;
+    //apiRow.asmcL_Id = 515;
 
     const {
         control,
@@ -154,7 +154,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             setAcademicYearOptions([]);
         }
     }, [academicData, academicError]);
-    apiRow.fmcC_Id = 151;
+    //apiRow.fmcC_Id = 151;
 
     console.log('categoryData', categoryData);
     useEffect(() => {
@@ -312,6 +312,18 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                 user_id: 21602 // Static user id
             };
 
+            //    const payload = {
+            //     FYCC_Id: 0,
+            //     MI_Id: 30,
+            //     FMCC_Id: Number(classCategory), // Selected class category ID
+            //     ASMAY_Id: Number(academicYear), // Selected academic year
+            //     ASMCL_ID: 0, // Always 0 as per your rules (single class will be in TempararyArrayList)
+            //     FYCC_ActiveFlag: true,
+            //     ClassList: classes.map((clsId) => ({
+            //         ASMCL_ID: Number(clsId)
+            //     })),
+            //     user_id: 21602 // Static user id
+            // };
             console.log('Payload:', payload);
             const response = await addOrUpdateMasterClassYearlyCategory(payload);
 

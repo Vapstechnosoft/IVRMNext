@@ -1,5 +1,7 @@
 'use client';
 
+import * as XLSX from 'xlsx';
+
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -77,3 +79,15 @@ export const feeDefaulterReportColumns: ColumnDef<IFeeAuditReport>[] = [
         }
     }
 ];
+
+export function exportToExcel(data: any[], name?: string) {
+    if (!Array.isArray(data) || data.length === 0) {
+        console.error('exportToExcel expects an array');
+        return;
+    }
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Data');
+    XLSX.writeFile(wb, `${name || 'data'}.xlsx`);
+}

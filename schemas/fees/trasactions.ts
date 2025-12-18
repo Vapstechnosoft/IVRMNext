@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createNumberOnlyStringSchema, createOptionalStringSchema, deleteIdSchema } from '../validationSchemas';
+import { createNumberOnlyStringSchema, createOptionalStringSchema, createStringOnlySchema, deleteIdSchema } from '../validationSchemas';
 
 export const amountEntrySchema = {
     addOrUpdate: z.object({
@@ -22,7 +22,7 @@ export const thirdPartyTransactionSchema = {
 
             // academicYearId: z.number({ message: 'Term is required' }),
             studentId: z.number().optional(),
-            studentName: z.string().optional(),
+            studentName: createStringOnlySchema('Student Name', 1, 100).optional(),
             // groupId: z.number().min(1, 'Group Name is required'),
             // headId: z.number().min(1, 'Head Name is required'),
             // amount: z.number({ message: 'Amount is required' }),

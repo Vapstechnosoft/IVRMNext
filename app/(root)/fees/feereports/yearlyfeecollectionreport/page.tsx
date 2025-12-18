@@ -342,19 +342,19 @@ export default function FeeDefaulterReport() {
         const { fromDate, toDate } = data;
         const today = new Date();
 
+        const effectiveFromDate = fromDate || today;
+        const effectiveToDate = toDate || today;
+
         try {
             const payload = {
                 // // Fee Group Ids
-                // FMG_Ids: filters.feeGroupIds,
+                FMG_Ids: filters.feeGroupIds,
 
-                // // Term OR Installment Ids
-                // FTI_ids:
-                //     filters.breakdown === 'INMW'
-                //         ? filters.installmentIds
-                //         : filters.termIds,
+                // Term OR Installment Ids
+                FTI_ids: filters.breakdown === 'INMW' ? filters.installmentIds : filters.termIds,
 
-                FMG_Ids: [385, 385, 377, 378],
-                FTI_ids: [83],
+                // FMG_Ids: [385, 385, 377, 378],
+                //FTI_ids: [83],
 
                 // Academic Year
                 ASMAY_Id: Number(filters.academicYearId),
@@ -369,8 +369,8 @@ export default function FeeDefaulterReport() {
                 active: filters.status.active ? 1 : 0,
                 deactive: filters.status.deactive ? 1 : 0,
                 left: filters.status.left ? 1 : 0,
-                From_Date: '2025-12-15',
-                To_Date: '2025-12-15',
+                // From_Date: '2025-12-18',
+                // To_Date: '2025-12-18',
 
                 // // Date filters
                 // From_Date:
@@ -382,6 +382,10 @@ export default function FeeDefaulterReport() {
                 //     filters.viewMode === 'date'
                 //         ? format(toDate ?? today, 'yyyy-MM-dd')
                 //         : null,
+
+                From_Date: filters.viewMode === 'date' ? format(effectiveFromDate, 'yyyy-MM-dd') : null,
+
+                To_Date: filters.viewMode === 'date' ? format(effectiveToDate, 'yyyy-MM-dd') : null,
 
                 // Term Group (Hardcoded / configurable)
                 term_group: 'T',

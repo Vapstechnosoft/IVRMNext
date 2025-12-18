@@ -133,3 +133,18 @@ export interface IFeeYearlyCollectionReportRow {
     charge: number;
     adjustment: number;
 }
+
+export interface HeadwiseClassCategoryDropDown {
+    fmcC_Id: number;
+    fhwR_ClassCategoryName: string;
+}
+
+export interface HeadwiseReportData {
+    fmG_GroupName: string;
+    fmH_FeeName: string;
+    fmcC_ClassCategoryName: string;
+    ftI_Name: string;
+    amount: number;
+    fmG_ActiceFlag: boolean;
+    fyghM_FineApplicableFlag: string;
+}

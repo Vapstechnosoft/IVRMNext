@@ -11,7 +11,6 @@ import { use, useEffect } from 'react';
 import AddMasterClassForm from './_components/add-form';
 import { masterClassYearlyCategoryColumns } from './_components/columns';
 import DeleteMasterClassForm from './_components/toggle-form';
-import UpdateMasterClassForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -165,7 +164,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 />
             )} */}
 
-            {isEditFormOpen && selectedRow && (
+            {/* {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
                         title='Edit Yearly Class Category'
@@ -186,7 +185,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                         </div>
                     </CollapsibleSection>
                 </div>
-            )}
+            )} */}
         </>
     );
 }

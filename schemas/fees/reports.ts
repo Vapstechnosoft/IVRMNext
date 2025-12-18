@@ -42,3 +42,8 @@ export const yearlyFeeCollectionSchema = z.object({
 
     toDate: z.string().optional()
 });
+
+export const headWiseReportSchema = z.object({
+    asmaY_Id: z.number({ message: 'Academic Year is required' }),
+    classcategoryid: z.number({ message: 'Class Category is required' })
+});

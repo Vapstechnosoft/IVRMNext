@@ -20,7 +20,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { exportToExcel } from '@/lib/utils';
+
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import type {
     IFeeAuditReport,
@@ -35,7 +35,7 @@ import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { feeDefaulterReportColumns } from './_components/columns';
+import { exportToExcel, feeDefaulterReportColumns } from './_components/columns';
 
 // Checkbox with full indeterminate support
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
@@ -428,7 +428,9 @@ export default function FeeDefaulterReport() {
                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4'>
                                 {/* Custom Group */}
                                 <div className='space-y-3'>
-                                    <Label className='font-semibold text-lg'>Custom Group</Label>
+                                    <Label className='font-semibold text-lg'>
+                                        Custom Group<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Card className='border bg-gray-50 p-4'>
                                         <div className='max-h-64 space-y-3 overflow-y-auto'>
                                             {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
@@ -553,7 +555,9 @@ export default function FeeDefaulterReport() {
 
                                 {/* Bus Route */}
                                 <div className='space-y-3'>
-                                    <Label className='font-semibold text-lg'>Bus Route</Label>
+                                    <Label className='font-semibold text-lg'>
+                                        Bus Route<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Card className='border bg-gray-50 p-4'>
                                         <div className='max-h-64 space-y-3 overflow-y-auto'>
                                             {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
@@ -809,7 +813,7 @@ export default function FeeDefaulterReport() {
                                         size='lg'
                                         variant='secondary'
                                         className='bg-green-600 px-10 font-medium text-white hover:bg-green-700'
-                                        onClick={exportToExcel}
+                                        onClick={() => exportToExcel(reportData, 'Fee_Defaulter_Report')}
                                         disabled={reportLoading || reportData.length === 0}>
                                         <svg className='mr-2 h-5 w-5' fill='currentColor' viewBox='0 0 20 20'>
                                             <path d='M4 4h12v2H4V4zm0 4h12v8H4V8zm2 2v4h8v-4H6z' />

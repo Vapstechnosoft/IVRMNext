@@ -16,8 +16,8 @@ import {
     useopeningSectiondropdowndatafee,
     useopeningacademicyerdropdowndatafee
 } from '@/hooks/fees/useTrasactions';
-import { getFeeAdjustmentSave } from '@/server/fees/trasactions/fee_adjustment';
-import { studentNameDropdown } from '@/server/fees/trasactions/fee_opening_balance';
+import { getFeeAdjustmentSave, studentNameDropdown } from '@/server/fees/trasactions/fee_adjustment';
+
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';

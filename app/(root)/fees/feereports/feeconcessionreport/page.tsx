@@ -13,12 +13,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type {
-    IFeeAuditReport,
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
@@ -29,7 +26,6 @@ import type {
 } from '@/types/fees/reports/reports';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { FeeConcessionReportColumns } from './_components/columns';
 
 // Checkbox with full indeterminate support
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
@@ -88,7 +84,8 @@ export default function FeeConcessionReport() {
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
+    //const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
+    const [reportData, setReportData] = useState<any[]>([]);
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
     const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
@@ -268,10 +265,40 @@ export default function FeeConcessionReport() {
     //     setLoading(false);
     //   }
     // };
+    const mockReportData = [
+        { slNo: 1, groupName: 'HS BOOKS FEES', concessionAmount: 46875 },
+        { slNo: 2, groupName: 'HS ILM & OTHER FEES', concessionAmount: 227600 },
+        { slNo: 3, groupName: 'HS TUTION FEES', concessionAmount: 236000 },
+        { slNo: 4, groupName: 'HS TRANSPORT FEES', concessionAmount: 152000 },
+        { slNo: 5, groupName: 'HS LAB FEES', concessionAmount: 98500 },
 
-    const handleSubmit = async () => {
-        // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeAuditReport[] = [];
+        { slNo: 6, groupName: 'IC BOOKS FEES', concessionAmount: 135000 },
+        { slNo: 7, groupName: 'IC ILM & OTHER FEES', concessionAmount: 98500 },
+        { slNo: 8, groupName: 'IC TUTION FEES', concessionAmount: 194000 },
+        { slNo: 9, groupName: 'IC TRANSPORT FEES', concessionAmount: 168000 },
+        { slNo: 10, groupName: 'IC LAB FEES', concessionAmount: 72500 },
+
+        { slNo: 11, groupName: 'PUC BOOKS FEES', concessionAmount: 112500 },
+        { slNo: 12, groupName: 'PUC ILM & OTHER FEES', concessionAmount: 143000 },
+        { slNo: 13, groupName: 'PUC TUTION FEES', concessionAmount: 265000 },
+        { slNo: 14, groupName: 'PUC TRANSPORT FEES', concessionAmount: 98000 },
+        { slNo: 15, groupName: 'PUC LAB FEES', concessionAmount: 86500 },
+
+        { slNo: 16, groupName: 'CBSE BOOKS FEES', concessionAmount: 155000 },
+        { slNo: 17, groupName: 'CBSE ILM & OTHER FEES', concessionAmount: 172000 },
+        { slNo: 18, groupName: 'CBSE TUTION FEES', concessionAmount: 318000 },
+        { slNo: 19, groupName: 'CBSE TRANSPORT FEES', concessionAmount: 142000 },
+        { slNo: 20, groupName: 'CBSE LAB FEES', concessionAmount: 91000 }
+    ];
+
+    const handleSubmit = () => {
+        setReportLoading(true);
+
+        setTimeout(() => {
+            setReportData(mockReportData);
+            setShowReport(true);
+            setReportLoading(false);
+        }, 500);
     };
 
     const showBalancecheckbox = filters.userType === 'Students' && filters.breakdown === 'Student/Staff Wise';
@@ -600,16 +627,16 @@ export default function FeeConcessionReport() {
 
                                 {/* ==================== REPORT SECTION ==================== */}
                                 {/* ==================== REPORT SECTION ==================== */}
-                                {showReport && (
+                                {/* {showReport && (
                                     <div className='-mx-8 mt-12 overflow-hidden rounded-lg bg-white shadow-xl'>
-                                        {/* Loading State */}
+                                     
                                         {reportLoading ? (
                                             <div className='p-24 text-center'>
                                                 <div className='inline-block h-14 w-14 animate-spin rounded-full border-4 border-primary border-t-transparent' />
                                                 <p className='mt-6 text-lg text-muted-foreground'>Generating report, please wait...</p>
                                             </div>
                                         ) : (
-                                            /* Table Inside CollapsibleSection */
+                                           
                                             <CollapsibleSection
                                                 defaultOpen={true}
                                                 variant='default'
@@ -625,6 +652,53 @@ export default function FeeConcessionReport() {
                                                 />
                                             </CollapsibleSection>
                                         )}
+                                    </div>
+                                )} */}
+
+                                {showReport && (
+                                    <div className='mt-10 overflow-hidden rounded-lg border bg-white shadow-lg'>
+                                        <div className='border-b bg-primary/5 px-6 py-4'>
+                                            <h2 className='font-bold text-primary text-xl'>Yearly Fee Concession Report</h2>
+                                        </div>
+
+                                        <div className='overflow-x-auto'>
+                                            <table className='w-full border-collapse'>
+                                                <thead className='bg-primary text-white'>
+                                                    <tr>
+                                                        <th className='w-20 border px-4 py-2 text-center'>Sl No</th>
+                                                        <th className='border px-4 py-2 text-left'>Group Name</th>
+                                                        <th className='w-56 border px-4 py-2 text-right'>Concession Amount</th>
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                    {mockReportData.map((row) => (
+                                                        <tr key={row.slNo} className='odd:bg-gray-50 hover:bg-gray-100'>
+                                                            <td className='border px-4 py-2 text-center'>{row.slNo}</td>
+                                                            <td className='border px-4 py-2 font-medium'>{row.groupName}</td>
+                                                            <td className='border px-4 py-2 text-right font-semibold'>
+                                                                ₹ {row.concessionAmount.toLocaleString('en-IN')}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+
+                                                {/* GRAND TOTAL */}
+                                                <tfoot className='bg-gray-100'>
+                                                    <tr>
+                                                        <td colSpan={2} className='border px-4 py-3 text-right font-bold'>
+                                                            Total
+                                                        </td>
+                                                        <td className='border px-4 py-3 text-right font-bold text-green-700'>
+                                                            ₹{' '}
+                                                            {mockReportData
+                                                                .reduce((sum, row) => sum + row.concessionAmount, 0)
+                                                                .toLocaleString('en-IN')}
+                                                        </td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
                                     </div>
                                 )}
                             </div>

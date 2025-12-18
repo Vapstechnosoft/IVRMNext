@@ -62,9 +62,9 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterClassYearlyList }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: false, delete: true }}
+            buttons={{ edit: false, toggle: false, delete: true }}
             onDelete={handleDelete}
-            onEdit={handleEdit}
+            //  onEdit={handleEdit}
         />
     );
 }

@@ -47,3 +47,9 @@ export async function getFeeAdjustmentToHeadDropDown(asmaY_Id: number, amsT_Id: 
     const url = `/FeeAdjustment/adjustment-to-head-details?asmayId=${asmaY_Id || 0}&amstId=${amsT_Id || 0}&fmgId=${fmG_id || 0}`;
     return await api.get<IFeeAdjustmentToHead[]>('fees', url);
 }
+
+export async function studentNameDropdown(data: any) {
+    // const url = '/FeeOpeningBalance/student-name-dropdown';
+    const url = '/FeeAdjustment/getstudent';
+    return await api.post<any>('fees', url, data);
+}
