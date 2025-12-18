@@ -242,6 +242,7 @@ export async function getUserAccessibleModules() {
                                             title: 'Registration Numbering',
                                             description: 'Registration Numbering'
                                         },
+
                                         {
                                             id: 20,
                                             name: 'Pre-Registration Numbering',
@@ -291,6 +292,14 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 5,
+                                            name: 'student Count Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-count-report',
+                                            title: 'student Count Report',
+                                            description: 'student Count Report'
+                                        },
+                                        {
+                                            id: 6,
                                             name: 'Total Strength Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/total-strength',
@@ -298,7 +307,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Total Strength Report'
                                         },
                                         {
-                                            id: 6,
+                                            id: 7,
                                             name: 'Admission Register Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/admission-register',
@@ -306,15 +315,15 @@ export async function getUserAccessibleModules() {
                                             description: 'Admission Register Report '
                                         },
                                         {
-                                            id: 7,
+                                            id: 8,
                                             name: 'Attendance Absentees Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/attendance-absent-sms',
-                                            title: 'Admission Register Report',
-                                            description: 'Admission Register Report '
+                                            title: 'Attendance Absentees Report',
+                                            description: 'Attendance Absentees Report'
                                         },
                                         {
-                                            id: 8,
+                                            id: 9,
                                             name: 'Student Search',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/student-search',
@@ -322,7 +331,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Student Search'
                                         },
                                         {
-                                            id: 9,
+                                            id: 10,
                                             name: 'Month End Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/month-end-report',
@@ -330,7 +339,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Month End Report'
                                         },
                                         {
-                                            id: 10,
+                                            id: 11,
                                             name: 'PreAdmission Month End Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/preadmission-month-end-report',
@@ -338,7 +347,7 @@ export async function getUserAccessibleModules() {
                                             description: 'PreAdmission Month End Report'
                                         },
                                         {
-                                            id: 11,
+                                            id: 12,
                                             name: 'Registration Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/registration-report',
@@ -346,7 +355,7 @@ export async function getUserAccessibleModules() {
                                             description: 'Registration Report'
                                         },
                                         {
-                                            id: 12,
+                                            id: 13,
                                             name: 'EMAIL SMS Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/email-sms',
@@ -354,7 +363,7 @@ export async function getUserAccessibleModules() {
                                             description: 'EMAIL SMS Report'
                                         },
                                         {
-                                            id: 13,
+                                            id: 14,
                                             name: 'Study Certificate Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/study-certificate-report',
@@ -362,12 +371,20 @@ export async function getUserAccessibleModules() {
                                             description: 'Study Certificate Report'
                                         },
                                         {
-                                            id: 14,
+                                            id: 15,
                                             name: 'Date Of Birth Report',
                                             icon: 'Settings',
                                             url: '/admission/preadmission/reports/date-of-birth-report',
                                             title: 'Date Of Birth Report',
                                             description: 'Date Of Birth Report'
+                                        },
+                                        {
+                                            id: 16,
+                                            name: 'Overall Daily Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                            title: 'Overall Daily Attendance Report',
+                                            description: 'Overall Daily Attendance Report'
                                         }
                                     ]
                                 }
