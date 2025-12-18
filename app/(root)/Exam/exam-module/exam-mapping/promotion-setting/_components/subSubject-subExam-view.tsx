@@ -10,8 +10,8 @@ import { useSubExamsMappedList, useSubSubjectsAndSubExamsMappedList, useSubSubje
 
 import type { IExamSubjectWizardDetails, ISubSubjectSubExamMapped } from '@/types/exam/exam-module/exam-mapping';
 
+import ToggleSubSubjectOrSubExamMappedForm from './group-mapped-exam-model';
 import { SubSubjectModelColumns } from './subSubject-subExam-view-columns';
-import ToggleSubSubjectOrSubExamMappedForm from './toggle-mapped-subsub-subexam';
 
 interface SubSubjectModelViewProps {
     rowData: IExamSubjectWizardDetails;

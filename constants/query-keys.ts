@@ -257,7 +257,10 @@ export const EXAM_QUERY_KEYS = {
     EXAM_HALL_TICKET_GENERATED_DATA: 'exam-hall-ticket-generated-data',
     EXAM_HALL_TICKET_STUDENT_LIST: 'exam-hall-ticket-student-list',
 
-    PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid'
+    PROMOTIONAL_SETTING_GRID: 'promotional-setting-grid',
+    PROMOTIONAL_SETTING_DETAILS: 'promotional-setting-details',
+    PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
+    PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details'
 };
 
 export const HRMS_QUERY_KEYS = {

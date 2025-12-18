@@ -454,9 +454,6 @@ export interface IExamPromotionalSettingDetails {
     minMarks: number;
     passPercentage?: number;
     isActive: boolean;
-
-    // Navigation Forward → Page-2
-    groups?: IExamSubjectGroupingDetails[];
 }
 
 export interface IExamSubjectGroupDetails {
@@ -524,4 +521,36 @@ export interface IActivityArea {
     id: number;
     name: string;
     activityNameId: number;
+}
+
+export interface IPromotionalSubjectDetails {
+    slNo: number;
+    subjectName: string;
+    gradeName: string;
+    maxMarks: number;
+    minMarks: number;
+    convertedMarks: number;
+    aplResult: boolean;
+    isActiveFlag: boolean;
+}
+
+export interface IPromotionalGroupDetails {
+    slNo: number;
+    groupName: string;
+    displayName: string;
+    percentage: number;
+    marks: number;
+    maxOff: number;
+    bestOff: number;
+    roundOffFlag: boolean;
+    isActiveFlag: boolean;
+}
+
+export interface IPromotionalGroupMappedExamDetails {
+    slNo: number;
+    examName: string;
+    examCode: string;
+    marksOrPercentage: number;
+    conversionRequired: boolean;
+    isActiveFlag: boolean;
 }

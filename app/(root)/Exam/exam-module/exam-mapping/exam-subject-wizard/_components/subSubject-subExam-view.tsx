@@ -10,6 +10,7 @@ import { useSubExamsMappedList, useSubSubjectsAndSubExamsMappedList, useSubSubje
 
 import type { IExamSubjectWizardDetails, ISubSubjectSubExamMapped } from '@/types/exam/exam-module/exam-mapping';
 
+import { X } from 'lucide-react';
 import { SubSubjectModelColumns } from './subSubject-subExam-view-columns';
 import ToggleSubSubjectOrSubExamMappedForm from './toggle-mapped-subsub-subexam';
 
@@ -83,10 +84,11 @@ function SubSubjectSubExamModelViewContent({ rowData, onClose }: SubSubjectModel
 
                     <Button
                         type='button'
-                        variant='secondary'
                         onClick={onClose}
-                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        Close
+                        variant='ghost'
+                        size='sm'
+                        className='right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                        <X className='h-4 w-4 text-destructive' /> Close
                     </Button>
                 </div>
 

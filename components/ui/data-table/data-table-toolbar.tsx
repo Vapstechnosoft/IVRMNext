@@ -22,7 +22,6 @@ interface DataTableToolbarProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     showExportOptions?: boolean;
     showViewOptions?: boolean;
-    showSearchColumns?: boolean;
 }
 
 export function DataTableToolbar<TData, TValue>({
@@ -30,8 +29,7 @@ export function DataTableToolbar<TData, TValue>({
     data,
     columns,
     showExportOptions = true,
-    showViewOptions = true,
-    showSearchColumns = false
+    showViewOptions = true
 }: DataTableToolbarProps<TData, TValue>) {
     const [searchQuery, setSearchQuery] = useQueryState(
         tableSearchVariables.search,
@@ -72,51 +70,33 @@ export function DataTableToolbar<TData, TValue>({
         setSearchQuery(null);
         table.setGlobalFilter('');
         table.setPageIndex(0);
+        table.resetColumnFilters();
+        table.resetColumnVisibility();
+        table.resetSorting();
+
+        // Reset search columns to all columns
+        const allCols = table
+            .getAllColumns()
+            .filter((col) => typeof col.accessorFn !== 'undefined' && col.getCanHide())
+            .map((c) => c.id)
+            .join(',');
+        setSearchColumns(allCols || null);
     };
 
     // Column settings
-    const anyColumnHiding = table.getAllColumns().filter((c) => typeof c.accessorFn !== 'undefined' && c.getCanHide());
     const hideableColumns = table.getAllColumns().filter((col) => col.getCanHide());
-    const allCols = anyColumnHiding.map((c) => c.id).join(',');
+    const allCols = hideableColumns.map((c) => c.id).join(',');
+
     const [searchColumns, setSearchColumns] = useQueryState(
         tableSearchVariables.search_columns,
         parseAsString.withOptions({ shallow: false }).withDefault(allCols)
     );
 
-    const allSearchableColumns = anyColumnHiding.map((c) => c.id);
-    const selectedSearchColumns = searchColumns ? searchColumns.split(',') : allSearchableColumns;
-
-    const toggleSelectAllSearchColumns = () => {
-        const newCols = selectedSearchColumns.length === allSearchableColumns.length ? '' : allSearchableColumns.join(',');
-
-        // Must use '' not null or dropdown breaks
-        setSearchColumns(newCols);
-    };
+    const selectedSearchColumns = searchColumns ? searchColumns.split(',') : [];
 
     const toggleSearchColumn = (colId: string, checked: boolean) => {
         const updated = checked ? [...new Set([...selectedSearchColumns, colId])] : selectedSearchColumns.filter((id) => id !== colId);
-        if (searchQuery != null || searchQuery !== '') setSearchColumns(updated.join(',') || null);
-    };
-    const getColumnTitle = (column: any) => {
-        const header = column.columnDef?.header;
-
-        // case 1: header is a function that receives props
-        if (typeof header === 'function') {
-            try {
-                const props = header({ column });
-                return props?.props?.title || column.id;
-            } catch {
-                return column.id;
-            }
-        }
-
-        // case 2: header is plain text
-        if (typeof header === 'string') {
-            return header;
-        }
-
-        // fallback
-        return column.id;
+        setSearchColumns(updated.length ? updated.join(',') : null);
     };
 
     // Voice Search
@@ -241,18 +221,6 @@ export function DataTableToolbar<TData, TValue>({
                         className='h-9 w-64 pr-12'
                     />
 
-                    {/* Clear button */}
-                    {localSearchQuery && (
-                        // biome-ignore lint/a11y/useButtonType: <explanation>
-                        <button
-                            onClick={handleReset}
-                            className='-translate-y-1/2 absolute top-1/2 right-9 p-1 text-muted-foreground hover:text-foreground'
-                            aria-label='Clear search'
-                        >
-                            <X className='h-4 w-4' />
-                        </button>
-                    )}
-
                     {/* Mic button - hold to speak */}
                     <button
                         type='button'
@@ -271,6 +239,14 @@ export function DataTableToolbar<TData, TValue>({
                         )}
                     </button>
                 </div>
+
+                {/* Reset Button */}
+                {localSearchQuery && (
+                    <Button onClick={handleReset} variant='ghost' className='h-8 w-fit'>
+                        <X className='mr-2 h-4 w-4' />
+                        Reset
+                    </Button>
+                )}
 
                 {isTranscribing && <span className='text-blue-600 text-sm'>Transcribing...</span>}
             </div>
@@ -299,60 +275,32 @@ export function DataTableToolbar<TData, TValue>({
                 )}
 
                 {/* Search In Columns */}
-                {hideableColumns.length > 0 && showSearchColumns && (
+                {hideableColumns.length > 0 && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant='outline' size='sm' className='hidden h-8 w-fit sm:flex'>
-                                <Settings2 className='mr-1 h-4 w-4' />
-                                Search Columns
+                            <Button variant='outline' size='sm'>
+                                <Settings2 className='mr-2 h-4 w-4' />
+                                Search In
                             </Button>
                         </DropdownMenuTrigger>
-
-                        <DropdownMenuContent align='end' className='max-h-[300px] w-[320px] overflow-x-auto overflow-y-auto'>
-                            {/* Select / Deselect all */}
-                            <DropdownMenuItem
-                                onSelect={(e) => {
-                                    e.preventDefault();
-                                    toggleSelectAllSearchColumns();
-                                }}
-                                className='cursor-pointer font-medium'>
-                                Select All
+                        <DropdownMenuContent align='end'>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <span onClick={() => setSearchColumns(allCols || null)}>
+                                    {selectedSearchColumns.length === hideableColumns.length ? 'Deselect All' : 'Select All'}
+                                </span>
                             </DropdownMenuItem>
-
                             <div className='my-1 border-t' />
-
-                            {/* Column list */}
-                            {anyColumnHiding.map((column) => {
-                                const displayName = getColumnTitle(column);
-
-                                const isChecked = selectedSearchColumns.includes(column.id);
+                            {hideableColumns.map((column) => {
+                                const title =
+                                    (column.columnDef.meta as any)?.title ||
+                                    column.id.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
                                 return (
-                                    <DropdownMenuItem
+                                    <DropdownMenuCheckboxItem
                                         key={column.id}
-                                        className={`group flex cursor-pointer items-center justify-between px-2 py-1 ${isChecked ? 'bg-accent/90' : ''}`}
-                                        onSelect={(e) => e.preventDefault()}>
-                                        {/* Checkbox + label */}
-                                        <div className='flex w-full items-center'>
-                                            <DropdownMenuCheckboxItem
-                                                checked={isChecked}
-                                                onCheckedChange={(v) => toggleSearchColumn(column.id, !!v)}
-                                                className='/* ↓↓↓ smaller height */ h-6 py-0 pr-4 text-sm leading-none '>
-                                                {displayName}
-                                            </DropdownMenuCheckboxItem>
-                                        </div>
-
-                                        {/* Hover button for "Only" */}
-                                        <Button
-                                            size='xs'
-                                            variant='secondary'
-                                            className='/* ↓ smaller button */ w-fit px-2 py-[1px] text-[10px] opacity-0 transition group-hover:opacity-100 '
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setSearchColumns(column.id);
-                                            }}>
-                                            Only
-                                        </Button>
-                                    </DropdownMenuItem>
+                                        checked={selectedSearchColumns.includes(column.id)}
+                                        onCheckedChange={(checked) => toggleSearchColumn(column.id, checked)}>
+                                        {title}
+                                    </DropdownMenuCheckboxItem>
                                 );
                             })}
                         </DropdownMenuContent>

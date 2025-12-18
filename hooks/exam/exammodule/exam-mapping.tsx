@@ -18,7 +18,12 @@ import {
     getExamTermAndExamMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getHallTicketGeneratedList, getHallTicketStudentList } from '@/server/exam/exam-module/exam-mapping/hallTicket-generation';
-import { getPromotionalSettings } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import {
+    getPromotionalGroupMappedExams,
+    getPromotionalGroupMappings,
+    getPromotionalSettingDetails,
+    getPromotionalSettings
+} from '@/server/exam/exam-module/exam-mapping/promotional-setting';
 import { getYearlyCategoryDatesMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { getYearlyCategorySubjectMapping } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
 import type { ApiSearchparams } from '@/types';
@@ -347,21 +352,59 @@ export const usePromotionalSetting = (params: any, searchParams?: ApiSearchparam
     };
 };
 
-// export const usePromotionalSettingDetails = (subjectId: number, searchParams?: ApiSearchparams) => {
-//     const queryClient = useQueryClient();
+export const usePromotionalSettingDetails = (subjectId: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
 
-//     return {
-//         ...useQuery({
-//             queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS, subjectId, searchParams ?? {}],
-//             queryFn: async () => getGroupMappings(subjectId),
-//             enabled: !!subjectId,
-//             staleTime: 0
-//         }),
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS, subjectId, searchParams ?? {}],
+            queryFn: async () => getPromotionalSettingDetails(30, subjectId),
+            enabled: !!subjectId,
+            staleTime: 0
+        }),
 
-//         refetchAll: () => {
-//             return queryClient.invalidateQueries({
-//                 queryKey: [EXAM_QUERY_KEYS.GROUP_MAPPING_LIST]
-//             });
-//         }
-//     };
-// };
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_SETTING_DETAILS]
+            });
+        }
+    };
+};
+
+export const usePromotionalGroupMappings = (subjectId: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_DETAILS, subjectId, searchParams ?? {}],
+            queryFn: async () => getPromotionalGroupMappings(30, subjectId),
+            enabled: !!subjectId,
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_DETAILS]
+            });
+        }
+    };
+};
+
+export const usePromotionalGroupMappedExams = (subjectId: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS, subjectId, searchParams ?? {}],
+            queryFn: async () => getPromotionalGroupMappedExams(30, subjectId),
+            enabled: !!subjectId,
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS]
+            });
+        }
+    };
+};
