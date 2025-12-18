@@ -4,10 +4,10 @@ import { getStatusBadge } from '@/components/extras/helpers/helper';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { IPromotionalGroupDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
-import type { IPromotionalGroupDetails } from './promotional-group-mapped-exams-columns';
 
 export const PromotionalGroupMappingColumns: ColumnDef<IPromotionalGroupDetails>[] = [
     {
