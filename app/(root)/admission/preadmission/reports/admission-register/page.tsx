@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { DataTableRef } from '@/components/ui/data-table/data-table';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -9,96 +9,112 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
+import { useAdmissionRegister } from '@/hooks/admission/preadmission/useReports';
+import { usePreadmissionClassDropdown1 } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 import { admissionReportSchema } from '@/schemas/admission/preadmission/reports';
-import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ColumnDef } from '@tanstack/react-table';
-import { CheckSquare, FileText, RotateCcw, Search, Square } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { use, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
+import { getMasterAdmissionReportColumns } from './_components/columns';
 
 type FormFields = z.infer<typeof admissionReportSchema>;
-
-const CLASS_OPTIONS = [
-    'Nursery',
-    'LKG',
-    'UKG',
-    'I Std',
-    'II Std',
-    'III Std',
-    'IV Std',
-    'V Std',
-    'VI Std',
-    'VII Std',
-    'VIII Std',
-    'IX Std',
-    'X Std',
-    'LKG STATE',
-    'I ICSE',
-    'UKG STATE',
-    'II ICSE',
-    'III ICSE',
-    'IV ICSE',
-    'V ICSE',
-    'VI ICSE',
-    'VII ICSE',
-    'VIII ICSE',
-    'IX ICSE',
-    'X ICSE'
-];
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 const FIELD_OPTIONS = [
-    { id: 'admNo', label: 'Adm No', accessor: 'admNo' },
-    { id: 'firstName', label: 'First Name', accessor: 'user_name' },
-    { id: 'middleName', label: 'Middle Name', accessor: 'middleName' },
-    { id: 'lastName', label: 'Last Name', accessor: 'lastName' },
-    { id: 'admDate', label: 'Adm Date', accessor: 'admDate' },
+    { id: 'AMST_AdmNo', label: 'Adm No', accessor: 'AMST_AdmNo' },
+    { id: 'AMST_FirstName', label: 'First Name', accessor: 'AMST_FirstName' },
+    { id: 'AMST_MiddleName', label: 'Middle Name', accessor: 'AMST_MiddleName' },
+    { id: 'AMST_LastName', label: 'Last Name', accessor: 'AMST_LastName' },
+    { id: 'AMST_Date', label: 'Adm Date', accessor: 'AMST_Date' },
     {
-        id: 'registrationNo',
+        id: 'AMST_RegistrationNo',
         label: 'Registration No',
-        accessor: 'registrationNo'
+        accessor: 'AMST_RegistrationNo'
     },
-    { id: 'gender', label: 'Gender', accessor: 'gender' },
-    { id: 'dob', label: 'Date of Birth', accessor: 'dob' },
-    { id: 'dobWords', label: 'Date of birth(in words)', accessor: 'dobWords' },
-    { id: 'fatherName', label: "Father's Name", accessor: 'fatherName' },
-    { id: 'motherName', label: "Mother's Name", accessor: 'motherName' },
+    { id: 'AMST_Sex', label: 'Gender', accessor: 'AMST_Sex' },
+    { id: 'AMST_DOB', label: 'Date of Birth', accessor: 'AMST_DOB' },
     {
-        id: 'fatherOccupation',
+        id: 'AMST_DOB_Words',
+        label: 'Date of birth(in words)',
+        accessor: 'AMST_DOB_Words'
+    },
+    {
+        id: 'AMST_FatherName',
+        label: "Father's Name",
+        accessor: 'AMST_FatherName'
+    },
+    {
+        id: 'AMST_MotherName',
+        label: "Mother's Name",
+        accessor: 'AMST_MotherName'
+    },
+    {
+        id: 'AMST_FatherOccupation',
         label: "Father's Occupation",
-        accessor: 'fatherOccupation'
+        accessor: 'AMST_FatherOccupation'
     },
     {
-        id: 'motherOccupation',
+        id: 'AMST_MotherOccupation',
         label: "Mother's Occupation",
-        accessor: 'motherOccupation'
+        accessor: 'AMST_MotherOccupation'
     },
     {
-        id: 'annualIncome',
-        label: "Parent's annual income",
-        accessor: 'annualIncome'
+        id: 'AMST_MotherMonIncome',
+        label: "Mother's Income",
+        accessor: 'AMST_MotherMonIncome'
     },
-    { id: 'nationality', label: 'Nationality', accessor: 'nationality' },
-    { id: 'bloodGroup', label: 'Blood Group', accessor: 'bloodGroup' },
-    { id: 'language', label: 'Language', accessor: 'language' },
-    { id: 'phoneNumber', label: 'Phone number', accessor: 'phone_number' },
-    { id: 'email', label: 'Email id', accessor: 'email' },
-    { id: 'placeOfBirth', label: 'Place of Birth', accessor: 'placeOfBirth' },
-    { id: 'aadhar', label: 'Aadhar Card Number', accessor: 'aadhar' },
-    { id: 'religion', label: 'Religion', accessor: 'religion' }
+    {
+        id: 'AMST_FatherMonIncome',
+        label: "Father's Income",
+        accessor: 'AMST_FatherMonIncome'
+    },
+    {
+        id: 'AMST_Nationality',
+        label: 'Nationality',
+        accessor: 'AMST_Nationality'
+    },
+    { id: 'AMST_BloodGroup', label: 'Blood Group', accessor: 'AMST_BloodGroup' },
+    { id: 'AMST_MotherTongue', label: 'Language', accessor: 'AMST_MotherTongue' },
+    { id: 'AMST_MobileNo', label: 'Phone number', accessor: 'AMST_MobileNo' },
+    { id: 'AMST_emailId', label: 'Email id', accessor: 'AMST_emailId' },
+    {
+        id: 'AMST_PlaceOfBirth',
+        label: 'Place of Birth',
+        accessor: 'AMST_PlaceOfBirth'
+    },
+    {
+        id: 'AMST_AadharNo',
+        label: 'Aadhar Card Number',
+        accessor: 'AMST_AadharNo'
+    },
+    { id: 'IVRMMR_Name', label: 'Religion', accessor: 'IVRMMR_Name' }
 ];
 
-export default function AdmissionReportPage() {
+export default function AdmissionReportPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
+    const router = useRouter();
+    const currentSearchParams = useSearchParams();
+    const tableRef = useRef<DataTableRef>(null);
+
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const [classSearch, setClassSearch] = useState('');
     const [fieldSearch, setFieldSearch] = useState('');
     const [showReport, setShowReport] = useState(false);
-    const [searchParams, setSearchParams] = useState<any>(null);
+    const [requestPayload, setRequestPayload] = useState<any>(null);
+    const [selectedStudents, setSelectedStudents] = useState<any[]>([]);
 
-    const { data: response, isLoading, error } = useStudentCountReport(searchParams);
+    const {
+        data: preadmissionClass,
+        isLoading: preadmissionClassLoading,
+        isError: preadmissionClassError
+    } = usePreadmissionClassDropdown1();
 
     const {
         control,
@@ -111,7 +127,7 @@ export default function AdmissionReportPage() {
         resolver: zodResolver(admissionReportSchema),
         defaultValues: {
             academicYear: 0,
-            status: 'All',
+            status: 0,
             selectedClasses: [],
             selectedFields: []
         }
@@ -119,18 +135,56 @@ export default function AdmissionReportPage() {
 
     const selectedClasses = watch('selectedClasses');
     const selectedFields = watch('selectedFields');
+    const academicYearValue = watch('academicYear');
+    const statusValue = watch('status');
+
+    const classOptions = useMemo(() => {
+        if (!preadmissionClass?.data) return [];
+        return preadmissionClass.data;
+    }, [preadmissionClass]);
+
+    const {
+        data: response,
+        isLoading,
+        error,
+        refetch: refetchReport
+    } = useAdmissionRegister(academicYearValue, statusValue, requestPayload, searchParams);
+
+    useEffect(() => {
+        if (showReport && requestPayload && refetchReport) {
+            refetchReport();
+        }
+    }, [requestPayload, showReport, searchParams]);
 
     const filteredClasses = useMemo(() => {
-        return CLASS_OPTIONS.filter((cls) => cls.toLowerCase().includes(classSearch.toLowerCase()));
-    }, [classSearch]);
+        return classOptions.filter((cls: any) => cls.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase()));
+    }, [classOptions, classSearch]);
 
     const filteredFields = useMemo(() => {
         return FIELD_OPTIONS.filter((field) => field.label.toLowerCase().includes(fieldSearch.toLowerCase()));
     }, [fieldSearch]);
 
-    const handleClassToggle = (className: string) => {
+    const columns = useMemo(() => {
+        return getMasterAdmissionReportColumns(selectedFields);
+    }, [selectedFields]);
+
+    const transformedResponse = useMemo(() => {
+        if (!response) return response;
+
+        return {
+            ...response,
+            data: response.data?.searchstudentDetails || [],
+            total: response.total,
+            page: response.page,
+            page_size: response.page_size
+        };
+    }, [response]);
+
+    const tableProps = useDataTableProps(transformedResponse);
+
+    const handleClassToggle = (classId: number) => {
         const current = selectedClasses || [];
-        const updated = current.includes(className) ? current.filter((c) => c !== className) : [...current, className];
+        const updated = current.includes(classId) ? current.filter((c) => c !== classId) : [...current, classId];
         setValue('selectedClasses', updated, { shouldValidate: true });
     };
 
@@ -144,9 +198,11 @@ export default function AdmissionReportPage() {
         if (selectedClasses.length === filteredClasses.length) {
             setValue('selectedClasses', [], { shouldValidate: true });
         } else {
-            setValue('selectedClasses', [...filteredClasses], {
-                shouldValidate: true
-            });
+            setValue(
+                'selectedClasses',
+                filteredClasses.map((cls: any) => cls.asmcL_Id),
+                { shouldValidate: true }
+            );
         }
     };
 
@@ -162,82 +218,117 @@ export default function AdmissionReportPage() {
         }
     };
 
+    const handleSelectStudent = (selectedRows: any[]) => {
+        setSelectedStudents(selectedRows);
+    };
+
     const handleReport = async () => {
         const isValid = await trigger();
         if (isValid) {
             const formData = watch();
-            setSearchParams({
-                asmaY_Id: formData.academicYear,
-                status: formData.status
-            });
+
+            const payload = {
+                tempararyArrayListclass: formData.selectedClasses.map((classId) => ({
+                    asmcL_Id: classId
+                })),
+                tempararyArrayListcoloumn: formData.selectedFields.map((fieldId) => ({
+                    ivrM_CLM_PAR: fieldId,
+                    selected: true
+                }))
+            };
+
+            setRequestPayload(payload);
             setShowReport(true);
+
+            const params = new URLSearchParams(currentSearchParams.toString());
+            params.set('page', '1');
+            router.push(`?${params.toString()}`, { scroll: false });
+
+            toast.success('Generating report...');
+        } else {
+            toast.error('Please fill all required fields');
         }
     };
 
     const handleReset = () => {
         reset({
             academicYear: 0,
-            status: 'All',
+            status: 0,
             selectedClasses: [],
             selectedFields: []
         });
         setClassSearch('');
         setFieldSearch('');
         setShowReport(false);
-        setSearchParams(null);
+        setRequestPayload(null);
+        setSelectedStudents([]);
+        tableRef.current?.resetSelection();
+
+        // Clear URL parameters
+        router.push(window.location.pathname, { scroll: false });
+
+        toast.success('Filters reset successfully');
     };
 
-    const dynamicColumns = useMemo<ColumnDef<IMasterStudentCountReportList>[]>(() => {
-        const columns: ColumnDef<IMasterStudentCountReportList>[] = [
-            {
-                accessorKey: 'user_id',
-                header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6' />,
-                cell: ({ row, table }) => {
-                    const pageIndex = table.getState().pagination.pageIndex;
-                    const pageSize = table.getState().pagination.pageSize;
-                    const continuousIndex = pageIndex * pageSize + row.index + 1;
-                    return <div className='w-full pl-6'>{continuousIndex}</div>;
-                },
-                enableSorting: true,
-                enableHiding: false
-            }
-        ];
+    const handleCancel = () => {
+        setShowReport(false);
+        setSelectedStudents([]);
+        tableRef.current?.resetSelection();
+        toast.info('Report cancelled');
+    };
 
-        selectedFields.forEach((fieldId) => {
-            const field = FIELD_OPTIONS.find((f) => f.id === fieldId);
-            if (field) {
-                columns.push({
-                    accessorKey: field.accessor,
-                    header: ({ column }) => <DataTableColumnHeader column={column} title={field.label} />,
-                    cell: ({ row }: { row: any }) => {
-                        const value = row.getValue(field.accessor);
-                        return <div>{value || 'N/A'}</div>;
-                    },
-                    enableSorting: true,
-                    enableHiding: true
-                });
-            }
-        });
-
-        return columns;
-    }, [selectedFields]);
-
-    const filteredData = useMemo(() => {
-        if (!response?.data) return { data: [] };
-
-        if (selectedClasses.length === 0) {
-            return response;
+    const handleExportExcel = () => {
+        if (!response?.data?.searchstudentDetails || response.data.searchstudentDetails.length === 0) {
+            toast.error('No data available to export');
+            return;
         }
 
-        const filtered = response.data.filter((item: any) => selectedClasses.includes(item.className));
+        if (selectedStudents.length === 0) {
+            toast.error('Please select at least one record to export');
+            return;
+        }
 
-        return { ...response, data: filtered };
-    }, [response, selectedClasses]);
+        toast.info('Excel export feature coming soon');
+    };
 
-    const tableProps = useDataTableProps(filteredData);
+    const handlePrint = () => {
+        if (!response?.data?.searchstudentDetails || response.data.searchstudentDetails.length === 0) {
+            toast.error('No data available to print');
+            return;
+        }
+
+        if (selectedStudents.length === 0) {
+            toast.error('Please select at least one record to print');
+            return;
+        }
+
+        window.print();
+    };
 
     return (
         <div className='min-h-screen'>
+            <style>
+                {`
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #printable-report, #printable-report * {
+              visibility: visible;
+            }
+            #printable-report {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+            }
+            .no-print {
+              display: none !important;
+            }
+          }
+        `}
+            </style>
+
             <div className='container space-y-4 p-1'>
                 <div className='space-y-4'>
                     <CollapsibleSection
@@ -245,7 +336,7 @@ export default function AdmissionReportPage() {
                         variant='default'
                         size='lg'
                         title='Admission Register'
-                        className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                        className='no-print shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                         <div className='space-y-6 p-4'>
                             <div className='space-y-4'>
                                 <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
@@ -289,29 +380,29 @@ export default function AdmissionReportPage() {
                                         control={control}
                                         render={({ field }) => (
                                             <RadioGroup
-                                                value={field.value}
-                                                onValueChange={field.onChange}
+                                                value={field.value.toString()}
+                                                onValueChange={(value) => field.onChange(Number(value))}
                                                 className='flex flex-col items-center space-y-2 sm:flex-row sm:space-x-6 sm:space-y-0'>
                                                 <div className='flex items-center space-x-2'>
-                                                    <RadioGroupItem value='All' id='all' />
+                                                    <RadioGroupItem value='0' id='all' />
                                                     <label htmlFor='all' className='cursor-pointer text-sm'>
                                                         All
                                                     </label>
                                                 </div>
                                                 <div className='flex items-center space-x-2'>
-                                                    <RadioGroupItem value='Present' id='present' />
+                                                    <RadioGroupItem value='1' id='present' />
                                                     <label htmlFor='present' className='cursor-pointer text-sm'>
                                                         Present
                                                     </label>
                                                 </div>
                                                 <div className='flex items-center space-x-2'>
-                                                    <RadioGroupItem value='Left' id='left' />
+                                                    <RadioGroupItem value='2' id='left' />
                                                     <label htmlFor='left' className='cursor-pointer text-sm'>
                                                         Left
                                                     </label>
                                                 </div>
                                                 <div className='flex items-center space-x-2'>
-                                                    <RadioGroupItem value='Deactive' id='deactive' />
+                                                    <RadioGroupItem value='3' id='deactive' />
                                                     <label htmlFor='deactive' className='cursor-pointer text-sm'>
                                                         Deactive
                                                     </label>
@@ -352,29 +443,39 @@ export default function AdmissionReportPage() {
                                         <span>Select All</span>
                                     </div>
 
-                                    <div className='max-h-60 space-y-1 overflow-y-auto rounded-md border border-gray-300 p-2'>
-                                        {filteredClasses.map((className) => {
-                                            const selected = selectedClasses.includes(className);
-                                            return (
-                                                <div
-                                                    key={className}
-                                                    onClick={() => handleClassToggle(className)}
-                                                    className={cn(
-                                                        'flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-all',
-                                                        selected
-                                                            ? 'border-primary bg-primary/5 text-primary'
-                                                            : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
-                                                    )}>
-                                                    {selected ? (
-                                                        <CheckSquare className='h-4 w-4 text-primary' />
-                                                    ) : (
-                                                        <Square className='h-4 w-4 text-gray-400' />
-                                                    )}
-                                                    <span>{className}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
+                                    {preadmissionClassLoading ? (
+                                        <div className='flex items-center justify-center py-8'>
+                                            <p className='text-gray-500 text-sm'>Loading classes...</p>
+                                        </div>
+                                    ) : preadmissionClassError ? (
+                                        <div className='flex items-center justify-center py-8'>
+                                            <p className='text-red-500 text-sm'>Error loading classes</p>
+                                        </div>
+                                    ) : (
+                                        <div className='max-h-60 space-y-1 overflow-y-auto rounded-md border border-gray-300 p-2'>
+                                            {filteredClasses.map((cls: any) => {
+                                                const selected = selectedClasses.includes(cls.asmcL_Id);
+                                                return (
+                                                    <div
+                                                        key={cls.asmcL_Id}
+                                                        onClick={() => handleClassToggle(cls.asmcL_Id)}
+                                                        className={cn(
+                                                            'flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm transition-all',
+                                                            selected
+                                                                ? 'border-primary bg-primary/5 text-primary'
+                                                                : 'border-gray-200 hover:border-primary/40 hover:bg-gray-50'
+                                                        )}>
+                                                        {selected ? (
+                                                            <CheckSquare className='h-4 w-4 text-primary' />
+                                                        ) : (
+                                                            <Square className='h-4 w-4 text-gray-400' />
+                                                        )}
+                                                        <span>{cls.asmcL_ClassName}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                     {errors.selectedClasses && <FormError>{errors.selectedClasses.message}</FormError>}
                                 </div>
 
@@ -436,51 +537,85 @@ export default function AdmissionReportPage() {
                             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                                 <Button
                                     type='button'
-                                    variant='outline'
-                                    onClick={handleReset}
-                                    className='order-2 w-full transition-all duration-200 hover:scale-105 sm:order-1 sm:w-fit'>
-                                    <RotateCcw className='mr-2 h-4 w-4' />
-                                    Reset
-                                </Button>
-                                <Button
-                                    type='button'
                                     onClick={handleReport}
-                                    className='order-1 w-full transition-all duration-200 hover:scale-105 sm:order-2 sm:w-fit'>
+                                    className='order-1 w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
                                     <FileText className='mr-2 h-4 w-4' />
                                     Report
                                 </Button>
+
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={handleReset}
+                                    className='order-2 w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                                    <RotateCcw className='mr-2 h-4 w-4' />
+                                    Reset
+                                </Button>
+
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={handleCancel}
+                                    className='order-3 w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                                    <X className='mr-2 h-4 w-4' />
+                                    Cancel
+                                </Button>
+
+                                {showReport && response?.data?.searchstudentDetails && response.data.searchstudentDetails.length > 0 && (
+                                    <>
+                                        <Button
+                                            variant='outline'
+                                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                            onClick={handleExportExcel}
+                                            disabled={selectedStudents.length === 0}>
+                                            <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                            Export to Excel
+                                        </Button>
+                                        <Button
+                                            variant='outline'
+                                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                            onClick={handlePrint}
+                                            disabled={selectedStudents.length === 0}>
+                                            <Printer className='mr-2 h-4 w-4' />
+                                            Print
+                                        </Button>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </CollapsibleSection>
 
                     {showReport && (
-                        <CollapsibleSection
-                            defaultOpen={true}
-                            variant='default'
-                            size='lg'
-                            title='Student Count Report'
-                            className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                            {selectedFields.length === 0 ? (
-                                <div className='flex flex-col items-center justify-center space-y-2 py-12'>
-                                    <p className='font-medium text-gray-600 text-lg'>No Fields Selected</p>
-                                    <p className='text-gray-500 text-sm'>Please select at least one field to display data</p>
-                                </div>
-                            ) : (
-                                <GenericDataTable<IMasterStudentCountReportList>
-                                    {...tableProps}
-                                    columns={dynamicColumns}
-                                    isLoading={isLoading}
-                                    error={error}
-                                    showViewOptions={true}
-                                    columnPinning={{ left: ['user_id'] }}
-                                    isPaginationRequired={true}
-                                    loadingMessage='Loading Student Count Reports...'
-                                    noDataTitle='No Student Count Reports Found'
-                                    noDataDescription='Get started by selecting an academic year above'
-                                    errorTitle='Error Loading Student Count Reports'
-                                />
-                            )}
-                        </CollapsibleSection>
+                        <div id='printable-report'>
+                            <CollapsibleSection
+                                defaultOpen={true}
+                                variant='default'
+                                size='lg'
+                                title='Admission Register Report'
+                                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                                {selectedFields.length === 0 ? (
+                                    <div className='flex flex-col items-center justify-center space-y-2 py-12'>
+                                        <p className='font-medium text-gray-600 text-lg'>No Fields Selected</p>
+                                        <p className='text-gray-500 text-sm'>Please select at least one field to display data</p>
+                                    </div>
+                                ) : (
+                                    <GenericDataTable
+                                        {...tableProps}
+                                        ref={tableRef}
+                                        columns={columns}
+                                        isLoading={isLoading}
+                                        error={error}
+                                        showViewOptions={false}
+                                        isPaginationRequired={true}
+                                        loadingMessage='Loading Admission Reports...'
+                                        noDataTitle='No Admission Reports Found'
+                                        noDataDescription='No data available for the selected criteria'
+                                        errorTitle='Error Loading Admission Reports'
+                                        onRowSelectionChange={handleSelectStudent}
+                                    />
+                                )}
+                            </CollapsibleSection>
+                        </div>
                     )}
                 </div>
             </div>

@@ -24,6 +24,7 @@ import {
 } from '@/server/admission/preadmission/masters/religion_caste_category';
 import { getMasterSection, getSectionSetOrder } from '@/server/admission/preadmission/masters/section';
 import { getMasterSource } from '@/server/admission/preadmission/masters/source';
+import { getConcessionDropdown } from '@/server/admission/preadmission/reports/report';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -532,6 +533,22 @@ export const useMasterUnMappedClassDropdown = (asmaY_Id?: number, amC_Id?: numbe
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_UNMAPPED_CLASS_DROPDOWN]
+            });
+        }
+    };
+};
+export const useConcessionDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.CONCESSION_DROPDOWN_DATA],
+            queryFn: async () => getConcessionDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.CONCESSION_DROPDOWN_DATA]
             });
         }
     };

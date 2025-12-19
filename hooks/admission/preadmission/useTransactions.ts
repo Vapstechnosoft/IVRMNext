@@ -1,4 +1,8 @@
 import { ADMISSION_QUERY_KEYS, PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import {
+    getPreadmissionClassDropdown1,
+    getadmissionSectionDropdown
+} from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { getAdmissionClassDropdown } from '@/server/admission/preadmission/section/sections';
 import {
     getCasteDropdown,
@@ -384,6 +388,43 @@ export const useAdmissionClassDropdown = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_CLASS_DROPDOWN]
+            });
+        }
+    };
+};
+export const usePreadmissionClassDropdown1 = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_DROPDOWN1],
+            queryFn: async () => getPreadmissionClassDropdown1(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_CLASS_DROPDOWN1]
+            });
+        }
+    };
+};
+export const useadmissionSectionDropdown = (asmcl_id?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_SECTION_DROPDOWN, asmcl_id ?? {}],
+            queryFn: async () => {
+                if (!asmcl_id || Number(asmcl_id) <= 0) {
+                    return { data: [] } as any;
+                }
+                return await getadmissionSectionDropdown(Number(asmcl_id));
+            },
+            staleTime: 0,
+            enabled: Boolean(asmcl_id && Number(asmcl_id) > 0)
+        }),
+        refetchAll: (id?: number) => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_SECTION_DROPDOWN, id ?? {}]
             });
         }
     };
