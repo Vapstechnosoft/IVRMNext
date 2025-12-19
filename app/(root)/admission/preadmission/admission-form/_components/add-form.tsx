@@ -15,13 +15,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { calculateAge, dateToWords, formatAge } from '@/lib/utils';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
+import { useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
+    useAdmissionClassDropdown,
     useCasteDropdown,
     useCountryDropdown,
     useGenderDropdown,
-    usePreadmissionClassDropdown,
     usePreadmissionDocumentsDropdown,
     useReferenceDropdown,
     useReligionDropdown,
@@ -31,18 +31,22 @@ import {
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
-// Add this import if not already present
-import { addStudentApplicationForm } from '@/server/admission/preadmission/transactions/application_form';
+import {
+    saveFifthTabApi,
+    saveFinalTabApi,
+    saveFirstTabApi,
+    saveFourthTabApi,
+    saveSecondTabApi,
+    saveThirdTabApi
+} from '@/server/admission/admission-form/admission';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
-import type { IPreadmissionClassDropdown } from '@/types/admission/preadmission/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { IneligibleClassesDialog } from './InEligibleDialog';
 
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
@@ -93,11 +97,11 @@ const steps = [
 export default function AddStudentAdmissionForm({ onSuccess, className = '' }: AddStudentApplicationFormProps) {
     const [currentStep, setCurrentStep] = useState(1);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
+    const [showStep3Errors, setShowStep3Errors] = useState(false);
     const {
         watch,
         control,
         register,
-        handleSubmit,
         reset,
         trigger,
         setValue,
@@ -110,32 +114,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         mode: 'onChange',
         defaultValues: {
             pasA_WillingToContributeFlg: 0,
-            pasR_UndertakingFlag: 0,
-            previousSchoolDetails: [
-                {
-                    pasrpS_PrvSchoolName: '',
-                    pasrpS_PreviousClass: '',
-                    pasrpS_Board: '',
-                    pasrpS_LeftYear: '',
-                    pasrpS_LeftReason: '',
-                    pasrpS_Address: ''
-                }
-            ],
-            siblingsDetails: [],
-            guardiansDetails: [],
-            pasR_ECSFlag: 0,
-            pasR_EMISFlag: 0
+            previousSchools: [],
+            siblings: [],
+            guardian: [],
+            amsT_ECSFlag: 0,
+            isEmisBpl: 0,
+            // final flags for hostel/transport
+            hostelRequired: false,
+            transportRequired: false
         }
-    });
-
-    // Define siblingFields using useFieldArray
-    const {
-        fields: siblingFields,
-        append: appendSibling,
-        remove
-    } = useFieldArray({
-        control,
-        name: 'siblingsDetails'
     });
 
     // previous school entries (allow multiple)
@@ -145,37 +132,44 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         remove: removePreviousSchool
     } = useFieldArray({
         control,
-        name: 'previousSchoolDetails'
+        name: 'previousSchools'
     });
 
-    // guardians entries (allow multiple)
-    const {
-        fields: guardianFields,
-        append: appendGuardian,
-        remove: removeGuardian
-    } = useFieldArray({
+    // student mobile numbers (allow multiple up to 5)
+    const { fields: mobileFields, append: appendMobile } = useFieldArray({
         control,
-        name: 'guardiansDetails'
+        name: 'mobileNos'
     });
 
-    //     const {
-    //     fields: gaFields,
-    //     append: appendGuardian,
-    //     remove
-    // } = useFieldArray({
-    //     control,
-    //     name: 'siblingsDetails'
-    // });
+    // student email addresses (allow multiple up to 5)
+    const { fields: emailFields, append: appendEmail } = useFieldArray({
+        control,
+        name: 'adm_M_Student_EmailIdDTO'
+    });
+
+    // Ensure there's at least one email field (prefill from legacy amsT_emailId)
+    useEffect(() => {
+        if (emailFields.length === 0) {
+            const initial = (getValues('adm_M_Student_EmailIdDTO') || [])[0]?.amsT_emailId ?? getValues('amsT_emailId') ?? '';
+            appendEmail({ amsT_emailId: initial });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    // Keep legacy amsT_emailId in sync with first email field
+    const watchedEmails = watch('adm_M_Student_EmailIdDTO');
+    useEffect(() => {
+        const first = Array.isArray(watchedEmails) && watchedEmails.length > 0 ? (watchedEmails[0]?.amsT_emailId ?? '') : '';
+        setValue('amsT_emailId' as any, first);
+    }, [watchedEmails, setValue]);
 
     const [selectedSourceItems, setSelectedSourceItems] = useState<{ pamS_Id: string; pamS_SourceName: string }[]>([]);
-    const [selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
+    const [_selectedReferenceItems, setSelectedReferenceItems] = useState<{ pamR_Id: string; pamR_ReferenceName: string }[]>([]);
+
     const [sameAsResidential, setSameAsResidential] = useState(false);
-    const [filteredClasses, setFilteredClasses] = useState<IPreadmissionClassDropdown[]>([]);
-    const [isClassDisabled, setIsClassDisabled] = useState(true);
-    const [showIneligibleDialog, setShowIneligibleDialog] = useState(false);
-    const [ineligibleClasses, setIneligibleClasses] = useState<IPreadmissionClassDropdown[]>([]);
     const [phoneExpectedInfo, setPhoneExpectedInfo] = useState<Record<string, { expected?: number; name?: string; dial?: string }>>({});
     const [phoneValues, setPhoneValues] = useState<Record<string, string>>({});
+
     const [uploadedDocuments, setUploadedDocuments] = useState<
         Array<{
             pasrD_Id: number;
@@ -188,36 +182,68 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     >([]);
 
     const [studentPhoto, setStudentPhoto] = useState<{
-        pasR_Student_Pic_Path: string;
+        amsT_Photoname: string;
         isUploading?: boolean;
     } | null>(null);
     const [studentPhotoError, setStudentPhotoError] = useState<string | null>(null);
 
-    const [fatherPhoto, setFatherPhoto] = useState<{
-        pasR_FatherPhoto: string;
-        isUploading?: boolean;
-    } | null>(null);
-    const [fatherPhotoError, setFatherPhotoError] = useState<string | null>(null);
-
-    const [motherPhoto, setMotherPhoto] = useState<{
-        pasR_MotherPhoto: string;
-        isUploading?: boolean;
-    } | null>(null);
-    const [motherPhotoError, setMotherPhotoError] = useState<string | null>(null);
-
     const [documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
+    const [_handledStep3, setHandledStep3] = useState(false);
 
     const { data: activePreadmission } = useActivePreadmissionDetails();
 
-    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
+    // Ensure the academic year from active preadmission is present in react-hook-form state
+    useEffect(() => {
+        const year = activePreadmission?.data?.asmaY_Year ?? '';
+        const id = Number(activePreadmission?.data?.asmaY_Id ?? 0) || 0;
+        setValue('asmaY_Year' as any, year);
+        setValue('asmaY_Id' as any, id);
+    }, [activePreadmission, setValue]);
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
-    const conConuntryId = watch('pasR_ConCountry');
-    const perConuntryId = watch('pasR_PerCountry');
-    const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
+
+    // Watch all country fields
+    const conConuntryId = watch('amsT_ConCountry');
+    const perConuntryId = watch('amsT_PerCountry');
+
+    // Use the nationality fields used in the Step 3 UI so state dropdowns refetch correctly
+    const fatherPresentCountryId = watch('fatherNationality');
+    const _fatherPermanentCountryId = watch('fatherNationality');
+    const motherPresentCountryId = watch('motherNationality');
+    const _motherPermanentCountryId = watch('motherNationality');
+    const birthCountryId = watch('amsT_PlaceOfBirthCountry');
+
+    const fatherAlive = watch('fatherAliveFlag');
+    // Support multiple possible keys for mother-alive checkbox coming from different places
+    const motherAlive = watch('motherAliveFlag') || watch('MotherAliveFlag') || false;
+    const {
+        data: caste,
+        isLoading: casteLoading,
+        error: casteError,
+        refetchAll: refetchCaste
+    } = useCasteDropdown(watch('amsT_ReligionId'));
+
+    // Caste dropdowns for father and mother should depend on their selected religion
+    const {
+        data: fatherCaste,
+        isLoading: fatherCasteLoading,
+        error: fatherCasteError,
+        refetchAll: refetchFatherCaste
+    } = useCasteDropdown(watch('fatherReligionId') ?? 0);
+
+    const {
+        data: motherCaste,
+        isLoading: motherCasteLoading,
+        error: motherCasteError,
+        refetchAll: refetchMotherCaste
+    } = useCasteDropdown(watch('motherReligionId') ?? 0);
     const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
-    const { data: preadmissionClass, refetchAll: refetchClass } = usePreadmissionClassDropdown();
+    const { data: admissionClass, isLoading: admissionClassLoading, isError: admissionClassError } = useAdmissionClassDropdown();
+    const classId = watch('asmcL_Id');
+    const { data: sectionData, isLoading: sectionLoading, isError: sectionError } = useMasterSectionHeld(Number(classId));
     const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
+
+    // Student address states
     const {
         data: conState,
         isLoading: conStateLoading,
@@ -230,6 +256,31 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         error: perStateError,
         refetchAll: refetchPerState
     } = useStateDropdown(Number(perConuntryId));
+
+    // Father address states
+    const {
+        data: fatherPresentState,
+        isLoading: fatherPresentStateLoading,
+        error: fatherPresentStateError,
+        refetchAll: refetchFatherPresentState
+    } = useStateDropdown(Number(fatherPresentCountryId));
+
+    // Mother address states
+    const {
+        data: motherPresentState,
+        isLoading: motherPresentStateLoading,
+        error: motherPresentStateError,
+        refetchAll: refetchMotherPresentState
+    } = useStateDropdown(Number(motherPresentCountryId));
+
+    // Birth place state
+    const {
+        data: birthState,
+        isLoading: birthStateLoading,
+        error: birthStateError,
+        refetchAll: refetchBirthState
+    } = useStateDropdown(Number(birthCountryId));
+
     const { data: source, isLoading: sourceLoading, refetchAll: refetchSource } = useSourceDropdown();
     const { data: reference, isLoading: referenceLoading, refetchAll: refetchReference } = useReferenceDropdown();
     const {
@@ -238,163 +289,780 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         refetchAll: refetchPreadmissionDocuments
     } = usePreadmissionDocumentsDropdown();
 
-    const refetchDropdowns = () => {
+    const _refetchDropdowns = () => {
         refetchReligion();
         refetchCaste();
+        refetchFatherCaste();
+        refetchMotherCaste();
         refetchGender();
-        refetchClass();
+
         refetchCountry();
         refetchSource();
         refetchReference();
         refetchConState();
         refetchPerState();
+        refetchFatherPresentState();
+
+        refetchMotherPresentState();
+
+        refetchBirthState();
         refetchPreadmissionDocuments();
     };
 
-    // Helper to mark variables as used so TypeScript noUnusedLocals doesn't error
+    // Component for a single previous-school row's country/state selects.
+    const PreviousSchoolRow = ({ idx }: { idx: number }) => {
+        const countryId = watch(`previousSchools.${idx}.countryId` as const) as any;
+        const { data: prevStates, isLoading: prevStatesLoading } = useStateDropdown(Number(countryId));
+
+        return (
+            <>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>Country</Label>
+
+                    <Controller
+                        name={`previousSchools.${idx}.countryId` as const}
+                        control={control}
+                        render={({ field }) => (
+                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(Number(val))}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Country' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {countryLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
+                                    ) : (
+                                        country?.data?.map((item) => (
+                                            <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
+                                                {item.ivrmmC_CountryName}
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+
+                    {errors.previousSchools?.[idx]?.countryId && <FormError>{errors.previousSchools[idx].countryId.message}</FormError>}
+                </div>
+
+                <div className='flex flex-col gap-1.5'>
+                    <Label>State</Label>
+
+                    <Controller
+                        name={`previousSchools.${idx}.stateId` as const}
+                        control={control}
+                        render={({ field }) => (
+                            <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(Number(val))}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select State' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {prevStatesLoading ? (
+                                        <SelectItem value='loading' disabled>
+                                            Loading...
+                                        </SelectItem>
+                                    ) : (
+                                        prevStates?.data?.map((item) => (
+                                            <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
+                                                {item.ivrmmS_Name}
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+
+                    {errors.previousSchools?.[idx]?.stateId && <FormError>{errors.previousSchools[idx].stateId.message}</FormError>}
+                </div>
+            </>
+        );
+    };
+
+    const saveFirstTab = async (formData: any) => {
+        try {
+            // Guard: ensure minimal required fields are present before calling API
+            // This prevents any code path (including forced/auto-save) from calling server with incomplete data.
+            const requiredFields = ['amsT_FirstName', 'amsT_LastName', 'asmcL_Id', 'amsT_Date', 'amsT_DOB'];
+
+            // If any required field is missing in formData, abort
+            const missingRequired = requiredFields.filter((k) => {
+                const v = formData?.[k];
+                return v === undefined || v === null || (typeof v === 'string' && v.trim() === '');
+            });
+            if (missingRequired.length > 0) {
+                console.warn('[Admission] saveFirstTab aborted - missing required fields:', missingRequired);
+                toast.error('Please complete required fields before saving Step 1');
+                throw new Error(`Validation failed: missing required fields: ${missingRequired.join(', ')}`);
+            }
+
+            // Student photo required
+            if (!formData.amsT_Photoname && !formData.amsT_Photoname) {
+                console.warn('[Admission] saveFirstTab aborted - missing student photo');
+                toast.error('Please upload student photo');
+                throw new Error('Validation failed: missing student photo');
+            }
+
+            // EMIS conditional
+            if (Number(formData.isEmisBpl ?? formData.isEmisBpl) === 1) {
+                const emis = String(formData.amsT_EmisBplNo ?? getValues('amsT_EmisBplNo') ?? '').trim();
+                if (!emis) {
+                    toast.error('EMIS / BPL / STS No. is required');
+                    throw new Error('Validation failed: missing EMIS');
+                }
+            }
+
+            // ECS conditional: check nested or flat fields
+            if (Number(formData.amsT_ECSFlag ?? getValues('amsT_ECSFlag') ?? 0) === 1) {
+                const ecs = formData.adm_M_Student_ECS ?? {};
+                const flat = formData;
+                const acctNo = String(ecs.asecS_AccountNo ?? flat.asecS_AccountNo ?? getValues('asecS_AccountNo') ?? '').trim();
+                const holder = String(
+                    ecs.asecS_AccountHolderName ?? flat.asecS_AccountHolderName ?? getValues('asecS_AccountHolderName') ?? ''
+                ).trim();
+                const bank = String(ecs.asecS_BankName ?? flat.asecS_BankName ?? getValues('asecS_BankName') ?? '').trim();
+                const type = String(ecs.asecS_AccountType ?? flat.asecS_AccountType ?? getValues('asecS_AccountType') ?? '').trim();
+                const micr = String(ecs.asecS_MICRNo ?? flat.asecS_MICRNo ?? getValues('asecS_MICRNo') ?? '').trim();
+                const branch = String(ecs.asecS_Branch ?? flat.asecS_Branch ?? getValues('asecS_Branch') ?? '').trim();
+                if (!acctNo || !holder || !bank || !type || !micr || !branch) {
+                    toast.error('Please fill all ECS account details');
+                    console.warn('[Admission] saveFirstTab aborted - missing ECS details');
+                    throw new Error('Validation failed: missing ECS details');
+                }
+            }
+            // Build payload expected by server for first tab
+            const payload: any = {
+                amsT_Id: Number(formData.amsT_Id ?? 0) || 0,
+                mI_Id: Number(formData.mI_Id ?? 30) || 0,
+
+                asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0) || 0,
+                asmcL_Id: Number(formData.asmcL_Id ?? 0) || 0,
+                asmS_Id: Number(formData.asmS_Id ?? 0) || 0,
+                amsT_RegistrationNo: formData.amsT_RegistrationNo || '',
+                amsT_AdmNo: formData.amsT_AdmNo || '',
+                amsT_Date: formData.amsT_Date ? new Date(formData.amsT_Date).toISOString() : new Date().toISOString(),
+                amsT_Tpin: formData.amsT_Tpin || '',
+                amsT_FirstName: formData.amsT_FirstName || '',
+                amsT_MiddleName: formData.amsT_MiddleName || '',
+                amsT_LastName: formData.amsT_LastName || '',
+                amsT_Sex: formData.amsT_Sex || '',
+                pasR_Age: Number(formData.pasR_Age ?? 0) || 0,
+                amsT_DOB: formData.amsT_DOB ? new Date(formData.amsT_DOB).toISOString() : undefined,
+                amsT_DOB_Words: formData.amsT_DOB_Words || dateToWords(formData.amsT_DOB) || '',
+                amsT_BirthPlace: formData.amsT_BirthPlace || '',
+                amsT_BirthCertNO: formData.amsT_BirthCertNO || '',
+                amsT_AadharNo: Number(formData.amsT_AadharNo ?? 0) || 0,
+                // support alternate form keys for caste/religion (some UIs use different names)
+                imcC_Id: Number(formData.imcC_Id ?? formData.imC_Id ?? formData.amsT_CasteCategoryId ?? 0) || 0,
+                ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0) || 0,
+                imC_Id: Number(formData.imC_Id ?? formData.imcC_Id ?? formData.amsT_CasteCategoryId ?? 0) || 0,
+                amsT_SubCasteIMC_Id: Number(formData.amsT_SubCasteIMC_Id ?? 0) || 0,
+                amsT_Nationality: Number(formData.amsT_Nationality ?? 0) || 0,
+                amsT_BloodGroup: formData.amsT_BloodGroup || '',
+                studentCategoryId: Number(formData.studentCategoryId ?? 0) || 0,
+                isEmisBpl: !!formData.isEmisBpl,
+                amsT_ECSFlag: Number(formData.amsT_ECSFlag ?? 0) || 0,
+                // Accept ECS values either nested under `adm_M_Student_ECS` or as flat fields (form registers flat names)
+                adm_M_Student_ECS: {
+                    asecS_AccountHolderName: formData.adm_M_Student_ECS?.asecS_AccountHolderName ?? formData.asecS_AccountHolderName ?? '',
+                    asecS_AccountNo: formData.adm_M_Student_ECS?.asecS_AccountNo ?? formData.asecS_AccountNo ?? '',
+                    asecS_AccountType: formData.adm_M_Student_ECS?.asecS_AccountType ?? formData.asecS_AccountType ?? '',
+                    asecS_BankName: formData.adm_M_Student_ECS?.asecS_BankName ?? formData.asecS_BankName ?? '',
+                    asecS_Branch: formData.adm_M_Student_ECS?.asecS_Branch ?? formData.asecS_Branch ?? '',
+                    asecS_MICRNo: formData.adm_M_Student_ECS?.asecS_MICRNo ?? formData.asecS_MICRNo ?? '',
+                    asecS_IFSCCode: formData.adm_M_Student_ECS?.asecS_IFSCCode ?? formData.asecS_IFSCCode ?? ''
+                },
+                // store primary mobile as string (may be empty)
+                amsT_MobileNo: String(formData.amsT_MobileNo ?? '') || '',
+                amsT_emailId: formData.amsT_emailId || '',
+                // build mobileNos from FieldArray, allow up to 5 entries
+                mobileNos: Array.isArray(getValues('mobileNos'))
+                    ? (getValues('mobileNos') as any[]).slice(0, 5).map((m: any) => ({
+                          amsT_MobileNo: String(m?.amsT_MobileNo ?? m?.mobileNo ?? m ?? ''),
+                          amstsmS_CountryCode: m?.amstsmS_CountryCode ?? m?.countryCode ?? ''
+                      }))
+                    : Array.isArray(formData.mobileNos)
+                      ? formData.mobileNos.slice(0, 5).map((m: any) => ({
+                            amsT_MobileNo: String(m?.amsT_MobileNo ?? m),
+                            amstsmS_CountryCode: m?.amstsmS_CountryCode ?? ''
+                        }))
+                      : formData.mobileNos
+                        ? [{ amsT_MobileNo: String(formData.mobileNos), amstsmS_CountryCode: '' }]
+                        : [],
+                emailIds: Array.isArray(formData.adm_M_Student_EmailIdDTO)
+                    ? formData.adm_M_Student_EmailIdDTO.map((e: any) => ({ amsT_emailId: String(e.amsT_emailId ?? e.emailId ?? e) }))
+                    : formData.adm_M_Student_EmailIdDTO
+                      ? [{ amsT_emailId: String(formData.adm_M_Student_EmailIdDTO) }]
+                      : [],
+                amsT_PerStreet: formData.amsT_PerStreet || '',
+                amsT_PerArea: formData.amsT_PerArea || '',
+                amsT_PerCity: formData.amsT_PerCity || '',
+                amsT_PerState: Number(formData.amsT_PerState ?? 0) || 0,
+                amsT_PerDistrict: Number(formData.amsT_PerDistrict ?? 0) || 0,
+                amsT_PerCountry: Number(formData.amsT_PerCountry ?? 0) || 0,
+                amsT_PerPincode: Number(formData.amsT_PerPincode ?? 0) || 0,
+                amsT_LanguageSpoken: formData.amsT_LanguageSpoken || '',
+                amsT_MotherTongue: formData.amsT_MotherTongue || '',
+                amsT_RFCardNo: formData.amsT_RFCardNo || '',
+                amsT_BiometricId: formData.amsT_BiometricId || '',
+                amsT_Photoname: formData.amsT_Photoname || formData.amsT_Photoname || '',
+                amsT_MOInstruction: formData.amsT_MOInstruction || '',
+                feeConcessionType: formData.feeConcessionType || '',
+                userId: Number(formData.userId ?? 0) || 0,
+                editFlag: !!formData.editFlag,
+                returnVal: true,
+                message: formData.message || ''
+            };
+
+            console.debug('[Admission] saveFirstTab payload:', payload);
+            const res = await saveFirstTabApi(payload);
+            console.debug('[Admission] saveFirstTab response:', res);
+            if (!res?.success) {
+                throw new Error(res?.message || 'Failed to save step 1');
+            }
+            toast.success('Step 1 saved');
+            return res;
+        } catch (error) {
+            console.error('Error saving first tab:', error);
+            throw error;
+        }
+    };
+
     const __markUsed = (..._args: any[]) => {
         /* intentionally empty */
     };
 
-    __markUsed(refetchClass, reference, referenceLoading, refetchReference);
+    __markUsed(reference, referenceLoading, refetchReference);
+
+    const saveThirdTab = async () => {
+        console.debug('[Admission] enter saveThirdTab');
+        try {
+            const formData = getValues();
+
+            const payload = {
+                amsT_Id: 0,
+                userId: 0,
+
+                // Father
+                fatherAliveFlag: !!(formData.fatherAliveFlag ?? false),
+                fatherName: formData.fatherName || '',
+                fatherSurname: formData.fatherSurname || '',
+                fatherAadharNo: formData.fatherAadharNo || '',
+                fatherMaritalStatus: formData.fatherMaritalStatus ?? null,
+                fatherMonthlyIncome: 0,
+                fatherMobileNumbers: Array.isArray(formData.fatherMobileNumbers)
+                    ? formData.fatherMobileNumbers.map((m: any) => ({ mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m) }))
+                    : formData.fatherMobileNumbers
+                      ? [{ mobileNo: String(formData.fatherMobileNumbers) }]
+                      : [],
+                fatherEmailIds: Array.isArray(formData.fatherEmailIds)
+                    ? formData.fatherEmailIds.map((e: any) => ({ emailId: String(e.emailId ?? e.amsT_emailId ?? e) }))
+                    : formData.fatherEmailIds
+                      ? [{ emailId: String(formData.fatherEmailIds) }]
+                      : [],
+                fatherHomePhone: formData.fatherHomePhone || formData.fatherHomePhone || '',
+                fatherNationality: Number(formData.fatherNationality ?? 0) || 0,
+                fatherQualification: formData.FatherEducation || '',
+                fatherPresentAddress: {
+                    address: formData.fatherPresentAddress?.address || '',
+                    city: formData.fatherPresentAddress?.city || '',
+                    state: Number(formData.fatherPresentAddress?.state ?? 0) || 0,
+                    po: formData.fatherPresentAddress?.po || '',
+                    pincode: formData.fatherPresentAddress?.pincode || '',
+                    ps: formData.fatherPresentAddress?.ps || ''
+                },
+                fatherPermanentAddress: {
+                    address: formData.fatherPermanentAddress?.address || '',
+                    city: formData.fatherPermanentAddress?.city || '',
+                    state: Number(formData.fatherPermanentAddress?.state ?? 0) || 0,
+                    po: formData.fatherPermanentAddress?.po || '',
+                    pincode: formData.fatherPermanentAddress?.pincode || '',
+                    ps: formData.fatherPermanentAddress?.ps || ''
+                },
+                fatherOfficeAddress: formData.fatherOfficeAddress || '',
+                fatherOfficePhone: formData.fatherOfficePhone || '',
+                fatherOccupation: formData.fatherOccupation || '',
+                fatherDesignation: formData.fatherDesignation || '',
+                fatherReligion: Number(formData.fatherReligionId ?? 0) || 0,
+                fatherCaste: Number(formData.fatherCasteId ?? 0) || 0,
+                fatherSubCaste: formData.fatherSubCaste || '',
+
+                fatherAnnualIncome: Number(formData.fatherAnnualIncome ?? 0) || 0,
+                fatherCasteCertificateNo: formData.fatherCasteCertificateNo || '',
+                fatherPAN: formData.fatherPAN || '',
+                fatherSelfEmployedFlg: !!formData.fatherSelfEmployedFlg,
+
+                // Mother
+                motherAliveFlag: !!(formData.motherAliveFlag ?? false),
+                motherName: formData.motherName || '',
+                motherSurname: formData.motherSurname || '',
+                motherAadharNo: formData.motherAadharNo || '',
+                motherMaritalStatus: formData.motherMaritalStatus ?? null,
+                motherMobileNumbers: Array.isArray(formData.motherMobileNumbers)
+                    ? formData.motherMobileNumbers.map((m: any) => ({ mobileNo: String(m.mobileNo ?? m.amsT_MobileNo ?? m) }))
+                    : formData.motherMobileNumbers
+                      ? [{ mobileNo: String(formData.motherMobileNumbers) }]
+                      : [],
+                motherEmailIds: Array.isArray(formData.motherEmailIds)
+                    ? formData.motherEmailIds.map((e: any) => ({ emailId: String(e.emailId ?? e.amsT_emailId ?? e) }))
+                    : formData.motherEmailIds
+                      ? [{ emailId: String(formData.motherEmailIds) }]
+                      : [],
+                motherHomePhone: formData.motherHomePhone || '',
+                motherNationality: Number(formData.motherNationality ?? 0) || 0,
+                motherQualification: formData.motherQualification || '',
+                motherPassingYear: formData.motherPassingYear || '',
+                motherPresentAddress: {
+                    address: formData.motherPresentAddress?.address || '',
+                    city: formData.motherPresentAddress?.city || '',
+                    state: Number(formData.motherPresentAddress?.state ?? 0) || 0,
+                    po: formData.motherPresentAddress?.po || '',
+                    pincode: formData.motherPresentAddress?.pincode || '',
+                    ps: formData.motherPresentAddress?.ps || ''
+                },
+                motherPermanentAddress: {
+                    address: formData.motherPermanentAddress?.address || '',
+                    city: formData.motherPermanentAddress?.city || '',
+                    state: Number(formData.motherPermanentAddress?.state ?? 0) || 0,
+                    po: formData.motherPermanentAddress?.po || '',
+                    pincode: formData.motherPermanentAddress?.pincode || '',
+                    ps: formData.motherPermanentAddress?.ps || ''
+                },
+                motherOfficeAddress: formData.motherOfficeAddress || '',
+                motherOfficePhone: formData.motherOfficePhone || '',
+                motherOccupation: formData.motherOccupation || '',
+                motherDesignation: formData.motherDesignation || '',
+                motherReligion: Number(formData.motherReligionId ?? 0) || 0,
+                motherCaste: Number(formData.motherCasteId ?? 0) || 0,
+                motherSubCaste: formData.motherSubCaste || '',
+                motherMonthlyIncome: 0,
+                motherAnnualIncome: Number(formData.motherAnnualIncome ?? 0) || 0,
+                motherCasteCertificateNo: formData.motherCasteCertificateNo || '',
+                motherPAN: formData.motherPAN || '',
+                motherSelfEmployedFlg: !!formData.motherSelfEmployedFlg
+            };
+
+            // Call server API to save third tab
+            console.debug('[Admission] saveThirdTab payload:', payload);
+            const response = await saveThirdTabApi(payload);
+            console.debug('[Admission] saveThirdTab response:', response);
+            if (response?.success) {
+                return response;
+            }
+            throw new Error(response?.message || 'Failed to save parents data');
+        } catch (error) {
+            console.error('Error saving parents data:', error);
+            throw error;
+        }
+    };
 
     const nextStep = async () => {
-        let fieldsToValidate: any[] = [];
+        try {
+            console.debug('[Admission] nextStep invoked, currentStep=', currentStep);
+        } catch (e) {
+            console.error('nextStep logging failed', e);
+        }
+        try {
+            let fieldsToValidate: any[] = [];
 
-        if (currentStep === 1) {
-            fieldsToValidate = [
-                'pasR_FirstName',
-                'pasR_MiddleName',
-                'pasR_LastName',
-                'pasR_RegistrationNo',
-                'pasR_DateOfAdmission',
-                'pasR_AdmissionNo',
-                'pasR_DOB',
-                'pasR_Caste',
-                'pasR_FeeConcessionType',
-                'pasR_MobileNo',
-                'pasR_BirthPlace',
-                'pasR_EMISCardNo',
-                'pasR_ECSBankAccountNo',
-                'pasR_ECSBankName',
-                'pasR_ECSIFSCCode',
-                'pasR_ECSBankAccountHolderName',
-                'pasR_ECSAccountType',
-                'pasR_ECSMICRCode',
-                'pasR_ECSBranchName',
-                'religion_Id',
-                'caste_Id',
-                'pasR_Sex',
-                // 'asmcL_Id',
-                'pasR_emailId',
-                'pasR_Nationality',
-                'pasR_MotherTongue',
-                'pasR_TransportReqdFlag'
-            ];
+            if (currentStep === 1) {
+                fieldsToValidate = [
+                    'asmaY_Year',
+                    'amsT_FirstName',
+                    'amsT_MiddleName',
+                    'amsT_LastName',
+                    'amsT_RegistrationNo',
+                    'amsT_AdmNo',
+                    'asmcL_Id',
+                    'amsT_Date',
+                    'amsT_DOB',
+                    'amsT_ReligionId',
+                    'amsT_CasteCategoryId',
+                    'imC_Id',
+                    'amsT_Sex',
+                    'amsT_PerCountry',
+                    'amsT_MobileNo',
+                    'studentCategoryId',
+                    'feeConcessionType'
+                ];
+                // If EMIS checkbox is set, ensure the EMIS field is validated
+                if (Number(getValues('isEmisBpl') ?? 0) === 1) {
+                    fieldsToValidate.push('amsT_EmisBplNo');
+                }
 
-            if (!studentPhoto?.pasR_Student_Pic_Path) {
-                toast.error('Please upload student photo');
+                // If ECS flag is set, ensure ECS bank detail fields are validated
+                if (Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
+                    fieldsToValidate.push(
+                        'asecS_AccountNo',
+                        'asecS_AccountHolderName',
+                        'asecS_BankName',
+                        'asecS_AccountType',
+                        'asecS_MICRNo',
+                        'asecS_Branch'
+                    );
+                }
+
+                const candidateFields = ['amsT_MobileNo', 'amsT_MobileNo'];
+                let rawVal = '';
+                for (const f of candidateFields) {
+                    const v = watch(f as any);
+                    if (v !== undefined && v !== null && String(v).trim() !== '') {
+                        rawVal = String(v);
+                        break;
+                    }
+                }
+                // Fallback to phoneValues if the form field is empty (PhoneInput may store value there)
+                if (!rawVal || rawVal === '') {
+                    for (const f of candidateFields) {
+                        if (phoneValues[f]) {
+                            rawVal = String(phoneValues[f]);
+                            break;
+                        }
+                    }
+                }
+            } else if (currentStep === 2) {
+                fieldsToValidate = [
+                    'amsT_ConStreet',
+                    'amsT_ConArea',
+                    'amsT_ConCountry',
+                    'amsT_ConState',
+                    'amsT_ConCity',
+                    // include pincode fields so their validation runs when moving to next step
+                    'amsT_ConPincode',
+                    'amsT_PerStreet',
+                    'amsT_PerArea',
+                    'amsT_PerCountry',
+                    'amsT_PerState',
+                    'amsT_PerCity'
+                ];
+                // Only validate Permanent pincode when it's not marked same as residential
+                if (!sameAsResidential) {
+                    fieldsToValidate.push('amsT_PerPincode');
+                }
+            } else if (currentStep === 3) {
+                fieldsToValidate = [];
+
+                if (fatherAlive) {
+                    fieldsToValidate.push(
+                        'fatherName',
+                        'fatherMaritalStatus',
+                        'fatherNationality',
+                        'fatherReligionId',
+                        'fatherCasteId',
+                        'fatherSubCaste'
+                    );
+                }
+
+                if (motherAlive) {
+                    fieldsToValidate.push(
+                        'motherName',
+                        'motherMaritalStatus',
+                        'motherNationality',
+                        'motherReligionId',
+                        'motherCasteId',
+                        'motherSubCaste'
+                    );
+                }
+
+                // Validate optional phone fields if they have values
+                const phoneFieldsToCheck = [
+                    { name: 'pasR_FatherMobleNo', label: 'Father mobile number' },
+                    { name: 'pasR_MotherMobleNo', label: 'Mother mobile number' },
+                    { name: 'pasR_AltContactNo', label: 'Alternate contact number' }
+                ];
+                for (const phoneField of phoneFieldsToCheck) {
+                    const rawVal = String(watch(phoneField.name as any) ?? '');
+                    const info = phoneExpectedInfo[phoneField.name];
+                    if (rawVal && rawVal !== '' && info?.expected) {
+                        const digits = rawVal.replace(/\D/g, '');
+                        if (digits.length !== info.expected) {
+                            toast.error(`${phoneField.label} must be ${info.expected} digits`);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            const isValid = await trigger(fieldsToValidate.length > 0 ? fieldsToValidate : []);
+
+            if (currentStep === 3) {
+                if (!isValid) {
+                    setShowStep3Errors(true);
+                    return;
+                }
+                setShowStep3Errors(false);
+                // Get selected religion details
+                const selectedReligionId = watch('motherReligionId');
+                const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
+                const _isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+                // Validate document uploads with conditional logic for Baptism Certificate
+            }
+
+            // console.log('[Admission] fieldsToValidate (count):', fieldsToValidate.length);
+            // console.log('[Admission] calling trigger with above fields');
+            // const isValid = await trigger(fieldsToValidate as any);
+            // console.log('[Admission] trigger result:', isValid);
+            // console.log('[Admission] post-validation currentStep:', currentStep);
+            // console.log('[Admission] post-validation numeric currentStep:', Number(currentStep));
+            // console.log('[Admission] branch checks:', {
+            //     isValid,
+            //     step1: Number(currentStep) === 1,
+            //     step2: Number(currentStep) === 2,
+            //     step3: Number(currentStep) === 3,
+            //     step4: Number(currentStep) === 4,
+            //     step5: Number(currentStep) === 5
+            // });
+
+            // console.log('[Admission] evaluating step handlers');
+
+            // Immediate handler for Step 3: call saveThirdTab early so we reliably trigger the API
+            if (isValid && Number(currentStep) === 3) {
+                // console.log('[Admission] immediate Step3 handler (pre): about to call saveThirdTab');
+                try {
+                    const res = await saveThirdTab();
+                    // console.log('[Admission] immediate saveThirdTab response:', res);
+                    if (!res?.success) {
+                        toast.error(res?.message || 'Failed to save step 3 (immediate)');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('[Admission] immediate saveThirdTab threw error:', err);
+                    toast.error('Failed to save step 3');
+                    return;
+                }
+
+                // Also attempt minimal auto-save for step 4 when entering it
+                try {
+                    const minimalPayloadForFourth: any = {
+                        amsT_Id: 0,
+                        mI_Id: 0,
+                        userId: 0,
+                        message: '',
+                        returnVal: true
+                    };
+                    console.debug('[Admission] immediate auto saveFourthTab payload:', minimalPayloadForFourth);
+                    const autoRes = await saveFourthTabApi(minimalPayloadForFourth);
+                    console.debug('[Admission] immediate auto saveFourthTab response:', autoRes);
+                    if (!autoRes?.success) {
+                        toast.error(autoRes?.message || 'Failed to save step 4');
+                        return;
+                    }
+                } catch (err) {
+                    console.error('[Admission] immediate auto saveFourthTab error:', err);
+                    toast.error('Failed to save step 4');
+                    return;
+                }
+
+                setHandledStep3(true);
+                setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                 return;
             }
-            const fieldName = 'pasR_MobileNo';
-            const info = phoneExpectedInfo[fieldName];
-            const rawVal = String(watch(fieldName) ?? '');
-            if (!rawVal || rawVal === '') {
-                toast.error('Mobile number is required');
-                return;
-            }
-            if (info?.expected) {
-                const digits = rawVal.replace(/\D/g, '');
-                if (digits.length !== info.expected) {
-                    toast.error(`Mobile number must be exactly ${info.expected} digits`);
+
+            // If validation passed for Step 5, persist Step 5 to server
+            if (isValid && Number(currentStep) === 5) {
+                // console.log('[Admission] saving step 5 (valid branch)');
+                try {
+                    const formData = getValues();
+
+                    const payload = {
+                        amsT_Id: 0,
+                        mI_Id: 30,
+                        userId: 21602,
+                        amsT_Studentillness: formData.amsT_Studentillness || '',
+                        amsT_MedicalComplaints: formData.amsT_MedicalComplaints || '',
+                        amsT_AdmissionReason: formData.amsT_AdmissionReason || '',
+                        amsT_OtherResidential_Addr: formData.amsT_OtherResidential_Addr || '',
+                        amsT_SchoolDISECode: formData.amsT_SchoolDISECode || '',
+                        amsT_FirstLanguage: formData.amsT_FirstLanguage || '',
+                        amsT_Thirdlanguage: formData.amsT_Thirdlanguage || '',
+                        amsT_Illnessdetails: formData.amsT_Illnessdetails || '',
+                        amsT_OtherInformations: formData.amsT_OtherInformations || '',
+                        amsT_ExtraActivity: formData.amsT_ExtraActivity || '',
+                        amsT_Stayingwith: formData.amsT_Stayingwith || '',
+                        amsT_OtherPermanentAddr: formData.amsT_OtherPermanentAddr || '',
+                        amsT_Domicile: formData.amsT_Domicile || '',
+                        amsT_SecondLanguage: formData.amsT_SecondLanguage || '',
+                        amsT_TransferrableJobFlg: !!formData.amsT_TransferrableJobFlg,
+                        amsT_VaccinatedFlg: !!formData.amsT_VaccinatedFlg,
+                        amsT_Tcflag: !!formData.amsT_Tcflag
+                    };
+
+                    // console.log('[Admission] saveFifthTab payload (auto):', payload);
+                    const res = await saveFifthTabApi(payload);
+                    // console.log('[Admission] saveFifthTab response (auto):', res);
+                    if (!res?.success) {
+                        console.error('Failed saving step 5 response (auto):', res);
+                        toast.error(res?.message || 'Failed to save step 5');
+                        return;
+                    }
+                    toast.success('Step 5 saved');
+                    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    return;
+                } catch (error) {
+                    console.error('Failed saving step 5 (auto)', error);
+                    toast.error('Failed to save step 5');
                     return;
                 }
             }
-        } else if (currentStep === 2) {
-            fieldsToValidate = [
-                'pasR_ConStreet',
-                'pasR_ConArea',
-                'pasR_ConCountry',
-                'pasR_ConState',
-                'pasR_ConCity',
-                // include pincode fields so their validation runs when moving to next step
-                'pasR_ConPincode',
-                'pasR_PerStreet',
-                'pasR_PerArea',
-                'pasR_PerCountry',
-                'pasR_PerState',
-                'pasR_PerCity'
-            ];
-            // Only validate Permanent pincode when it's not marked same as residential
-            if (!sameAsResidential) {
-                fieldsToValidate.push('pasR_PerPincode');
-            }
-        } else if (currentStep === 3) {
-            fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
+            // Early handler for Step 4: run save now if we're on step 4 and validation passed.
+            if (isValid && Number(currentStep) === 4) {
+                // console.log('[Admission] early Step4 handler triggered');
+                try {
+                    const formData = getValues();
 
-            if (!fatherPhoto?.pasR_FatherPhoto) {
-                toast.error('Please upload father photo');
-                return;
-            }
+                    const activities = Array.isArray(formData.activities)
+                        ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
+                        : [];
 
-            if (!motherPhoto?.pasR_MotherPhoto) {
-                toast.error('Please upload mother photo');
-                return;
+                    const sourceDetails =
+                        selectedSourceItems && selectedSourceItems.length > 0
+                            ? selectedSourceItems.map((s) => ({ sourceId: Number(s.pamS_Id) || 0, isSelected: true }))
+                            : Array.isArray(formData.sourceDetails)
+                              ? formData.sourceDetails.map((s: any) => ({ sourceId: Number(s) || 0, isSelected: true }))
+                              : [];
+
+                    const guardiansSource = formData.guardian || [];
+                    const guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
+                        guardianName: g.guardianName || g.name || '',
+                        guardianAddress: g.guardianAddress || g.address || '',
+                        guardianEmail: g.guardianEmail || g.email || '',
+                        guardianPhone: g.guardianPhone || g.phone || ''
+                    }));
+
+                    const siblingsSource = formData.siblings || [];
+                    const siblingsList = (Array.isArray(siblingsSource) ? siblingsSource : []).map((s: any) => ({
+                        name: s.pasrS_SiblingsName || s.name || s.siblingName || '',
+                        classId: Number(s.pasrS_SiblingsClass || s.classId || s.pasrS_SiblingsClassId) || 0,
+                        relation: s.relation || s.relationShip || ''
+                    }));
+
+                    const previousSchoolSource = formData.previousSchools || [];
+                    const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
+                        schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
+                        schoolTypeId: Number(school.schoolTypeId || school.pasrpS_SchoolTypeId) || 0,
+                        classId: Number(school.pasrpS_PreviousClass || school.classId) || 0,
+                        percentage: school.pasrpS_PreviousPer || school.percentage || '',
+                        grade: school.pasrpS_PreviousGrade || school.grade || '',
+                        passedYear: Number(school.pasrpS_LeftYear || school.passedYear) || 0,
+                        countryId: Number(school.countryId) || 0,
+                        stateId: Number(school.stateId) || 0,
+                        address: school.pasrpS_Address || school.address || '',
+                        leftReason: school.pasrpS_LeftReason || school.leftReason || '',
+                        medium: school.medium || '',
+                        tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
+                        tcDate: school.pasrpS_TcDate || school.tcDate || ''
+                    }));
+
+                    const payload: any = {
+                        amsT_Id: 0,
+                        mI_Id: 0,
+                        userId: 0,
+
+                        activities: activities,
+                        achievements: formData.achievements || '',
+                        sourceDetails: sourceDetails,
+                        guardian: guardians,
+                        siblings: siblingsList,
+                        previousSchools: previousSchools,
+
+                        amsT_PlaceOfBirthCountry: Number(formData.amsT_PlaceOfBirthCountry ?? 0) || 0,
+                        amsT_PlaceOfBirthState: Number(formData.amsT_PlaceOfBirthState ?? 0) || 0,
+                        amsT_Distirct: formData.amsT_Distirct || '',
+                        amsT_Taluk: formData.amsT_Taluk || '',
+                        amsT_Town: formData.amsT_Town || '',
+                        amsT_Village: formData.amsT_Village || '',
+                        amsT_NoOfSiblings: Number(formData.amsT_NoOfSiblings ?? 0) || 0,
+                        amsT_NoOfSiblingsSchool: Number(formData.amsT_NoOfSiblingsSchool ?? 0) || 0,
+                        amsT_Noofbrothers: Number(formData.amsT_Noofbrothers ?? 0) || 0,
+                        amsT_NoOfElderBrothers: Number(formData.amsT_NoOfElderBrothers ?? 0) || 0,
+                        amsT_NoOfYoungerBrothers: Number(formData.amsT_NoOfYoungerBrothers ?? 0) || 0,
+                        amsT_Noofsisters: Number(formData.amsT_Noofsisters ?? 0) || 0,
+                        amsT_NoOfElderSisters: Number(formData.amsT_NoOfElderSisters ?? 0) || 0,
+                        amsT_NoOfYoungerSisters: Number(formData.amsT_NoOfYoungerSisters ?? 0) || 0,
+
+                        message: '',
+                        returnVal: true
+                    };
+
+                    // console.log('[Admission] early saveFourthTab payload:', payload);
+                    const res = await saveFourthTabApi(payload);
+                    // console.log('[Admission] early saveFourthTab response:', res);
+                    if (!res?.success) {
+                        toast.error(res?.message || 'Failed to save step 4 (early)');
+                        return;
+                    }
+                    toast.success('Step 4 saved (early)');
+                    // console.log('[Admission] early handler incrementing step');
+                    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    return;
+                } catch (err) {
+                    console.error('[Admission] early Step4 handler error:', err);
+                    toast.error('Failed to save step 4');
+                    return;
+                }
             }
-            // Validate optional phone fields if they have values
-            const phoneFieldsToCheck = [
-                { name: 'pasR_FatherMobleNo', label: 'Father mobile number' },
-                { name: 'pasR_MotherMobleNo', label: 'Mother mobile number' },
-                { name: 'pasR_AltContactNo', label: 'Alternate contact number' }
-            ];
-            for (const phoneField of phoneFieldsToCheck) {
-                const rawVal = String(watch(phoneField.name as any) ?? '');
-                const info = phoneExpectedInfo[phoneField.name];
-                if (rawVal && rawVal !== '' && info?.expected) {
-                    const digits = rawVal.replace(/\D/g, '');
-                    if (digits.length !== info.expected) {
-                        toast.error(`${phoneField.label} must be ${info.expected} digits`);
+            // If validation passed for Step 1, run additional conditional checks then persist
+            if (isValid && Number(currentStep) === 1) {
+                // Ensure student photo exists
+                if (!studentPhoto?.amsT_Photoname) {
+                    toast.error('Please upload student photo');
+                    setCurrentStep(1);
+                    return;
+                }
+
+                // If EMIS/BPL checkbox is checked, require the EMIS/BPL/STS number
+                if (Number(getValues('isEmisBpl') ?? 0) === 1) {
+                    const emis = String(getValues('amsT_EmisBplNo') ?? '').trim();
+                    if (!emis) {
+                        toast.error('EMIS / BPL / STS No. is required');
                         return;
                     }
                 }
-            }
-        } else if (currentStep === 6) {
-            // Get selected religion details
-            const selectedReligionId = watch('religion_Id');
-            const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
-            const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
 
-            // Validate document uploads with conditional logic for Baptism Certificate
-            const mandatoryDocs =
-                preadmissionDocuments?.data?.filter((doc) => {
-                    // Check if document is mandatory by default
-                    if (doc.amsmD_FLAG) return true;
-
-                    // Make Baptism Certificate mandatory for Roman Catholic religion
-                    if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
-                        return true;
+                // If ECS flag checked, require ECS bank details
+                if (Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
+                    const requiredEcsFields = [
+                        'asecS_AccountNo',
+                        'asecS_AccountHolderName',
+                        'asecS_BankName',
+                        'asecS_AccountType',
+                        'asecS_MICRNo',
+                        'asecS_Branch'
+                    ] as const;
+                    const missing = requiredEcsFields.filter((f) => !String(getValues(f as any) ?? '').trim());
+                    if (missing.length > 0) {
+                        toast.error('Please fill all ECS account details');
+                        return;
                     }
+                }
 
-                    return false;
-                }) || [];
-
-            const missingDocs = mandatoryDocs.filter((doc) => !isDocumentUploaded(doc.amsmD_Id));
-
-            if (missingDocs.length > 0) {
-                const docNames = missingDocs.map((doc) => doc.amsmD_DocumentName).join(', ');
-                toast.error(`Please upload mandatory documents: ${docNames}`);
-                return;
+                try {
+                    const formData = getValues();
+                    const res = await saveFirstTab({ ...formData, amsT_Photoname: studentPhoto?.amsT_Photoname });
+                    console.debug('[Admission] saveFirstTab response (auto):', res);
+                    if (!res?.success) {
+                        toast.error(res?.message || 'Failed to save step 1');
+                        return;
+                    }
+                    toast.success('Step 1 saved');
+                    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                    return;
+                } catch (err) {
+                    console.error('[Admission] saveFirstTab error:', err);
+                    toast.error('Failed to save step 1');
+                    return;
+                }
             }
-        }
 
-        const isValid = await trigger(fieldsToValidate as any);
-        // Additional client-side checks for pincode length because schema is static
-        if (isValid) {
-            if (currentStep === 2) {
-                const conPincodeVal = String(watch('pasR_ConPincode') ?? '');
-                // if conZipLength is defined and user has entered a value, enforce exact length
+            // If validation passed for Step 2, persist Step 2 to server (ensure schema validated)
+            if (isValid && Number(currentStep) === 2) {
+                // Additional client-side pincode checks before save
+                const conPincodeVal = String(watch('amsT_ConPincode') ?? '');
                 if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
-                    setError('pasR_ConPincode', {
+                    setError('amsT_ConPincode', {
                         type: 'manual',
                         message: `Pin code must be ${conZipLength} digits`
                     });
@@ -402,18 +1070,341 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 }
 
                 if (!sameAsResidential) {
-                    const perPincodeVal = String(watch('pasR_PerPincode') ?? '');
+                    const perPincodeVal = String(watch('amsT_PerPincode') ?? '');
                     if (perZipLength && perPincodeVal !== '' && perPincodeVal.length !== perZipLength) {
-                        setError('pasR_PerPincode', {
+                        setError('amsT_PerPincode', {
                             type: 'manual',
                             message: `Pin code must be ${perZipLength} digits`
                         });
                         return;
                     }
                 }
-            }
 
-            setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                try {
+                    const values = getValues();
+
+                    const pick = (candidates: string[]) => {
+                        for (const k of candidates) {
+                            const v = values[k as keyof typeof values];
+                            if (v !== undefined && v !== null && v !== '') return v;
+                        }
+                        return '';
+                    };
+
+                    const payload: any = {
+                        userid: 0,
+                        amsT_Id: 0,
+                        mI_Id: 0,
+
+                        // Permanent address
+                        amsT_PerStreet: pick(['amsT_PerStreet']) || '',
+                        amsT_PerArea: pick(['amsT_PerArea']) || '',
+                        amsT_PerCity: pick(['amsT_PerCity']) || '',
+                        amsT_PerState: Number(pick(['amsT_PerState']) ?? 0) || 0,
+                        amsT_PerDistrict: Number(pick(['amsT_PerDistrict']) ?? 0) || 0,
+                        amsT_PerCountry: Number(pick(['amsT_PerCountry']) ?? 0) || 0,
+                        amsT_PerPincode: Number(pick(['amsT_PerPincode']) ?? 0) || 0,
+
+                        // Residential address
+                        amsT_ConStreet: pick(['amsT_ConStreet']) || '',
+                        amsT_ConArea: pick(['amsT_ConArea']) || '',
+                        amsT_ConCity: pick(['amsT_ConCity']) || '',
+                        amsT_ConState: Number(pick(['amsT_ConState']) ?? 0) || 0,
+                        amsT_ConDistrict: Number(pick(['amsT_ConDistrict']) ?? 0) || 0,
+                        amsT_ConCountry: Number(pick(['amsT_ConCountry']) ?? 0) || 0,
+                        amsT_ConPincode: Number(pick(['amsT_ConPincode']) ?? 0) || 0,
+
+                        message: '',
+                        returnval: true
+                    };
+
+                    console.debug('[Admission] saveSecondTab payload:', payload);
+                    const res = await saveSecondTabApi(payload);
+                    console.debug('[Admission] saveSecondTab response:', res);
+                    if (!res?.success) {
+                        toast.error(res?.message || 'Failed to save step 2');
+                        return;
+                    }
+                    toast.success('Step 2 saved');
+                } catch (error) {
+                    console.error('Failed saving step 2', error);
+                    toast.error('Failed to save step 2');
+                    return;
+                }
+            }
+            if (!isValid && Number(currentStep) !== 4) {
+                console.debug('[Admission] Validation failed. errors:', errors);
+                // Build a short friendly message for the user from up to 5 errors
+                try {
+                    // Show a single generic message instead of per-field details
+                    toast.error('Please fill required fields');
+                } catch (e) {
+                    console.debug('Error showing generic validation toast', e);
+                }
+
+                // Additional client-side checks for pincode length because schema is static
+                if (isValid) {
+                    if (currentStep === 1) {
+                        console.debug('[Admission] Step1 values:', {
+                            amsT_FirstName: watch('amsT_FirstName'),
+                            amsT_LastName: watch('amsT_LastName'),
+                            amsT_MobileNo: watch('amsT_MobileNo'),
+                            amsT_emailId: watch('amsT_emailId'),
+                            studentPhoto: studentPhoto?.amsT_Photoname
+                        });
+
+                        // If minimal info present, still attempt to save to server and advance
+                        const first = String(watch('amsT_FirstName') ?? '').trim();
+                        const last = String(watch('amsT_LastName') ?? '').trim();
+                        const mobile = String(watch('amsT_MobileNo') ?? phoneValues.amsT_MobileNo ?? watch('amsT_MobileNo') ?? '').trim();
+                        const email = String(watch('amsT_emailId') ?? '').trim();
+                        const photo = studentPhoto?.amsT_Photoname;
+
+                        if (first && last && (mobile || email) && photo) {
+                            toast('Saving minimal Step 1 data despite validation warnings');
+                            try {
+                                const formData = getValues();
+                                console.debug('[Admission] Attempting saveFirstTab despite validation', {
+                                    first,
+                                    last,
+                                    mobile,
+                                    email,
+                                    photo
+                                });
+                                const saveRes = await saveFirstTab({ ...formData, amsT_Photoname: photo });
+                                console.debug('[Admission] saveFirstTab result (forced):', saveRes);
+                                if (saveRes?.success) {
+                                    setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                                    return;
+                                }
+                                toast.error(saveRes?.message || 'Failed to save step 1');
+                                return;
+                            } catch (err) {
+                                console.error('[Admission] saveFirstTab error (forced):', err);
+                                toast.error('Failed to save step 1');
+                                return;
+                            }
+                        }
+                    }
+
+                    return;
+                }
+                if (Number(currentStep) === 2) {
+                    const conPincodeVal = String(watch('amsT_ConPincode') ?? '');
+                    // if conZipLength is defined and user has entered a value, enforce exact length
+                    if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
+                        setError('amsT_ConPincode', {
+                            type: 'manual',
+                            message: `Pin code must be ${conZipLength} digits`
+                        });
+                        return;
+                    }
+
+                    if (!sameAsResidential) {
+                        const perPincodeVal = String(watch('amsT_PerPincode') ?? '');
+                        if (perZipLength && perPincodeVal !== '' && perPincodeVal.length !== perZipLength) {
+                            setError('amsT_PerPincode', {
+                                type: 'manual',
+                                message: `Pin code must be ${perZipLength} digits`
+                            });
+                            return;
+                        }
+                    }
+                    // After client-side pincode checks, call server API for Step 2
+                    try {
+                        const values = getValues();
+
+                        const pick = (candidates: string[]) => {
+                            for (const k of candidates) {
+                                const v = values[k as keyof typeof values];
+                                if (v !== undefined && v !== null && v !== '') return v;
+                            }
+                            return '';
+                        };
+
+                        const payload: any = {
+                            userid: 0,
+                            amsT_Id: 0,
+                            mI_Id: 0,
+
+                            // Permanent address
+                            amsT_PerStreet: pick(['amsT_PerStreet']) || '',
+                            amsT_PerArea: pick(['amsT_PerArea']) || '',
+                            amsT_PerCity: pick(['amsT_PerCity']) || '',
+                            amsT_PerState: Number(pick(['amsT_PerState']) ?? 0) || 0,
+                            amsT_PerDistrict: Number(pick(['amsT_PerDistrict']) ?? 0) || 0,
+                            amsT_PerCountry: Number(pick(['amsT_PerCountry']) ?? 0) || 0,
+                            amsT_PerPincode: Number(pick(['amsT_PerPincode']) ?? 0) || 0,
+
+                            // Residential address
+                            amsT_ConStreet: pick(['amsT_ConStreet']) || '',
+                            amsT_ConArea: pick(['amsT_ConArea']) || '',
+                            amsT_ConCity: pick(['amsT_ConCity']) || '',
+                            amsT_ConState: Number(pick(['amsT_ConState']) ?? 0) || 0,
+                            amsT_ConDistrict: Number(pick(['amsT_ConDistrict']) ?? 0) || 0,
+                            amsT_ConCountry: Number(pick(['amsT_ConCountry']) ?? 0) || 0,
+                            amsT_ConPincode: Number(pick(['amsT_ConPincode']) ?? 0) || 0,
+
+                            message: '',
+                            returnval: true
+                        };
+
+                        console.debug('[Admission] saveSecondTab payload:', payload);
+                        const res = await saveSecondTabApi(payload);
+                        console.debug('[Admission] saveSecondTab response:', res);
+                        if (!res?.success) {
+                            toast.error(res?.message || 'Failed to save step 2');
+                            return;
+                        }
+                        toast.success('Step 2 saved');
+                    } catch (error) {
+                        console.error('Failed saving step 2', error);
+                        toast.error('Failed to save step 2');
+                        return;
+                    }
+                }
+                if (Number(currentStep) === 3) {
+                    // console.log('[Admission] about to call saveThirdTab, currentStep:', currentStep, 'isValid:', isValid);
+                    try {
+                        await saveThirdTab();
+                        // console.log('[Admission] saveThirdTab result:', res);
+                    } catch (error) {
+                        console.error('[Admission] saveThirdTab threw error:', error);
+                        toast.error('Failed to save step 3');
+                        return;
+                    }
+
+                    // Also initiate/save fourth tab when moving into Step 4
+                    try {
+                        const minimalPayloadForFourth: any = {
+                            amsT_Id: 0,
+                            mI_Id: 0,
+                            userId: 0,
+                            message: '',
+                            returnVal: true
+                        };
+                        console.debug('[Admission] auto saveFourthTab (entering Step 4) payload:', minimalPayloadForFourth);
+                        const autoRes = await saveFourthTabApi(minimalPayloadForFourth);
+                        console.debug('[Admission] auto saveFourthTab response:', autoRes);
+                        if (!autoRes?.success) {
+                            toast.error(autoRes?.message || 'Failed to save step 4');
+                            return;
+                        }
+                    } catch (err) {
+                        console.error('Failed auto-saving step 4 when entering it:', err);
+                        toast.error('Failed to save step 4');
+                        return;
+                    }
+                }
+
+                // console.log('[Admission] currentStep typeof:', typeof currentStep);
+
+                // console.log('[Admission] checking step-4 branch (before)');
+                if (Number(currentStep) === 4) {
+                    // console.log('[Admission] inside step-4 branch (entered)');
+                    try {
+                        const formData = getValues();
+
+                        const activities = Array.isArray(formData.activities)
+                            ? formData.activities.map((a: any) => ({ activityId: Number(a) || 0, isSelected: true }))
+                            : [];
+
+                        // Use selectedSourceItems state if present, otherwise fallback to form values
+                        const sourceDetails =
+                            selectedSourceItems && selectedSourceItems.length > 0
+                                ? selectedSourceItems.map((s) => ({ sourceId: Number(s.pamS_Id) || 0, isSelected: true }))
+                                : Array.isArray(formData.sourceDetails)
+                                  ? formData.sourceDetails.map((s: any) => ({ sourceId: Number(s) || 0, isSelected: true }))
+                                  : [];
+
+                        // Support multiple possible form field names (legacy vs current)
+                        const guardiansSource = formData.guardian || [];
+                        const guardians = (Array.isArray(guardiansSource) ? guardiansSource : []).map((g: any) => ({
+                            guardianName: g.guardianName || g.name || '',
+                            guardianAddress: g.guardianAddress || g.address || '',
+                            guardianEmail: g.guardianEmail || g.email || '',
+                            guardianPhone: g.guardianPhone || g.phone || ''
+                        }));
+
+                        const siblingsSource = formData.siblings || [];
+                        const siblingsList = (Array.isArray(siblingsSource) ? siblingsSource : []).map((s: any) => ({
+                            name: s.pasrS_SiblingsName || s.name || s.siblingName || '',
+                            classId: Number(s.pasrS_SiblingsClass || s.classId || s.pasrS_SiblingsClassId) || 0,
+                            relation: s.relation || s.relationShip || ''
+                        }));
+
+                        const previousSchoolSource = formData.previousSchools || [];
+                        const previousSchools = (Array.isArray(previousSchoolSource) ? previousSchoolSource : []).map((school: any) => ({
+                            schoolName: school.pasrpS_PrvSchoolName || school.schoolName || school.pasrS_SchoolName || '',
+                            schoolTypeId: Number(school.schoolTypeId || school.pasrpS_SchoolTypeId) || 0,
+                            classId: Number(school.pasrpS_PreviousClass || school.classId) || 0,
+                            percentage: school.pasrpS_PreviousPer || school.percentage || '',
+                            grade: school.pasrpS_PreviousGrade || school.grade || '',
+                            passedYear: Number(school.pasrpS_LeftYear || school.passedYear) || 0,
+                            countryId: Number(school.countryId) || 0,
+                            stateId: Number(school.stateId) || 0,
+                            address: school.pasrpS_Address || school.address || '',
+                            leftReason: school.pasrpS_LeftReason || school.leftReason || '',
+                            medium: school.medium || '',
+                            tcNumber: school.pasrpS_TcNo || school.tcNumber || '',
+                            tcDate: school.pasrpS_TcDate || school.tcDate || ''
+                        }));
+
+                        const payload: any = {
+                            // Hardcode these to zero per request
+                            amsT_Id: 0,
+                            mI_Id: 0,
+                            userId: 0,
+
+                            activities: activities,
+                            achievements: formData.achievements || '',
+                            sourceDetails: sourceDetails,
+                            guardian: guardians,
+                            siblings: siblingsList,
+                            previousSchools: previousSchools,
+
+                            amsT_PlaceOfBirthCountry: Number(formData.amsT_PlaceOfBirthCountry ?? 0) || 0,
+                            amsT_PlaceOfBirthState: Number(formData.amsT_PlaceOfBirthState ?? 0) || 0,
+                            amsT_Distirct: formData.amsT_Distirct || '',
+                            amsT_Taluk: formData.amsT_Taluk || '',
+                            amsT_Town: formData.amsT_Town || '',
+                            amsT_Village: formData.amsT_Village || '',
+                            amsT_NoOfSiblings: Number(formData.amsT_NoOfSiblings ?? 0) || 0,
+                            amsT_NoOfSiblingsSchool: Number(formData.amsT_NoOfSiblingsSchool ?? 0) || 0,
+                            amsT_Noofbrothers: Number(formData.amsT_Noofbrothers ?? 0) || 0,
+                            amsT_NoOfElderBrothers: Number(formData.amsT_NoOfElderBrothers ?? 0) || 0,
+                            amsT_NoOfYoungerBrothers: Number(formData.amsT_NoOfYoungerBrothers ?? 0) || 0,
+                            amsT_Noofsisters: Number(formData.amsT_Noofsisters ?? 0) || 0,
+                            amsT_NoOfElderSisters: Number(formData.amsT_NoOfElderSisters ?? 0) || 0,
+                            amsT_NoOfYoungerSisters: Number(formData.amsT_NoOfYoungerSisters ?? 0) || 0,
+
+                            message: '',
+                            returnVal: true
+                        };
+
+                        // console.log('[Admission] saveFourthTab payload:', payload);
+                        // console.log('[Admission] calling saveFourthTabApi');
+                        const res = await saveFourthTabApi(payload);
+                        // console.log('[Admission] saveFourthTabApi returned:', res);
+                        if (!res?.success) {
+                            toast.error(res?.message || 'Failed to save step 4');
+                            return;
+                        }
+                        toast.success('Step 4 saved');
+                    } catch (error) {
+                        console.error('Failed saving step 4', error);
+                        toast.error('Failed to save step 4');
+                        return;
+                    }
+                }
+                // console.log('[Admission] about to increment currentStep');
+                setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+                // console.log('[Admission] incremented currentStep request sent');
+            }
+        } catch (err) {
+            console.error('[Admission] nextStep top-level error:', err);
+            // rethrow so any callers can handle; keep logs visible
+            throw err;
         }
     };
 
@@ -446,264 +1437,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         return;
     };
 
-    // Moving forward: validate each intermediate step before advancing
-    // for (let s = currentStep; s < targetStep; s++) {
-    //     let fieldsToValidate: any[] = [];
-
-    //     if (s === 1) {
-    //         fieldsToValidate = [
-    //             'pasR_FirstName',
-    //             'pasR_MiddleName',
-
-    //             'pasR_LastName',
-    //              'pasR_DateOfAdmission',
-    //             'pasR_RegistrationNo',
-    //              'pasR_Caste',
-    //             'pasR_FeeConcessionType',
-    //             'pasR_AdmissionNo',
-    //             'pasR_DOB',
-    //             'pasR_MobileNo',
-    //             'pasR_BirthPlace',
-    //             'religion_Id',
-    //             'caste_Id',
-    //             'pasR_Sex',
-    //             'asmcL_Id',
-    // 'pasR_EMISCardNo',
-    //      'pasR_ECSBankAccountNo',
-    //    'pasR_ECSBankName',
-    //    'pasR_ECSIFSCCode',
-    //     'pasR_ECSBankAccountHolderName',
-    //    'pasR_ECSAccountType',
-    //  'pasR_ECSMICRCode',
-    //   'pasR_ECSBranchName'
-    //             'pasR_emailId',
-    //             'pasR_Nationality',
-    //             'pasR_MotherTongue',
-    //             'pasR_TransportReqdFlag'
-    //         ];
-
-    //         if (!studentPhoto?.pasR_Student_Pic_Path) {
-    //             toast.error('Please upload student photo');
-    //             setCurrentStep(1);
-    //             return;
-    //         }
-    //     } else if (s === 2) {
-    //         fieldsToValidate = [
-    //             'pasR_ConStreet',
-    //             'pasR_ConArea',
-    //             'pasR_ConCountry',
-    //             'pasR_ConState',
-    //             'pasR_ConCity',
-    //             'pasR_ConPincode',
-    //             'pasR_PerStreet',
-    //             'pasR_PerArea',
-    //             'pasR_PerCountry',
-    //             'pasR_PerState',
-    //             'pasR_PerCity'
-    //         ];
-
-    //             if (!sameAsResidential) {
-    //                 fieldsToValidate.push('pasR_PerPincode');
-    //             }
-    //         } else if (s === 3) {
-    //             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
-
-    //             if (!fatherPhoto?.pasR_FatherPhoto) {
-    //                 toast.error('Please upload father photo');
-    //                 setCurrentStep(3);
-    //                 return;
-    //             }
-
-    //             if (!motherPhoto?.pasR_MotherPhoto) {
-    //                 toast.error('Please upload mother photo');
-    //                 setCurrentStep(3);
-    //                 return;
-    //             }
-    //         } else if (s === 4) {
-    //             const selectedReligionId = watch('religion_Id');
-    //             const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
-    //             const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-    //             const mandatoryDocs =
-    //                 preadmissionDocuments?.data?.filter((doc) => {
-    //                     if (doc.amsmD_FLAG) return true;
-    //                     if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) return true;
-    //                     return false;
-    //                 }) || [];
-
-    //             const missingDocs = mandatoryDocs.filter((doc) => !isDocumentUploaded(doc.amsmD_Id));
-
-    //             if (missingDocs.length > 0) {
-    //                 const docNames = missingDocs.map((doc) => doc.amsmD_DocumentName).join(', ');
-    //                 toast.error(`Please upload mandatory documents: ${docNames}`);
-    //                 return;
-    //             }
-    //         }
-
-    //         const isValid = await trigger(fieldsToValidate as any);
-
-    //         // Additional pincode checks for step 2
-    //         if (isValid && s === 2) {
-    //             const conPincodeVal = String(watch('pasR_ConPincode') ?? '');
-    //             if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
-    //                 setError('pasR_ConPincode', {
-    //                     type: 'manual',
-    //                     message: `Pin code must be ${conZipLength} digits`
-    //                 });
-    //                 return;
-    //             }
-
-    //             if (!sameAsResidential) {
-    //                 const perPincodeVal = String(watch('pasR_PerPincode') ?? '');
-    //                 if (perZipLength && perPincodeVal !== '' && perPincodeVal.length !== perZipLength) {
-    //                     setError('pasR_PerPincode', {
-    //                         type: 'manual',
-    //                         message: `Pin code must be ${perZipLength} digits`
-    //                     });
-    //                     return;
-    //                 }
-    //             }
-    //         }
-
-    //         if (!isValid) return;
-
-    //         // Advance one step
-    //         setCurrentStep((prev) => Math.min(prev + 1, steps.length));
-    //         // wait a tick for state to update before next iteration
-    //         await new Promise((r) => setTimeout(r, 0));
-    //     }
-    // };
-
-    const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        // Add photo validation
-        if (!studentPhoto?.pasR_Student_Pic_Path) {
-            toast.error('Please upload student photo');
-            setCurrentStep(1);
-            return;
-        }
-
-        if (!fatherPhoto?.pasR_FatherPhoto) {
-            toast.error('Please upload father photo');
-            setCurrentStep(3);
-            return;
-        }
-
-        if (!motherPhoto?.pasR_MotherPhoto) {
-            toast.error('Please upload mother photo');
-            setCurrentStep(3);
-            return;
-        }
-
-        // Add baptism certificate validation for Roman Catholic
-        const selectedReligionId = watch('religion_Id');
-        const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
-        const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
-
-        if (isRomanCatholic) {
-            const baptismDoc = preadmissionDocuments?.data?.find((doc) => doc.amsmD_DocumentName === 'Baptism Certificate');
-            if (baptismDoc && !isDocumentUploaded(baptismDoc.amsmD_Id)) {
-                toast.error('Baptism Certificate is required for Roman Catholic religion');
-                setCurrentStep(6);
-                return;
-            }
-        }
-
-        if (data.pasR_UndertakingFlag === 0) {
-            toast.error('Please accept undertaking');
-            return;
-        }
-
-        try {
-            const {
-                pasR_DOB,
-                source_ids,
-                reference_ids,
-                pasR_PerState,
-                pasR_ConCountry,
-                pasR_PerCountry,
-                pasR_ConPincode,
-                pasR_PerPincode,
-                pasA_WillingToContributeFlg,
-                ...filteredData
-            } = data;
-            const payload = {
-                ...filteredData,
-                pasR_DOB: format(pasR_DOB, 'yyyy-MM-dd'),
-                pasR_Age: 0,
-                pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
-                pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
-                pasR_MotherPhoto: motherPhoto?.pasR_MotherPhoto || '',
-                PASR_PerState: pasR_PerState?.toString() ?? '',
-                PASR_ConCountry: pasR_ConCountry?.toString() ?? '',
-                PASR_PerCountry: pasR_PerCountry?.toString() ?? '',
-                PASR_ConPincode:
-                    pasR_ConPincode === undefined || pasR_ConPincode === null || pasR_ConPincode === '' ? 0 : Number(pasR_ConPincode),
-                PASR_PerPincode:
-                    pasR_PerPincode === undefined || pasR_PerPincode === null || pasR_PerPincode === '' ? 0 : Number(pasR_PerPincode),
-                selectedSourceDetails: selectedSourceItems.map((item) => ({
-                    pamS_Id: item.pamS_Id
-                })),
-                selectedRefrenceDetails: selectedReferenceItems.map((item) => ({
-                    pamR_Id: item.pamR_Id
-                })),
-                siblingsDetails: (getValues('siblingsDetails') || []).map((sibling: any) => ({
-                    pasR_Id: sibling.pasR_Id || 0,
-                    pasrS_SchoolName: sibling.pasrS_SchoolName || '',
-                    pasrS_Age: sibling.pasrS_Age || 0,
-                    pasrS_Gender: sibling.pasrS_Gender || '',
-                    pasrS_Institution: sibling.pasrS_Institution || '',
-                    pasrS_DOB: sibling.pasrS_DOB || '',
-                    verrejstatus: sibling.verrejstatus || '',
-                    pasrS_SiblingsName: sibling.pasrS_SiblingsName || '',
-                    pasrS_SiblingsClass: sibling.pasrS_SiblingsClass || '',
-                    pasrS_SiblingsAdmissionNo: sibling.pasrS_SiblingsAdmissionNo || '',
-                    pasrS_SiblingsSection: sibling.pasrS_SiblingsSection || ''
-                })),
-                // CHANGE THIS: Use array from form data
-                previousSchoolList: (data.previousSchoolDetails || []).map((school: any) => ({
-                    pasrpS_Id: 0,
-                    pasR_Id: 0,
-                    pasrpS_PrvSchoolName: school.pasrpS_PrvSchoolName || '',
-                    pasrpS_PreviousClass: school.pasrpS_PreviousClass || '',
-                    pasrpS_Board: school.pasrpS_Board || '',
-                    pasrpS_LeftYear: school.pasrpS_LeftYear || '',
-                    pasrpS_LeftReason: school.pasrpS_LeftReason || '',
-                    pasrpS_Address: school.pasrpS_Address || '',
-                    pasrpS_TcNo: '',
-                    pasrpS_PreviousPer: '',
-                    pasrpS_PreviousGrade: '',
-                    pasrpS_PreviousMarks: '',
-                    pasrpS_ConcOrScholarshipFlg: ''
-                })),
-                examSubjectDTO: [],
-                elesubsubject: [],
-                selectedDocuments: uploadedDocuments.map((doc) => ({
-                    pasrD_Id: doc.pasrD_Id,
-                    pasR_Id: doc.pasR_Id,
-                    amsmD_Id: doc.amsmD_Id,
-                    document_Path: doc.document_Path
-                })),
-                PASR_RegistrationNo: '',
-                pasR_DateOfAdmission: '',
-                pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1,
-                pasP_Id: 0
-            };
-
-            const response = await addStudentApplicationForm(payload);
-
-            if (response.success) {
-                reset();
-                refetchDropdowns();
-                handleReset();
-                onSuccess?.();
-            } else {
-                toast.error(response.message);
-            }
-        } catch (error: any) {
-            toast.error(error.message);
-        }
-    };
-
     const handleReset = () => {
         reset();
         setCurrentStep(1);
@@ -714,10 +1447,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         setUploadedDocuments([]);
         setStudentPhoto(null);
         setStudentPhotoError(null);
-        setFatherPhoto(null);
-        setFatherPhotoError(null);
-        setMotherPhoto(null);
-        setMotherPhotoError(null);
         setDocumentErrors({});
     };
 
@@ -735,34 +1464,43 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         setSelectedReferenceItems(selectedReferences);
     };
 
-    // mark handleReferenceSelection as used (prevent no-unused-local errors)
     __markUsed(handleReferenceSelection);
 
+    // Copy residential address fields intso permanent address fields when checked
     const handleSameAsResidential = (checked: boolean) => {
-        setSameAsResidential(checked);
+        setSameAsResidential(!!checked);
         if (checked) {
-            const conStreet = watch('pasR_ConStreet');
-            const conArea = watch('pasR_ConArea');
-            const conCountry = watch('pasR_ConCountry');
-            const conState = watch('pasR_ConState');
-            const conCity = watch('pasR_ConCity');
-            const conPincode = watch('pasR_ConPincode');
+            // Read residential values and copy to permanent fields
+            const street = getValues('amsT_ConStreet') ?? '';
+            const area = getValues('amsT_ConArea') ?? '';
+            const country = getValues('amsT_ConCountry') ?? '';
+            const state = getValues('amsT_ConState');
+            const city = getValues('amsT_ConCity') ?? '';
+            const pincode = getValues('amsT_ConPincode');
 
-            setValue('pasR_PerStreet', conStreet);
-            setValue('pasR_PerArea', conArea);
-            setValue('pasR_PerCountry', conCountry);
-            setValue('pasR_PerState', conState);
-            setValue('pasR_PerCity', conCity);
+            setValue('amsT_PerStreet', street);
+            setValue('amsT_PerArea', area);
+            setValue('amsT_PerCountry', country);
+            setValue('amsT_PerState', state ?? undefined);
+            setValue('amsT_PerCity', city);
+            setValue('amsT_PerPincode', pincode ?? undefined);
 
-            if (perZipLength && typeof conPincode === 'string') {
-                setValue('pasR_PerPincode', conPincode.slice(0, perZipLength));
-            } else if (perZipLength && typeof conPincode === 'number') {
-                setValue('pasR_PerPincode', String(conPincode).slice(0, perZipLength));
-            } else {
-                setValue('pasR_PerPincode', conPincode);
-            }
+            // Trigger validation for permanent address fields so errors (if any) display
+            trigger(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
+        } else {
+            // Clear permanent address fields when unchecked
+            setValue('amsT_PerStreet', '');
+            setValue('amsT_PerArea', '');
+            setValue('amsT_PerCountry', '');
+            setValue('amsT_PerState', 0);
+            setValue('amsT_PerCity', '');
+            setValue('amsT_PerPincode', '');
+
+            // Clear any validation errors on permanent fields
+            clearErrors(['amsT_PerStreet', 'amsT_PerArea', 'amsT_PerCountry', 'amsT_PerState', 'amsT_PerCity', 'amsT_PerPincode']);
         }
     };
+
     const getExpectedPhoneLength = (countryData: any): number | undefined => {
         if (!countryData) return undefined;
         const format = countryData?.format;
@@ -825,33 +1563,64 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         trigger(fieldName as any);
     };
 
-    const addSibling = () => {
-        appendSibling({
-            pasR_Id: 0,
-            pasrS_SchoolName: '',
-            pasrS_Age: 0,
-            pasrS_Gender: '',
-            pasrS_Institution: '',
-            pasrS_DOB: '',
-            verrejstatus: '',
-            pasrS_SiblingsName: '',
-            pasrS_SiblingsClass: '',
-            pasrS_SiblingsAdmissionNo: '',
-            pasrS_SiblingsSection: ''
-        });
-    };
+    // initialize at least one mobile entry so UI remains the same
+    useEffect(() => {
+        if (mobileFields.length === 0) {
+            const initial = String(watch('amsT_MobileNo') ?? '') || '';
+            appendMobile({ amsT_MobileNo: initial, amstsmS_CountryCode: '' });
+            // ensure amsT_MobileNo reflects the first array entry
+            if (initial) setValue('amsT_MobileNo', initial);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const addPreviousSchool = () => {
         appendPreviousSchool({
-            pasrpS_PrvSchoolName: '',
-            pasrpS_PreviousClass: '',
-            pasrpS_Board: '',
-            pasrpS_LeftYear: '',
-            pasrpS_LeftReason: '',
-            pasrpS_Address: ''
+            schoolName: '',
+            classId: 0,
+            schoolTypeId: 0,
+            percentage: '',
+            grade: '',
+            passedYear: 0,
+            countryId: 0,
+            stateId: 0,
+            address: '',
+            leftReason: '',
+            medium: '',
+            tcNumber: '',
+            tcDate: new Date()
+        });
+    };
+    // --- Guardian FieldArray ---
+    const {
+        fields: guardianFields,
+        append: appendGuardian,
+        remove: removeGuardianField
+    } = useFieldArray({
+        control,
+        name: 'guardian'
+    });
+
+    // --- Sibling FieldArray ---
+    const {
+        fields: siblingFields,
+        append: appendSibling,
+        remove: removeSiblingField
+    } = useFieldArray({
+        control,
+        name: 'siblings'
+    });
+
+    // Add Sibling
+    const addSibling = () => {
+        appendSibling({
+            name: '',
+            classId: 0,
+            relation: ''
         });
     };
 
+    // Add Guardian
     const addGuardian = () => {
         appendGuardian({
             guardianName: '',
@@ -860,11 +1629,44 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         });
     };
 
-    // Guardian management functions removed - useFieldArray not defined for guardians
-
+    // Prevent deleting first sibling
     const removeSibling = (index: number) => {
-        remove(index);
+        if (index === 0) return;
+        removeSiblingField(index);
     };
+
+    // Prevent deleting first guardian
+    const removeGuardian = (index: number) => {
+        if (index === 0) return;
+        removeGuardianField(index);
+    };
+
+    // ALWAYS KEEP ONE ENTRY OPEN
+    useEffect(() => {
+        if (guardianFields.length === 0) addGuardian();
+        if (siblingFields.length === 0) addSibling();
+    }, []);
+
+    // Ensure there's always at least one Previous School entry and keep section open
+    useEffect(() => {
+        if (previousSchoolFields.length === 0) {
+            appendPreviousSchool({
+                schoolName: '',
+                classId: 0,
+                schoolTypeId: 0,
+                percentage: '',
+                grade: '',
+                passedYear: 0,
+                countryId: 0,
+                stateId: 0,
+                address: '',
+                leftReason: '',
+                medium: '',
+                tcNumber: '',
+                tcDate: null
+            });
+        }
+    }, [previousSchoolFields.length, appendPreviousSchool]);
 
     // const updatePreviousSchool = (field: string, value: string) => {
     //     setPreviousSchool({ ...previousSchool, [field]: value });
@@ -988,7 +1790,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 return;
             }
 
-            setStudentPhoto({ pasR_Student_Pic_Path: '', isUploading: true });
+            setStudentPhoto({ amsT_Photoname: '', isUploading: true });
             setStudentPhotoError(null);
 
             const formData = new FormData();
@@ -999,7 +1801,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             if (response.success && response.data) {
                 setStudentPhoto({
-                    pasR_Student_Pic_Path: response.data as string,
+                    amsT_Photoname: response.data as string,
                     isUploading: false
                 });
                 toast.success('Student photo uploaded successfully');
@@ -1016,10 +1818,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     };
 
     const handleStudentPhotoDelete = async () => {
-        if (!studentPhoto?.pasR_Student_Pic_Path) return;
+        if (!studentPhoto?.amsT_Photoname) return;
 
         try {
-            const response = await deleteDocument(studentPhoto.pasR_Student_Pic_Path);
+            const response = await deleteDocument(studentPhoto.amsT_Photoname);
             if (response.success) {
                 setStudentPhoto(null);
                 toast.success('Student photo deleted successfully');
@@ -1039,120 +1841,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
     };
 
-    const handleFatherPhotoUpload = async (file: File) => {
-        try {
-            // Validate file type
-            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
-            if (!allowedFormats.includes(file.type)) {
-                toast.error('Only PNG, JPG, and JPEG formats are allowed');
-                return;
-            }
-            // Restrict photo size to 5MB
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error('Photo size should not exceed 5MB');
-                return;
-            }
-
-            setFatherPhoto({ pasR_FatherPhoto: '', isUploading: true });
-            setFatherPhotoError(null);
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_student_photo');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setFatherPhoto({
-                    pasR_FatherPhoto: response.data as string,
-                    isUploading: false
-                });
-                toast.success('Father photo uploaded successfully');
-            } else {
-                throw new Error(response.message || 'Upload failed');
-            }
-        } catch (error: any) {
-            console.error('Upload error:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
-            setFatherPhotoError(errorMessage);
-            setFatherPhoto(null);
-            toast.error(`Failed to upload photo: ${errorMessage}`);
-        }
-    };
-
-    const handleFatherPhotoDelete = async () => {
-        if (!fatherPhoto?.pasR_FatherPhoto) return;
-
-        try {
-            const response = await deleteDocument(fatherPhoto.pasR_FatherPhoto);
-            if (response.success) {
-                setFatherPhoto(null);
-                toast.success('Father photo deleted successfully');
-            } else {
-                throw new Error(response.message || 'Delete failed');
-            }
-        } catch (_error: any) {
-            toast.error('Failed to delete photo');
-        }
-    };
-
-    const handleMotherPhotoUpload = async (file: File) => {
-        try {
-            // Validate file type
-            const allowedFormats = ['image/jpeg', 'image/jpg', 'image/png'];
-            if (!allowedFormats.includes(file.type)) {
-                toast.error('Only PNG, JPG, and JPEG formats are allowed');
-                return;
-            }
-            // Restrict photo size to 5MB
-            if (file.size > 5 * 1024 * 1024) {
-                toast.error('Photo size should not exceed 5MB');
-                return;
-            }
-
-            setMotherPhoto({ pasR_MotherPhoto: '', isUploading: true });
-            setMotherPhotoError(null);
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('SubContainerName', 'preadmission_student_photo');
-
-            const response = await uploadDocument(formData);
-
-            if (response.success && response.data) {
-                setMotherPhoto({
-                    pasR_MotherPhoto: response.data as string,
-                    isUploading: false
-                });
-                toast.success('Mother photo uploaded successfully');
-            } else {
-                throw new Error(response.message || 'Upload failed');
-            }
-        } catch (error: any) {
-            console.error('Upload error:', error);
-            const errorMessage = error?.response?.data?.message || error?.message || 'Upload failed';
-            setMotherPhotoError(errorMessage);
-            setMotherPhoto(null);
-            toast.error(`Failed to upload photo: ${errorMessage}`);
-        }
-    };
-
-    const handleMotherPhotoDelete = async () => {
-        if (!motherPhoto?.pasR_MotherPhoto) return;
-
-        try {
-            const response = await deleteDocument(motherPhoto.pasR_MotherPhoto);
-            if (response.success) {
-                setMotherPhoto(null);
-                toast.success('Mother photo deleted successfully');
-            } else {
-                throw new Error(response.message || 'Delete failed');
-            }
-        } catch (_error: any) {
-            toast.error('Failed to delete photo');
-        }
-    };
-
     // derive zip/pincode length allowed from selected country (useMemo to wait for data)
     const conCountryObj = useMemo(() => {
         if (!country?.data || conConuntryId === undefined || conConuntryId === null || conConuntryId === '') return undefined;
@@ -1167,16 +1855,87 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const conZipLength: number | undefined = conCountryObj?.ivrmmC_ZipNoLength ?? undefined;
     const perZipLength: number | undefined = perCountryObj?.ivrmmC_ZipNoLength ?? undefined;
 
-    // When the selected country changes, reset the corresponding pincode field
+    // derive father/mother country objects & zip lengths from their nationality selects
+    const fatherCountryObj = useMemo(() => {
+        if (!country?.data || !fatherPresentCountryId) return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(fatherPresentCountryId));
+    }, [country?.data, fatherPresentCountryId]);
+
+    const fatherZipLength: number | undefined = fatherCountryObj?.ivrmmC_ZipNoLength ?? undefined;
+
+    const motherCountryObj = useMemo(() => {
+        if (!country?.data || !motherPresentCountryId) return undefined;
+        return country.data.find((c: any) => String(c.ivrmmC_Id) === String(motherPresentCountryId));
+    }, [country?.data, motherPresentCountryId]);
+
+    const motherZipLength: number | undefined = motherCountryObj?.ivrmmC_ZipNoLength ?? undefined;
+
     useEffect(() => {
-        // clear residential pincode when residential country changes
-        setValue('pasR_ConPincode', '');
+        setValue('amsT_ConPincode', '');
     }, [conConuntryId, setValue]);
 
     useEffect(() => {
-        // clear permanent pincode when permanent country changes
-        setValue('pasR_PerPincode', '');
-    }, [perConuntryId, setValue]);
+        if (!sameAsResidential) {
+            setValue('amsT_PerPincode', '');
+        }
+    }, [perConuntryId, setValue, sameAsResidential]);
+
+    useEffect(() => {
+        setValue('asmS_Id', 0);
+    }, [classId, setValue]);
+
+    const onSubmit = async (_formData: FormFields) => {
+        try {
+            // Ensure mandatory documents are uploaded
+            if (preadmissionDocuments?.data && preadmissionDocuments.data.length > 0) {
+                const mandatory = preadmissionDocuments.data.filter((d: any) => d.amsmD_FLAG);
+                const missing = mandatory.filter((d: any) => !isDocumentUploaded(d.amsmD_Id));
+                if (missing.length > 0) {
+                    toast.error('Please upload all mandatory documents before submitting');
+                    setCurrentStep(6);
+                    return;
+                }
+            }
+
+            const values = getValues();
+
+            const payload: any = {
+                amsT_Id: 0,
+                mI_Id: 0,
+                userId: 0,
+                hostelRequired: Boolean(values.hostelRequired),
+                transportRequired: Boolean(values.transportRequired),
+                documents: uploadedDocuments.map((d) => ({
+                    documentId: d.amsmD_Id,
+                    documentName: d.documentName,
+                    filePath: d.document_Path
+                }))
+            };
+
+            const response = await saveFinalTabApi(payload);
+            if (response?.success) {
+                toast.success('Application submitted successfully');
+                reset();
+                setCurrentStep(1);
+                setUploadedDocuments([]);
+                onSuccess?.();
+            } else {
+                toast.error(response?.message || 'Failed to submit application');
+            }
+        } catch (error: any) {
+            console.error('Final submit error:', error);
+            toast.error(error?.message || 'Failed to submit application');
+        }
+    };
+
+    // Submit final step without running react-hook-form validation
+    const submitWithoutValidation = async () => {
+        try {
+            await onSubmit(getValues() as FormFields);
+        } catch (err) {
+            console.error('Submit without validation error:', err);
+        }
+    };
 
     return (
         <>
@@ -1321,7 +2080,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Label>
                                                     </div>
 
-                                                    {!studentPhoto?.pasR_Student_Pic_Path ? (
+                                                    {!studentPhoto?.amsT_Photoname ? (
                                                         <label
                                                             htmlFor='student_photo'
                                                             className={cn(
@@ -1401,7 +2160,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
                                                             <div className='flex items-center gap-4'>
                                                                 <img
-                                                                    src={studentPhoto.pasR_Student_Pic_Path}
+                                                                    src={studentPhoto.amsT_Photoname}
                                                                     alt='Student'
                                                                     className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
                                                                 />
@@ -1418,9 +2177,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     type='button'
                                                                     variant='outline'
                                                                     size='sm'
-                                                                    onClick={() =>
-                                                                        window.open(studentPhoto.pasR_Student_Pic_Path, '_blank')
-                                                                    }>
+                                                                    onClick={() => window.open(studentPhoto.amsT_Photoname, '_blank')}>
                                                                     <Eye className='h-4 w-4' />
                                                                 </Button>
                                                                 <Button
@@ -1500,12 +2257,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 value={field.value?.toString() || ''}
                                                                 onValueChange={(value) => field.onChange(Number(value))}>
                                                                 <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
-                                                                    <SelectValue placeholder='Select a class' />
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            admissionClassLoading ? 'Loading classes...' : 'Select a class'
+                                                                        }
+                                                                    />
                                                                 </SelectTrigger>
 
                                                                 <SelectContent>
-                                                                    {filteredClasses.length > 0 ? (
-                                                                        filteredClasses.map((classItem) => (
+                                                                    {admissionClassLoading ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
+                                                                        </SelectItem>
+                                                                    ) : admissionClassError ? (
+                                                                        <SelectItem value='error' disabled>
+                                                                            Error loading classes
+                                                                        </SelectItem>
+                                                                    ) : admissionClass?.data && admissionClass.data.length > 0 ? (
+                                                                        admissionClass.data.map((classItem: any) => (
                                                                             <SelectItem
                                                                                 key={classItem.asmcL_Id}
                                                                                 value={classItem.asmcL_Id.toString()}>
@@ -1527,28 +2296,50 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_Section'>Section</Label>
+                                                <Label htmlFor='asmS_Id'>Section</Label>
                                                 <Controller
-                                                    name='pasR_Section'
+                                                    name='asmS_Id'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
                                                             key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || ''}>
+                                                            value={field.value?.toString() || ''}
+                                                            onValueChange={(value) => field.onChange(Number(value))} // <-- SEND NUMBER
+                                                            disabled={!classId || classId === 0 || sectionLoading}>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder='Select section' />
+                                                                <SelectValue
+                                                                    placeholder={sectionLoading ? 'Loading sections...' : 'Select section'}
+                                                                />
                                                             </SelectTrigger>
+
                                                             <SelectContent>
-                                                                <SelectItem value='A'>A</SelectItem>
-                                                                <SelectItem value='B'>B</SelectItem>
-                                                                <SelectItem value='C'>C</SelectItem>
-                                                                <SelectItem value='D'>D</SelectItem>
+                                                                {sectionLoading ? (
+                                                                    <SelectItem value='loading' disabled>
+                                                                        Loading...
+                                                                    </SelectItem>
+                                                                ) : sectionError ? (
+                                                                    <SelectItem value='error' disabled>
+                                                                        Error loading sections
+                                                                    </SelectItem>
+                                                                ) : sectionData?.data && sectionData.data.length > 0 ? (
+                                                                    sectionData.data.map((section: any) => (
+                                                                        <SelectItem
+                                                                            key={section.asmS_Id}
+                                                                            value={section.asmS_Id.toString()}>
+                                                                            {section.asmC_SectionName}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                ) : (
+                                                                    <SelectItem value='0' disabled>
+                                                                        No sections available
+                                                                    </SelectItem>
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.pasR_Section && <FormError>{errors.pasR_Section.message}</FormError>}
+
+                                                {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                                             </div>
 
                                             <Controller
@@ -1602,7 +2393,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
 
                                             <Controller
-                                                name='pasR_DOB'
+                                                name='amsT_DOB'
                                                 control={control}
                                                 render={({ field, fieldState: { error } }) => (
                                                     <div className='flex flex-col space-y-2'>
@@ -1680,11 +2471,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='religion_Id'>
+                                                <Label htmlFor='amsT_ReligionId'>
                                                     Religion <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='religion_Id'
+                                                    name='amsT_ReligionId'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -1714,15 +2505,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.religion_Id && <FormError>{errors.religion_Id.message}</FormError>}
+                                                {errors.amsT_ReligionId && <FormError>{errors.amsT_ReligionId.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='caste_Id'>
+                                                <Label htmlFor='amsT_CasteCategoryId'>
                                                     Caste Category <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='caste_Id'
+                                                    name='amsT_CasteCategoryId'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -1752,22 +2543,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.caste_Id && <FormError>{errors.caste_Id.message}</FormError>}
+                                                {errors.amsT_CasteCategoryId && (
+                                                    <FormError>{errors.amsT_CasteCategoryId.message}</FormError>
+                                                )}
                                             </div>
                                             <InputText
                                                 label='Caste '
                                                 required
-                                                id='pasR_Caste'
+                                                id='imC_Id'
                                                 placeholder='Enter caste category'
-                                                {...register('pasR_Caste')}
-                                                error={errors.pasR_Caste?.message}
+                                                {...register('imC_Id')}
+                                                error={errors.imC_Id?.message}
                                             />
                                             <InputText
                                                 label='Sub Caste'
-                                                id='pasR_SubCaste'
+                                                id='amsT_SubCasteIMC'
                                                 placeholder='Enter sub caste'
-                                                {...register('pasR_SubCaste')}
-                                                error={errors.pasR_SubCaste?.message}
+                                                {...register('amsT_SubCasteIMC')}
+                                                error={errors.amsT_SubCasteIMC?.message}
                                             />
 
                                             <InputText
@@ -1779,7 +2572,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
                                             <InputText
                                                 label='Caste Certificate No'
-                                                id='amsT_StuCasteCertiNo"'
+                                                id='amsT_StuCasteCertiNo'
                                                 placeholder='Enter caste certificate number'
                                                 {...register('amsT_StuCasteCertiNo')}
                                                 error={errors.amsT_StuCasteCertiNo?.message}
@@ -1800,11 +2593,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_Sex'>
+                                                <Label htmlFor='amsT_Sex'>
                                                     Gender <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='pasR_Sex'
+                                                    name='amsT_Sex'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -1834,7 +2627,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.pasR_Sex && <FormError>{errors.pasR_Sex.message}</FormError>}
+                                                {errors.amsT_Sex && <FormError>{errors.amsT_Sex.message}</FormError>}
                                             </div>
 
                                             <InputText
@@ -1846,19 +2639,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             />
                                             <InputText
                                                 label='Languages Spoken'
-                                                id='pasR_Languagespeaking'
+                                                id='amsT_LanguageSpoken'
                                                 placeholder='Enter languages'
-                                                {...register('pasR_Languagespeaking')}
-                                                error={errors.pasR_Languagespeaking?.message}
+                                                {...register('amsT_LanguageSpoken')}
+                                                error={errors.amsT_LanguageSpoken?.message}
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_ConCountry'>
+                                                <Label htmlFor='amsT_PerCountry'>
                                                     Country <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
 
                                                 <Controller
-                                                    name='pasR_ConCountry'
+                                                    name='amsT_PerCountry'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -1888,13 +2681,13 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.pasR_ConCountry && <FormError>{errors.pasR_ConCountry.message}</FormError>}
+                                                {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_ConState'>State</Label>
+                                                <Label htmlFor='amsT_PerState'>State</Label>
                                                 <Controller
-                                                    name='pasR_ConState'
+                                                    name='amsT_PerState'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -1905,16 +2698,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select state' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {conStateLoading ? (
+                                                                {perStateLoading ? (
                                                                     <SelectItem value='loading' disabled>
                                                                         Loading...
                                                                     </SelectItem>
-                                                                ) : conStateError ? (
+                                                                ) : perStateError ? (
                                                                     <SelectItem value='error' disabled>
                                                                         Error loading
                                                                     </SelectItem>
                                                                 ) : (
-                                                                    conState?.data?.map((item) => (
+                                                                    perState?.data?.map((item) => (
                                                                         <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
                                                                             {item.ivrmmS_Name}
                                                                         </SelectItem>
@@ -1924,29 +2717,29 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.pasR_ConState && <FormError>{errors.pasR_ConState.message}</FormError>}
+                                                {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5 '>
                                                 <Controller
-                                                    name='pasR_MobileNo'
+                                                    name='amsT_MobileNo'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <div>
-                                                            <Label htmlFor='pasR_MobileNo'>Mobile No.</Label>
+                                                            <Label htmlFor='amsT_MobileNo'>Mobile No.</Label>
                                                             <PhoneInput
                                                                 country='in'
                                                                 value={
-                                                                    phoneValues.pasR_MobileNo ??
+                                                                    phoneValues.amsT_MobileNo ??
                                                                     (field.value != null ? String(field.value) : null)
                                                                 }
                                                                 onChange={(phone: any, countryData: any) =>
-                                                                    handlePhoneChange(phone, countryData, 'pasR_MobileNo')
+                                                                    handlePhoneChange(phone, countryData, 'amsT_MobileNo')
                                                                 }
-                                                                onBlur={() => trigger('pasR_MobileNo')}
+                                                                onBlur={() => trigger('amsT_MobileNo')}
                                                                 inputProps={{
-                                                                    id: 'pasR_MobileNo',
-                                                                    name: 'pasR_MobileNo',
+                                                                    id: 'amsT_MobileNo',
+                                                                    name: 'amsT_MobileNo',
                                                                     maxLength: 25,
                                                                     required: false,
                                                                     style: {
@@ -1967,36 +2760,91 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 isValid={true}
                                                                 preserveOrder={['country', 'nationalNumber']}
                                                             />
-                                                            {phoneExpectedInfo.pasR_MobileNo?.expected && (
+                                                            {phoneExpectedInfo.amsT_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
-                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.amsT_MobileNo.expected} digits for ${
+                                                                        phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
                                                                     }`}
                                                                 </span>
                                                             )}
                                                         </div>
                                                     )}
                                                 />
-                                                {errors.pasR_MobileNo && <FormError>{errors.pasR_MobileNo.message}</FormError>}
+                                                {errors.amsT_MobileNo && <FormError>{errors.amsT_MobileNo.message}</FormError>}
                                             </div>
 
-                                            <InputText
-                                                label='Email'
-                                                required
-                                                id='pasR_emailId'
-                                                placeholder='Enter email'
-                                                {...register('pasR_emailId')}
-                                                error={errors.pasR_emailId?.message}
-                                            />
+                                            {/* Hidden legacy primary email (kept in sync with first email field) */}
+                                            <input type='hidden' {...register('amsT_emailId')} />
+
+                                            <div className='flex flex-col gap-1.5'>
+                                                {emailFields.map((field, idx) => {
+                                                    const itemError = (errors as any)?.adm_M_Student_EmailIdDTO?.[idx]?.amsT_emailId
+                                                        ?.message;
+                                                    const fieldName = `adm_M_Student_EmailIdDTO.${idx}.amsT_emailId` as const;
+                                                    return (
+                                                        <div key={field.id} className='flex w-1/3 min-w-[240px] flex-col gap-1'>
+                                                            <div className='flex items-center gap-2'>
+                                                                <div className='flex-1'>
+                                                                    <InputText
+                                                                        {...register(fieldName)}
+                                                                        id={String(field.id)}
+                                                                        label={idx === 0 ? 'Email' : undefined}
+                                                                        placeholder='Enter email'
+                                                                        error={itemError}
+                                                                    />
+                                                                </div>
+
+                                                                {/* <div className='mt-1 flex items-center gap-1'>
+                                                                    {emailFields.length < 5 && (
+                                                                        <Button
+                                                                            variant='ghost'
+                                                                            size='sm'
+                                                                            onClick={() => appendEmail({ amsT_emailId: '' })}>
+                                                                            +
+                                                                        </Button>
+                                                                    )}
+
+                                                                    {emailFields.length > 1 && (
+                                                                        <Button
+                                                                            variant='ghost'
+                                                                            size='sm'
+                                                                            onClick={() => {
+                                                                                removeEmail(idx);
+                                                                                if (idx === 0) {
+                                                                                    setTimeout(() => {
+                                                                                        const newFirst =
+                                                                                            (getValues('adm_M_Student_EmailIdDTO') || [])[0]
+                                                                                                ?.amsT_emailId ?? '';
+                                                                                        setValue('amsT_emailId' as any, newFirst);
+                                                                                    }, 0);
+                                                                                }
+                                                                            }}>
+                                                                            -
+                                                                        </Button>
+                                                                    )}
+                                                                </div> */}
+                                                            </div>
+
+                                                            {/* InputText already renders the error; avoid duplicate FormError here */}
+                                                        </div>
+                                                    );
+                                                })}
+
+                                                {/* show legacy primary email error only when no email array items are present */}
+                                                {(!Array.isArray(watchedEmails) || watchedEmails.length === 0) && errors.amsT_emailId && (
+                                                    <FormError>{errors.amsT_emailId.message}</FormError>
+                                                )}
+                                            </div>
 
                                             <div className='flex flex-col gap-1.5'>
                                                 <Controller
-                                                    name='pasR_AadharNo'
+                                                    name='amsT_AadharNo'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <MobileNumberInput
                                                             label='Aadhaar No.'
-                                                            id='pasR_AadharNo'
+                                                            placeholder='Enter Aadhaar No'
+                                                            id='amsT_AadharNo'
                                                             value={field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
@@ -2004,43 +2852,59 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         />
                                                     )}
                                                 />
-                                                {errors.pasR_AadharNo && <FormError>{errors.pasR_AadharNo.message}</FormError>}
+                                                {errors.amsT_AadharNo && <FormError>{errors.amsT_AadharNo.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_TransportReqdFlag'>
-                                                    Blood Group
-                                                    {/* <span className='ml-1 text-red-500'>*</span> */}
-                                                </Label>
+                                                <Label htmlFor='amsT_BloodGroup'>Blood Group</Label>
+
                                                 <Controller
-                                                    name='pasR_TransportReqdFlag'
+                                                    name='amsT_BloodGroup'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
                                                             key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
+                                                            onValueChange={(value) => field.onChange(value)}
+                                                            value={field.value || ''}>
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder='Select option' />
+                                                                <SelectValue placeholder='Select Blood Group' />
                                                             </SelectTrigger>
+
                                                             <SelectContent>
-                                                                <SelectItem value='1'>Yes</SelectItem>
-                                                                <SelectItem value='0'>No</SelectItem>
+                                                                <SelectItem value='A+'>A+</SelectItem>
+                                                                <SelectItem value='A-'>A-</SelectItem>
+                                                                <SelectItem value='B+'>B+</SelectItem>
+                                                                <SelectItem value='B-'>B-</SelectItem>
+                                                                <SelectItem value='AB+'>AB+</SelectItem>
+                                                                <SelectItem value='AB-'>AB-</SelectItem>
+                                                                <SelectItem value='O+'>O+</SelectItem>
+                                                                <SelectItem value='O-'>O-</SelectItem>
+                                                                <SelectItem value='A1+ve'>A1+ve</SelectItem>
+                                                                <SelectItem value='A1-ve'>A1-ve</SelectItem>
+                                                                <SelectItem value='B1+ve'>B1+ve</SelectItem>
+                                                                <SelectItem value='B1-ve'>B1-ve</SelectItem>
+                                                                <SelectItem value='A2+ve'>A2+ve</SelectItem>
+                                                                <SelectItem value='A2-ve'>A2-ve</SelectItem>
+                                                                <SelectItem value='A1B+ve'>A1B+ve</SelectItem>
+                                                                <SelectItem value='A2B+ve'>A2B+ve</SelectItem>
+                                                                <SelectItem value='A1B2'>A1B2</SelectItem>
+                                                                <SelectItem value='A1B-ve'>A1B-ve</SelectItem>
+                                                                <SelectItem value='A2B-ve'>A2B-ve</SelectItem>
+                                                                <SelectItem value='Not Available'>Not Available</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.pasR_TransportReqdFlag && (
-                                                    <FormError>{errors.pasR_TransportReqdFlag.message}</FormError>
-                                                )}
+
+                                                {errors.amsT_BloodGroup && <FormError>{errors.amsT_BloodGroup.message}</FormError>}
                                             </div>
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_TransportReqdFlag'>
+                                                <Label htmlFor='studentCategoryId'>
                                                     Student Category <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='pasR_TransportReqdFlag'
+                                                    name='studentCategoryId'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -2057,62 +2921,64 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.pasR_TransportReqdFlag && (
-                                                    <FormError>{errors.pasR_TransportReqdFlag.message}</FormError>
-                                                )}
+                                                {errors.studentCategoryId && <FormError>{errors.studentCategoryId.message}</FormError>}
                                             </div>
 
                                             <div className='col-span-full'>
                                                 <div className='flex items-center gap-6'>
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
-                                                            id='pasR_ECSFlag'
-                                                            checked={Number(watch('pasR_ECSFlag')) === 1}
+                                                            id='amsT_ECSFlag'
+                                                            checked={Number(watch('amsT_ECSFlag')) === 1}
                                                             onCheckedChange={(checked) => {
                                                                 const val = checked ? 1 : 0;
-                                                                setValue('pasR_ECSFlag', val);
+                                                                setValue('amsT_ECSFlag', val);
                                                             }}
                                                         />
-                                                        <Label htmlFor='pasR_ECSFlag' className='cursor-pointer'>
+                                                        <Label htmlFor='amsT_ECSFlag' className='cursor-pointer'>
                                                             ECS
                                                         </Label>
                                                     </div>
 
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
-                                                            id='pasR_EMISFlag'
-                                                            checked={Number(watch('pasR_EMISFlag')) === 1}
+                                                            id='isEmisBpl'
+                                                            checked={Number(watch('isEmisBpl')) === 1}
                                                             onCheckedChange={(checked) => {
                                                                 const val = checked ? 1 : 0;
-                                                                setValue('pasR_EMISFlag', val);
+                                                                setValue('isEmisBpl', val);
                                                             }}
                                                         />
-                                                        <Label htmlFor='pasR_EMISFlag' className='cursor-pointer'>
+                                                        <Label htmlFor='isEmisBpl' className='cursor-pointer'>
                                                             EMIS/BPL Card/STS No.
                                                         </Label>
                                                     </div>
                                                 </div>
 
                                                 {/* EMIS input when checked */}
-                                                {Number(watch('pasR_EMISFlag')) === 1 && (
+                                                {Number(watch('isEmisBpl')) === 1 && (
                                                     <div className='mt-3 w-1/2'>
                                                         <InputText
                                                             label='EMIS / BPL / STS No.'
                                                             required
-                                                            id='pasR_EMISCardNo'
+                                                            id='amsT_EmisBplNo'
                                                             placeholder='Enter card or STS no.'
-                                                            {...register('pasR_EMISCardNo')}
-                                                            error={errors.pasR_EMISCardNo?.message}
+                                                            {...register('amsT_EmisBplNo')}
+                                                            error={errors.amsT_EmisBplNo?.message}
                                                         />
                                                     </div>
                                                 )}
 
                                                 {/* ECS details panel */}
-                                                {Number(watch('pasR_ECSFlag')) === 1 && (
+                                                {Number(watch('amsT_ECSFlag')) === 1 && (
                                                     <div className='mt-4 rounded border border-gray-200 bg-white p-4 shadow-sm'>
-                                                        <div className='flex items-center justify-between border-b pb-2'>
+                                                        <div className='flex items-center justify-between'>
                                                             <h4 className='font-semibold'>ECS STUDENT DETAILS</h4>
-                                                            <Button size='sm' variant='ghost' onClick={() => setValue('pasR_ECSFlag', 0)}>
+                                                            <Button
+                                                                size='sm'
+                                                                className='w-fit'
+                                                                variant='ghost'
+                                                                onClick={() => setValue('amsT_ECSFlag', 0)}>
                                                                 Close
                                                             </Button>
                                                         </div>
@@ -2121,60 +2987,63 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             <InputText
                                                                 label='Account No.'
                                                                 required
-                                                                id='pasR_ECSBankAccountNo'
+                                                                id='asecS_AccountNo'
                                                                 placeholder='Account number'
-                                                                {...register('pasR_ECSBankAccountNo')}
-                                                                error={errors.pasR_ECSBankAccountNo?.message}
+                                                                {...register('asecS_AccountNo')}
+                                                                error={errors.asecS_AccountNo?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Account Holder Name'
                                                                 required
-                                                                id='pasR_ECSBankAccountHolderName'
+                                                                id='asecS_AccountHolderName'
                                                                 placeholder='Account holder name'
-                                                                {...register('pasR_ECSBankAccountHolderName')}
-                                                                error={errors.pasR_ECSBankAccountHolderName?.message}
+                                                                {...register('asecS_AccountHolderName')}
+                                                                error={errors.asecS_AccountHolderName?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Bank Name'
                                                                 required
-                                                                id='pasR_ECSBankName'
+                                                                id='asecS_BankName'
                                                                 placeholder='Bank name'
-                                                                {...register('pasR_ECSBankName')}
-                                                                error={errors.pasR_ECSBankName?.message}
+                                                                {...register('asecS_BankName')}
+                                                                error={errors.asecS_BankName?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Account Type'
                                                                 required
-                                                                id='pasR_ECSAccountType'
+                                                                id='asecS_AccountType'
                                                                 placeholder='Savings / Current'
-                                                                {...register('pasR_ECSAccountType')}
-                                                                error={errors.pasR_ECSAccountType?.message}
+                                                                {...register('asecS_AccountType')}
+                                                                error={errors.asecS_AccountType?.message}
                                                             />
 
                                                             <InputText
                                                                 label='MICR Code'
                                                                 required
-                                                                id='pasR_ECSMICRCode'
+                                                                id='asecS_MICRNo'
                                                                 placeholder='MICR'
-                                                                {...register('pasR_ECSMICRCode')}
-                                                                error={errors.pasR_ECSMICRCode?.message}
+                                                                {...register('asecS_MICRNo')}
+                                                                error={errors.asecS_MICRNo?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Branch Name'
                                                                 required
-                                                                id='pasR_ECSBranchName'
+                                                                id='asecS_Branch'
                                                                 placeholder='Branch name'
-                                                                {...register('pasR_ECSBranchName')}
-                                                                error={errors.pasR_ECSBranchName?.message}
+                                                                {...register('asecS_Branch')}
+                                                                error={errors.asecS_Branch?.message}
                                                             />
                                                         </div>
 
                                                         <div className='mt-4 flex justify-end'>
-                                                            <Button onClick={() => setValue('pasR_ECSFlag', 0)} className='ml-2'>
+                                                            <Button
+                                                                onClick={() => setValue('amsT_ECSFlag', 0)}
+                                                                size='sm'
+                                                                className='ml-2 w-fit'>
                                                                 ADD & CLOSE
                                                             </Button>
                                                         </div>
@@ -2184,39 +3053,39 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                                             <InputText
                                                 label='Bank Name'
-                                                id='pasR_BankName'
+                                                id='amsT_BankName'
                                                 placeholder='Bank name'
-                                                {...register('pasR_BankName')}
-                                                error={errors.pasR_BankName?.message}
+                                                {...register('amsT_BankName')}
+                                                error={errors.amsT_BankName?.message}
                                             />
                                             <InputText
                                                 label='Branch Name'
-                                                id='pasR_BranchName'
+                                                id='amsT_BankBranch'
                                                 placeholder='Branch name'
-                                                {...register('pasR_BranchName')}
-                                                error={errors.pasR_BranchName?.message}
+                                                {...register('amsT_BankBranch')}
+                                                error={errors.amsT_BankBranch?.message}
                                             />
                                             <InputText
                                                 label='Bank Account No.'
-                                                id='pasR_BankAccountNo'
+                                                id='amsT_BankAccountNo'
                                                 placeholder='Bank Account Number'
-                                                {...register('pasR_BankAccountNo')}
-                                                error={errors.pasR_BankAccountNo?.message}
+                                                {...register('amsT_BankAccountNo')}
+                                                error={errors.amsT_BankAccountNo?.message}
                                             />
                                             <InputText
                                                 label='Bank IFSC Code.'
-                                                id='pasR_BankAccountNo'
+                                                id='amsT_BankIFSCCode'
                                                 placeholder='Bank IFSC Code'
-                                                {...register('pasR_BankAccountNo')}
-                                                error={errors.pasR_BankAccountNo?.message}
+                                                {...register('amsT_BankIFSCCode')}
+                                                error={errors.amsT_BankIFSCCode?.message}
                                             />
 
                                             <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='pasR_FeeConcessionType'>
+                                                <Label htmlFor='feeConcessionType'>
                                                     Fee Concession Type <span className='ml-1 text-red-500'>*</span>
                                                 </Label>
                                                 <Controller
-                                                    name='pasR_FeeConcessionType'
+                                                    name='feeConcessionType'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -2227,43 +3096,41 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select fee concession type' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                <SelectItem value='General'>General</SelectItem>
-                                                                <SelectItem value='Prestigious'>Prestigious</SelectItem>
-                                                                <SelectItem value='RTE'>RTE</SelectItem>
+                                                                <SelectItem value='1'>General</SelectItem>
+                                                                <SelectItem value='2'>Prestigious</SelectItem>
+                                                                <SelectItem value='3'>RTE</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.pasR_FeeConcessionType && (
-                                                    <FormError>{errors.pasR_FeeConcessionType.message}</FormError>
-                                                )}
+                                                {errors.feeConcessionType && <FormError>{errors.feeConcessionType.message}</FormError>}
                                             </div>
 
                                             {/* Student TPIN */}
                                             <InputText
                                                 label='Student TPIN'
-                                                id='pasR_StudentTPIN'
+                                                id='amsT_Tpin'
                                                 placeholder='Enter student TPIN'
-                                                {...register('pasR_StudentTPIN')}
-                                                error={errors.pasR_StudentTPIN?.message}
+                                                {...register('amsT_Tpin')}
+                                                error={errors.amsT_Tpin?.message}
                                             />
 
                                             {/* GPS Tracing Id */}
                                             <InputText
                                                 label='GPS Tracing Id'
-                                                id='pasR_GPSTracingId'
+                                                id='amsT_GPSTracingId'
                                                 placeholder='Enter GPS tracing ID'
-                                                {...register('pasR_GPSTracingId')}
-                                                error={errors.pasR_GPSTracingId?.message}
+                                                {...register('amsT_GPSTracingId')}
+                                                error={errors.amsT_GPSTracingId?.message}
                                             />
 
                                             {/* Medium Of Instruction */}
                                             <InputText
                                                 label='Medium Of Instruction'
-                                                id='pasR_MediumOfInstruction'
+                                                id='amsT_MOInstruction'
                                                 placeholder='Enter medium of instruction'
-                                                {...register('pasR_MediumOfInstruction')}
-                                                error={errors.pasR_MediumOfInstruction?.message}
+                                                {...register('amsT_MOInstruction')}
+                                                error={errors.amsT_MediumOfInstruction?.message}
                                             />
                                         </div>
                                     </div>
@@ -2284,22 +3151,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
-                                                        id='pasR_ConStreet'
+                                                        id='amsT_ConStreet'
                                                         placeholder='Enter street'
-                                                        {...register('pasR_ConStreet')}
-                                                        error={errors.pasR_ConStreet?.message}
+                                                        {...register('amsT_ConStreet')}
+                                                        error={errors.amsT_ConStreet?.message}
                                                     />
                                                     <InputText
                                                         label='Area'
-                                                        id='pasR_ConArea'
+                                                        id='amsT_ConArea'
                                                         placeholder='Enter area'
-                                                        {...register('pasR_ConArea')}
-                                                        error={errors.pasR_ConArea?.message}
+                                                        {...register('amsT_ConArea')}
+                                                        error={errors.amsT_ConArea?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_ConCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_ConCountry'>Country</Label>
                                                         <Controller
-                                                            name='pasR_ConCountry'
+                                                            name='amsT_ConCountry'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
@@ -2331,12 +3198,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.pasR_ConCountry && <FormError>{errors.pasR_ConCountry.message}</FormError>}
+                                                        {errors.amsT_ConCountry && <FormError>{errors.amsT_ConCountry.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='pasR_ConState'>State</Label>
                                                         <Controller
-                                                            name='pasR_ConState'
+                                                            name='amsT_ConState'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
@@ -2368,18 +3235,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.pasR_ConState && <FormError>{errors.pasR_ConState.message}</FormError>}
+                                                        {errors.amsT_ConState && <FormError>{errors.amsT_ConState.message}</FormError>}
                                                     </div>
                                                     <InputText
                                                         label='City'
-                                                        id='pasR_ConCity'
+                                                        id='amsT_ConCity'
                                                         placeholder='Enter city'
-                                                        {...register('pasR_ConCity')}
-                                                        error={errors.pasR_ConCity?.message}
+                                                        {...register('amsT_ConCity')}
+                                                        error={errors.amsT_ConCity?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
-                                                            name='pasR_ConPincode'
+                                                            name='amsT_ConPincode'
                                                             control={control}
                                                             rules={
                                                                 conZipLength
@@ -2399,7 +3266,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <>
                                                                     <MobileNumberInput
                                                                         label='Pin Code/Zip Code'
-                                                                        id='pasR_ConPincode'
+                                                                        id='amsT_ConPincode'
                                                                         value={field.value}
                                                                         onChange={(valueOrEvent: any) => {
                                                                             // MobileNumberInput forwards the input event; accept either event or string
@@ -2415,15 +3282,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 truncated !== '' &&
                                                                                 String(truncated).length !== conZipLength
                                                                             ) {
-                                                                                setError('pasR_ConPincode', {
+                                                                                setError('amsT_ConPincode', {
                                                                                     type: 'manual',
                                                                                     message: `Pin code must be ${conZipLength} digits`
                                                                                 });
                                                                             } else {
-                                                                                clearErrors('pasR_ConPincode');
+                                                                                clearErrors('amsT_ConPincode');
                                                                             }
                                                                             // Also trigger the resolver-based validation
-                                                                            trigger('pasR_ConPincode');
+                                                                            trigger('amsT_ConPincode');
                                                                         }}
                                                                         minLength={conZipLength}
                                                                         maxLength={conZipLength}
@@ -2438,7 +3305,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </>
                                                             )}
                                                         />
-                                                        {errors.pasR_ConPincode && <FormError>{errors.pasR_ConPincode.message}</FormError>}
+                                                        {errors.amsT_ConPincode && <FormError>{errors.amsT_ConPincode.message}</FormError>}
                                                     </div>
                                                 </div>
                                             </div>
@@ -2460,24 +3327,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                     <InputText
                                                         label='Street'
-                                                        id='pasR_PerStreet'
+                                                        id='amsT_PerStreet'
                                                         placeholder='Enter street'
-                                                        {...register('pasR_PerStreet')}
-                                                        error={errors.pasR_PerStreet?.message}
+                                                        {...register('amsT_PerStreet')}
+                                                        error={errors.amsT_PerStreet?.message}
                                                         disabled={sameAsResidential}
                                                     />
                                                     <InputText
                                                         label='Area'
-                                                        id='pasR_PerArea'
+                                                        id='amsT_PerArea'
                                                         placeholder='Enter area'
-                                                        {...register('pasR_PerArea')}
-                                                        error={errors.pasR_PerArea?.message}
+                                                        {...register('amsT_PerArea')}
+                                                        error={errors.amsT_PerArea?.message}
                                                         disabled={sameAsResidential}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_PerCountry'>Country</Label>
+                                                        <Label htmlFor='amsT_PerCountry'>Country</Label>
                                                         <Controller
-                                                            name='pasR_PerCountry'
+                                                            name='amsT_PerCountry'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
@@ -2510,12 +3377,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.pasR_PerCountry && <FormError>{errors.pasR_PerCountry.message}</FormError>}
+                                                        {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_PerState'>State</Label>
+                                                        <Label htmlFor='amsT_PerState'>State</Label>
                                                         <Controller
-                                                            name='pasR_PerState'
+                                                            name='amsT_PerState'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
@@ -2548,19 +3415,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.pasR_PerState && <FormError>{errors.pasR_PerState.message}</FormError>}
+                                                        {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
                                                     </div>
                                                     <InputText
                                                         label='City'
-                                                        id='pasR_PerCity'
+                                                        id='amsT_PerCity'
                                                         placeholder='Enter city'
-                                                        {...register('pasR_PerCity')}
-                                                        error={errors.pasR_PerCity?.message}
+                                                        {...register('amsT_PerCity')}
+                                                        error={errors.amsT_PerCity?.message}
                                                         disabled={sameAsResidential}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
-                                                            name='pasR_PerPincode'
+                                                            name='amsT_PerPincode'
                                                             control={control}
                                                             rules={
                                                                 perZipLength
@@ -2580,7 +3447,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <>
                                                                     <MobileNumberInput
                                                                         label='Pin Code/Zip Code'
-                                                                        id='pasR_PerPincode'
+                                                                        id='amsT_PerPincode'
                                                                         value={field.value}
                                                                         onChange={(valueOrEvent: any) => {
                                                                             const raw = valueOrEvent?.target?.value ?? valueOrEvent;
@@ -2595,15 +3462,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 truncated !== '' &&
                                                                                 String(truncated).length !== perZipLength
                                                                             ) {
-                                                                                setError('pasR_PerPincode', {
+                                                                                setError('amsT_PerPincode', {
                                                                                     type: 'manual',
                                                                                     message: `Pin code must be ${perZipLength} digits`
                                                                                 });
                                                                             } else {
-                                                                                clearErrors('pasR_PerPincode');
+                                                                                clearErrors('amsT_PerPincode');
                                                                             }
                                                                             // Also trigger the resolver-based validation
-                                                                            trigger('pasR_PerPincode');
+                                                                            trigger('amsT_PerPincode');
                                                                         }}
                                                                         minLength={perZipLength}
                                                                         maxLength={perZipLength}
@@ -2619,7 +3486,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </>
                                                             )}
                                                         />
-                                                        {errors.pasR_PerPincode && <FormError>{errors.pasR_PerPincode.message}</FormError>}
+                                                        {errors.amsT_PerPincode && <FormError>{errors.amsT_PerPincode.message}</FormError>}
                                                     </div>
                                                 </div>
                                             </div>
@@ -2639,224 +3506,129 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             <div className='space-y-4'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Father Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    {/* Father Photo Upload - Mandatory */}
-                                                    <div className='col-span-full w-fit'>
-                                                        <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
-                                                            <div className='mb-1'>
-                                                                <Label htmlFor='father_photo'>
-                                                                    Father Photo <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
-                                                            </div>
-
-                                                            {!fatherPhoto?.pasR_FatherPhoto ? (
-                                                                <label
-                                                                    htmlFor='father_photo'
-                                                                    className={cn(
-                                                                        'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
-                                                                        fatherPhoto?.isUploading
-                                                                            ? 'border-blue-400 bg-blue-100'
-                                                                            : 'border-gray-300 bg-white'
-                                                                    )}>
-                                                                    {fatherPhoto?.isUploading ? (
-                                                                        <div className='flex flex-col items-center gap-2'>
-                                                                            <svg
-                                                                                className='h-8 w-8 animate-spin text-primary'
-                                                                                fill='none'
-                                                                                stroke='currentColor'
-                                                                                viewBox='0 0 24 24'>
-                                                                                <circle
-                                                                                    className='opacity-25'
-                                                                                    cx='12'
-                                                                                    cy='12'
-                                                                                    r='10'
-                                                                                    strokeWidth='4'
-                                                                                    stroke='currentColor'
-                                                                                />
-                                                                                <path
-                                                                                    className='opacity-75'
-                                                                                    fill='currentColor'
-                                                                                    d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                                                                                />
-                                                                            </svg>
-                                                                            <span className='font-medium text-primary text-sm'>
-                                                                                Uploading photo...
-                                                                            </span>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <>
-                                                                            <svg
-                                                                                className='h-12 w-12 text-primary'
-                                                                                fill='none'
-                                                                                stroke='currentColor'
-                                                                                viewBox='0 0 24 24'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                                                                                />
-                                                                            </svg>
-                                                                            <span className='font-medium text-gray-700 text-sm'>
-                                                                                Click to upload
-                                                                            </span>
-                                                                            <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                                Upload recent passport-size photo (Max size: 5MB, Format:
-                                                                                JPG, PNG)
-                                                                            </span>
-                                                                        </>
-                                                                    )}
-                                                                    <input
-                                                                        id='father_photo'
-                                                                        type='file'
-                                                                        className='hidden'
-                                                                        accept='image/jpeg,image/jpg,image/png'
-                                                                        disabled={fatherPhoto?.isUploading || isSubmitting}
-                                                                        onChange={(e) => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (file) {
-                                                                                if (file.size > 5 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 5MB');
-                                                                                    e.target.value = '';
-                                                                                    return;
-                                                                                }
-                                                                                handleFatherPhotoUpload(file);
-                                                                                e.target.value = '';
+                                                    <div className='col-span-full flex items-center gap-3'>
+                                                        <Controller
+                                                            name='fatherAliveFlag'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <Checkbox
+                                                                        id='fatherAliveFlag'
+                                                                        checked={field.value || false}
+                                                                        onCheckedChange={(checked) => {
+                                                                            field.onChange(checked);
+                                                                            if (!checked) {
+                                                                                setValue('fatherName', '');
+                                                                                setValue('fatherNationality', undefined);
+                                                                                setValue('motherNationality', undefined);
                                                                             }
                                                                         }}
                                                                     />
-                                                                </label>
-                                                            ) : (
-                                                                <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
-                                                                    <div className='flex items-center gap-4'>
-                                                                        <img
-                                                                            src={fatherPhoto.pasR_FatherPhoto}
-                                                                            alt='Father'
-                                                                            className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
-                                                                        />
-                                                                        <div>
-                                                                            <div className='flex items-center gap-2 font-medium text-green-700'>
-                                                                                <Check className='h-5 w-5' />
-                                                                                Uploaded Successfully
-                                                                            </div>
-                                                                            <p className='mt-1 text-green-600 text-sm'>
-                                                                                Father photo is ready
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className='flex gap-2'>
-                                                                        <Button
-                                                                            type='button'
-                                                                            variant='outline'
-                                                                            size='sm'
-                                                                            onClick={() =>
-                                                                                window.open(fatherPhoto.pasR_FatherPhoto, '_blank')
-                                                                            }>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                        <Button
-                                                                            type='button'
-                                                                            variant='destructive'
-                                                                            size='sm'
-                                                                            disabled={isSubmitting}
-                                                                            onClick={handleFatherPhotoDelete}>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
-                                                                    </div>
+                                                                    <Label htmlFor='fatherAliveFlag' className='font-medium text-gray-700'>
+                                                                        Father is Alive
+                                                                    </Label>
                                                                 </div>
                                                             )}
-
-                                                            {fatherPhotoError && (
-                                                                <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                                    <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                                        <span className='mt-0.5 text-red-500'>⚠</span>
-                                                                        <span>{fatherPhotoError}</span>
-                                                                    </p>
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                        />
                                                     </div>
-                                                    <InputText
-                                                        label='Father Name'
-                                                        required
-                                                        id='pasR_FatherName'
-                                                        placeholder='Enter father name'
-                                                        {...register('pasR_FatherName')}
-                                                        error={errors.pasR_FatherName?.message}
-                                                    />
+
+                                                    {fatherAlive && (
+                                                        <div>
+                                                            <InputText
+                                                                label='Father Name'
+                                                                required
+                                                                id='fatherName'
+                                                                placeholder='Enter father name'
+                                                                {...register('fatherName', {
+                                                                    required: fatherAlive ? 'Father Name is required' : false
+                                                                })}
+                                                                error={errors.fatherName?.message}
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {!fatherAlive && (
+                                                        <InputText
+                                                            label='Father Name'
+                                                            id='fatherName'
+                                                            placeholder='Enter father name'
+                                                            {...register('fatherName', {
+                                                                required: fatherAlive ? 'Father Name is required' : false
+                                                            })}
+                                                            error={errors.fatherName?.message}
+                                                            disabled
+                                                        />
+                                                    )}
                                                     <InputText
                                                         label='Surname'
-                                                        id='pasR_FatherSurname'
+                                                        id='fatherSurname'
                                                         placeholder='Enter surname'
-                                                        {...register('pasR_FatherSurname')}
-                                                        error={errors.pasR_FatherSurname?.message}
+                                                        {...register('fatherSurname')}
+                                                        error={errors.fatherSurname?.message}
                                                     />
 
                                                     <InputText
                                                         label='Aadhaar No.'
-                                                        id='pasR_FatherAadhaar_No'
-                                                        placeholder='Enter surname'
-                                                        {...register('pasR_FatherAadhaar_No')}
-                                                        error={errors.pasR_FatherAadhaar_No?.message}
+                                                        id='fatherAadharNo'
+                                                        placeholder='Enter Aadhaar No.'
+                                                        {...register('fatherAadharNo')}
+                                                        error={errors.fatherAadharNo?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='asmcL_Id'>
-                                                            Marital Status <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
+                                                        <Label htmlFor='asmcL_Id'>Marital Status</Label>
+
                                                         <Controller
-                                                            name='asmcL_Id'
+                                                            name='fatherMaritalStatus'
                                                             control={control}
                                                             render={({ field, fieldState: { error } }) => (
                                                                 <div className='flex flex-col space-y-2'>
                                                                     <Select
                                                                         value={field.value?.toString() || ''}
-                                                                        onValueChange={(value) => field.onChange(Number(value))}>
+                                                                        onValueChange={(value) => field.onChange(Number(value))} // convert to number
+                                                                    >
                                                                         <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
-                                                                            <SelectValue placeholder='Select ' />
+                                                                            <SelectValue placeholder='Select' />
                                                                         </SelectTrigger>
 
                                                                         <SelectContent>
-                                                                            {filteredClasses.length > 0 ? (
-                                                                                filteredClasses.map((classItem) => (
-                                                                                    <SelectItem
-                                                                                        key={classItem.asmcL_Id}
-                                                                                        value={classItem.asmcL_Id.toString()}>
-                                                                                        {classItem.asmcL_ClassName}
-                                                                                    </SelectItem>
-                                                                                ))
-                                                                            ) : (
-                                                                                <SelectItem value='0' disabled>
-                                                                                    No classes available
-                                                                                </SelectItem>
-                                                                            )}
+                                                                            <SelectItem value='0'>Married</SelectItem>
+                                                                            <SelectItem value='1'>Single father</SelectItem>
+                                                                            <SelectItem value='2'>Single mother</SelectItem>
+                                                                            <SelectItem value='3'>Divorced father</SelectItem>
+                                                                            <SelectItem value='4'>Divorced mother</SelectItem>
+                                                                            <SelectItem value='5'>Widow</SelectItem>
+                                                                            <SelectItem value='6'>Widower</SelectItem>
                                                                         </SelectContent>
                                                                     </Select>
                                                                 </div>
                                                             )}
                                                         />
 
-                                                        {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
+                                                        {errors.fatherMaritalStatus && (
+                                                            <FormError>{errors.fatherMaritalStatus.message}</FormError>
+                                                        )}
                                                     </div>
 
                                                     <div className='flex flex-col gap-1.5 '>
                                                         <Controller
-                                                            name='pasR_FatherMobleNo'
+                                                            name='fatherMobileNumbers'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <div>
-                                                                    <Label htmlFor='pasR_FatherMobleNo'>Mobile No.</Label>
+                                                                    <Label htmlFor='fatherMobileNumbers'>Mobile No.</Label>
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues.pasR_FatherMobleNo ??
+                                                                            phoneValues.fatherMobileNumbers ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
-                                                                            handlePhoneChange(phone, countryData, 'pasR_FatherMobleNo')
+                                                                            handlePhoneChange(phone, countryData, 'fatherMobileNumbers')
                                                                         }
-                                                                        onBlur={() => trigger('pasR_FatherMobleNo')}
+                                                                        onBlur={() => trigger('fatherMobileNumbers')}
                                                                         inputProps={{
-                                                                            id: 'pasR_FatherMobleNo',
-                                                                            name: 'pasR_FatherMobleNo',
+                                                                            id: 'fatherMobileNumbers',
+                                                                            name: 'fatherMobileNumbers',
                                                                             maxLength: 25,
                                                                             required: false,
                                                                             style: {
@@ -2877,10 +3649,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
-                                                                    {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
+                                                                    {phoneExpectedInfo.fatherMobileNumbers?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.fatherMobileNumbers.expected} digits for ${
+                                                                                phoneExpectedInfo.fatherMobileNumbers.name ??
                                                                                 'selected country'
                                                                             }`}
                                                                         </span>
@@ -2888,41 +3660,43 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </div>
                                                             )}
                                                         />
-                                                        {errors.pasR_FatherMobleNo && (
-                                                            <FormError>{errors.pasR_FatherMobleNo.message}</FormError>
+                                                        {errors.fatherMobileNumbers && (
+                                                            <FormError>{errors.fatherMobileNumbers.message}</FormError>
                                                         )}
                                                     </div>
 
                                                     <InputText
                                                         label='Email-ID'
-                                                        id='pasR_FatherEmail_ID'
+                                                        id='fatherEmailIds'
                                                         placeholder='Enter Email-ID'
-                                                        {...register('pasR_FatherEmail_ID')}
-                                                        error={errors.pasR_FatherEmail_ID?.message}
+                                                        {...register('fatherEmailIds')}
+                                                        error={errors.fatherEmailIds?.message}
                                                     />
 
                                                     <InputText
                                                         label='Home Phone No'
-                                                        id='pasR_FatherHome_Phone_No'
+                                                        id='fatherHomePhone'
                                                         placeholder='Enter Home Phone No'
-                                                        {...register('pasR_FatherHome_Phone_No')}
-                                                        error={errors.pasR_FatherHome_Phone_No?.message}
+                                                        {...register('fatherHomePhone')}
+                                                        error={errors.fatherHomePhone?.message}
                                                     />
 
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_FatherNationality'>
-                                                            Nationality <span className='ml-1 text-red-500'>*</span>
+                                                        <Label htmlFor='fatherNationality'>
+                                                            Country {fatherAlive && <span className='ml-1 text-red-500'>*</span>}
                                                         </Label>
                                                         <Controller
-                                                            name='pasR_FatherNationality'
+                                                            name='fatherNationality'
                                                             control={control}
+                                                            rules={{ required: fatherAlive ? 'Country is required' : false }}
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled={!fatherAlive}>
                                                                     <SelectTrigger>
-                                                                        <SelectValue placeholder='Select nationality' />
+                                                                        <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {countryLoading ? (
@@ -2946,20 +3720,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.pasR_FatherNationality && (
-                                                            <FormError>{errors.pasR_FatherNationality.message}</FormError>
+                                                        {(errors.fatherNationality ||
+                                                            (fatherAlive && showStep3Errors && !watch('fatherNationality'))) && (
+                                                            <FormError>
+                                                                {errors.fatherNationality?.message ?? 'Country is required'}
+                                                            </FormError>
                                                         )}
                                                     </div>
-
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
                                                         <h3 className='font-semibold text-gray-800 text-lg'>Education Details</h3>
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             <InputText
-                                                                label='Qualification'
-                                                                id='pasR_qualification'
+                                                                label=' '
+                                                                id='FatherEducation'
                                                                 placeholder='Enter qualification'
-                                                                {...register('pasR_qualification')}
-                                                                error={errors.pasR_qualification?.message}
+                                                                {...register('FatherEducation')}
+                                                                error={errors.FatherEducation?.message}
                                                             />
                                                         </div>
                                                     </div>
@@ -2967,59 +3743,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     {/* Present Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
                                                         <h3 className='font-semibold text-gray-800 text-lg'>Present Address Details</h3>
+
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                            {/* Address */}
                                                             <InputText
                                                                 label='Address'
-                                                                id='pasR_FatherAddress'
+                                                                id='fatherPresentAddress.address'
                                                                 placeholder='Enter Address'
-                                                                {...register('pasR_FatherAddress')}
-                                                                error={errors.pasR_FatherAddress?.message}
+                                                                {...register('fatherPresentAddress.address')}
+                                                                error={errors.fatherPresentAddress?.address?.message}
                                                             />
 
+                                                            {/* State */}
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='pasR_FatherCountry'>Country</Label>
+                                                                <Label htmlFor='fatherPresentAddress.state'>State</Label>
                                                                 <Controller
-                                                                    name='pasR_FatherCountry'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(value)}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select country' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {countryLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : countryError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    country?.data?.map((item) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmC_Id}
-                                                                                            value={item.ivrmmC_Id.toString()}>
-                                                                                            {item.ivrmmC_CountryName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                                {errors.pasR_PerCountry && (
-                                                                    <FormError>{errors.pasR_PerCountry.message}</FormError>
-                                                                )}
-                                                            </div>
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='pasR_FatherState'>State</Label>
-                                                                <Controller
-                                                                    name='pasR_FatherState'
+                                                                    name='fatherPresentAddress.state'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
@@ -3030,17 +3769,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
+
                                                                             <SelectContent>
-                                                                                {perStateLoading ? (
+                                                                                {fatherPresentStateLoading ? (
                                                                                     <SelectItem value='loading' disabled>
                                                                                         Loading...
                                                                                     </SelectItem>
-                                                                                ) : perStateError ? (
+                                                                                ) : fatherPresentStateError ? (
                                                                                     <SelectItem value='error' disabled>
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    perState?.data?.map((item) => (
+                                                                                    fatherPresentState?.data?.map((item) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -3052,32 +3792,36 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Select>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_PerState && (
-                                                                    <FormError>{errors.pasR_PerState.message}</FormError>
+                                                                {errors.fatherPresentAddress?.state && (
+                                                                    <FormError>{errors.fatherPresentAddress.state.message}</FormError>
                                                                 )}
                                                             </div>
+
+                                                            {/* City */}
                                                             <InputText
                                                                 label='City'
-                                                                id='pasR_FatherCity'
+                                                                id='fatherPresentAddress.city'
                                                                 placeholder='Enter city'
-                                                                {...register('pasR_FatherCity')}
-                                                                error={errors.pasR_PerCity?.message}
+                                                                {...register('fatherPresentAddress.city')}
+                                                                error={errors.fatherPresentAddress?.city?.message}
                                                                 disabled={sameAsResidential}
                                                             />
+
+                                                            {/* Pincode */}
                                                             <div className='flex flex-col gap-1.5'>
                                                                 <Controller
-                                                                    name='pasR_FatherPincode'
+                                                                    name='fatherPresentAddress.pincode'
                                                                     control={control}
                                                                     rules={
-                                                                        perZipLength
+                                                                        fatherZipLength
                                                                             ? {
                                                                                   minLength: {
-                                                                                      value: perZipLength,
-                                                                                      message: `Pin code must be ${perZipLength} digits`
+                                                                                      value: fatherZipLength,
+                                                                                      message: `Pin code must be ${fatherZipLength} digits`
                                                                                   },
                                                                                   maxLength: {
-                                                                                      value: perZipLength,
-                                                                                      message: `Pin code must be ${perZipLength} digits`
+                                                                                      value: fatherZipLength,
+                                                                                      message: `Pin code must be ${fatherZipLength} digits`
                                                                                   }
                                                                               }
                                                                             : undefined
@@ -3086,129 +3830,83 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <>
                                                                             <MobileNumberInput
                                                                                 label='Pin Code'
-                                                                                id='pasR_FatherPincode'
+                                                                                id='fatherPresentAddress.pincode'
                                                                                 value={field.value}
-                                                                                onChange={(valueOrEvent: any) => {
+                                                                                onChange={(valueOrEvent) => {
                                                                                     const raw = valueOrEvent?.target?.value ?? valueOrEvent;
                                                                                     const str =
                                                                                         raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                                    const truncated = perZipLength
-                                                                                        ? str.slice(0, perZipLength)
+                                                                                    const truncated = fatherZipLength
+                                                                                        ? str.slice(0, fatherZipLength)
                                                                                         : str;
                                                                                     field.onChange(truncated);
-                                                                                    // Set/clear a manual validation error so message appears immediately
+
                                                                                     if (
-                                                                                        perZipLength &&
+                                                                                        fatherZipLength &&
                                                                                         truncated !== '' &&
-                                                                                        String(truncated).length !== perZipLength
+                                                                                        truncated.length !== fatherZipLength
                                                                                     ) {
-                                                                                        setError('pasR_FatherPincode', {
+                                                                                        setError('fatherPresentAddress.pincode', {
                                                                                             type: 'manual',
-                                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                                            message: `Pin code must be ${fatherZipLength} digits`
                                                                                         });
                                                                                     } else {
-                                                                                        clearErrors('pasR_FatherPincode');
+                                                                                        clearErrors('fatherPresentAddress.pincode');
                                                                                     }
-                                                                                    // Also trigger the resolver-based validation
-                                                                                    trigger('pasR_FatherPincode');
+
+                                                                                    trigger('fatherPresentAddress.pincode');
                                                                                 }}
-                                                                                minLength={perZipLength}
-                                                                                maxLength={perZipLength}
+                                                                                minLength={fatherZipLength}
+                                                                                maxLength={fatherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
                                                                                 disabled={sameAsResidential}
                                                                             />
-                                                                            {perCountryObj && perZipLength && (
+
+                                                                            {fatherCountryObj && fatherZipLength && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
+                                                                                    {`Pin code must be ${fatherZipLength} digits for ${fatherCountryObj.ivrmmC_CountryName}`}
                                                                                 </span>
                                                                             )}
                                                                         </>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_PerPincode && (
-                                                                    <FormError>{errors.pasR_PerPincode.message}</FormError>
+                                                                {errors.fatherPresentAddress?.pincode && (
+                                                                    <FormError>{errors.fatherPresentAddress.pincode.message}</FormError>
                                                                 )}
                                                             </div>
 
+                                                            {/* PO */}
                                                             <InputText
                                                                 label='PO'
-                                                                id='pasR_FatherPO'
+                                                                id='fatherPresentAddress.po'
                                                                 placeholder='Enter PO'
-                                                                {...register('pasR_FatherPO')}
-                                                                error={errors.pasR_FatherPO?.message}
+                                                                {...register('fatherPresentAddress.po')}
+                                                                error={errors.fatherPresentAddress?.po?.message}
                                                             />
                                                         </div>
                                                     </div>
-                                                    {/* Same as Residential Address Checkbox */}
-                                                    <div className='flex items-center space-x-2 rounded-lg border border-blue-200 bg-blue-50 p-4'>
-                                                        <Checkbox
-                                                            id='sameAsResidential'
-                                                            checked={sameAsResidential}
-                                                            onCheckedChange={handleSameAsResidential}
-                                                        />
-                                                        <Label
-                                                            htmlFor='sameAsResidential'
-                                                            className='cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                                            Same as Residential Address
-                                                        </Label>
-                                                    </div>
+
                                                     {/* Permanent Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
                                                         <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address Details</h3>
+
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                            {/* Permanent Address */}
                                                             <InputText
-                                                                label=' Permanent Address'
-                                                                id='pasR_FatherPermanentAddress'
+                                                                label='Permanent Address'
+                                                                id='fatherPermanentAddress.address'
                                                                 placeholder='Enter Permanent Address'
-                                                                {...register('pasR_FatherPermanentAddress')}
-                                                                error={errors.pasR_FatherPermanentAddress?.message}
+                                                                {...register('fatherPermanentAddress.address')}
+                                                                error={errors.fatherPermanentAddress?.address?.message}
                                                             />
 
+                                                            {/* Permanent State */}
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='pasR_FatherPermanentCountry'>Permanent Country</Label>
+                                                                <Label htmlFor='fatherPermanentAddress.state'>Permanent State</Label>
+
                                                                 <Controller
-                                                                    name='pasR_FatherPermanentCountry'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(value)}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select country' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {countryLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : countryError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    country?.data?.map((item) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmC_Id}
-                                                                                            value={item.ivrmmC_Id.toString()}>
-                                                                                            {item.ivrmmC_CountryName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                                {errors.pasR_PerCountry && (
-                                                                    <FormError>{errors.pasR_PerCountry.message}</FormError>
-                                                                )}
-                                                            </div>
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='pasR_FatherPermanentState'> Permanent State</Label>
-                                                                <Controller
-                                                                    name='pasR_FatherPermanentState'
+                                                                    name='fatherPermanentAddress.state'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
@@ -3219,17 +3917,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
+
                                                                             <SelectContent>
-                                                                                {perStateLoading ? (
+                                                                                {fatherPresentStateLoading ? (
                                                                                     <SelectItem value='loading' disabled>
                                                                                         Loading...
                                                                                     </SelectItem>
-                                                                                ) : perStateError ? (
+                                                                                ) : fatherPresentStateError ? (
                                                                                     <SelectItem value='error' disabled>
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    perState?.data?.map((item) => (
+                                                                                    fatherPresentState?.data?.map((item) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -3241,32 +3940,37 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Select>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_PerState && (
-                                                                    <FormError>{errors.pasR_PerState.message}</FormError>
+
+                                                                {errors.fatherPermanentAddress?.state && (
+                                                                    <FormError>{errors.fatherPermanentAddress.state.message}</FormError>
                                                                 )}
                                                             </div>
+
+                                                            {/* Permanent City */}
                                                             <InputText
-                                                                label=' Permanent City'
-                                                                id='pasR_FatherPermanentCity'
+                                                                label='Permanent City'
+                                                                id='fatherPermanentAddress.city'
                                                                 placeholder='Enter city'
-                                                                {...register('pasR_FatherPermanentCity')}
-                                                                error={errors.pasR_FatherPermanentCity?.message}
+                                                                {...register('fatherPermanentAddress.city')}
+                                                                error={errors.fatherPermanentAddress?.city?.message}
                                                                 disabled={sameAsResidential}
                                                             />
+
+                                                            {/* Permanent Pin Code */}
                                                             <div className='flex flex-col gap-1.5'>
                                                                 <Controller
-                                                                    name='pasR_FatherPermanentPincode'
+                                                                    name='fatherPermanentAddress.pincode'
                                                                     control={control}
                                                                     rules={
-                                                                        perZipLength
+                                                                        fatherZipLength
                                                                             ? {
                                                                                   minLength: {
-                                                                                      value: perZipLength,
-                                                                                      message: `Pin code must be ${perZipLength} digits`
+                                                                                      value: fatherZipLength,
+                                                                                      message: `Pin code must be ${fatherZipLength} digits`
                                                                                   },
                                                                                   maxLength: {
-                                                                                      value: perZipLength,
-                                                                                      message: `Pin code must be ${perZipLength} digits`
+                                                                                      value: fatherZipLength,
+                                                                                      message: `Pin code must be ${fatherZipLength} digits`
                                                                                   }
                                                                               }
                                                                             : undefined
@@ -3275,65 +3979,70 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <>
                                                                             <MobileNumberInput
                                                                                 label='Permanent Pin Code'
-                                                                                id='pasR_FatherPermanentPincode'
+                                                                                id='fatherPermanentAddress.pincode'
                                                                                 value={field.value}
-                                                                                onChange={(valueOrEvent: any) => {
-                                                                                    const raw = valueOrEvent?.target?.value ?? valueOrEvent;
+                                                                                onChange={(valOrEvent: any) => {
+                                                                                    const raw = valOrEvent?.target?.value ?? valOrEvent;
                                                                                     const str =
                                                                                         raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                                    const truncated = perZipLength
-                                                                                        ? str.slice(0, perZipLength)
+                                                                                    const truncated = fatherZipLength
+                                                                                        ? str.slice(0, fatherZipLength)
                                                                                         : str;
+
                                                                                     field.onChange(truncated);
-                                                                                    // Set/clear a manual validation error so message appears immediately
+
                                                                                     if (
-                                                                                        perZipLength &&
+                                                                                        fatherZipLength &&
                                                                                         truncated !== '' &&
-                                                                                        String(truncated).length !== perZipLength
+                                                                                        truncated.length !== fatherZipLength
                                                                                     ) {
-                                                                                        setError('pasR_FatherPermanentPincode', {
+                                                                                        setError('fatherPermanentAddress.pincode', {
                                                                                             type: 'manual',
-                                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                                            message: `Pin code must be ${fatherZipLength} digits`
                                                                                         });
                                                                                     } else {
-                                                                                        clearErrors('pasR_FatherPermanentPincode');
+                                                                                        clearErrors('fatherPermanentAddress.pincode');
                                                                                     }
-                                                                                    // Also trigger the resolver-based validation
-                                                                                    trigger('pasR_FatherPermanentPincode');
+
+                                                                                    trigger('fatherPermanentAddress.pincode');
                                                                                 }}
-                                                                                minLength={perZipLength}
-                                                                                maxLength={perZipLength}
+                                                                                minLength={fatherZipLength}
+                                                                                maxLength={fatherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
                                                                                 disabled={sameAsResidential}
                                                                             />
-                                                                            {perCountryObj && perZipLength && (
+
+                                                                            {fatherCountryObj && fatherZipLength && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
+                                                                                    {`Pin code must be ${fatherZipLength} digits for ${fatherCountryObj.ivrmmC_CountryName}`}
                                                                                 </span>
                                                                             )}
                                                                         </>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_PerPincode && (
-                                                                    <FormError>{errors.pasR_PerPincode.message}</FormError>
+
+                                                                {errors.fatherPermanentAddress?.pincode && (
+                                                                    <FormError>{errors.fatherPermanentAddress.pincode.message}</FormError>
                                                                 )}
                                                             </div>
 
+                                                            {/* Permanent PS */}
                                                             <InputText
                                                                 label='Permanent PS'
-                                                                id='pasR_FatherPermanent_PS'
+                                                                id='fatherPermanentAddress.ps'
                                                                 placeholder='Enter Permanent PS'
-                                                                {...register('pasR_FatherPermanent_PS')}
-                                                                error={errors.pasR_FatherPermanent_PS?.message}
+                                                                {...register('fatherPermanentAddress.ps')}
+                                                                error={errors.fatherPermanentAddress?.ps?.message}
                                                             />
 
+                                                            {/* Permanent PO */}
                                                             <InputText
                                                                 label='Permanent PO'
-                                                                id='pasR_FatherPermanent_PO'
+                                                                id='fatherPermanentAddress.po'
                                                                 placeholder='Enter Permanent PO'
-                                                                {...register('pasR_FatherPermanent_PO')}
-                                                                error={errors.pasR_FatherPermanent_PO?.message}
+                                                                {...register('fatherPermanentAddress.po')}
+                                                                error={errors.fatherPermanentAddress?.po?.message}
                                                             />
                                                         </div>
                                                     </div>
@@ -3344,38 +4053,38 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             <InputText
                                                                 label='Office Address'
-                                                                id='pasR_FatherOfficeAddress'
+                                                                id='fatherOfficeAddress'
                                                                 placeholder='Enter office address'
-                                                                {...register('pasR_FatherOfficeAddress')}
-                                                                error={errors.pasR_FatherOfficeAddress?.message}
+                                                                {...register('fatherOfficeAddress')}
+                                                                error={errors.fatherOfficeAddress?.message}
                                                             />
 
                                                             <div className='flex flex-col gap-1.5 '>
                                                                 <Controller
-                                                                    name='pasR_FatherOffice_PhNo'
+                                                                    name='fatherOfficePhone'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <div>
-                                                                            <Label htmlFor='pasR_FatherOffice_PhNo'>
+                                                                            <Label htmlFor='fatherOfficePhone'>
                                                                                 Father Office Phone No.
                                                                             </Label>
                                                                             <PhoneInput
                                                                                 country='in'
                                                                                 value={
-                                                                                    phoneValues.pasR_FatherOffice_PhNo ??
+                                                                                    phoneValues.fatherOfficePhone ??
                                                                                     (field.value != null ? String(field.value) : null)
                                                                                 }
                                                                                 onChange={(phone: any, countryData: any) =>
                                                                                     handlePhoneChange(
                                                                                         phone,
                                                                                         countryData,
-                                                                                        'pasR_FatherOffice_PhNo'
+                                                                                        'fatherOfficePhone'
                                                                                     )
                                                                                 }
-                                                                                onBlur={() => trigger('pasR_FatherOffice_PhNo')}
+                                                                                onBlur={() => trigger('fatherOfficePhone')}
                                                                                 inputProps={{
-                                                                                    id: 'pasR_FatherOffice_PhNo',
-                                                                                    name: 'pasR_FatherOffice_PhNo',
+                                                                                    id: 'fatherOfficePhone',
+                                                                                    name: 'fatherOfficePhone',
                                                                                     maxLength: 25,
                                                                                     required: false,
                                                                                     style: {
@@ -3396,10 +4105,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 isValid={true}
                                                                                 preserveOrder={['country', 'nationalNumber']}
                                                                             />
-                                                                            {phoneExpectedInfo.pasR_FatherOffice_PhNo?.expected && (
+                                                                            {phoneExpectedInfo.fatherOfficePhone?.expected && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherOffice_PhNo.expected} digits for ${
-                                                                                        phoneExpectedInfo.pasR_FatherOffice_PhNo.name ??
+                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.fatherOfficePhone.expected} digits for ${
+                                                                                        phoneExpectedInfo.fatherOfficePhone.name ??
                                                                                         'selected country'
                                                                                     }`}
                                                                                 </span>
@@ -3407,25 +4116,25 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </div>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_FatherOffice_PhNo && (
-                                                                    <FormError>{errors.pasR_FatherOffice_PhNo.message}</FormError>
+                                                                {errors.fatherOfficePhone && (
+                                                                    <FormError>{errors.fatherOfficePhone.message}</FormError>
                                                                 )}
                                                             </div>
 
                                                             <InputText
                                                                 label='Occupation'
-                                                                id='pasR_FatherOccupation'
+                                                                id='fatherOccupation'
                                                                 placeholder='Enter Occupation'
-                                                                {...register('pasR_FatherOccupation')}
-                                                                error={errors.pasR_FatherOccupation?.message}
+                                                                {...register('fatherOccupation')}
+                                                                error={errors.fatherOccupation?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Designation'
-                                                                id='pasR_FatherDesignation'
+                                                                id='fatherDesignation'
                                                                 placeholder='Enter designation'
-                                                                {...register('pasR_FatherDesignation')}
-                                                                error={errors.pasR_FatherDesignation?.message}
+                                                                {...register('fatherDesignation')}
+                                                                error={errors.fatherDesignation?.message}
                                                             />
                                                         </div>
                                                     </div>
@@ -3435,11 +4144,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <h3 className='font-semibold text-gray-800 text-lg'>Other's Details</h3>
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='religion_Id'>
-                                                                    Religion <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
+                                                                <Label htmlFor='fatherReligionId'>Religion</Label>
                                                                 <Controller
-                                                                    name='religion_Id'
+                                                                    name='fatherReligionId'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
@@ -3471,15 +4178,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Select>
                                                                     )}
                                                                 />
-                                                                {errors.religion_Id && <FormError>{errors.religion_Id.message}</FormError>}
+                                                                {errors.fatherReligionId && (
+                                                                    <FormError>{errors.fatherReligionId.message}</FormError>
+                                                                )}
                                                             </div>
 
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='caste_Id'>
-                                                                    Caste Category <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
+                                                                <Label htmlFor='fatherCasteId'>Caste Category</Label>
                                                                 <Controller
-                                                                    name='caste_Id'
+                                                                    name='fatherCasteId'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
@@ -3490,16 +4197,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 <SelectValue placeholder='Select caste Category' />
                                                                             </SelectTrigger>
                                                                             <SelectContent>
-                                                                                {casteLoading ? (
+                                                                                {fatherCasteLoading ? (
                                                                                     <SelectItem value='loading' disabled>
                                                                                         Loading...
                                                                                     </SelectItem>
-                                                                                ) : casteError ? (
+                                                                                ) : fatherCasteError ? (
                                                                                     <SelectItem value='error' disabled>
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    caste?.data?.map((item) => (
+                                                                                    fatherCaste?.data?.map((item) => (
                                                                                         <SelectItem
                                                                                             key={item.imC_Id}
                                                                                             value={item.imC_Id.toString()}>
@@ -3511,32 +4218,26 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Select>
                                                                     )}
                                                                 />
-                                                                {errors.caste_Id && <FormError>{errors.caste_Id.message}</FormError>}
+                                                                {errors.fatherCasteId && (
+                                                                    <FormError>{errors.fatherCasteId.message}</FormError>
+                                                                )}
                                                             </div>
                                                             <InputText
-                                                                label='Caste '
-                                                                required
-                                                                id='pasR_FatherCaste'
+                                                                label='Sub Caste '
+                                                                id='fatherSubCaste'
                                                                 placeholder='Enter caste'
-                                                                {...register('pasR_FatherCaste')}
-                                                                error={errors.pasR_FatherCasteCategory?.message}
-                                                            />
-                                                            <InputText
-                                                                label='Sub Caste'
-                                                                id='pasR_FatherSubCaste'
-                                                                placeholder='Enter sub caste'
-                                                                {...register('pasR_FatherSubCaste')}
-                                                                error={errors.pasR_FatherSubCaste?.message}
+                                                                {...register('fatherSubCaste')}
+                                                                error={errors.fatherSubCaste?.message}
                                                             />
 
                                                             <div className='flex flex-col gap-1.5'>
                                                                 <Controller
-                                                                    name='pasR_FatherIncome'
+                                                                    name='fatherAnnualIncome'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <InputNumber
-                                                                            label='Father Income'
-                                                                            id='pasR_FatherIncome'
+                                                                            label='Father Annual Income'
+                                                                            id='fatherAnnualIncome'
                                                                             value={field.value || 0}
                                                                             onChange={(value) =>
                                                                                 field.onChange(Number.isNaN(value) ? 0 : value)
@@ -3546,35 +4247,35 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         />
                                                                     )}
                                                                 />
-                                                                {errors.pasR_FatherIncome && (
-                                                                    <FormError>{errors.pasR_FatherIncome.message}</FormError>
+                                                                {errors.fatherAnnualIncome && (
+                                                                    <FormError>{errors.fatherAnnualIncome.message}</FormError>
                                                                 )}
                                                             </div>
 
                                                             <InputText
                                                                 label='Caste Certificate No'
-                                                                id='pasR_FatherCaste_Certificate_No'
+                                                                id='fatherCasteCertificateNo'
                                                                 placeholder='Enter Caste Certificate No '
-                                                                {...register('pasR_FatherCaste_Certificate_No')}
-                                                                error={errors.pasR_FatherCaste_Certificate_No?.message}
+                                                                {...register('fatherCasteCertificateNo')}
+                                                                error={errors.fatherCasteCertificateNo?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Pan No'
-                                                                id='pasR_FatherPanno'
+                                                                id='fatherPAN'
                                                                 placeholder='Enter PAN'
-                                                                {...register('pasR_FatherPanno')}
-                                                                error={errors.pasR_FatherPanno?.message}
+                                                                {...register('fatherPAN')}
+                                                                error={errors.fatherPAN?.message}
                                                             />
                                                             <div className='flex items-center space-x-2'>
                                                                 <Checkbox
-                                                                    id='amsT_VaccinatedFlg'
-                                                                    checked={Boolean(watch('amsT_VaccinatedFlg'))}
+                                                                    id='fatherSelfEmployedFlg'
+                                                                    checked={Boolean(watch('fatherSelfEmployedFlg'))}
                                                                     onCheckedChange={(checked) => {
-                                                                        setValue('amsT_VaccinatedFlg', checked === true);
+                                                                        setValue('fatherSelfEmployedFlg', checked === true);
                                                                     }}
                                                                 />
-                                                                <Label htmlFor='amsT_VaccinatedFlg' className='cursor-pointer'>
+                                                                <Label htmlFor='fatherSelfEmployedFlg' className='cursor-pointer'>
                                                                     Self Employed Flg
                                                                 </Label>
                                                             </div>
@@ -3587,225 +4288,128 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             <div className='space-y-4'>
                                                 <h3 className='font-semibold text-gray-800 text-lg'>Mother Details</h3>
                                                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    {/* Mother Photo Upload - Mandatory */}
-                                                    <div className='col-span-full w-fit'>
-                                                        <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
-                                                            <div className='mb-1'>
-                                                                <Label htmlFor='mother_photo'>
-                                                                    Mother Photo <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
-                                                            </div>
-
-                                                            {!motherPhoto?.pasR_MotherPhoto ? (
-                                                                <label
-                                                                    htmlFor='mother_photo'
-                                                                    className={cn(
-                                                                        'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
-                                                                        motherPhoto?.isUploading
-                                                                            ? 'border-blue-400 bg-blue-100'
-                                                                            : 'border-gray-300 bg-white'
-                                                                    )}>
-                                                                    {motherPhoto?.isUploading ? (
-                                                                        <div className='flex flex-col items-center gap-2'>
-                                                                            <svg
-                                                                                className='h-8 w-8 animate-spin text-primary'
-                                                                                fill='none'
-                                                                                stroke='currentColor'
-                                                                                viewBox='0 0 24 24'>
-                                                                                <circle
-                                                                                    className='opacity-25'
-                                                                                    cx='12'
-                                                                                    cy='12'
-                                                                                    r='10'
-                                                                                    strokeWidth='4'
-                                                                                    stroke='currentColor'
-                                                                                />
-                                                                                <path
-                                                                                    className='opacity-75'
-                                                                                    fill='currentColor'
-                                                                                    d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                                                                                />
-                                                                            </svg>
-                                                                            <span className='font-medium text-primary text-sm'>
-                                                                                Uploading photo...
-                                                                            </span>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <>
-                                                                            <svg
-                                                                                className='h-12 w-12 text-primary'
-                                                                                fill='none'
-                                                                                stroke='currentColor'
-                                                                                viewBox='0 0 24 24'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                                                                                />
-                                                                            </svg>
-                                                                            <span className='font-medium text-gray-700 text-sm'>
-                                                                                Click to upload
-                                                                            </span>
-                                                                            <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                                Upload recent passport-size photo (Max size: 5MB, Format:
-                                                                                JPG, PNG)
-                                                                            </span>
-                                                                        </>
-                                                                    )}
-                                                                    <input
-                                                                        id='mother_photo'
-                                                                        type='file'
-                                                                        className='hidden'
-                                                                        accept='image/jpeg,image/jpg,image/png'
-                                                                        disabled={motherPhoto?.isUploading || isSubmitting}
-                                                                        onChange={(e) => {
-                                                                            const file = e.target.files?.[0];
-                                                                            if (file) {
-                                                                                if (file.size > 5 * 1024 * 1024) {
-                                                                                    toast.error('File size must be less than 5MB');
-                                                                                    e.target.value = '';
-                                                                                    return;
-                                                                                }
-                                                                                handleMotherPhotoUpload(file);
-                                                                                e.target.value = '';
+                                                    <div className='col-span-full flex items-center gap-3'>
+                                                        <Controller
+                                                            name='motherAliveFlag'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <div className='flex items-center gap-2'>
+                                                                    <Checkbox
+                                                                        id='motherAliveFlag'
+                                                                        checked={field.value || false}
+                                                                        onCheckedChange={(checked) => {
+                                                                            field.onChange(checked);
+                                                                            if (!checked) {
+                                                                                setValue('motherName', '');
+                                                                                setValue('motherNationality', undefined);
                                                                             }
                                                                         }}
                                                                     />
-                                                                </label>
-                                                            ) : (
-                                                                <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
-                                                                    <div className='flex items-center gap-4'>
-                                                                        <img
-                                                                            src={motherPhoto.pasR_MotherPhoto}
-                                                                            alt='Mother'
-                                                                            className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
-                                                                        />
-                                                                        <div>
-                                                                            <div className='flex items-center gap-2 font-medium text-green-700'>
-                                                                                <Check className='h-5 w-5' />
-                                                                                Uploaded Successfully
-                                                                            </div>
-                                                                            <p className='mt-1 text-green-600 text-sm'>
-                                                                                Mother photo is ready
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className='flex gap-2'>
-                                                                        <Button
-                                                                            type='button'
-                                                                            variant='outline'
-                                                                            size='sm'
-                                                                            onClick={() =>
-                                                                                window.open(motherPhoto.pasR_MotherPhoto, '_blank')
-                                                                            }>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                        <Button
-                                                                            type='button'
-                                                                            variant='destructive'
-                                                                            size='sm'
-                                                                            disabled={isSubmitting}
-                                                                            onClick={handleMotherPhotoDelete}>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
-                                                                    </div>
+                                                                    <Label htmlFor='motherAliveFlag' className='font-medium text-gray-700'>
+                                                                        Mother is Alive
+                                                                    </Label>
                                                                 </div>
                                                             )}
-
-                                                            {motherPhotoError && (
-                                                                <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                                    <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                                        <span className='mt-0.5 text-red-500'>⚠</span>
-                                                                        <span>{motherPhotoError}</span>
-                                                                    </p>
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                        />
                                                     </div>
-                                                    <InputText
-                                                        label='Mother Name'
-                                                        required
-                                                        id='pasR_MotherName'
-                                                        placeholder='Enter mother name'
-                                                        {...register('pasR_MotherName')}
-                                                        error={errors.pasR_MotherName?.message}
-                                                    />
+
+                                                    {motherAlive && (
+                                                        <div>
+                                                            <InputText
+                                                                label='Mother Name'
+                                                                required
+                                                                id='motherName'
+                                                                placeholder='Enter mother name'
+                                                                {...register('motherName', {
+                                                                    required: motherAlive ? 'Mother Name is required' : false
+                                                                })}
+                                                                error={errors.motherName?.message}
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    {!motherAlive && (
+                                                        <InputText
+                                                            label='Mother Name'
+                                                            id='motherName'
+                                                            placeholder='Enter mother name'
+                                                            {...register('motherName', {
+                                                                required: motherAlive ? 'Mother Name is required' : false
+                                                            })}
+                                                            error={errors.motherName?.message}
+                                                            disabled
+                                                        />
+                                                    )}
                                                     <InputText
                                                         label='Surname'
-                                                        id='pasR_MotherSurname'
+                                                        id='motherSurname'
                                                         placeholder='Enter surname'
-                                                        {...register('pasR_MotherSurname')}
-                                                        error={errors.pasR_MotherSurname?.message}
+                                                        {...register('motherSurname')}
+                                                        error={errors.motherSurname?.message}
                                                     />
 
                                                     <InputText
                                                         label='Aadhaar No.'
-                                                        id='pasR_MotherAadhaar_No'
+                                                        id='motherAadharNo'
                                                         placeholder='Enter Aadhaar No'
-                                                        {...register('pasR_MotherAadhaar_No')}
-                                                        error={errors.pasR_MotherAadhaar_No?.message}
+                                                        {...register('motherAadharNo')}
+                                                        error={errors.motherAadharNo?.message}
                                                     />
 
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='asmcL_Id'>
-                                                            Marital Status <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
+                                                        <Label htmlFor='motherMaritalStatus'>Marital Status</Label>
                                                         <Controller
-                                                            name='asmcL_Id'
+                                                            name='motherMaritalStatus'
                                                             control={control}
                                                             render={({ field, fieldState: { error } }) => (
                                                                 <div className='flex flex-col space-y-2'>
                                                                     <Select
                                                                         value={field.value?.toString() || ''}
-                                                                        onValueChange={(value) => field.onChange(Number(value))}>
+                                                                        onValueChange={(value) => field.onChange(Number(value))} // convert to number
+                                                                    >
                                                                         <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
-                                                                            <SelectValue placeholder='Select ' />
+                                                                            <SelectValue placeholder='Select' />
                                                                         </SelectTrigger>
 
                                                                         <SelectContent>
-                                                                            {filteredClasses.length > 0 ? (
-                                                                                filteredClasses.map((classItem) => (
-                                                                                    <SelectItem
-                                                                                        key={classItem.asmcL_Id}
-                                                                                        value={classItem.asmcL_Id.toString()}>
-                                                                                        {classItem.asmcL_ClassName}
-                                                                                    </SelectItem>
-                                                                                ))
-                                                                            ) : (
-                                                                                <SelectItem value='0' disabled>
-                                                                                    No classes available
-                                                                                </SelectItem>
-                                                                            )}
+                                                                            <SelectItem value='0'>Married</SelectItem>
+                                                                            <SelectItem value='1'>Single father</SelectItem>
+                                                                            <SelectItem value='2'>Single mother</SelectItem>
+                                                                            <SelectItem value='3'>Divorced father</SelectItem>
+                                                                            <SelectItem value='4'>Divorced mother</SelectItem>
+                                                                            <SelectItem value='5'>Widow</SelectItem>
+                                                                            <SelectItem value='6'>Widower</SelectItem>
                                                                         </SelectContent>
                                                                     </Select>
                                                                 </div>
                                                             )}
                                                         />
 
-                                                        {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
+                                                        {errors.motherMaritalStatus && (
+                                                            <FormError>{errors.motherMaritalStatus.message}</FormError>
+                                                        )}
                                                     </div>
 
                                                     <div className='flex flex-col gap-1.5 '>
                                                         <Controller
-                                                            name='pasR_MotherMobleNo'
+                                                            name='motherMobileNumbers'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <div>
-                                                                    <Label htmlFor='pasR_MotherMobleNo'>Mobile No.</Label>
+                                                                    <Label htmlFor='motherMobileNumbers'>Mobile No.</Label>
                                                                     <PhoneInput
                                                                         country='in'
                                                                         value={
-                                                                            phoneValues.pasR_MotherMobleNo ??
+                                                                            phoneValues.motherMobileNumbers ??
                                                                             (field.value != null ? String(field.value) : null)
                                                                         }
                                                                         onChange={(phone: any, countryData: any) =>
-                                                                            handlePhoneChange(phone, countryData, 'pasR_MotherMobleNo')
+                                                                            handlePhoneChange(phone, countryData, 'motherMobileNumbers')
                                                                         }
-                                                                        onBlur={() => trigger('pasR_MotherMobleNo')}
+                                                                        onBlur={() => trigger('motherMobileNumbers')}
                                                                         inputProps={{
-                                                                            id: 'pasR_MotherMobleNo',
-                                                                            name: 'pasR_MotherMobleNo',
+                                                                            id: 'motherMobileNumbers',
+                                                                            name: 'motherMobileNumbers',
                                                                             maxLength: 25,
                                                                             required: false,
                                                                             style: {
@@ -3826,10 +4430,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
-                                                                    {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
+                                                                    {phoneExpectedInfo.motherMobileNumbers?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
-                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.motherMobileNumbers.expected} digits for ${
+                                                                                phoneExpectedInfo.motherMobileNumbers.name ??
                                                                                 'selected country'
                                                                             }`}
                                                                         </span>
@@ -3837,41 +4441,42 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </div>
                                                             )}
                                                         />
-                                                        {errors.pasR_MotherMobleNo && (
-                                                            <FormError>{errors.pasR_MotherMobleNo.message}</FormError>
+                                                        {errors.motherMobileNumbers && (
+                                                            <FormError>{errors.motherMobileNumbers.message}</FormError>
                                                         )}
                                                     </div>
 
                                                     <InputText
                                                         label='Email-ID'
-                                                        id='pasR_MotherEmail_ID'
+                                                        id='motherEmailIds'
                                                         placeholder='Enter Email-ID'
-                                                        {...register('pasR_MotherEmail_ID')}
-                                                        error={errors.pasR_FatherEmail_ID?.message}
+                                                        {...register('motherEmailIds')}
+                                                        error={errors.motherEmailIds?.message}
                                                     />
 
                                                     <InputText
                                                         label='Home Phone No'
-                                                        id='pasR_MotherHome_Phone_No'
+                                                        id='motherHomePhone'
                                                         placeholder='Enter Home Phone No'
-                                                        {...register('pasR_MotherHome_Phone_No')}
-                                                        error={errors.pasR_FatherHome_Phone_No?.message}
+                                                        {...register('motherHomePhone')}
+                                                        error={errors.motherHomePhone?.message}
                                                     />
-
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_MotherNationality'>
-                                                            Nationality <span className='ml-1 text-red-500'>*</span>
+                                                        <Label htmlFor='motherNationality'>
+                                                            Country {motherAlive && <span className='ml-1 text-red-500'>*</span>}
                                                         </Label>
                                                         <Controller
-                                                            name='pasR_MotherNationality'
+                                                            name='motherNationality'
                                                             control={control}
+                                                            rules={{ required: motherAlive ? 'Country is required' : false }}
                                                             render={({ field }) => (
                                                                 <Select
                                                                     key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    value={field.value?.toString() || ''}
+                                                                    disabled={!motherAlive}>
                                                                     <SelectTrigger>
-                                                                        <SelectValue placeholder='Select nationality' />
+                                                                        <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {countryLoading ? (
@@ -3895,8 +4500,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.pasR_MotherNationality && (
-                                                            <FormError>{errors.pasR_MotherNationality.message}</FormError>
+                                                        {(errors.motherNationality ||
+                                                            (motherAlive && showStep3Errors && !watch('motherNationality'))) && (
+                                                            <FormError>
+                                                                {errors.motherNationality?.message ?? 'Country is required'}
+                                                            </FormError>
                                                         )}
                                                     </div>
 
@@ -3906,78 +4514,44 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             <InputText
                                                                 label='Qualification'
-                                                                id='pasR_MotherEducation'
+                                                                id='motherQualification'
                                                                 placeholder='Enter qualification'
-                                                                {...register('pasR_MotherEducation')}
-                                                                error={errors.pasR_MotherEducation?.message}
+                                                                {...register('motherQualification')}
+                                                                error={errors.motherQualification?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Passing Year'
-                                                                id='pasR_MotherPassing_Year'
+                                                                id='motherPassingYear'
                                                                 placeholder='Enter Passing Year'
-                                                                {...register('pasR_MotherPassing_Year')}
-                                                                error={errors.pasR_MotherPassing_Year?.message}
+                                                                {...register('motherPassingYear')}
+                                                                error={errors.motherPassingYear?.message}
                                                             />
                                                         </div>
                                                     </div>
 
-                                                    {/* Present Address Details */}
+                                                    {/* Mother Present Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
-                                                        <h3 className='font-semibold text-gray-800 text-lg'>Present Address Details</h3>
+                                                        <h3 className='font-semibold text-gray-800 text-lg'>
+                                                            Mother Present Address Details
+                                                        </h3>
+
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                            {/* Address */}
                                                             <InputText
                                                                 label='Address'
-                                                                id='pasR_MotherAddress'
+                                                                id='motherPresentAddress.address'
                                                                 placeholder='Enter Address'
-                                                                {...register('pasR_MotherAddress')}
-                                                                error={errors.pasR_MotherAddress?.message}
+                                                                {...register('motherPresentAddress.address')}
+                                                                error={errors.motherPresentAddress?.address?.message}
                                                             />
 
+                                                            {/* State */}
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='pasR_MotherCountry'>Country</Label>
+                                                                <Label htmlFor='motherPresentAddress.state'>State</Label>
+
                                                                 <Controller
-                                                                    name='pasR_MotherCountry'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(value)}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select country' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {countryLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : countryError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    country?.data?.map((item) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmC_Id}
-                                                                                            value={item.ivrmmC_Id.toString()}>
-                                                                                            {item.ivrmmC_CountryName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                                {errors.pasR_MotherCountry && (
-                                                                    <FormError>{errors.pasR_MotherCountry.message}</FormError>
-                                                                )}
-                                                            </div>
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='pasR_MotherState'>State</Label>
-                                                                <Controller
-                                                                    name='pasR_MotherState'
+                                                                    name='motherPresentAddress.state'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
@@ -3988,17 +4562,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
+
                                                                             <SelectContent>
-                                                                                {perStateLoading ? (
+                                                                                {motherPresentStateLoading ? (
                                                                                     <SelectItem value='loading' disabled>
                                                                                         Loading...
                                                                                     </SelectItem>
-                                                                                ) : perStateError ? (
+                                                                                ) : motherPresentStateError ? (
                                                                                     <SelectItem value='error' disabled>
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    perState?.data?.map((item) => (
+                                                                                    motherPresentState?.data?.map((item) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -4010,33 +4585,37 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Select>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_PerState && (
-                                                                    <FormError>{errors.pasR_PerState.message}</FormError>
+
+                                                                {errors.motherPresentAddress?.state && (
+                                                                    <FormError>{errors.motherPresentAddress.state.message}</FormError>
                                                                 )}
                                                             </div>
+
+                                                            {/* City */}
                                                             <InputText
                                                                 label='City'
-                                                                id='pasR_MotherCity'
+                                                                id='motherPresentAddress.city'
                                                                 placeholder='Enter city'
-                                                                {...register('pasR_MotherCity')}
-                                                                error={errors.pasR_MotherCity?.message}
+                                                                {...register('motherPresentAddress.city')}
+                                                                error={errors.motherPresentAddress?.city?.message}
                                                                 disabled={sameAsResidential}
                                                             />
 
+                                                            {/* Pincode */}
                                                             <div className='flex flex-col gap-1.5'>
                                                                 <Controller
-                                                                    name='pasR_FatherPincode'
+                                                                    name='motherPresentAddress.pincode'
                                                                     control={control}
                                                                     rules={
-                                                                        perZipLength
+                                                                        motherZipLength
                                                                             ? {
                                                                                   minLength: {
-                                                                                      value: perZipLength,
-                                                                                      message: `Pin code must be ${perZipLength} digits`
+                                                                                      value: motherZipLength,
+                                                                                      message: `Pin code must be ${motherZipLength} digits`
                                                                                   },
                                                                                   maxLength: {
-                                                                                      value: perZipLength,
-                                                                                      message: `Pin code must be ${perZipLength} digits`
+                                                                                      value: motherZipLength,
+                                                                                      message: `Pin code must be ${motherZipLength} digits`
                                                                                   }
                                                                               }
                                                                             : undefined
@@ -4045,129 +4624,93 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <>
                                                                             <MobileNumberInput
                                                                                 label='Pin Code'
-                                                                                id='pasR_MotherPincode'
+                                                                                id='motherPresentAddress.pincode'
                                                                                 value={field.value}
                                                                                 onChange={(valueOrEvent: any) => {
                                                                                     const raw = valueOrEvent?.target?.value ?? valueOrEvent;
                                                                                     const str =
                                                                                         raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                                    const truncated = perZipLength
-                                                                                        ? str.slice(0, perZipLength)
+                                                                                    const truncated = motherZipLength
+                                                                                        ? str.slice(0, motherZipLength)
                                                                                         : str;
                                                                                     field.onChange(truncated);
-                                                                                    // Set/clear a manual validation error so message appears immediately
+
                                                                                     if (
-                                                                                        perZipLength &&
+                                                                                        motherZipLength &&
                                                                                         truncated !== '' &&
-                                                                                        String(truncated).length !== perZipLength
+                                                                                        truncated.length !== motherZipLength
                                                                                     ) {
-                                                                                        setError('pasR_MotherPincode', {
+                                                                                        setError('motherPresentAddress.pincode', {
                                                                                             type: 'manual',
-                                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                                            message: `Pin code must be ${motherZipLength} digits`
                                                                                         });
                                                                                     } else {
-                                                                                        clearErrors('pasR_MotherPincode');
+                                                                                        clearErrors('motherPresentAddress.pincode');
                                                                                     }
-                                                                                    // Also trigger the resolver-based validation
-                                                                                    trigger('pasR_MotherPincode');
+
+                                                                                    trigger('motherPresentAddress.pincode');
                                                                                 }}
-                                                                                minLength={perZipLength}
-                                                                                maxLength={perZipLength}
+                                                                                minLength={motherZipLength}
+                                                                                maxLength={motherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
                                                                                 disabled={sameAsResidential}
                                                                             />
-                                                                            {perCountryObj && perZipLength && (
+
+                                                                            {motherCountryObj && motherZipLength && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
+                                                                                    {`Pin code must be ${motherZipLength} digits for ${motherCountryObj.ivrmmC_CountryName}`}
                                                                                 </span>
                                                                             )}
                                                                         </>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_PerPincode && (
-                                                                    <FormError>{errors.pasR_PerPincode.message}</FormError>
+
+                                                                {errors.motherPresentAddress?.pincode && (
+                                                                    <FormError>{errors.motherPresentAddress.pincode.message}</FormError>
                                                                 )}
                                                             </div>
 
+                                                            {/* PO */}
                                                             <InputText
                                                                 label='PO'
-                                                                id='pasR_MotherPO'
+                                                                id='motherPresentAddress.po'
                                                                 placeholder='Enter PO'
-                                                                {...register('pasR_MotherPO')}
-                                                                error={errors.pasR_FatherPO?.message}
+                                                                {...register('motherPresentAddress.po')}
+                                                                error={errors.motherPresentAddress?.po?.message}
+                                                            />
+
+                                                            {/* PS */}
+                                                            <InputText
+                                                                label='PS'
+                                                                id='motherPresentAddress.ps'
+                                                                placeholder='Enter PS'
+                                                                {...register('motherPresentAddress.ps')}
+                                                                error={errors.motherPresentAddress?.ps?.message}
                                                             />
                                                         </div>
                                                     </div>
-                                                    {/* Same as Residential Address Checkbox */}
-                                                    <div className='flex items-center space-x-2 rounded-lg border border-blue-200 bg-blue-50 p-4'>
-                                                        <Checkbox
-                                                            id='sameAsResidential'
-                                                            checked={sameAsResidential}
-                                                            onCheckedChange={handleSameAsResidential}
-                                                        />
-                                                        <Label
-                                                            htmlFor='sameAsResidential'
-                                                            className='cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                                            Same as Residential Address
-                                                        </Label>
-                                                    </div>
-                                                    {/* Permanent Address Details */}
+
+                                                    {/* Mother Permanent Address Details */}
                                                     <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
                                                         <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address Details</h3>
+
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                            {/* Permanent Address */}
                                                             <InputText
-                                                                label=' Permanent Address'
-                                                                id='pasR_MotherPermanentAddress'
+                                                                label='Permanent Address'
+                                                                id='motherPermanentAddress.address'
                                                                 placeholder='Enter Permanent Address'
-                                                                {...register('pasR_MotherPermanentAddress')}
-                                                                error={errors.pasR_MotherPermanentAddress?.message}
+                                                                {...register('motherPermanentAddress.address')}
+                                                                error={errors.motherPermanentAddress?.address?.message}
                                                             />
 
+                                                            {/* Permanent State */}
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='pasR_MotherPermanentCountry'>Permanent Country</Label>
+                                                                <Label htmlFor='motherPermanentAddress.state'>Permanent State</Label>
+
                                                                 <Controller
-                                                                    name='pasR_MotherPermanentCountry'
-                                                                    control={control}
-                                                                    render={({ field }) => (
-                                                                        <Select
-                                                                            key={field.value || 'empty'}
-                                                                            onValueChange={(value) => field.onChange(value)}
-                                                                            value={field.value?.toString() || ''}
-                                                                            disabled={sameAsResidential}>
-                                                                            <SelectTrigger>
-                                                                                <SelectValue placeholder='Select country' />
-                                                                            </SelectTrigger>
-                                                                            <SelectContent>
-                                                                                {countryLoading ? (
-                                                                                    <SelectItem value='loading' disabled>
-                                                                                        Loading...
-                                                                                    </SelectItem>
-                                                                                ) : countryError ? (
-                                                                                    <SelectItem value='error' disabled>
-                                                                                        Error loading
-                                                                                    </SelectItem>
-                                                                                ) : (
-                                                                                    country?.data?.map((item) => (
-                                                                                        <SelectItem
-                                                                                            key={item.ivrmmC_Id}
-                                                                                            value={item.ivrmmC_Id.toString()}>
-                                                                                            {item.ivrmmC_CountryName}
-                                                                                        </SelectItem>
-                                                                                    ))
-                                                                                )}
-                                                                            </SelectContent>
-                                                                        </Select>
-                                                                    )}
-                                                                />
-                                                                {errors.pasR_PerCountry && (
-                                                                    <FormError>{errors.pasR_PerCountry.message}</FormError>
-                                                                )}
-                                                            </div>
-                                                            <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='pasR_MotherPermanentState'> Permanent State</Label>
-                                                                <Controller
-                                                                    name='pasR_MotherPermanentState'
+                                                                    name='motherPermanentAddress.state'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
@@ -4178,17 +4721,18 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             <SelectTrigger>
                                                                                 <SelectValue placeholder='Select state' />
                                                                             </SelectTrigger>
+
                                                                             <SelectContent>
-                                                                                {perStateLoading ? (
+                                                                                {motherPresentStateLoading ? (
                                                                                     <SelectItem value='loading' disabled>
                                                                                         Loading...
                                                                                     </SelectItem>
-                                                                                ) : perStateError ? (
+                                                                                ) : motherPresentStateError ? (
                                                                                     <SelectItem value='error' disabled>
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    perState?.data?.map((item) => (
+                                                                                    motherPresentState?.data?.map((item) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -4200,33 +4744,37 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Select>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_PerState && (
-                                                                    <FormError>{errors.pasR_PerState.message}</FormError>
+
+                                                                {errors.motherPermanentAddress?.state && (
+                                                                    <FormError>{errors.motherPermanentAddress.state.message}</FormError>
                                                                 )}
                                                             </div>
+
+                                                            {/* Permanent City */}
                                                             <InputText
-                                                                label=' Permanent City'
-                                                                id='pasR_MotherPermanentCity'
+                                                                label='Permanent City'
+                                                                id='motherPermanentAddress.city'
                                                                 placeholder='Enter city'
-                                                                {...register('pasR_MotherPermanentCity')}
-                                                                error={errors.pasR_MotherPermanentCity?.message}
+                                                                {...register('motherPermanentAddress.city')}
+                                                                error={errors.motherPermanentAddress?.city?.message}
                                                                 disabled={sameAsResidential}
                                                             />
 
+                                                            {/* Permanent Pincode */}
                                                             <div className='flex flex-col gap-1.5'>
                                                                 <Controller
-                                                                    name='pasR_MotherPermanentPincode'
+                                                                    name='motherPermanentAddress.pincode'
                                                                     control={control}
                                                                     rules={
-                                                                        perZipLength
+                                                                        motherZipLength
                                                                             ? {
                                                                                   minLength: {
-                                                                                      value: perZipLength,
-                                                                                      message: `Pin code must be ${perZipLength} digits`
+                                                                                      value: motherZipLength,
+                                                                                      message: `Pin code must be ${motherZipLength} digits`
                                                                                   },
                                                                                   maxLength: {
-                                                                                      value: perZipLength,
-                                                                                      message: `Pin code must be ${perZipLength} digits`
+                                                                                      value: motherZipLength,
+                                                                                      message: `Pin code must be ${motherZipLength} digits`
                                                                                   }
                                                                               }
                                                                             : undefined
@@ -4235,58 +4783,71 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <>
                                                                             <MobileNumberInput
                                                                                 label='Permanent Pin Code'
-                                                                                id='pasR_MotherPermanentPincode'
+                                                                                id='motherPermanentAddress.pincode'
                                                                                 placeholder='Enter Pincode'
                                                                                 value={field.value}
                                                                                 onChange={(valueOrEvent: any) => {
                                                                                     const raw = valueOrEvent?.target?.value ?? valueOrEvent;
                                                                                     const str =
                                                                                         raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                                    const truncated = perZipLength
-                                                                                        ? str.slice(0, perZipLength)
+                                                                                    const truncated = motherZipLength
+                                                                                        ? str.slice(0, motherZipLength)
                                                                                         : str;
+
                                                                                     field.onChange(truncated);
-                                                                                    // Set/clear a manual validation error so message appears immediately
+
                                                                                     if (
-                                                                                        perZipLength &&
+                                                                                        motherZipLength &&
                                                                                         truncated !== '' &&
-                                                                                        String(truncated).length !== perZipLength
+                                                                                        truncated.length !== motherZipLength
                                                                                     ) {
-                                                                                        setError('pasR_MotherPermanentPincode', {
+                                                                                        setError('motherPermanentAddress.pincode', {
                                                                                             type: 'manual',
-                                                                                            message: `Pin code must be ${perZipLength} digits`
+                                                                                            message: `Pin code must be ${motherZipLength} digits`
                                                                                         });
                                                                                     } else {
-                                                                                        clearErrors('pasR_MotherPermanentPincode');
+                                                                                        clearErrors('motherPermanentAddress.pincode');
                                                                                     }
-                                                                                    // Also trigger the resolver-based validation
-                                                                                    trigger('pasR_MotherPermanentPincode');
+
+                                                                                    trigger('motherPermanentAddress.pincode');
                                                                                 }}
-                                                                                minLength={perZipLength}
-                                                                                maxLength={perZipLength}
+                                                                                minLength={motherZipLength}
+                                                                                maxLength={motherZipLength}
                                                                                 type='number'
                                                                                 showSpinner={false}
                                                                                 disabled={sameAsResidential}
                                                                             />
-                                                                            {perCountryObj && perZipLength && (
+
+                                                                            {motherCountryObj && motherZipLength && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
+                                                                                    {`Pin code must be ${motherZipLength} digits for ${motherCountryObj.ivrmmC_CountryName}`}
                                                                                 </span>
                                                                             )}
                                                                         </>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_PerPincode && (
-                                                                    <FormError>{errors.pasR_PerPincode.message}</FormError>
+
+                                                                {errors.motherPermanentAddress?.pincode && (
+                                                                    <FormError>{errors.motherPermanentAddress.pincode.message}</FormError>
                                                                 )}
                                                             </div>
 
+                                                            {/* Permanent PO */}
                                                             <InputText
                                                                 label='Permanent PO'
-                                                                id='pasR_MotherPermanent_PO'
+                                                                id='motherPermanentAddress.po'
                                                                 placeholder='Enter Permanent PO'
-                                                                {...register('pasR_MotherPermanent_PO')}
-                                                                error={errors.pasR_MotherPermanent_PO?.message}
+                                                                {...register('motherPermanentAddress.po')}
+                                                                error={errors.motherPermanentAddress?.po?.message}
+                                                            />
+
+                                                            {/* Permanent PS */}
+                                                            <InputText
+                                                                label='Permanent PS'
+                                                                id='motherPermanentAddress.ps'
+                                                                placeholder='Enter Permanent PS'
+                                                                {...register('motherPermanentAddress.ps')}
+                                                                error={errors.motherPermanentAddress?.ps?.message}
                                                             />
                                                         </div>
                                                     </div>
@@ -4297,38 +4858,36 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             <InputText
                                                                 label='Office Address'
-                                                                id='pasR_MotherOfficeAddress'
+                                                                id='motherOfficeAddress'
                                                                 placeholder='Enter office address'
-                                                                {...register('pasR_MotherOfficeAddress')}
-                                                                error={errors.pasR_MotherOfficeAddress?.message}
+                                                                {...register('motherOfficeAddress')}
+                                                                error={errors.motherOfficeAddress?.message}
                                                             />
 
                                                             <div className='flex flex-col gap-1.5 '>
                                                                 <Controller
-                                                                    name='pasR_MotherOffice_PhNo'
+                                                                    name='motherOfficePhone'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <div>
-                                                                            <Label htmlFor='pasR_MotherOffice_PhNo'>
-                                                                                Mother Office PhNo.
-                                                                            </Label>
+                                                                            <Label htmlFor='motherOfficePhone'>Mother Office PhNo.</Label>
                                                                             <PhoneInput
                                                                                 country='in'
                                                                                 value={
-                                                                                    phoneValues.pasR_MotherOffice_PhNo ??
+                                                                                    phoneValues.motherOfficePhone ??
                                                                                     (field.value != null ? String(field.value) : null)
                                                                                 }
                                                                                 onChange={(phone: any, countryData: any) =>
                                                                                     handlePhoneChange(
                                                                                         phone,
                                                                                         countryData,
-                                                                                        'pasR_MotherOffice_PhNo'
+                                                                                        'motherOfficePhone'
                                                                                     )
                                                                                 }
-                                                                                onBlur={() => trigger('pasR_MotherOffice_PhNo')}
+                                                                                onBlur={() => trigger('motherOfficePhone')}
                                                                                 inputProps={{
-                                                                                    id: 'pasR_MotherOffice_PhNo',
-                                                                                    name: 'pasR_MotherOffice_PhNo',
+                                                                                    id: 'motherOfficePhone',
+                                                                                    name: 'motherOfficePhone',
                                                                                     maxLength: 25,
                                                                                     required: false,
                                                                                     style: {
@@ -4349,10 +4908,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 isValid={true}
                                                                                 preserveOrder={['country', 'nationalNumber']}
                                                                             />
-                                                                            {phoneExpectedInfo.pasR_MotherOffice_PhNo?.expected && (
+                                                                            {phoneExpectedInfo.motherOfficePhone?.expected && (
                                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherOffice_PhNo.expected} digits for ${
-                                                                                        phoneExpectedInfo.pasR_MotherOffice_PhNo.name ??
+                                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.motherOfficePhone.expected} digits for ${
+                                                                                        phoneExpectedInfo.motherOfficePhone.name ??
                                                                                         'selected country'
                                                                                     }`}
                                                                                 </span>
@@ -4360,25 +4919,25 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </div>
                                                                     )}
                                                                 />
-                                                                {errors.pasR_MotherOffice_PhNo && (
-                                                                    <FormError>{errors.pasR_MotherOffice_PhNo.message}</FormError>
+                                                                {errors.motherOfficePhone && (
+                                                                    <FormError>{errors.motherOfficePhone.message}</FormError>
                                                                 )}
                                                             </div>
 
                                                             <InputText
                                                                 label='Occupation'
-                                                                id='pasR_MotherOccupation'
+                                                                id='motherOccupation'
                                                                 placeholder='Enter Occupation'
-                                                                {...register('pasR_MotherOccupation')}
-                                                                error={errors.pasR_MotherOccupation?.message}
+                                                                {...register('motherOccupation')}
+                                                                error={errors.motherOccupation?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Designation'
-                                                                id='pasR_MotherDesignation'
+                                                                id='motherDesignation'
                                                                 placeholder='Enter designation'
-                                                                {...register('pasR_MotherDesignation')}
-                                                                error={errors.pasR_MotherDesignation?.message}
+                                                                {...register('motherDesignation')}
+                                                                error={errors.motherDesignation?.message}
                                                             />
                                                         </div>
                                                     </div>
@@ -4388,11 +4947,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         <h3 className='font-semibold text-gray-800 text-lg'>Other's Details</h3>
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='religion_Id'>
-                                                                    Religion <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
+                                                                <Label htmlFor='motherReligionId'>Religion</Label>
                                                                 <Controller
-                                                                    name='religion_Id'
+                                                                    name='motherReligionId'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
@@ -4424,15 +4981,15 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Select>
                                                                     )}
                                                                 />
-                                                                {errors.religion_Id && <FormError>{errors.religion_Id.message}</FormError>}
+                                                                {errors.motherReligionId && (
+                                                                    <FormError>{errors.motherReligionId.message}</FormError>
+                                                                )}
                                                             </div>
 
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='caste_Id'>
-                                                                    Caste Category <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
+                                                                <Label htmlFor='motherCasteId'>Caste Category</Label>
                                                                 <Controller
-                                                                    name='caste_Id'
+                                                                    name='motherCasteId'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <Select
@@ -4443,16 +5000,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 <SelectValue placeholder='Select caste Category' />
                                                                             </SelectTrigger>
                                                                             <SelectContent>
-                                                                                {casteLoading ? (
+                                                                                {motherCasteLoading ? (
                                                                                     <SelectItem value='loading' disabled>
                                                                                         Loading...
                                                                                     </SelectItem>
-                                                                                ) : casteError ? (
+                                                                                ) : motherCasteError ? (
                                                                                     <SelectItem value='error' disabled>
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    caste?.data?.map((item) => (
+                                                                                    motherCaste?.data?.map((item) => (
                                                                                         <SelectItem
                                                                                             key={item.imC_Id}
                                                                                             value={item.imC_Id.toString()}>
@@ -4464,32 +5021,27 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Select>
                                                                     )}
                                                                 />
-                                                                {errors.caste_Id && <FormError>{errors.caste_Id.message}</FormError>}
+                                                                {errors.motherCasteId && (
+                                                                    <FormError>{errors.motherCasteId.message}</FormError>
+                                                                )}
                                                             </div>
-                                                            <InputText
-                                                                label='Caste '
-                                                                required
-                                                                id='pasR_MotherCaste'
-                                                                placeholder='Enter caste '
-                                                                {...register('pasR_MotherCaste')}
-                                                                error={errors.pasR_MotherCaste?.message}
-                                                            />
+
                                                             <InputText
                                                                 label='Sub Caste'
-                                                                id='pasR_MotherSubCaste'
+                                                                id='motherSubCaste'
                                                                 placeholder='Enter sub caste'
-                                                                {...register('pasR_MotherSubCaste')}
-                                                                error={errors.pasR_MotherSubCaste?.message}
+                                                                {...register('motherSubCaste')}
+                                                                error={errors.motherSubCaste?.message}
                                                             />
 
                                                             <div className='flex flex-col gap-1.5'>
                                                                 <Controller
-                                                                    name='pasR_MotherIncome'
+                                                                    name='motherAnnualIncome'
                                                                     control={control}
                                                                     render={({ field }) => (
                                                                         <InputNumber
-                                                                            label='Mother Income'
-                                                                            id='pasR_MotherIncome'
+                                                                            label='Mother Anuual Income'
+                                                                            id='motherAnnualIncome'
                                                                             value={field.value || 0}
                                                                             onChange={(value) =>
                                                                                 field.onChange(Number.isNaN(value) ? 0 : value)
@@ -4499,39 +5051,987 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         />
                                                                     )}
                                                                 />
-                                                                {errors.pasR_FatherIncome && (
-                                                                    <FormError>{errors.pasR_FatherIncome.message}</FormError>
+                                                                {errors.motherAnnualIncome && (
+                                                                    <FormError>{errors.motherAnnualIncome.message}</FormError>
                                                                 )}
                                                             </div>
 
                                                             <InputText
                                                                 label='Caste Certificate No'
-                                                                id='pasR_MotherCaste_Certificate_No'
+                                                                id='motherCasteCertificateNo'
                                                                 placeholder='Enter Caste Certificate No'
-                                                                {...register('pasR_MotherCaste_Certificate_No')}
-                                                                error={errors.pasR_MotherCaste_Certificate_No?.message}
+                                                                {...register('motherCasteCertificateNo')}
+                                                                error={errors.motherCasteCertificateNo?.message}
                                                             />
 
                                                             <InputText
                                                                 label='Pan No'
-                                                                id='pasR_MotherPanno'
+                                                                id='motherPAN'
                                                                 placeholder='Enter PAN'
-                                                                {...register('pasR_MotherPanno')}
-                                                                error={errors.pasR_MotherPanno?.message}
+                                                                {...register('motherPAN')}
+                                                                error={errors.motherPAN?.message}
                                                             />
                                                             <div className='flex items-center space-x-2'>
                                                                 <Checkbox
-                                                                    id='amsT_VaccinatedFlg'
-                                                                    checked={Boolean(watch('amsT_VaccinatedFlg'))}
+                                                                    id='motherSelfEmployedFlg'
+                                                                    checked={Boolean(watch('motherSelfEmployedFlg'))}
                                                                     onCheckedChange={(checked) => {
-                                                                        setValue('amsT_VaccinatedFlg', checked === true);
+                                                                        setValue('motherSelfEmployedFlg', checked === true);
                                                                     }}
                                                                 />
-                                                                <Label htmlFor='amsT_VaccinatedFlg' className='cursor-pointer'>
+                                                                <Label htmlFor='motherSelfEmployedFlg' className='cursor-pointer'>
                                                                     Self Employed Flg
                                                                 </Label>
                                                             </div>
                                                         </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Step 4: Other Information */}
+                                {currentStep === 4 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Other Information</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>
+                                                Sibling details, previous school information, and undertaking
+                                            </p>
+                                        </div>
+                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Label htmlFor='source_ids'>Activities</Label>
+                                                <Controller
+                                                    name='activities'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <MultiSelect
+                                                            options={
+                                                                source?.data?.map((data) => ({
+                                                                    label: data.pamS_SourceName,
+                                                                    value: data.pamS_Id.toString()
+                                                                })) || []
+                                                            }
+                                                            onValueChange={(selectedValues) => {
+                                                                field.onChange(selectedValues);
+                                                                handleSourceSelection(selectedValues);
+                                                            }}
+                                                            defaultValue={selectedSourceItems.map((data) => data.pamS_Id)}
+                                                            value={selectedSourceItems.map((data) => data.pamS_Id)}
+                                                            placeholder='Select Activities'
+                                                            variant='inverted'
+                                                            disabled={sourceLoading}
+                                                        />
+                                                    )}
+                                                />
+                                                {errors.activities && <FormError>{errors.activities.message}</FormError>}
+                                            </div>
+
+                                            <div className='flex flex-col gap-1.5'>
+                                                <Label htmlFor='source_ids'>Source Details</Label>
+                                                <Controller
+                                                    name='sourceDetails'
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <MultiSelect
+                                                            options={
+                                                                source?.data?.map((data) => ({
+                                                                    label: data.pamS_SourceName,
+                                                                    value: data.pamS_Id.toString()
+                                                                })) || []
+                                                            }
+                                                            onValueChange={(selectedValues) => {
+                                                                field.onChange(selectedValues);
+                                                                handleSourceSelection(selectedValues);
+                                                            }}
+                                                            defaultValue={selectedSourceItems.map((data) => data.pamS_Id)}
+                                                            value={selectedSourceItems.map((data) => data.pamS_Id)}
+                                                            placeholder='Select sources'
+                                                            variant='inverted'
+                                                            disabled={sourceLoading}
+                                                        />
+                                                    )}
+                                                />
+                                                {errors.sourceDetails && <FormError>{errors.sourceDetails.message}</FormError>}
+                                            </div>
+
+                                            <InputTextarea
+                                                label='Achievements'
+                                                id='achievements'
+                                                // placeholder={`Enter Mother's Business`}
+                                                {...register('achievements')}
+                                                error={errors.achievements?.message}
+                                            />
+                                        </div>
+
+                                        {/* Previous School Details Section */}
+                                        <div className='space-y-4'>
+                                            <div className='flex items-center justify-between'>
+                                                <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
+
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
+                                                    className='w-fit'
+                                                    onClick={addPreviousSchool}
+                                                    disabled={isSubmitting}>
+                                                    <span className='mr-2'>+</span>
+                                                    Add Previous School Details
+                                                </Button>
+                                            </div>
+
+                                            {previousSchoolFields.length === 0 ? (
+                                                <p className='text-gray-500 text-sm'>No previous school details added.</p>
+                                            ) : (
+                                                <div className='space-y-4'>
+                                                    {previousSchoolFields.map((ps, idx) => (
+                                                        <div key={ps.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                            {/* Header */}
+                                                            <div className='flex items-center justify-between'>
+                                                                <h4 className='font-medium text-gray-700 text-sm'>
+                                                                    Previous School {idx + 1}
+                                                                </h4>
+
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='outline'
+                                                                    size='sm'
+                                                                    className='w-fit'
+                                                                    onClick={() => removePreviousSchool(idx)}
+                                                                    disabled={isSubmitting}>
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+
+                                                            {/* Fields */}
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                                                                {/* School Name */}
+                                                                <InputText
+                                                                    label='Previous School Name'
+                                                                    placeholder='Enter previous school name'
+                                                                    {...register(`previousSchools.${idx}.schoolName`)}
+                                                                    error={errors.previousSchools?.[idx]?.schoolName?.message}
+                                                                />
+
+                                                                {/* School Type */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>School Type</Label>
+                                                                    <Controller
+                                                                        name={`previousSchools.${idx}.schoolTypeId`}
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                value={field.value?.toString() || ''}
+                                                                                onValueChange={(val) => field.onChange(Number(val))}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select school type' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value='1'>Primary</SelectItem>
+                                                                                    <SelectItem value='2'>Pre-School</SelectItem>
+                                                                                    <SelectItem value='3'>High School</SelectItem>
+                                                                                    <SelectItem value='4'>College</SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                </div>
+
+                                                                {/* Class */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>Class</Label>
+                                                                    <Controller
+                                                                        name={`previousSchools.${idx}.classId`}
+                                                                        control={control}
+                                                                        render={({ field, fieldState: { error } }) => (
+                                                                            <Select
+                                                                                value={
+                                                                                    field.value !== undefined ? field.value.toString() : ''
+                                                                                }
+                                                                                onValueChange={(val) => field.onChange(Number(val))}>
+                                                                                <SelectTrigger className={error && 'border-red-500'}>
+                                                                                    <SelectValue placeholder='Select class' />
+                                                                                </SelectTrigger>
+
+                                                                                <SelectContent>
+                                                                                    {admissionClassLoading ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : admissionClassError ? (
+                                                                                        <SelectItem value='error' disabled>
+                                                                                            Error loading classes
+                                                                                        </SelectItem>
+                                                                                    ) : (
+                                                                                        admissionClass?.data?.map((item) => (
+                                                                                            <SelectItem
+                                                                                                key={item.asmcL_Id}
+                                                                                                value={item.asmcL_Id.toString()}>
+                                                                                                {item.asmcL_ClassName}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                </div>
+
+                                                                {/* Percentage */}
+                                                                <InputText
+                                                                    label='Percentage'
+                                                                    placeholder='Enter percentage'
+                                                                    {...register(`previousSchools.${idx}.percentage`)}
+                                                                    error={errors.previousSchools?.[idx]?.percentage?.message}
+                                                                />
+
+                                                                {/* Grade */}
+                                                                <InputText
+                                                                    label='Grade'
+                                                                    placeholder='Enter grade'
+                                                                    {...register(`previousSchools.${idx}.grade`)}
+                                                                    error={errors.previousSchools?.[idx]?.grade?.message}
+                                                                />
+
+                                                                {/* Passed Year */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label>Passed Year</Label>
+                                                                    <Controller
+                                                                        name={`previousSchools.${idx}.passedYear`}
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <Select
+                                                                                value={field.value?.toString() || ''}
+                                                                                onValueChange={(val) => field.onChange(Number(val))}>
+                                                                                <SelectTrigger>
+                                                                                    <SelectValue placeholder='Select passed year' />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    <SelectItem value='2024'>2024</SelectItem>
+                                                                                    <SelectItem value='2023'>2023</SelectItem>
+                                                                                    <SelectItem value='2022'>2022</SelectItem>
+                                                                                    <SelectItem value='2021'>2021</SelectItem>
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                </div>
+
+                                                                <PreviousSchoolRow idx={idx} />
+
+                                                                {/* Address */}
+                                                                <InputText
+                                                                    label='Address'
+                                                                    placeholder='Enter school address'
+                                                                    {...register(`previousSchools.${idx}.address`)}
+                                                                    error={errors.previousSchools?.[idx]?.address?.message}
+                                                                />
+
+                                                                {/* Left Reason */}
+                                                                <InputText
+                                                                    label='Left Reason'
+                                                                    placeholder='Enter reason for leaving'
+                                                                    {...register(`previousSchools.${idx}.leftReason`)}
+                                                                    error={errors.previousSchools?.[idx]?.leftReason?.message}
+                                                                />
+
+                                                                {/* Medium */}
+                                                                <InputText
+                                                                    label='Medium'
+                                                                    placeholder='Enter medium of instruction'
+                                                                    {...register(`previousSchools.${idx}.medium`)}
+                                                                    error={errors.previousSchools?.[idx]?.medium?.message}
+                                                                />
+
+                                                                {/* TC Number */}
+                                                                <InputText
+                                                                    label='TC No'
+                                                                    placeholder='Enter TC number'
+                                                                    {...register(`previousSchools.${idx}.tcNumber`)}
+                                                                    error={errors.previousSchools?.[idx]?.tcNumber?.message}
+                                                                />
+
+                                                                {/* TC Date */}
+                                                                <Controller
+                                                                    name={`previousSchools.${idx}.tcDate`}
+                                                                    control={control}
+                                                                    render={({ field, fieldState: { error } }) => (
+                                                                        <div className='flex flex-col space-y-2'>
+                                                                            <Label>TC Date</Label>
+
+                                                                            <Popover>
+                                                                                <PopoverTrigger asChild>
+                                                                                    <Button
+                                                                                        variant='outline'
+                                                                                        className={cn(
+                                                                                            'w-full justify-start text-left',
+                                                                                            !field.value && 'text-muted-foreground',
+                                                                                            error && 'border-red-500'
+                                                                                        )}>
+                                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                                        {field.value &&
+                                                                                        Object.prototype.toString.call(field.value) ===
+                                                                                            '[object Date]' &&
+                                                                                        field.value.getTime()
+                                                                                            ? format(field.value, 'dd/MM/yyyy')
+                                                                                            : 'Select TC date'}
+                                                                                    </Button>
+                                                                                </PopoverTrigger>
+
+                                                                                <PopoverContent>
+                                                                                    <CalendarYear
+                                                                                        mode='single'
+                                                                                        selected={field.value || undefined}
+                                                                                        onSelect={(date) => date && field.onChange(date)}
+                                                                                        disabled={(d) =>
+                                                                                            d > new Date() || d < new Date('1900-01-01')
+                                                                                        }
+                                                                                    />
+                                                                                </PopoverContent>
+                                                                            </Popover>
+
+                                                                            {error && (
+                                                                                <span className='text-red-500 text-sm'>
+                                                                                    {error.message}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* GUARDIAN DETAILS Section */}
+                                        <div className='space-y-4'>
+                                            <div className='flex items-center justify-between'>
+                                                <h3 className='font-semibold text-gray-800 text-lg'>GUARDIAN DETAILS</h3>
+
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
+                                                    className='w-fit'
+                                                    onClick={addGuardian}
+                                                    disabled={isSubmitting}>
+                                                    <span className='mr-2'>+</span>
+                                                    Add Guardian
+                                                </Button>
+                                            </div>
+
+                                            {guardianFields.length === 0 ? (
+                                                <p className='text-gray-500 text-sm'>No guardians added yet.</p>
+                                            ) : (
+                                                <div className='space-y-4'>
+                                                    {guardianFields.map((g, idx) => (
+                                                        <div key={g.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                            <div className='flex items-center justify-between'>
+                                                                <h4 className='font-medium text-gray-700 text-sm'>Guardian {idx + 1}</h4>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='ghost'
+                                                                    size='sm'
+                                                                    onClick={() => removeGuardian(idx)}
+                                                                    disabled={isSubmitting || idx === 0}
+                                                                    className={`h-8 w-fit ${idx === 0 ? 'cursor-not-allowed opacity-50' : ''}`}>
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                                                                {/* Guardian Name */}
+                                                                <InputText
+                                                                    label='Guardian Name'
+                                                                    placeholder='Enter Guardian Name'
+                                                                    {...register(`guardian.${idx}.guardianName`)}
+                                                                    error={errors.guardian?.[idx]?.guardianName?.message}
+                                                                />
+
+                                                                {/* Guardian Phone (PhoneInput) */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Controller
+                                                                        name={`guardian.${idx}.guardianPhone`}
+                                                                        control={control}
+                                                                        render={({ field }) => (
+                                                                            <div>
+                                                                                <Label htmlFor={`guardianPhone_${idx}`}>
+                                                                                    Guardian Phone
+                                                                                </Label>
+
+                                                                                <PhoneInput
+                                                                                    country='in'
+                                                                                    value={
+                                                                                        phoneValues[`guardian_${idx}_phone`] ??
+                                                                                        (field.value != null ? String(field.value) : null)
+                                                                                    }
+                                                                                    onChange={(phone, countryData) =>
+                                                                                        handlePhoneChange(
+                                                                                            phone,
+                                                                                            countryData,
+                                                                                            `guardian.${idx}.guardianPhone`
+                                                                                        )
+                                                                                    }
+                                                                                    onBlur={() => trigger(`guardian.${idx}.guardianPhone`)}
+                                                                                    inputProps={{
+                                                                                        id: `guardianPhone_${idx}`,
+                                                                                        name: `guardian.${idx}.guardianPhone`,
+                                                                                        maxLength: 25,
+                                                                                        required: false,
+                                                                                        style: {
+                                                                                            width: '87%',
+                                                                                            height: '36px',
+                                                                                            marginLeft: '40px',
+                                                                                            boxSizing: 'border-box',
+                                                                                            borderRadius: '4px',
+                                                                                            padding: '16.5px 14px',
+                                                                                            fontSize: '16px'
+                                                                                        }
+                                                                                    }}
+                                                                                    containerClass='w-full'
+                                                                                    inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                                    enableSearch
+                                                                                    disableCountryCode={false}
+                                                                                    enableLongNumbers={true}
+                                                                                    isValid={true}
+                                                                                    preserveOrder={['country', 'nationalNumber']}
+                                                                                />
+
+                                                                                {phoneExpectedInfo?.[`guardian_${idx}_phone`]?.expected && (
+                                                                                    <span className='mt-1 text-muted-foreground text-xs'>
+                                                                                        {`Mobile number must be exactly ${
+                                                                                            phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                                .expected
+                                                                                        } digits for ${
+                                                                                            phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                                .name ?? 'selected country'
+                                                                                        }`}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    />
+
+                                                                    {errors.guardian?.[idx]?.guardianPhone && (
+                                                                        <FormError>{errors.guardian[idx].guardianPhone?.message}</FormError>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Guardian Email */}
+                                                                <InputText
+                                                                    label='Guardian Email'
+                                                                    placeholder='Enter Guardian Email'
+                                                                    {...register(`guardian.${idx}.guardianEmail`)}
+                                                                    error={errors.guardian?.[idx]?.guardianEmail?.message}
+                                                                />
+
+                                                                {/* Guardian Address */}
+                                                                <InputText
+                                                                    label='Guardian Address'
+                                                                    placeholder='Enter Guardian Address'
+                                                                    {...register(`guardian.${idx}.guardianAddress`)}
+                                                                    error={errors.guardian?.[idx]?.guardianAddress?.message}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* SIBLING DETAILS Section */}
+                                        <div className='space-y-4'>
+                                            <div className='flex items-center justify-between'>
+                                                <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
+                                                    onClick={addSibling}
+                                                    disabled={isSubmitting}
+                                                    className='w-fit'>
+                                                    <span className='mr-2'>+</span>
+                                                    Add Sibling
+                                                </Button>
+                                            </div>
+
+                                            {siblingFields.length === 0 ? (
+                                                <p className='text-gray-500 text-sm'>
+                                                    No siblings added yet. Click "Add Sibling" to add details.
+                                                </p>
+                                            ) : (
+                                                <div className='space-y-4'>
+                                                    {siblingFields.map((sibling, index) => (
+                                                        <div key={sibling.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
+                                                            <div className='mb-3 flex items-center justify-between'>
+                                                                <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
+                                                                <Button
+                                                                    type='button'
+                                                                    variant='ghost'
+                                                                    size='sm'
+                                                                    onClick={() => removeSibling(index)}
+                                                                    disabled={isSubmitting || index === 0}
+                                                                    className={`h-8 w-fit ${index === 0 ? 'cursor-not-allowed opacity-50' : 'bg-error text-white'}`}>
+                                                                    Remove
+                                                                </Button>
+                                                            </div>
+
+                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                                {/* Sibling Name */}
+                                                                <Controller
+                                                                    control={control}
+                                                                    name={`siblings.${index}.name`}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Sibling Name'
+                                                                            id={`sibling_name_${index}`}
+                                                                            placeholder='Enter sibling name'
+                                                                            {...field}
+                                                                            error={errors.siblings?.[index]?.name?.message}
+                                                                        />
+                                                                    )}
+                                                                />
+
+                                                                {/* Class Select */}
+                                                                <div className='flex flex-col gap-1.5'>
+                                                                    <Label htmlFor={`classId_${index}`}>Class</Label>
+                                                                    <Controller
+                                                                        name={`siblings.${index}.classId`}
+                                                                        control={control}
+                                                                        render={({ field, fieldState: { error } }) => (
+                                                                            <Select
+                                                                                value={field.value?.toString() || ''}
+                                                                                onValueChange={(value) => field.onChange(Number(value))}>
+                                                                                <SelectTrigger
+                                                                                    className={cn('w-full', error && 'border-red-500')}>
+                                                                                    <SelectValue
+                                                                                        placeholder={
+                                                                                            admissionClassLoading
+                                                                                                ? 'Loading classes...'
+                                                                                                : 'Select a class'
+                                                                                        }
+                                                                                    />
+                                                                                </SelectTrigger>
+                                                                                <SelectContent>
+                                                                                    {admissionClassLoading ? (
+                                                                                        <SelectItem value='loading' disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : admissionClassError ? (
+                                                                                        <SelectItem value='error' disabled>
+                                                                                            Error loading classes
+                                                                                        </SelectItem>
+                                                                                    ) : Array.isArray(admissionClass?.data) &&
+                                                                                      admissionClass.data.length > 0 ? (
+                                                                                        admissionClass.data.map((classItem: any) => (
+                                                                                            <SelectItem
+                                                                                                key={classItem.asmcL_Id}
+                                                                                                value={classItem.asmcL_Id.toString()}>
+                                                                                                {classItem.asmcL_ClassName}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    ) : (
+                                                                                        <SelectItem value='0' disabled>
+                                                                                            No classes available
+                                                                                        </SelectItem>
+                                                                                    )}
+                                                                                </SelectContent>
+                                                                            </Select>
+                                                                        )}
+                                                                    />
+                                                                    {errors.siblings?.[index]?.classId && (
+                                                                        <FormError>{errors.siblings[index].classId.message}</FormError>
+                                                                    )}
+                                                                </div>
+
+                                                                {/* Relation */}
+                                                                <Controller
+                                                                    control={control}
+                                                                    name={`siblings.${index}.relation`}
+                                                                    render={({ field }) => (
+                                                                        <InputText
+                                                                            label='Relation'
+                                                                            id={`sibling_relation_${index}`}
+                                                                            placeholder='Enter Relation'
+                                                                            {...field}
+                                                                            error={errors.siblings?.[index]?.relation?.message}
+                                                                        />
+                                                                    )}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Place of Birth Details */}
+                                        <div className='space-y-4'>
+                                            <h3 className='font-semibold text-gray-800 text-lg'>Place of Birth Details</h3>
+                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                {/* Country */}
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label htmlFor='amsT_PlaceOfBirthCountry'>Country</Label>
+                                                    <Controller
+                                                        name='amsT_PlaceOfBirthCountry'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <Select
+                                                                key={field.value || 'empty'}
+                                                                value={field.value?.toString() || ''}
+                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                disabled={sameAsResidential}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder='Select country' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {countryLoading ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
+                                                                        </SelectItem>
+                                                                    ) : countryError ? (
+                                                                        <SelectItem value='error' disabled>
+                                                                            Error loading
+                                                                        </SelectItem>
+                                                                    ) : (
+                                                                        country?.data?.map((item) => (
+                                                                            <SelectItem
+                                                                                key={item.ivrmmC_Id}
+                                                                                value={item.ivrmmC_Id.toString()}>
+                                                                                {item.ivrmmC_CountryName}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    />
+                                                    {errors.amsT_PlaceOfBirthCountry && (
+                                                        <FormError>{errors.amsT_PlaceOfBirthCountry.message}</FormError>
+                                                    )}
+                                                </div>
+
+                                                {/* State */}
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label htmlFor='amsT_PlaceOfBirthState'>State</Label>
+                                                    <Controller
+                                                        name='amsT_PlaceOfBirthState'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <Select
+                                                                key={field.value || 'empty'}
+                                                                value={field.value?.toString() || ''}
+                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                disabled={sameAsResidential}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder='Select state' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {birthStateLoading ? (
+                                                                        <SelectItem value='loading' disabled>
+                                                                            Loading...
+                                                                        </SelectItem>
+                                                                    ) : birthStateError ? (
+                                                                        <SelectItem value='error' disabled>
+                                                                            Error loading
+                                                                        </SelectItem>
+                                                                    ) : (
+                                                                        birthState?.data?.map((item) => (
+                                                                            <SelectItem
+                                                                                key={item.ivrmmS_Id}
+                                                                                value={item.ivrmmS_Id.toString()}>
+                                                                                {item.ivrmmS_Name}
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    />
+                                                    {errors.amsT_PlaceOfBirthState && (
+                                                        <FormError>{errors.amsT_PlaceOfBirthState.message}</FormError>
+                                                    )}
+                                                </div>
+
+                                                {/* District */}
+                                                <InputText
+                                                    label='District'
+                                                    id='amsT_Distirct'
+                                                    placeholder='Enter District'
+                                                    {...register('amsT_Distirct')}
+                                                    error={errors.amsT_Distirct?.message}
+                                                />
+
+                                                {/* Taluk */}
+                                                <InputText
+                                                    label='Taluk'
+                                                    id='amsT_Taluk'
+                                                    placeholder='Enter Taluk'
+                                                    {...register('amsT_Taluk')}
+                                                    error={errors.amsT_Taluk?.message}
+                                                />
+
+                                                {/* Town */}
+                                                <InputText
+                                                    label='Town'
+                                                    id='amsT_Town'
+                                                    placeholder='Enter Town'
+                                                    {...register('amsT_Town')}
+                                                    error={errors.amsT_Town?.message}
+                                                />
+
+                                                {/* Village */}
+                                                <InputText
+                                                    label='Village'
+                                                    id='amsT_Village'
+                                                    placeholder='Enter Village'
+                                                    {...register('amsT_Village')}
+                                                    error={errors.amsT_Village?.message}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Siblings Count details */}
+
+                                        <div className='space-y-4'>
+                                            <h3 className='font-semibold text-gray-800 text-lg'>Siblings Count Details</h3>
+
+                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                <InputText
+                                                    label='No of Siblings'
+                                                    id='amsT_NoOfSiblings'
+                                                    placeholder='Enter No of Siblings'
+                                                    {...register('amsT_NoOfSiblings')}
+                                                    error={errors.amsT_NoOfSiblings?.message}
+                                                />
+
+                                                <InputText
+                                                    label='No of Siblings in School'
+                                                    id='amsT_NoOfSiblingsSchool'
+                                                    placeholder='Enter No of Siblings in School'
+                                                    {...register('amsT_NoOfSiblingsSchool')}
+                                                    error={errors.amsT_NoOfSiblingsSchool?.message}
+                                                />
+
+                                                <InputText
+                                                    label='No of Siblings in Other School'
+                                                    id='amsT_NoOfSiblingsOtherSchool'
+                                                    placeholder='Enter No of Siblings in Other School'
+                                                    {...register('amsT_NoOfSiblingsOtherSchool')}
+                                                    error={errors.amsT_NoOfSiblingsOtherSchool?.message}
+                                                />
+
+                                                <InputText
+                                                    label='No of Brothers'
+                                                    id='amsT_Noofbrothers'
+                                                    placeholder='Enter No of Brothers'
+                                                    {...register('amsT_Noofbrothers')}
+                                                    error={errors.amsT_Noofbrothers?.message}
+                                                />
+
+                                                <InputText
+                                                    label='No of Elder Brothers'
+                                                    id='amsT_NoOfElderBrothers'
+                                                    placeholder='Enter No of Elder Brothers'
+                                                    {...register('amsT_NoOfElderBrothers')}
+                                                    error={errors.amsT_NoOfElderBrothers?.message}
+                                                />
+
+                                                <InputText
+                                                    label='No of Younger Brothers'
+                                                    id='amsT_NoOfYoungerBrothers'
+                                                    placeholder='Enter No of Younger Brothers'
+                                                    {...register('amsT_NoOfYoungerBrothers')}
+                                                    error={errors.amsT_NoOfYoungerBrothers?.message}
+                                                />
+
+                                                <InputText
+                                                    label='No of Sisters'
+                                                    id='amsT_Noofsisters'
+                                                    placeholder='Enter No of Sisters'
+                                                    {...register('amsT_Noofsisters')}
+                                                    error={errors.amsT_Noofsisters?.message}
+                                                />
+
+                                                <InputText
+                                                    label='No of Elder Sisters'
+                                                    id='amsT_NoOfElderSisters'
+                                                    placeholder='Enter No of Elder Sisters'
+                                                    {...register('amsT_NoOfElderSisters')}
+                                                    error={errors.amsT_NoOfElderSisters?.message}
+                                                />
+
+                                                <InputText
+                                                    label='No of Younger Sisters'
+                                                    id='amsT_NoOfYoungerSisters'
+                                                    placeholder='Enter No of Younger Sisters'
+                                                    {...register('amsT_NoOfYoungerSisters')}
+                                                    error={errors.amsT_NoOfYoungerSisters?.message}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Step 5: Health and Medical Details */}
+                                {currentStep === 5 && (
+                                    <div className='space-y-6'>
+                                        <div>
+                                            <h2 className='font-bold text-2xl text-gray-900'>Health and Medical Details</h2>
+                                            <p className='mt-1 text-gray-500 text-sm'>Please provide Health details</p>
+                                        </div>
+
+                                        <div className='space-y-8'>
+                                            <div className='space-y-4'>
+                                                {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
+                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                    <InputText
+                                                        label='Student Health'
+                                                        id='amsT_Studentillness'
+                                                        placeholder='Enter Student Health'
+                                                        {...register('amsT_Studentillness')}
+                                                        error={errors.amsT_Studentillness?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Medical Complaints'
+                                                        id='amsT_MedicalComplaints'
+                                                        placeholder='Enter Medical Complaints'
+                                                        {...register('amsT_MedicalComplaints')}
+                                                        error={errors.amsT_MedicalComplaints?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Admission Reason'
+                                                        id='amsT_AdmissionReason'
+                                                        placeholder='Enter Admission Reason'
+                                                        {...register('amsT_AdmissionReason')}
+                                                        error={errors.amsT_AdmissionReason?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='School DISE Code'
+                                                        id='amsT_SchoolDISECode'
+                                                        placeholder='Enter School DISE Code'
+                                                        {...register('amsT_SchoolDISECode')}
+                                                        error={errors.amsT_SchoolDISECode?.message}
+                                                    />
+                                                    <InputText
+                                                        label='First Language'
+                                                        id='amsT_FirstLanguage'
+                                                        placeholder='Enter First Language'
+                                                        {...register('amsT_FirstLanguage')}
+                                                        error={errors.amsT_FirstLanguage?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='  Second Language'
+                                                        id=' amsT_SecondLanguage'
+                                                        placeholder='Enter Second Language'
+                                                        {...register('amsT_SecondLanguage')}
+                                                        error={errors.amsT_SecondLanguage?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Third Language'
+                                                        id='amsT_Thirdlanguage'
+                                                        placeholder='Enter Third Language'
+                                                        {...register('amsT_Thirdlanguage')}
+                                                        error={errors.amsT_Thirdlanguage?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Illness Details '
+                                                        id='amsT_Illnessdetails'
+                                                        placeholder='Enter Illness Details '
+                                                        {...register('amsT_Illnessdetails')}
+                                                        error={errors.amsT_Illnessdetails?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Other Informations'
+                                                        id='amsT_OtherInformations'
+                                                        placeholder='Enter Other Informations'
+                                                        {...register('amsT_OtherInformations')}
+                                                        error={errors.amsT_OtherInformations?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Extra Activity'
+                                                        id='amsT_ExtraActivity'
+                                                        placeholder='Enter Extra Activity'
+                                                        {...register('amsT_ExtraActivity')}
+                                                        error={errors.amsT_ExtraActivity?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label='Staying with'
+                                                        id='amsT_Stayingwith'
+                                                        placeholder='Enter Staying with'
+                                                        {...register('amsT_Stayingwith')}
+                                                        error={errors.amsT_Stayingwith?.message}
+                                                    />
+
+                                                    <InputText
+                                                        label=' Domicile'
+                                                        id='amsT_Domicile'
+                                                        placeholder='Enter Domicile'
+                                                        {...register('amsT_Domicile')}
+                                                        error={errors.amsT_Domicile?.message}
+                                                    />
+                                                    <InputTextarea
+                                                        label='Other Residential Address'
+                                                        id='amsT_OtherResidential_Addr'
+                                                        placeholder='Enter Other Residential Address'
+                                                        {...register('amsT_OtherResidential_Addr')}
+                                                        error={errors.amsT_OtherResidential_Addr?.message}
+                                                    />
+                                                    <InputTextarea
+                                                        label=' Other Permanent Address'
+                                                        id='amsT_OtherPermanentAddr'
+                                                        placeholder='Enter Other Permanent Address'
+                                                        {...register('amsT_OtherPermanentAddr')}
+                                                        error={errors.amsT_OtherPermanentAddr?.message}
+                                                    />
+                                                    <div>{/* Empty */}</div>
+
+                                                    <div className='flex items-center space-x-2'>
+                                                        <Checkbox
+                                                            id='amsT_TransferrableJobFlg'
+                                                            checked={Boolean(watch('amsT_TransferrableJobFlg'))}
+                                                            onCheckedChange={(checked) => {
+                                                                setValue('amsT_TransferrableJobFlg', checked === true);
+                                                            }}
+                                                        />
+                                                        <Label htmlFor='amsT_TransferrableJobFlg' className='cursor-pointer'>
+                                                            Transferrable Flag
+                                                        </Label>
+                                                    </div>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <Checkbox
+                                                            id='amsT_VaccinatedFlg'
+                                                            checked={Boolean(watch('amsT_VaccinatedFlg'))}
+                                                            onCheckedChange={(checked) => {
+                                                                setValue('amsT_VaccinatedFlg', checked === true);
+                                                            }}
+                                                        />
+                                                        <Label htmlFor='amsT_VaccinatedFlg' className='cursor-pointer'>
+                                                            Vaccinated Flag
+                                                        </Label>
+                                                    </div>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <Checkbox
+                                                            id='amsT_Tcflag"'
+                                                            checked={Boolean(watch('amsT_Tcflag'))}
+                                                            onCheckedChange={(checked) => {
+                                                                setValue('amsT_Tcflag', checked === true);
+                                                            }}
+                                                        />
+                                                        <Label htmlFor='amsT_Tcflag' className='cursor-pointer'>
+                                                            TC Flag
+                                                        </Label>
                                                     </div>
                                                 </div>
                                             </div>
@@ -4598,7 +6098,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     key={document.amsmD_Id}
                                                                     className={(() => {
                                                                         // Get selected religion details
-                                                                        const selectedReligionId = watch('religion_Id');
+                                                                        const selectedReligionId = watch('motherReligionId');
                                                                         const selectedReligion = religion?.data?.find(
                                                                             (r) => r.ivrmmR_Id === selectedReligionId
                                                                         );
@@ -4619,7 +6119,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     <td className='whitespace-nowrap px-6 py-4'>
                                                                         {(() => {
                                                                             // Get selected religion details
-                                                                            const selectedReligionId = watch('religion_Id');
+                                                                            const selectedReligionId = watch('motherReligionId');
                                                                             const selectedReligion = religion?.data?.find(
                                                                                 (r) => r.ivrmmR_Id === selectedReligionId
                                                                             );
@@ -4802,6 +6302,45 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </div>
                                         )}
 
+                                        {/* Hostel / Transport checkboxes for final submission */}
+                                        <div className='mt-4 flex flex-col gap-3'>
+                                            <div className='flex items-center space-x-6'>
+                                                <div className='flex items-center space-x-2'>
+                                                    <Controller
+                                                        name='hostelRequired'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                id='hostelRequired'
+                                                                checked={field.value || false}
+                                                                onCheckedChange={(checked) => field.onChange(checked === true)}
+                                                            />
+                                                        )}
+                                                    />
+                                                    <Label htmlFor='hostelRequired' className='cursor-pointer'>
+                                                        Hostel Required
+                                                    </Label>
+                                                </div>
+
+                                                <div className='flex items-center space-x-2'>
+                                                    <Controller
+                                                        name='transportRequired'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <Checkbox
+                                                                id='transportRequired'
+                                                                checked={field.value || false}
+                                                                onCheckedChange={(checked) => field.onChange(checked === true)}
+                                                            />
+                                                        )}
+                                                    />
+                                                    <Label htmlFor='transportRequired' className='cursor-pointer'>
+                                                        Transport Required
+                                                    </Label>
+                                                </div>
+                                            </div>
+                                        </div>
+
                                         {/* Upload Summary */}
                                         {preadmissionDocuments?.data && preadmissionDocuments.data.length > 0 && (
                                             <div className='rounded-lg border border-blue-200 bg-blue-50 p-4'>
@@ -4845,934 +6384,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                         )}
                                     </div>
                                 )}
-
-                                {/* Step 4: Other Information */}
-                                {currentStep === 4 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Other Information</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>
-                                                Sibling details, previous school information, and undertaking
-                                            </p>
-                                        </div>
-                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='source_ids'>Activities</Label>
-                                                <Controller
-                                                    name='source_ids'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <MultiSelect
-                                                            options={
-                                                                source?.data?.map((data) => ({
-                                                                    label: data.pamS_SourceName,
-                                                                    value: data.pamS_Id.toString()
-                                                                })) || []
-                                                            }
-                                                            onValueChange={(selectedValues) => {
-                                                                field.onChange(selectedValues);
-                                                                handleSourceSelection(selectedValues);
-                                                            }}
-                                                            defaultValue={selectedSourceItems.map((data) => data.pamS_Id)}
-                                                            value={selectedSourceItems.map((data) => data.pamS_Id)}
-                                                            placeholder='Select Activities'
-                                                            variant='inverted'
-                                                            disabled={sourceLoading}
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.source_ids && <FormError>{errors.source_ids.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='source_ids'>Source Details</Label>
-                                                <Controller
-                                                    name='source_ids'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <MultiSelect
-                                                            options={
-                                                                source?.data?.map((data) => ({
-                                                                    label: data.pamS_SourceName,
-                                                                    value: data.pamS_Id.toString()
-                                                                })) || []
-                                                            }
-                                                            onValueChange={(selectedValues) => {
-                                                                field.onChange(selectedValues);
-                                                                handleSourceSelection(selectedValues);
-                                                            }}
-                                                            defaultValue={selectedSourceItems.map((data) => data.pamS_Id)}
-                                                            value={selectedSourceItems.map((data) => data.pamS_Id)}
-                                                            placeholder='Select sources'
-                                                            variant='inverted'
-                                                            disabled={sourceLoading}
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.source_ids && <FormError>{errors.source_ids.message}</FormError>}
-                                            </div>
-
-                                            <InputTextarea
-                                                label='Achievements'
-                                                id='pasA_Achievements'
-                                                // placeholder={`Enter Mother's Business`}
-                                                {...register('pasA_Achievements')}
-                                                error={errors.pasA_Achievements?.message}
-                                            />
-                                        </div>
-
-                                        {/* Previous School Details Section (multiple entries) */}
-                                        <div className='space-y-4'>
-                                            <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Previous School Details</h3>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    size='sm'
-                                                    onClick={addPreviousSchool}
-                                                    disabled={isSubmitting}
-                                                    className='w-fit'>
-                                                    <span className='mr-2'>+</span>
-                                                    Add Previous School Details
-                                                </Button>
-                                            </div>
-
-                                            {previousSchoolFields.length === 0 ? (
-                                                <p className='text-gray-500 text-sm'>No previous school details added.</p>
-                                            ) : (
-                                                <div className='space-y-4'>
-                                                    {previousSchoolFields.map((ps, idx) => (
-                                                        <div key={ps.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
-                                                            <div className='mb-3 flex items-center justify-between'>
-                                                                <h4 className='font-medium text-gray-700 text-sm'>
-                                                                    Previous School {idx + 1}
-                                                                </h4>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='ghost'
-                                                                    size='sm'
-                                                                    onClick={() => removePreviousSchool(idx)}
-                                                                    disabled={isSubmitting}
-                                                                    className='h-8 w-fit'>
-                                                                    Remove
-                                                                </Button>
-                                                            </div>
-
-                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                                                                <InputText
-                                                                    label='Previous School Name'
-                                                                    id={`previous_school_name_${idx}`}
-                                                                    placeholder='Enter school name'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_PrvSchoolName`)}
-                                                                    error={
-                                                                        errors.previousSchoolDetails?.[idx]?.pasrpS_PrvSchoolName?.message
-                                                                    }
-                                                                />
-                                                                <div className='flex flex-col gap-1.5'>
-                                                                    <Label htmlFor='pasR_Section'>School Type</Label>
-                                                                    <Controller
-                                                                        name='pasR_Section'
-                                                                        control={control}
-                                                                        render={({ field }) => (
-                                                                            <Select
-                                                                                key={field.value || 'empty'}
-                                                                                onValueChange={(value) => field.onChange(value)}
-                                                                                value={field.value?.toString() || ''}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select Class' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    <SelectItem value='A'>A</SelectItem>
-                                                                                    <SelectItem value='B'>B</SelectItem>
-                                                                                    <SelectItem value='C'>C</SelectItem>
-                                                                                    <SelectItem value='D'>D</SelectItem>
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                    {errors.pasR_Section && (
-                                                                        <FormError>{errors.pasR_Section.message}</FormError>
-                                                                    )}
-                                                                </div>
-                                                                <div className='flex flex-col gap-1.5'>
-                                                                    <Label htmlFor='pasR_Section'>Class</Label>
-                                                                    <Controller
-                                                                        name='pasR_Section'
-                                                                        control={control}
-                                                                        render={({ field }) => (
-                                                                            <Select
-                                                                                key={field.value || 'empty'}
-                                                                                onValueChange={(value) => field.onChange(value)}
-                                                                                value={field.value?.toString() || ''}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select Class' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    <SelectItem value='A'>A</SelectItem>
-                                                                                    <SelectItem value='B'>B</SelectItem>
-                                                                                    <SelectItem value='C'>C</SelectItem>
-                                                                                    <SelectItem value='D'>D</SelectItem>
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                    {errors.pasR_Section && (
-                                                                        <FormError>{errors.pasR_Section.message}</FormError>
-                                                                    )}
-                                                                </div>
-                                                                <InputText
-                                                                    label='Percentage'
-                                                                    id={`previous_percentage_${idx}`}
-                                                                    placeholder='Enter Percentage'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_PrvPercentage`)}
-                                                                    error={
-                                                                        errors.previousSchoolDetails?.[idx]?.pasrpS_PrvPercentage?.message
-                                                                    }
-                                                                />
-                                                                <InputText
-                                                                    label='Grade'
-                                                                    id={`previous_grade_${idx}`}
-                                                                    placeholder='Enter Grade'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_PrvGrade`)}
-                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_PrvGrade?.message}
-                                                                />
-                                                                <div className='flex flex-col gap-1.5'>
-                                                                    <Label htmlFor='pasR_Section'>Passed Year</Label>
-                                                                    <Controller
-                                                                        name='pasR_Section'
-                                                                        control={control}
-                                                                        render={({ field }) => (
-                                                                            <Select
-                                                                                key={field.value || 'empty'}
-                                                                                onValueChange={(value) => field.onChange(value)}
-                                                                                value={field.value?.toString() || ''}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select Class' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    <SelectItem value='A'>A</SelectItem>
-                                                                                    <SelectItem value='B'>B</SelectItem>
-                                                                                    <SelectItem value='C'>C</SelectItem>
-                                                                                    <SelectItem value='D'>D</SelectItem>
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                    {errors.pasR_Section && (
-                                                                        <FormError>{errors.pasR_Section.message}</FormError>
-                                                                    )}
-                                                                </div>
-                                                                <div className='flex flex-col gap-1.5'>
-                                                                    <Label htmlFor='pasR_FatherPermanentCountry'>Country</Label>
-                                                                    <Controller
-                                                                        name='pasR_FatherPermanentCountry'
-                                                                        control={control}
-                                                                        render={({ field }) => (
-                                                                            <Select
-                                                                                key={field.value || 'empty'}
-                                                                                onValueChange={(value) => field.onChange(value)}
-                                                                                value={field.value?.toString() || ''}
-                                                                                disabled={sameAsResidential}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select country' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    {countryLoading ? (
-                                                                                        <SelectItem value='loading' disabled>
-                                                                                            Loading...
-                                                                                        </SelectItem>
-                                                                                    ) : countryError ? (
-                                                                                        <SelectItem value='error' disabled>
-                                                                                            Error loading
-                                                                                        </SelectItem>
-                                                                                    ) : (
-                                                                                        country?.data?.map((item) => (
-                                                                                            <SelectItem
-                                                                                                key={item.ivrmmC_Id}
-                                                                                                value={item.ivrmmC_Id.toString()}>
-                                                                                                {item.ivrmmC_CountryName}
-                                                                                            </SelectItem>
-                                                                                        ))
-                                                                                    )}
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                    {errors.pasR_PerCountry && (
-                                                                        <FormError>{errors.pasR_PerCountry.message}</FormError>
-                                                                    )}
-                                                                </div>
-                                                                <div className='flex flex-col gap-1.5'>
-                                                                    <Label htmlFor='pasR_FatherPermanentState'> State</Label>
-                                                                    <Controller
-                                                                        name='pasR_FatherPermanentState'
-                                                                        control={control}
-                                                                        render={({ field }) => (
-                                                                            <Select
-                                                                                key={field.value || 'empty'}
-                                                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                                                value={field.value?.toString() || ''}
-                                                                                disabled={sameAsResidential}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select state' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    {perStateLoading ? (
-                                                                                        <SelectItem value='loading' disabled>
-                                                                                            Loading...
-                                                                                        </SelectItem>
-                                                                                    ) : perStateError ? (
-                                                                                        <SelectItem value='error' disabled>
-                                                                                            Error loading
-                                                                                        </SelectItem>
-                                                                                    ) : (
-                                                                                        perState?.data?.map((item) => (
-                                                                                            <SelectItem
-                                                                                                key={item.ivrmmS_Id}
-                                                                                                value={item.ivrmmS_Id.toString()}>
-                                                                                                {item.ivrmmS_Name}
-                                                                                            </SelectItem>
-                                                                                        ))
-                                                                                    )}
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                    {errors.pasR_PerState && (
-                                                                        <FormError>{errors.pasR_PerState.message}</FormError>
-                                                                    )}
-                                                                </div>
-
-                                                                <InputText
-                                                                    label='Address'
-                                                                    id={`previous_address_${idx}`}
-                                                                    placeholder='Enter address'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_Address`)}
-                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_Address?.message}
-                                                                />
-                                                                <InputText
-                                                                    label='Left Reason'
-                                                                    id={`previous_leftreason_${idx}`}
-                                                                    placeholder='Enter Left Reason'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_LeftReason`)}
-                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_LeftReason?.message}
-                                                                />
-                                                                <InputText
-                                                                    label='Medium'
-                                                                    id={`previous_medium_${idx}`}
-                                                                    placeholder='Enter Medium'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_PrvMedium`)}
-                                                                    error={errors.previousSchoolDetails?.[idx]?.pasrpS_PrvMedium?.message}
-                                                                />
-
-                                                                <InputText
-                                                                    label='TC No'
-                                                                    id={`previous_tcno_${idx}`}
-                                                                    placeholder='Enter TC No'
-                                                                    {...register(`previousSchoolDetails.${idx}.pasrpS_PreviousClass`)}
-                                                                    error={
-                                                                        errors.previousSchoolDetails?.[idx]?.pasrpS_PreviousClass?.message
-                                                                    }
-                                                                />
-                                                                <Controller
-                                                                    name='amsT_Date'
-                                                                    control={control}
-                                                                    render={({ field, fieldState: { error } }) => (
-                                                                        <div className='flex flex-col space-y-2'>
-                                                                            <Label htmlFor='pasR_DateOfAdmission'>
-                                                                                TC Date <span className='ml-1 text-red-500'>*</span>
-                                                                            </Label>
-
-                                                                            <Popover
-                                                                                open={openPopover === 'amsT_Date'}
-                                                                                onOpenChange={(open) =>
-                                                                                    setOpenPopover(open ? 'amsT_Date' : null)
-                                                                                }>
-                                                                                <PopoverTrigger asChild>
-                                                                                    <Button
-                                                                                        variant={'outline'}
-                                                                                        className={cn(
-                                                                                            'w-full justify-start text-left font-normal',
-                                                                                            !field.value && 'text-muted-foreground',
-                                                                                            error && 'border-red-500'
-                                                                                        )}>
-                                                                                        <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                                        {field.value ? (
-                                                                                            format(field.value, 'dd/MM/yyyy')
-                                                                                        ) : (
-                                                                                            <span>Pick a date</span>
-                                                                                        )}
-                                                                                    </Button>
-                                                                                </PopoverTrigger>
-                                                                                <PopoverContent className='w-auto p-0' align='start'>
-                                                                                    <CalendarYear
-                                                                                        mode='single'
-                                                                                        selected={field.value}
-                                                                                        onSelect={(date: Date | undefined) => {
-                                                                                            if (date) {
-                                                                                                field.onChange(date);
-                                                                                                setOpenPopover(null);
-                                                                                            }
-                                                                                        }}
-                                                                                        disabled={(date: Date) =>
-                                                                                            date > new Date() ||
-                                                                                            date < new Date('1900-01-01')
-                                                                                        }
-                                                                                        initialFocus
-                                                                                    />
-                                                                                </PopoverContent>
-                                                                            </Popover>
-                                                                            {error && (
-                                                                                <span className='text-red-500 text-sm'>
-                                                                                    {error.message}
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* GUARDIAN DETAILS Section (multiple entries) */}
-                                        <div className='space-y-4'>
-                                            <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>GUARDIAN DETAILS</h3>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    size='sm'
-                                                    onClick={addGuardian}
-                                                    disabled={isSubmitting}
-                                                    className='w-fit'>
-                                                    <span className='mr-2'>+</span>
-                                                    Add GUARDIAN DETAILS
-                                                </Button>
-                                            </div>
-
-                                            {guardianFields.length === 0 ? (
-                                                <p className='text-gray-500 text-sm'>No guardians added yet.</p>
-                                            ) : (
-                                                <div className='space-y-4'>
-                                                    {guardianFields.map((g, idx) => (
-                                                        <div key={g.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
-                                                            <div className='mb-3 flex items-center justify-between'>
-                                                                <h4 className='font-medium text-gray-700 text-sm'>Guardian {idx + 1}</h4>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='ghost'
-                                                                    size='sm'
-                                                                    onClick={() => removeGuardian(idx)}
-                                                                    disabled={isSubmitting}
-                                                                    className='h-8 w-fit'>
-                                                                    Remove
-                                                                </Button>
-                                                            </div>
-
-                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                                                                <InputText
-                                                                    label='Guardian Name'
-                                                                    {...register(`guardiansDetails.${idx}.guardianName` as const)}
-                                                                    placeholder='Enter Guardian Name'
-                                                                    {...register(`guardiansDetails.${idx}.guardianName`)}
-                                                                    error={errors.guardiansDetails?.[idx]?.guardianName?.message}
-                                                                />
-
-                                                                <InputText
-                                                                    label='Guardian Phone'
-                                                                    id={`guardian_phone_${idx}`}
-                                                                    placeholder='Enter Guardian Phone'
-                                                                    {...register(`guardiansDetails.${idx}.guardianPhone`)}
-                                                                    error={errors.guardiansDetails?.[idx]?.guardianPhone?.message}
-                                                                />
-                                                                <InputText
-                                                                    label='Guardian Email'
-                                                                    id={`guardian_address_${idx}`}
-                                                                    placeholder='Enter Guardian Email'
-                                                                    {...register(`guardiansDetails.${idx}.guardianAddress`)}
-                                                                    error={errors.guardiansDetails?.[idx]?.guardianAddress?.message}
-                                                                />
-
-                                                                <InputText
-                                                                    label='Guardian Address'
-                                                                    id={`guardian_address_${idx}`}
-                                                                    placeholder='Enter Guardian Address'
-                                                                    {...register(`guardiansDetails.${idx}.guardianAddress`)}
-                                                                    error={errors.guardiansDetails?.[idx]?.guardianAddress?.message}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Sibling Details Section */}
-                                        <div className='space-y-4'>
-                                            <div className='flex items-center justify-between'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Sibling Details</h3>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    size='sm'
-                                                    onClick={addSibling}
-                                                    disabled={isSubmitting}
-                                                    className='w-fit'>
-                                                    <span className='mr-2'>+</span>
-                                                    Add Sibling
-                                                </Button>
-                                            </div>
-
-                                            {siblingFields.length === 0 ? (
-                                                <p className='text-gray-500 text-sm'>
-                                                    No siblings added yet. Click "Add Sibling" to add details.
-                                                </p>
-                                            ) : (
-                                                <div className='space-y-4'>
-                                                    {siblingFields.map((sibling, index) => (
-                                                        <div key={sibling.id} className='rounded-lg border border-gray-200 bg-gray-50 p-4'>
-                                                            <div className='mb-3 flex items-center justify-between'>
-                                                                <h4 className='font-medium text-gray-700 text-sm'>Sibling {index + 1}</h4>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='ghost'
-                                                                    size='sm'
-                                                                    onClick={() => removeSibling(index)}
-                                                                    disabled={isSubmitting}
-                                                                    className='h-8 w-fit bg-error text-white'>
-                                                                    Remove
-                                                                </Button>
-                                                            </div>
-                                                            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                                <Controller
-                                                                    control={control}
-                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsName`}
-                                                                    render={({ field }) => (
-                                                                        <InputText
-                                                                            label='Sibling Name'
-                                                                            id={`sibling_name_${index}`}
-                                                                            placeholder='Enter sibling name'
-                                                                            {...field}
-                                                                            error={
-                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsName?.message
-                                                                            }
-                                                                        />
-                                                                    )}
-                                                                />
-
-                                                                <div className='flex flex-col gap-1.5'>
-                                                                    <Label htmlFor='pasR_Section'>Class</Label>
-                                                                    <Controller
-                                                                        name='pasR_Section'
-                                                                        control={control}
-                                                                        render={({ field }) => (
-                                                                            <Select
-                                                                                key={field.value || 'empty'}
-                                                                                onValueChange={(value) => field.onChange(value)}
-                                                                                value={field.value?.toString() || ''}>
-                                                                                <SelectTrigger>
-                                                                                    <SelectValue placeholder='Select Class' />
-                                                                                </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    <SelectItem value='A'>A</SelectItem>
-                                                                                    <SelectItem value='B'>B</SelectItem>
-                                                                                    <SelectItem value='C'>C</SelectItem>
-                                                                                    <SelectItem value='D'>D</SelectItem>
-                                                                                </SelectContent>
-                                                                            </Select>
-                                                                        )}
-                                                                    />
-                                                                    {errors.pasR_Section && (
-                                                                        <FormError>{errors.pasR_Section.message}</FormError>
-                                                                    )}
-                                                                </div>
-
-                                                                <Controller
-                                                                    control={control}
-                                                                    name={`siblingsDetails.${index}.pasrS_SiblingsClass`}
-                                                                    render={({ field }) => (
-                                                                        <InputText
-                                                                            label='Relation'
-                                                                            id={`sibling_class_${index}`}
-                                                                            placeholder='Enter Relation'
-                                                                            {...field}
-                                                                            error={
-                                                                                errors.siblingsDetails?.[index]?.pasrS_SiblingsClass
-                                                                                    ?.message
-                                                                            }
-                                                                        />
-                                                                    )}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Place of Birth Details */}
-                                        <div className='space-y-4'>
-                                            <h3 className='font-semibold text-gray-800 text-lg'>Place of Birth Details</h3>
-                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                <div className='flex flex-col gap-1.5'>
-                                                    <Label htmlFor='pasR_MotherCountry'>Country</Label>
-                                                    <Controller
-                                                        name='pasR_MotherCountry'
-                                                        control={control}
-                                                        render={({ field }) => (
-                                                            <Select
-                                                                key={field.value || 'empty'}
-                                                                onValueChange={(value) => field.onChange(value)}
-                                                                value={field.value?.toString() || ''}
-                                                                disabled={sameAsResidential}>
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder='Select country' />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {countryLoading ? (
-                                                                        <SelectItem value='loading' disabled>
-                                                                            Loading...
-                                                                        </SelectItem>
-                                                                    ) : countryError ? (
-                                                                        <SelectItem value='error' disabled>
-                                                                            Error loading
-                                                                        </SelectItem>
-                                                                    ) : (
-                                                                        country?.data?.map((item) => (
-                                                                            <SelectItem
-                                                                                key={item.ivrmmC_Id}
-                                                                                value={item.ivrmmC_Id.toString()}>
-                                                                                {item.ivrmmC_CountryName}
-                                                                            </SelectItem>
-                                                                        ))
-                                                                    )}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        )}
-                                                    />
-                                                    {errors.pasR_MotherCountry && (
-                                                        <FormError>{errors.pasR_MotherCountry.message}</FormError>
-                                                    )}
-                                                </div>
-                                                <div className='flex flex-col gap-1.5'>
-                                                    <Label htmlFor='pasR_State'>State</Label>
-                                                    <Controller
-                                                        name='pasR_State'
-                                                        control={control}
-                                                        render={({ field }) => (
-                                                            <Select
-                                                                key={field.value || 'empty'}
-                                                                onValueChange={(value) => field.onChange(Number(value))}
-                                                                value={field.value?.toString() || ''}
-                                                                disabled={sameAsResidential}>
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder='Select state' />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {perStateLoading ? (
-                                                                        <SelectItem value='loading' disabled>
-                                                                            Loading...
-                                                                        </SelectItem>
-                                                                    ) : perStateError ? (
-                                                                        <SelectItem value='error' disabled>
-                                                                            Error loading
-                                                                        </SelectItem>
-                                                                    ) : (
-                                                                        perState?.data?.map((item) => (
-                                                                            <SelectItem
-                                                                                key={item.ivrmmS_Id}
-                                                                                value={item.ivrmmS_Id.toString()}>
-                                                                                {item.ivrmmS_Name}
-                                                                            </SelectItem>
-                                                                        ))
-                                                                    )}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        )}
-                                                    />
-                                                    {errors.pasR_PerState && <FormError>{errors.pasR_PerState.message}</FormError>}
-                                                </div>
-
-                                                <InputText
-                                                    label={'District'}
-                                                    id='pasA_District'
-                                                    placeholder={'Enter District'}
-                                                    {...register('pasA_District')}
-                                                    error={errors.pasA_District?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'Taluk'}
-                                                    id='pasA_Taluk'
-                                                    placeholder={'Enter Taluk'}
-                                                    {...register('pasA_Taluk')}
-                                                    error={errors.pasA_Taluk?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'Town'}
-                                                    id='pasA_Town'
-                                                    placeholder={'Enter Town'}
-                                                    {...register('pasA_Town')}
-                                                    error={errors.pasA_Town?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'Village'}
-                                                    id='pasA_Village'
-                                                    placeholder={'Enter Village'}
-                                                    {...register('pasA_Village')}
-                                                    error={errors.pasA_Village?.message}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Siblings Count details */}
-
-                                        <div className='space-y-4'>
-                                            <h3 className='font-semibold text-gray-800 text-lg'>Siblings Count Details</h3>
-                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                <InputText
-                                                    label='No of Siblings'
-                                                    id='pasA_No_of_Siblings'
-                                                    placeholder='Enter No of Siblings'
-                                                    {...register('pasA_No_of_Siblings')}
-                                                    error={errors.pasA_No_of_Siblings?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'No of Siblings in School '}
-                                                    id='pasA_No_of_Siblings_in_School'
-                                                    placeholder={'Enter No of Siblings in School '}
-                                                    {...register('pasA_No_of_Siblings_in_School')}
-                                                    error={errors.pasA_No_of_Siblings_in_School?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'No of Siblings in other School'}
-                                                    id='pasA_No_of_Siblings_in_other_School'
-                                                    placeholder={'Enter No of Siblings in other School'}
-                                                    {...register('pasA_No_of_Siblings_in_other_School')}
-                                                    error={errors.pasA_No_of_Siblings_in_other_School?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'No of Sisters'}
-                                                    id='pasA_No_of_Sisters'
-                                                    placeholder={'Enter No of Sisters'}
-                                                    {...register('pasA_No_of_Sisters')}
-                                                    error={errors.pasA_No_of_Sisters?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'No of Younger Sisters'}
-                                                    id='pasA_No_of_Younger_Sisters'
-                                                    placeholder={'Enter No of Younger Sisters'}
-                                                    {...register('pasA_No_of_Younger_Sisters')}
-                                                    error={errors.pasA_No_of_Younger_Sisters?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'No of Elder Sisters'}
-                                                    id='pasA_No_of_Elder_Sisters'
-                                                    placeholder={'Enter No of Elder Sisters'}
-                                                    {...register('pasA_No_of_Elder_Sisters')}
-                                                    error={errors.pasA_No_of_Elder_Sisters?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'No of Brothers '}
-                                                    id='pasA_No_of_Brothers'
-                                                    placeholder={'EnterNo of Brothers '}
-                                                    {...register('pasA_No_of_Brothers')}
-                                                    error={errors.pasA_No_of_Brothers?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'No of Younger Brothers '}
-                                                    id='pasA_No_of_Younger_Brothers'
-                                                    placeholder={'Enter No of Younger Brothers s'}
-                                                    {...register('pasA_pasA_No_of_Younger_Brothers')}
-                                                    error={errors.pasA_pasA_No_of_Younger_Brothers?.message}
-                                                />
-
-                                                <InputText
-                                                    label={'No of Elder Brothers'}
-                                                    id='pasA_No_of_Elder_Brothers'
-                                                    placeholder={'Enter No of Elder Brothers'}
-                                                    {...register('pasA_No_of_Elder_Brothers')}
-                                                    error={errors.pasA_No_of_Elder_Brothers?.message}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Undertaking Section */}
-                                    </div>
-                                )}
-
-                                {/* Step 5: Health and Medical Details */}
-                                {currentStep === 5 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Health and Medical Details</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>Please provide Health details</p>
-                                        </div>
-
-                                        <div className='space-y-8'>
-                                            <div className='space-y-4'>
-                                                {/* <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3> */}
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                                    <InputText
-                                                        label='Student Health'
-                                                        id='amsT_Studentillness'
-                                                        placeholder='Enter Student Health'
-                                                        {...register('amsT_Studentillness')}
-                                                        error={errors.amsT_Studentillness?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Medical Complaints'
-                                                        id='amsT_MedicalComplaints'
-                                                        placeholder='Enter Medical Complaints'
-                                                        {...register('amsT_MedicalComplaints')}
-                                                        error={errors.amsT_MedicalComplaints?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Admission Reason'
-                                                        id='amsT_AdmissionReason'
-                                                        placeholder='Enter Admission Reason'
-                                                        {...register('amsT_AdmissionReason')}
-                                                        error={errors.amsT_AdmissionReason?.message}
-                                                    />
-
-                                                    <InputTextarea
-                                                        label='Other Residential Address'
-                                                        id='amsT_OtherResidential_Addr'
-                                                        placeholder='Enter Other Residential Address'
-                                                        {...register('amsT_OtherResidential_Addr')}
-                                                        error={errors.amsT_OtherResidential_Addr?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='School DISE Code'
-                                                        id='amsT_SchoolDISECode'
-                                                        placeholder='Enter School DISE Code'
-                                                        {...register('amsT_SchoolDISECode')}
-                                                        error={errors.amsT_SchoolDISECode?.message}
-                                                    />
-                                                    <InputText
-                                                        label='First Language'
-                                                        id='amsT_FirstLanguage'
-                                                        placeholder='Enter First Language'
-                                                        {...register('amsT_FirstLanguage')}
-                                                        error={errors.amsT_FirstLanguage?.message}
-                                                    />
-                                                    <InputText
-                                                        label='  Second Language:'
-                                                        id=' amsT_SecondLanguage'
-                                                        placeholder='Enter Second Language:'
-                                                        {...register('amsT_SecondLanguage')}
-                                                        error={errors.amsT_SecondLanguage?.message}
-                                                    />
-                                                    <InputText
-                                                        label='Third Language'
-                                                        id='amsT_Thirdlanguage'
-                                                        placeholder='Enter Third Language'
-                                                        {...register('amsT_Thirdlanguage')}
-                                                        error={errors.amsT_Thirdlanguage?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Illness Details '
-                                                        id='amsT_Illnessdetails'
-                                                        placeholder='Enter Illness Details '
-                                                        {...register('amsT_Illnessdetails')}
-                                                        error={errors.amsT_Illnessdetails?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Other Informations'
-                                                        id='amsT_OtherInformations'
-                                                        placeholder='Enter Other Informations'
-                                                        {...register('amsT_OtherInformations')}
-                                                        error={errors.amsT_OtherInformations?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Extra Activity'
-                                                        id='amsT_ExtraActivity'
-                                                        placeholder='Enter Extra Activity'
-                                                        {...register('amsT_ExtraActivity')}
-                                                        error={errors.amsT_ExtraActivity?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label='Staying with'
-                                                        id='amsT_Stayingwith'
-                                                        placeholder='Enter Staying with'
-                                                        {...register('amsT_Stayingwith')}
-                                                        error={errors.amsT_Stayingwith?.message}
-                                                    />
-
-                                                    <InputTextarea
-                                                        label=' Other Permanent Address:'
-                                                        id='amsT_OtherPermanentAddr'
-                                                        placeholder='Enter Other Permanent Address:'
-                                                        {...register('amsT_OtherPermanentAddr')}
-                                                        error={errors.amsT_OtherPermanentAddr?.message}
-                                                    />
-
-                                                    <InputText
-                                                        label=' Domicile:'
-                                                        id='amsT_Domicile'
-                                                        placeholder='Enter Domicile:'
-                                                        {...register('amsT_Domicile')}
-                                                        error={errors.amsT_Domicile?.message}
-                                                    />
-
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id='amsT_TransferrableJobFlg'
-                                                            checked={Boolean(watch('amsT_TransferrableJobFlg'))}
-                                                            onCheckedChange={(checked) => {
-                                                                setValue('amsT_TransferrableJobFlg', checked === true);
-                                                            }}
-                                                        />
-                                                        <Label htmlFor='amsT_TransferrableJobFlg' className='cursor-pointer'>
-                                                            Transferrable Flag
-                                                        </Label>
-                                                    </div>
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id='amsT_VaccinatedFlg'
-                                                            checked={Boolean(watch('amsT_VaccinatedFlg'))}
-                                                            onCheckedChange={(checked) => {
-                                                                setValue('amsT_VaccinatedFlg', checked === true);
-                                                            }}
-                                                        />
-                                                        <Label htmlFor='amsT_VaccinatedFlg' className='cursor-pointer'>
-                                                            Vaccinated Flag
-                                                        </Label>
-                                                    </div>
-                                                    <div className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            id='amsT_Tcflag'
-                                                            checked={Boolean(watch('amsT_Tcflag'))}
-                                                            onCheckedChange={(checked) => {
-                                                                setValue('amsT_Tcflag', checked === true);
-                                                            }}
-                                                        />
-                                                        <Label htmlFor='amsT_Tcflag' className='cursor-pointer'>
-                                                            TC Flag
-                                                        </Label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
                             </div>
 
                             {/* Navigation Footer */}
@@ -5802,7 +6413,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     ) : (
                                         <Button
                                             type='button'
-                                            onClick={handleSubmit(onSubmit)}
+                                            onClick={submitWithoutValidation}
                                             disabled={isSubmitting}
                                             className='min-w-[160px] transition-all duration-200 hover:scale-105'>
                                             {isSubmitting ? (
@@ -5818,18 +6429,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                 </div>
                             </div>
                         </div>
-                        <IneligibleClassesDialog
-                            open={showIneligibleDialog}
-                            onOpenChange={setShowIneligibleDialog}
-                            classes={ineligibleClasses}
-                            cutOffDate={
-                                masterConfig?.data &&
-                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                masterConfig.data.asmaY_Cut_Of_Date
-                                    ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
-                                    : new Date()
-                            }
-                        />
                     </div>
                 </div>
             </div>

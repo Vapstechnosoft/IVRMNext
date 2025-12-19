@@ -106,6 +106,11 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
         setFilteredItems(filtered);
     }, [children, searchable, searchQuery, collectItemValues]);
 
+    // Normalize common "empty" values to undefined so Radix shows placeholder.
+    // Treat empty string, null, and numeric/string zero as empty (many forms use 0 as 'no selection').
+    const { value, ...restProps } = props as any;
+    const normalizedValue = value === '' || value === null || value === 0 || value === '0' ? undefined : value;
+
     return (
         <SelectSearchContext.Provider
             value={{
@@ -115,7 +120,7 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
                 filteredItems,
                 isMobile
             }}>
-            <SelectPrimitive.Root {...props} onOpenChange={handleOpenChange}>
+            <SelectPrimitive.Root value={normalizedValue} {...restProps} onOpenChange={handleOpenChange}>
                 {children}
             </SelectPrimitive.Root>
         </SelectSearchContext.Provider>
