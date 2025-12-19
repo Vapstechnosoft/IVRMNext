@@ -276,3 +276,7 @@ export interface StudentData {
     reason: string;
     remark: string;
 }
+export interface IConcessionDropDown {
+    concession_Id: number;
+    concession_Name: string;
+}
