@@ -7,9 +7,9 @@ import {
     useFeeClassListDefaulterreport,
     useFeeCustomGroupDefaulterreport,
     useFeeGroupDefaulterreport,
-    useFeeInstallmentYearlyfeecollectionreport,
     useFeeSectionListDefaulterreport,
-    useFeeTermDefaulterreport
+    useFeeTermDefaulterreport,
+    useFeeTransInstallmentYearlyfeecollectionreport
 } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
@@ -26,9 +26,9 @@ import type {
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
     IFeeGroupDropdownList,
-    IFeeInstallmentDropdownList,
     IFeeSectionDropdownList,
     IFeeTermDropdownList,
+    IFeeTrasactionInstallmentDropdownList,
     IFeeYearlyCollectionReportRow
 } from '@/types/fees/reports/reports';
 import { format } from 'date-fns';
@@ -148,7 +148,8 @@ export default function FeeDefaulterReport() {
 
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
-    const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
+    //const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
+    const [feeInstallments, setfeeInstallments] = useState<IFeeTrasactionInstallmentDropdownList[]>([]);
 
     const [wiseType, setWiseType] = useState<'Yearly Wise' | 'Date Wise'>('Date Wise');
 
@@ -166,11 +167,17 @@ export default function FeeDefaulterReport() {
     const { data: busRouteResponse, isLoading: loadingBusRoutes, error: busRouteError } = useFeeBusRouteDefaulterreport();
     const { data: customGroupResponse, isLoading: loadingCustomGroup, error: customGroupError } = useFeeCustomGroupDefaulterreport();
 
+    // const {
+    //     data: feeInstallmentData,
+    //     isLoading: feeInstallmentLoading,
+    //     error: feeInstallmentError
+    // } = useFeeInstallmentYearlyfeecollectionreport();
+
     const {
         data: feeInstallmentData,
         isLoading: feeInstallmentLoading,
         error: feeInstallmentError
-    } = useFeeInstallmentYearlyfeecollectionreport();
+    } = useFeeTransInstallmentYearlyfeecollectionreport();
 
     console.log('feeInstallmentData', feeInstallmentData);
 
@@ -308,7 +315,7 @@ export default function FeeDefaulterReport() {
     };
 
     const selectAllInstallments = (checked: boolean) => {
-        setFilters((prev) => ({ ...prev, installmentIds: checked ? feeInstallments.map((t) => t.fmI_Id) : [] }));
+        setFilters((prev) => ({ ...prev, installmentIds: checked ? feeInstallments.map((t) => t.ftI_Id) : [] }));
     };
 
     const selectAllBusRoutes = (checked: boolean) => {
@@ -369,8 +376,8 @@ export default function FeeDefaulterReport() {
                 active: filters.status.active ? 1 : 0,
                 deactive: filters.status.deactive ? 1 : 0,
                 left: filters.status.left ? 1 : 0,
-                // From_Date: '2025-12-18',
-                // To_Date: '2025-12-18',
+                //  From_Date: '2025-12-18',
+                //  To_Date: '2025-12-18',
 
                 // // Date filters
                 // From_Date:
@@ -383,9 +390,9 @@ export default function FeeDefaulterReport() {
                 //         ? format(toDate ?? today, 'yyyy-MM-dd')
                 //         : null,
 
-                From_Date: filters.viewMode === 'date' ? format(effectiveFromDate, 'yyyy-MM-dd') : null,
+                From_Date: filters.viewMode === 'date' ? format(effectiveFromDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
 
-                To_Date: filters.viewMode === 'date' ? format(effectiveToDate, 'yyyy-MM-dd') : null,
+                To_Date: filters.viewMode === 'date' ? format(effectiveToDate, 'yyyy-MM-dd') : format(today, 'yyyy-MM-dd'),
 
                 // Term Group (Hardcoded / configurable)
                 term_group: 'T',
@@ -785,15 +792,15 @@ export default function FeeDefaulterReport() {
                                                         ) : feeInstallments.length > 0 ? (
                                                             feeInstallments.map((installment) => (
                                                                 <Label
-                                                                    key={installment.fmI_Id}
-                                                                    htmlFor={`installment-${installment.fmI_Id}`}
+                                                                    key={installment.ftI_Id}
+                                                                    htmlFor={`installment-${installment.ftI_Id}`}
                                                                     className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
                                                                     <Checkbox
-                                                                        id={`installment-${installment.fmI_Id}`}
-                                                                        checked={filters.installmentIds.includes(installment.fmI_Id)}
-                                                                        onCheckedChange={() => toggleInstallment(installment.fmI_Id)}
+                                                                        id={`installment-${installment.ftI_Id}`}
+                                                                        checked={filters.installmentIds.includes(installment.ftI_Id)}
+                                                                        onCheckedChange={() => toggleInstallment(installment.ftI_Id)}
                                                                     />
-                                                                    <span className='text-sm'>{installment.fmI_Name}</span>
+                                                                    <span className='text-sm'>{installment.ftI_InstallmentName}</span>
                                                                 </Label>
                                                             ))
                                                         ) : (

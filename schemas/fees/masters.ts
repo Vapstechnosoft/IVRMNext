@@ -801,3 +801,15 @@ export const specialFeeHeadSchema = {
         fmsfhfH_Id: deleteIdSchema('fmsfhfH_Id')
     })
 };
+
+export const feeCompanyGroupMappingSchema = {
+    addOrUpdate: z.object({
+        ftmcoM_Id: z.number().int({ message: 'Company is required' }),
+        groupids: z.array(z.string()).nonempty('Please select at least one Head')
+        //fmsfH_Name: z.string().min(4, { message: 'Special Fee Head Name is required' })
+        //fmsfH_Name: createStringOnlySchema('Special Fee Head Name', 4, 50)
+    }),
+    delete: z.object({
+        ffgcmA_Id: deleteIdSchema('ffgcmA_Id')
+    })
+};

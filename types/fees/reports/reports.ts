@@ -148,3 +148,8 @@ export interface HeadwiseReportData {
     fmG_ActiceFlag: boolean;
     fyghM_FineApplicableFlag: string;
 }
+
+export interface IFeeTrasactionInstallmentDropdownList {
+    ftI_Id: number;
+    ftI_InstallmentName: string;
+}

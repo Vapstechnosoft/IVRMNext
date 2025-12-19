@@ -36,6 +36,11 @@ import {
     getcategorygroupdropdown,
     getcategoryheadsdropdown
 } from '@/server/fees/masters/concession_category_head_group_mapping';
+import {
+    getFeeCompanyGroupMappingCompanyDropdown,
+    getFeesGroupDropDown,
+    getfeecompanygroupmappingList
+} from '@/server/fees/masters/fee_companygroupmapping';
 import { getFeeOtherStudent } from '@/server/fees/masters/fee_other_student';
 import { getMasterTermsPeriod } from '@/server/fees/masters/fee_terms_period';
 import { getInstallmentDropDown, getfeeInstallmentDueDateList } from '@/server/fees/masters/feeinstallmentduedate';
@@ -1308,6 +1313,74 @@ export const useStudentFeeBusAreaDropDown = (enabled = true) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const useFeeCompanyGroupMapping = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING, searchParams ?? {}],
+            queryFn: async () => getfeecompanygroupmappingList(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING]
+            });
+        }
+    };
+};
+
+export const feeCompanyFeeGroupMappingCompanyDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING_COMPANY_DROPDOWN],
+            queryFn: async () => getFeeCompanyGroupMappingCompanyDropdown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING_COMPANY_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const feeCompanyFeeGroupMappingGroupDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN, searchParams ?? {}],
+            queryFn: async () => getFeesGroupDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN]
+            });
+        }
+    };
+};
+
+export const feeCompanyFeeGroupMappingCompanyCompanyDropdown = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING, searchParams ?? {}],
+            queryFn: async () => getFeesGroupDropDown(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_COMPANY_GROUP_MAPPING]
             });
         }
     };
