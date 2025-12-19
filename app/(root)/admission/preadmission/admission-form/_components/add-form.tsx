@@ -194,8 +194,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
     // Ensure the academic year from active preadmission is present in react-hook-form state
     useEffect(() => {
-        const year = activePreadmission?.data?.asmaY_Year ?? 0;
+        const year = activePreadmission?.data?.asmaY_Year ?? '';
+        const id = Number(activePreadmission?.data?.asmaY_Id ?? 0) || 0;
         setValue('asmaY_Year' as any, year);
+        setValue('asmaY_Id' as any, id);
     }, [activePreadmission, setValue]);
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
@@ -435,7 +437,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_Id: Number(formData.amsT_Id ?? 0) || 0,
                 mI_Id: Number(formData.mI_Id ?? 30) || 0,
 
-                asmaY_Id: Number(formData.asmaY_Year ?? 0) || 0,
+                asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0) || 0,
                 asmcL_Id: Number(formData.asmcL_Id ?? 0) || 0,
                 asmS_Id: Number(formData.asmS_Id ?? 0) || 0,
                 amsT_RegistrationNo: formData.amsT_RegistrationNo || '',
@@ -1095,22 +1097,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         mI_Id: 0,
 
                         // Permanent address
-                        amsT_PerStreet: pick(['amsT_PerStreet', 'pasR_PerStreet']) || '',
-                        amsT_PerArea: pick(['amsT_PerArea', 'pasR_PerArea']) || '',
-                        amsT_PerCity: pick(['amsT_PerCity', 'pasR_PerCity']) || '',
-                        amsT_PerState: Number(pick(['amsT_PerState', 'pasR_PerState']) ?? 0) || 0,
-                        amsT_PerDistrict: Number(pick(['amsT_PerDistrict', 'pasR_PerDistrict']) ?? 0) || 0,
-                        amsT_PerCountry: Number(pick(['amsT_PerCountry', 'pasR_PerCountry']) ?? 0) || 0,
-                        amsT_PerPincode: Number(pick(['amsT_PerPincode', 'pasR_PerPincode']) ?? 0) || 0,
+                        amsT_PerStreet: pick(['amsT_PerStreet']) || '',
+                        amsT_PerArea: pick(['amsT_PerArea']) || '',
+                        amsT_PerCity: pick(['amsT_PerCity']) || '',
+                        amsT_PerState: Number(pick(['amsT_PerState']) ?? 0) || 0,
+                        amsT_PerDistrict: Number(pick(['amsT_PerDistrict']) ?? 0) || 0,
+                        amsT_PerCountry: Number(pick(['amsT_PerCountry']) ?? 0) || 0,
+                        amsT_PerPincode: Number(pick(['amsT_PerPincode']) ?? 0) || 0,
 
                         // Residential address
-                        amsT_ConStreet: pick(['amsT_ConStreet', 'pasR_ConStreet']) || '',
-                        amsT_ConArea: pick(['amsT_ConArea', 'pasR_ConArea']) || '',
-                        amsT_ConCity: pick(['amsT_ConCity', 'pasR_ConCity']) || '',
-                        amsT_ConState: Number(pick(['amsT_ConState', 'pasR_ConState']) ?? 0) || 0,
-                        amsT_ConDistrict: Number(pick(['amsT_ConDistrict', 'pasR_ConDistrict']) ?? 0) || 0,
-                        amsT_ConCountry: Number(pick(['amsT_ConCountry', 'pasR_ConCountry']) ?? 0) || 0,
-                        amsT_ConPincode: Number(pick(['amsT_ConPincode', 'pasR_ConPincode']) ?? 0) || 0,
+                        amsT_ConStreet: pick(['amsT_ConStreet']) || '',
+                        amsT_ConArea: pick(['amsT_ConArea']) || '',
+                        amsT_ConCity: pick(['amsT_ConCity']) || '',
+                        amsT_ConState: Number(pick(['amsT_ConState']) ?? 0) || 0,
+                        amsT_ConDistrict: Number(pick(['amsT_ConDistrict']) ?? 0) || 0,
+                        amsT_ConCountry: Number(pick(['amsT_ConCountry']) ?? 0) || 0,
+                        amsT_ConPincode: Number(pick(['amsT_ConPincode']) ?? 0) || 0,
 
                         message: '',
                         returnval: true
@@ -1226,22 +1228,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             mI_Id: 0,
 
                             // Permanent address
-                            amsT_PerStreet: pick(['amsT_PerStreet', 'pasR_PerStreet']) || '',
-                            amsT_PerArea: pick(['amsT_PerArea', 'pasR_PerArea']) || '',
-                            amsT_PerCity: pick(['amsT_PerCity', 'pasR_PerCity']) || '',
-                            amsT_PerState: Number(pick(['amsT_PerState', 'pasR_PerState']) ?? 0) || 0,
-                            amsT_PerDistrict: Number(pick(['amsT_PerDistrict', 'pasR_PerDistrict']) ?? 0) || 0,
-                            amsT_PerCountry: Number(pick(['amsT_PerCountry', 'pasR_PerCountry']) ?? 0) || 0,
-                            amsT_PerPincode: Number(pick(['amsT_PerPincode', 'pasR_PerPincode']) ?? 0) || 0,
+                            amsT_PerStreet: pick(['amsT_PerStreet']) || '',
+                            amsT_PerArea: pick(['amsT_PerArea']) || '',
+                            amsT_PerCity: pick(['amsT_PerCity']) || '',
+                            amsT_PerState: Number(pick(['amsT_PerState']) ?? 0) || 0,
+                            amsT_PerDistrict: Number(pick(['amsT_PerDistrict']) ?? 0) || 0,
+                            amsT_PerCountry: Number(pick(['amsT_PerCountry']) ?? 0) || 0,
+                            amsT_PerPincode: Number(pick(['amsT_PerPincode']) ?? 0) || 0,
 
                             // Residential address
-                            amsT_ConStreet: pick(['amsT_ConStreet', 'pasR_ConStreet']) || '',
-                            amsT_ConArea: pick(['amsT_ConArea', 'pasR_ConArea']) || '',
-                            amsT_ConCity: pick(['amsT_ConCity', 'pasR_ConCity']) || '',
-                            amsT_ConState: Number(pick(['amsT_ConState', 'pasR_ConState']) ?? 0) || 0,
-                            amsT_ConDistrict: Number(pick(['amsT_ConDistrict', 'pasR_ConDistrict']) ?? 0) || 0,
-                            amsT_ConCountry: Number(pick(['amsT_ConCountry', 'pasR_ConCountry']) ?? 0) || 0,
-                            amsT_ConPincode: Number(pick(['amsT_ConPincode', 'pasR_ConPincode']) ?? 0) || 0,
+                            amsT_ConStreet: pick(['amsT_ConStreet']) || '',
+                            amsT_ConArea: pick(['amsT_ConArea']) || '',
+                            amsT_ConCity: pick(['amsT_ConCity']) || '',
+                            amsT_ConState: Number(pick(['amsT_ConState']) ?? 0) || 0,
+                            amsT_ConDistrict: Number(pick(['amsT_ConDistrict']) ?? 0) || 0,
+                            amsT_ConCountry: Number(pick(['amsT_ConCountry']) ?? 0) || 0,
+                            amsT_ConPincode: Number(pick(['amsT_ConPincode']) ?? 0) || 0,
 
                             message: '',
                             returnval: true
@@ -3094,9 +3096,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select fee concession type' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                <SelectItem value='General'>General</SelectItem>
-                                                                <SelectItem value='Prestigious'>Prestigious</SelectItem>
-                                                                <SelectItem value='RTE'>RTE</SelectItem>
+                                                                <SelectItem value='1'>General</SelectItem>
+                                                                <SelectItem value='2'>Prestigious</SelectItem>
+                                                                <SelectItem value='3'>RTE</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     )}

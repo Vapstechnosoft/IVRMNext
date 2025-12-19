@@ -355,6 +355,28 @@ export async function getUserAccessibleModules() {
                                     ]
                                 }
                             ]
+                        },
+                        {
+                            id: 2,
+                            name: 'Admission',
+                            icon: 'UserCog',
+                            sub_menu: [
+                                {
+                                    id: 1,
+                                    name: 'Application',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Admission Form',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/admission-form',
+                                            title: 'Master Class',
+                                            description: 'Manage Master Class Details'
+                                        }
+                                    ]
+                                }
+                            ]
                         }
                     ]
                 },
