@@ -15,8 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { calculateAge, dateToWords, formatAge } from '@/lib/utils';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
-import { useConcessionDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { useAcademicYearDropdown, useConcessionDropdown, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
     useAdmissionClassDropdown,
@@ -290,6 +289,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         refetchAll: refetchPreadmissionDocuments
     } = usePreadmissionDocumentsDropdown();
     const { data: concession, isLoading: concessionLoading, refetchAll: refetchConcession } = useConcessionDropdown();
+    const { data: academicYears, isLoading: academicLoading, refetchAll: refetchAcademic } = useAcademicYearDropdown();
 
     const _refetchDropdowns = () => {
         refetchReligion();
@@ -302,6 +302,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         refetchSource();
         refetchReference();
         refetchConcession();
+        refetchAcademic();
         refetchConState();
         refetchPerState();
         refetchFatherPresentState();
@@ -5240,16 +5241,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         render={({ field }) => (
                                                                             <Select
                                                                                 value={field.value?.toString() || ''}
-                                                                                onValueChange={(val) => field.onChange(Number(val))}>
+                                                                                onValueChange={(val) => field.onChange(String(val))}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select school type' />
                                                                                 </SelectTrigger>
-                                                                                <SelectContent>
-                                                                                    <SelectItem value='1'>Primary</SelectItem>
-                                                                                    <SelectItem value='2'>Pre-School</SelectItem>
-                                                                                    <SelectItem value='3'>High School</SelectItem>
-                                                                                    <SelectItem value='4'>College</SelectItem>
-                                                                                </SelectContent>
                                                                             </Select>
                                                                         )}
                                                                     />
@@ -5325,10 +5320,24 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                     <SelectValue placeholder='Select passed year' />
                                                                                 </SelectTrigger>
                                                                                 <SelectContent>
-                                                                                    <SelectItem value='2024'>2024</SelectItem>
-                                                                                    <SelectItem value='2023'>2023</SelectItem>
-                                                                                    <SelectItem value='2022'>2022</SelectItem>
-                                                                                    <SelectItem value='2021'>2021</SelectItem>
+                                                                                    {academicLoading ? (
+                                                                                        <SelectItem value={'loading'} disabled>
+                                                                                            Loading...
+                                                                                        </SelectItem>
+                                                                                    ) : academicYears?.data &&
+                                                                                      academicYears.data.length > 0 ? (
+                                                                                        academicYears.data.map((y: any) => (
+                                                                                            <SelectItem
+                                                                                                key={String(y.asmaY_Id)}
+                                                                                                value={String(y.asmaY_Year)}>
+                                                                                                {y.asmaY_Year}
+                                                                                            </SelectItem>
+                                                                                        ))
+                                                                                    ) : (
+                                                                                        <SelectItem value={'none'} disabled>
+                                                                                            No years
+                                                                                        </SelectItem>
+                                                                                    )}
                                                                                 </SelectContent>
                                                                             </Select>
                                                                         )}
