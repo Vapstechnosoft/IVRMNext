@@ -16,10 +16,9 @@ import { Plus, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-import type { IPromotionSetting } from '@/types/exam/exam-module/exam-mapping';
+import type { IPromotionSetting, IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
 import AddPromotionalSetting from './_components/add-from';
 import { PromotionSettingColumns } from './_components/columns';
-import type { IPromotionalSubjectDetails } from './_components/promotional-setting-details-columns';
 import PromotionalSettingDetailsPage from './_components/promotional-setting-details-view';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;

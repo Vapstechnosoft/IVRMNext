@@ -130,6 +130,12 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
             toast.error(err?.message ?? 'Failed to save');
         }
     };
+    const handleReset = () => {
+        reset();
+        setSubjects([]);
+        setExams([]);
+        setCategories([]);
+    };
 
     return (
         <div className='flex w-full flex-col gap-6'>
@@ -530,7 +536,7 @@ export default function AddExamSubjectGroup({ mI_Id = 30, onSuccess }: { mI_Id?:
                         <Button type='submit' disabled={isSubmitting}>
                             {isSubmitting ? 'Saving...' : 'Save'}
                         </Button>
-                        <Button type='button' variant='outline' onClick={() => reset()}>
+                        <Button type='button' variant='outline' onClick={() => handleReset()}>
                             Reset
                         </Button>
                     </div>

@@ -713,7 +713,6 @@ export default function AddPromotionalSettingForm() {
                     </Button>
                 </div>
             </CollapsibleSection>
-            {/* Group Mapping Modal */}{' '}
             {isGroupsOpen && activeSubject && (
                 <ViewGroupsModal
                     subject={activeSubject}
@@ -726,7 +725,6 @@ export default function AddPromotionalSettingForm() {
                     onOpenExams={(g) => openExamsModal(g)}
                 />
             )}{' '}
-            {/* Exams modal */}{' '}
             {isExamsOpen && activeGroup && (
                 <ViewExamsModal
                     group={activeGroup}

@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
 import { togglePromotionalSettingDetails } from '@/server/exam/exam-module/exam-mapping/promotional-setting';
+import type { IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import type { IPromotionalSubjectDetails } from './promotional-setting-details-columns';
 
 /* ---------------- Schema ---------------- */
 const PromotionalToggleSchema = z.object({

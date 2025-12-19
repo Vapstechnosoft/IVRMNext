@@ -5,11 +5,11 @@ import { Button } from '@/components/ui/button';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
 import { usePromotionalSettingDetails } from '@/hooks/exam/exammodule/exam-mapping';
-import type { IPromotionSetting } from '@/types/exam/exam-module/exam-mapping';
+import type { IPromotionSetting, IPromotionalSubjectDetails } from '@/types/exam/exam-module/exam-mapping';
 import { X } from 'lucide-react';
 import { useEffect } from 'react';
 import PromotionalGroupMappingsDetailsPage from './promotional-group-mapping-view';
-import { type IPromotionalSubjectDetails, PromotionalSettingDetailsColumns } from './promotional-setting-details-columns';
+import { PromotionalSettingDetailsColumns } from './promotional-setting-details-columns';
 import PromotionalSettingDetailsToggleForm from './promotional-setting-details-toggle';
 
 /*------------------------------------

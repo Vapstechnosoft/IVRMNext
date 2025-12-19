@@ -22,6 +22,7 @@ interface DataTableToolbarProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     showExportOptions?: boolean;
     showViewOptions?: boolean;
+    showSearchColumns?: boolean;
 }
 
 export function DataTableToolbar<TData, TValue>({
@@ -29,7 +30,8 @@ export function DataTableToolbar<TData, TValue>({
     data,
     columns,
     showExportOptions = true,
-    showViewOptions = true
+    showViewOptions = true,
+    showSearchColumns = false
 }: DataTableToolbarProps<TData, TValue>) {
     const [searchQuery, setSearchQuery] = useQueryState(
         tableSearchVariables.search,
@@ -275,7 +277,7 @@ export function DataTableToolbar<TData, TValue>({
                 )}
 
                 {/* Search In Columns */}
-                {hideableColumns.length > 0 && (
+                {hideableColumns.length > 0 && showSearchColumns && (
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant='outline' size='sm'>
