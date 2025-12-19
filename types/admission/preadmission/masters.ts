@@ -277,6 +277,6 @@ export interface StudentData {
     remark: string;
 }
 export interface IConcessionDropDown {
-    concession_Id: number;
-    concession_Name: string;
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
 }

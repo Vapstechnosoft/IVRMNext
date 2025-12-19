@@ -6,57 +6,89 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { CalendarIcon, Save } from 'lucide-react';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { toast } from 'sonner';
 
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { useAttendanceAbsentSmsReport } from '@/hooks/admission/preadmission/useReports';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-// Local schema for this form
+// helper to compare local dates
+const isSameLocalDate = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+// Local schema for this form (only allow today's date)
 const attendanceAbsentSmsSchema = z.object({
     frequency: z.enum(['once', 'twice']).default('once'),
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
-    from_date: z.string().nonempty('Date is required')
+    from_date: z
+        .string()
+        .nonempty('Date is required')
+        .refine((val) => {
+            const d = new Date(val);
+            return isSameLocalDate(d, new Date());
+        }, "Only today's date is allowed")
 });
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 type FormFields = z.infer<typeof attendanceAbsentSmsSchema>;
 
-export default function StudyCertificateReportPage() {
+export default function StudyCertificateReportPage(props: {
+    searchParams: SearchParams;
+}) {
+    const searchParams = use(props.searchParams);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [shouldFetch, setShouldFetch] = useState(false);
 
     const {
         control,
         handleSubmit,
         reset,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(attendanceAbsentSmsSchema),
         defaultValues: {
-            frequency: 'once'
+            frequency: 'once',
+            from_date: new Date().toISOString()
         }
     });
 
     // Dropdown data
     const { data: academicYears, isLoading: ayLoading } = useAcademicYearDropdown();
+    const asmaY_Id = watch('asmaY_Id');
+    const from_date = watch('from_date');
+    const frequency = watch('frequency');
+    const { data: response, refetch } = useAttendanceAbsentSmsReport(asmaY_Id, from_date, frequency, searchParams);
 
-    // ──────────────────────────────────────────────────────────────
-    // Submit handler
-    // ──────────────────────────────────────────────────────────────
-    const onSubmit = async (data: FormFields) => {
+    const onSubmit = async () => {
+        if (!asmaY_Id || asmaY_Id === 0) {
+            toast.error('Please select Academic Year');
+            return;
+        }
+        setIsLoading(true);
+        setShouldFetch(true);
+        setIsLoading(true);
         try {
-            // Use `data` for future implementation to avoid unused parameter
+            const { data } = await refetch();
+            if (data?.message) {
+                toast.success(data.message);
+            } else {
+                toast.error('No data found for the selected criteria');
+            }
             console.debug(data);
-            // TODO: implement report generation using `data`
-            toast.success('Report generated successfully');
         } catch {
             toast.error('Failed to generate report');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -65,30 +97,32 @@ export default function StudyCertificateReportPage() {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className='mb-4 rounded-xl border bg-card p-6 shadow-xl'>
                     {/* ──────────────── RADIO BUTTONS (ADDED ON TOP) ──────────────── */}
-                    <div className='mb-6'>
-                        <Label className='mb-2'>
-                            Frequency <span className='text-red-500'>*</span>
-                        </Label>
+                    <div className='mb-6 text-center'>
+                        <div className='mt-3 mb-6 flex justify-center'>
+                            <Controller
+                                name='frequency'
+                                control={control}
+                                render={({ field }) => (
+                                    <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-6'>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='once' id='once' />
+                                            <Label htmlFor='once'>
+                                                Daily Once<span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
 
-                        <Controller
-                            name='frequency'
-                            control={control}
-                            render={({ field }) => (
-                                <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-6'>
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='once' id='once' />
-                                        <Label htmlFor='once'>Daily Once</Label>
-                                    </div>
+                                        <div className='flex items-center space-x-2'>
+                                            <RadioGroupItem value='twice' id='twice' />
+                                            <Label htmlFor='twice'>
+                                                Daily Twice<span className='text-red-500'>*</span>
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+                                )}
+                            />
 
-                                    <div className='flex items-center space-x-2'>
-                                        <RadioGroupItem value='twice' id='twice' />
-                                        <Label htmlFor='twice'>Daily Twice</Label>
-                                    </div>
-                                </RadioGroup>
-                            )}
-                        />
-
-                        {errors.frequency && <FormError>{errors.frequency.message}</FormError>}
+                            {errors.frequency && <FormError>{errors.frequency.message}</FormError>}
+                        </div>
                     </div>
 
                     {/* ──────────────── Filters Grid ──────────────── */}
@@ -155,6 +189,11 @@ export default function StudyCertificateReportPage() {
                                                 mode='single'
                                                 selected={field.value ? new Date(field.value) : undefined}
                                                 onSelect={(date) => {
+                                                    if (!date) return;
+                                                    if (!isSameLocalDate(date, new Date())) {
+                                                        toast.error("Please select today's date");
+                                                        return;
+                                                    }
                                                     date && field.onChange(date.toISOString());
                                                     setOpenPopover(null);
                                                 }}
@@ -173,7 +212,7 @@ export default function StudyCertificateReportPage() {
                             Reset
                         </Button>
 
-                        <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} className='w-fit'>
+                        <Button type='submit' disabled={isSubmitting} onClick={onSubmit} isLoading={isLoading} className='w-fit'>
                             <Save className='mr-2 h-4 w-4' />
                             Report
                         </Button>

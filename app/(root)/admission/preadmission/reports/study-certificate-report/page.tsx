@@ -111,7 +111,7 @@ export default function CertificateReportPage() {
     return (
         <div className='min-h-screen p-4'>
             <CollapsibleSection
-                title='Add New Student Count Report'
+                title='Study Certificate Report'
                 description='Fill in the details below to Student Count Report'
                 defaultOpen={true}
                 variant='outline'
@@ -324,7 +324,7 @@ export default function CertificateReportPage() {
             </CollapsibleSection>
             <div className='mt-5'>
                 <CollapsibleSection
-                    title='Add New Student Count Report'
+                    title='Study Certificate Report'
                     description='Fill in the details below to Student Count Report'
                     defaultOpen={true}
                     variant='outline'

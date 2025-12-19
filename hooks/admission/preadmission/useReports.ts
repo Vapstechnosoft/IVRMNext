@@ -1,5 +1,7 @@
 import { ADMISSION_QUERY_KEYS, PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
+    getAttendanceAbsentSmsReport,
+    getAttendanceReport,
     getMonthEndReport,
     getPreAdmissionEmailSmsReport,
     getPreAdmissionMonthEndReport,
@@ -372,6 +374,40 @@ export const useadmissionStudentsDropdown = (ASMAY_Id?: number, ASMCL_Id?: numbe
         refetchAll: (id?: number) => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_STUDENTS_DROPDOWN, id ?? {}]
+            });
+        }
+    };
+};
+export const useAttendanceAbsentSmsReport = (asmaY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER, asmaY_Id, from_date, frequency, searchParams ?? {}],
+            queryFn: async () => getAttendanceAbsentSmsReport(asmaY_Id, from_date, frequency, searchParams),
+            staleTime: 0,
+            enabled: !!asmaY_Id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER]
+            });
+        }
+    };
+};
+export const useAttendanceReport = (asmaY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER, asmaY_Id, from_date, frequency, searchParams ?? {}],
+            queryFn: async () => getAttendanceReport(asmaY_Id, from_date, frequency, searchParams),
+            staleTime: 0,
+            enabled: !!asmaY_Id
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER]
             });
         }
     };

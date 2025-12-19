@@ -268,45 +268,133 @@ export async function getUserAccessibleModules() {
                                         }
                                     ]
                                 },
-                                // {
-                                //   id: 4,
-                                //   name: "Reports",
-                                //   icon: "Settings",
-                                //   pages: [
-                                //     {
-                                //       id: 21,
-                                //       name: "Student Count Report",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/student-count-report",
-                                //       title: "Student Count Report",
-                                //       description: "Student Count Report",
-                                //     },
-                                //     {
-                                //       id: 22,
-                                //       name: "Admission Register",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/admission-register",
-                                //       title: "Admission Register",
-                                //       description: "Admission Register",
-                                //     },
-                                //     {
-                                //       id: 23,
-                                //       name: "Total Strength",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/total-strength",
-                                //       title: "Total Strength",
-                                //       description: "Total Strength",
-                                //     },
-                                //     {
-                                //       id: 24,
-                                //       name: "Student Search",
-                                //       icon: "Settings",
-                                //       url: "/admission/preadmission/reports/student-search",
-                                //       title: "Student Search",
-                                //       description: "Student Search",
-                                //     },
-                                //   ],
-                                // },
+                                {
+                                    id: 4,
+                                    name: 'Reports',
+                                    icon: 'Settings',
+                                    pages: [
+                                        {
+                                            id: 1,
+                                            name: 'Class Teacher Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/class-teacher-report',
+                                            title: 'Class Teacher Report',
+                                            description: 'Class Teacher Report'
+                                        },
+                                        {
+                                            id: 2,
+                                            name: 'Student Yearly Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/students-yearly-attendence-report',
+                                            title: 'Student Yearly Attendance Report',
+                                            description: 'Student Yearly Attendance Report'
+                                        },
+                                        {
+                                            id: 3,
+                                            name: 'Student TC Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-tc-report',
+                                            title: 'Student TC Report',
+                                            description: 'Student TC Report'
+                                        },
+                                        {
+                                            id: 4,
+                                            name: 'class-wise student details',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/class-wise-student-details',
+                                            title: 'class-wise student details',
+                                            description: 'class-wise student details'
+                                        },
+                                        {
+                                            id: 5,
+                                            name: 'Total Strength Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/total-strength',
+                                            title: 'Total Strength Report',
+                                            description: 'Total Strength Report'
+                                        },
+                                        {
+                                            id: 6,
+                                            name: 'Admission Register Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/admission-register',
+                                            title: 'Admission Register Report',
+                                            description: 'Admission Register Report '
+                                        },
+                                        {
+                                            id: 7,
+                                            name: 'Attendance Absentees Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/attendance-absent-sms',
+                                            title: 'Attendance Absentees Report',
+                                            description: 'Attendance Absentees Report'
+                                        },
+                                        {
+                                            id: 8,
+                                            name: 'Student Search',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-search',
+                                            title: 'Student Search',
+                                            description: 'Student Search'
+                                        },
+                                        {
+                                            id: 9,
+                                            name: 'Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/month-end-report',
+                                            title: 'Month End Report',
+                                            description: 'Month End Report'
+                                        },
+                                        {
+                                            id: 10,
+                                            name: 'PreAdmission Month End Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/preadmission-month-end-report',
+                                            title: 'PreAdmission Month End Report',
+                                            description: 'PreAdmission Month End Report'
+                                        },
+                                        {
+                                            id: 11,
+                                            name: 'Registration Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/registration-report',
+                                            title: 'Registration Report',
+                                            description: 'Registration Report'
+                                        },
+                                        {
+                                            id: 12,
+                                            name: 'EMAIL SMS Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/email-sms',
+                                            title: 'EMAIL SMS Report',
+                                            description: 'EMAIL SMS Report'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Study Certificate Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/study-certificate-report',
+                                            title: 'Study Certificate Report',
+                                            description: 'Study Certificate Report'
+                                        },
+                                        {
+                                            id: 14,
+                                            name: 'Date Of Birth Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/date-of-birth-report',
+                                            title: 'Date Of Birth Report',
+                                            description: 'Date Of Birth Report'
+                                        },
+                                        {
+                                            id: 16,
+                                            name: 'Overall Daily Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/overall-daily-attendance-report',
+                                            title: 'Overall Daily Attendance Report',
+                                            description: 'Overall Daily Attendance Report'
+                                        }
+                                    ]
+                                },
                                 {
                                     id: 4,
                                     name: 'Section Allotment',

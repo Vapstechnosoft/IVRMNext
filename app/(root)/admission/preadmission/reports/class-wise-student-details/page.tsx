@@ -95,6 +95,7 @@ export default function AdmissionReportPage(props: {
     const [requestPayload, setRequestPayload] = useState<any>(null);
     const [resolvedSearchParams, setResolvedSearchParams] = useState<Record<string, string | string[] | undefined>>({});
     const [fieldSearch, setFieldSearch] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     /* ---------------- Masters ---------------- */
 
@@ -175,42 +176,52 @@ export default function AdmissionReportPage(props: {
     /* ---------------- Handlers ---------------- */
 
     const handleReport = async () => {
-        const isValid = await refetch();
-        if (!isValid) {
-            toast.error('Please fill all required fields');
-            return;
+        setIsLoading(true);
+        try {
+            const isValid = await refetch();
+            if (!isValid) {
+                toast.error('Please fill all required fields');
+                return;
+            }
+            const fromData = watch();
+            const payload = {
+                classdetailsdata: fromData.classes.map((id: any) => ({
+                    ASMCL_Id: Number(id)
+                })),
+                sectionsdetailsdata: fromData.class_section.map((id: any) => ({
+                    ASMS_Id: Number(id)
+                })),
+                tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
+                    const field = ColumnValue.find((f) => f.columnID === id);
+                    return {
+                        columnID: id,
+                        columnName: field?.columnName || ''
+                    };
+                })
+            };
+
+            setRequestPayload(payload);
+            setShowReport(true);
+
+            const params = new URLSearchParams(currentSearchParams.toString());
+            params.set('page', '1');
+            router.push(`?${params.toString()}`, { scroll: false });
+
+            toast.success('Generating report...');
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to generate report');
+        } finally {
+            setIsLoading(false);
         }
-        const fromData = watch();
-        const payload = {
-            classdetailsdata: fromData.classes.map((id: any) => ({
-                ASMCL_Id: Number(id)
-            })),
-            sectionsdetailsdata: fromData.class_section.map((id: any) => ({
-                ASMS_Id: Number(id)
-            })),
-            tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
-                const field = ColumnValue.find((f) => f.columnID === id);
-                return {
-                    columnID: id,
-                    columnName: field?.columnName || ''
-                };
-            })
-        };
-
-        setRequestPayload(payload);
-        setShowReport(true);
-
-        const params = new URLSearchParams(currentSearchParams.toString());
-        params.set('page', '1');
-        router.push(`?${params.toString()}`, { scroll: false });
-
-        toast.success('Generating report...');
     };
 
     const handleReset = () => {
         reset();
         setShowReport(false);
         setRequestPayload(null);
+        setSelectedClassItems([]);
+        setSelectedSectionItems([]);
         tableRef.current?.resetSelection();
         router.push(window.location.pathname, { scroll: false });
         toast.success('Filters reset successfully');
@@ -413,7 +424,7 @@ export default function AdmissionReportPage(props: {
 
                 {/* Buttons */}
                 <div className='flex gap-3 p-4'>
-                    <Button onClick={handleReport}>
+                    <Button onClick={handleReport} isLoading={isLoading} loadingText='Generating...'>
                         <FileText className='mr-2 h-4 w-4' />
                         Report
                     </Button>
