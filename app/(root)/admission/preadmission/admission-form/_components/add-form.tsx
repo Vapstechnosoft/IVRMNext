@@ -16,6 +16,7 @@ import { calculateAge, dateToWords, formatAge } from '@/lib/utils';
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
+import { useConcessionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import {
     useActivePreadmissionDetails,
     useAdmissionClassDropdown,
@@ -288,6 +289,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         isLoading: preadmissionDocumentsLoading,
         refetchAll: refetchPreadmissionDocuments
     } = usePreadmissionDocumentsDropdown();
+    const { data: concession, isLoading: concessionLoading, refetchAll: refetchConcession } = useConcessionDropdown();
 
     const _refetchDropdowns = () => {
         refetchReligion();
@@ -299,6 +301,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         refetchCountry();
         refetchSource();
         refetchReference();
+        refetchConcession();
         refetchConState();
         refetchPerState();
         refetchFatherPresentState();
@@ -3096,9 +3099,21 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <SelectValue placeholder='Select fee concession type' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                <SelectItem value='1'>General</SelectItem>
-                                                                <SelectItem value='2'>Prestigious</SelectItem>
-                                                                <SelectItem value='3'>RTE</SelectItem>
+                                                                {concessionLoading ? (
+                                                                    <SelectItem value={'loading'} disabled>
+                                                                        Loading...
+                                                                    </SelectItem>
+                                                                ) : concession?.data && concession.data.length > 0 ? (
+                                                                    concession.data.map((item: any) => (
+                                                                        <SelectItem key={String(item.fmcC_Id)} value={String(item.fmcC_Id)}>
+                                                                            {item.fmcC_ConcessionName}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                ) : (
+                                                                    <SelectItem value={'none'} disabled>
+                                                                        No concession types
+                                                                    </SelectItem>
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                     )}
