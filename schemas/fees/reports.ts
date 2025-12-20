@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { createStringOnlyOptionalSchema } from '../validationSchemas';
 
 export const feeAuditSchema = z.object({
     academicYearId: z.string().min(1, 'Academic Year is required'),
@@ -46,4 +47,11 @@ export const yearlyFeeCollectionSchema = z.object({
 export const headWiseReportSchema = z.object({
     asmaY_Id: z.number({ message: 'Academic Year is required' }),
     classcategoryid: z.number({ message: 'Class Category is required' })
+});
+
+export const feeMonthEndReportsSchema = z.object({
+    fmtP_Year: z.string().min(1, 'Please select year'),
+    asmay_Id: z.number({ message: 'Academic Year is required' }),
+    iename: createStringOnlyOptionalSchema('IE Name', 1, 50),
+    from_Month: z.string().min(1, 'Please select from month')
 });

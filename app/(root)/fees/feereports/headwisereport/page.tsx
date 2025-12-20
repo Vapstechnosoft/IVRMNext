@@ -379,18 +379,28 @@ export default function FeeHeadWiseReportForm() {
                     </Button>
                 </div>
             </form>
-            {/* <div className='my-6 border-gray-300 border-t' /> */}
 
             <div className='mt-10'>
+                <div className='my-6 border-gray-300 border-t' />
                 {showTable && (
                     <div className='mb-6 text-center'>
                         <h2 className='font-bold text-lg uppercase tracking-wide'>Fee Headwise Report</h2>
+
+                        <div className='mb-4 flex justify-end gap-2'>
+                            <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
+                                Export Excel
+                            </Button>
+
+                            <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
+                                Print
+                            </Button>
+                        </div>
                     </div>
                 )}
 
-                {/* <div className='my-6 border-gray-300 border-t' /> */}
+                <div className='my-6 border-gray-300 border-t' />
 
-                {showTable && (
+                {/* {showTable && (
                     <div className='mb-4 flex justify-end gap-2'>
                         <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
                             Export Excel
@@ -400,7 +410,7 @@ export default function FeeHeadWiseReportForm() {
                             Print
                         </Button>
                     </div>
-                )}
+                )} */}
 
                 {showTable && (
                     <div className='mt-8 rounded-md border'>

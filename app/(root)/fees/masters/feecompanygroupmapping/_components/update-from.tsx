@@ -159,6 +159,7 @@ export default function UpdateFeeCompanyGroupMappingForm({
 
             //   const { fmsfH_Name } = data;
             const payload = {
+                ffgcmA_Id: row.ffgcmA_Id,
                 ftmcoM_Id: Number(data.ftmcoM_Id),
 
                 tempararyArrayList: selectedGroupsItems.map((item) => ({
@@ -198,7 +199,7 @@ export default function UpdateFeeCompanyGroupMappingForm({
                     <div className='flex flex-col items-center space-y-4'>
                         <div className='group flex items-center justify-center gap-1.5 space-x-3'>
                             <Label htmlFor='fmcC_Id'>
-                                Company Name<span className='text-red-500'>*</span>:
+                                Company Name:<span className='text-red-500'>*</span>
                             </Label>
                             <div className='w-96'>
                                 <Controller
@@ -206,6 +207,7 @@ export default function UpdateFeeCompanyGroupMappingForm({
                                     control={control}
                                     render={({ field }) => (
                                         <Select
+                                            disabled={true}
                                             value={field.value != null ? String(field.value) : undefined}
                                             onValueChange={(v) => field.onChange(Number(v))}>
                                             <SelectTrigger>
@@ -239,7 +241,7 @@ export default function UpdateFeeCompanyGroupMappingForm({
                             <Label htmlFor='groupids' className='whitespace-nowrap'>
                                 Group:<span className='ml-1 text-red-500'>*</span>
                             </Label>
-                            <div className='w-96'>
+                            <div className='ml-16 w-96'>
                                 <Controller
                                     name='groupids'
                                     control={control}

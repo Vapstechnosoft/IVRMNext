@@ -438,7 +438,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Master Concession',
+                                            name: 'Master Fee Concession',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
                                             title: 'Fee Master Concession',
@@ -756,6 +756,30 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feeconcessionreport',
                                             title: 'Fee Concession Report',
                                             description: 'Manage Fee Concession Report Details'
+                                        },
+                                        {
+                                            id: 10016,
+                                            name: 'Fee Head Wise Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/headwisereport',
+                                            title: 'Fee Head Wise Report',
+                                            description: 'Manage Fee Head Wise Report Details'
+                                        },
+                                        {
+                                            id: 10017,
+                                            name: 'Fee Due Date Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeduedatereport',
+                                            title: 'Fee Due Date Report',
+                                            description: 'Manage Fee Due Date Report Details'
+                                        },
+                                        {
+                                            id: 10018,
+                                            name: 'Fee Month End Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feemonthendreport',
+                                            title: 'Fee Month End Report',
+                                            description: 'Manage Fee Month End Report Details'
                                         }
                                     ]
                                 }

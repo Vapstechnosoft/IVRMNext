@@ -153,3 +153,20 @@ export interface IFeeTrasactionInstallmentDropdownList {
     ftI_Id: number;
     ftI_InstallmentName: string;
 }
+
+export interface IduedateReportData {
+    FTI_Id: number;
+    FMG_GroupName: string;
+    FMH_FeeName: string;
+    FMI_Name: string;
+    FTI_Name: string;
+    FMCC_Id: number;
+    FTDD_Month: number;
+    FTDD_Day: number;
+    FMFS_Id: number;
+    FMFS_FineType: string;
+    FTFS_Id: number;
+    FTFS_FineType: string;
+    FTFS_Amount: number;
+    FTIDD_DueDate: string;
+}
