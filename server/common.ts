@@ -496,6 +496,14 @@ export async function getUserAccessibleModules() {
                                             url: '/admission/preadmission/reports/overall-daily-attendance-report',
                                             title: 'Overall Daily Attendance Report',
                                             description: 'Overall Daily Attendance Report'
+                                        },
+                                        {
+                                            id: 13,
+                                            name: 'Student Attendance Report',
+                                            icon: 'Settings',
+                                            url: '/admission/preadmission/reports/student-attendance-report',
+                                            title: 'Student Attendance Report',
+                                            description: 'Student Attendance Report'
                                         }
                                     ]
                                 }
