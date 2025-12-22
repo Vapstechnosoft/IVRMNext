@@ -173,6 +173,10 @@ export const FEES_QUERY_KEYS = {
     FEE_OPENING_REFUNDABLE: 'fee_opening_refundable',
     FEE_GROUPGROUPING_GROUPDROPDOWN: 'fee_groupgrouping_groupdropdown',
     STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN: 'student_fee_group_mapping_bus_area_dropdown',
+    FEE_COMPANY_GROUP_MAPPING: 'fee_company_group_mapping',
+    FEE_COMPANY_GROUP_MAPPING_COMPANY_DROPDOWN: 'fee_company_group_mapping_company_dropdown',
+    FEE_COMPANY_GROUP_MAPPING_GROUP_DROPDOWN: 'fee_company_group_mapping_group_dropdown',
+    FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
@@ -205,7 +209,8 @@ export const FEES_QUERY_KEYS = {
     FEE_ADJUSTMENT_GROUP_DROPDOWN: 'fee_adjustment_group_drop_down',
     FEE_ADJUSTMENT_HEAD_DROPDOWN: 'fee_adjustment_head_drop_down',
     FEE_ADJUSTMENT_TO_GROUP_DROPDOWN: 'fee_adjustment_to_group_drop_down',
-    FEE_ADJUSTMENT_TO_HEAD_DROPDOWN: 'fee_adjustment_to_head_drop_down'
+    FEE_ADJUSTMENT_TO_HEAD_DROPDOWN: 'fee_adjustment_to_head_drop_down',
+    FEES_REPORT_TRANSACTION_INSTLLMENT_DROPDOWN_YEARLYREPORT: 'fees_report_transaction_instllment_dropdown_yearlyreport'
 };
 
 export const EXAM_QUERY_KEYS = {

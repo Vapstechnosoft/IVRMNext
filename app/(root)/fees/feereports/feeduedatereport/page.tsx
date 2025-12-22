@@ -6,7 +6,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { headWiseReportSchema } from '@/schemas/fees/reports';
-import { feeHeadwiseReportClassCategoryGropDown, getHeadWiseReportData } from '@/server/fees/reports/headwiseReport';
+import { feeHeadwiseReportClassCategoryGropDown } from '@/server/fees/reports/headwiseReport';
 import type { ApiSearchparams } from '@/types';
 import type { HeadwiseClassCategoryDropDown } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +15,9 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
+import { getDueDateReportData } from '@/server/fees/reports/fee_duedate_report';
 import { exportToExcel, printTable } from './exporttoexcel_print';
 
 type FormFields = z.infer<typeof headWiseReportSchema>;
@@ -205,7 +207,7 @@ export default function FeeDueDateReportForm() {
 
             const { asmaY_Id, classcategoryid } = data;
 
-            const response = await getHeadWiseReportData(Number(asmaY_Id), Number(classcategoryid));
+            const response = await getDueDateReportData(Number(asmaY_Id), Number(classcategoryid));
 
             //const response = await getHeadWiseReportData(231, 170);
 
@@ -389,15 +391,25 @@ export default function FeeDueDateReportForm() {
             {/* <div className='my-6 border-gray-300 border-t' /> */}
 
             <div className='mt-10'>
+                <div className='my-6 border-gray-300 border-t' />
                 {showTable && (
                     <div className='mb-6 text-center'>
                         <h2 className='font-bold text-lg uppercase tracking-wide'>Fee Due Date Report</h2>
+                        <div className='mb-4 flex justify-end gap-2'>
+                            <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
+                                Export Excel
+                            </Button>
+
+                            <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
+                                Print
+                            </Button>
+                        </div>
                     </div>
                 )}
 
                 {/* <div className='my-6 border-gray-300 border-t' /> */}
 
-                {showTable && (
+                {/* {showTable && (
                     <div className='mb-4 flex justify-end gap-2'>
                         <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
                             Export Excel
@@ -407,145 +419,147 @@ export default function FeeDueDateReportForm() {
                             Print
                         </Button>
                     </div>
-                )}
+                )} */}
 
                 {showTable && (
-                    <div className='mt-8 rounded-md border'>
-                        <div className='px-4 pt-4 pb-3'>
-                            <Input
-                                type='text'
-                                placeholder='Search...'
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className='w-64 rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-1'
-                            />
+                    <CollapsibleSection>
+                        <div className='mt-8 rounded-md border'>
+                            <div className='px-4 pt-4 pb-3'>
+                                <Input
+                                    type='text'
+                                    placeholder='Search...'
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className='w-64 rounded-md border px-3 py-1.5 text-sm focus:outline-none focus:ring-1'
+                                />
 
-                            {/* <span className='text-gray-500 text-sm'>
+                                {/* <span className='text-gray-500 text-sm'>
                                 Showing {filteredRows.length} records
                             </span> */}
-                        </div>
-
-                        <table className='w-full border-collapse text-sm'>
-                            {/* HEADER */}
-                            <thead>
-                                <tr className='bg-blue-600 text-white'>
-                                    <th className='w-10 border px-2 py-2 text-center'>
-                                        <Checkbox
-                                            checked={selectedRows.length === tableRows.length && tableRows.length > 0}
-                                            onCheckedChange={(checked) => {
-                                                if (checked) {
-                                                    setSelectedRows(tableRows);
-                                                } else {
-                                                    setSelectedRows([]);
-                                                }
-                                            }}
-                                        />
-                                    </th>
-                                    <th className='border px-3 py-2 text-center'>Sl NO.</th>
-                                    <th className='border px-3 py-2 text-left'>Fee Group</th>
-                                    <th className='border px-3 py-2 text-left'>Fee Head</th>
-                                    <th className='border px-3 py-2 text-center'>Installment Name</th>
-                                    <th className='border px-3 py-2 text-center'>Sub-Installment Name</th>
-                                    <th className='border px-3 py-2 text-center'>Due Date</th>
-                                    <th className='border px-3 py-2 text-right'>Fine Slab</th>
-                                    <th className='border px-3 py-2 text-right'>Fine Type</th>
-                                    <th className='border px-3 py-2 text-right'>Fine Amount</th>
-                                </tr>
-                            </thead>
-
-                            {/* BODY */}
-                            <tbody>
-                                {paginatedRows.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={8} className='border px-4 py-6 text-center text-gray-500'>
-                                            No records found
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    paginatedRows.map((row: any, index: number) => (
-                                        <tr key={index} className='hover:bg-blue-50'>
-                                            <td className='border px-2 py-2 text-center'>
-                                                <Checkbox
-                                                    checked={selectedRows.some((r) => r.slno === row.slno)}
-                                                    onCheckedChange={() => toggleRowSelection(row)}
-                                                />
-                                            </td>
-                                            <td className='border px-3 py-2 text-center'>{row.slno}</td>
-                                            <td className='border px-3 py-2'>{row.feeGroup}</td>
-                                            <td className='border px-3 py-2'>{row.feeHead}</td>
-                                            <td className='border px-3 py-2 text-center'>{row.active ? 'true' : 'false'}</td>
-                                            <td className='border px-3 py-2 text-center'>{row.fine}</td>
-                                            <td className='border px-3 py-2 text-center'>{row.installment}</td>
-                                            <td className='border px-3 py-2 text-right'>{row.amount}</td>
-                                            <td className='border px-3 py-2 text-right'>{row.amount}</td>
-                                            <td className='border px-3 py-2 text-right'>{row.amount}</td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                        {showTable && (
-                            <div className='mt-4 flex items-center justify-between text-muted-foreground text-sm'>
-                                {/* LEFT TEXT */}
-                                <div>
-                                    Showing {startIndex + 1} to {Math.min(endIndex, totalEntries)} of {totalEntries} entries
-                                </div>
-
-                                {/* RIGHT CONTROLS */}
-                                <div className='flex items-center gap-3'>
-                                    {/* Rows per page */}
-                                    <div className='flex items-center gap-2'>
-                                        <span>Rows per page</span>
-                                        <select
-                                            value={rowsPerPage}
-                                            onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                                            className='h-8 rounded border px-2'>
-                                            {[10, 20, 50].map((size) => (
-                                                <option key={size} value={size}>
-                                                    {size}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    {/* Pagination buttons */}
-                                    <div className='flex items-center gap-1'>
-                                        <Button
-                                            size='icon'
-                                            variant='outline'
-                                            disabled={currentPage === 1}
-                                            onClick={() => setCurrentPage(1)}>
-                                            ⏮
-                                        </Button>
-
-                                        <Button
-                                            size='icon'
-                                            variant='outline'
-                                            disabled={currentPage === 1}
-                                            onClick={() => setCurrentPage((p) => p - 1)}>
-                                            ◀
-                                        </Button>
-
-                                        <Button
-                                            size='icon'
-                                            variant='outline'
-                                            disabled={currentPage === totalPages || totalPages === 0}
-                                            onClick={() => setCurrentPage((p) => p + 1)}>
-                                            ▶
-                                        </Button>
-
-                                        <Button
-                                            size='icon'
-                                            variant='outline'
-                                            disabled={currentPage === totalPages || totalPages === 0}
-                                            onClick={() => setCurrentPage(totalPages)}>
-                                            ⏭
-                                        </Button>
-                                    </div>
-                                </div>
                             </div>
-                        )}
-                    </div>
+
+                            <table className='w-full border-collapse text-sm'>
+                                {/* HEADER */}
+                                <thead>
+                                    <tr>
+                                        <th className='w-10 border px-2 py-2 text-center'>
+                                            <Checkbox
+                                                checked={selectedRows.length === tableRows.length && tableRows.length > 0}
+                                                onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                        setSelectedRows(tableRows);
+                                                    } else {
+                                                        setSelectedRows([]);
+                                                    }
+                                                }}
+                                            />
+                                        </th>
+                                        <th className='border px-3 py-2 text-center'>Sl NO.</th>
+                                        <th className='border px-3 py-2 text-left'>Fee Group</th>
+                                        <th className='border px-3 py-2 text-left'>Fee Head</th>
+                                        <th className='border px-3 py-2 text-center'>Installment Name</th>
+                                        <th className='border px-3 py-2 text-center'>Sub-Installment Name</th>
+                                        <th className='border px-3 py-2 text-center'>Due Date</th>
+                                        <th className='border px-3 py-2 text-right'>Fine Slab</th>
+                                        <th className='border px-3 py-2 text-right'>Fine Type</th>
+                                        <th className='border px-3 py-2 text-right'>Fine Amount</th>
+                                    </tr>
+                                </thead>
+
+                                {/* BODY */}
+                                <tbody>
+                                    {paginatedRows.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={8} className='border px-4 py-6 text-center text-gray-500'>
+                                                No records found
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        paginatedRows.map((row: any, index: number) => (
+                                            <tr key={index} className='hover:bg-blue-50'>
+                                                <td className='border px-2 py-2 text-center'>
+                                                    <Checkbox
+                                                        checked={selectedRows.some((r) => r.slno === row.slno)}
+                                                        onCheckedChange={() => toggleRowSelection(row)}
+                                                    />
+                                                </td>
+                                                <td className='border px-3 py-2 text-center'>{row.slno}</td>
+                                                <td className='border px-3 py-2'>{row.feeGroup}</td>
+                                                <td className='border px-3 py-2'>{row.feeHead}</td>
+                                                <td className='border px-3 py-2 text-center'>{row.active ? 'true' : 'false'}</td>
+                                                <td className='border px-3 py-2 text-center'>{row.fine}</td>
+                                                <td className='border px-3 py-2 text-center'>{row.installment}</td>
+                                                <td className='border px-3 py-2 text-right'>{row.amount}</td>
+                                                <td className='border px-3 py-2 text-right'>{row.amount}</td>
+                                                <td className='border px-3 py-2 text-right'>{row.amount}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                            {showTable && (
+                                <div className='mt-4 flex items-center justify-between text-muted-foreground text-sm'>
+                                    {/* LEFT TEXT */}
+                                    <div>
+                                        Showing {startIndex + 1} to {Math.min(endIndex, totalEntries)} of {totalEntries} entries
+                                    </div>
+
+                                    {/* RIGHT CONTROLS */}
+                                    <div className='flex items-center gap-3'>
+                                        {/* Rows per page */}
+                                        <div className='flex items-center gap-2'>
+                                            <span>Rows per page</span>
+                                            <select
+                                                value={rowsPerPage}
+                                                onChange={(e) => setRowsPerPage(Number(e.target.value))}
+                                                className='h-8 rounded border px-2'>
+                                                {[10, 20, 50].map((size) => (
+                                                    <option key={size} value={size}>
+                                                        {size}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+
+                                        {/* Pagination buttons */}
+                                        <div className='flex items-center gap-1'>
+                                            <Button
+                                                size='icon'
+                                                variant='outline'
+                                                disabled={currentPage === 1}
+                                                onClick={() => setCurrentPage(1)}>
+                                                ⏮
+                                            </Button>
+
+                                            <Button
+                                                size='icon'
+                                                variant='outline'
+                                                disabled={currentPage === 1}
+                                                onClick={() => setCurrentPage((p) => p - 1)}>
+                                                ◀
+                                            </Button>
+
+                                            <Button
+                                                size='icon'
+                                                variant='outline'
+                                                disabled={currentPage === totalPages || totalPages === 0}
+                                                onClick={() => setCurrentPage((p) => p + 1)}>
+                                                ▶
+                                            </Button>
+
+                                            <Button
+                                                size='icon'
+                                                variant='outline'
+                                                disabled={currentPage === totalPages || totalPages === 0}
+                                                onClick={() => setCurrentPage(totalPages)}>
+                                                ⏭
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </CollapsibleSection>
                 )}
             </div>
         </div>
