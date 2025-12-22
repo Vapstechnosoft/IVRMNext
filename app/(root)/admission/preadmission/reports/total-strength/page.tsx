@@ -148,10 +148,10 @@ export default function TotalStrengthPage() {
     };
 
     const groupedData = () => {
-        if (!response?.data?.studentlist) return {};
+        if (!response?.data || !Array.isArray((response.data as any).studentlist)) return {};
 
         const grouped: Record<number, any[]> = {};
-        response.data.studentlist.forEach((item: any) => {
+        ((response.data as any).studentlist as any[]).forEach((item: any) => {
             const rowNum = item.RowNumber || item.rowNumber || 0;
             if (!grouped[rowNum]) {
                 grouped[rowNum] = [];
@@ -167,8 +167,8 @@ export default function TotalStrengthPage() {
     };
 
     const calculateGrandTotal = () => {
-        if (!response?.data?.studentlist) return 0;
-        return response.data.studentlist.reduce((sum: number, item: any) => sum + (item.totalstudents || 0), 0);
+        if (!response?.data || !Array.isArray((response.data as any).studentlist)) return 0;
+        return ((response.data as any).studentlist as any[]).reduce((sum: number, item: any) => sum + (item.totalstudents || 0), 0);
     };
 
     return (

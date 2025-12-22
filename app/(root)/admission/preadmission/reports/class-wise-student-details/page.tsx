@@ -156,7 +156,7 @@ export default function AdmissionReportPage(props: {
         if (!response) return response;
         return {
             ...response,
-            data: response.data?.printdatatable ?? []
+            data: (response.data as any)?.printdatatable ?? []
         };
     }, [response]);
 

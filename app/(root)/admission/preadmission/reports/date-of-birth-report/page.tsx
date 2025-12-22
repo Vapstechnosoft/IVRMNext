@@ -21,6 +21,7 @@ import { use, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { useStudentYearlyAttendance, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
+import { birthCertificateColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -448,7 +449,7 @@ export default function BirthCertificatePageReport(props: {
                             <GenericDataTable<IStudentYearlyAttendenceReportList>
                                 {...tableProps}
                                 ref={tableRef}
-                                columns={columns}
+                                columns={birthCertificateColumns}
                                 isLoading={activePreadmissionDeLoading || isLoading}
                                 error={error}
                                 showViewOptions={false}

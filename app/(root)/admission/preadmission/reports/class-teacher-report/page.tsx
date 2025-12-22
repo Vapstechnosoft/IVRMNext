@@ -50,7 +50,7 @@ export default function ClassTeacherReportPage(props: {
 
     const tableProps = useDataTableProps({
         ...response,
-        data: response?.data?.searchstudentDetails || []
+        data: (response?.data as any)?.searchstudentDetails || []
     });
 
     useEffect(() => {
@@ -107,7 +107,8 @@ export default function ClassTeacherReportPage(props: {
     };
 
     const handleExportExcel = () => {
-        if (!response?.data?.searchstudentDetails || response.data.searchstudentDetails.length === 0) {
+        const studentDetails = (response?.data as any)?.searchstudentDetails;
+        if (!studentDetails || studentDetails.length === 0) {
             toast.error('No data available to export');
             return;
         }
@@ -121,7 +122,8 @@ export default function ClassTeacherReportPage(props: {
     };
 
     const handlePrint = () => {
-        if (!response?.data?.searchstudentDetails || response.data.searchstudentDetails.length === 0) {
+        const studentDetails = (response?.data as any)?.searchstudentDetails;
+        if (!studentDetails || studentDetails.length === 0) {
             toast.error('No data available to print');
             return;
         }
@@ -254,54 +256,58 @@ export default function ClassTeacherReportPage(props: {
                                 Cancel
                             </Button>
 
-                            {showReport && response?.data?.searchstudentDetails && response.data.searchstudentDetails.length > 0 && (
-                                <>
-                                    <Button
-                                        variant='outline'
-                                        className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                        onClick={handleExportExcel}
-                                        disabled={selectedStudents.length === 0}>
-                                        <FileSpreadsheet className='mr-2 h-4 w-4' />
-                                        Export to Excel
-                                    </Button>
-                                    <Button
-                                        variant='outline'
-                                        className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                        onClick={handlePrint}
-                                        disabled={selectedStudents.length === 0}>
-                                        <Printer className='mr-2 h-4 w-4' />
-                                        Print
-                                    </Button>
-                                </>
-                            )}
+                            {showReport &&
+                                (response?.data as any)?.searchstudentDetails &&
+                                (response?.data as any)?.searchstudentDetails.length > 0 && (
+                                    <>
+                                        <Button
+                                            variant='outline'
+                                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                            onClick={handleExportExcel}
+                                            disabled={selectedStudents.length === 0}>
+                                            <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                            Export to Excel
+                                        </Button>
+                                        <Button
+                                            variant='outline'
+                                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                            onClick={handlePrint}
+                                            disabled={selectedStudents.length === 0}>
+                                            <Printer className='mr-2 h-4 w-4' />
+                                            Print
+                                        </Button>
+                                    </>
+                                )}
                         </div>
                     </div>
                 </CollapsibleSection>
 
-                {showReport && response?.data?.searchstudentDetails && response.data.searchstudentDetails.length > 0 && (
-                    <div id='printable-report'>
-                        <CollapsibleSection
-                            title='Class Teacher Report Results'
-                            defaultOpen={true}
-                            variant='outline'
-                            size='md'
-                            className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <GenericDataTable<IClassTeacherReportList>
-                                {...tableProps}
-                                ref={tableRef}
-                                columns={columns}
-                                isLoading={isLoading}
-                                error={error}
-                                showViewOptions={false}
-                                loadingMessage='Loading class teacher reports...'
-                                noDataTitle='No Data Found'
-                                noDataDescription='No class teacher reports found.'
-                                errorTitle='Error Loading Class Teacher Reports'
-                                onRowSelectionChange={handleSelectStudent}
-                            />
-                        </CollapsibleSection>
-                    </div>
-                )}
+                {showReport &&
+                    (response?.data as any)?.searchstudentDetails &&
+                    (response?.data as any)?.searchstudentDetails.length > 0 && (
+                        <div id='printable-report'>
+                            <CollapsibleSection
+                                title='Class Teacher Report Results'
+                                defaultOpen={true}
+                                variant='outline'
+                                size='md'
+                                className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                                <GenericDataTable<IClassTeacherReportList>
+                                    {...tableProps}
+                                    ref={tableRef}
+                                    columns={columns}
+                                    isLoading={isLoading}
+                                    error={error}
+                                    showViewOptions={false}
+                                    loadingMessage='Loading class teacher reports...'
+                                    noDataTitle='No Data Found'
+                                    noDataDescription='No class teacher reports found.'
+                                    errorTitle='Error Loading Class Teacher Reports'
+                                    onRowSelectionChange={handleSelectStudent}
+                                />
+                            </CollapsibleSection>
+                        </div>
+                    )}
             </div>
         </div>
     );

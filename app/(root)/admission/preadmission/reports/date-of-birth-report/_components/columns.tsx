@@ -2,10 +2,10 @@
 
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { IPreadmissionApplicationList } from '@/types/admission/preadmission/transactions';
+import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
 import type { ColumnDef } from '@tanstack/react-table';
 
-export const birthCertificateColumns: ColumnDef<IPreadmissionApplicationList>[] = [
+export const birthCertificateColumns: ColumnDef<IStudentYearlyAttendenceReportList>[] = [
     {
         id: 'select',
         header: ({ table }) => (
