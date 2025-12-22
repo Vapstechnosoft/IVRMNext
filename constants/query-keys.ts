@@ -38,7 +38,25 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_YEAR_LOSS_SECTION: 'master_year_loss_section',
     MASTER_CHANGE_CLASS_STUDENTS: 'master_change_class_students',
     MASTER_CHANGE_CLASS_STUDENT_DETAILS: 'master_change_class_student_details',
-    ACTIVE_DEACTIVE_STUDENTS: 'active_deactive_students'
+    ACTIVE_DEACTIVE_STUDENTS: 'active_deactive_students',
+    STUDENT_SEARCH: 'student_search',
+    STUDENT_TC_REPORT: 'student_tc_report',
+    MONTH_END_REPORT: 'month_end_report',
+    PRE_ADMISSION_MONTH_END_REPORT: 'pre_admission_month_end_report',
+    PRE_ADMISSION_REGISTRATION_REPORT: 'pre_admission_registration_report',
+    ADMISSION_STUDENT_LISTS: 'admission_student_lists',
+    ADMISSION_CLASS_TEACHER_REPORT: 'admission_class_teacher_report',
+    TOTAL_STRENGTH_REPORT: 'total_strength_report',
+    STUDY_CERTIFICATE_REPORT: 'study_certificate_report',
+    ADMISSION_REGISTER: 'admission_register',
+    ADMISSION_STUDENTS_DROPDOWN: 'admission_students_dropdown',
+    ADMISSION_SECTION_DROPDOWN: 'admission_section_dropdown',
+    ADMISSION_CLASS_DROPDOWN1: 'admission_class_dropdown1',
+    CONCESSION_DROPDOWN_DATA: 'concession_dropdown_data',
+    CLASS_WISE_STUDENT_REPORT: 'class_wise_student_report',
+    ATTENDANCE_ABSENT_REPORT: 'attendance_absent_report',
+    ATTENDANCE_REPORT: 'attendance_report',
+    STUDENT_ATTENDANCE_REPORT: 'student_attendance_report'
 };
 
 export const PREADMISSION_QUERY_KEYS = {

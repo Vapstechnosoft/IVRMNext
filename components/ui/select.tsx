@@ -15,7 +15,7 @@ const SelectSearchContext = React.createContext<{
 }>({
     searchable: true,
     searchQuery: '',
-    setSearchQuery: () => { },
+    setSearchQuery: () => {},
     filteredItems: new Set(),
     isMobile: false
 });
@@ -106,6 +106,11 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
         setFilteredItems(filtered);
     }, [children, searchable, searchQuery, collectItemValues]);
 
+    // Normalize common "empty" values to undefined so Radix shows placeholder.
+    // Treat empty string, null, and numeric/string zero as empty (many forms use 0 as 'no selection').
+    const { value, ...restProps } = props as any;
+    const normalizedValue = value === '' || value === null || value === 0 || value === '0' ? undefined : value;
+
     return (
         <SelectSearchContext.Provider
             value={{
@@ -115,7 +120,7 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
                 filteredItems,
                 isMobile
             }}>
-            <SelectPrimitive.Root {...props} onOpenChange={handleOpenChange}>
+            <SelectPrimitive.Root value={normalizedValue} {...restProps} onOpenChange={handleOpenChange}>
                 {children}
             </SelectPrimitive.Root>
         </SelectSearchContext.Provider>
@@ -150,7 +155,10 @@ const SelectScrollUpButton = React.forwardRef<
     React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
     React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
 >(({ className, ...props }, ref) => (
-    <SelectPrimitive.ScrollUpButton ref={ref} className={cn('flex cursor-default items-center justify-center py-1', className)} {...props}>
+    <SelectPrimitive.ScrollUpButton
+        ref={ref}
+        className={cn('absolute top-0 right-0 left-0 z-10 flex cursor-default items-center justify-center py-1', className)}
+        {...props}>
         <ChevronUpIcon className='h-4 w-4' />
     </SelectPrimitive.ScrollUpButton>
 ));
@@ -162,7 +170,7 @@ const SelectScrollDownButton = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <SelectPrimitive.ScrollDownButton
         ref={ref}
-        className={cn('flex cursor-default items-center justify-center py-1', className)}
+        className={cn('absolute right-0 bottom-0 left-0 z-10 flex cursor-default items-center justify-center py-1', className)}
         {...props}>
         <ChevronDownIcon className='h-4 w-4' />
     </SelectPrimitive.ScrollDownButton>
@@ -266,7 +274,7 @@ const SelectContent = React.forwardRef<
                 className={cn(
                     'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 max-h-56 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=closed]:animate-out data-[state=open]:animate-in',
                     position === 'popper' &&
-                    'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
+                        'data-[side=left]:-translate-x-1 data-[side=top]:-translate-y-1 data-[side=right]:translate-x-1 data-[side=bottom]:translate-y-1',
                     className
                 )}
                 position={position}

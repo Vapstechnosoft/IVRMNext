@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
-import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
+import { useTotalStrengthReport } from '@/hooks/admission/preadmission/useReports';
+import { usePreadmissionClassDropdown1, useadmissionSectionDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 import { TotalStrengthSchema } from '@/schemas/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,38 +20,53 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof TotalStrengthSchema>;
 
-const CLASS_OPTIONS = [
-    'Nursery',
-    'LKG',
-    'UKG',
-    'I Std',
-    'II Std',
-    'III Std',
-    'IV Std',
-    'V Std',
-    'VI Std',
-    'VII Std',
-    'VIII Std',
-    'IX Std',
-    'X Std'
-];
-
-const SECTION_OPTIONS = ['A', 'B', 'C', 'D', 'E'];
-
-interface ClassSectionData {
-    class: string;
-    section: string;
-    total: number;
-    newAdmission: number;
+interface ElectiveItem {
+    ismS_Id: number;
+    ismS_SubjectName: string;
 }
 
 export default function TotalStrengthPage() {
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const [showReport, setShowReport] = useState(false);
-    const [searchParams, setSearchParams] = useState<any>(null);
     const [selectAll, setSelectAll] = useState(false);
+    const [classId, setClassId] = useState<number>(0);
+    const [reportParams, setReportParams] = useState<{
+        asmay_Id: number;
+        asmcL_Id: number;
+        amC_Id: number;
+        statusFlag: string;
+        amsT_SOL: string;
+        withtc: string;
+        withdeactive: string;
+        electivearray: ElectiveItem[];
+    } | null>(null);
 
-    const { data: response, isLoading, error } = useStudentCountReport(searchParams);
+    const {
+        data: preadmissionClass,
+        isLoading: preadmissionClassLoading,
+        isError: preadmissionClassError
+    } = usePreadmissionClassDropdown1();
+
+    const {
+        data: admissionSection,
+        isLoading: admissionSectionLoading,
+        isError: admissionSectionError
+    } = useadmissionSectionDropdown(classId);
+
+    const {
+        data: response,
+        isLoading,
+        error
+    } = useTotalStrengthReport(
+        reportParams?.asmay_Id || 0,
+        reportParams?.asmcL_Id || 0,
+        reportParams?.amC_Id || 0,
+        reportParams?.statusFlag || '',
+        reportParams?.amsT_SOL || '',
+        reportParams?.withtc || '',
+        reportParams?.withdeactive || '',
+        reportParams?.electivearray || []
+    );
 
     const {
         control,
@@ -85,15 +101,32 @@ export default function TotalStrengthPage() {
         const isValid = await trigger();
         if (isValid) {
             const formData = watch();
-            setSearchParams({
-                reportType: formData.reportType,
-                asmaY_Id: formData.academicYear,
-                status: formData.status,
-                withTc: formData.withTc,
-                withDeactive: formData.withDeactive,
-                class: formData.class,
-                section: formData.section
+
+            const statusFlag = formData.reportType === 'All' ? 'all' : 'indi';
+
+            let amsT_SOL = 'S';
+            if (formData.status === 'Left') {
+                amsT_SOL = 'S';
+            } else if (formData.status === 'Deactive') {
+                amsT_SOL = 'S';
+            }
+
+            const withtc = formData.withTc ? 'N' : 'N';
+            const withdeactive = formData.withDeactive ? 'N' : 'N';
+
+            const electivearray: ElectiveItem[] = selectAll ? [{ ismS_Id: 0, ismS_SubjectName: '0' }] : [];
+
+            setReportParams({
+                asmay_Id: formData.academicYear,
+                asmcL_Id: formData.class ? Number(formData.class) : 0,
+                amC_Id: formData.section ? Number(formData.section) : 0,
+                statusFlag,
+                amsT_SOL,
+                withtc,
+                withdeactive,
+                electivearray
             });
+
             setShowReport(true);
         }
     };
@@ -110,45 +143,32 @@ export default function TotalStrengthPage() {
         });
         setSelectAll(false);
         setShowReport(false);
-        setSearchParams(null);
+        setClassId(0);
+        setReportParams(null);
     };
 
-    // Generate mock data grouped by class
-    const generateClassData = (): Record<string, ClassSectionData[]> => {
-        const classData: Record<string, ClassSectionData[]> = {};
+    const groupedData = () => {
+        if (!response?.data || !Array.isArray((response.data as any).studentlist)) return {};
 
-        CLASS_OPTIONS.forEach((className) => {
-            classData[className] = SECTION_OPTIONS.map((section) => ({
-                class: className,
-                section,
-                total: Math.floor(Math.random() * 40) + 20,
-                newAdmission: Math.floor(Math.random() * 10) + 1
-            }));
+        const grouped: Record<number, any[]> = {};
+        ((response.data as any).studentlist as any[]).forEach((item: any) => {
+            const rowNum = item.RowNumber || item.rowNumber || 0;
+            if (!grouped[rowNum]) {
+                grouped[rowNum] = [];
+            }
+            grouped[rowNum].push(item);
         });
-
-        return classData;
+        return grouped;
     };
 
-    const classData = generateClassData();
-
-    const calculateClassTotal = (className: string) => {
-        return classData[className].reduce((sum, item) => sum + item.total, 0);
-    };
-
-    const calculateClassNewAdmissions = (className: string) => {
-        return classData[className].reduce((sum, item) => sum + item.newAdmission, 0);
+    const calculateClassTotal = (rowNumber: number) => {
+        const items = groupedData()[rowNumber] || [];
+        return items.reduce((sum, item) => sum + (item.totalstudents || 0), 0);
     };
 
     const calculateGrandTotal = () => {
-        return Object.values(classData)
-            .flat()
-            .reduce((sum, item) => sum + item.total, 0);
-    };
-
-    const calculateGrandNewAdmissions = () => {
-        return Object.values(classData)
-            .flat()
-            .reduce((sum, item) => sum + item.newAdmission, 0);
+        if (!response?.data || !Array.isArray((response.data as any).studentlist)) return 0;
+        return ((response.data as any).studentlist as any[]).reduce((sum: number, item: any) => sum + (item.totalstudents || 0), 0);
     };
 
     return (
@@ -171,7 +191,14 @@ export default function TotalStrengthPage() {
                                             render={({ field }) => (
                                                 <RadioGroup
                                                     value={field.value}
-                                                    onValueChange={field.onChange}
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        if (value === 'All') {
+                                                            setValue('class', '');
+                                                            setValue('section', '');
+                                                            setClassId(0);
+                                                        }
+                                                    }}
                                                     className='flex items-center justify-center space-x-6'>
                                                     <div className='flex items-center space-x-2'>
                                                         <RadioGroupItem value='All' id='all-type' />
@@ -223,7 +250,6 @@ export default function TotalStrengthPage() {
                                         {errors.status && <FormError>{errors.status.message}</FormError>}
                                     </div>
 
-                                    {/* Row 3: Checkboxes */}
                                     {showCheckboxes && (
                                         <div className='space-y-2'>
                                             <div className='flex items-center justify-center space-x-6'>
@@ -315,7 +341,6 @@ export default function TotalStrengthPage() {
                                         </div>
                                     </div>
 
-                                    {/* Class and Section (only show when Individual is selected) */}
                                     {reportType === 'Individual' && (
                                         <>
                                             <div className='space-y-2'>
@@ -326,16 +351,32 @@ export default function TotalStrengthPage() {
                                                     name='class'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <Select value={field.value} onValueChange={field.onChange}>
+                                                        <Select
+                                                            value={field.value}
+                                                            onValueChange={(value) => {
+                                                                field.onChange(value);
+                                                                setClassId(Number(value));
+                                                                setValue('section', '');
+                                                            }}>
                                                             <SelectTrigger className='w-full'>
                                                                 <SelectValue placeholder='Select Class' />
                                                             </SelectTrigger>
                                                             <SelectContent className='max-h-60'>
-                                                                {CLASS_OPTIONS.map((cls) => (
-                                                                    <SelectItem key={cls} value={cls}>
-                                                                        {cls}
+                                                                {preadmissionClassLoading ? (
+                                                                    <SelectItem value='loading' disabled>
+                                                                        Loading...
                                                                     </SelectItem>
-                                                                ))}
+                                                                ) : preadmissionClassError ? (
+                                                                    <SelectItem value='error' disabled>
+                                                                        Error loading
+                                                                    </SelectItem>
+                                                                ) : (
+                                                                    preadmissionClass?.data?.map((item) => (
+                                                                        <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
+                                                                            {item.asmcL_ClassName}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                     )}
@@ -351,16 +392,26 @@ export default function TotalStrengthPage() {
                                                     name='section'
                                                     control={control}
                                                     render={({ field }) => (
-                                                        <Select value={field.value} onValueChange={field.onChange}>
+                                                        <Select value={field.value} onValueChange={field.onChange} disabled={!classId}>
                                                             <SelectTrigger className='w-full'>
                                                                 <SelectValue placeholder='Select Section' />
                                                             </SelectTrigger>
                                                             <SelectContent className='max-h-60'>
-                                                                {SECTION_OPTIONS.map((sec) => (
-                                                                    <SelectItem key={sec} value={sec}>
-                                                                        {sec}
+                                                                {admissionSectionLoading ? (
+                                                                    <SelectItem value='loading' disabled>
+                                                                        Loading...
                                                                     </SelectItem>
-                                                                ))}
+                                                                ) : admissionSectionError ? (
+                                                                    <SelectItem value='error' disabled>
+                                                                        Error loading
+                                                                    </SelectItem>
+                                                                ) : (
+                                                                    admissionSection?.data?.map((item: any) => (
+                                                                        <SelectItem key={item.asmS_Id} value={item.asmS_Id.toString()}>
+                                                                            {item.asmC_SectionName}
+                                                                        </SelectItem>
+                                                                    ))
+                                                                )}
                                                             </SelectContent>
                                                         </Select>
                                                     )}
@@ -372,7 +423,6 @@ export default function TotalStrengthPage() {
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
                             <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                                 <Button
                                     type='button'
@@ -385,9 +435,10 @@ export default function TotalStrengthPage() {
                                 <Button
                                     type='button'
                                     onClick={handleReport}
-                                    className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'>
+                                    className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
+                                    disabled={isLoading}>
                                     <FileText className='mr-2 h-4 w-4' />
-                                    Report
+                                    {isLoading ? 'Loading...' : 'Report'}
                                 </Button>
                                 <div className='flex gap-3'>
                                     <Button variant='outline' className='w-fit'>
@@ -408,64 +459,77 @@ export default function TotalStrengthPage() {
                             defaultOpen={true}
                             variant='default'
                             size='lg'
-                            title='Student Count Report'
+                            title='Total Strength Report'
                             className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                             <div className='space-y-4 p-4'>
-                                <div className='overflow-x-auto'>
-                                    <table className='w-full border-collapse border border-gray-300'>
-                                        <thead>
-                                            <tr className='bg-gray-100'>
-                                                <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Sl.No</th>
-                                                <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Class</th>
-                                                <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Section</th>
-                                                <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>Total</th>
-                                                <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>New Admission</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {CLASS_OPTIONS.map((className, classIndex) => (
-                                                <>
-                                                    {classData[className].map((item, sectionIndex) => (
-                                                        <tr key={`${className}-${item.section}`} className='hover:bg-gray-50'>
-                                                            <td className='border border-gray-300 px-4 py-2'>
-                                                                {sectionIndex === 0 ? classIndex + 1 : ''}
-                                                            </td>
-                                                            <td className='border border-gray-300 px-4 py-2'>
-                                                                {sectionIndex === 0 ? className : ''}
-                                                            </td>
-                                                            <td className='border border-gray-300 px-4 py-2'>{item.section}</td>
-                                                            <td className='border border-gray-300 px-4 py-2 text-right'>{item.total}</td>
-                                                            <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                                {item.newAdmission}
-                                                            </td>
-                                                        </tr>
+                                {isLoading ? (
+                                    <div className='flex items-center justify-center py-8'>
+                                        <p className='text-gray-500'>Loading report data...</p>
+                                    </div>
+                                ) : error ? (
+                                    <div className='flex items-center justify-center py-8'>
+                                        <p className='text-red-500'>Error loading report data</p>
+                                    </div>
+                                ) : (
+                                    <div className='overflow-x-auto'>
+                                        <table className='w-full border-collapse border border-gray-300'>
+                                            <thead>
+                                                <tr className='bg-gray-100'>
+                                                    <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Sl.No</th>
+                                                    <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Class</th>
+                                                    <th className='border border-gray-300 px-4 py-2 text-left font-semibold'>Section</th>
+                                                    <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>Total</th>
+                                                    <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
+                                                        New Admission
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {Object.entries(groupedData())
+                                                    .sort(([a], [b]) => Number(a) - Number(b))
+                                                    .map(([rowNumber, sections], index) => (
+                                                        <>
+                                                            {sections.map((item: any, sectionIndex) => (
+                                                                <tr
+                                                                    key={`${rowNumber}-${item.sectionname}-${sectionIndex}`}
+                                                                    className='hover:bg-gray-50'>
+                                                                    <td className='border border-gray-300 px-4 py-2'>
+                                                                        {sectionIndex === 0 ? index + 1 : ''}
+                                                                    </td>
+                                                                    <td className='border border-gray-300 px-4 py-2'>
+                                                                        {sectionIndex === 0 ? item.classname : ''}
+                                                                    </td>
+                                                                    <td className='border border-gray-300 px-4 py-2'>{item.sectionname}</td>
+                                                                    <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                        {item.totalstudents}
+                                                                    </td>
+                                                                    <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                        {item.newAdmission || ''}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                            <tr key={`total-${rowNumber}`} className='bg-white font-semibold'>
+                                                                <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
+                                                                    Total {sections[0]?.classname}
+                                                                </td>
+                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                    {calculateClassTotal(Number(rowNumber))}
+                                                                </td>
+                                                                <td className='border border-gray-300 px-4 py-2 text-right' />
+                                                            </tr>
+                                                        </>
                                                     ))}
-                                                    {/* biome-ignore lint/correctness/useJsxKeyInIterable: <explanation> */}
-                                                    <tr className='bg-blue-50 font-semibold'>
-                                                        <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
-                                                            Total {className}
-                                                        </td>
-                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                            {calculateClassTotal(className)}
-                                                        </td>
-                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                            {calculateClassNewAdmissions(className)}
-                                                        </td>
-                                                    </tr>
-                                                </>
-                                            ))}
-                                            <tr className='bg-green-100 font-bold'>
-                                                <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
-                                                    Grand Total
-                                                </td>
-                                                <td className='border border-gray-300 px-4 py-2 text-right'>{calculateGrandTotal()}</td>
-                                                <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                    {calculateGrandNewAdmissions()}
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                <tr className='bg-green-100 font-bold'>
+                                                    <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
+                                                        Grand Total
+                                                    </td>
+                                                    <td className='border border-gray-300 px-4 py-2 text-right'>{calculateGrandTotal()}</td>
+                                                    <td className='border border-gray-300 px-4 py-2 text-right' />
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                         </CollapsibleSection>
                     )}

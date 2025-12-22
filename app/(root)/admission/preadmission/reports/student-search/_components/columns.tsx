@@ -6,7 +6,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 
 export interface StudentData {
     amsT_RegistrationNo: string;
-    AMST_Id: number;
+    amsT_Id: number;
     amsT_FirstName: string;
     amsT_Date: string;
     amsT_DOB: string;
@@ -14,7 +14,7 @@ export interface StudentData {
     amsT_MotherName: string;
     amsT_FatherName: string;
     amsT_emailId: string;
-    amsT_MobileNo: number;
+    amsT_MobileNo: number | string;
     amsT_StuBankAccNo: string | null;
     amsT_AadharNo: string | null;
     amsT_AdmNo: string;
@@ -24,7 +24,7 @@ export interface StudentData {
     amsT_FatherBankAccNo: string | null;
     asmcL_ClassName: string;
     asmC_SectionName: string;
-    AMST_Photoname: string;
+    amsT_Photoname: string;
     addressd1: string;
 }
 
@@ -38,6 +38,7 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
                 aria-label='Select all'
             />
         ),
+
         cell: ({ row }) => (
             <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
@@ -46,7 +47,7 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
         size: 24
     },
     {
-        accessorKey: 'slNo',
+        accessorKey: 'amsT_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -58,10 +59,17 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
         enableHiding: false
     },
     {
-        accessorKey: 'AMST_Photoname',
+        accessorKey: 'amsT_Photoname',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Photo' />,
         cell: ({ row }) => (
-            <img src={row.getValue('AMST_Photoname')} alt={row.original.amsT_FirstName} className='h-12 w-12 rounded-full object-cover' />
+            <img
+                src={row.getValue('amsT_Photoname')}
+                alt={row.original.amsT_FirstName}
+                className='h-12 w-12 rounded-full object-cover'
+                onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150';
+                }}
+            />
         ),
         enableSorting: false,
         enableHiding: true
@@ -119,8 +127,8 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
         accessorKey: 'amsT_MobileNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile' />,
         cell: ({ row }) => {
-            const mobile: string | undefined = row.getValue('amsT_MobileNo');
-            return <div>{mobile || 'N/A'}</div>;
+            const mobile = row.getValue('amsT_MobileNo') as string | number | null | undefined;
+            return <div>{mobile ?? 'N/A'}</div>;
         },
         enableSorting: true,
         enableHiding: true
@@ -129,8 +137,29 @@ export const studentSearchColumns: ColumnDef<StudentData>[] = [
         accessorKey: 'amsT_emailId',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Email' />,
         cell: ({ row }) => {
-            const email: string | undefined = row.getValue('amsT_emailId');
-            return <div>{email || 'N/A'}</div>;
+            const email = row.getValue('amsT_emailId') as string | number | null | undefined;
+            return (
+                <div className='max-w-[200px] truncate' title={email as string}>
+                    {email || 'N/A'}
+                </div>
+            );
+        },
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'amsT_AdmNo',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Admission No' />,
+        cell: ({ row }) => <div>{row.getValue('amsT_AdmNo')}</div>,
+        enableSorting: true,
+        enableHiding: true
+    },
+    {
+        accessorKey: 'amsT_BloodGroup',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Blood Group' />,
+        cell: ({ row }) => {
+            const bloodGroup = row.getValue('amsT_BloodGroup') as string | number | null | undefined;
+            return <div>{bloodGroup || 'N/A'}</div>;
         },
         enableSorting: true,
         enableHiding: true

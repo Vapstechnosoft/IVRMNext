@@ -20,3 +20,48 @@ export interface IParentsDashboardStudentResponse {
     admission_status: string;
     student_photo: string;
 }
+
+export interface IClassTeacherReportList {
+    ASMCL_ClassName: string;
+    ASMC_SectionName: string;
+    IVRMSTAUL_UserName: string;
+    PAMS_SubjectName: string;
+}
+
+export interface IStudentYearlyAttendenceReportList {
+    RowNo: number;
+    AMST_Id: number;
+    name: string;
+    AMST_AdmNo: string;
+    AMST_RegistrationNo: string;
+    AMAY_RollNo: number;
+    monthlyAttendance: {
+        [key: string]: number;
+    };
+    totalPresent: number;
+    percentage: string;
+}
+export interface IRigistrationReportList {
+    rowNumber: number;
+    user_Name: string;
+    email_Id: string;
+    mob_No: string;
+    name: string;
+    created_Date: string;
+}
+export type Student = {
+    studentnam: string;
+    AMST_Id: number;
+    admno: string;
+    fathername: string;
+    class: string;
+    acadamicyear: string;
+    dob: string;
+    caste_name: string;
+    addressd1: string;
+    city: string;
+};
+
+export type StudyCertificateResponse = {
+    studentList: Student[];
+};

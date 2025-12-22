@@ -276,3 +276,7 @@ export interface StudentData {
     reason: string;
     remark: string;
 }
+export interface IConcessionDropDown {
+    fmcC_Id: number;
+    fmcC_ConcessionName: string;
+}
