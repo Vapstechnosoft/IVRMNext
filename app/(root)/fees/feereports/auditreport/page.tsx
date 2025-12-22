@@ -7,6 +7,7 @@ import { useFeeCustomGroupDefaulterreport } from '@/hooks/fees/useReports';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FormError } from '@/components/ui/extension/field';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { feeAuditSchema } from '@/schemas/fees/reports';
@@ -391,89 +392,97 @@ export default function FeeDefaulterReport() {
                                     {/* ==================== REPORT SECTION ==================== */}
 
                                     {showReport && (
-                                        <div className='mt-10 rounded-lg border bg-white shadow-xl'>
-                                            {/* Header */}
-                                            <div className='flex items-center justify-between border-b bg-blue-50 px-6 py-4'>
-                                                <h2 className='font-bold text-blue-700 text-xl'>Fee Audit Report</h2>
+                                        <CollapsibleSection defaultOpen={true}>
+                                            <div className='mt-10 rounded-lg border bg-white shadow-xl'>
+                                                {/* Header */}
+                                                <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                    {/* <h2 className='font-bold text-blue-700 text-xl'>Fee Audit Report</h2> */}
+                                                    <div className='mb-6 text-center'>
+                                                        <h2 className='font-bold text-2xl text-primary'>Fee Audit Report</h2>
+                                                        {/* <div className="mt-1 text-sm text-gray-600">
+                From {formatDate(fromDate)} To {formatDate(toDate)}
+            </div> */}
+                                                    </div>
+                                                    <div className='flex gap-3'>
+                                                        <div className='mb-4 flex justify-end gap-2'>
+                                                            <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
+                                                                Export Excel
+                                                            </Button>
 
-                                                <div className='flex gap-3'>
-                                                    <div className='mb-4 flex justify-end gap-2'>
-                                                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
-                                                            Export Excel
-                                                        </Button>
-
-                                                        <Button
-                                                            size='sm'
-                                                            variant='outline'
-                                                            className='h-8 w-auto px-3 text-xs'
-                                                            onClick={handlePrint}>
-                                                            Print
-                                                        </Button>
+                                                            <Button
+                                                                size='sm'
+                                                                variant='outline'
+                                                                className='h-8 w-auto px-3 text-xs'
+                                                                onClick={handlePrint}>
+                                                                Print
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            {/* TABLE */}
-                                            <div className='overflow-x-auto'>
-                                                <table className='w-full border-collapse text-sm'>
-                                                    <thead className='bg-blue-700 text-white'>
-                                                        <tr>
-                                                            <th className='border px-2 py-2 text-center'>
-                                                                <input
-                                                                    type='checkbox'
-                                                                    checked={
-                                                                        selectedIds.length === reportData.length && reportData.length > 0
-                                                                    }
-                                                                    onChange={toggleAll}
-                                                                />
-                                                            </th>
-                                                            <th className='border px-2 py-2'>Sl No</th>
-                                                            <th className='border px-2 py-2'>Student Name</th>
-                                                            <th className='border px-2 py-2'>Mobile No</th>
-                                                            <th className='border px-2 py-2'>Class/Section Name</th>
-                                                            <th className='border px-2 py-2'>Receipt Date</th>
-                                                            <th className='border px-2 py-2'>Receipt No</th>
-                                                            <th className='border px-2 py-2'>Payment Mode</th>
-                                                            <th className='border px-2 py-2'>DD/Cheque No</th>
-                                                            <th className='border px-2 py-2 text-right'>Tuition Fee</th>
-                                                        </tr>
-                                                    </thead>
-
-                                                    <tbody>
-                                                        {reportData.map((row, index) => (
-                                                            <tr
-                                                                key={row.id}
-                                                                className={
-                                                                    selectedIds.includes(row.id)
-                                                                        ? 'bg-blue-100'
-                                                                        : index % 2 === 0
-                                                                          ? 'bg-white'
-                                                                          : 'bg-gray-50'
-                                                                }>
-                                                                <td className='border px-2 py-2 text-center'>
+                                                {/* TABLE */}
+                                                <div className='overflow-x-auto'>
+                                                    <table className='w-full border-collapse text-sm'>
+                                                        <thead className='bg-gray-200'>
+                                                            <tr>
+                                                                <th className='border px-2 py-2 text-center'>
                                                                     <input
                                                                         type='checkbox'
-                                                                        checked={selectedIds.includes(row.id)}
-                                                                        onChange={() => toggleRow(row.id)}
+                                                                        checked={
+                                                                            selectedIds.length === reportData.length &&
+                                                                            reportData.length > 0
+                                                                        }
+                                                                        onChange={toggleAll}
                                                                     />
-                                                                </td>
-                                                                <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                                <td className='border px-2 py-2 font-semibold'>{row.studentName}</td>
-                                                                <td className='border px-2 py-2 text-center'>{row.mobileNo}</td>
-                                                                <td className='border px-2 py-2 text-center'>{row.classSection}</td>
-                                                                <td className='border px-2 py-2 text-center'>{row.receiptDate}</td>
-                                                                <td className='border px-2 py-2 text-center'>{row.receiptNo}</td>
-                                                                <td className='border px-2 py-2 text-center'>{row.paymentMode}</td>
-                                                                <td className='border px-2 py-2 text-center'>{row.chequeNo || '-'}</td>
-                                                                <td className='border px-2 py-2 text-right font-semibold'>
-                                                                    {row.tuitionFee.toLocaleString()}
-                                                                </td>
+                                                                </th>
+                                                                <th className='border px-2 py-2'>Sl No</th>
+                                                                <th className='border px-2 py-2'>Student Name</th>
+                                                                <th className='border px-2 py-2'>Mobile No</th>
+                                                                <th className='border px-2 py-2'>Class/Section Name</th>
+                                                                <th className='border px-2 py-2'>Receipt Date</th>
+                                                                <th className='border px-2 py-2'>Receipt No</th>
+                                                                <th className='border px-2 py-2'>Payment Mode</th>
+                                                                <th className='border px-2 py-2'>DD/Cheque No</th>
+                                                                <th className='border px-2 py-2 text-right'>Tuition Fee</th>
                                                             </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
+                                                        </thead>
+
+                                                        <tbody>
+                                                            {reportData.map((row, index) => (
+                                                                <tr
+                                                                    key={row.id}
+                                                                    className={
+                                                                        selectedIds.includes(row.id)
+                                                                            ? 'bg-blue-100'
+                                                                            : index % 2 === 0
+                                                                              ? 'bg-white'
+                                                                              : 'bg-gray-50'
+                                                                    }>
+                                                                    <td className='border px-2 py-2 text-center'>
+                                                                        <input
+                                                                            type='checkbox'
+                                                                            checked={selectedIds.includes(row.id)}
+                                                                            onChange={() => toggleRow(row.id)}
+                                                                        />
+                                                                    </td>
+                                                                    <td className='border px-2 py-2 text-center'>{index + 1}</td>
+                                                                    <td className='border px-2 py-2 font-semibold'>{row.studentName}</td>
+                                                                    <td className='border px-2 py-2 text-center'>{row.mobileNo}</td>
+                                                                    <td className='border px-2 py-2 text-center'>{row.classSection}</td>
+                                                                    <td className='border px-2 py-2 text-center'>{row.receiptDate}</td>
+                                                                    <td className='border px-2 py-2 text-center'>{row.receiptNo}</td>
+                                                                    <td className='border px-2 py-2 text-center'>{row.paymentMode}</td>
+                                                                    <td className='border px-2 py-2 text-center'>{row.chequeNo || '-'}</td>
+                                                                    <td className='border px-2 py-2 text-right font-semibold'>
+                                                                        {row.tuitionFee.toLocaleString()}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </CollapsibleSection>
                                     )}
                                 </div>
                             </div>

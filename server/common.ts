@@ -780,6 +780,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feemonthendreport',
                                             title: 'Fee Month End Report',
                                             description: 'Manage Fee Month End Report Details'
+                                        },
+                                        {
+                                            id: 10019,
+                                            name: 'Fee Class Category Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/classcategoryreport',
+                                            title: 'Fee Class Category Report',
+                                            description: 'Manage Fee Class Category Report Details'
                                         }
                                     ]
                                 }

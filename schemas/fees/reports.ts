@@ -29,7 +29,7 @@ export const dailyFeeCollectionSchema = z.object({
     enableAllClasses: z.boolean().default(false),
     asmcL_Id: z.number().optional(),
 
-    Fmc_allorsudentorother: z.enum(['All', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode']).default('All'),
+    Fmc_allorsudentorother: z.enum(['all', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode']).default('all'),
 
     Fmc_allorcorddorop: z.enum(['All', 'C', 'B', 'O', 'Ecs', 'S', 'R', 'BT', 'U']).default('All'),
 
@@ -55,3 +55,87 @@ export const feeMonthEndReportsSchema = z.object({
     iename: createStringOnlyOptionalSchema('IE Name', 1, 50),
     from_Month: z.string().min(1, 'Please select from month')
 });
+
+export const feeDefaulterReportSchema = z
+    .object({
+        userType: z.enum(['Students', 'Staff', 'Others']).default('Students'),
+
+        viewMode: z.enum(['Yearly Wise', 'Date Wise']).default('Yearly Wise'),
+
+        breakdown: z
+            .enum([
+                'FGW', // Fee Group Wise
+                'FHW', // Fee Head Wise
+                'FCW', // Class Wise
+                'FIW', // Installment Wise
+                'FSW', // Student/Staff Wise
+                'FPW' // Parent Wise
+            ])
+            .default('FGW'),
+
+        academicYearId: z.number({ message: 'Academic Year is required' }),
+
+        includeClassSection: z.boolean().optional(),
+
+        classId: z.number().optional(),
+
+        sectionId: z.number().optional(),
+
+        customGroupIds: z.array(z.number()).min(1, 'Please select at least one Custom Group'),
+
+        //feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
+        feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
+        termIds: z.array(z.number()).min(1, 'Please select at least one Term'),
+
+        busRouteIds: z.array(z.number()).optional(),
+
+        status: z.object({
+            active: z.boolean(),
+            deactive: z.boolean(),
+            left: z.boolean(),
+            balance: z.boolean()
+        }),
+
+        formatI: z.boolean(),
+
+        dueDate: z.date().optional(),
+
+        dueDateType: z.enum(['Due Date', 'Till Due Date']).optional(),
+
+        bulkDownload: z.boolean().optional()
+    })
+    .superRefine((data, ctx) => {
+        // If class-section is enabled, class & section are required
+        if (data.includeClassSection) {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    path: ['classId'],
+                    message: 'Class is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    path: ['sectionId'],
+                    message: 'Section is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        // Date validation when Date Wise is selected
+        if (data.viewMode === 'Date Wise' && !data.dueDate) {
+            ctx.addIssue({
+                path: ['dueDate'],
+                message: 'Due date is required for Date Wise report',
+                code: z.ZodIssueCode.custom
+            });
+        }
+    });
+
+export const feesClassCategoryReportSchema = {
+    addOrUpdate: z.object({
+        asmaY_Id: z.number({ required_error: 'Academic year is required' })
+    })
+};

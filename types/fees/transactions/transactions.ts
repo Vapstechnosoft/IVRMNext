@@ -666,6 +666,9 @@ export interface IFeeTDetails {
     fmG_Id: number;
     fsS_RunningExcessAmount: number;
     fsS_FineAmount: number;
+    portalusername: string;
+    ftP_Paid_Amt: number;
+    ftP_Concession_Amt: number;
 }
 
 export interface IFeeRefundableList {
@@ -922,4 +925,34 @@ export interface IFeeAdjustmentToHead {
     fsA_To_FMG_Id: number;
     fsA_To_FMA_Id: number;
     tobepaid: number;
+}
+
+export interface IFeeTermDetails {
+    fmA_Id: number;
+    fmH_FeeName: string;
+    fmH_Flag: string;
+    ftI_Name: string;
+    fmH_Id: number;
+    ftI_Id: number;
+    totalamount: number;
+    fsS_ToBePaid: number;
+    fsS_ConcessionAmount: number;
+    fsS_FineAmount: number;
+    fsS_CurrentYrCharges: number;
+    fsS_TotalToBePaid: number;
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fsS_OBArrearAmount: number;
+    fmT_Id: number;
+    fsS_RebateAmount: number;
+}
+export interface MasterNarration {
+    fmnaR_Id: number;
+    fmnaR_Narration: string;
+}
+export interface MasterModeofPayment {
+    ivrmmoD_Id: number;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: string;
+    ivrmmoD_ModeOfPayment_Code: string;
 }

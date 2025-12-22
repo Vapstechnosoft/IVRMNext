@@ -170,3 +170,50 @@ export interface IduedateReportData {
     FTFS_Amount: number;
     FTIDD_DueDate: string;
 }
+
+export interface FeeClassCategoryReportList {
+    fmG_Id: number;
+    fmG_GroupName: string;
+    fmH_RefundFlag: boolean;
+    fmH_PDAFlag: boolean;
+    fmH_SpecialFeeFlag: boolean;
+    fmH_Order: number;
+    fmH_FeeName: string;
+    fmH_Flag: string;
+    fmH_Id: number;
+    asmaY_Id: number;
+    fmI_Name: string;
+    fyghM_FineApplicableFlag: string;
+    fyghM_Common_AmountFlag: string;
+    ftI_Id: number;
+    ftI_Name: string;
+    fmI_Id: number;
+    ftidD_ApplicableDate: string;
+    ftidD_DueDate: string;
+    ftidD_FromDate: string;
+    ftidD_ToDate: string;
+    fmfS_Id: number;
+    fmfS_FineType: string;
+    fmfS_FromDay: number;
+    fmfS_ToDay: number;
+    fmfS_ECSFlag: string;
+    fmfS_ActiveFlag: boolean;
+    mI_Id: number;
+    fmcC_ClassCategoryName: string;
+    asmC_SectionName: string;
+    asmcL_Id: number;
+    asmS_Id: number;
+    asmcL_ClassName: string;
+    fmcC_Id: number;
+    normalizedUserName: string;
+    ivrmrT_Role: string;
+    user_Id: number;
+    fmT_Id: number;
+    fmT_Name: string;
+    fmA_Amount: number;
+    fmA_Id: number;
+    ftfS_Amount: number;
+    ftddE_Month: string;
+    fmgG_GroupName: string;
+    fmgG_Id: number;
+}

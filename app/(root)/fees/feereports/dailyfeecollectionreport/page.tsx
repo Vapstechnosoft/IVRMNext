@@ -16,6 +16,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 
 import { toast } from 'sonner';
 
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useClassDropdownDropdown } from '@/hooks/fees/useReports';
 import { dailyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getDailyFeeCollectionReport, getGroupsDropdown } from '@/server/fees/reports/daily_fee_collection_report';
@@ -58,7 +59,7 @@ export default function DailyFeeCollectionReportForm() {
             fromDate: today,
             toDate: today,
             enableAllClasses: false,
-            Fmc_allorsudentorother: 'All',
+            Fmc_allorsudentorother: 'all',
             Fmc_allorcorddorop: 'All'
         }
     });
@@ -394,8 +395,9 @@ export default function DailyFeeCollectionReportForm() {
                     Paymentwise: true
                 };
             } else if (
-                ((data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'All') &&
-                    data.Fmc_allorcorddorop === 'All') ||
+                // ((data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'all') &&
+                //     data.Fmc_allorcorddorop === 'All')
+                data.Fmc_allorsudentorother === 'multiplepaymentmode' &&
                 report === 'students'
             ) {
                 const allList = selectedGroupIds.map((id) => ({
@@ -408,6 +410,24 @@ export default function DailyFeeCollectionReportForm() {
                     regornamedetails: report,
                     allorstdorothersflag: Fmc_allorsudentorother,
                     All_List: allList
+                };
+            } else if (report === 'students' && data.Fmc_allorsudentorother !== 'multiplepaymentmode') {
+                const allList = selectedGroupIds.map((id) => ({
+                    columnID: String(id)
+                }));
+                payload = {
+                    AsmayId: asmaY_Id,
+                    FromDate: formatDate(fromDate),
+                    ToDate: formatDate(toDate),
+                    regornamedetails: report,
+                    allorstdorothersflag: Fmc_allorsudentorother,
+                    All_List: allList,
+                    ClassFlag: data.enableAllClasses ? '0' : '1',
+                    allorindivflag: data.rpttyp === 'All' ? 'all' : 'individual',
+                    allorcorchoronlineflag: Fmc_allorcorddorop,
+                    TempararyArrayListstring: 'all',
+                    Cheque: data.chequeDate ? '1' : '0',
+                    GroupFlag: selectedGroupIds.length > 0 ? '1' : '0'
                 };
             } else if (report === 'All' && data.Fmc_allorsudentorother !== 'multiplepaymentmode') {
                 const allList = selectedGroupIds.map((id) => ({
@@ -424,11 +444,12 @@ export default function DailyFeeCollectionReportForm() {
                     allorindivflag: data.rpttyp === 'All' ? 'all' : 'individual',
                     allorcorchoronlineflag: Fmc_allorcorddorop,
                     TempararyArrayListstring: 'all',
-                    Cheque: data.chequeDate ? '1' : '0'
+                    Cheque: data.chequeDate ? '1' : '0',
+                    GroupFlag: selectedGroupIds.length > 0 ? '1' : '0'
                 };
             }
 
-            console.log('payload', payload);
+            console.log('payload', JSON.stringify(payload));
             const response = await getDailyFeeCollectionReport(payload);
 
             console.log('response', response);
@@ -441,8 +462,6 @@ export default function DailyFeeCollectionReportForm() {
                 return;
             }
 
-            toast.success('Report Data Fetched Successfully');
-
             console.log('rawData', rawData);
 
             const currentReportType = rawData?.listName || '';
@@ -450,6 +469,8 @@ export default function DailyFeeCollectionReportForm() {
 
             if (currentReportType === 'Headwise') {
                 const list = Array.isArray(rawData?.list) ? rawData.list : [];
+
+                toast.success('Report Data Fetched Successfully');
 
                 console.log('list', list);
 
@@ -508,7 +529,7 @@ export default function DailyFeeCollectionReportForm() {
                 setTableSumRow(sumRow);
             } else if (currentReportType === 'Paymentwise') {
                 const list = Array.isArray(rawData?.list) ? rawData.list : [];
-
+                toast.success('Report Data Fetched Successfully');
                 // 🔹 Collect payment modes
                 const paymentModeSet = new Set<string>();
                 list.forEach((item: any) => {
@@ -581,7 +602,7 @@ export default function DailyFeeCollectionReportForm() {
                 setTableSumRow(sumRow);
             } else if (currentReportType === 'Student') {
                 const list = Array.isArray(rawData?.list) ? rawData.list : [];
-
+                toast.success('Report Data Fetched Successfully');
                 const rows = list.map((item: any, index: number) => ({
                     SLNO: index + 1,
                     StudentName: item.name ?? '',
@@ -883,11 +904,11 @@ export default function DailyFeeCollectionReportForm() {
                                 {/* <Label className='font-semibold'>Details For</Label> */}
 
                                 <div className='flex flex-wrap gap-4 text-sm'>
-                                    {['All', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode'].map((val) => (
+                                    {['all', 'stud', 'preadm', 'other', 'Trpt', 'thirdparty', 'multiplepaymentmode'].map((val) => (
                                         <Label key={val} className='flex items-center gap-2'>
                                             <input type='radio' value={val} {...register('Fmc_allorsudentorother')} />
                                             <span>
-                                                {val === 'All'
+                                                {val === 'all'
                                                     ? 'All'
                                                     : val === 'stud'
                                                       ? 'Student'
@@ -1058,18 +1079,19 @@ export default function DailyFeeCollectionReportForm() {
             <div className='my-6 border-gray-300 border-t' />
 
             {!loading && tableRows.length > 0 && (
-                <div className='mt-10'>
-                    {/* 🔹 REPORT HEADER */}
-                    <div className='mb-6 text-center'>
-                        <h2 className='font-bold text-lg uppercase tracking-wide'>Daily Fee Collection Report</h2>
-                        {/* <div className="mt-1 text-sm text-gray-600">
+                <CollapsibleSection defaultOpen={true}>
+                    <div className='mt-10'>
+                        {/* 🔹 REPORT HEADER */}
+                        <div className='mb-6 text-center'>
+                            <h2 className='font-bold text-lg uppercase tracking-wide'>Daily Fee Collection Report</h2>
+                            {/* <div className="mt-1 text-sm text-gray-600">
                 From {formatDate(fromDate)} To {formatDate(toDate)}
             </div> */}
-                    </div>
-                    <div className='my-6 border-gray-300 border-t' />
+                        </div>
+                        <div className='my-6 border-gray-300 border-t' />
 
-                    {/* 🔹 ACTION BUTTONS */}
-                    {/* <div className='mb-4 flex justify-end gap-2'>
+                        {/* 🔹 ACTION BUTTONS */}
+                        {/* <div className='mb-4 flex justify-end gap-2'>
                         <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
                             Export Excel
                         </Button>
@@ -1079,60 +1101,61 @@ export default function DailyFeeCollectionReportForm() {
                         </Button>
                     </div> */}
 
-                    <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
-                        {/* <div className="font-semibold text-lg text-primary">
+                        <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
+                            {/* <div className="font-semibold text-lg text-primary">
                                                             Report Actions
                                                         </div> */}
 
-                        <div className='flex gap-3'>
-                            <Button variant='outline' onClick={handlePrint}>
-                                🖨 Print
-                            </Button>
+                            <div className='flex gap-3'>
+                                <Button variant='outline' onClick={handlePrint}>
+                                    🖨 Print
+                                </Button>
 
-                            <Button variant='outline' onClick={handleExportExcel}>
-                                📊 Export Excel
-                            </Button>
+                                <Button variant='outline' onClick={handleExportExcel}>
+                                    📊 Export Excel
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* 🔹 TABLE */}
+                        <div className='overflow-auto rounded-md border'>
+                            <table className='w-full border-collapse text-sm'>
+                                <thead className='bg-gray-200'>
+                                    <tr>
+                                        {tableColumns.map((col) => (
+                                            <th key={col} className='border px-3 py-2 text-left'>
+                                                {col}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    {tableRows.map((row, rowIndex) => (
+                                        <tr key={rowIndex}>
+                                            {tableColumns.map((col) => (
+                                                <td key={col} className='border px-3 py-2 text-right'>
+                                                    {row[col]}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+
+                                    {/* 🔹 SUM ROW */}
+                                    {tableSumRow && (
+                                        <tr className='bg-gray-100 font-semibold'>
+                                            {tableColumns.map((col) => (
+                                                <td key={col} className='border px-3 py-2 text-right'>
+                                                    {col === 'SLNO' ? '' : col === 'Date' ? 'Total' : `Sum: ${tableSumRow[col] ?? 0}`}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-
-                    {/* 🔹 TABLE */}
-                    <div className='overflow-auto rounded-md border'>
-                        <table className='w-full border-collapse text-sm'>
-                            <thead className='bg-gray-200'>
-                                <tr>
-                                    {tableColumns.map((col) => (
-                                        <th key={col} className='border px-3 py-2 text-left'>
-                                            {col}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {tableRows.map((row, rowIndex) => (
-                                    <tr key={rowIndex}>
-                                        {tableColumns.map((col) => (
-                                            <td key={col} className='border px-3 py-2 text-right'>
-                                                {row[col]}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-
-                                {/* 🔹 SUM ROW */}
-                                {tableSumRow && (
-                                    <tr className='bg-gray-100 font-semibold'>
-                                        {tableColumns.map((col) => (
-                                            <td key={col} className='border px-3 py-2 text-right'>
-                                                {col === 'SLNO' ? '' : col === 'Date' ? 'Total' : `Sum: ${tableSumRow[col] ?? 0}`}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                </CollapsibleSection>
             )}
         </div>
     );

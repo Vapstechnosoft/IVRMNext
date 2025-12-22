@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import type { z } from 'zod';
 
 import { InputText } from '@/components/ui/extension/input-text';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { get_split_year } from '@/server/fees/masters/fee_terms_period';
 import { getAuditReport } from '@/server/fees/reports/auditreport';
@@ -317,7 +318,7 @@ export default function FeeDefaulterReport() {
                                 <div>
                                     {/* ==================== ACTION BUTTONS ==================== */}
                                     <div className='flex justify-end gap-4 border-t pt-8'>
-                                        <Button size='lg' variant='outline' className='px-8' onClick={() => window.location.reload()}>
+                                        <Button size='lg' variant='outline' className='px-12' onClick={() => window.location.reload()}>
                                             Cancel
                                         </Button>
                                         <Button type='submit' disabled={isSubmitting} className='px-12'>
@@ -343,12 +344,14 @@ export default function FeeDefaulterReport() {
                                     {/* ==================== REPORT SECTION ==================== */}
 
                                     {showReport && (
-                                        <div className='mt-10 rounded-lg border bg-white shadow-xl'>
-                                            <div className='flex items-center justify-between border-b bg-blue-50 px-6 py-4'>
-                                                <h2 className='font-bold text-blue-700 text-xl'>Fee Month End Report</h2>
+                                        <div className='mt-8'>
+                                            <CollapsibleSection defaultOpen={true}>
+                                                <div className='mt-10 rounded-lg border bg-white shadow-xl'>
+                                                    <div className='flex items-center justify-between border-b bg-blue-50 px-6 py-4'>
+                                                        <h2 className='font-bold text-blue-700 text-xl'>Fee Month End Report</h2>
 
-                                                <div className='flex gap-3'>
-                                                    {/* <div className='mb-4 flex justify-end gap-2'>
+                                                        <div className='flex gap-3'>
+                                                            {/* <div className='mb-4 flex justify-end gap-2'>
                                                         <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
                                                             Export Excel
                                                         </Button>
@@ -361,150 +364,152 @@ export default function FeeDefaulterReport() {
                                                             Print
                                                         </Button>
                                                     </div> */}
-                                                </div>
-                                            </div>
+                                                        </div>
+                                                    </div>
 
-                                            <div className='border bg-white p-6 text-sm'>
-                                                {/* ================= HEADER ================= */}
-                                                <div className='text-center'>
-                                                    {/* <h1 className="font-bold text-lg uppercase">{schoolName}</h1>
+                                                    <div className='border bg-white p-6 text-sm'>
+                                                        {/* ================= HEADER ================= */}
+                                                        <div className='text-center'>
+                                                            {/* <h1 className="font-bold text-lg uppercase">{schoolName}</h1>
                                                     <p className="text-xs">{schoolAddress}</p> */}
 
-                                                    {/* <h2 className="mt-4 font-bold uppercase">
+                                                            {/* <h2 className="mt-4 font-bold uppercase">
                                                         School Fees {month} Month Report
                                                     </h2> */}
+                                                        </div>
+
+                                                        {/* ================= INFO TABLE ================= */}
+                                                        <table className='mt-6 w-full border'>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td className='border p-2'>Name :</td>
+                                                                    {/* <td className="border p-2">{name}</td> */}
+                                                                    <td className='border p-2'>Date :</td>
+                                                                    {/* <td className="border p-2">{date}</td> */}
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>Designation :</td>
+                                                                    {/* <td className="border p-2">{designation}</td> */}
+                                                                    <td className='border p-2'>Academic Year :</td>
+                                                                    {/* <td className="border p-2">{academicYear}</td> */}
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>Total SMS :</td>
+                                                                    {/* <td className="border p-2">{totalSMS}</td> */}
+                                                                    <td className='border p-2'>Total Email :</td>
+                                                                    {/* <td className="border p-2">{totalEmail}</td> */}
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+
+                                                        {/* ================= SUMMARY TABLE ================= */}
+                                                        <table className='mt-6 w-full border text-center'>
+                                                            <thead className='bg-blue-700 text-white'>
+                                                                <tr>
+                                                                    <th className='border p-2'>SL.NO</th>
+                                                                    <th className='border p-2 text-left'>Name</th>
+                                                                    <th className='border p-2'>Count</th>
+                                                                    <th className='border p-2'>Kiosk</th>
+                                                                    <th className='border p-2'>Portal and Dashboard</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td className='border p-2'>1</td>
+                                                                    <td className='border p-2 text-left'>Fee Collection By Cash</td>
+                                                                    {/* <td className="border p-2">{stats.cash}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>2</td>
+                                                                    <td className='border p-2 text-left'>Fee Collection By Bank</td>
+                                                                    {/* <td className="border p-2">{stats.bank}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>3</td>
+                                                                    <td className='border p-2 text-left'>Fee Collection By Online</td>
+                                                                    {/* <td className="border p-2">{stats.online}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>4</td>
+                                                                    <td className='border p-2 text-left'>Fee Collection By RTGS</td>
+                                                                    {/* <td className="border p-2">{stats.rtgs}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>5</td>
+                                                                    <td className='border p-2 text-left'>Fee Collection By Card</td>
+                                                                    {/* <td className="border p-2">{stats.card}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>6</td>
+                                                                    <td className='border p-2 text-left'>Fee Collection By ECS</td>
+                                                                    {/* <td className="border p-2">{stats.ecs}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>7</td>
+                                                                    <td className='border p-2 text-left'>Fee Refund By Cash</td>
+                                                                    {/* <td className="border p-2">{stats.refundCash}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>8</td>
+                                                                    <td className='border p-2 text-left'>Fee Refund By Bank</td>
+                                                                    {/* <td className="border p-2">{stats.refundBank}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td className='border p-2'>9</td>
+                                                                    <td className='border p-2 text-left'>Fee Defaulters</td>
+                                                                    {/* <td className="border p-2">{stats.defaulters}</td> */}
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>0</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+
+                                                        {/* ================= FOOTER ================= */}
+                                                        <div className='mt-16 grid grid-cols-2 gap-10'>
+                                                            <div>Implementation Engineer: _______________</div>
+                                                            <div>Nodal Officer: _______________</div>
+                                                            <div>End User: _______________</div>
+                                                            <div>Seal</div>
+                                                        </div>
+                                                        <FeeMonthEndChart
+                                                            cash={1}
+                                                            bank={2}
+                                                            online={5}
+                                                            rtgs={6}
+                                                            card={7}
+                                                            ecs={8}
+                                                            cashRefund={9}
+                                                            bankRefund={10}
+                                                            defaulters={11}
+                                                        />
+                                                    </div>
                                                 </div>
-
-                                                {/* ================= INFO TABLE ================= */}
-                                                <table className='mt-6 w-full border'>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td className='border p-2'>Name :</td>
-                                                            {/* <td className="border p-2">{name}</td> */}
-                                                            <td className='border p-2'>Date :</td>
-                                                            {/* <td className="border p-2">{date}</td> */}
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>Designation :</td>
-                                                            {/* <td className="border p-2">{designation}</td> */}
-                                                            <td className='border p-2'>Academic Year :</td>
-                                                            {/* <td className="border p-2">{academicYear}</td> */}
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>Total SMS :</td>
-                                                            {/* <td className="border p-2">{totalSMS}</td> */}
-                                                            <td className='border p-2'>Total Email :</td>
-                                                            {/* <td className="border p-2">{totalEmail}</td> */}
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-
-                                                {/* ================= SUMMARY TABLE ================= */}
-                                                <table className='mt-6 w-full border text-center'>
-                                                    <thead className='bg-blue-700 text-white'>
-                                                        <tr>
-                                                            <th className='border p-2'>SL.NO</th>
-                                                            <th className='border p-2 text-left'>Name</th>
-                                                            <th className='border p-2'>Count</th>
-                                                            <th className='border p-2'>Kiosk</th>
-                                                            <th className='border p-2'>Portal and Dashboard</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td className='border p-2'>1</td>
-                                                            <td className='border p-2 text-left'>Fee Collection By Cash</td>
-                                                            {/* <td className="border p-2">{stats.cash}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>2</td>
-                                                            <td className='border p-2 text-left'>Fee Collection By Bank</td>
-                                                            {/* <td className="border p-2">{stats.bank}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>3</td>
-                                                            <td className='border p-2 text-left'>Fee Collection By Online</td>
-                                                            {/* <td className="border p-2">{stats.online}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>4</td>
-                                                            <td className='border p-2 text-left'>Fee Collection By RTGS</td>
-                                                            {/* <td className="border p-2">{stats.rtgs}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>5</td>
-                                                            <td className='border p-2 text-left'>Fee Collection By Card</td>
-                                                            {/* <td className="border p-2">{stats.card}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>6</td>
-                                                            <td className='border p-2 text-left'>Fee Collection By ECS</td>
-                                                            {/* <td className="border p-2">{stats.ecs}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>7</td>
-                                                            <td className='border p-2 text-left'>Fee Refund By Cash</td>
-                                                            {/* <td className="border p-2">{stats.refundCash}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>8</td>
-                                                            <td className='border p-2 text-left'>Fee Refund By Bank</td>
-                                                            {/* <td className="border p-2">{stats.refundBank}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='border p-2'>9</td>
-                                                            <td className='border p-2 text-left'>Fee Defaulters</td>
-                                                            {/* <td className="border p-2">{stats.defaulters}</td> */}
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                            <td className='border p-2'>0</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-
-                                                {/* ================= FOOTER ================= */}
-                                                <div className='mt-16 grid grid-cols-2 gap-10'>
-                                                    <div>Implementation Engineer: _______________</div>
-                                                    <div>Nodal Officer: _______________</div>
-                                                    <div>End User: _______________</div>
-                                                    <div>Seal</div>
-                                                </div>
-                                                <FeeMonthEndChart
-                                                    cash={1}
-                                                    bank={2}
-                                                    online={5}
-                                                    rtgs={6}
-                                                    card={7}
-                                                    ecs={8}
-                                                    cashRefund={9}
-                                                    bankRefund={10}
-                                                    defaulters={11}
-                                                />
-                                            </div>
+                                            </CollapsibleSection>
                                         </div>
                                     )}
                                 </div>

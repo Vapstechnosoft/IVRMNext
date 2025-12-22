@@ -343,7 +343,9 @@ export const feesStudentTransactionSchema = {
     addOrUpdate: z.object({
         asmaY_Id: z.number({ required_error: 'Academic year is required' }),
         asmcl_Id: z.number().optional(),
-        asms_Id: z.number().optional()
+        asms_Id: z.number().optional(),
+        modeofPayment: z.string().optional(),
+        narrationId: z.number().optional()
     })
 };
 

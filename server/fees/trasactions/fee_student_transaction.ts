@@ -33,6 +33,11 @@ export async function getStudentDetails(payload: any) {
 }
 
 export async function getFeeHead(payload: any) {
-    const url = '/FeeStudentTransaction/fee-stud-lst-det';
+    const url = '/FeeStudentTransaction/fee-term-details';
     return api.post<any>('fees', url, payload);
+}
+
+export async function saveFeeTransaction(payload: any) {
+    const url = '/FeeStudentTransaction/fee-Save-details';
+    return await api.post<any[]>('fees', url, payload);
 }

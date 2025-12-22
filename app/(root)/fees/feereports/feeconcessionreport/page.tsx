@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type {
@@ -26,6 +27,7 @@ import type {
 } from '@/types/fees/reports/reports';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { exportToExcel, printTable } from './_components/columns';
 
 // Checkbox with full indeterminate support
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
@@ -53,7 +55,7 @@ export default function FeeConcessionReport() {
         userType: 'Students' as 'Students' | 'Staff' | 'Others',
         viewMode: 'year' as 'year' | 'date',
 
-        breakdown: 'Fee Group Wise',
+        breakdown: 'FGW',
         academicYearId: '',
         classId: 0,
         sectionId: 0,
@@ -89,6 +91,8 @@ export default function FeeConcessionReport() {
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
     const [feeInstallments, setfeeInstallments] = useState<IFeeInstallmentDropdownList[]>([]);
+
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const [wiseType, setWiseType] = useState<'Yearly Wise' | 'Date Wise'>('Date Wise');
 
@@ -226,6 +230,21 @@ export default function FeeConcessionReport() {
             status: { ...prev.status, [status]: !prev.status[status] }
         }));
     };
+
+    const toggleRow = (slNo: number) => {
+        setSelectedIds((prev) => (prev.includes(slNo) ? prev.filter((x) => x !== slNo) : [...prev, slNo]));
+    };
+
+    const toggleAll = () => {
+        if (selectedIds.length === reportData.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(reportData.map((r) => r.slNo));
+        }
+    };
+
+    const selectedRows = reportData.filter((r) => selectedIds.includes(r.slNo));
+
     // const handleSubmit = async () => {
 
     //   if (!filters.academicYearId) return toast.error('Please select an Academic Year');
@@ -299,6 +318,40 @@ export default function FeeConcessionReport() {
             setShowReport(true);
             setReportLoading(false);
         }, 500);
+    };
+
+    const handleExport = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+        exportToExcel(selectedRows, 'Fee Concession-Report');
+    };
+
+    const handlePrint = () => {
+        if (!selectedRows.length) {
+            toast.error('Please select at least one record');
+            return;
+        }
+
+        const columns = ['Sl No', 'groupName', 'concessionAmount'];
+
+        const rowsToPrint = selectedRows.map((row, index) => ({
+            'Sl No': index + 1,
+            groupName: row.groupName, // ✅ FIXED
+            concessionAmount: `₹ ${row.concessionAmount.toLocaleString('en-IN')}`
+        }));
+
+        // ✅ TOTAL ROW
+        const totalAmount = selectedRows.reduce((sum, row) => sum + row.concessionAmount, 0);
+
+        const totalRow = {
+            'Sl No': '',
+            groupName: 'TOTAL',
+            concessionAmount: `₹ ${totalAmount.toLocaleString('en-IN')}`
+        };
+
+        printTable(columns, rowsToPrint, totalRow);
     };
 
     const showBalancecheckbox = filters.userType === 'Students' && filters.breakdown === 'Student/Staff Wise';
@@ -656,50 +709,96 @@ export default function FeeConcessionReport() {
                                 )} */}
 
                                 {showReport && (
-                                    <div className='mt-10 overflow-hidden rounded-lg border bg-white shadow-lg'>
-                                        <div className='border-b bg-primary/5 px-6 py-4'>
-                                            <h2 className='font-bold text-primary text-xl'>Yearly Fee Concession Report</h2>
-                                        </div>
+                                    <CollapsibleSection defaultOpen={true}>
+                                        <div className='mt-10 overflow-hidden rounded-lg border bg-white shadow-lg'>
+                                            {/* <div className='border-b bg-primary/5 px-6 py-4'>
+                                                <h2 className='font-bold text-primary text-xl'>Yearly Fee Concession Report</h2>
+                                            </div> */}
+                                            <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                <div className='mb-6 text-center'>
+                                                    <h2 className='font-bold text-2xl text-primary'>Fee Audit Report</h2>
+                                                </div>
+                                                <div className='flex gap-3'>
+                                                    <div className='mb-4 flex justify-end gap-2'>
+                                                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
+                                                            Export Excel
+                                                        </Button>
 
-                                        <div className='overflow-x-auto'>
-                                            <table className='w-full border-collapse'>
-                                                <thead className='bg-primary text-white'>
-                                                    <tr>
-                                                        <th className='w-20 border px-4 py-2 text-center'>Sl No</th>
-                                                        <th className='border px-4 py-2 text-left'>Group Name</th>
-                                                        <th className='w-56 border px-4 py-2 text-right'>Concession Amount</th>
-                                                    </tr>
-                                                </thead>
+                                                        <Button
+                                                            size='sm'
+                                                            variant='outline'
+                                                            className='h-8 w-auto px-3 text-xs'
+                                                            onClick={handlePrint}>
+                                                            Print
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </div>
 
-                                                <tbody>
-                                                    {mockReportData.map((row) => (
-                                                        <tr key={row.slNo} className='odd:bg-gray-50 hover:bg-gray-100'>
-                                                            <td className='border px-4 py-2 text-center'>{row.slNo}</td>
-                                                            <td className='border px-4 py-2 font-medium'>{row.groupName}</td>
-                                                            <td className='border px-4 py-2 text-right font-semibold'>
-                                                                ₹ {row.concessionAmount.toLocaleString('en-IN')}
+                                            <div className='overflow-x-auto'>
+                                                <table className='w-full border-collapse text-sm'>
+                                                    <thead className='bg-gray-200'>
+                                                        <tr>
+                                                            <th className='border px-2 py-2 text-center'>
+                                                                <input
+                                                                    type='checkbox'
+                                                                    checked={
+                                                                        selectedIds.length === reportData.length && reportData.length > 0
+                                                                    }
+                                                                    onChange={toggleAll}
+                                                                />
+                                                            </th>
+                                                            <th className='w-20 border px-4 py-2 text-center'>Sl No</th>
+                                                            <th className='border px-4 py-2 text-left'>Group Name</th>
+                                                            <th className='w-56 border px-4 py-2 text-right'>Concession Amount</th>
+                                                        </tr>
+                                                    </thead>
+
+                                                    <tbody>
+                                                        {mockReportData.map((row, index) => (
+                                                            <tr
+                                                                key={row.slNo}
+                                                                className={
+                                                                    selectedIds.includes(row.slNo)
+                                                                        ? 'bg-blue-100'
+                                                                        : index % 2 === 0
+                                                                          ? 'bg-white'
+                                                                          : 'bg-gray-50'
+                                                                }>
+                                                                <td className='border px-2 py-2 text-center'>
+                                                                    <input
+                                                                        type='checkbox'
+                                                                        checked={selectedIds.includes(row.slNo)}
+                                                                        onChange={() => toggleRow(row.slNo)}
+                                                                    />
+                                                                </td>
+                                                                <td className='border px-4 py-2 text-center'>{row.slNo}</td>
+                                                                <td className='border px-4 py-2 font-medium'>{row.groupName}</td>
+                                                                <td className='border px-4 py-2 text-right font-semibold'>
+                                                                    ₹ {row.concessionAmount.toLocaleString('en-IN')}
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+
+                                                    {/* GRAND TOTAL */}
+                                                    <tfoot className='bg-gray-100'>
+                                                        <tr>
+                                                            <td colSpan={3} className='border px-4 py-3 text-right font-bold'>
+                                                                Total
+                                                            </td>
+                                                            <td className='border px-4 py-3 text-right font-bold'>
+                                                                ₹{' '}
+                                                                {mockReportData
+                                                                    .reduce((sum, row) => sum + row.concessionAmount, 0)
+                                                                    .toLocaleString('en-IN')}
                                                             </td>
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-
-                                                {/* GRAND TOTAL */}
-                                                <tfoot className='bg-gray-100'>
-                                                    <tr>
-                                                        <td colSpan={2} className='border px-4 py-3 text-right font-bold'>
-                                                            Total
-                                                        </td>
-                                                        <td className='border px-4 py-3 text-right font-bold text-green-700'>
-                                                            ₹{' '}
-                                                            {mockReportData
-                                                                .reduce((sum, row) => sum + row.concessionAmount, 0)
-                                                                .toLocaleString('en-IN')}
-                                                        </td>
-                                                    </tr>
-                                                </tfoot>
-                                            </table>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </CollapsibleSection>
                                 )}
                             </div>
                         </div>

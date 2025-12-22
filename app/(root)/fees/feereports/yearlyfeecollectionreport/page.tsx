@@ -36,6 +36,7 @@ import { CalendarIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+import { exportToExcel } from '@/lib/utils';
 import { yearlyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getFeeYearlyCollectionReport } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -1104,25 +1105,42 @@ export default function FeeDefaulterReport() {
                                                     variant='default'
                                                     size='lg'
                                                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                    <div className='border-b bg-primary/5 px-8 py-6'>
+                                                    <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                                         <h2 className='font-bold text-2xl text-primary'>Yearly Fee Collection Report</h2>
-                                                    </div>
-
-                                                    <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
-                                                        {/* <div className="font-semibold text-lg text-primary">
-                                                            Report Actions
-                                                        </div> */}
 
                                                         <div className='flex gap-3'>
-                                                            <Button variant='outline' onClick={handlePrint}>
-                                                                🖨 Print
-                                                            </Button>
+                                                            <div className='mb-4 flex justify-end gap-2'>
+                                                                <Button
+                                                                    size='sm'
+                                                                    className='h-8 w-auto px-3 text-xs'
+                                                                    onClick={exportToExcel}>
+                                                                    Export Excel
+                                                                </Button>
 
-                                                            <Button variant='outline' onClick={handleExportExcel}>
-                                                                📊 Export Excel
-                                                            </Button>
+                                                                <Button
+                                                                    size='sm'
+                                                                    variant='outline'
+                                                                    className='h-8 w-auto px-3 text-xs'
+                                                                    onClick={handlePrint}>
+                                                                    Print
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
+
+                                                    {/* <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
+
+
+                                                            <div className='flex gap-3'>
+                                                                <Button variant='outline' onClick={handlePrint}>
+                                                                    🖨 Print
+                                                                </Button>
+
+                                                                <Button variant='outline' onClick={handleExportExcel}>
+                                                                    📊 Export Excel
+                                                                </Button>
+                                                            </div>
+                                                        </div> */}
                                                     <GenericDataTable
                                                         data={tableData}
                                                         columns={getDynamicColumns(filters.breakdown as 'FGW' | 'INMW')}
