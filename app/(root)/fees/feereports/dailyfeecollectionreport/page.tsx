@@ -153,15 +153,15 @@ export default function DailyFeeCollectionReportForm() {
                 shouldDirty: false
             });
 
-            // if (years.length > 0) {
-            //     const firstYearId = years[0].asmaY_Id;
+            if (years.length > 0) {
+                const firstYearId = years[0].asmaY_Id;
 
-            //     // ⭐ ALWAYS PICK FIRST YEAR
-            //     setValue('asmaY_Id', firstYearId, { shouldValidate: true });
+                // ⭐ ALWAYS PICK FIRST YEAR
+                setValue('asmaY_Id', firstYearId, { shouldValidate: true });
 
-            //     // ⭐ ALWAYS reload groups for first year
-            //     onYearChange(firstYearId);
-            // }
+                // ⭐ ALWAYS reload groups for first year
+                onYearChange(firstYearId);
+            }
         }
     }, [academicData, academicError, refreshAY]);
 

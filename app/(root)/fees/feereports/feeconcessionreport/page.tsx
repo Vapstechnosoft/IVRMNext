@@ -716,7 +716,7 @@ export default function FeeConcessionReport() {
                                             </div> */}
                                             <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
                                                 <div className='mb-6 text-center'>
-                                                    <h2 className='font-bold text-2xl text-primary'>Fee Audit Report</h2>
+                                                    <h2 className='font-bold text-2xl text-primary'>Fee Concession Report</h2>
                                                 </div>
                                                 <div className='flex gap-3'>
                                                     <div className='mb-4 flex justify-end gap-2'>
