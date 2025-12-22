@@ -10,7 +10,7 @@ export async function getMasterClassYearlyCategory(searchParams?: ApiSearchparam
 }
 
 export async function getAcademicYearDropdown() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/fee_class_category/academicyearlist';
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DateField } from '@/components/ui/dateField';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
@@ -12,11 +13,10 @@ import { getExamGroupsByCategory } from '@/server/exam/exam-module/exam-mapping/
 import { addOrUpdateExamTermAndExamMapping } from '@/server/exam/exam-module/exam-mapping/examTerm-and-exam-mappiong';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import { getMasterGrade } from '@/server/exam/exam-module/masters/grade';
-import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -72,15 +72,13 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
     const [entryRoundOff, setEntryRoundOff] = useState<boolean>(false);
     const [entryConversion, setEntryConversion] = useState<boolean>(false);
     const [entryNotApplicable, setEntryNotApplicable] = useState<boolean>(false);
+    const [rowToDelete, setRowToDelete] = useState<number | null>(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const topLocked = addedRows.length > 0;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const {
-        data: academicYear,
-        isLoading: academicYearLoading,
-        error: academicYearError,
-    } = useAcademicYearDropdown();
+    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     useEffect(() => {
         if (!asmaY_Id || topLocked) return;
@@ -301,6 +299,29 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
         setEntryConversion(false);
         setEntryNotApplicable(false);
     }
+    // Add this function near other handler functions (after handleDeleteRow)
+    function handleConfirmDelete() {
+        if (rowToDelete !== null) {
+            // Get the exam name before deleting for toast message
+            const examName = addedRows[rowToDelete]?.emE_ExamName || 'the exam';
+
+            // Call the existing delete function
+            handleDeleteRow(rowToDelete);
+
+            // Show success message
+            toast.success(`"${examName}" deleted successfully`);
+
+            // Close the modal
+            setShowDeleteConfirm(false);
+            setRowToDelete(null);
+        }
+    }
+    useEffect(() => {
+        if (addedRows.length > 0) {
+            tableRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [addedRows]);
+    const tableRef = useRef<HTMLDivElement>(null);
 
     return (
         <div className='flex w-full flex-col gap-6'>
@@ -601,36 +622,42 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                     }}
                                 />
                             </div>
-
                             <div className='col-span-2'>
                                 <div className='flex flex-wrap items-center gap-4'>
-                                    <label className='flex items-center gap-2'>
-                                        <input
-                                            type='checkbox'
+                                    <div className='flex items-center gap-2'>
+                                        <Checkbox
+                                            id='roundoff'
                                             checked={entryRoundOff}
-                                            onChange={(e) => setEntryRoundOff(e.target.checked)}
+                                            onCheckedChange={(checked) => setEntryRoundOff(checked === true)}
                                         />
-                                        <span className='text-sm'>Roundoff</span>
-                                    </label>
-                                    <label className='flex items-center gap-2'>
-                                        <input
-                                            type='checkbox'
+                                        <label htmlFor='roundoff' className='cursor-pointer text-sm'>
+                                            Roundoff
+                                        </label>
+                                    </div>
+
+                                    <div className='flex items-center gap-2'>
+                                        <Checkbox
+                                            id='conversion'
                                             checked={entryConversion}
-                                            onChange={(e) => setEntryConversion(e.target.checked)}
+                                            onCheckedChange={(checked) => setEntryConversion(checked === true)}
                                         />
-                                        <span className='text-sm'>Conversion</span>
-                                    </label>
-                                    <label className='flex items-center gap-2'>
-                                        <input
-                                            type='checkbox'
+                                        <label htmlFor='conversion' className='cursor-pointer text-sm'>
+                                            Conversion
+                                        </label>
+                                    </div>
+
+                                    <div className='flex items-center gap-2'>
+                                        <Checkbox
+                                            id='not-applicable'
                                             checked={entryNotApplicable}
-                                            onChange={(e) => setEntryNotApplicable(e.target.checked)}
+                                            onCheckedChange={(checked) => setEntryNotApplicable(checked === true)}
                                         />
-                                        <span className='text-sm'>Not Applicable</span>
-                                    </label>
+                                        <label htmlFor='not-applicable' className='cursor-pointer text-sm'>
+                                            Not Applicable
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
-
                             <div className='col-span-5 mt-3 flex justify-center gap-4 '>
                                 <Button type='button' onClick={handleAddExamRow} className='w-fit' disabled={!currentEntryValid}>
                                     Add Exam
@@ -648,7 +675,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                             <Label>Added Exams</Label>
 
                             <div className='mt-3 overflow-x-auto'>
-                                <div className='overflow-hidden rounded-xl border border-gray-300 shadow-sm'>
+                                <div className='overflow-hidden rounded-xl border border-gray-300 shadow-sm' ref={tableRef}>
                                     <table className='w-full border-separate border-spacing-0'>
                                         <thead>
                                             <tr className='border-gray-300 border-b bg-gray-50 text-left font-normal text-[#78716C]'>
@@ -667,10 +694,7 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                             {addedRows.map((r, idx) => (
                                                 <tr
                                                     key={idx}
-                                                    className='border-gray-300 border-t transition-colors hover:bg-accent/90 duration-200 
-               text-sm [&>*]:py-1 [&>*]:px-2'>
-
-
+                                                    className='border-gray-300 border-t text-sm transition-colors duration-200 hover:bg-accent/90 [&>*]:px-2 [&>*]:py-1'>
                                                     <td className='border-gray-300 border-r px-3 '>{idx + 1}</td>
                                                     <td className='border-gray-300 border-r px-3'>{r.emE_ExamName}</td>
                                                     <td className='border-gray-300 border-r px-3'>
@@ -690,7 +714,10 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                                                         <Button
                                                             variant='ghost'
                                                             size='sm'
-                                                            onClick={() => handleDeleteRow(idx)}
+                                                            onClick={() => {
+                                                                setRowToDelete(idx);
+                                                                setShowDeleteConfirm(true);
+                                                            }}
                                                             className='group h-8 w-8 p-0 transition-all duration-200 hover:scale-110 hover:bg-red-50 hover:text-red-600'>
                                                             <Trash2 className='h-4 w-4 transition-transform duration-200 group-hover:rotate-12' />
                                                         </Button>
@@ -715,6 +742,76 @@ export default function AddExamTermAndExamMapping({ onSuccess }: { onSuccess?: (
                     </div>
                 </form>
             </FormProvider>
+            {/* Add this just before the closing </div> of the main container */}
+            {showDeleteConfirm && (
+                <div className='fixed inset-0 z-[9999] flex items-center justify-center p-6'>
+                    {/* Backdrop */}
+                    <div
+                        className='absolute inset-0 bg-black/60'
+                        onClick={() => {
+                            setShowDeleteConfirm(false);
+                            setRowToDelete(null);
+                        }}
+                    />
+
+                    {/* Confirmation Popup */}
+                    <div className='relative z-[10000] w-[90%] max-w-md overflow-hidden rounded-xl border bg-white shadow-2xl'>
+                        <div className='p-6'>
+                            <div className='mb-4 flex items-center gap-3'>
+                                <div className='rounded-full bg-destructive/20 p-2'>
+                                    <AlertTriangle className='h-6 w-6 text-destructive' />
+                                </div>
+                                <div>
+                                    <h3 className='font-semibold text-lg'>Delete Exam</h3>
+                                    <p className='text-muted-foreground text-sm'>This action cannot be undone</p>
+                                </div>
+                            </div>
+
+                            <p className='mb-4'>
+                                Are you sure you want to delete{' '}
+                                <strong className='text-destructive'>
+                                    "{rowToDelete !== null ? addedRows[rowToDelete]?.emE_ExamName : ''}"
+                                </strong>
+                                ?
+                            </p>
+
+                            <div className='space-y-2 text-muted-foreground text-sm'>
+                                <div className='flex justify-between'>
+                                    <span>Type:</span>
+                                    <span className='font-medium'>
+                                        {rowToDelete !== null && addedRows[rowToDelete]?.ecteX_MarksPerFlag === 'M'
+                                            ? 'Marks'
+                                            : 'Percentage'}
+                                    </span>
+                                </div>
+                                <div className='flex justify-between'>
+                                    <span>Value:</span>
+                                    <span className='font-medium'>
+                                        {rowToDelete !== null ? addedRows[rowToDelete]?.ecteX_MarksPercentValue : ''}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className='flex justify-end gap-3 border-t p-4'>
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={() => {
+                                    setShowDeleteConfirm(false);
+                                    setRowToDelete(null);
+                                }}
+                                className='min-w-[100px]'>
+                                Cancel
+                            </Button>
+                            <Button type='button' variant='destructive' onClick={handleConfirmDelete} className='min-w-[100px]'>
+                                <Trash2 className='mr-2 h-4 w-4' />
+                                Delete
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

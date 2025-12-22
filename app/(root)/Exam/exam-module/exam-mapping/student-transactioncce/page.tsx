@@ -9,59 +9,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type StudentTransactionFormData, StudentTransactionSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
+    getCoScholasticAreasBasedOnCoScholasticActivity,
+    getLifeSkillAreasBasedOnLifeSkill
+} from '@/server/exam/exam-module/exam-mapping/student-transaction-cce';
+import { getCoScholasticActivities } from '@/server/exam/exam-module/masters/co-scholastic-activity';
+import { getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
+import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import type { IStudentTransactionGrid } from '@/types/exam/exam-module/exam-mapping';
+import type { ICoScholasticActivityAreaMapping, IStudentTransactionGrid } from '@/types/exam/exam-module/exam-mapping';
+import type { ICoScholasticActivity, ILifeSkill, ILifeSkillArea } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { StudentTransactionColumns } from './_components/columns';
-
-// Mock API functions (replace with actual implementations)
-const mockGetExamTerms = async (academicYearId: number, classId: number, sectionId: number) => {
-    return [
-        { ect_Id: 1, ect_TermName: 'UT 3' },
-        { ect_Id: 2, ect_TermName: 'PREP' },
-        { ect_Id: 3, ect_TermName: 'Mid Term' }
-    ];
-};
-
-const mockGetSkillNames = async () => {
-    return [
-        { id: 1, name: 'Ability to work independently' },
-        { id: 2, name: 'Teamwork' },
-        { id: 3, name: 'Communication Skills' }
-    ];
-};
-
-const mockGetActivityNames = async () => {
-    return [
-        { id: 1, name: 'Sports' },
-        { id: 2, name: 'Arts' },
-        { id: 3, name: 'Music' }
-    ];
-};
-
-const mockGetSkillAreas = async (skillNameId: number) => {
-    return [
-        { id: 1, name: 'Assessment 1', skillNameId: 1 },
-        { id: 2, name: 'Assessment 2', skillNameId: 1 },
-        { id: 3, name: 'Assessment 3', skillNameId: 2 }
-    ];
-};
-
-const mockGetActivityAreas = async (activityNameId: number) => {
-    return [
-        { id: 1, name: 'Level 1', activityNameId: 1 },
-        { id: 2, name: 'Level 2', activityNameId: 1 },
-        { id: 3, name: 'Level 3', activityNameId: 2 }
-    ];
-};
-
 const mockGetStudentList = async (
     academicYearId: number,
     classId: number,
@@ -157,12 +122,10 @@ function StudentTransactionContent() {
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [examTerms, setExamTerms] = useState<{ ect_Id: number; ect_TermName: string }[]>([]);
-    const [skillNames, setSkillNames] = useState<{ id: number; name: string }[]>([]);
-    const [activityNames, setActivityNames] = useState<{ id: number; name: string }[]>([]);
-    const [skillAreas, setSkillAreas] = useState<{ id: number; name: string }[]>([]);
-    const [activityAreas, setActivityAreas] = useState<{ id: number; name: string }[]>([]);
-
-    // Table data
+    const [skillNames, setSkillNames] = useState<ILifeSkill[]>([]);
+    const [activityNames, setActivityNames] = useState<ICoScholasticActivity[]>([]);
+    const [skillAreas, setSkillAreas] = useState<ILifeSkillArea[]>([]);
+    const [activityAreas, setActivityAreas] = useState<ICoScholasticActivityAreaMapping[]>([]);
     const [students, setStudents] = useState<IStudentTransactionGrid[]>([]);
     const [tableProps, setTableProps] = useState<ReturnType<typeof useDataTableProps> | null>(null);
     const [selectedStudentIds, setSelectedStudentIds] = useState<number[]>([]);
@@ -320,23 +283,25 @@ function StudentTransactionContent() {
             setLoadingNames(true);
             try {
                 if (watchSkillActivity === 'skill') {
-                    const names = await mockGetSkillNames();
-                    setSkillNames(names);
+                    const { data: names } = await getMasterLifeSkills(30);
+                    const safeNames = Array.isArray(names) ? names : [];
+                    setSkillNames(safeNames);
                     setActivityNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
-                    if (names.length > 0) {
-                        setValue('nameId', names[0].id);
+                    if (safeNames.length > 0) {
+                        setValue('nameId', safeNames[0].ecsA_Id);
                         trigger('nameId');
                     }
                 } else {
-                    const names = await mockGetActivityNames();
-                    setActivityNames(names);
+                    const { data: names } = await getCoScholasticActivities();
+                    const safeNames = Array.isArray(names) ? names : [];
+                    setActivityNames(safeNames);
                     setSkillNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
-                    if (names.length > 0) {
-                        setValue('nameId', names[0].id);
+                    if (safeNames.length > 0) {
+                        setValue('nameId', safeNames[0].id);
                         trigger('nameId');
                     }
                 }
@@ -363,21 +328,17 @@ function StudentTransactionContent() {
             setLoadingAreas(true);
             try {
                 if (watchSkillActivity === 'skill') {
-                    const areas = await mockGetSkillAreas(watchName);
-                    setSkillAreas(areas);
+                    console.log(watchAcademicYear, watchName);
+                    const { data: areas } = await getLifeSkillAreasBasedOnLifeSkill(watchAcademicYear, watchName);
+                    const safeAreas = Array.isArray(areas) ? areas : [];
+                    setSkillAreas(safeAreas);
                     setActivityAreas([]);
-                    if (areas.length > 0) {
-                        setValue('areaId', areas[0].id);
-                        trigger('areaId');
-                    }
                 } else {
-                    const areas = await mockGetActivityAreas(watchName);
-                    setActivityAreas(areas);
+                    console.log(watchAcademicYear, watchName);
+                    const areas = await getCoScholasticAreasBasedOnCoScholasticActivity(watchAcademicYear, watchName);
+                    const safeAreas = Array.isArray(areas) ? areas : [];
+                    setActivityAreas(safeAreas);
                     setSkillAreas([]);
-                    if (areas.length > 0) {
-                        setValue('areaId', areas[0].id);
-                        trigger('areaId');
-                    }
                 }
             } catch (err) {
                 toast.error(`Failed to load ${watchSkillActivity} areas`);
@@ -786,8 +747,8 @@ function StudentTransactionContent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {skillNames.map((item) => (
-                                                            <SelectItem key={item.id} value={item.id.toString()}>
-                                                                {item.name}
+                                                            <SelectItem key={item.ecS_Id} value={item.ecS_Id.toString()}>
+                                                                {item.ecS_SkillName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -822,8 +783,8 @@ function StudentTransactionContent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {activityNames.map((item) => (
-                                                            <SelectItem key={item.id} value={item.id.toString()}>
-                                                                {item.name}
+                                                            <SelectItem key={item.ecacT_Id} value={item.ecacT_Id.toString()}>
+                                                                {item.ecacT_SkillName}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -858,8 +819,8 @@ function StudentTransactionContent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {skillAreas.map((area) => (
-                                                            <SelectItem key={area.id} value={area.id.toString()}>
-                                                                {area.name}
+                                                            <SelectItem key={area.ecsA_Id} value={area.ecsA_Id.toString()}>
+                                                                {area.ecsA_SkillArea}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -894,8 +855,8 @@ function StudentTransactionContent() {
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {activityAreas.map((area) => (
-                                                            <SelectItem key={area.id} value={area.id.toString()}>
-                                                                {area.name}
+                                                            <SelectItem key={area.ecactA_Id} value={String(area.ecactA_Id)}>
+                                                                {area.ecactA_SkillArea}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
