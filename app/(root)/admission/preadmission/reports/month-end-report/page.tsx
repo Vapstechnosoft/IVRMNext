@@ -12,6 +12,15 @@ import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMaste
 import { useMonthEndReport } from '@/hooks/admission/preadmission/useReports';
 import AdmissionMonthEndReport from './_components/columns';
 export default function MonthendreportPage() {
+    const auth = async () => {
+        try {
+            const session = await import('next-auth/react').then(({ getSession }) => getSession());
+            return session;
+        } catch (error) {
+            console.error('Error fetching session:', error);
+            return null;
+        }
+    };
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [selectedMonth, setSelectedMonth] = useState<string>('');
     const [selectedYear, setSelectedYear] = useState<number>(0);
@@ -102,6 +111,59 @@ export default function MonthendreportPage() {
         } catch (_error) {
             toast.dismiss(toastId);
             toast.error('Something went wrong!');
+        }
+    };
+
+    const downloadExcel = async () => {
+        try {
+            const queryParams = new URLSearchParams({
+                page: '1',
+                pageSize: '100000',
+                exportType: 'FULL'
+            }).toString();
+            const session = await auth();
+            const response = await fetch(
+                `https://ivrm-dev-admission-api.azurewebsites.net/api/monthendreport/ExportMonthEndReportToExcel?${queryParams}&AcayId=${requestData.ASMAY_Id}&Month=${requestData.month}&Year=${requestData.year}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${session?.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error('Excel download failed');
+            }
+
+            // ✅ Extract filename from header
+            const disposition = response.headers.get('content-disposition');
+            let fileName = 'MonthEndReport.xlsx';
+
+            if (disposition) {
+                const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
+                if (match?.[1]) {
+                    fileName = decodeURIComponent(match[1]);
+                }
+            }
+
+            const blob = await response.blob();
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            window.URL.revokeObjectURL(url);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to download Excel');
         }
     };
 
@@ -204,6 +266,9 @@ export default function MonthendreportPage() {
                     </Button>
                     <Button onClick={handleGenerateReport} className='w-fit'>
                         Generate Report
+                    </Button>
+                    <Button onClick={downloadExcel} className='w-fit'>
+                        Export to Excel
                     </Button>
                 </div>
             </div>
