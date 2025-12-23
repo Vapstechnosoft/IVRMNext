@@ -19,7 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
-import { useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { useFeeMasterConfiguration, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
 import { getFeeHead, getStudentDetails, saveFeeTransaction, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
 import type {
@@ -152,6 +152,13 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
 
     const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
+
+    const { data: masterConfiguration } = useFeeMasterConfiguration();
+
+    const config =
+        masterConfiguration && Array.isArray(masterConfiguration) && masterConfiguration.length > 0
+            ? (masterConfiguration[0] as any)?.fmC_AutoReceiptFeeGroupFlag
+            : 0;
 
     useEffect(() => {
         setStudentSearch('');
@@ -640,7 +647,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 fyP_Id: 0,
                 asmaY_Id: selectedAsmayId?.toString(),
                 automanualreceiptno: '',
-                auto_receipt_flag: 1,
+                auto_receipt_flag: config,
                 fyP_Receipt_No: '',
                 fyPcurr_Date: todaysDate,
                 fyP_Remarks: narrationRemark,
@@ -663,8 +670,8 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
             if (response?.displaymessage) {
                 toast.success(response.message || 'Saved successfully');
-                // handleReset();
-                // onSuccess?.();
+                handleReset();
+                onSuccess?.();
                 //  refetchAll();
             } else {
                 toast.error(response?.message || 'Save failed');
@@ -674,7 +681,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
             toast.error(err?.message || 'Something went wrong');
         }
         // toast.success("Fee Transaction Saved Successfully!");
-        // onSuccess?.();
+        onSuccess?.();
     };
 
     const handleReset = () => {

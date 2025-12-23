@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type { Ifeetransaction } from '@/types/fees/transactions/transactions';
 
@@ -14,12 +14,12 @@ export async function getFeeStudentTransactionDetails(asmaY_Id: number, searchPa
         sort_direction: searchParams?.sort_direction || 'asc',
         is_export: false
     };
-
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
     // ASMAY_Id as query param
-    const url = `/FeeStudentTransaction/fee-details?ASMAY_Id=${asmaY_Id || 231}`;
+    const url = `/FeeStudentTransaction/fee-details?ASMAY_Id=${asmaY_Id || 231}&${urlParams}`;
 
     // Make POST request
-    return await api.post<Ifeetransaction[]>('fees', url, data);
+    return await api.post<Ifeetransaction[]>('fees', url);
 }
 
 export async function searchStudentName(payload: any) {
@@ -40,4 +40,9 @@ export async function getFeeHead(payload: any) {
 export async function saveFeeTransaction(payload: any) {
     const url = '/FeeStudentTransaction/fee-Save-details';
     return await api.post<any[]>('fees', url, payload);
+}
+
+export async function masterconfiguration() {
+    const url = '/FeesCommon/fee-master-details';
+    return await api.get<any[]>('fees', url);
 }
