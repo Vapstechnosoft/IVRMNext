@@ -10,17 +10,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useMonthEndReport } from '@/hooks/admission/preadmission/useReports';
+import { getExcelMonthEndReport } from '@/server/admission/preadmission/reports/month_end_report';
 import AdmissionMonthEndReport from './_components/columns';
 export default function MonthendreportPage() {
-    const auth = async () => {
-        try {
-            const session = await import('next-auth/react').then(({ getSession }) => getSession());
-            return session;
-        } catch (error) {
-            console.error('Error fetching session:', error);
-            return null;
-        }
-    };
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [selectedMonth, setSelectedMonth] = useState<string>('');
     const [selectedYear, setSelectedYear] = useState<number>(0);
@@ -116,53 +108,41 @@ export default function MonthendreportPage() {
 
     const downloadExcel = async () => {
         try {
-            const queryParams = new URLSearchParams({
-                page: '1',
-                pageSize: '100000',
-                exportType: 'FULL'
-            }).toString();
-            const session = await auth();
-            const response = await fetch(
-                `https://ivrm-dev-admission-api.azurewebsites.net/api/monthendreport/ExportMonthEndReportToExcel?${queryParams}&AcayId=${requestData.ASMAY_Id}&Month=${requestData.month}&Year=${requestData.year}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${session?.token}`,
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            if (!response.ok) {
-                throw new Error('Excel download failed');
+            if (!academicYearId || !selectedMonth || !selectedYear) {
+                toast.error('Please fill all required fields!');
+                return;
             }
 
-            // ✅ Extract filename from header
-            const disposition = response.headers.get('content-disposition');
-            let fileName = 'MonthEndReport.xlsx';
+            const response = await getExcelMonthEndReport(requestData);
 
-            if (disposition) {
-                const match = disposition.match(/filename\*?=(?:UTF-8'')?["']?([^;"']+)/i);
-                if (match?.[1]) {
-                    fileName = decodeURIComponent(match[1]);
-                }
-            }
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
-            const blob = await response.blob();
-
+            // Create download link
             const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `MonthEndReport_${selectedMonth}_${selectedYear}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
 
-            window.URL.revokeObjectURL(url);
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+            setReportData([]);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {
-            console.error(error);
+            console.error('Download error:', error);
             toast.error('Failed to download Excel');
         }
     };
