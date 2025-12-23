@@ -47,7 +47,6 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         handleSubmit,
         reset,
         control,
-        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feesStudentTransactionSchema.addOrUpdate),
@@ -101,19 +100,25 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         [key: number]: string;
     }>({});
     const [TotalCurrentFee, setTotalCurrentFee] = useState<number>();
+    const [ConcessionAmount, setConcessionAmount] = useState<number>();
     const [TotalConcession, setTotalConcession] = useState<number>();
-    const [TotalPaying, setTotalPaying] = useState<number>();
+    const [totalPayable, settotalPayable] = useState<number>();
+    const [overAllOutStanding, setoverAllOutStanding] = useState<number>();
+    const [TotalWaivedOff, setTotalWaivedOff] = useState<number>();
     const [Totalfine, setTotalFine] = useState<number>();
+    const [TotalPaying, setTotalPaying] = useState<number>(0);
+    const [fineAmount, setFineAmount] = useState<number>();
+    const [totalAmount, settotalAmount] = useState<number>(0);
     const [TotalOutStanding, setTotalOutStanding] = useState<number>();
     const [chequeNo, setChequeNo] = useState<{
         [key: number]: string;
     }>({});
-    const [chequedates, setchepueDates] = useState<Record<number, Date | null>>({});
+    const [chequedates, setchequeDates] = useState<Record<number, Date | null>>({});
     const [amount, setAmount] = useState<{
         [key: number]: string;
     }>({});
     const [filterType, setFilterType] = useState('regular');
-    const [payType, setPayType] = useState<string>('Online');
+    const [payType, setPayType] = useState<string>('');
     const [modeType, setModeType] = useState<string>('Single');
     const [checkPayType, setCheckPayType] = useState<string[]>(['']);
     const [selectedBanks, setSelectedBanks] = useState<Record<number, string>>({});
@@ -130,6 +135,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
     const [selectedNarration, setSelectedNarration] = useState<number | null>(null);
+    const [narrationRemark, setNarrationRemark] = useState('');
 
     const filterOptions = [
         { value: 'regular', label: 'Regular' },
@@ -179,6 +185,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         if (!amountCheck) setAmountforTerm('');
     }, [amountCheck]);
 
+    useEffect(() => {
+        setchequeDates({});
+        setChequeNo({});
+        setSelectedBanks({});
+        setAmount({});
+        const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
+
+        if (modeType === 'Single' && selectedPayment) {
+            setAmount((prev) => ({
+                ...prev,
+                [selectedPayment.ivrmmoD_Id]: TotalPaying?.toString() || '0'
+            }));
+        }
+    }, [payType, TotalPaying, modeType]);
+
     const { data: feeclassData, isLoading: feeclassDataLoading } = useStudentClassDropDown(classs);
 
     const { data: feeSectionData, isLoading: feeSectionDataLoading } = useStudentSectionDropDown(section);
@@ -227,7 +248,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 const payload = {
                     amst_Id: selectedStudent.amst_Id,
                     filterinitialdata: filterType,
-                    configset: 'T',
+                    // configset: 'T',
                     autoReceiptFlag: true,
                     asmaY_Id: selectedAsmayId
                 };
@@ -266,7 +287,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                     filterinitialdata: filterType,
                     amst_Id: selectedStudent?.amst_Id,
                     asmaY_Id: selectedAsmayId,
-                    configset: 'T',
+                    configset: '',
                     multiplegroups: selectedTerm.toString(),
                     fyP_Date: todaysDate
                 };
@@ -275,10 +296,11 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 const narrationDropDown = JSON.parse(JSON.stringify(termListArray.masterNarrations || []));
                 const modeofPaymentList = JSON.parse(JSON.stringify(termListArray.modeOfPaymentDTOs || []));
                 setFeeHeads(feeDetails || []);
-                // console.log("feeDetails",feeDetails)
                 setMasternarration(narrationDropDown || []);
                 setMasterModeofPaymentList(modeofPaymentList || []);
-                setPayType(modeofPaymentList[0]);
+
+                setPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
+                setCheckPayType(modeofPaymentList[0]?.ivrmmoD_ModeOfPayment ?? '');
             } catch (error) {
                 console.error('Failed to fetch fee heads:', error);
                 setFeeHeads([]);
@@ -291,11 +313,31 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
     }, [selectedTerm, filterType, selectedStudent, selectedAsmayId]);
 
     useEffect(() => {
-        const totalconcession = feeHeads.reduce((sum, f) => {
+        const concession = feeHeads.reduce((sum, f) => {
             const amount = Number.parseFloat(f.fsS_ConcessionAmount.toString()) || 0;
             return sum + amount;
         }, 0);
-        const totalfine = feeHeads.reduce((sum, f) => {
+        const totalconcession = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_ConcessionAmount.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalWaivedOff = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_WaivedAmount.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalPayable = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_TotalToBePaid.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const overAllOutStanding = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_ToBePaid.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const totalfine = feeDetails.reduce((sum, f) => {
+            const amount = Number.parseFloat(f.fsS_FineAmount.toString()) || 0;
+            return sum + amount;
+        }, 0);
+        const fine = feeHeads.reduce((sum, f) => {
             const amount = Number.parseFloat(f.fsS_FineAmount.toString()) || 0;
             return sum + amount;
         }, 0);
@@ -307,16 +349,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
             const amount = Number.parseFloat(f.fsS_CurrentYrCharges.toString()) || 0;
             return sum + amount;
         }, 0);
+        setConcessionAmount(concession);
         setTotalConcession(totalconcession);
+        settotalPayable(totalPayable);
         setTotalFine(totalfine);
+        setoverAllOutStanding(overAllOutStanding);
+        setTotalWaivedOff(totalWaivedOff);
+        setFineAmount(fine);
         setTotalCurrentFee(totalCurrentFee);
         setTotalOutStanding(totalpaying);
     }, [feeHeads]);
 
     useEffect(() => {
-        const selectedItems = feeHeads.filter((f) => selectedHeads[f.fmT_Id]);
+        const selectedItems = feeHeads.filter((f) => selectedHeads[f.fmA_Id]);
         const totalpaying = selectedItems.reduce((sum, f) => {
-            const payableValue = payableAmount[f.fmT_Id];
+            const payableValue = payableAmount[f.fmA_Id];
             const amount = payableValue ? Number.parseFloat(payableValue) || 0 : Number.parseFloat(f.fsS_ToBePaid?.toString() || '0') || 0;
             return sum + amount;
         }, 0);
@@ -329,7 +376,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
             if (!checked) {
                 setSelectAll(false);
             } else {
-                const allChecked = feeHeads.every((item) => updated[item.fmG_Id]);
+                const allChecked = feeHeads.every((item) => updated[item.fmA_Id]);
                 setSelectAll(allChecked);
             }
 
@@ -341,7 +388,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         setSelectAll(checked);
         const newState: Record<number, boolean> = {};
         feeHeads.forEach((f) => {
-            newState[f.fmT_Id] = checked;
+            newState[f.fmA_Id] = checked;
         });
 
         setSelectedHeads(newState);
@@ -425,16 +472,113 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
         }
     };
 
-    //   useEffect(() => {
-    //       if (masterModeofPaymentList) {
-    //           if (masterModeofPaymentList && Array.isArray(masterModeofPaymentList)) {
-    //               const first = masterModeofPaymentList[0].ivrmmoD_ModeOfPayment.toString();
-    //               setValue("modeofPayment", first);
-    //           }
-    //       }
-    //   }, [masterModeofPaymentList, reset]);
-
     const onSubmit = async () => {
+        if (feeHeads.filter((f) => selectedHeads[f.fmA_Id]).length === 0) {
+            toast.error('Atleast one head has to be checked to save the Transaction!!!');
+            return;
+        }
+        if (modeType === 'Single') {
+            const selectedPayment = masterModeofPaymentList.find((f) => f.ivrmmoD_ModeOfPayment === payType);
+
+            if (!selectedPayment) {
+                toast.error('Invalid payment selection');
+                return;
+            }
+            if (selectedPayment.ivrmmoD_Flag.toLowerCase() !== 'c') {
+                const paymentId = selectedPayment.ivrmmoD_Id;
+                if (!chequeNo[paymentId] || chequeNo[paymentId] === '') {
+                    toast.error('Please enter Cheque No. for Selected Payment Mode');
+                    return;
+                }
+                if (!selectedBanks[paymentId] || selectedBanks[paymentId] === '') {
+                    toast.error('Please select Bank for Selected Payment Mode');
+                    return;
+                }
+
+                if (!amount[paymentId] || amount[paymentId] === '') {
+                    toast.error('Please enter Amount for Selected Payment Mode');
+                    return;
+                }
+                if (amount[paymentId] === Number(0).toString()) {
+                    toast.error('Amount Is Must Be Greater Than Zero');
+                    return;
+                }
+                if (amount[paymentId] > Number(TotalPaying).toString() || amount[paymentId] < Number(TotalPaying).toString()) {
+                    toast.error('Sum Of Amounts Of By Mode Of Payments Must Match Now Paying Amount');
+                    return;
+                }
+            } else {
+                const paymentId = selectedPayment.ivrmmoD_Id;
+                if (amount[paymentId] === Number(0).toString()) {
+                    toast.error('Amount Is Must Be Greater Than Zero');
+                    return;
+                }
+                if (amount[paymentId] > Number(TotalPaying).toString() || amount[paymentId] < Number(TotalPaying).toString()) {
+                    toast.error('Sum Of Amounts Of By Mode Of Payments Must Match Now Paying Amount');
+                    return;
+                }
+            }
+        } else {
+            const selectedPayments = masterModeofPaymentList.filter((f) => checkPayType.includes(f.ivrmmoD_ModeOfPayment));
+
+            if (selectedPayments.length === 0) {
+                toast.error('Invalid payment selection');
+                return;
+            }
+
+            const total = selectedPayments.reduce((sum, f) => {
+                const payableValue = amount[f.ivrmmoD_Id];
+                const amountr = payableValue
+                    ? Number.parseFloat(payableValue) || 0
+                    : Number.parseFloat(amount[f.ivrmmoD_Id]?.toString() || '0') || 0;
+                return sum + amountr;
+            }, 0);
+            settotalAmount(total);
+            console.log('totalAmountSum', total);
+
+            for (const payment of selectedPayments) {
+                const paymentId = payment.ivrmmoD_Id;
+                if (payment.ivrmmoD_Flag.toLowerCase() !== 'c') {
+                    if (!chequeNo[paymentId] || chequeNo[paymentId] === '') {
+                        toast.error(`Please enter Cheque No. for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+
+                    if (!selectedBanks[paymentId] || selectedBanks[paymentId] === '') {
+                        toast.error(`Please Select a Bank for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+
+                    if (!amount[paymentId] || amount[paymentId] === '') {
+                        toast.error(`Please enter Amount for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+
+                    const paymentAmount = Number.parseFloat(amount[paymentId]);
+                    if (Number.isNaN(paymentAmount) || paymentAmount <= 0) {
+                        toast.error(`Amount Must Be Greater Than Zero for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+                } else {
+                    if (!amount[paymentId] || amount[paymentId] === '') {
+                        toast.error(`Please enter Amount for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+
+                    const paymentAmount = Number.parseFloat(amount[paymentId]);
+                    if (Number.isNaN(paymentAmount) || paymentAmount <= 0) {
+                        toast.error(`Amount Must Be Greater Than Zero for ${payment.ivrmmoD_ModeOfPayment}`);
+                        return;
+                    }
+                }
+            }
+            const tolerance = 0.01;
+            if (Math.abs(total - TotalPaying) > tolerance) {
+                toast.error(`Sum Of Amounts (${total}) Must Match Now Paying Amount (${TotalPaying})`);
+                return;
+            }
+        }
+
         try {
             const savePaymentModes = [];
 
@@ -443,7 +587,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 if (selectedPayment) {
                     const paymentMode = {
                         fyppM_TotalPaidAmount: amount[selectedPayment.ivrmmoD_Id] || '0',
-                        fyppM_TransactionTypeFlag: 'T',
+                        fyppM_TransactionTypeFlag: selectedPayment.ivrmmoD_Flag,
                         fyppM_BankName: selectedBanks[selectedPayment.ivrmmoD_Id],
                         fyppM_DDChequeDate: chequedates[selectedPayment.ivrmmoD_Id],
                         fyppM_DDChequeNo: chequeNo[selectedPayment.ivrmmoD_Id],
@@ -457,10 +601,10 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 selectedPayment.forEach((f) => {
                     const payment = {
                         fyppM_TotalPaidAmount: amount[f.ivrmmoD_Id] || '0',
-                        fyppM_TransactionTypeFlag: 'T',
-                        fyppM_BankName: selectedBanks[f.ivrmmoD_Id],
-                        fyppM_DDChequeDate: chequedates[f.ivrmmoD_Id],
-                        fyppM_DDChequeNo: chequeNo[f.ivrmmoD_Id],
+                        fyppM_TransactionTypeFlag: f.ivrmmoD_Flag,
+                        fyppM_BankName: selectedBanks[f.ivrmmoD_Id] ?? '',
+                        fyppM_DDChequeDate: chequedates[f.ivrmmoD_Id] ?? '',
+                        fyppM_DDChequeNo: chequeNo[f.ivrmmoD_Id] ?? '',
                         ivrmmoD_ModeOfPayment_Code: f.ivrmmoD_ModeOfPayment_Code,
                         fyppM_Id: 0
                     };
@@ -469,7 +613,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
             }
 
             const feeStudentTermInfos = feeHeads
-                .filter((f) => selectedHeads[f.fmT_Id])
+                .filter((f) => selectedHeads[f.fmA_Id])
                 .map((fee) => ({
                     fmA_Id: fee.fmA_Id,
                     fmH_FeeName: fee.fmH_FeeName,
@@ -477,18 +621,18 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                     ftI_Name: fee.ftI_Name,
                     fmH_Id: fee.fmH_Id,
                     ftI_Id: fee.ftI_Id,
-                    totalamount: fee.totalamount,
-                    fsS_ToBePaid: fee.fsS_ToBePaid,
-                    fsS_ConcessionAmount: fee.fsS_ConcessionAmount,
+                    totalamount: Number(netAmount[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
+                    fsS_ToBePaid: Number(payableAmount[fee.fmA_Id] ?? fee.fsS_ToBePaid),
+                    fsS_ConcessionAmount: Number(concession[fee.fmA_Id] ?? fee.fsS_ConcessionAmount),
                     fsS_FineAmount: fee.fsS_FineAmount,
-                    fsS_CurrentYrCharges: fee.fsS_CurrentYrCharges,
-                    fsS_TotalToBePaid: fee.fsS_TotalToBePaid,
+                    fsS_CurrentYrCharges: Number(currentCharges[fee.fmA_Id] ?? fee.fsS_CurrentYrCharges),
+                    fsS_TotalToBePaid: Number(totalCharges[fee.fmA_Id] ?? fee.fsS_TotalToBePaid),
                     fmG_Id: fee.fmG_Id,
                     fmG_GroupName: fee.fmG_GroupName,
                     fsS_OBArrearAmount: fee.fsS_OBArrearAmount,
                     fmT_Id: fee.fmT_Id,
-                    fsS_RebateAmount: fee.fsS_RebateAmount,
-                    fsS_WaivedAmount: 0
+                    fsS_RebateAmount: Number(rebateAmount[fee.fmA_Id] ?? fee.fsS_RebateAmount),
+                    fsS_WaivedAmount: fee.fsS_WaivedAmount
                 }));
 
             const payload = {
@@ -496,10 +640,10 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 fyP_Id: 0,
                 asmaY_Id: selectedAsmayId?.toString(),
                 automanualreceiptno: '',
-                auto_receipt_flag: 0,
+                auto_receipt_flag: 1,
                 fyP_Receipt_No: '',
                 fyPcurr_Date: todaysDate,
-                fyP_Remarks: '',
+                fyP_Remarks: narrationRemark,
                 savePaymentModes: savePaymentModes,
                 feeStudentTermInfos: feeStudentTermInfos,
                 returnval: '',
@@ -509,7 +653,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 filterinitialdata: filterType,
                 fyP_Tot_Concession_Amt: TotalConcession,
                 fyP_Tot_Fine_Amt: Totalfine,
-                fyP_Tot_Waived_Amt: 0,
+                fyP_Tot_Waived_Amt: TotalWaivedOff,
                 fyP_PayModeType: '',
                 smsconfig: sms,
                 emailconfig: email
@@ -517,10 +661,10 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
             const response = await saveFeeTransaction(payload);
 
-            if (response?.success) {
+            if (response?.displaymessage) {
                 toast.success(response.message || 'Saved successfully');
-                handleReset();
-                onSuccess?.();
+                // handleReset();
+                // onSuccess?.();
                 //  refetchAll();
             } else {
                 toast.error(response?.message || 'Save failed');
@@ -530,7 +674,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
             toast.error(err?.message || 'Something went wrong');
         }
         // toast.success("Fee Transaction Saved Successfully!");
-        onSuccess?.();
+        // onSuccess?.();
     };
 
     const handleReset = () => {
@@ -679,17 +823,22 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                 typeof field.value === 'number' || typeof field.value === 'string'
                                                     ? String(field.value)
                                                     : ''
-                                            }
-                                            disabled={loadingYears}>
+                                            }>
                                             <SelectTrigger className='w-64'>
                                                 <SelectValue placeholder='--Select Academic Year--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYearData?.data?.map((item: any) => (
-                                                    <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
-                                                        {item.asmaY_Year}
+                                                {loadingYears ? (
+                                                    <SelectItem value='loading' disabled>
+                                                        Loading...
                                                     </SelectItem>
-                                                ))}
+                                                ) : (
+                                                    academicYearData?.data?.map((item: any) => (
+                                                        <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
+                                                            {item.asmaY_Year}
+                                                        </SelectItem>
+                                                    ))
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -967,7 +1116,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
                 {/* -------- FEE GRID -------- */}
                 {loadingFeeHead ? (
-                    <Card className='p-4 text-center'>Loading Fee Head Details...</Card>
+                    <Card className='p-4 text-center text-gray-700'>Loading Fee Head Details...</Card>
                 ) : selectedTerm.length > 0 && feeHeads.length > 0 ? (
                     <Card className='p-4'>
                         <table className='w-full border text-center text-sm'>
@@ -996,8 +1145,8 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>{index + 1}</td>
                                         <td className='border p-2'>
                                             <Checkbox
-                                                checked={selectedHeads[f.fmT_Id] || false}
-                                                onCheckedChange={(val) => toggleRow(f.fmT_Id, val === true)}
+                                                checked={selectedHeads[f.fmA_Id] || false}
+                                                onCheckedChange={(val) => toggleRow(f.fmA_Id, val === true)}
                                             />
                                         </td>
 
@@ -1006,21 +1155,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={f.fsS_CurrentYrCharges}
+                                                value={currentCharges[f.fmA_Id] ?? f.fsS_CurrentYrCharges ?? ''}
                                                 disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
                                                         setCurrentCharges((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: ''
+                                                            [f.fmA_Id]: ''
                                                         }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
                                                         setCurrentCharges((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: v
+                                                            [f.fmA_Id]: v
                                                         }));
                                                     }
                                                 }}
@@ -1030,21 +1179,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={toatlAdjusted[f.fmT_Id] || ''}
+                                                value={toatlAdjusted[f.fmA_Id] ?? f.fsS_AdjustedAmount ?? ''}
                                                 // disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
                                                         setToatlAdjusted((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: ''
+                                                            [f.fmA_Id]: ''
                                                         }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
                                                         setToatlAdjusted((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: v
+                                                            [f.fmA_Id]: v
                                                         }));
                                                     }
                                                 }}
@@ -1054,21 +1203,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={f.fsS_TotalToBePaid}
+                                                value={totalCharges[f.fmA_Id] ?? f.fsS_TotalToBePaid ?? ''}
                                                 disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
                                                         setTotalCharges((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: ''
+                                                            [f.fmA_Id]: ''
                                                         }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
                                                         setTotalCharges((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: v
+                                                            [f.fmA_Id]: v
                                                         }));
                                                     }
                                                 }}
@@ -1078,7 +1227,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={f.fsS_ConcessionAmount}
+                                                value={concession[f.fmA_Id] ?? f.fsS_ConcessionAmount ?? ''}
                                                 disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
@@ -1086,14 +1235,14 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                     if (v === '') {
                                                         setConcession((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: ''
+                                                            [f.fmA_Id]: ''
                                                         }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
                                                         setConcession((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: v
+                                                            [f.fmA_Id]: v
                                                         }));
                                                     }
                                                 }}
@@ -1103,21 +1252,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={openingBalance[f.fmT_Id] || ''}
+                                                value={openingBalance[f.fmA_Id] ?? f.fsS_OBAsPerFY ?? ''}
                                                 disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
                                                         setOpeningBalance((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: ''
+                                                            [f.fmA_Id]: ''
                                                         }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
                                                         setOpeningBalance((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: v
+                                                            [f.fmA_Id]: v
                                                         }));
                                                     }
                                                 }}
@@ -1127,21 +1276,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={payableAmount[f.fmT_Id] ?? f.fsS_ToBePaid ?? ''}
-                                                disabled={!selectedHeads[f.fmT_Id]}
+                                                value={payableAmount[f.fmA_Id] ?? f.fsS_ToBePaid ?? ''}
+                                                disabled={!selectedHeads[f.fmA_Id]}
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
                                                         setPayableAmount((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: ''
+                                                            [f.fmA_Id]: ''
                                                         }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
                                                         setPayableAmount((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: v
+                                                            [f.fmA_Id]: v
                                                         }));
                                                     }
                                                 }}
@@ -1151,21 +1300,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={f.totalamount}
+                                                value={netAmount[f.fmA_Id] ?? f.fsS_CurrentYrCharges ?? ''}
                                                 disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
                                                         setNetAmount((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: ''
+                                                            [f.fmA_Id]: ''
                                                         }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
                                                         setNetAmount((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: v
+                                                            [f.fmA_Id]: v
                                                         }));
                                                     }
                                                 }}
@@ -1175,21 +1324,21 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                         <td className='border p-2'>
                                             <input
                                                 type='number'
-                                                value={f.fsS_RebateAmount}
+                                                value={rebateAmount[f.fmA_Id] ?? f.fsS_RebateAmount ?? ''}
                                                 disabled
                                                 onChange={(e) => {
                                                     const v = e.target.value;
                                                     if (v === '') {
                                                         setRebateAmount((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: ''
+                                                            [f.fmA_Id]: ''
                                                         }));
                                                         return;
                                                     }
                                                     if (/^\d*\.?\d*$/.test(v)) {
                                                         setRebateAmount((prev) => ({
                                                             ...prev,
-                                                            [f.fmT_Id]: v
+                                                            [f.fmA_Id]: v
                                                         }));
                                                     }
                                                 }}
@@ -1202,59 +1351,68 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                         </table>
                     </Card>
                 ) : (
-                    <Card className='p-4 text-center'>No Fee Head Details Found</Card>
+                    <Card className='p-4 text-center text-gray-700'>No Fee Head Details Found</Card>
                 )}
                 {selectedTerm.length > 0 && !loadingFeeHead && feeHeads.length > 0 && (
                     <div className='flex gap-8'>
-                        <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
+                        <div className='max-h-[400px] w-[75%] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
                             <Card className='mb-5 p-4'>
-                                <div className='flex w-full items-center justify-center gap-4'>
-                                    <Label htmlFor='narrationId' className='whitespace-nowrap font-semibold'>
-                                        Narration
-                                    </Label>
-                                    <Controller
-                                        name='narrationId'
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                key={field.value || 'empty'}
-                                                onValueChange={(val) => {
-                                                    const id = Number(val);
-                                                    field.onChange(id);
-                                                    setSelectedNarration(id);
-                                                }}
-                                                value={selectedNarration?.toString()}
-                                                // disabled={feeSectionDataLoading}
-                                            >
-                                                <SelectTrigger className='w-64'>
-                                                    <SelectValue placeholder='Select Narration' />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    {masternarration?.map((item) => (
-                                                        <SelectItem key={item.fmnaR_Id} value={String(item.fmnaR_Id)}>
-                                                            {item.fmnaR_Narration}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
-                                        )}
-                                    />
-                                    <div className='flex items-center justify-center gap-4'>
+                                <div className='flex w-full flex-col items-start justify-center gap-4'>
+                                    <div className='flex w-full items-center justify-center gap-4'>
+                                        <Label htmlFor='narrationId' className='whitespace-nowrap font-semibold'>
+                                            Narration
+                                        </Label>
+                                        <Controller
+                                            name='narrationId'
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select
+                                                    key={field.value || 'empty'}
+                                                    onValueChange={(val) => {
+                                                        const id = Number(val);
+                                                        field.onChange(id);
+                                                        setSelectedNarration(id);
+                                                    }}
+                                                    value={selectedNarration?.toString()}
+                                                    // disabled={feeSectionDataLoading}
+                                                >
+                                                    <SelectTrigger className='w-64'>
+                                                        <SelectValue placeholder='Select Narration' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {masternarration?.map((item) => (
+                                                            <SelectItem key={item.fmnaR_Id} value={String(item.fmnaR_Id)}>
+                                                                {item.fmnaR_Narration}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            )}
+                                        />
+                                        <InputText
+                                            id='remark'
+                                            value={narrationRemark}
+                                            onChange={(e) => setNarrationRemark(e.target.value)}
+                                            placeholder='Enter Narration'
+                                            className='flex transition-colors focus:ring-2 focus:ring-primary/20'
+                                        />
+                                    </div>
+
+                                    <div className='flex w-full items-center justify-center gap-4'>
                                         <RadioGroup
                                             value={modeType}
                                             onValueChange={(v) => {
                                                 setModeType(v);
-                                                setchepueDates({});
+                                                setchequeDates({});
                                             }}
-                                            className='flex items-center gap-6'>
-                                            <div className='flex cursor-pointer items-center space-x-2'>
+                                            className='flex items-center justify-center gap-6'>
+                                            <div className='flex cursor-pointer items-center justify-center space-x-2'>
                                                 <RadioGroupItem value='Single' id='single' />
                                                 <Label htmlFor='single' className='text-sm'>
                                                     Single
                                                 </Label>
                                             </div>
-
-                                            <div className='flex cursor-pointer items-center space-x-2'>
+                                            <div className='flex cursor-pointer items-center justify-center space-x-2'>
                                                 <RadioGroupItem value='Multiple' id='multiple' />
                                                 <Label htmlFor='multiple' className='text-sm'>
                                                     Multiple
@@ -1313,7 +1471,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                     </td>
                                                     <td className='border p-2 font-semibold'>{f.ivrmmoD_ModeOfPayment}</td>
                                                     <td className='border p-2'>
-                                                        {f.ivrmmoD_ModeOfPayment.toLocaleLowerCase() !== 'cash' &&
+                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' &&
                                                             modeType === 'Single' &&
                                                             payType === f.ivrmmoD_ModeOfPayment && (
                                                                 <Popover>
@@ -1339,7 +1497,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                                             mode='single'
                                                                             selected={chequedates[f.ivrmmoD_Id] ?? undefined}
                                                                             onSelect={(date) =>
-                                                                                setchepueDates((prev) => ({
+                                                                                setchequeDates((prev) => ({
                                                                                     ...prev,
                                                                                     [f.ivrmmoD_Id]: date ?? null
                                                                                 }))
@@ -1350,7 +1508,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                             )}
                                                         {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
                                                             modeType === 'Multiple' &&
-                                                            f.ivrmmoD_ModeOfPayment.toLocaleLowerCase() !== 'cash' && (
+                                                            f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
                                                                 <Popover>
                                                                     <PopoverTrigger asChild>
                                                                         <Button
@@ -1370,7 +1528,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                                             mode='single'
                                                                             selected={chequedates[f.ivrmmoD_Id] ?? undefined}
                                                                             onSelect={(date) =>
-                                                                                setchepueDates((prev) => ({
+                                                                                setchequeDates((prev) => ({
                                                                                     ...prev,
                                                                                     [f.ivrmmoD_Id]: date ?? null
                                                                                 }))
@@ -1381,37 +1539,36 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                             )}
                                                     </td>
                                                     <td className='border p-2'>
-                                                        {f.ivrmmoD_ModeOfPayment.toLocaleLowerCase() !== 'cash' &&
-                                                            modeType === 'Single' && (
-                                                                <InputText
-                                                                    type='number'
-                                                                    value={chequeNo[f.ivrmmoD_Id]}
-                                                                    onChange={(e) => {
-                                                                        const v = e.target.value;
-                                                                        if (v === '') {
-                                                                            setChequeNo((prev) => ({
-                                                                                ...prev,
-                                                                                [f.ivrmmoD_Id]: ''
-                                                                            }));
-                                                                            return;
-                                                                        }
-                                                                        if (/^\d*\.?\d*$/.test(v)) {
-                                                                            setChequeNo((prev) => ({
-                                                                                ...prev,
-                                                                                [f.ivrmmoD_Id]: v
-                                                                            }));
-                                                                        }
-                                                                    }}
-                                                                    className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
-                                                                    disabled={payType !== f.ivrmmoD_ModeOfPayment}
-                                                                />
-                                                            )}
+                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' && modeType === 'Single' && (
+                                                            <InputText
+                                                                type='number'
+                                                                value={chequeNo?.[f.ivrmmoD_Id] ?? ''}
+                                                                onChange={(e) => {
+                                                                    const v = e.target.value;
+                                                                    if (v === '') {
+                                                                        setChequeNo((prev) => ({
+                                                                            ...prev,
+                                                                            [f.ivrmmoD_Id]: ''
+                                                                        }));
+                                                                        return;
+                                                                    }
+                                                                    if (/^\d*\.?\d*$/.test(v)) {
+                                                                        setChequeNo((prev) => ({
+                                                                            ...prev,
+                                                                            [f.ivrmmoD_Id]: v
+                                                                        }));
+                                                                    }
+                                                                }}
+                                                                className='flex rounded-md border border-gray-300 transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20'
+                                                                disabled={payType !== f.ivrmmoD_ModeOfPayment}
+                                                            />
+                                                        )}
                                                         {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
                                                             modeType === 'Multiple' &&
-                                                            f.ivrmmoD_ModeOfPayment.toLocaleLowerCase() !== 'cash' && (
+                                                            f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
                                                                 <InputText
                                                                     type='number'
-                                                                    value={chequeNo[f.ivrmmoD_Id]}
+                                                                    value={chequeNo?.[f.ivrmmoD_Id] ?? ''}
                                                                     onChange={(e) => {
                                                                         const v = e.target.value;
                                                                         if (v === '') {
@@ -1434,55 +1591,53 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                                     </td>
 
                                                     <td className='border p-2'>
-                                                        {f.ivrmmoD_ModeOfPayment.toLocaleLowerCase() !== 'cash' &&
-                                                            modeType === 'Single' && (
-                                                                <Select
-                                                                    value={selectedBanks[f.ivrmmoD_Id] || ''}
-                                                                    onValueChange={(val) =>
-                                                                        setSelectedBanks((prev) => ({
-                                                                            ...prev,
-                                                                            [f.ivrmmoD_Id]: val
-                                                                        }))
-                                                                    }>
-                                                                    <SelectTrigger className='w-full'>
-                                                                        <SelectValue placeholder='Select Bank' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                                        <SelectItem value='canara'>Canara Bank</SelectItem>
-                                                                        <SelectItem value='ka'>Karnataka Bank</SelectItem>
-                                                                        <SelectItem value='hdfc'>HDFC</SelectItem>
-                                                                        <SelectItem value='unionBank'>Union Bank</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        {modeType === 'Multiple' &&
-                                                            f.ivrmmoD_ModeOfPayment.toLocaleLowerCase() !== 'cash' && (
-                                                                <Select
-                                                                    value={selectedBanks[f.ivrmmoD_Id] || ''}
-                                                                    onValueChange={(val) =>
-                                                                        setSelectedBanks((prev) => ({
-                                                                            ...prev,
-                                                                            [f.ivrmmoD_Id]: val
-                                                                        }))
-                                                                    }>
-                                                                    <SelectTrigger className='w-full'>
-                                                                        <SelectValue placeholder='Select Bank' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                                        <SelectItem value='canara'>Canara Bank</SelectItem>
-                                                                        <SelectItem value='ka'>Karnataka Bank</SelectItem>
-                                                                        <SelectItem value='hdfc'>HDFC</SelectItem>
-                                                                        <SelectItem value='unionBank'>Union Bank</SelectItem>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
+                                                        {f.ivrmmoD_Flag.toLowerCase() !== 'c' && modeType === 'Single' && (
+                                                            <Select
+                                                                value={selectedBanks[f.ivrmmoD_Id] || ''}
+                                                                onValueChange={(val) =>
+                                                                    setSelectedBanks((prev) => ({
+                                                                        ...prev,
+                                                                        [f.ivrmmoD_Id]: val
+                                                                    }))
+                                                                }>
+                                                                <SelectTrigger className='w-full'>
+                                                                    <SelectValue placeholder='Select Bank' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value='sbi'>State Bank Of India</SelectItem>
+                                                                    <SelectItem value='canaraBank'>Canara Bank</SelectItem>
+                                                                    <SelectItem value='karnatakaBank'>Karnataka Bank</SelectItem>
+                                                                    <SelectItem value='hdfcbank'>HDFC</SelectItem>
+                                                                    <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                        {modeType === 'Multiple' && f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
+                                                            <Select
+                                                                value={selectedBanks[f.ivrmmoD_Id] || ''}
+                                                                onValueChange={(val) =>
+                                                                    setSelectedBanks((prev) => ({
+                                                                        ...prev,
+                                                                        [f.ivrmmoD_Id]: val
+                                                                    }))
+                                                                }>
+                                                                <SelectTrigger className='w-full'>
+                                                                    <SelectValue placeholder='Select Bank' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value='sbi'>State Bank Of India</SelectItem>
+                                                                    <SelectItem value='canara'>Canara Bank</SelectItem>
+                                                                    <SelectItem value='ka'>Karnataka Bank</SelectItem>
+                                                                    <SelectItem value='hdfc'>HDFC</SelectItem>
+                                                                    <SelectItem value='unionBank'>Union Bank</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
                                                     </td>
                                                     <td className='border p-2'>
                                                         <InputText
                                                             type='number'
-                                                            value={amount[f.ivrmmoD_Id]}
+                                                            value={amount?.[f.ivrmmoD_Id] ?? ''}
                                                             onChange={(e) => {
                                                                 const v = e.target.value;
                                                                 if (v === '') {
@@ -1508,40 +1663,49 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                                     </table>
                                 </Card>
                             ) : (
-                                <Card className='p-4 text-center'>No Mode of Payment is Data Available</Card>
+                                <Card className='p-4 text-center text-gray-700'>No Mode of Payment is Data Available</Card>
                             )}
                         </div>
-                        <div className='max-h-[400px] overflow-auto rounded border bg-gray-50 p-3 shadow-inner'>
-                            <Card className='mb-5 grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-2'>
-                                <div>
-                                    Current Fee: <b>{TotalCurrentFee}</b>
+                        <div className='max-h-[400px] w-[25%] overflow-auto rounded border bg-gray-50 p-4 shadow-inner'>
+                            <Card className='mb-4 grid grid-cols-1 gap-3 p-4 text-sm'>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Current Fee:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalCurrentFee}</span>
                                 </div>
-                                <div>
-                                    Concession: <b>{TotalConcession}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Concession:</span>
+                                    <span className='font-semibold text-gray-900'>{ConcessionAmount}</span>
                                 </div>
-                                <div>
-                                    Total Outstanding: <b>{TotalOutStanding ?? 0}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Total Outstanding:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalOutStanding ?? 0}</span>
                                 </div>
-                                <div>
-                                    Fine: <b>{Totalfine}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Fine:</span>
+                                    <span className='font-semibold text-gray-900'>{fineAmount}</span>
                                 </div>
-                                <div>
-                                    Now Paying: <b>{TotalPaying}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Now Paying:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalPaying}</span>
                                 </div>
                             </Card>
 
-                            <Card className='grid grid-cols-1 gap-4 p-4 text-sm md:grid-cols-2'>
-                                <div>
-                                    Total Payable: <b>{studentAmountDetails[0].ftP_Paid_Amt}</b>
+                            <Card className='grid grid-cols-1 gap-3 p-4 text-sm'>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Total Payable:</span>
+                                    <span className='font-semibold text-gray-900'>{totalPayable}</span>
                                 </div>
-                                <div>
-                                    Total Concession: <b>{studentAmountDetails[0].ftP_Concession_Amt}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Total Concession:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalConcession}</span>
                                 </div>
-                                <div>
-                                    Total Waived off: <b>{0}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Total Waived off:</span>
+                                    <span className='font-semibold text-gray-900'>{TotalWaivedOff}</span>
                                 </div>
-                                <div>
-                                    Overall Outstanding: <b>{0}</b>
+                                <div className='flex items-center justify-between'>
+                                    <span className='text-gray-700'>Overall Outstanding:</span>
+                                    <span className='font-semibold text-gray-900'>{overAllOutStanding}</span>
                                 </div>
                             </Card>
                         </div>
