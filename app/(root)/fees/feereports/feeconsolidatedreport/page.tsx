@@ -256,15 +256,27 @@ export default function FeeDefaulterReport() {
         return Array.from(studentMap.values());
     }
 
+    // const handleExportAlltype = () => {
+    //     if (!reportData.length) {
+    //         toast.error('No data to export');
+    //         return;
+    //     }
+
+    //     const groupedRows = transformReportData(reportData);
+
+    //     exportToExcelAll(groupedRows, installments, 'Fee Consolidated Report');
+    // };
+
     const handleExportAlltype = () => {
         if (!reportData.length) {
             toast.error('No data to export');
             return;
         }
 
-        const groupedRows = transformReportData(reportData);
+        // Remove this line: const groupedRows = transformReportData(reportData);
+        // reportData is already pivoted/grouped for 'All' mode
 
-        exportToExcelAll(groupedRows, installments, 'Fee Consolidated Report');
+        exportToExcelAll(reportData, installments, 'Fee Consolidated Report');
     };
 
     const handlePrintAlltype = () => {
