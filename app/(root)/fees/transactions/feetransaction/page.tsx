@@ -118,13 +118,13 @@ function FeeTransactionContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections />
+                <FormSections asmayId={Number(selectedAsmayId ?? 0)} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ asmayId }: { asmayId: number }) {
     const { isAddFormOpen, closeAddForm, isDetailsViewOpen, closeDetailsView, addFormRef, selectedRow } = useFormContext<Ifeetransaction>();
 
     return (
@@ -147,7 +147,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <StudentFeeTransaction onSuccess={closeAddForm} />
+                            <StudentFeeTransaction onSuccess={closeAddForm} asmayId={asmayId} />
                         </div>
                     </CollapsibleSection>
                 </div>

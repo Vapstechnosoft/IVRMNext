@@ -19,7 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
-import { useFeeMasterConfiguration, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { useFeeMasterConfiguration, useFeeTransactionList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
 import { getFeeHead, getStudentDetails, saveFeeTransaction, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
 import type {
@@ -38,10 +38,11 @@ type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
 
 interface FeestudentTrasactionsFormProps {
     onSuccess?: () => void;
+    asmayId?: number;
 }
 
-export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactionsFormProps) {
-    // const { refetchAll } = useFeeTransactionList();
+export default function StudentFeeTransaction({ onSuccess, asmayId }: FeestudentTrasactionsFormProps) {
+    const { refetchAll } = useFeeTransactionList(Number(asmayId));
 
     const {
         handleSubmit,
@@ -155,10 +156,9 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
 
     const { data: masterConfiguration } = useFeeMasterConfiguration();
 
-    const config =
-        masterConfiguration && Array.isArray(masterConfiguration) && masterConfiguration.length > 0
-            ? (masterConfiguration[0] as any)?.fmC_AutoReceiptFeeGroupFlag
-            : 0;
+    const config = masterConfiguration?.data?.[0]?.fmC_AutoReceiptFeeGroupFlag ?? 0;
+    // console.log("masterConfiguration", masterConfiguration);
+    // console.log("config", config);
 
     useEffect(() => {
         setStudentSearch('');
@@ -672,7 +672,7 @@ export default function StudentFeeTransaction({ onSuccess }: FeestudentTrasactio
                 toast.success(response.message || 'Saved successfully');
                 handleReset();
                 onSuccess?.();
-                //  refetchAll();
+                refetchAll();
             } else {
                 toast.error(response?.message || 'Save failed');
             }
