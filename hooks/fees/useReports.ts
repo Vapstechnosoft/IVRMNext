@@ -9,6 +9,7 @@ import {
     getFeesGroupDropDown,
     getFeesTermDropDown
 } from '@/server/fees/reports/fee_DefaulterReport';
+import { getfeeMonths } from '@/server/fees/reports/fee_monthendReport';
 import { getFeesInstallmentDropDown, getFeesTranasctionInstallmentDropDown } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -177,6 +178,23 @@ export const useFeeTransInstallmentYearlyfeecollectionreport = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEES_REPORT_TRANSACTION_INSTLLMENT_DROPDOWN_YEARLYREPORT]
+            });
+        }
+    };
+};
+
+export const useMonthsDropdown = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_MONTHEND_REPORT_MONTHS_DROPDOWN],
+            queryFn: async () => getfeeMonths(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_MONTHEND_REPORT_MONTHS_DROPDOWN]
             });
         }
     };

@@ -737,7 +737,7 @@ export default function FeeConcessionReport() {
 
                                             <div className='overflow-x-auto'>
                                                 <table className='w-full border-collapse text-sm'>
-                                                    <thead className='bg-gray-200'>
+                                                    <thead className='bg-primary text-white'>
                                                         <tr>
                                                             <th className='border px-2 py-2 text-center'>
                                                                 <input

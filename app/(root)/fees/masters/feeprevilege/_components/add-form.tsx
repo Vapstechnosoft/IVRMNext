@@ -189,7 +189,11 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
         }
     }, [userNameData, userNameError, roles]);
 
-    const filteredHeadOptions = headOptions.filter((h) => h.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
+    //const filteredHeadOptions = headOptions.filter((h) => h.label.toLowerCase().includes(headSearchTerm.toLowerCase()));
+
+    const filteredHeadOptions = headOptions.filter((h) =>
+        (h.label ?? '').toString().toLowerCase().includes(headSearchTerm.trim().toLowerCase())
+    );
 
     const filteredUsers = userOptions.filter((u) => u.normalizedUserName.toLowerCase().includes(userSearch.toLowerCase()));
 

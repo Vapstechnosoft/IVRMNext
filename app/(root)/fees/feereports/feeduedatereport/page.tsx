@@ -396,7 +396,7 @@ export default function FeeDueDateReportForm() {
                 <CollapsibleSection defaultOpen={true}>
                     {showTable && (
                         <div className='mb-6 text-center'>
-                            <h2 className='font-bold text-lg uppercase tracking-wide'>Fee Due Date Report</h2>
+                            <h2 className='font-bold text-2xl text-primary'>Fee Due Date Report</h2>
                             <div className='mb-4 flex justify-end gap-2'>
                                 <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
                                     Export Excel
@@ -441,7 +441,7 @@ export default function FeeDueDateReportForm() {
 
                             <table className='w-full border-collapse text-sm'>
                                 {/* HEADER */}
-                                <thead>
+                                <thead className='bg-primary text-white'>
                                     <tr>
                                         <th className='w-10 border px-2 py-2 text-center'>
                                             <Checkbox

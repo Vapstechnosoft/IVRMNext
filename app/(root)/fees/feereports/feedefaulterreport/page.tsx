@@ -15,7 +15,6 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card } from '@/components/ui/card';
 import { Checkbox as BaseCheckbox } from '@/components/ui/checkbox';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -25,7 +24,6 @@ import { FormError } from '@/components/ui/extension/field';
 import { feeDefaulterReportSchema } from '@/schemas/fees/reports';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import type {
-    IFeeAuditReport,
     IFeeBusRouteDropdownList,
     IFeeClassDropdownList,
     IFeeCustomGroupDropdownList,
@@ -36,12 +34,12 @@ import type {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Input } from 'react-aria-components';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { exportToExcel, feeDefaulterReportColumns, printTable } from './_components/columns';
+import { type IFeeDefaluterReport, exportToExcel, printTable } from './_components/columns';
 
 type FormFields = z.infer<typeof feeDefaulterReportSchema>;
 
@@ -139,9 +137,14 @@ export default function FeeDefaulterReport() {
     const [feeBusRoutes, setFeeBusRoutes] = useState<IFeeBusRouteDropdownList[]>([]);
     const [customGroups, setCustomGroups] = useState<IFeeCustomGroupDropdownList[]>([]);
 
-    const [reportData, setReportData] = useState<IFeeAuditReport[]>([]);
+    const [reportData, setReportData] = useState<IFeeDefaluterReport[]>([]);
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
+
+    const [search, setSearch] = useState('');
+    const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
     const [sectionLoading, setSectionLoading] = useState(false);
 
@@ -367,35 +370,86 @@ export default function FeeDefaulterReport() {
     //   }
     // };
 
+    const filteredData = useMemo(() => {
+        let rows = [...reportData]; // your reportData from API
+
+        if (search) {
+            rows = rows.filter((r) => r.feeGroup.toLowerCase().includes(search.toLowerCase()) || r.totalDue.toString().includes(search));
+        }
+
+        if (sortKey) {
+            rows.sort((a, b) => {
+                const valA = a[sortKey];
+                const valB = b[sortKey];
+
+                if (typeof valA === 'string') {
+                    return sortOrder === 'asc' ? valA.localeCompare(valB as string) : (valB as string).localeCompare(valA);
+                }
+
+                return sortOrder === 'asc' ? (valA as number) - (valB as number) : (valB as number) - (valA as number);
+            });
+        }
+
+        return rows;
+    }, [reportData, search, sortKey, sortOrder]);
+
+    const handleSort = (key: 'feeGroup' | 'totalDue') => {
+        if (sortKey === key) {
+            setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortKey(key);
+            setSortOrder('asc');
+        }
+    };
+
+    const toggleRow = (id: number) => {
+        setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+    };
+
+    const toggleAll = () => {
+        if (selectedIds.length === filteredData.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(filteredData.map((r) => r.id));
+        }
+    };
+
+    const totalBalance = filteredData.reduce((sum, r) => sum + r.totalDue, 0);
+    const selectedBalance = filteredData.filter((r) => selectedIds.includes(r.id)).reduce((sum, r) => sum + r.totalDue, 0);
+
     const handleExportExcel = () => {
-        if (!reportData || reportData.length === 0) {
-            toast.error('No data to export');
+        const rowsToExport = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToExport || rowsToExport.length === 0) {
+            toast.error('No data selected to export');
             return;
         }
 
-        exportToExcel(reportData, 'Defaulter_Report');
+        exportToExcel(rowsToExport, 'Defaulter_Report');
     };
 
     const handlePrint = () => {
-        if (!reportData || reportData.length === 0) {
-            toast.error('No data to print');
+        const rowsToPrint = reportData.filter((r) => selectedIds.includes(r.id));
+
+        if (!rowsToPrint || rowsToPrint.length === 0) {
+            toast.error('No data selected to print');
             return;
         }
-        const columns = ['feeGroup', 'totalDue']; // use object keys
-        const columnHeaders = ['Fee Group', 'Balance Amount']; // human-readable headers
 
-        const printableRows = reportData.map((row) => ({
+        const columns = ['feeGroup', 'totalDue']; // object keys
+        const columnHeaders = ['Fee Group', 'Balance Amount']; // headers
+
+        const printableRows = rowsToPrint.map((row) => ({
             feeGroup: row.feeGroup,
-            totalDue: `₹${row.totalDue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+            totalDue: `₹${row.totalDue.toLocaleString('en-IN')}`
         }));
 
-        const total = reportData.reduce((sum, r) => sum + r.totalDue, 0);
+        const total = rowsToPrint.reduce((sum, r) => sum + r.totalDue, 0);
         const sumRow = {
             feeGroup: 'Total',
-            totalDue: `₹${total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+            totalDue: `₹${total.toLocaleString('en-IN')}`
         };
 
-        // Pass object keys to printTable, headers to display inside tableHead
         printTable(columns, printableRows, sumRow);
     };
 
@@ -415,22 +469,22 @@ export default function FeeDefaulterReport() {
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
         // STATIC MOCK DATA - Looks 100% real!
-        const mockData: IFeeAuditReport[] = [
-            { feeGroup: 'Tuition Fee', totalDue: 12500 },
-            { feeGroup: 'Transport + Tuition', totalDue: 28500 },
-            { feeGroup: 'Annual Charges', totalDue: 8000 },
-            { feeGroup: 'Tuition Fee', totalDue: 15000 },
-            { feeGroup: 'Lab + Tuition', totalDue: 42000 },
-            { feeGroup: 'Transport Fee', totalDue: 18000 },
-            { feeGroup: 'Tuition Fee', totalDue: 12500 },
-            { feeGroup: 'All Fees', totalDue: 55000 },
-            { feeGroup: 'Exam Fee', totalDue: 5000 },
-            { feeGroup: 'Tuition Fee', totalDue: 11000 },
-            { feeGroup: 'Science Fee', totalDue: 15000 },
-            { feeGroup: 'Transport', totalDue: 20000 },
-            { feeGroup: 'Tuition + Lab', totalDue: 30000 },
-            { feeGroup: 'All Fees', totalDue: 68000 },
-            { feeGroup: 'Admission Fee', totalDue: 25000 }
+        const mockData: IFeeDefaluterReport[] = [
+            { feeGroup: 'Tuition Fee', totalDue: 12500, id: 1 },
+            { feeGroup: 'Transport + Tuition', totalDue: 28500, id: 2 },
+            { feeGroup: 'Annual Charges', totalDue: 8000, id: 3 },
+            { feeGroup: 'Tuition Fee', totalDue: 15000, id: 4 },
+            { feeGroup: 'Lab + Tuition', totalDue: 42000, id: 5 },
+            { feeGroup: 'Transport Fee', totalDue: 18000, id: 6 },
+            { feeGroup: 'Tuition Fee', totalDue: 12500, id: 7 },
+            { feeGroup: 'All Fees', totalDue: 55000, id: 8 },
+            { feeGroup: 'Exam Fee', totalDue: 5000, id: 9 },
+            { feeGroup: 'Tuition Fee', totalDue: 11000, id: 10 },
+            { feeGroup: 'Science Fee', totalDue: 15000, id: 11 },
+            { feeGroup: 'Transport', totalDue: 20000, id: 12 },
+            { feeGroup: 'Tuition + Lab', totalDue: 30000, id: 13 },
+            { feeGroup: 'All Fees', totalDue: 68000, id: 14 },
+            { feeGroup: 'Admission Fee', totalDue: 25000, id: 15 }
         ];
 
         setReportData(mockData);
@@ -1419,7 +1473,7 @@ export default function FeeDefaulterReport() {
                                                     variant='default'
                                                     size='lg'
                                                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                                                    <div className='border-b bg-primary/5 px-8 py-6'>
+                                                    {/* <div className='border-b bg-primary/5 px-8 py-6'>
                                                         <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
                                                         <div className='mb-4 flex justify-end gap-2'>
                                                             <Button
@@ -1437,7 +1491,36 @@ export default function FeeDefaulterReport() {
                                                                 Print
                                                             </Button>
                                                         </div>
+                                                    </div> */}
+
+                                                    <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                        {/* <h2 className='font-bold text-blue-700 text-xl'>Fee Audit Report</h2> */}
+                                                        <div className='mb-6 text-center'>
+                                                            <h2 className='font-bold text-2xl text-primary'>Fee Defaulter Report</h2>
+                                                            {/* <div className="mt-1 text-sm text-gray-600">
+                                                                    From {formatDate(fromDate)} To {formatDate(toDate)}
+                                                                </div> */}
+                                                        </div>
+                                                        <div className='flex gap-3'>
+                                                            <div className='mb-4 flex justify-end gap-2'>
+                                                                <Button
+                                                                    size='sm'
+                                                                    className='h-8 w-auto px-3 text-xs'
+                                                                    onClick={handleExportExcel}>
+                                                                    Export Excel
+                                                                </Button>
+
+                                                                <Button
+                                                                    size='sm'
+                                                                    variant='outline'
+                                                                    className='h-8 w-auto px-3 text-xs'
+                                                                    onClick={handlePrint}>
+                                                                    Print
+                                                                </Button>
+                                                            </div>
+                                                        </div>
                                                     </div>
+
                                                     {/* <div className='mb-6 text-center'>
                                                       
                                                                           
@@ -1451,11 +1534,101 @@ export default function FeeDefaulterReport() {
                                                                                 </Button>
                                                                             </div>
                                                                         </div> */}
-                                                    <GenericDataTable<IFeeAuditReport>
+                                                    {/* <GenericDataTable<IFeeAuditReport>
                                                         columns={feeDefaulterReportColumns}
                                                         data={reportData}
                                                         isLoading={reportLoading}
-                                                    />
+                                                        isPaginationRequired={false}
+                                                    /> */}
+
+                                                    {/* <FeeDefaulterCustomTable
+                                                        data={reportData}
+                                                        isLoading={reportLoading}
+                                                    /> */}
+
+                                                    <div>
+                                                        {/* Search */}
+                                                        <input
+                                                            value={search}
+                                                            onChange={(e) => setSearch(e.target.value)}
+                                                            placeholder='Search...'
+                                                            className='w-72 rounded border px-3 py-2'
+                                                        />
+
+                                                        {/* Table */}
+                                                        <div className='overflow-x-auto border'>
+                                                            <table className='w-full table-auto border-collapse'>
+                                                                <thead className='bg-primary text-white'>
+                                                                    <tr>
+                                                                        <th className='p-2 text-center'>
+                                                                            <Checkbox
+                                                                                checked={
+                                                                                    selectedIds.length === filteredData.length &&
+                                                                                    filteredData.length > 0
+                                                                                }
+                                                                                indeterminate={
+                                                                                    selectedIds.length > 0 &&
+                                                                                    selectedIds.length < filteredData.length
+                                                                                }
+                                                                                onCheckedChange={toggleAll}
+                                                                            />
+                                                                        </th>
+                                                                        <th className='p-2 text-center'>Sl No</th>
+                                                                        <th
+                                                                            className='cursor-pointer p-2 text-center'
+                                                                            onClick={() => handleSort('feeGroup')}>
+                                                                            Group Name{' '}
+                                                                            {sortKey === 'feeGroup' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                        </th>
+                                                                        <th
+                                                                            className='cursor-pointer p-2 text-center'
+                                                                            onClick={() => handleSort('totalDue')}>
+                                                                            Balance Amount{' '}
+                                                                            {sortKey === 'totalDue' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                                                        </th>
+                                                                    </tr>
+                                                                </thead>
+
+                                                                <tbody>
+                                                                    {filteredData.map((row, index) => (
+                                                                        <tr key={row.id} className='border-b'>
+                                                                            <td className='p-2 text-center'>
+                                                                                <Checkbox
+                                                                                    checked={selectedIds.includes(row.id)}
+                                                                                    onCheckedChange={() => toggleRow(row.id)}
+                                                                                />
+                                                                            </td>
+                                                                            <td className='p-2 text-center font-medium'>{index + 1}</td>
+                                                                            <td className='p-2 text-center font-medium'>{row.feeGroup}</td>
+                                                                            <td className='p-2 text-center font-bold'>
+                                                                                ₹{row.totalDue.toLocaleString('en-IN')}
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+
+                                                                    {/* Total */}
+                                                                    <tr className='bg-gray-100 font-bold'>
+                                                                        <td />
+                                                                        <td />
+                                                                        <td className='p-2 text-center'>Total</td>
+                                                                        <td className='p-2 text-center'>
+                                                                            ₹{totalBalance.toLocaleString('en-IN')}
+                                                                        </td>
+                                                                    </tr>
+
+                                                                    {/* Selected Total */}
+                                                                    <tr className='bg-gray-200 font-bold'>
+                                                                        <td />
+                                                                        <td />
+                                                                        <td className='p-2 text-center'>Selected Balance</td>
+                                                                        <td className='p-2 text-center'>
+                                                                            ₹{selectedBalance.toLocaleString('en-IN')}
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
                                                 </CollapsibleSection>
                                             )}
                                         </div>

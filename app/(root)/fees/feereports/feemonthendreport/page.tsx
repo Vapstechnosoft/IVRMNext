@@ -2,7 +2,7 @@
 'use client';
 
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { useFeeCustomGroupDefaulterreport } from '@/hooks/fees/useReports';
+import { useFeeCustomGroupDefaulterreport, useMonthsDropdown } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { feeMonthEndReportsSchema } from '@/schemas/fees/reports';
 import { zodResolver } from '@hookform/resolvers/zod/dist/zod.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -20,9 +20,10 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
 import { get_split_year } from '@/server/fees/masters/fee_terms_period';
-import { getAuditReport } from '@/server/fees/reports/auditreport';
+import { getFeeMonthEndReportData } from '@/server/fees/reports/fee_monthendReport';
+import type { FeeMonthEndData } from '@/types/fees/reports/reports';
 import { Input } from 'react-aria-components';
-import { FeeMonthEndChart } from './chart';
+import { ExportToExcelData, ExporttoPrint, FeeMonthEndChart } from './chart';
 
 type FormFields = z.infer<typeof feeMonthEndReportsSchema>;
 
@@ -47,7 +48,8 @@ export default function FeeDefaulterReport() {
         defaultValues: {
             //fmtP_Year: '',
 
-            from_Month: ''
+            userentry: 0,
+            settlement: 0
         }
     });
 
@@ -60,14 +62,23 @@ export default function FeeDefaulterReport() {
 
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
 
+    const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+
     const [splitAcademicYear, setSplitAcademicYear] = useState<any>(null); // store API result
 
     const [isSplitLoading, setIsSplitLoading] = useState(false);
     const [selectedSplitYear, setSelectedSplitYear] = useState<string | null>(null);
 
+    const [reportData, setReportData] = useState<FeeMonthEndData | null>(null);
+
+    //const [reportData, setReportData] = useState<any>(null);
+    const [instituteLogo, setInstituteLogo] = useState<string>('');
+
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useacademicyerdropdowndatafee();
 
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    //const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    const { data: months, isLoading: monthsloading, error: monthserror } = useMonthsDropdown();
 
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
@@ -95,26 +106,26 @@ export default function FeeDefaulterReport() {
         setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
     };
 
-    // const handleExport = () => {
-    //     if (!selectedRows.length) {
-    //         toast.error('Please select at least one record');
-    //         return;
-    //     }
-    //     // exportToExcel(selectedRows, 'Audit-Report');
-    // };
-
-    // const handlePrint = () => {
-    //     if (!selectedRows.length) {
-    //         toast.error('Please select at least one record');
-    //         return;
-    //     }
-    //     window.print();
-    //     // printTable(tableColumns, selectedRows, tableSumRow);
-    // };
-
     const schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || 'My School';
     const schoolAddress = process.env.NEXT_PUBLIC_SCHOOL_ADDRESS || 'My Address';
     const month = watch('from_Month') || '';
+
+    const designation = 'Implementation Engineer';
+    const iename = watch('iename') || '';
+
+    const academicYearId = watch('asmay_Id');
+
+    const monthid = watch('from_Month');
+
+    const formattedDate = new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric'
+    });
+
+    const monthlabel = months?.data?.find((item: any) => Number(item.ivrM_Month_Id) === Number(monthid))?.ivrM_Month_Name || '';
+
+    const academicYearLabel = academicYear?.data?.find((item: any) => Number(item.asmaY_Id) === Number(academicYearId))?.asmaY_Year || '';
 
     useEffect(() => {
         if (selectedAcademicYear !== null) {
@@ -136,60 +147,45 @@ export default function FeeDefaulterReport() {
             fetchSplitAcademicYear();
         }
     }, [selectedAcademicYear]);
+
+    const handleExport = () => {
+        ExportToExcelData(reportData, formattedDate, instituteLogo || undefined, monthlabel);
+    };
+
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = () => {
+        if (!printRef.current) return;
+        ExporttoPrint(printRef.current.innerHTML);
+    };
+
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-        const payload = {
-            //academicYearId: data.academicYearId
-            // asmayId: data.academicYearId,
-            // fromDate: filters.fromDate.toISOString().split('T')[0],
-            // toDate: filters.toDate.toISOString().split('T')[0],
-            // flag: filters.breakdown
-        };
+        const response = await getFeeMonthEndReportData(
+            Number(data.asmay_Id), // Academic Year
+            Number(data.fmtP_Year),
+            Number(data.from_Month),
+            Number(data.userentry ?? 0),
+            Number(data.settlement ?? 0)
+        );
 
-        console.log('payload', payload);
-        const response = await getAuditReport(payload);
+        console.log('Fee Month End Report Data:', JSON.stringify(response));
 
-        // if (!response?.success || !Array.isArray(response.data)) {
-        //     toast.error('Failed to fetch data');
-        //     setReportData([]);
-        //    // setShowReport(false);
-        //     return;
-        // }
+        if (!response || !response.success || !response.data || !Array.isArray(response.data.list) || response.data.list.length === 0) {
+            toast.error('No data found for the selected criteria');
+            return;
+        }
+        const report = response.data.list[0];
 
-        // // success = true but no records
-        // if (response.data.length === 0) {
-        //     setReportData([]);
-        //     setSelectedIds([]);
-        //    // setShowReport(false);
-        //     toast.info('No records found for selected criteria');
-        //     return;
-        // }
+        const instituteLogo = response.data.institute_logo;
 
-        // const mapApiToReportRows = (apiData: any[]): auditreportow[] => {
-        //     return apiData.map((item, index) => ({
-        //         id: index + 1,
-        //         studentName: item.name?.trim() || '-',
-        //         mobileNo: item.mobileNo || '-',
-        //         classSection: `${item.asmcL_ClassName || ''} ${item.asmC_SectionName || ''}`.trim(),
-        //         receiptDate: item.date || '-',
-        //         receiptNo: item.fyP_Receipt_No || '-',
-        //         paymentMode: item.fyP_Bank_Or_Cash || '-',
-        //         chequeNo: item.fyP_DD_Cheque_No || '',
-        //         tuitionFee: Number(item.tutionfees) || 0
-        //     }));
-        // };
-
-        // const mappedRows = mapApiToReportRows(response.data);
-
-        // setReportData(mappedRows);
-        setSelectedIds([]);
+        // ✅ Set state
+        //  setReportData(report);
+        setReportData({
+            ...response.data, // contains institute_logo, etc.
+            list: response.data.list
+        });
+        setInstituteLogo(instituteLogo);
         setShowReport(true);
-        setReportLoading(false);
-        // Found ${mappedRows.length} records
-        toast.success('Report generated successfully! ');
-
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
     };
 
     return (
@@ -242,14 +238,20 @@ export default function FeeDefaulterReport() {
                                                 name='from_Month'
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <Select value={field.value || ''} onValueChange={field.onChange}>
+                                                    <Select
+                                                        onValueChange={(val) => {
+                                                            const id = Number(val);
+                                                            field.onChange(id);
+                                                            setSelectedMonth(id);
+                                                        }}
+                                                        value={field.value ? String(field.value) : ''}>
                                                         <SelectTrigger className='w-full text-center'>
                                                             <SelectValue placeholder='--Select Month--' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {months.map((month) => (
-                                                                <SelectItem key={month} value={month}>
-                                                                    {month}
+                                                            {months?.data?.map((item: any) => (
+                                                                <SelectItem key={item.ivrM_Month_Id} value={item.ivrM_Month_Id.toString()}>
+                                                                    {item.ivrM_Month_Name}
                                                                 </SelectItem>
                                                             ))}
                                                         </SelectContent>
@@ -304,12 +306,12 @@ export default function FeeDefaulterReport() {
                                     {/* Checkboxes (Full Width Row) */}
                                     <div className='col-span-2 mt-4 flex justify-center gap-20'>
                                         <Label className='flex items-center gap-2'>
-                                            <Input type='checkbox' />
+                                            <Input type='checkbox' onChange={(e) => setValue('userentry', e.target.checked ? 1 : 0)} />
                                             User Entry
                                         </Label>
 
                                         <Label className='flex items-center gap-2'>
-                                            <Input type='checkbox' />
+                                            <Input type='checkbox' onChange={(e) => setValue('settlement', e.target.checked ? 1 : 0)} />
                                             Settlement Report
                                         </Label>
                                     </div>
@@ -344,38 +346,38 @@ export default function FeeDefaulterReport() {
                                     {/* ==================== REPORT SECTION ==================== */}
 
                                     {showReport && (
-                                        <div className='mt-8'>
+                                        <div ref={printRef} className='mt-8'>
                                             <CollapsibleSection defaultOpen={true}>
                                                 <div className='mt-10 rounded-lg border bg-white shadow-xl'>
-                                                    <div className='flex items-center justify-between border-b bg-blue-50 px-6 py-4'>
-                                                        <h2 className='font-bold text-blue-700 text-xl'>Fee Month End Report</h2>
+                                                    <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                        <h2 className='font-bold text-2xl text-primary'>Fee Month End Report</h2>
 
                                                         <div className='flex gap-3'>
-                                                            {/* <div className='mb-4 flex justify-end gap-2'>
-                                                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExport}>
-                                                            Export Excel
-                                                        </Button>
+                                                            <div className='mb-4 flex justify-end gap-2'>
+                                                                <Button
+                                                                    size='sm'
+                                                                    className='h-8 w-auto px-3 text-xs'
+                                                                    onClick={handleExport}>
+                                                                    Export Excel
+                                                                </Button>
 
-                                                        <Button
-                                                            size='sm'
-                                                            variant='outline'
-                                                            className='h-8 w-auto px-3 text-xs'
-                                                            onClick={handlePrint}>
-                                                            Print
-                                                        </Button>
-                                                    </div> */}
+                                                                <Button
+                                                                    size='sm'
+                                                                    variant='outline'
+                                                                    className='h-8 w-auto px-3 text-xs'
+                                                                    onClick={handlePrint}>
+                                                                    Print
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
 
                                                     <div className='border bg-white p-6 text-sm'>
                                                         {/* ================= HEADER ================= */}
                                                         <div className='text-center'>
-                                                            {/* <h1 className="font-bold text-lg uppercase">{schoolName}</h1>
-                                                    <p className="text-xs">{schoolAddress}</p> */}
-
-                                                            {/* <h2 className="mt-4 font-bold uppercase">
-                                                        School Fees {month} Month Report
-                                                    </h2> */}
+                                                            {instituteLogo && (
+                                                                <img src={instituteLogo} alt='Institute Logo' className='mx-auto' />
+                                                            )}
                                                         </div>
 
                                                         {/* ================= INFO TABLE ================= */}
@@ -383,28 +385,28 @@ export default function FeeDefaulterReport() {
                                                             <tbody>
                                                                 <tr>
                                                                     <td className='border p-2'>Name :</td>
-                                                                    {/* <td className="border p-2">{name}</td> */}
+                                                                    <td className='border p-2'>{iename}</td>
                                                                     <td className='border p-2'>Date :</td>
-                                                                    {/* <td className="border p-2">{date}</td> */}
+                                                                    <td className='border p-2'>{formattedDate}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>Designation :</td>
-                                                                    {/* <td className="border p-2">{designation}</td> */}
+                                                                    <td className='border p-2'>{designation}</td>
                                                                     <td className='border p-2'>Academic Year :</td>
-                                                                    {/* <td className="border p-2">{academicYear}</td> */}
+                                                                    <td className='border p-2'>{academicYearLabel}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>Total SMS :</td>
-                                                                    {/* <td className="border p-2">{totalSMS}</td> */}
+                                                                    <td className='border p-2'>{reportData?.smsCount}</td>
                                                                     <td className='border p-2'>Total Email :</td>
-                                                                    {/* <td className="border p-2">{totalEmail}</td> */}
+                                                                    <td className='border p-2'>{reportData?.emailCount}</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
 
                                                         {/* ================= SUMMARY TABLE ================= */}
                                                         <table className='mt-6 w-full border text-center'>
-                                                            <thead className='bg-blue-700 text-white'>
+                                                            <thead className='bg-primary text-white'>
                                                                 <tr>
                                                                     <th className='border p-2'>SL.NO</th>
                                                                     <th className='border p-2 text-left'>Name</th>
@@ -417,72 +419,63 @@ export default function FeeDefaulterReport() {
                                                                 <tr>
                                                                     <td className='border p-2'>1</td>
                                                                     <td className='border p-2 text-left'>Fee Collection By Cash</td>
-                                                                    {/* <td className="border p-2">{stats.cash}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.cashCount || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>2</td>
                                                                     <td className='border p-2 text-left'>Fee Collection By Bank</td>
-                                                                    {/* <td className="border p-2">{stats.bank}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.bankCount || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>3</td>
                                                                     <td className='border p-2 text-left'>Fee Collection By Online</td>
-                                                                    {/* <td className="border p-2">{stats.online}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.onlineCount || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>4</td>
                                                                     <td className='border p-2 text-left'>Fee Collection By RTGS</td>
-                                                                    {/* <td className="border p-2">{stats.rtgs}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.rtgs || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>5</td>
                                                                     <td className='border p-2 text-left'>Fee Collection By Card</td>
-                                                                    {/* <td className="border p-2">{stats.card}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.cardCount || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>6</td>
                                                                     <td className='border p-2 text-left'>Fee Collection By ECS</td>
-                                                                    {/* <td className="border p-2">{stats.ecs}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.ecs || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>7</td>
                                                                     <td className='border p-2 text-left'>Fee Refund By Cash</td>
-                                                                    {/* <td className="border p-2">{stats.refundCash}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.refund || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>8</td>
                                                                     <td className='border p-2 text-left'>Fee Refund By Bank</td>
-                                                                    {/* <td className="border p-2">{stats.refundBank}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.refundBank || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td className='border p-2'>9</td>
                                                                     <td className='border p-2 text-left'>Fee Defaulters</td>
-                                                                    {/* <td className="border p-2">{stats.defaulters}</td> */}
-                                                                    <td className='border p-2'>0</td>
+                                                                    <td className='border p-2'>{reportData?.defaulters || 0}</td>
                                                                     <td className='border p-2'>0</td>
                                                                     <td className='border p-2'>0</td>
                                                                 </tr>
@@ -497,15 +490,15 @@ export default function FeeDefaulterReport() {
                                                             <div>Seal</div>
                                                         </div>
                                                         <FeeMonthEndChart
-                                                            cash={1}
-                                                            bank={2}
-                                                            online={5}
-                                                            rtgs={6}
-                                                            card={7}
-                                                            ecs={8}
-                                                            cashRefund={9}
-                                                            bankRefund={10}
-                                                            defaulters={11}
+                                                            cash={reportData?.cashCount || 0}
+                                                            bank={reportData?.bankCount || 0}
+                                                            online={reportData?.onlineCount || 0}
+                                                            rtgs={reportData?.rtgs || 0}
+                                                            card={reportData?.cardCount || 0}
+                                                            ecs={reportData?.ecs || 0}
+                                                            cashRefund={reportData?.refund || 0}
+                                                            bankRefund={reportData?.refundBank || 0}
+                                                            defaulters={reportData?.defaulters || 0}
                                                         />
                                                     </div>
                                                 </div>

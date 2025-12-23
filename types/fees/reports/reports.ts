@@ -217,3 +217,32 @@ export interface FeeClassCategoryReportList {
     fmgG_GroupName: string;
     fmgG_Id: number;
 }
+
+export interface IFeeMonthsListDropdown {
+    ivrM_Month_Id: number;
+    ivrM_Month_Name: string;
+}
+
+export interface FeeMonthEndData {
+    cashCount: number;
+    bankCount: number;
+    onlineCount: number;
+    rtgs: number;
+    cardCount: number;
+    ecs: number;
+    defaulters: number;
+    refund: number;
+    refundBank: number;
+    smsCount: number;
+    emailCount: number;
+}
+
+export interface IFeeMonthsListDropdown {
+    ivrM_Month_Id: number;
+    ivrM_Month_Name: string;
+}
+
+export interface ConsolidatedReportInstallemntDropdownList {
+    ftI_Id: number;
+    ftI_Name: string;
+}

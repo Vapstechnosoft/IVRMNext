@@ -385,7 +385,7 @@ export default function FeeHeadWiseReportForm() {
                 <div className='my-6 border-gray-300 border-t' />
                 {showTable && (
                     <div className='mb-6 text-center'>
-                        <h2 className='font-bold text-lg uppercase tracking-wide'>Fee Headwise Report</h2>
+                        <h2 className='font-bold text-2xl text-primary'>Fee Headwise Report</h2>
 
                         <div className='mb-4 flex justify-end gap-2'>
                             <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
@@ -432,7 +432,7 @@ export default function FeeHeadWiseReportForm() {
 
                             <table className='w-full border-collapse text-sm'>
                                 {/* HEADER */}
-                                <thead>
+                                <thead className='bg-primary text-white'>
                                     <tr className='bg-blue-600 text-white'>
                                         <th className='w-10 border px-2 py-2 text-center'>
                                             <Checkbox

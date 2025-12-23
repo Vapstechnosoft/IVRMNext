@@ -945,6 +945,9 @@ export interface IFeeTermDetails {
     fsS_OBArrearAmount: number;
     fmT_Id: number;
     fsS_RebateAmount: number;
+    fsS_WaivedAmount: number;
+    fsS_OBAsPerFY: number;
+    fsS_AdjustedAmount: number;
 }
 export interface MasterNarration {
     fmnaR_Id: number;

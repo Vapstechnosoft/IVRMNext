@@ -53,7 +53,9 @@ export const feeMonthEndReportsSchema = z.object({
     fmtP_Year: z.string().min(1, 'Please select year'),
     asmay_Id: z.number({ message: 'Academic Year is required' }),
     iename: createStringOnlyOptionalSchema('IE Name', 1, 50),
-    from_Month: z.string().min(1, 'Please select from month')
+    from_Month: z.number().min(1, 'Please select from month'),
+    userentry: z.number().optional(),
+    settlement: z.number().optional()
 });
 
 export const feeDefaulterReportSchema = z
@@ -139,3 +141,14 @@ export const feesClassCategoryReportSchema = {
         asmaY_Id: z.number({ required_error: 'Academic year is required' })
     })
 };
+
+export const feeConsolidatedReportsSchema = z.object({
+    academicYearId: z.number({ message: 'Academic Year is required' }),
+    classId: z
+        .number({ invalid_type_error: 'Class is required' })
+        .refine((v) => v !== undefined && v !== 0, { message: 'Class is required' }),
+    sectionId: z
+        .number({ invalid_type_error: 'Section is required' })
+        .refine((v) => v !== undefined && v !== 0, { message: 'Section is required' }),
+    userType: z.enum(['All', 'indi']).default('All')
+});

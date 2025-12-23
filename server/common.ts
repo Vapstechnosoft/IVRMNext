@@ -451,7 +451,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcessiondetails',
                                             title: 'Master Concession Category Details',
-                                            description: 'Master Master Concession Category Details'
+                                            description: 'Manage Master Concession Category Details'
                                         },
                                         {
                                             id: 650,
@@ -459,7 +459,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/concessioncategorygroupheadmapping',
                                             title: 'Master Concession Category Group Head Mapping',
-                                            description: 'Master Master Concession Category Group Head Mapping'
+                                            description: 'Manage Master Concession Category Group Head Mapping'
                                         },
                                         {
                                             id: 27,
@@ -788,6 +788,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/classcategoryreport',
                                             title: 'Fee Class Category Report',
                                             description: 'Manage Fee Class Category Report Details'
+                                        },
+                                        {
+                                            id: 10020,
+                                            name: 'Fee Consolidated Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeconsolidatedreport',
+                                            title: 'Fee Consolidated Report',
+                                            description: 'Manage Fee Consolidated Report Details'
                                         }
                                     ]
                                 }

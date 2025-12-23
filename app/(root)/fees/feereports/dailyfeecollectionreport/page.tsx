@@ -1083,7 +1083,7 @@ export default function DailyFeeCollectionReportForm() {
                     <div className='mt-10'>
                         {/* 🔹 REPORT HEADER */}
                         <div className='mb-6 text-center'>
-                            <h2 className='font-bold text-lg uppercase tracking-wide'>Daily Fee Collection Report</h2>
+                            <h2 className='font-bold text-2xl text-primary'>Daily Fee Collection Report</h2>
                             {/* <div className="mt-1 text-sm text-gray-600">
                 From {formatDate(fromDate)} To {formatDate(toDate)}
             </div> */}
@@ -1120,7 +1120,7 @@ export default function DailyFeeCollectionReportForm() {
                         {/* 🔹 TABLE */}
                         <div className='overflow-auto rounded-md border'>
                             <table className='w-full border-collapse text-sm'>
-                                <thead className='bg-gray-200'>
+                                <thead className='bg-primary text-white'>
                                     <tr>
                                         {tableColumns.map((col) => (
                                             <th key={col} className='border px-3 py-2 text-left'>

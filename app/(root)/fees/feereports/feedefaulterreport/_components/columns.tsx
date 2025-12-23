@@ -1,84 +1,154 @@
 'use client';
 
+import { Checkbox } from '@/components/ui/checkbox';
+import { useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 
-import { Checkbox } from '@/components/ui/checkbox';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
-import type { ColumnDef } from '@tanstack/react-table';
-
-export interface IFeeAuditReport {
+export interface IFeeDefaluterReport {
     feeGroup: string;
     totalDue: number;
+    id: number;
 }
 
-export const feeDefaulterReportColumns: ColumnDef<IFeeAuditReport>[] = [
-    // 1. Select All / Individual Checkbox
-    {
-        id: 'select',
-        header: ({ table }) => (
-            <Checkbox
-                checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && 'indeterminate')}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                aria-label='Select all rows'
-                className='translate-y-[2px]'
-            />
-        ),
-        cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-                className='translate-y-[2px]'
-            />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-        size: 40
-    },
+interface Props {
+    data: IFeeDefaluterReport[];
+    isLoading?: boolean;
+}
 
-    // 2. Serial Number (Safe: uses only table state)
-    {
-        id: 'serial',
-        header: () => <div className='text-center'>Sl.No.</div>,
-        cell: ({ row, table }) => {
-            const pageIndex = table.getState().pagination.pageIndex;
-            const pageSize = table.getState().pagination.pageSize;
-            const index = pageIndex * pageSize + row.index + 1;
-            return <div className='text-center font-medium'>{index}</div>;
-        },
-        enableSorting: false,
-        enableHiding: false,
-        size: 80
-    },
+export default function FeeDefaulterCustomTable({ data, isLoading }: Props) {
+    const [search, setSearch] = useState('');
+    const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+    const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
-    // 3. Fee Group Name
-    {
-        accessorKey: 'feeGroup',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Fee Group Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('feeGroup')}</div>,
-        enableSorting: true
-    },
+    const [openSort, setOpenSort] = useState<null | 'feeGroup' | 'totalDue'>(null);
 
-    // 4. Balance Amount - HYDRATION-SAFE VERSION
-    // 4. Balance Amount - HYDRATION-SAFE + SAME ALIGNMENT AS FEE GROUP
-    {
-        accessorKey: 'totalDue',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Balance Amount (₹)' />,
-        cell: ({ row }) => {
-            const amount = Number(row.getValue('totalDue'));
-            // Safe Indian comma formatting (no hydration error)
-            const formatted = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    // 🔍 SEARCH + SORT
+    const filteredData = useMemo(() => {
+        let rows = [...data];
 
-            return <div className='font-bold text-red-600'>₹{formatted}</div>;
-        },
-        enableSorting: true,
-        sortingFn: 'basic',
-        // Optional: if you want header text also left-aligned like Fee Group
-        meta: {
-            className: 'text-left'
+        // SEARCH
+        if (search) {
+            rows = rows.filter((r) => r.feeGroup.toLowerCase().includes(search.toLowerCase()) || r.totalDue.toString().includes(search));
         }
-    }
-];
+
+        // SORT
+        if (sortKey) {
+            rows.sort((a, b) => {
+                const valA = a[sortKey];
+                const valB = b[sortKey];
+
+                if (typeof valA === 'string') {
+                    return sortOrder === 'asc' ? valA.localeCompare(valB as string) : (valB as string).localeCompare(valA);
+                }
+
+                return sortOrder === 'asc' ? (valA as number) - (valB as number) : (valB as number) - (valA as number);
+            });
+        }
+
+        return rows;
+    }, [data, search, sortKey, sortOrder]);
+
+    // 🔃 SORT HANDLER
+    const handleSort = (key: 'feeGroup' | 'totalDue') => {
+        if (sortKey === key) {
+            setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortKey(key);
+            setSortOrder('asc');
+        }
+    };
+
+    // ✅ SELECTION
+    const toggleRow = (index: number) => {
+        setSelectedRows((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]));
+    };
+
+    const toggleAll = () => {
+        if (selectedRows.length === filteredData.length) {
+            setSelectedRows([]);
+        } else {
+            setSelectedRows(filteredData.map((_, i) => i));
+        }
+    };
+
+    // 💰 TOTALS
+    const totalBalance = filteredData.reduce((sum, r) => sum + r.totalDue, 0);
+
+    const selectedBalance = selectedRows.reduce((sum, i) => sum + filteredData[i].totalDue, 0);
+
+    if (isLoading) return <div>Loading...</div>;
+
+    return (
+        <div className='space-y-3'>
+            {/* 🔍 SEARCH */}
+            <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder='Search group or amount...'
+                className='w-72 rounded border px-3 py-2'
+            />
+
+            {/* TABLE */}
+            <div className='overflow-x-auto border'>
+                <table className='w-full table-auto border-collapse'>
+                    <thead className='bg-primary text-white'>
+                        <tr>
+                            <th className='p-2 text-center'>
+                                <Checkbox
+                                    checked={selectedRows.length === filteredData.length && filteredData.length > 0}
+                                    onCheckedChange={toggleAll}
+                                />
+                            </th>
+
+                            <th className='p-2 text-center'>Sl No</th>
+
+                            <th className='cursor-pointer p-2 text-center' onClick={() => handleSort('feeGroup')}>
+                                Group Name {sortKey === 'feeGroup' && (sortOrder === 'asc' ? '↑' : '↓')}
+                            </th>
+
+                            <th className='cursor-pointer p-2 text-center' onClick={() => handleSort('totalDue')}>
+                                Balance Amount {sortKey === 'totalDue' && (sortOrder === 'asc' ? '↑' : '↓')}
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {filteredData.map((row, index) => (
+                            <tr key={index} className='border-b'>
+                                <td className='p-2 text-center'>
+                                    <Checkbox checked={selectedRows.includes(index)} onCheckedChange={() => toggleRow(index)} />
+                                </td>
+
+                                <td className='p-2 text-center font-medium'>{index + 1}</td>
+
+                                <td className='p-2 text-center font-medium'>{row.feeGroup}</td>
+
+                                <td className='p-2 text-center font-bold'>₹{row.totalDue.toLocaleString('en-IN')}</td>
+                            </tr>
+                        ))}
+
+                        {/* TOTAL */}
+                        <tr className='bg-gray-100 font-bold'>
+                            <td />
+                            <td />
+                            <td className='p-2 text-center'>Total</td>
+                            <td className='p-2 text-center'>₹{totalBalance.toLocaleString('en-IN')}</td>
+                        </tr>
+
+                        {/* SELECTED TOTAL */}
+                        <tr className='bg-gray-200 font-bold'>
+                            <td />
+                            <td />
+                            <td className='p-2 text-center'>Selected Balance</td>
+                            <td className='p-2 text-center'>₹{selectedBalance.toLocaleString('en-IN')}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
 
 export function printTable(columns: string[], rows: any[], sumRow?: any) {
     const printWindow = window.open('', '', 'width=1200,height=800');

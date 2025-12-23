@@ -210,7 +210,8 @@ export const FEES_QUERY_KEYS = {
     FEE_ADJUSTMENT_HEAD_DROPDOWN: 'fee_adjustment_head_drop_down',
     FEE_ADJUSTMENT_TO_GROUP_DROPDOWN: 'fee_adjustment_to_group_drop_down',
     FEE_ADJUSTMENT_TO_HEAD_DROPDOWN: 'fee_adjustment_to_head_drop_down',
-    FEES_REPORT_TRANSACTION_INSTLLMENT_DROPDOWN_YEARLYREPORT: 'fees_report_transaction_instllment_dropdown_yearlyreport'
+    FEES_REPORT_TRANSACTION_INSTLLMENT_DROPDOWN_YEARLYREPORT: 'fees_report_transaction_instllment_dropdown_yearlyreport',
+    FEE_MONTHEND_REPORT_MONTHS_DROPDOWN: 'fee_monthend_report_months_dropdown'
 };
 
 export const EXAM_QUERY_KEYS = {
