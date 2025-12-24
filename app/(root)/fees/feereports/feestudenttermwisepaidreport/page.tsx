@@ -181,6 +181,176 @@ export default function FeeAccountsPositionReport() {
                 fine: 1500,
                 balance: 42000,
                 lastyearDue: 3000
+            },
+            {
+                id: 10025,
+                studentName: 'Anjali Mehta',
+                admNumber: 2024006,
+                feeHead: 'Tuition Fee',
+                className: '8th Grade',
+                section: 'B',
+                RouteName: 'Route E - West Zone',
+                ChargesasperAcademicyear: 42000,
+                ConcessionasperAcademicyear: 4000,
+                RebateScholarshipasperAcademicyear: 2000,
+                waivedOffasperAcademicyear: 1000,
+                collectionasperAcademicyear: 32000,
+                fine: 300,
+                balance: 6700,
+                lastyearDue: 0
+            },
+            {
+                id: 10026,
+                studentName: 'Kunal Shah',
+                admNumber: 2024007,
+                feeHead: 'Transport Fee',
+                className: '7th Grade',
+                section: 'C',
+                RouteName: 'Route F - City Center',
+                ChargesasperAcademicyear: 18000,
+                ConcessionasperAcademicyear: 1500,
+                RebateScholarshipasperAcademicyear: 500,
+                waivedOffasperAcademicyear: 0,
+                collectionasperAcademicyear: 14000,
+                fine: 0,
+                balance: 2000,
+                lastyearDue: 0
+            },
+            {
+                id: 10027,
+                studentName: 'Pavan Kumar',
+                admNumber: 2024008,
+                feeHead: 'Tuition + Lab',
+                className: '9th Grade',
+                section: 'D',
+                RouteName: 'Route C - North Zone',
+                ChargesasperAcademicyear: 78000,
+                ConcessionasperAcademicyear: 6000,
+                RebateScholarshipasperAcademicyear: 3000,
+                waivedOffasperAcademicyear: 2000,
+                collectionasperAcademicyear: 56000,
+                fine: 800,
+                balance: 15000,
+                lastyearDue: 2000
+            },
+            {
+                id: 10028,
+                studentName: 'Divya Nair',
+                admNumber: 2024009,
+                feeHead: 'Tuition Fee',
+                className: '6th Grade',
+                section: 'A',
+                RouteName: 'Route B - Suburbs',
+                ChargesasperAcademicyear: 36000,
+                ConcessionasperAcademicyear: 3000,
+                RebateScholarshipasperAcademicyear: 1500,
+                waivedOffasperAcademicyear: 500,
+                collectionasperAcademicyear: 29000,
+                fine: 0,
+                balance: 2000,
+                lastyearDue: 0
+            },
+            {
+                id: 10029,
+                studentName: 'Suresh Rao',
+                admNumber: 2024010,
+                feeHead: 'Annual Charges',
+                className: '11th Grade',
+                section: 'B',
+                RouteName: 'Route D - South Zone',
+                ChargesasperAcademicyear: 25000,
+                ConcessionasperAcademicyear: 2000,
+                RebateScholarshipasperAcademicyear: 1000,
+                waivedOffasperAcademicyear: 500,
+                collectionasperAcademicyear: 18000,
+                fine: 400,
+                balance: 5100,
+                lastyearDue: 1000
+            },
+            {
+                id: 10030,
+                studentName: 'Mehul Jain',
+                admNumber: 2024011,
+                feeHead: 'Transport + Tuition',
+                className: '10th Grade',
+                section: 'E',
+                RouteName: 'Route A - Downtown',
+                ChargesasperAcademicyear: 90000,
+                ConcessionasperAcademicyear: 10000,
+                RebateScholarshipasperAcademicyear: 5000,
+                waivedOffasperAcademicyear: 3000,
+                collectionasperAcademicyear: 68000,
+                fine: 1200,
+                balance: 18000,
+                lastyearDue: 4000
+            },
+            {
+                id: 10031,
+                studentName: 'Nisha Kulkarni',
+                admNumber: 2024012,
+                feeHead: 'Tuition Fee',
+                className: '5th Grade',
+                section: 'C',
+                RouteName: 'Route F - City Center',
+                ChargesasperAcademicyear: 30000,
+                ConcessionasperAcademicyear: 2500,
+                RebateScholarshipasperAcademicyear: 1000,
+                waivedOffasperAcademicyear: 500,
+                collectionasperAcademicyear: 24000,
+                fine: 0,
+                balance: 2000,
+                lastyearDue: 0
+            },
+            {
+                id: 10032,
+                studentName: 'Ritesh Singh',
+                admNumber: 2024013,
+                feeHead: 'Lab + Tuition',
+                className: '12th Grade',
+                section: 'A',
+                RouteName: 'Route C - North Zone',
+                ChargesasperAcademicyear: 95000,
+                ConcessionasperAcademicyear: 12000,
+                RebateScholarshipasperAcademicyear: 6000,
+                waivedOffasperAcademicyear: 4000,
+                collectionasperAcademicyear: 70000,
+                fine: 0,
+                balance: 23000,
+                lastyearDue: 5000
+            },
+            {
+                id: 10033,
+                studentName: 'Shalini Das',
+                admNumber: 2024014,
+                feeHead: 'Tuition Fee',
+                className: '7th Grade',
+                section: 'D',
+                RouteName: 'Route E - West Zone',
+                ChargesasperAcademicyear: 34000,
+                ConcessionasperAcademicyear: 3000,
+                RebateScholarshipasperAcademicyear: 1200,
+                waivedOffasperAcademicyear: 800,
+                collectionasperAcademicyear: 26000,
+                fine: 200,
+                balance: 2800,
+                lastyearDue: 0
+            },
+            {
+                id: 10034,
+                studentName: 'Aditya Malhotra',
+                admNumber: 2024015,
+                feeHead: 'Transport Fee',
+                className: '8th Grade',
+                section: 'E',
+                RouteName: 'Route B - Suburbs',
+                ChargesasperAcademicyear: 22000,
+                ConcessionasperAcademicyear: 2000,
+                RebateScholarshipasperAcademicyear: 0,
+                waivedOffasperAcademicyear: 0,
+                collectionasperAcademicyear: 17000,
+                fine: 500,
+                balance: 3500,
+                lastyearDue: 0
             }
         ];
 
@@ -482,10 +652,10 @@ export default function FeeAccountsPositionReport() {
                                                                         <tr key={row.id} className='border-b'>
                                                                             <td className='border px-2 py-2 text-center'>{index + 1}</td>
                                                                             <td className='border px-2 py-2 text-center'>
-                                                                                {row.studentName}
+                                                                                {row.admNumber}
                                                                             </td>
                                                                             <td className='border px-2 py-2 text-center'>
-                                                                                {row.admNumber}
+                                                                                {row.studentName}
                                                                             </td>
                                                                             <td className='border px-2 py-2 text-center'>
                                                                                 {row.className}

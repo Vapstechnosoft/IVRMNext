@@ -19,6 +19,12 @@ import {
 import { getfeeMonths } from '@/server/fees/reports/fee_monthendReport';
 import { getFeeReceiptReportHeadDropdown } from '@/server/fees/reports/fee_receipt_report';
 import { getFeesInstallmentDropDown, getFeesTranasctionInstallmentDropDown } from '@/server/fees/reports/fee_yearlyCollectionReport';
+import {
+    getFeesTermDropDownforStudentTermWiseReport,
+    getFeesTermWiseReportClassList,
+    getFeesTermWiseReportSectionList,
+    gettermwiseAcademicYeardropdown
+} from '@/server/fees/reports/feestudenttermwisepaidReport';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useFeeDefaulterReport = () => {
