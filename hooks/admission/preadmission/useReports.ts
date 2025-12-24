@@ -76,13 +76,13 @@ export const useStudentTcReport = (data: any, searchParams: ApiSearchparams, ena
         }
     };
 };
-export const useMonthEndReport = (data: any, searchParams: ApiSearchparams, enabled = true) => {
+export const useMonthEndReport = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.MONTH_END_REPORT, data, searchParams],
-            queryFn: async () => getMonthEndReport(data, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.MONTH_END_REPORT, data],
+            queryFn: async () => getMonthEndReport(data),
             staleTime: 0,
             enabled: enabled && !!data,
             refetchOnWindowFocus: false

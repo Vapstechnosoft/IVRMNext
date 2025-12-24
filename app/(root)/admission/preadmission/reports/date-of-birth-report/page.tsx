@@ -169,20 +169,6 @@ export default function BirthCertificatePageReport(props: {
         toast.info('Report cancelled');
     };
 
-    const handleExportExcel = () => {
-        if (!transformedData || transformedData.length === 0) {
-            toast.error('No data available to export');
-            return;
-        }
-
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one student to export');
-            return;
-        }
-
-        toast.info('Excel export feature coming soon');
-    };
-
     const handlePrint = () => {
         if (!transformedData || transformedData.length === 0) {
             toast.error('No data available to print');

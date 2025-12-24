@@ -32,6 +32,7 @@ import { classwiseStudentDetailsSchema } from '@/schemas/admission/preadmission/
 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import { getExcelClassWiseStudentReport } from '@/server/admission/preadmission/reports/month_end_report';
 /* ---------------- Columns ---------------- */
 import { getMasterAdmissionReportColumns } from './_components/columns';
 import { ColumnValue } from './_components/columnvalue';
@@ -96,6 +97,7 @@ export default function AdmissionReportPage(props: {
     const [resolvedSearchParams, setResolvedSearchParams] = useState<Record<string, string | string[] | undefined>>({});
     const [fieldSearch, setFieldSearch] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    console.log('resolvedSearchParams', requestPayload);
 
     /* ---------------- Masters ---------------- */
 
@@ -185,11 +187,16 @@ export default function AdmissionReportPage(props: {
             }
             const fromData = watch();
             const payload = {
-                classdetailsdata: fromData.classes.map((id: any) => ({
-                    ASMCL_Id: Number(id)
-                })),
+                classdetailsdata: fromData.classes.map((id: any) => {
+                    const fields = (masterClass?.data as any)?.find((f: any) => f.asmcL_Id === id);
+                    return {
+                        asmcL_Id: Number(id),
+                        asmcL_ClassName: fields?.asmcL_ClassName || ''
+                    };
+                }),
                 sectionsdetailsdata: fromData.class_section.map((id: any) => ({
-                    ASMS_Id: Number(id)
+                    asmS_Id: Number(id),
+                    asmS_SectionName: ''
                 })),
                 tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
                     const field = ColumnValue.find((f) => f.columnID === id);
@@ -231,6 +238,51 @@ export default function AdmissionReportPage(props: {
         setShowReport(false);
         tableRef.current?.resetSelection();
         toast.info('Report cancelled');
+    };
+
+    const downloadExcel = async () => {
+        try {
+            if (!watchedYear || !watchedStudentCategory || !requestPayload) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelClassWiseStudentReport(
+                watchedYear,
+                watchedStudentCategory,
+                requestPayload,
+                resolvedSearchParams
+            );
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'ClassWiseStudentReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
     };
 
     /* -------------------------------------------------------------------------- */
@@ -431,6 +483,9 @@ export default function AdmissionReportPage(props: {
                     <Button variant='outline' onClick={handleReset}>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Reset
+                    </Button>
+                    <Button onClick={downloadExcel} className='w-fit'>
+                        Export to Excel
                     </Button>
                     <Button variant='outline' onClick={handleCancel}>
                         <X className='mr-2 h-4 w-4' />

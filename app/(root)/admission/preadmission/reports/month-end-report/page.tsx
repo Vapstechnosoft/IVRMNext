@@ -53,7 +53,7 @@ export default function MonthendreportPage() {
     }
 
     const { data: academicYearOptions, isLoading: academicYearLoading } = useAcademicYearDropdown();
-    const { refetch } = useMonthEndReport(requestData, {}, false);
+    const { refetch } = useMonthEndReport(requestData, false);
     // Handle Reset
     const handleReset = () => {
         setAcademicYearId(0);

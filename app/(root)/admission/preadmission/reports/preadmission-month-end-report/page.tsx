@@ -10,17 +10,23 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { usePreAdmissionMonthEndReport } from '@/hooks/admission/preadmission/useReports';
+import { getExcelPreAdmissionMonthEndReport } from '@/server/admission/preadmission/reports/month_end_report';
 import AdmissionMonthEndReport from './_components/columns';
 export default function MonthendreportPage() {
-    const [academicYearId, setAcademicYearId] = useState<number>(0);
+    const [academicYearId, setAcademicYearId] = useState<string>('');
     const [selectedMonth, setSelectedMonth] = useState<string>('');
-    const [selectedYear, setSelectedYear] = useState<number>(0);
+    const [selectedYear, setSelectedYear] = useState<string>('');
     const [ifName, setIfName] = useState('');
     const [showReport, setShowReport] = useState(false);
     const [reportData, setReportData] = useState<ReportItem[]>([]);
 
     const requestData = {
-        ASMAY_Id: academicYearId,
+        ASMAY_Id: Number(academicYearId),
+        month: selectedMonth,
+        year: Number(selectedYear)
+    };
+    const excelrequestData = {
+        amay: academicYearId,
         month: selectedMonth,
         year: selectedYear
     };
@@ -58,9 +64,9 @@ export default function MonthendreportPage() {
     const { refetch } = usePreAdmissionMonthEndReport(requestData, {}, false);
     // Handle Reset
     const handleReset = () => {
-        setAcademicYearId(0);
+        setAcademicYearId('');
         setSelectedMonth('');
-        setSelectedYear(0);
+        setSelectedYear('');
         setIfName('');
     };
 
@@ -135,6 +141,47 @@ export default function MonthendreportPage() {
         }
     };
 
+    const downloadExcel = async () => {
+        try {
+            if (!academicYearId || !selectedMonth || !selectedYear) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelPreAdmissionMonthEndReport(excelrequestData);
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `MonthEndReport_${selectedMonth}_${selectedYear}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+            setReportData([]);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
+    };
+
     return (
         <div className='min-h-screen'>
             {/* FILTER CARD */}
@@ -147,7 +194,7 @@ export default function MonthendreportPage() {
                         </Label>
 
                         <Select
-                            onValueChange={(value) => setAcademicYearId(Number(value))}
+                            onValueChange={(value) => setAcademicYearId(value)}
                             value={academicYearId ? String(academicYearId) : undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Academic Year' />
@@ -198,9 +245,7 @@ export default function MonthendreportPage() {
                             Year <span className='text-red-500'>*</span>
                         </Label>
 
-                        <Select
-                            onValueChange={(value) => setSelectedYear(Number(value))}
-                            value={selectedYear ? String(selectedYear) : undefined}>
+                        <Select onValueChange={(value) => setSelectedYear(value)} value={selectedYear ? String(selectedYear) : undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Year' />
                             </SelectTrigger>
@@ -235,6 +280,9 @@ export default function MonthendreportPage() {
                     <Button onClick={handleGenerateReport} className='w-fit'>
                         Generate Report
                     </Button>
+                    <Button onClick={downloadExcel} className='w-fit'>
+                        Export to Excel
+                    </Button>
                 </div>
             </div>
             {showReport && (
@@ -246,8 +294,8 @@ export default function MonthendreportPage() {
                     <AdmissionMonthEndReport
                         reportData={reportData}
                         month={selectedMonth}
-                        year={selectedYear}
-                        academicYear={academicYearId}
+                        year={Number(selectedYear)}
+                        academicYear={Number(academicYearId)}
                         implementationName={ifName}
                     />
                 </CollapsibleSection>

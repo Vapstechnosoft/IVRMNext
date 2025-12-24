@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 
 import { useStudentTcReport } from '@/hooks/admission/preadmission/useReports';
+import { getExcelStudentTcReport } from '@/server/admission/preadmission/reports/month_end_report';
 import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
 import { CheckSquare, FileText, RotateCcw, Search, Square } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -29,7 +30,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 // Column ID mapping for API payload
 const COLUMN_ID_MAP: Record<string, string> = {
     'Student Name': 'AMST_FirstName',
-    'Registration No.': 'AMST_AdmNo',
+    'Registration No.': 'AMST_RegistrationNo',
     'TC No.': 'AMST_Id',
     'Leaving Class': 'ASTC_ASMCL_ID',
     'Admission Class Name': 'ASTC_TCDate',
@@ -181,6 +182,21 @@ export default function StudentTcReportPage(props: {
         setSelectedStudents(selectedRows);
     };
 
+    const requestData = {
+        ASMAY_Id: academicYearId,
+        AllOrInd: viewMode,
+        ASMCL_Id: viewMode === 'indi' ? classId : 0,
+        ASMC_Id: viewMode === 'indi' ? statusId : 0,
+        TempararyArrayheadList: [
+            { columnID: 'AMST_Id' },
+            { columnID: 'AMST_FirstName' },
+            { columnID: 'AMST_AdmNo' },
+            { columnID: 'ASTC_TCDate' }
+        ],
+        PermOrTemp: tcType,
+        AMC_Id: 0
+    };
+
     const handleReport = async () => {
         try {
             if (!academicYearId || academicYearId === 0) {
@@ -225,6 +241,33 @@ export default function StudentTcReportPage(props: {
         router.replace(pathname);
 
         toast.success('Filters reset successfully');
+    };
+
+    const downloadExcel = async () => {
+        try {
+            const response = await getExcelStudentTcReport(requestData);
+
+            const blob = new Blob([new Uint8Array(response)], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'StudentTcReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
     };
 
     return (
@@ -467,6 +510,9 @@ export default function StudentTcReportPage(props: {
                     <Button variant='outline' className='w-full transition-all duration-200 hover:scale-105 sm:w-fit' onClick={handleReset}>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Cancel
+                    </Button>
+                    <Button onClick={downloadExcel} className='w-fit'>
+                        Export to Excel
                     </Button>
                 </div>
             </div>
