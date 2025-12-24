@@ -33,7 +33,7 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
-export default function FeeDefaulterReport() {
+export default function FeeMonthEndReport() {
     const [loading, setLoading] = useState(false);
 
     const {

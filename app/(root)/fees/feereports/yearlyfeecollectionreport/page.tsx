@@ -73,7 +73,7 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
-export default function FeeDefaulterReport() {
+export default function FeeYearlyCollectionReport() {
     // ---------------------------- FORM ----------------------------
     const {
         control,

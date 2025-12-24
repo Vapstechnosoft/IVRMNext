@@ -152,3 +152,81 @@ export const feeConsolidatedReportsSchema = z.object({
         .refine((v) => v !== undefined && v !== 0, { message: 'Section is required' }),
     userType: z.enum(['All', 'indi']).default('All')
 });
+
+export const feesInstallmentReportSchema = z.object({
+    catg: z.enum(['Category', 'Class', 'transport', 'Consolidate', 'GroupWise']).default('Category'),
+    academicYearId: z.number({ message: 'Academic Year is required' }),
+    fmcc_id: z.number({ message: 'Category is required' }),
+    classId: z
+        .number({ invalid_type_error: 'Class is required' })
+        .refine((v) => v !== undefined && v !== 0, { message: 'Class is required' }),
+    sectionId: z
+        .number({ invalid_type_error: 'Section is required' })
+        .refine((v) => v !== undefined && v !== 0, { message: 'Section is required' }),
+    termswise: z.number().optional(),
+    con: z.enum(['Datewise', 'Classwise']).default('Datewise'),
+
+    fmg_id: z.number({ message: 'Fee Group is required' })
+});
+
+export const feeReceiptReportsSchema = z.object({
+    academicYearId: z.number({ message: 'Academic Year is required' }),
+    classId: z
+        .number({ invalid_type_error: 'Class is required' })
+        .refine((v) => v !== undefined && v !== 0, { message: 'Class is required' }),
+    sectionId: z
+        .number({ invalid_type_error: 'Section is required' })
+        .refine((v) => v !== undefined && v !== 0, { message: 'Section is required' }),
+    userType: z.enum(['All', 'indi']).default('All'),
+    studentid: z.number({ message: 'Select Student' }),
+    heads: z.array(z.string()).nonempty('Please select at least one Head')
+});
+
+export const feeAccountsPositionReport = z
+    .object({
+        filter: z.enum(['individual', 'headwise', 'All', 'route']).default('individual'),
+        academicYearId: z.number({ message: 'Academic Year is required' }),
+        includeClassSection: z.boolean().optional(),
+        asmcl_Id: z.number().optional(),
+        asms_Id: z.number().optional(),
+        classId: z.number().optional(),
+        sectionId: z.number().optional(),
+        customGroupIds: z.array(z.number()).min(1, 'Please select at least one Custom Group'),
+        feeGroupIds: z.array(z.number()).min(1, 'Please select at least one Fee Group'),
+        termIds: z.array(z.number()).min(1, 'Please select at least one Term')
+    })
+    .superRefine((data, ctx) => {
+        // If class-section is enabled, class & section are required
+        if (data.includeClassSection) {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    path: ['classId'],
+                    message: 'Class is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    path: ['sectionId'],
+                    message: 'Section is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+        //Date validation when Date Wise is selected
+        // if ( filter.=="individual") {
+        //     ctx.addIssue({
+        //         path: ['dueDate'],
+        //         message: 'Due date is required for Date Wise report',
+        //         code: z.ZodIssueCode.custom
+        //     });
+        // }
+    });
+
+export const feeStudentTermWisePaidReportSchema = z.object({
+    academicYearId: z.number({ message: 'Academic Year is required' }),
+    asmcl_Id: z.number({ message: 'Class is required' }),
+    asms_Id: z.number({ message: 'Section Year is required' }),
+    termIds: z.array(z.number()).min(1, 'Please select at least one Term')
+});

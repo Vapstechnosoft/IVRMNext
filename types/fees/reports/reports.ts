@@ -246,3 +246,65 @@ export interface ConsolidatedReportInstallemntDropdownList {
     ftI_Id: number;
     ftI_Name: string;
 }
+
+export interface IFeeReceiptReportHeadDropdownList {
+    fmH_Id: number;
+
+    fmH_FeeName: string;
+}
+
+export interface IInstallmentReportFeeTermDropdownList {
+    fmT_Id: number;
+    mI_Id: number;
+    fmT_Name: string;
+    fmT_ActiveFlag: boolean;
+    fromMonth?: number | null;
+    toMonth?: number | null;
+    fmT_Order?: number | null;
+    fmT_Year?: number | null;
+    transport_FromMonth?: number | null;
+    transport_ToMonth?: number | null;
+    fmT_IncludeArrearFeeFlg: boolean;
+    createdDate?: string;
+    updatedDate?: string;
+}
+
+export interface IInstallmentReportFeeCategoryDropdownList {
+    fmcC_Id: number;
+    mI_Id: number;
+    fmcC_ClassCategoryName: string;
+    fmcC_ClassCategoryCode: string;
+    fmcC_ActiveFlag: boolean;
+    fmcC_CreatedBy: number;
+    fmcC_UpdatedBy: number;
+    createdDate: string;
+    updatedDate: string;
+}
+
+export interface InstallmentReportInstallemntDropdownList {
+    ftI_Id: number;
+    ftI_Name: string;
+}
+
+export interface InstallmentReportGroupDropdownList {
+    fmG_Id: number;
+    fmg_groupname: string;
+}
+
+export interface IInstallmentReportFeeBusRoutrDropdownList {
+    trmR_Id: number;
+    mI_Id?: number;
+    trmA_Id?: number;
+    trmR_RouteName: string;
+    trmR_RouteNo?: string;
+    trmR_RouteDesc?: string;
+    trmR_ActiveFlg: boolean;
+    trmR_order?: number;
+    createdDate?: string;
+    updatedDate?: string;
+}
+
+export interface InstallmentReportHeadDropdownList {
+    fmH_Id: number;
+    fmH_FeeName: string;
+}

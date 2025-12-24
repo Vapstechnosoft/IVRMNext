@@ -796,6 +796,38 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feeconsolidatedreport',
                                             title: 'Fee Consolidated Report',
                                             description: 'Manage Fee Consolidated Report Details'
+                                        },
+                                        {
+                                            id: 10021,
+                                            name: 'Fee Installment Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesinstallmentreport',
+                                            title: 'Fee Installment Report',
+                                            description: 'Manage Fee Installment Report Details'
+                                        },
+                                        {
+                                            id: 10022,
+                                            name: 'Fee Receipt Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feereceiptreport',
+                                            title: 'Fee Receipt Report',
+                                            description: 'Manage Fee Receipt Report Details'
+                                        },
+                                        {
+                                            id: 10023,
+                                            name: 'Fee Accounts Position Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeaccountspositionReport',
+                                            title: 'Fee Accounts Position Report',
+                                            description: 'Manage Fee Accounts Position Report Details'
+                                        },
+                                        {
+                                            id: 10024,
+                                            name: 'Fee Student Term Wise Paid Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feestudenttermwisepaidreport',
+                                            title: 'Fee Student Term Wise Paid Report',
+                                            description: 'Manage Fee Student Term Wise Paid Report Details'
                                         }
                                     ]
                                 }

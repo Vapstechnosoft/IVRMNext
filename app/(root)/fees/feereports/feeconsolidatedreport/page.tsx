@@ -49,7 +49,7 @@ interface IAcademicYear {
     asmaY_Order?: number;
 }
 
-export default function FeeDefaulterReport() {
+export default function FeeConsolidatedReport() {
     type UserType = 'All' | 'indi';
     const userTypeOptions: { label: string; value: UserType }[] = [
         { label: 'All', value: 'All' },
