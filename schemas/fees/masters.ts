@@ -546,28 +546,41 @@ export const masterClassYearlyGroupMappingSchema = {
 };
 
 export const YearlyRebateSettingsSchema = {
-    addOrUpdate: z.object({
-        asmaY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
-        fyrebseT_RebateTypeFlg: z
-            .string()
-            .optional()
-            .refine((val) => !val || ['A', 'P'].includes(val), 'Invalid Rebate Type'),
-        //   fyrebseT_RebateTypeFlg: z
-        // .string()
-        // .optional()
-        // .refine((val) => !val || ['Amount', 'Percentage'].includes(val), 'Invalid Rebate Type'),
-        fyrebseT_Id: z
-            .string()
-            .optional()
-            .refine((val) => !val || ['0', '1'].includes(val), 'Invalid Rebate Type'),
-        fyrebseT_RebateAmtOrPercentValue: z
-            .union([z.string(), z.number()])
-            .transform((val) => Number(val))
-            .refine((val) => !Number.isNaN(val) && val >= 0, 'Rebate Value must be a valid number')
-            .optional()
-            .default(0),
-        fyrebseT_RebateDate: z.string({ required_error: 'Rebate Date is required' }).min(1, 'Rebate Date is required')
-    }),
+    addOrUpdate: z
+        .object({
+            asmaY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+            fyrebseT_RebateTypeFlg: z
+                .string()
+                .optional()
+                .refine((val) => !val || ['A', 'P'].includes(val), 'Invalid Rebate Type'),
+            //   fyrebseT_RebateTypeFlg: z
+            // .string()
+            // .optional()
+            // .refine((val) => !val || ['Amount', 'Percentage'].includes(val), 'Invalid Rebate Type'),
+            fyrebseT_Id: z
+                .string()
+                .optional()
+                .refine((val) => !val || ['0', '1'].includes(val), 'Invalid Rebate Type'),
+            fyrebseT_RebateAmtOrPercentValue: z
+                .union([z.string(), z.number()])
+                .transform((val) => Number(val))
+                .refine((val) => !Number.isNaN(val) && val >= 0, 'Rebate Value must be a valid number')
+                .optional()
+                .default(0),
+            fyrebseT_RebateDate: z.string({ required_error: 'Rebate Date is required' }).min(1, 'Rebate Date is required')
+        })
+        .superRefine((data, ctx) => {
+            // 🔥 Percentage validation
+            if (data.fyrebseT_Id === '1') {
+                if (data.fyrebseT_RebateAmtOrPercentValue > 100) {
+                    ctx.addIssue({
+                        path: ['fyrebseT_RebateAmtOrPercentValue'],
+                        message: 'Percentage should not be more than 100',
+                        code: z.ZodIssueCode.custom
+                    });
+                }
+            }
+        }),
 
     delete: z.object({
         fyG_Id: z
@@ -786,5 +799,17 @@ export const specialFeeHeadSchema = {
     }),
     delete: z.object({
         fmsfhfH_Id: deleteIdSchema('fmsfhfH_Id')
+    })
+};
+
+export const feeCompanyGroupMappingSchema = {
+    addOrUpdate: z.object({
+        ftmcoM_Id: z.number().int({ message: 'Company is required' }),
+        groupids: z.array(z.string()).nonempty('Please select at least one Head')
+        //fmsfH_Name: z.string().min(4, { message: 'Special Fee Head Name is required' })
+        //fmsfH_Name: createStringOnlySchema('Special Fee Head Name', 4, 50)
+    }),
+    delete: z.object({
+        ffgcmA_Id: deleteIdSchema('ffgcmA_Id')
     })
 };

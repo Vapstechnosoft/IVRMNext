@@ -30,7 +30,7 @@ export async function deleteStudentFeeGroupMapping(AMST_Id: number, FMG_Id: numb
 }
 
 export async function getStudentFeeGroupMappingAcademicYearDropdown() {
-    const url = '/fee_class_category/academicyearlist/30';
+    const url = '/fee_class_category/academicyearlist';
     return await api.get<IMasterClassYearlyList[]>('fees', url);
 }
 

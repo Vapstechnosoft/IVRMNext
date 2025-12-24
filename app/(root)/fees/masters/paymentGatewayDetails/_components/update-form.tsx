@@ -310,12 +310,12 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
             <div className='col-span-6'>
                 {fields.map((field, index) => (
-                    <div key={field.id} className='mb-4 flex flex-col gap-2 md:flex-row md:items-center'>
-                        <label htmlFor={`submerchantIds.${index}.id`} className='font-medium text-gray-700 text-sm md:w-1/4'>
+                    <div key={field.id} className='mb-4 flex flex-col gap-1 md:flex-row md:items-center md:gap-4'>
+                        <label htmlFor={`submerchantIds.${index}.id`} className='gap-3 whitespace-nowrap font-medium text-gray-700 text-sm'>
                             Sub Merchant Id<span className='ml-1 text-red-500'>*</span>
                         </label>
 
-                        <div className='flex w-full items-center gap-2 md:w-3/4'>
+                        <div className='flex w-full items-center gap-1 md:w-3/2'>
                             <input
                                 id={`submerchantIds.${index}.id`}
                                 type='text'

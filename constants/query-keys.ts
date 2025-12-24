@@ -191,6 +191,10 @@ export const FEES_QUERY_KEYS = {
     FEE_OPENING_REFUNDABLE: 'fee_opening_refundable',
     FEE_GROUPGROUPING_GROUPDROPDOWN: 'fee_groupgrouping_groupdropdown',
     STUDENT_FEE_GROUP_MAPPING_BUS_AREA_DROPDOWN: 'student_fee_group_mapping_bus_area_dropdown',
+    FEE_COMPANY_GROUP_MAPPING: 'fee_company_group_mapping',
+    FEE_COMPANY_GROUP_MAPPING_COMPANY_DROPDOWN: 'fee_company_group_mapping_company_dropdown',
+    FEE_COMPANY_GROUP_MAPPING_GROUP_DROPDOWN: 'fee_company_group_mapping_group_dropdown',
+    FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
 
     FEE_DEFAULTER_REPORT: 'fee_defaulter_report',
     FEE_GROUP_DEFAULTER: 'fee_group_defaulter_report',
@@ -221,7 +225,22 @@ export const FEES_QUERY_KEYS = {
     FEE_CONCESSION_ADMISSION_NO: 'fee_concession_admission_no',
     FEE_CONCESSION_STUDENT_DATA: 'fee_concession_student_data',
     FEE_ADJUSTMENT_GROUP_DROPDOWN: 'fee_adjustment_group_drop_down',
-    FEE_ADJUSTMENT_HEAD_DROPDOWN: 'fee_adjustment_head_drop_down'
+    FEE_ADJUSTMENT_HEAD_DROPDOWN: 'fee_adjustment_head_drop_down',
+    FEE_ADJUSTMENT_TO_GROUP_DROPDOWN: 'fee_adjustment_to_group_drop_down',
+    FEE_ADJUSTMENT_TO_HEAD_DROPDOWN: 'fee_adjustment_to_head_drop_down',
+    FEES_REPORT_TRANSACTION_INSTLLMENT_DROPDOWN_YEARLYREPORT: 'fees_report_transaction_instllment_dropdown_yearlyreport',
+    FEE_MONTHEND_REPORT_MONTHS_DROPDOWN: 'fee_monthend_report_months_dropdown',
+    FEE_MASTER_CONFIGURATION: 'fee_master_configuration',
+    FEE_FEE_RECEIPT_REPORT_HEAD_DROPDOWN: 'fee_special_fee_receipt_report_head_dropdown',
+    FEE_INSTALLEMNTREPORT_TERM_DROPDOWN: 'fee_installemntreport_term_dropdown',
+    FEE_INSTALLEMNTREPORT_CATEGORY_DROPDOWN: 'fee_installemntreport_category_dropdown',
+    FEE_INSTALLEMNTREPORT_GROUP_DROPDOWN: 'fee_installemntreport_group_dropdown',
+    FEE_INSTALLEMNTREPORT_BUSROUTE_DROPDOWN: 'fee_installemntreport_busroute_dropdown',
+    FEE_INSTALLEMNTREPORT_HEAD_DROPDOWN: 'fee_installemntreport_head_dropdown',
+    FEE_STUDENT_TERM_WISE_PAID_ACADEMIC_YEAR_DROP: 'fee_student_term_wise_paid_academic_drop',
+    FEE_STUDENT_TERM_WISE_PAID_CLASS_YEAR_DROP: 'fee_student_term_wise_paid_class_drop',
+    FEE_STUDENT_TERM_WISE_PAID_SECTION_YEAR_DROP: 'fee_student_term_wise_paid_section_drop',
+    FEE_STUDENT_TERM_WISE_PAID_TERM_LIST: 'fee_student_term_wise_paid_term_list'
 };
 
 export const EXAM_QUERY_KEYS = {

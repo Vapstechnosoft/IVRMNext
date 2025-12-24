@@ -51,7 +51,14 @@ export const masterGroupWiseAutoReciptColumns: ColumnDef<IMasterGroupWiseAutoRec
     },
     {
         accessorKey: 'fgaR_Template_Name',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Receipt Template' />,
+        // header: ({ column }) => <DataTableColumnHeader column={column}
+        // title='Receipt Template' />,
+
+        header: () => (
+            <div className='flex h-8 w-full items-center justify-start'>
+                <span className='font-medium text-xs'>Receipt Template</span>
+            </div>
+        ),
 
         // This ensures the entire <td> content is left-aligned
         meta: {

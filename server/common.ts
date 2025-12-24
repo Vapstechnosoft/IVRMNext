@@ -575,7 +575,7 @@ export async function getUserAccessibleModules() {
                                         },
                                         {
                                             id: 26,
-                                            name: 'Master Fee Master Concession',
+                                            name: 'Master Fee Concession',
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcession',
                                             title: 'Fee Master Concession',
@@ -588,7 +588,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/masterfeeconcessiondetails',
                                             title: 'Master Concession Category Details',
-                                            description: 'Master Master Concession Category Details'
+                                            description: 'Manage Master Concession Category Details'
                                         },
                                         {
                                             id: 650,
@@ -596,7 +596,7 @@ export async function getUserAccessibleModules() {
                                             icon: 'BadgeIndianRupee',
                                             url: '/fees/masters/concessioncategorygroupheadmapping',
                                             title: 'Master Concession Category Group Head Mapping',
-                                            description: 'Master Master Concession Category Group Head Mapping'
+                                            description: 'Manage Master Concession Category Group Head Mapping'
                                         },
                                         {
                                             id: 27,
@@ -750,6 +750,14 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/masters/specialFeeHead',
                                             title: 'Master Special Fee Head',
                                             description: 'Manage Master Special Fee Head Details'
+                                        },
+                                        {
+                                            id: 506,
+                                            name: 'Master Fee Tally Master',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/masters/feecompanygroupmapping',
+                                            title: 'Master Fee Tally Master',
+                                            description: 'Manage Fee Tally  Details'
                                         }
                                     ]
                                 },
@@ -885,6 +893,78 @@ export async function getUserAccessibleModules() {
                                             url: '/fees/feereports/feeconcessionreport',
                                             title: 'Fee Concession Report',
                                             description: 'Manage Fee Concession Report Details'
+                                        },
+                                        {
+                                            id: 10016,
+                                            name: 'Fee Head Wise Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/headwisereport',
+                                            title: 'Fee Head Wise Report',
+                                            description: 'Manage Fee Head Wise Report Details'
+                                        },
+                                        {
+                                            id: 10017,
+                                            name: 'Fee Due Date Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeduedatereport',
+                                            title: 'Fee Due Date Report',
+                                            description: 'Manage Fee Due Date Report Details'
+                                        },
+                                        {
+                                            id: 10018,
+                                            name: 'Fee Month End Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feemonthendreport',
+                                            title: 'Fee Month End Report',
+                                            description: 'Manage Fee Month End Report Details'
+                                        },
+                                        {
+                                            id: 10019,
+                                            name: 'Fee Class Category Report ',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/classcategoryreport',
+                                            title: 'Fee Class Category Report',
+                                            description: 'Manage Fee Class Category Report Details'
+                                        },
+                                        {
+                                            id: 10020,
+                                            name: 'Fee Consolidated Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeconsolidatedreport',
+                                            title: 'Fee Consolidated Report',
+                                            description: 'Manage Fee Consolidated Report Details'
+                                        },
+                                        // {
+                                        //     id: 10021,
+                                        //     name: 'Fee Installment Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feesinstallmentreport',
+                                        //     title: 'Fee Installment Report',
+                                        //     description: 'Manage Fee Installment Report Details'
+                                        // },
+                                        // {
+                                        //     id: 10022,
+                                        //     name: 'Fee Receipt Report',
+                                        //     icon: 'BadgeIndianRupee',
+                                        //     url: '/fees/feereports/feereceiptreport',
+                                        //     title: 'Fee Receipt Report',
+                                        //     description: 'Manage Fee Receipt Report Details'
+                                        // },
+                                        {
+                                            id: 10023,
+                                            name: 'Fee Accounts Position Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feeaccountspositionReport',
+                                            title: 'Fee Accounts Position Report',
+                                            description: 'Manage Fee Accounts Position Report Details'
+                                        },
+                                        {
+                                            id: 10024,
+                                            name: 'Fee Student Term Wise Paid Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feestudenttermwisepaidreport',
+                                            title: 'Fee Student Term Wise Paid Report',
+                                            description: 'Manage Fee Student Term Wise Paid Report Details'
                                         }
                                     ]
                                 }
