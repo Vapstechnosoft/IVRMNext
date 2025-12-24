@@ -19,7 +19,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
-import { useFeeMasterConfiguration, useFeeTransactionList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
+import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
 import { getFeeHead, getStudentDetails, saveFeeTransaction, searchStudentName } from '@/server/fees/trasactions/fee_student_transaction';
 import type {
@@ -152,7 +153,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
 
-    const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
+    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
 
     const { data: masterConfiguration } = useFeeMasterConfiguration();
 
@@ -162,6 +163,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
 
     useEffect(() => {
         setStudentSearch('');
+        setChallenSearch('');
         setTerms([]);
         SetStudentDetails([]);
         SetFeeDetails([]);
@@ -541,7 +543,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 return sum + amountr;
             }, 0);
             settotalAmount(total);
-            console.log('totalAmountSum', total);
+            // console.log('totalAmountSum', total);
 
             for (const payment of selectedPayments) {
                 const paymentId = payment.ivrmmoD_Id;
@@ -696,6 +698,17 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
         setSection(false);
         setDeative(false);
         setFilterType('regular');
+        setTodaysDate(new Date());
+        setSelectedClassId(null);
+        setSelectedSectionId(null);
+        setSms(false);
+        setEmail(false);
+        setAmountCheck(false);
+        setNarrationRemark('');
+        setAmountforTerm('');
+        setFeeHeads([]);
+        setSelectedHeads([]);
+        setSelectedNarration(null);
     };
 
     return (
@@ -802,7 +815,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                     <RotateCcw className='h-4 w-4' /> Clear
                                 </Button>
 
-                                <Button>
+                                <Button
+                                    onClick={() => {
+                                        toast.warning('Challan No Not Found');
+                                    }}>
                                     <Save className='mr-2 h-4 w-4' /> Search
                                 </Button>
                             </div>
