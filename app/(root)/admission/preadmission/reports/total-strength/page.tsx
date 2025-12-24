@@ -12,10 +12,12 @@ import { useTotalStrengthReport } from '@/hooks/admission/preadmission/useReport
 import { usePreadmissionClassDropdown1, useadmissionSectionDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 import { TotalStrengthSchema } from '@/schemas/admission/preadmission/reports';
+import { getExcelTotalStrengthReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Square } from 'lucide-react';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof TotalStrengthSchema>;
@@ -169,6 +171,45 @@ export default function TotalStrengthPage() {
     const calculateGrandTotal = () => {
         if (!response?.data || !Array.isArray((response.data as any).studentlist)) return 0;
         return ((response.data as any).studentlist as any[]).reduce((sum: number, item: any) => sum + (item.totalstudents || 0), 0);
+    };
+
+    const downloadExcel = async () => {
+        try {
+            if (!reportParams) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelTotalStrengthReport(reportParams);
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'TotalStrengthReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
     };
 
     return (
@@ -441,7 +482,7 @@ export default function TotalStrengthPage() {
                                     {isLoading ? 'Loading...' : 'Report'}
                                 </Button>
                                 <div className='flex gap-3'>
-                                    <Button variant='outline' className='w-fit'>
+                                    <Button variant='outline' className='w-fit' onClick={downloadExcel}>
                                         <FileSpreadsheet className='mr-2 h-4 w-4' />
                                         Export to Excel
                                     </Button>

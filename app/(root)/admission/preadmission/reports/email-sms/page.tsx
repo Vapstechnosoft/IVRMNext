@@ -18,7 +18,9 @@ import { registrationColumns } from './_components/columns';
 import { CalendarIcon, RotateCcw } from 'lucide-react';
 
 import { usePreAdmissionEmailSmsReport } from '@/hooks/admission/preadmission/useReports';
+import { getExcelEmailSmsReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function EmailSmsPageprops(props: {
@@ -94,6 +96,42 @@ export default function EmailSmsPageprops(props: {
         tableRef.current?.resetSelection();
 
         setShowTable(false); // Hide table
+    };
+    const downloadExcel = async () => {
+        try {
+            if (!academicIdParam && !fromDateParam && !toDateParam) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelEmailSmsReport(academicIdParam, fromDateParam, toDateParam, searchParams);
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'EmailSMSReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
     };
 
     return (
@@ -214,6 +252,9 @@ export default function EmailSmsPageprops(props: {
 
                     <Button type='button' onClick={handleReport} className='w-fit'>
                         Report
+                    </Button>
+                    <Button onClick={downloadExcel} className='w-fit'>
+                        Export to Excel
                     </Button>
                 </div>
             </div>

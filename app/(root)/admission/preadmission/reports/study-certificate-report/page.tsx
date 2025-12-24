@@ -16,6 +16,7 @@ import type { DataTableRef } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudyCertificateReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
+import { getExcelStudyCertificateReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { toast } from 'sonner';
 import CharacterCertificate from './_components/columns';
 import StudyCertificate from './_components/study-certificate';
@@ -105,6 +106,44 @@ export default function CertificateReportPage() {
         setSelectedDate(new Date());
 
         tableRef.current?.resetSelection();
+    };
+
+    const downloadExcel = async () => {
+        try {
+            if (!academicYearId || !classId || !sectionId || !selectedDate) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelStudyCertificateReport(studyCertificate);
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'StudyCertificateReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
     };
 
     /* -------------------- UI -------------------- */
@@ -318,6 +357,9 @@ export default function CertificateReportPage() {
                             onClick={handleReset}
                             className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                             Reset
+                        </Button>
+                        <Button onClick={downloadExcel} className='w-fit'>
+                            Export to Excel
                         </Button>
                     </div>
                 </div>

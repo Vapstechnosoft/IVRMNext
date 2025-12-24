@@ -18,7 +18,9 @@ import { registrationColumns } from './_components/columns';
 import { CalendarIcon, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
 
 import { usePreAdmissionRegistrationReport } from '@/hooks/admission/preadmission/useReports';
+import { getExcelRegistrationReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function RegistrationPageprops(props: {
@@ -96,6 +98,43 @@ export default function RegistrationPageprops(props: {
         setShowTable(false); // Hide table
     };
 
+    const downloadExcel = async () => {
+        try {
+            if (!academicIdParam && !fromDateParam && !toDateParam) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelRegistrationReport(academicIdParam, fromDateParam, toDateParam, searchParams);
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'RegistrationReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
+    };
     /** -----------------------------
      *  JSX
      * ----------------------------- */
@@ -219,7 +258,7 @@ export default function RegistrationPageprops(props: {
                         Report
                     </Button>
 
-                    <Button variant='outline'>
+                    <Button variant='outline' onClick={downloadExcel}>
                         <FileSpreadsheet className='mr-2 h-4 w-4' />
                         Export to Excel
                     </Button>

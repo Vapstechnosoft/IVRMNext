@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useAttendanceReport } from '@/hooks/admission/preadmission/useReports';
 import { cn } from '@/lib/utils';
+import { getExcelOverallAttendanceReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
@@ -92,6 +93,43 @@ export default function StudyCertificateReportPage(props: {
             if (!response?.data) toast.error('Failed to generate report');
         } finally {
             setIsLoading(false);
+        }
+    };
+    const downloadExcel = async () => {
+        try {
+            if (!asmaY_Id || !from_date || !frequency) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelOverallAttendanceReport(asmaY_Id, from_date, frequency, searchParams);
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'OverAllDaillyAttendance.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
         }
     };
 
@@ -218,6 +256,9 @@ export default function StudyCertificateReportPage(props: {
                         <Button type='submit' disabled={isSubmitting} onClick={onSubmit} isLoading={isLoading} className='w-fit'>
                             <Save className='mr-2 h-4 w-4' />
                             Report
+                        </Button>
+                        <Button onClick={downloadExcel} className='w-fit'>
+                            Export to Excel
                         </Button>
                     </div>
                 </div>

@@ -10,6 +10,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useMonthEndReport } from '@/hooks/admission/preadmission/useReports';
+import { getExcelMonthEndReport } from '@/server/admission/preadmission/reports/month_end_report';
 import AdmissionMonthEndReport from './_components/columns';
 export default function MonthendreportPage() {
     const [academicYearId, setAcademicYearId] = useState<number>(0);
@@ -52,7 +53,7 @@ export default function MonthendreportPage() {
     }
 
     const { data: academicYearOptions, isLoading: academicYearLoading } = useAcademicYearDropdown();
-    const { refetch } = useMonthEndReport(requestData, {}, false);
+    const { refetch } = useMonthEndReport(requestData, false);
     // Handle Reset
     const handleReset = () => {
         setAcademicYearId(0);
@@ -102,6 +103,47 @@ export default function MonthendreportPage() {
         } catch (_error) {
             toast.dismiss(toastId);
             toast.error('Something went wrong!');
+        }
+    };
+
+    const downloadExcel = async () => {
+        try {
+            if (!academicYearId || !selectedMonth || !selectedYear) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelMonthEndReport(requestData);
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `MonthEndReport_${selectedMonth}_${selectedYear}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+            setReportData([]);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
         }
     };
 
@@ -204,6 +246,9 @@ export default function MonthendreportPage() {
                     </Button>
                     <Button onClick={handleGenerateReport} className='w-fit'>
                         Generate Report
+                    </Button>
+                    <Button onClick={downloadExcel} className='w-fit'>
+                        Export to Excel
                     </Button>
                 </div>
             </div>

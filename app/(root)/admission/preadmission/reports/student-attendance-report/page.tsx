@@ -21,6 +21,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useAcademicYearDropdown, useMasterClassDropdown, useMasterSectionDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useStudentAttendanceReport, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
+import { getExcelStudentAttendanceReport } from '@/server/admission/preadmission/reports/month_end_report';
 import type { IRigistrationReportList } from '@/types/admission/preadmission/reports';
 import { registrationColumns } from './_components/columns';
 
@@ -149,10 +150,60 @@ export default function StudyCertificateReportPage() {
             if (res.data?.message) {
                 toast.success(res.data.message);
             } else {
-                toast.success('Report generated successfully');
+                toast.success('Report failed to generate');
             }
         } catch (error) {
             toast.error('No data found');
+        }
+    };
+
+    const downloadExcel = async () => {
+        try {
+            if (!academicYearId || !classId || !sectionId) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelStudentAttendanceReport(
+                academicYearId,
+                classId,
+                sectionId,
+                studentId,
+                month,
+                monthDateWise,
+                fromDate,
+                toDate,
+                dailyDate,
+                selectionMode,
+                studentStatus
+            );
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'StudentAttendanceReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
         }
     };
 
@@ -299,6 +350,9 @@ export default function StudyCertificateReportPage() {
                         <Button type='submit' isLoading={isSubmitting} className='w-fit'>
                             <Save className='mr-2 h-4 w-4' />
                             Report
+                        </Button>
+                        <Button onClick={downloadExcel} className='w-fit'>
+                            Export to Excel
                         </Button>
                     </div>
                 </div>

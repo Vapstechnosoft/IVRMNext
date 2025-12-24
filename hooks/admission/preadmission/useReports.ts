@@ -15,6 +15,7 @@ import { addOrUpdateStudentCountReport, getParentDashboardDetails } from '@/serv
 import {
     type ElectiveItem,
     GetClassTeacherReport,
+    GetDateOfBirth,
     GetStudentYearlyAttendance,
     getAdmissionRegister,
     getStudentSearch,
@@ -76,13 +77,13 @@ export const useStudentTcReport = (data: any, searchParams: ApiSearchparams, ena
         }
     };
 };
-export const useMonthEndReport = (data: any, searchParams: ApiSearchparams, enabled = true) => {
+export const useMonthEndReport = (data: any, enabled = true) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.MONTH_END_REPORT, data, searchParams],
-            queryFn: async () => getMonthEndReport(data, searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.MONTH_END_REPORT, data],
+            queryFn: async () => getMonthEndReport(data),
             staleTime: 0,
             enabled: enabled && !!data,
             refetchOnWindowFocus: false
@@ -316,8 +317,9 @@ export const useAdmissionRegister = (ASMAY_Id: number, AttendanceType: number, p
 };
 export const ClasswiseStudentDetails = (
     asmaY_Id: number,
+    studentScope: number,
     fmcC_Id: number,
-    // studentScope: string,
+
     payload?: any,
     searchParams?: ApiSearchparams
 ) => {
@@ -325,22 +327,8 @@ export const ClasswiseStudentDetails = (
 
     return {
         ...useQuery({
-            queryKey: [
-                ADMISSION_QUERY_KEYS.CLASS_WISE_STUDENT_REPORT,
-                asmaY_Id,
-                fmcC_Id,
-                // studentScope,
-                payload,
-                searchParams ?? {}
-            ],
-            queryFn: async () =>
-                getclasswiseStudentDetails(
-                    asmaY_Id,
-                    fmcC_Id,
-                    // studentScope,
-                    payload,
-                    searchParams
-                ),
+            queryKey: [ADMISSION_QUERY_KEYS.CLASS_WISE_STUDENT_REPORT, asmaY_Id, fmcC_Id, studentScope, payload, searchParams ?? {}],
+            queryFn: async () => getclasswiseStudentDetails(asmaY_Id, fmcC_Id, studentScope, payload, searchParams),
             staleTime: 0,
             enabled: !!payload
         }),
@@ -467,6 +455,24 @@ export const useStudentAttendanceReport = (
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.STUDENT_ATTENDANCE_REPORT]
+            });
+        }
+    };
+};
+
+export const useDateOfBirth = (ASMAY_Id: number, ASMCL_Id: number, ASMS_Id: number, AMST_Id: number, searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT, ASMAY_Id, ASMCL_Id, ASMS_Id, AMST_Id, searchParams ?? {}],
+            queryFn: async () => GetDateOfBirth(ASMAY_Id, ASMCL_Id, ASMS_Id, AMST_Id, searchParams),
+            staleTime: 0,
+            enabled: !!ASMAY_Id && !!ASMS_Id && ASMCL_Id !== undefined
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [ADMISSION_QUERY_KEYS.DATE_OF_BIRTH_REPORT]
             });
         }
     };

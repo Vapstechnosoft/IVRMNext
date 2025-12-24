@@ -9,8 +9,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useClassTeacherReport } from '@/hooks/admission/preadmission/useReports';
+import { getExcelClassTeacherReport } from '@/server/admission/preadmission/reports/month_end_report';
 import type { IClassTeacherReportList } from '@/types/admission/preadmission/reports';
-import { FileSpreadsheet, FileText, Printer, RotateCcw, X } from 'lucide-react';
+import { FileText, Printer, RotateCcw, X } from 'lucide-react';
 import { use, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { getClassTeacherReportColumns } from './_components/columns';
@@ -75,6 +76,46 @@ export default function ClassTeacherReportPage(props: {
         setSelectedStudents(selectedRows);
     };
 
+    const downloadExcel = async () => {
+        try {
+            if (!academicYearId || !Number(flag)) {
+                toast.error('Please fill all required fields!');
+                return;
+            }
+
+            const response = await getExcelClassTeacherReport(academicYearId, Number(flag));
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'ClassTeacherReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
+    };
+
     const handleReset = () => {
         if (academicYearOptions?.data && academicYearOptions.data.length > 0) {
             setAcademicYearId(Number(academicYearOptions.data[0].asmaY_Id));
@@ -104,21 +145,6 @@ export default function ClassTeacherReportPage(props: {
         setShowReport(true);
         refetchAdmissionStudents();
         toast.success('Generating report...');
-    };
-
-    const handleExportExcel = () => {
-        const studentDetails = (response?.data as any)?.searchstudentDetails;
-        if (!studentDetails || studentDetails.length === 0) {
-            toast.error('No data available to export');
-            return;
-        }
-
-        if (selectedStudents.length === 0) {
-            toast.error('Please select at least one record to export');
-            return;
-        }
-
-        toast.info('Excel export feature coming soon');
     };
 
     const handlePrint = () => {
@@ -260,12 +286,7 @@ export default function ClassTeacherReportPage(props: {
                                 (response?.data as any)?.searchstudentDetails &&
                                 (response?.data as any)?.searchstudentDetails.length > 0 && (
                                     <>
-                                        <Button
-                                            variant='outline'
-                                            className='w-full transition-all duration-200 hover:scale-105 sm:w-fit'
-                                            onClick={handleExportExcel}
-                                            disabled={selectedStudents.length === 0}>
-                                            <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                        <Button onClick={downloadExcel} className='w-fit'>
                                             Export to Excel
                                         </Button>
                                         <Button
