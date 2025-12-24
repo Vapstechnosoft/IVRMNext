@@ -82,6 +82,14 @@ export default function AdmissionReportPage(props: {
     const watchedAsmaY_Id = watch('asmaY_Id');
     const [selectedClassItems, setSelectedClassItems] = useState<{ asmcL_Id: string; asmcL_ClassName: string }[]>([]);
     const [selectedSectionItems, setSelectedSectionItems] = useState<{ asmS_Id: string; asmcL_SectionName: string }[]>([]);
+    const scopeMap: Record<'newad' | 'totstd' | 'prom' | 'yrloss' | 'deact', number> = {
+        newad: 1,
+        totstd: 2,
+        prom: 3,
+        yrloss: 4,
+        deact: 5
+    };
+
     const [studentScope, setStudentScope] = useState<'newad' | 'totstd' | 'prom' | 'yrloss' | 'deact'>('newad');
 
     const [studentStatus, setStudentStatus] = useState<'Tformate' | 'Kformate'>('Tformate');
@@ -97,7 +105,6 @@ export default function AdmissionReportPage(props: {
     const [resolvedSearchParams, setResolvedSearchParams] = useState<Record<string, string | string[] | undefined>>({});
     const [fieldSearch, setFieldSearch] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    console.log('resolvedSearchParams', requestPayload);
 
     /* ---------------- Masters ---------------- */
 
@@ -112,14 +119,22 @@ export default function AdmissionReportPage(props: {
     /* ---------------- Build Payload ---------------- */
     const handleClassSelection = (selectedValues: string[]) => {
         const selectedClasses = selectedValues.map((value) => {
-            return { asmcL_Id: value.toString(), asmcL_ClassName: '' };
+            const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(value));
+            return {
+                asmcL_Id: value.toString(),
+                asmcL_ClassName: cls?.asmcL_ClassName ?? ''
+            };
         });
 
         setSelectedClassItems(selectedClasses);
     };
     const handleSectionSelection = (selectedValues: string[]) => {
         const selectedSections = selectedValues.map((value) => {
-            return { asmS_Id: value.toString(), asmcL_SectionName: '' };
+            const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(value));
+            return {
+                asmS_Id: value.toString(),
+                asmcL_SectionName: section?.asmC_SectionName ?? ''
+            };
         });
 
         setSelectedSectionItems(selectedSections);
@@ -142,13 +157,7 @@ export default function AdmissionReportPage(props: {
         isFetching,
         error,
         refetch
-    } = ClasswiseStudentDetails(
-        watchedYear,
-        // studentScope,
-        watchedStudentCategory ?? 0,
-        requestPayload,
-        resolvedSearchParams
-    );
+    } = ClasswiseStudentDetails(watchedYear, scopeMap[studentScope], watchedStudentCategory ?? 0, requestPayload, resolvedSearchParams);
 
     /* ---------------- Table ---------------- */
 
@@ -188,16 +197,19 @@ export default function AdmissionReportPage(props: {
             const fromData = watch();
             const payload = {
                 classdetailsdata: fromData.classes.map((id: any) => {
-                    const fields = (masterClass?.data as any)?.find((f: any) => f.asmcL_Id === id);
+                    const cls = (masterClass?.data as any)?.find((c: any) => String(c.asmcL_Id) === String(id));
                     return {
-                        asmcL_Id: Number(id),
-                        asmcL_ClassName: fields?.asmcL_ClassName || ''
+                        asmcL_Id: id.toString(),
+                        asmcL_ClassName: cls?.asmcL_ClassName ?? ''
                     };
                 }),
-                sectionsdetailsdata: fromData.class_section.map((id: any) => ({
-                    asmS_Id: Number(id),
-                    asmS_SectionName: ''
-                })),
+                sectionsdetailsdata: fromData.class_section.map((id: any) => {
+                    const section = (masterSection?.data as any)?.find((s: any) => String(s.asmS_Id) === String(id));
+                    return {
+                        asmS_Id: id.toString(),
+                        asmcL_SectionName: section?.asmC_SectionName ?? ''
+                    };
+                }),
                 tempararyArrayheadList: fromData.selectedFields.map((id: string) => {
                     const field = ColumnValue.find((f) => f.columnID === id);
                     return {
@@ -242,14 +254,15 @@ export default function AdmissionReportPage(props: {
 
     const downloadExcel = async () => {
         try {
-            if (!watchedYear || !watchedStudentCategory || !requestPayload) {
+            if (!watchedYear || !requestPayload) {
                 toast.error('Please fill all required fields!');
                 return;
             }
 
             const response = await getExcelClassWiseStudentReport(
                 watchedYear,
-                watchedStudentCategory,
+                scopeMap[studentScope],
+                watchedStudentCategory ?? 0,
                 requestPayload,
                 resolvedSearchParams
             );

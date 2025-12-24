@@ -125,29 +125,24 @@ export async function getExcelStudentTcReport(requestData: any) {
 }
 
 export async function getExcelClassWiseStudentReport(
-    watchedYear: number,
-    watchedStudentCategory: number, // flag
-    requestPayload: any,
-    resolvedSearchParams: ApiSearchparams
+    ASMAY_Id: number,
+    studentScope: number,
+    fmcC_Id: number,
+    payload: any,
+    searchParams?: ApiSearchparams
 ) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+
     const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
-    const classdetailsdata = encodeURIComponent(JSON.stringify(requestPayload.classdetailsdata));
-
-    const sectionsdetailsdata = encodeURIComponent(JSON.stringify(requestPayload.sectionsdetailsdata));
-
-    const TempararyArrayheadList = encodeURIComponent(JSON.stringify(requestPayload.TempararyArrayheadList));
-
-    const url =
-        `${baseUrl}/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel` +
-        `?ASMAY_Id=${watchedYear}` +
-        `&AMST_Id=${requestPayload.AMST_Id}` +
-        `&flag=${watchedStudentCategory}` +
-        `&Concession_Id=${requestPayload.Concession_Id}` +
-        `&classdetailsdata=${classdetailsdata}` +
-        `&sectionsdetailsdata=${sectionsdetailsdata}` +
-        `&TempararyArrayheadList=${TempararyArrayheadList}` +
-        `&${resolvedSearchParams}`;
+    const url = `${baseUrl}/Classwisestudentdetails/ExportClasswiseStudentDetailsToExcel?ASMAY_Id=${ASMAY_Id}
+    &AMST_Id=0
+    &flag=${studentScope}
+    &Concession_Id=${fmcC_Id}
+    &classdetailsdata=${encodeURIComponent(JSON.stringify(payload.classdetailsdata))}
+    &sectionsdetailsdata=${encodeURIComponent(JSON.stringify(payload.sectionsdetailsdata))}
+    &TempararyArrayheadList=${encodeURIComponent(JSON.stringify(payload.TempararyArrayheadList))}
+    &${urlParams}`;
 
     try {
         const session = await auth();
@@ -166,6 +161,7 @@ export async function getExcelClassWiseStudentReport(
         throw error;
     }
 }
+
 export async function getExcelTotalStrengthReport(data: {
     asmay_Id: number;
     asmcL_Id: number;
@@ -235,35 +231,6 @@ export async function getExcelAttendanceAbsentSmsReport(
 export async function getExcelStudyCertificateReport(data: any) {
     const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
     const url = `${baseUrl}/StudyCertificateReport/ExportStudyCertificateReportToExcel?&ASMAY_Id=${data.ASMAY_Id}&AllOrInd=${data.AllOrInd}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&AMST_Id=${data.AMST_Id}`;
-
-    try {
-        const session = await auth();
-
-        const response = await axios.post(url, null, {
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                Authorization: `Bearer ${session?.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        // Convert to regular Array to be serializable across server/client boundary
-        const uint8Array = new Uint8Array(response.data);
-        return Array.from(uint8Array);
-    } catch (error) {
-        console.error('Excel export error:', error);
-        throw error;
-    }
-}
-
-export async function getExcelDOBReport(data: {
-    ASMAY_Id: number;
-    month: string;
-    year: number;
-}) {
-    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
-    const url = `${baseUrl}/monthendreport/ExportMonthEndReportToExcel?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}`;
 
     try {
         const session = await auth();
@@ -476,6 +443,38 @@ export async function getExcelPreAdmissionMonthEndReport(data: {
         const session = await auth();
 
         const response = await axios.post(url, data, {
+            responseType: 'arraybuffer',
+            timeout: 60000,
+            headers: {
+                Authorization: `Bearer ${session?.token || ''}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Convert to regular Array to be serializable across server/client boundary
+        const uint8Array = new Uint8Array(response.data);
+        return Array.from(uint8Array);
+    } catch (error) {
+        console.error('Excel export error:', error);
+        throw error;
+    }
+}
+export async function getExcelDOBReport(
+    ASMAY_Id: number,
+    ASMCL_Id: number,
+    ASMS_Id: number,
+    AMST_Id: number,
+    searchParams?: ApiSearchparams
+) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+
+    const baseUrl = process.env.NEXT_PUBLIC_ADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
+    const url = `${baseUrl}/DOBcertificate/ExportAdmDobCertificateToExcel?ASMAY_Id=${ASMAY_Id}&ASMCL_Id=${ASMCL_Id}&ASMS_Id=${ASMS_Id}&AMST_Id=${AMST_Id}&${urlParams}`;
+
+    try {
+        const session = await auth();
+
+        const response = await axios.post(url, null, {
             responseType: 'arraybuffer',
             timeout: 60000,
             headers: {

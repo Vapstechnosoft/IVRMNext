@@ -103,13 +103,13 @@ export async function getConcessionDropdown() {
 }
 export async function getclasswiseStudentDetails(
     ASMAY_Id: number,
+    studentScope: number,
     fmcC_Id: number,
-    // studentScope: string,
     payload?: any,
     searchParams?: ApiSearchparams
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
-    const url = `/Classwisestudentdetails/Getreportdetails?ASMAY_Id=${ASMAY_Id}&flag=${fmcC_Id}&${urlParams}`;
+    const url = `/Classwisestudentdetails/Getreportdetails?ASMAY_Id=${ASMAY_Id}&Concession_Id=${studentScope}&flag=${fmcC_Id}&${urlParams}`;
 
     return await api.post<any[]>('admission', url, payload);
 }

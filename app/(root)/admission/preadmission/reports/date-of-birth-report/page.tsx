@@ -20,7 +20,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { use, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { useStudentYearlyAttendance, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
+import { useDateOfBirth, useadmissionStudentsDropdown } from '@/hooks/admission/preadmission/useReports';
+import { getExcelDOBReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { birthCertificateColumns } from './_components/columns';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -89,9 +90,8 @@ export default function BirthCertificatePageReport(props: {
     const {
         data: response,
         isLoading,
-        error,
-        refetch: refetchAdmissionStudents
-    } = useStudentYearlyAttendance((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId, searchParams);
+        error
+    } = useDateOfBirth((academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0, classId, sectionId, studentId, searchParams);
 
     const transformedData = useMemo(() => {
         if (!response?.data || !showReport) {
@@ -162,13 +162,6 @@ export default function BirthCertificatePageReport(props: {
         toast.success('Filters cleared successfully');
     };
 
-    const handleCancel = () => {
-        setShowReport(false);
-        setSelectedStudents([]);
-        handleResetSelection();
-        toast.info('Report cancelled');
-    };
-
     const handlePrint = () => {
         if (!transformedData || transformedData.length === 0) {
             toast.error('No data available to print');
@@ -181,6 +174,47 @@ export default function BirthCertificatePageReport(props: {
         }
 
         window.print();
+    };
+
+    const downloadExcel = async () => {
+        try {
+            const response = await getExcelDOBReport(
+                (academicYearId || activePreadmission?.data?.asmaY_Id) ?? 0,
+                classId,
+                sectionId,
+                studentId,
+                searchParams
+            );
+
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'DateOfBirthReport.xlsx';
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            setShowReport(false);
+
+            toast.success('Excel downloaded successfully');
+        } catch (error) {
+            console.error('Download error:', error);
+            toast.error('Failed to download Excel');
+        }
     };
 
     const handleGenerate = () => {
@@ -408,6 +442,9 @@ export default function BirthCertificatePageReport(props: {
                                 onClick={handleClear}>
                                 <X className='mr-2 h-4 w-4' />
                                 Clear
+                            </Button>
+                            <Button onClick={downloadExcel} className='w-fit'>
+                                Export to Excel
                             </Button>
 
                             {showReport && transformedData && transformedData.length > 0 && (
