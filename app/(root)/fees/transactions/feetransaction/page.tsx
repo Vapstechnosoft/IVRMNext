@@ -5,7 +5,8 @@ import { Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useFeeTransactionList, useopeningacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
+import { useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import type { Ifeetransaction } from '@/types/fees/transactions/transactions';
 import { Plus, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
@@ -18,7 +19,7 @@ export default function FeeTransactionPage(props: { searchParams: SearchParams }
     const searchParams = use(props.searchParams);
     const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
 
-    const { data: academicYearData, isLoading: loadingYears } = useopeningacademicyerdropdowndatafee();
+    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
     const { data: response, isLoading, error } = useFeeTransactionList(selectedAsmayId ?? 0, searchParams);
 
     useEffect(() => {
