@@ -254,11 +254,6 @@ export default function AdmissionReportPage(props: {
 
     const downloadExcel = async () => {
         try {
-            if (!watchedYear || !requestPayload) {
-                toast.error('Please fill all required fields!');
-                return;
-            }
-
             const response = await getExcelClassWiseStudentReport(
                 watchedYear,
                 scopeMap[studentScope],
