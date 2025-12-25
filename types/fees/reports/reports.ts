@@ -308,3 +308,13 @@ export interface InstallmentReportHeadDropdownList {
     fmH_Id: number;
     fmH_FeeName: string;
 }
+
+export interface ReceiptReportStudentDropdownList {
+    amst_Id: number;
+    studentName: string;
+}
+
+export interface ReceiptReportReceiptDropdownList {
+    fyp_id: number;
+    fyp_receipt_no: string;
+}

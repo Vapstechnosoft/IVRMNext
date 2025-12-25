@@ -1,7 +1,7 @@
 'use client';
 
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { feeReceiptReportHeadDROPDOWN, useFeeClassListDefaulterreport, useFeeSectionListDefaulterreport } from '@/hooks/fees/useReports';
+import { feeReceiptLogo, useFeeClassListDefaulterreport, useFeeSectionListDefaulterreport } from '@/hooks/fees/useReports';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,20 +14,26 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { cn } from '@/lib/utils';
 import { feeReceiptReportsSchema } from '@/schemas/fees/reports';
-import { getFeeConsolidatedReportData, getInstallmentDropdownData } from '@/server/fees/reports/feeConsolidatedReport';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
+import {
+    getFeeReceiptReportHeadDropdown,
+    getFeeReceiptReportReceiptDropdown,
+    getFeeReceiptReportStudentDropdown
+} from '@/server/fees/reports/fee_receipt_report';
 import type {
-    ConsolidatedReportInstallemntDropdownList,
     IFeeClassDropdownList,
-    IFeeSectionDropdownList
+    IFeeSectionDropdownList,
+    InstallmentReportHeadDropdownList,
+    ReceiptReportReceiptDropdownList,
+    ReceiptReportStudentDropdownList
 } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, Square } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import React from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { ExporttoPrint } from './print';
 
 type FormFields = z.infer<typeof feeReceiptReportsSchema>;
 
@@ -75,11 +81,16 @@ export default function FeeReceiptReport() {
         }
     });
 
-    const { data: masterHeads, isLoading: masterHeadsLoading, refetchAll: refetchMasterHeads } = feeReceiptReportHeadDROPDOWN();
+    //const { data: masterHeads, isLoading: masterHeadsLoading, refetchAll: refetchMasterHeads } = feeReceiptReportHeadDROPDOWN();
+
     const [loading, setLoading] = useState(false);
     const [headSearch, setheadSearch] = useState('');
 
+    const [receiptSearch, setReceiptSearch] = useState('');
+
     const [selectedHeadsItems, setSelectedHeadsItems] = useState<{ fmH_Id: string }[]>([]);
+
+    const [selectedReceiptItems, setSelectedReceiptItems] = useState<{ fyp_Id: string }[]>([]);
 
     const [filters, setFilters] = useState({
         //userType: 'All' as 'All' | 'indi',
@@ -97,8 +108,6 @@ export default function FeeReceiptReport() {
     const [reportLoading, setReportLoading] = useState(false); // ← ADD THIS LINE
     const [showReport, setShowReport] = useState(false);
 
-    const [installments, setInstallments] = useState<ConsolidatedReportInstallemntDropdownList[]>([]);
-
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState<'feeGroup' | 'totalDue' | null>(null);
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -106,11 +115,78 @@ export default function FeeReceiptReport() {
 
     const [sectionLoading, setSectionLoading] = useState(false);
 
+    const [studentsloading, setstudentsloading] = useState(false);
+    const [studentids, setstudentids] = useState<ReceiptReportStudentDropdownList[]>([]);
+
+    const [receiptsloading, setreceiptsloading] = useState(false);
+    const [headsdataloading, setheadsdataloading] = useState(false);
+
+    const [receiptdsdata, setreceiptdsdata] = useState<ReceiptReportReceiptDropdownList[]>([]);
+
+    const [headsdata, setheadsdata] = useState<InstallmentReportHeadDropdownList[]>([]);
+
+    // ---------------- TYPES ----------------
+    type FeeRow = {
+        slNo: number;
+        particulars: string;
+        installment?: string;
+        totalCharges?: number;
+        concession?: number;
+        paidAmount?: number;
+        balance?: number;
+    };
+
+    type PaymentRow = {
+        slNo: number;
+        amount: number;
+        bank?: string;
+        ddNo?: string;
+        date?: string;
+    };
+
+    // ---------------- STATE ----------------
+    const [feeRows, setFeeRows] = useState<FeeRow[]>([]);
+    const [paymentRows, setPaymentRows] = useState<PaymentRow[]>([]);
+
+    const [receiptNo, setReceiptNo] = useState('');
+    const [admissionNo, setAdmissionNo] = useState('');
+    const [studentName, setStudentName] = useState('');
+    const [fatherName, setFatherName] = useState('');
+    const [academicYear, setAcademicYear] = useState('');
+    const [className, setClassName] = useState('');
+    const [paymentMode, setPaymentMode] = useState('');
+    const [amountInWords, setAmountInWords] = useState('');
+
     // Hooks
     const { data: academicData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
     const { data: classListResponse, isLoading: loadingClasses, error: classListError } = useFeeClassListDefaulterreport();
 
+    const [logodata, setlogodata] = useState('');
+
+    const { data: logoResponse, isLoading: logoloading, error: logoerror } = feeReceiptLogo();
+
+    useEffect(() => {
+        if (logoerror) {
+            toast.error(logoerror.message || 'Failed to load logo');
+            return;
+        }
+
+        if (logoResponse) {
+            try {
+                // Convert to JSON in case it's a string
+                const parsed = typeof logoResponse === 'string' ? JSON.parse(logoResponse) : logoResponse;
+
+                if (parsed?.data) {
+                    setlogodata(parsed.data);
+                }
+            } catch (err) {
+                console.error('Failed to parse logo response', err);
+            }
+        }
+    }, [logoResponse, logoerror]);
+
     const fmH_Ids = watch('heads') || [];
+    const receipts = watch('receipts') || [];
 
     const {
         data: sectionListResponse,
@@ -120,9 +196,15 @@ export default function FeeReceiptReport() {
     } = useFeeSectionListDefaulterreport();
 
     const headOptions =
-        masterHeads?.data?.map((h) => ({
+        headsdata?.map((h) => ({
             id: h.fmH_Id.toString(),
             label: h.fmH_FeeName
+        })) ?? [];
+
+    const receiptOptions =
+        receiptdsdata?.map((h) => ({
+            id: h.fyp_id.toString(),
+            label: h.fyp_receipt_no
         })) ?? [];
 
     const selectAllHeads = () => {
@@ -137,6 +219,21 @@ export default function FeeReceiptReport() {
                 shouldValidate: true
             });
             setSelectedHeadsItems(all.map((x) => ({ fmH_Id: x })));
+        }
+    };
+
+    const selectAllReceipts = () => {
+        const all = receiptOptions.map((h) => h.id);
+
+        if (receipts.length === all.length) {
+            // Option: clear selection → field becomes undefined
+            setValue('receipts', undefined as any);
+            setSelectedReceiptItems([]);
+        } else {
+            setValue('receipts', all as [string, ...string[]], {
+                shouldValidate: true
+            });
+            setSelectedReceiptItems(all.map((x) => ({ fyp_Id: x })));
         }
     };
 
@@ -161,7 +258,30 @@ export default function FeeReceiptReport() {
         setSelectedHeadsItems(updated.map((x) => ({ fmH_Id: x })));
     };
 
-    const filteredHeads = masterHeads?.data?.filter((h) => h.fmH_FeeName.toLowerCase().includes(headSearch.toLowerCase())) ?? [];
+    const toggleReceipt = (id: string) => {
+        let updated = [];
+
+        if (receipts.includes(id)) {
+            updated = receipts.filter((v: string) => v !== id);
+        } else {
+            updated = [...receipts, id];
+        }
+
+        // MUST be tuple: at least 1 element
+        if (updated.length === 0) {
+            setValue('receipts', undefined as any);
+        } else {
+            setValue('receipts', updated as [string, ...string[]], {
+                shouldValidate: true
+            });
+        }
+
+        setSelectedReceiptItems(updated.map((x) => ({ fyp_Id: x })));
+    };
+
+    const filteredHeads = headsdata?.filter((h) => h.fmH_FeeName.toLowerCase().includes(headSearch.toLowerCase())) ?? [];
+
+    const filteredReceipts = receiptdsdata.filter((h) => h.fyp_receipt_no.toLowerCase().includes(receiptSearch.toLowerCase())) ?? [];
 
     // Load data effects (unchanged)
     useEffect(() => {
@@ -236,36 +356,123 @@ export default function FeeReceiptReport() {
         fetchSections();
     }, [academicYearId, classId, setValue]);
 
-    //getInstallmentDropdownData
+    const sectionId = watch('sectionId');
 
     useEffect(() => {
-        const fetchSections = async () => {
-            if (!academicYearId) {
-                setInstallments([]);
+        const fetchStudents = async () => {
+            if (!academicYearId || !classId || !sectionId) {
+                setstudentids([]);
 
                 return;
             }
 
-            setSectionLoading(true);
+            setstudentsloading(true);
 
             try {
-                const result = await getInstallmentDropdownData(Number(academicYearId));
+                const result = await getFeeReceiptReportStudentDropdown(Number(academicYearId), classId, sectionId);
 
-                console.log('installments', JSON.stringify(result));
+                console.log('students', result);
+
                 const data = Array.isArray(result?.data) ? result.data : [];
+                setstudentids(data);
 
-                setInstallments(data);
                 if (data.length === 0) {
-                    //  toast.info('No sections found for this class');
+                    toast.info('No Students found ');
                 }
             } catch (error: any) {
-                // toast.error(error.message);
-                setInstallments([]);
+                toast.error(error.message || 'Failed to load Students');
+                setstudentids([]);
+            } finally {
+                setstudentsloading(false);
             }
         };
 
-        fetchSections();
-    }, [academicYearId, setValue]);
+        fetchStudents();
+    }, [academicYearId, classId, setValue, sectionId, setstudentids]);
+
+    //
+    const studentId = watch('studentid');
+
+    const isStudentSelected = studentId !== undefined && studentId !== 0;
+
+    useEffect(() => {
+        setValue('studentid', undefined as any);
+    }, [classId, sectionId]);
+
+    useEffect(() => {
+        const fetchReceipts = async () => {
+            if (!academicYearId || !classId || !sectionId || studentId === undefined) {
+                setreceiptdsdata([]);
+
+                return;
+            }
+
+            console.log('studentId', studentId);
+
+            const studentIdsPayload = studentId === 0 ? studentids.map((s) => s.amst_Id) : [studentId];
+
+            setreceiptsloading(true);
+
+            const payload = {
+                asmaY_Id: Number(academicYearId),
+                asmcL_Id: classId,
+                amsC_Id: sectionId,
+                amst_ids: studentIdsPayload
+            };
+
+            console.log('payload', payload);
+
+            try {
+                const result = await getFeeReceiptReportReceiptDropdown(payload);
+
+                console.log('receipts', result);
+
+                const data = Array.isArray(result?.data) ? result.data : [];
+                setreceiptdsdata(data);
+
+                if (data.length === 0) {
+                    toast.info('No Receipts found ');
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'Failed to load Receipts');
+                setreceiptdsdata([]);
+            } finally {
+                setreceiptsloading(false);
+            }
+        };
+
+        fetchReceipts();
+    }, [academicYearId, classId, setValue, sectionId, studentId, setreceiptdsdata]);
+
+    //
+
+    useEffect(() => {
+        const fetchHeadsData = async () => {
+            if (!academicYearId || !classId || !sectionId || !studentId) {
+                setheadsdata([]);
+
+                return;
+            }
+            setheadsdataloading(true);
+            try {
+                const result = await getFeeReceiptReportHeadDropdown(Number(academicYearId), Number(studentId));
+                console.log('receipts', result);
+                const data = Array.isArray(result?.data) ? result.data : [];
+                setheadsdata(data);
+
+                if (data.length === 0) {
+                    toast.info('No Receipts found ');
+                }
+            } catch (error: any) {
+                toast.error(error.message || 'Failed to load Receipts');
+                setheadsdata([]);
+            } finally {
+                setheadsdataloading(false);
+            }
+        };
+
+        fetchHeadsData();
+    }, [academicYearId, classId, setValue, sectionId, studentId, setreceiptdsdata]);
 
     const toggleRow = (id: number) => {
         setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -281,152 +488,25 @@ export default function FeeReceiptReport() {
 
     const selectedRows = reportData.filter((r) => selectedIds.includes(r.id));
 
-    function transformReportData(apiData: any[]) {
-        const studentMap = new Map<string, any>();
+    const selectedCatg = watch('userType');
 
-        apiData.forEach((item) => {
-            const key = `${item.amaY_RollNo}-${item.studentName}`;
-
-            if (!studentMap.has(key)) {
-                studentMap.set(key, {
-                    rollNo: item.amaY_RollNo,
-                    studentName: item.studentName?.trim(),
-                    className: item.className,
-                    sectionName: item.sectionName,
-                    installments: {}
-                });
-            }
-
-            studentMap.get(key).installments[String(item.ftI_Id)] = {
-                receiptNo: item.receiptNo,
-                date: item.date,
-                chequeNo: item.chequeNo,
-                amount: item.paid
-            };
-        });
-
-        return Array.from(studentMap.values());
-    }
-
-    // const handleExportAlltype = () => {
-    //     if (!reportData.length) {
-    //         toast.error('No data to export');
-    //         return;
-    //     }
-
-    //     const groupedRows = transformReportData(reportData);
-
-    //     exportToExcelAll(groupedRows, installments, 'Fee Consolidated Report');
-    // };
-
-    const handleExportAlltype = () => {
-        if (!reportData.length) {
-            toast.error('No data to export');
-            return;
-        }
-
-        // Remove this line: const groupedRows = transformReportData(reportData);
-        // reportData is already pivoted/grouped for 'All' mode
-
-        //exportToExcelAll(reportData, installments, 'Fee Consolidated Report');
-    };
-
-    const handlePrintAlltype = () => {
-        if (!reportData.length) {
-            toast.error('No data to print');
-            return;
-        }
-
-        //printTableAll(reportData, installments);
-    };
-
-    const handleExport = () => {
-        if (!selectedRows.length) {
-            toast.error('Please select at least one record');
-            return;
-        }
-        //exportToExcel(selectedRows, 'Fee Consolidated-Report');
-    };
+    const printRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = () => {
-        if (!selectedRows.length) {
-            toast.error('Please select at least one record');
-            return;
-        }
-
-        const columns = [
-            'Sl No',
-            'Student Name',
-            'Adm.No',
-            'Class & Section',
-            'Paid Amount',
-            'Receipt No',
-            'Bank Name',
-            'Date',
-            'Cheque No',
-            'Cheque Date'
-        ];
-
-        const rowsToPrint = selectedRows.map((row, index) => ({
-            'Sl No': index + 1,
-            'Student Name': row.studentName,
-            'Adm.No': row.admNo,
-            'Class & Section': row.classSection,
-            'Paid Amount': row.paidAmount,
-            'Receipt No': row.receiptNo,
-            'Bank Name': row.bankName,
-            Date: row.chequeDate,
-            'Cheque No': row.chequeNo,
-            'Cheque Date': row.chequeDate
-        }));
-
-        // ✅ TOTAL ROW
-        const totalAmount = selectedRows.reduce((sum, row) => sum + (row.tuitionFee || 0), 0);
-
-        const totalRow = {
-            // 'Sl No': '',
-            // 'Student Name': 'TOTAL',
-            // 'Mobile No': '',
-            // 'Class/Section Name': '',
-            // 'Receipt Date': '',
-            // 'Receipt No': '',
-            // 'Payment Mode': '',
-            // 'DD/Cheque No': '',
-            // 'Tuition Fee': totalAmount.toLocaleString()
-        };
-
-        // printTable(columns, rowsToPrint, totalRow);
-    };
-
-    const pivotReportData = (data: any[]) => {
-        const grouped: Record<number, any> = {};
-
-        data.forEach((item) => {
-            const studentId = item.amsT_Id;
-
-            if (!grouped[studentId]) {
-                grouped[studentId] = {
-                    id: studentId,
-                    rollNo: item.amaY_RollNo,
-                    studentName: item.studentName?.trim(),
-                    className: item.className,
-                    sectionName: item.sectionName,
-                    installments: {}
-                };
-            }
-
-            grouped[studentId].installments[item.ftI_Id] = {
-                receiptNo: item.receiptNo,
-                date: item.date,
-                chequeNo: item.chequeNo,
-                amount: item.paid
-            };
+        ExporttoPrint({
+            logodata,
+            receiptNo,
+            admissionNo,
+            studentName,
+            fatherName,
+            academicYear,
+            className,
+            feeRows,
+            paymentRows,
+            amountInWords,
+            paymentMode
         });
-
-        return Object.values(grouped);
     };
-
-    const selectedCatg = watch('userType');
 
     // const handleSubmit = async () => {
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
@@ -435,38 +515,88 @@ export default function FeeReceiptReport() {
 
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
-        const response = await getFeeConsolidatedReportData(Number(data.academicYearId), data.classId, data.sectionId, '');
+        const selectedStudentIds =
+            data.studentid === 0
+                ? studentids.map((s) => s.amst_Id) // ALL students
+                : data.studentid
+                  ? [data.studentid] // Single student
+                  : [];
 
-        console.log('responsedata', JSON.stringify(response));
+        console.log('Selected Student IDs:', selectedStudentIds);
 
-        const mapIndiResponseToTable = (data: any[]) => {
-            return data.map((item, index) => ({
-                id: index + 1,
-                studentName: item.studentName?.trim(),
-                admNo: item.amaY_RollNo,
-                classSection: `${item.className} ${item.sectionName}`,
-                paidAmount: item.paid,
-                receiptNo: item.receiptNo,
-                bankName: item.fyP_Bank_Name || '',
-                date: item.date,
-                chequeNo: item.chequeNo || '',
-                chequeDate: item.fyP_DD_Cheque_Date || ''
-            }));
-        };
+        // const response = await getFeeConsolidatedReportData(Number(data.academicYearId), data.classId, data.sectionId, '');
 
-        // if (filters.userType === 'indi') {
-        //     const mappedData = mapIndiResponseToTable(response?.data || []);
-        //     setReportData(mappedData);
-        // } else {
-        //     const pivoted = pivotReportData(response?.data || []);
-        //     setReportData(pivoted);
-        // }
+        // console.log('responsedata', JSON.stringify(response));
+
+        // EXAMPLE mapping (adjust keys to API response)
+        const firstReceiptNo =
+            data.receipts && data.receipts.length > 0
+                ? data.receipts[0] // pick first selected receipt (or you can loop all later)
+                : 'VVS/2025/001';
+
+        setReceiptNo(firstReceiptNo);
+        setAdmissionNo('2025-007');
+        setStudentName('AARNA CHUGH');
+        setFatherName('MANISH ASHU');
+        setAcademicYear('2025-2026');
+        setClassName('PREKG A');
+        setPaymentMode('ONLINE');
+        setAmountInWords('TWENTY FOUR THOUSAND FIVE HUNDRED AND FIFTY NINE ONLY');
+
+        setFeeRows([
+            {
+                slNo: 1,
+                particulars: 'Caution Deposit',
+                installment: '-',
+                totalCharges: 2000,
+                concession: 0,
+                paidAmount: 2000,
+                balance: 0
+            },
+            {
+                slNo: 2,
+                particulars: 'Fine',
+                installment: '-',
+                totalCharges: 10,
+                concession: 0,
+                paidAmount: 10,
+                balance: 0
+            },
+            {
+                slNo: 3,
+                particulars: 'Special Dev Fees',
+                installment: '-',
+                totalCharges: 2500,
+                concession: 0,
+                paidAmount: 2500,
+                balance: 0
+            },
+            {
+                slNo: 4,
+                particulars: 'Tuition Fees',
+                installment: 'TERM 1',
+                totalCharges: 20049,
+                concession: 0,
+                paidAmount: 20049,
+                balance: 0
+            }
+        ]);
+
+        setPaymentRows([
+            {
+                slNo: 1,
+                amount: 24559,
+                bank: '--',
+                ddNo: '--',
+                date: '27/05/2025'
+            }
+        ]);
+
+        setShowReport(true);
+        setReportLoading(false);
+
         setReportData([]);
-        setShowReport(true);
-        setReportLoading(false);
-        setLoading(false);
-        setShowReport(true);
-        setReportLoading(false);
+
         setLoading(false);
 
         toast.success('Report generated successfully');
@@ -591,7 +721,8 @@ export default function FeeReceiptReport() {
                                                 render={({ field }) => (
                                                     <Select
                                                         value={field.value ? field.value.toString() : undefined}
-                                                        onValueChange={(v) => field.onChange(Number(v))}>
+                                                        onValueChange={(v) => field.onChange(Number(v))}
+                                                        disabled={!classId}>
                                                         <SelectTrigger className='w-full text-center'>
                                                             <SelectValue placeholder='--Select Section--' />
                                                         </SelectTrigger>
@@ -621,34 +752,34 @@ export default function FeeReceiptReport() {
                                                 control={control}
                                                 render={({ field }) => (
                                                     <Select
-                                                        value={
-                                                            field.value === undefined || field.value === 0
-                                                                ? undefined
-                                                                : field.value.toString()
-                                                        }
+                                                        value={field.value !== undefined ? field.value.toString() : undefined}
                                                         onValueChange={(v) => {
-                                                            const num = v ? Number(v) : undefined;
-                                                            field.onChange(num);
-                                                        }}>
+                                                            field.onChange(Number(v)); // 0 is valid
+                                                        }}
+                                                        disabled={!academicYearId || !classId || !sectionId}>
                                                         <SelectTrigger className='w-full text-center'>
                                                             <SelectValue placeholder='--Select Student--' />
                                                         </SelectTrigger>
+
                                                         <SelectContent>
-                                                            {/* Replace with students list */}
-                                                            {classes.map((cls) => (
-                                                                <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
-                                                                    {cls.asmcL_ClassName}
+                                                            {/* ALL OPTION */}
+                                                            {selectedCatg === 'All' && <SelectItem value='0'>All</SelectItem>}
+
+                                                            {studentids.map((cls) => (
+                                                                <SelectItem key={cls.amst_Id} value={cls.amst_Id.toString()}>
+                                                                    {cls.studentName}
                                                                 </SelectItem>
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
                                                 )}
                                             />
+
                                             {errors.studentid && <FormError>{errors.studentid.message}</FormError>}
                                         </div>
                                     </div>
                                 </div>
-                                {selectedCatg === 'All' && (
+                                {selectedCatg === 'indi' && (
                                     <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className='flex items-start gap-4'>
                                             {/* Label */}
@@ -666,12 +797,14 @@ export default function FeeReceiptReport() {
                                                         className='mb-3'
                                                     />
 
-                                                    {masterHeads?.data && (
+                                                    {headsdata && headsdata.length > 0 && (
                                                         <div
                                                             onClick={selectAllHeads}
                                                             className={cn(
                                                                 'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                                                fmH_Ids.length === headOptions.length && headOptions.length
+                                                                !isStudentSelected &&
+                                                                    fmH_Ids.length === headOptions.length &&
+                                                                    headOptions.length
                                                                     ? 'border-primary bg-primary/5 text-primary'
                                                                     : 'border-gray-300 hover:border-primary/40'
                                                             )}>
@@ -685,9 +818,9 @@ export default function FeeReceiptReport() {
                                                     )}
 
                                                     <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
-                                                        {masterHeadsLoading ? (
+                                                        {headsdataloading ? (
                                                             <div className='py-4 text-center text-gray-500 text-sm'>Loading heads...</div>
-                                                        ) : masterHeads?.data?.length === 0 ? (
+                                                        ) : headsdata.length === 0 ? (
                                                             <div className='py-4 text-center text-gray-500 text-sm'>No heads found</div>
                                                         ) : (
                                                             filteredHeads.map((u) => {
@@ -723,7 +856,7 @@ export default function FeeReceiptReport() {
                                     </div>
                                 )}
 
-                                {selectedCatg === 'indi' && (
+                                {selectedCatg === 'All' && (
                                     <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                         <div className='flex items-start gap-4'>
                                             {/* Label */}
@@ -735,22 +868,22 @@ export default function FeeReceiptReport() {
                                             <div className='flex-1'>
                                                 <div className='rounded-md border border-gray-300 bg-white p-3'>
                                                     <InputText
-                                                        placeholder='Search Heads...'
+                                                        placeholder='Search Receipt No...'
                                                         value={headSearch}
-                                                        onChange={(e) => setheadSearch(e.target.value)}
+                                                        onChange={(e) => setReceiptSearch(e.target.value)}
                                                         className='mb-3'
                                                     />
 
-                                                    {masterHeads?.data && (
+                                                    {receiptOptions.length > 0 && (
                                                         <div
-                                                            onClick={selectAllHeads}
+                                                            onClick={selectAllReceipts}
                                                             className={cn(
                                                                 'mb-2 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 font-medium text-sm transition-all',
-                                                                fmH_Ids.length === headOptions.length && headOptions.length
+                                                                receipts.length === receiptOptions.length && receiptOptions.length
                                                                     ? 'border-primary bg-primary/5 text-primary'
                                                                     : 'border-gray-300 hover:border-primary/40'
                                                             )}>
-                                                            {fmH_Ids.length === headOptions.length && headOptions.length ? (
+                                                            {receipts.length === receiptOptions.length && receiptOptions.length ? (
                                                                 <CheckSquare className='h-4 w-4 text-primary' />
                                                             ) : (
                                                                 <Square className='h-4 w-4 text-gray-400' />
@@ -760,19 +893,21 @@ export default function FeeReceiptReport() {
                                                     )}
 
                                                     <div className='max-h-40 overflow-y-auto rounded-md border border-gray-300 p-1'>
-                                                        {masterHeadsLoading ? (
-                                                            <div className='py-4 text-center text-gray-500 text-sm'>Loading heads...</div>
-                                                        ) : masterHeads?.data?.length === 0 ? (
-                                                            <div className='py-4 text-center text-gray-500 text-sm'>No heads found</div>
+                                                        {receiptsloading ? (
+                                                            <div className='py-4 text-center text-gray-500 text-sm'>
+                                                                Loading Receipts...
+                                                            </div>
+                                                        ) : receiptdsdata.length === 0 ? (
+                                                            <div className='py-4 text-center text-gray-500 text-sm'>No Receipts found</div>
                                                         ) : (
-                                                            filteredHeads.map((u) => {
-                                                                const id = u.fmH_Id.toString();
-                                                                const selected = fmH_Ids.includes(id);
+                                                            filteredReceipts.map((u) => {
+                                                                const id = u.fyp_id.toString();
+                                                                const selected = receipts.includes(id);
 
                                                                 return (
                                                                     <div
-                                                                        key={u.fmH_Id}
-                                                                        onClick={() => toggleHead(id)}
+                                                                        key={u.fyp_id}
+                                                                        onClick={() => toggleReceipt(id)}
                                                                         className={cn(
                                                                             'mb-1 flex cursor-pointer items-center gap-2 rounded-md border px-2 py-1.5 text-sm transition-all',
                                                                             selected
@@ -784,7 +919,7 @@ export default function FeeReceiptReport() {
                                                                         ) : (
                                                                             <Square className='h-4 w-4 text-gray-400' />
                                                                         )}
-                                                                        <span>{u.fmH_FeeName}</span>
+                                                                        <span>{u.fyp_receipt_no}</span>
                                                                     </div>
                                                                 );
                                                             })
@@ -792,7 +927,7 @@ export default function FeeReceiptReport() {
                                                     </div>
                                                 </div>
 
-                                                {errors.heads && <FormError>{errors.heads.message}</FormError>}
+                                                {errors.receipts && <FormError>{errors.receipts.message}</FormError>}
                                             </div>
                                         </div>
                                     </div>
@@ -809,209 +944,140 @@ export default function FeeReceiptReport() {
                                     </div>
 
                                     {showReport && (
-                                        <CollapsibleSection defaultOpen={true}>
-                                            <div className='mt-10 rounded-lg border bg-white shadow-xl'>
-                                                {/* Header */}
-                                                <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
-                                                    {/* <h2 className='font-bold text-blue-700 text-xl'>Fee Audit Report</h2> */}
-                                                    <div className='mb-6 text-center'>
-                                                        <h2 className='font-bold text-2xl text-primary'>Fee Consolidated Report</h2>
-                                                        {/* <div className="mt-1 text-sm text-gray-600">
-                                                    From {formatDate(fromDate)} To {formatDate(toDate)}
-                                                </div> */}
+                                        <div ref={printRef}>
+                                            <CollapsibleSection defaultOpen={true}>
+                                                <div className='mt-10 rounded-lg border bg-white shadow-xl'>
+                                                    <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
+                                                        <div className='mb-6 text-center'>
+                                                            <h2 className='font-bold text-2xl text-primary'>Fee Receipt Report</h2>
+                                                        </div>
+
+                                                        <div className='flex gap-2'>
+                                                            <Button size='sm' onClick={handlePrint} className='h-8 px-3 text-xs'>
+                                                                Print
+                                                            </Button>
+                                                        </div>
                                                     </div>
-                                                    {/* {filters.userType === 'indi' && (
-                                                        <div className='flex gap-3'>
-                                                            <div className='mb-4 flex justify-end gap-2'>
-                                                                <Button
-                                                                    size='sm'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handleExport}>
-                                                                    Export Excel
-                                                                </Button>
+                                                    <div className='mx-auto max-w-6xl bg-white p-6 text-black print:p-0'>
+                                                        {/* HEADER */}
+                                                        <div className='flex items-center gap-4 border-b pb-4'>
+                                                            <div className='text-center'>
+                                                                {logodata && (
+                                                                    <img src={logodata} alt='Institute Logo' className='mx-auto' />
+                                                                )}
+                                                            </div>
+                                                            {/* <div className='flex-1 text-center'>
+                                                                <h1 className='font-bold text-3xl'>
+                                                                    Baldwin Girls&apos; High School
+                                                                </h1>
+                                                                <p className="text-sm">
+                                                                    90, Richmond Road, Bengaluru, Karnataka 560025
+                                                                </p>
+                                                            </div> */}
+                                                        </div>
 
-                                                                <Button
-                                                                    size='sm'
-                                                                    variant='outline'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handlePrint}>
-                                                                    Print
-                                                                </Button>
+                                                        {/* RECEIPT META */}
+                                                        <div className='mt-4 grid grid-cols-2 text-sm'>
+                                                            <div className='space-y-1'>
+                                                                <p>
+                                                                    <b>Receipt No:</b> {receiptNo}
+                                                                </p>
+                                                                <p>
+                                                                    <b>Admission No:</b> {admissionNo}
+                                                                </p>
+                                                                <p>
+                                                                    <b>Name:</b> {studentName}
+                                                                </p>
+                                                                <p>
+                                                                    <b>Father:</b> {fatherName}
+                                                                </p>
+                                                            </div>
+                                                            <div className='space-y-1 text-right'>
+                                                                <p>
+                                                                    <b>Date:</b>{' '}
+                                                                </p>
+                                                                <p>
+                                                                    <b>Academic Year:</b> {academicYear}
+                                                                </p>
+                                                                <p>
+                                                                    <b>Class/Sec:</b> {className}
+                                                                </p>
                                                             </div>
                                                         </div>
-                                                    )}
 
-                                                    {filters.userType === 'All' && (
-                                                        <div className='flex gap-3'>
-                                                            <div className='mb-4 flex justify-end gap-2'>
-                                                                <Button
-                                                                    size='sm'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handleExportAlltype}>
-                                                                    Export Excel
-                                                                </Button>
+                                                        <h2 className='my-4 text-center font-bold'>FEE RECEIPT</h2>
 
-                                                                <Button
-                                                                    size='sm'
-                                                                    variant='outline'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handlePrintAlltype}>
-                                                                    Print
-                                                                </Button>
-                                                            </div>
+                                                        {/* FEE TABLE */}
+                                                        <table className='w-full border-collapse border text-xs'>
+                                                            <thead className='bg-gray-100'>
+                                                                <tr>
+                                                                    <th className='border p-1'>SL.NO</th>
+                                                                    <th className='border p-1'>PARTICULARS</th>
+                                                                    <th className='border p-1'>INSTALLMENT</th>
+                                                                    <th className='border p-1'>TOTAL CHARGES</th>
+                                                                    <th className='border p-1'>CONCESSION</th>
+                                                                    <th className='border p-1'>PAID AMOUNT</th>
+                                                                    <th className='border p-1'>BALANCE</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {feeRows.map((row) => (
+                                                                    <tr key={row.slNo}>
+                                                                        <td className='border p-1 text-center'>{row.slNo}</td>
+                                                                        <td className='border p-1'>{row.particulars}</td>
+                                                                        <td className='border p-1 text-center'>{row.installment ?? '-'}</td>
+                                                                        <td className='border p-1 text-right'>{row.totalCharges ?? '-'}</td>
+                                                                        <td className='border p-1 text-right'>{row.concession ?? '-'}</td>
+                                                                        <td className='border p-1 text-right'>{row.paidAmount ?? '-'}</td>
+                                                                        <td className='border p-1 text-right'>{row.balance ?? '-'}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+
+                                                        {/* CURRENT PAYMENT */}
+                                                        <h3 className='mt-6 font-bold text-sm'>CURRENT PAYMENT DETAIL</h3>
+
+                                                        <table className='mt-2 w-full border-collapse border text-xs'>
+                                                            <thead className='bg-gray-100'>
+                                                                <tr>
+                                                                    <th className='border p-1'>SL.NO</th>
+                                                                    <th className='border p-1'>AMOUNT</th>
+                                                                    <th className='border p-1'>BANK</th>
+                                                                    <th className='border p-1'>DD.NO</th>
+                                                                    <th className='border p-1'>DATE</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {paymentRows.map((p) => (
+                                                                    <tr key={p.slNo}>
+                                                                        <td className='border p-1 text-center'>{p.slNo}</td>
+                                                                        <td className='border p-1 text-right'>{p.amount}</td>
+                                                                        <td className='border p-1 text-center'>{p.bank ?? '-'}</td>
+                                                                        <td className='border p-1 text-center'>{p.ddNo ?? '-'}</td>
+                                                                        <td className='border p-1 text-center'>{p.date ?? '-'}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+
+                                                        {/* FOOTER */}
+                                                        <div className='mt-4 text-sm'>
+                                                            <p>
+                                                                <b>Amount Received:</b> {amountInWords}
+                                                            </p>
+                                                            <p>
+                                                                <b>Payment Mode:</b> {paymentMode}
+                                                            </p>
                                                         </div>
-                                                    )} */}
+
+                                                        <div className='mt-10 flex justify-end'>
+                                                            <p className='border-t pt-2 text-sm'>AUTHORIZED SIGNATORY</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
-
-                                                {/* ================= INDIVIDUAL TABLE ================= */}
-
-                                                <div className='overflow-x-auto'>
-                                                    <table className='w-full border-collapse text-sm'>
-                                                        <thead className='bg-primary text-white'>
-                                                            <tr>
-                                                                <th className='border px-2 py-2 text-center'>
-                                                                    <input
-                                                                        type='checkbox'
-                                                                        checked={
-                                                                            selectedIds.length === reportData.length &&
-                                                                            reportData.length > 0
-                                                                        }
-                                                                        onChange={toggleAll}
-                                                                    />
-                                                                </th>
-                                                                <th className='border px-2 py-2'>Sl No</th>
-                                                                <th className='border px-2 py-2'>Student Name</th>
-                                                                <th className='border px-2 py-2'>Adm.No</th>
-                                                                <th className='border px-2 py-2'>Class & Section</th>
-                                                                <th className='border px-2 py-2'>Paid Amount</th>
-                                                                <th className='border px-2 py-2'>Receipt No</th>
-                                                                <th className='border px-2 py-2'>Bank Name</th>
-                                                                <th className='border px-2 py-2'>Date</th>
-                                                                <th className='border px-2 py-2'>Cheque No</th>
-                                                                <th className='border px-2 py-2'>Cheque Date</th>
-                                                            </tr>
-                                                        </thead>
-
-                                                        <tbody>
-                                                            {reportData.map((row, index) => (
-                                                                <tr
-                                                                    key={row.id ?? index}
-                                                                    className={
-                                                                        selectedIds.includes(row.id)
-                                                                            ? 'bg-blue-100'
-                                                                            : index % 2 === 0
-                                                                              ? 'bg-white'
-                                                                              : 'bg-gray-50'
-                                                                    }>
-                                                                    <td className='border px-2 py-2 text-center'>
-                                                                        <input
-                                                                            type='checkbox'
-                                                                            checked={selectedIds.includes(row.id)}
-                                                                            onChange={() => toggleRow(row.id)}
-                                                                        />
-                                                                    </td>
-                                                                    <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                                    <td className='border px-2 py-2'>{row.studentName}</td>
-                                                                    <td className='border px-2 py-2 text-center'>{row.admNo}</td>
-                                                                    <td className='border px-2 py-2 text-center'>{row.classSection}</td>
-                                                                    <td className='border px-2 py-2 text-right'>
-                                                                        {row.paidAmount?.toLocaleString()}
-                                                                    </td>
-                                                                    <td className='border px-2 py-2'>{row.receiptNo}</td>
-                                                                    <td className='border px-2 py-2'>{row.bankName}</td>
-                                                                    <td className='border px-2 py-2'>{row.date}</td>
-                                                                    <td className='border px-2 py-2'>{row.chequeNo}</td>
-                                                                    <td className='border px-2 py-2'>{row.chequeDate}</td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-
-                                                <div className='overflow-x-auto'>
-                                                    <table className='w-full border-collapse text-sm'>
-                                                        {/* ================= HEADER ================= */}
-                                                        <thead className='bg-primary text-white'>
-                                                            {/* ROW 1 – INSTALLMENT NAMES */}
-                                                            <tr>
-                                                                <th rowSpan={2} className='border px-2 py-2 text-center'>
-                                                                    SLNO
-                                                                </th>
-                                                                <th rowSpan={2} className='border px-2 py-2 text-center'>
-                                                                    Roll No
-                                                                </th>
-                                                                <th rowSpan={2} className='border px-2 py-2'>
-                                                                    Student Name
-                                                                </th>
-                                                                <th rowSpan={2} className='border px-2 py-2 text-center'>
-                                                                    Class
-                                                                </th>
-                                                                <th rowSpan={2} className='border px-2 py-2 text-center'>
-                                                                    Section
-                                                                </th>
-
-                                                                {installments.map((inst) => (
-                                                                    <th
-                                                                        key={inst.ftI_Id}
-                                                                        colSpan={4}
-                                                                        className='border px-2 py-2 text-center font-semibold'>
-                                                                        {inst.ftI_Name}
-                                                                    </th>
-                                                                ))}
-                                                            </tr>
-
-                                                            {/* ROW 2 – SUB COLUMNS */}
-                                                            <tr>
-                                                                {installments.map((inst) => (
-                                                                    <React.Fragment key={`${inst.ftI_Id}-sub`}>
-                                                                        <th className='border px-2 py-2'>Receipt No</th>
-                                                                        <th className='border px-2 py-2'>Date</th>
-                                                                        <th className='border px-2 py-2'>Cheque No</th>
-                                                                        <th className='border px-2 py-2 text-right'>Amount</th>
-                                                                    </React.Fragment>
-                                                                ))}
-                                                            </tr>
-                                                        </thead>
-
-                                                        {/* ================= BODY ================= */}
-                                                        <tbody>
-                                                            {reportData.map((row, index) => (
-                                                                <tr key={row.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                                    <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                                    <td className='border px-2 py-2 text-center'>{row.rollNo}</td>
-                                                                    <td className='border px-2 py-2'>{row.studentName}</td>
-                                                                    <td className='border px-2 py-2 text-center'>{row.className}</td>
-                                                                    <td className='border px-2 py-2 text-center'>{row.sectionName}</td>
-
-                                                                    {installments.map((inst) => {
-                                                                        const instData = row.installments?.[inst.ftI_Id];
-
-                                                                        return (
-                                                                            <React.Fragment key={`${row.id}-${inst.ftI_Id}`}>
-                                                                                <td className='border px-2 py-2'>
-                                                                                    {instData?.receiptNo || '-'}
-                                                                                </td>
-                                                                                <td className='border px-2 py-2'>
-                                                                                    {instData?.date || '-'}
-                                                                                </td>
-                                                                                <td className='border px-2 py-2'>
-                                                                                    {instData?.chequeNo || '-'}
-                                                                                </td>
-                                                                                <td className='border px-2 py-2 text-right'>
-                                                                                    {instData?.amount
-                                                                                        ? instData.amount.toLocaleString()
-                                                                                        : '-'}
-                                                                                </td>
-                                                                            </React.Fragment>
-                                                                        );
-                                                                    })}
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        </CollapsibleSection>
+                                            </CollapsibleSection>
+                                        </div>
                                     )}
                                 </div>
                             </div>

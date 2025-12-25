@@ -934,22 +934,22 @@ export async function getUserAccessibleModules() {
                                             title: 'Fee Consolidated Report',
                                             description: 'Manage Fee Consolidated Report Details'
                                         },
-                                        // {
-                                        //     id: 10021,
-                                        //     name: 'Fee Installment Report',
-                                        //     icon: 'BadgeIndianRupee',
-                                        //     url: '/fees/feereports/feesinstallmentreport',
-                                        //     title: 'Fee Installment Report',
-                                        //     description: 'Manage Fee Installment Report Details'
-                                        // },
-                                        // {
-                                        //     id: 10022,
-                                        //     name: 'Fee Receipt Report',
-                                        //     icon: 'BadgeIndianRupee',
-                                        //     url: '/fees/feereports/feereceiptreport',
-                                        //     title: 'Fee Receipt Report',
-                                        //     description: 'Manage Fee Receipt Report Details'
-                                        // },
+                                        {
+                                            id: 10021,
+                                            name: 'Fee Installment Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feesinstallmentreport',
+                                            title: 'Fee Installment Report',
+                                            description: 'Manage Fee Installment Report Details'
+                                        },
+                                        {
+                                            id: 10022,
+                                            name: 'Fee Receipt Report',
+                                            icon: 'BadgeIndianRupee',
+                                            url: '/fees/feereports/feereceiptreport',
+                                            title: 'Fee Receipt Report',
+                                            description: 'Manage Fee Receipt Report Details'
+                                        },
                                         {
                                             id: 10023,
                                             name: 'Fee Accounts Position Report',

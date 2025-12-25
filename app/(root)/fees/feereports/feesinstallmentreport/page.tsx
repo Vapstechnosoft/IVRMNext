@@ -20,8 +20,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 import { FormError } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import { feesInstallmentReportSchema } from '@/schemas/fees/reports';
-import { getFeeConsolidatedReportData } from '@/server/fees/reports/feeConsolidatedReport';
 import { getFeesSectionListByClassId } from '@/server/fees/reports/fee_DefaulterReport';
 import {
     getFeeInstallmentReportHeadDropdown,
@@ -37,10 +37,12 @@ import type {
     InstallmentReportHeadDropdownList
 } from '@/types/fees/reports/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import React from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { exportToExcelInstallmentReport, printTableInstallmentReport } from './print_excel';
 type FormFields = z.infer<typeof feesInstallmentReportSchema>;
 
 // Checkbox with full indeterminate support
@@ -77,6 +79,7 @@ export default function FeeInstallemntReport() {
         setValue,
         control,
         watch,
+        register,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(feesInstallmentReportSchema),
@@ -85,7 +88,13 @@ export default function FeeInstallemntReport() {
             academicYearId: undefined,
             classId: 0,
             sectionId: 0,
-            con: 'Datewise'
+            con: 'Datewise',
+            installmentIds: [],
+            termIds: [],
+            groupIds: [],
+            headIds: [],
+            busrouteid: 0,
+            groupIdsNew: []
         }
     });
 
@@ -99,11 +108,11 @@ export default function FeeInstallemntReport() {
 
         academicYearId: '',
         classId: 0,
-        sectionId: 0,
-        installmentIds: [] as number[],
-        termIds: [] as number[],
-        groupIds: [] as number[],
-        headIds: [] as number[]
+        sectionId: 0
+        //installmentIds: [] as number[],
+        //termIds: [] as number[],
+        // groupIds: [] as number[],
+        //headIds: [] as number[]
     });
 
     const [academicYears, setAcademicYears] = useState<IAcademicYear[]>([]);
@@ -314,7 +323,7 @@ export default function FeeInstallemntReport() {
             try {
                 const result = await getFeeInstallmentReportHeadDropdown(Number(academicYearId), Number(groupidnew));
 
-                console.log('installments', JSON.stringify(result));
+                console.log('heads', JSON.stringify(result));
                 const data = Array.isArray(result?.data) ? result.data : [];
 
                 setHeads(data);
@@ -325,11 +334,13 @@ export default function FeeInstallemntReport() {
             } catch (error: any) {
                 // toast.error(error.message);
                 setHeads([]);
+            } finally {
+                setheadsloading(false);
             }
         };
 
         fetchHeads();
-    }, [academicYearId, setValue, groupidnew]);
+    }, [academicYearId, groupidnew, setValue]);
 
     const toggleRow = (id: number) => {
         setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -383,111 +394,100 @@ export default function FeeInstallemntReport() {
     //     exportToExcelAll(groupedRows, installments, 'Fee Consolidated Report');
     // };
 
-    const handleExportAlltype = () => {
-        if (!reportData.length) {
-            toast.error('No data to export');
-            return;
+    const getColumns = () => {
+        // CONSOLIDATE
+        if (selectedCatg === 'Consolidate') {
+            return [
+                'Sl No',
+                'Terms Name',
+                'Today Paid Count',
+                'Today Collection',
+                'Still Now Paid Count',
+                'Still Now Collection',
+                'Total Strength',
+                'Defaulters'
+            ];
         }
 
-        // Remove this line: const groupedRows = transformReportData(reportData);
-        // reportData is already pivoted/grouped for 'All' mode
+        // DETAILED
+        const cols = ['Sl No', 'Roll No', 'Student Name', 'Admission No', 'Class', 'Section', 'Balance', 'Total'];
 
-        // exportToExcelAll(reportData, installments, 'Fee Consolidated Report');
-    };
-
-    const handlePrintAlltype = () => {
-        if (!reportData.length) {
-            toast.error('No data to print');
-            return;
-        }
-
-        // printTableAll(reportData, installments);
-    };
-
-    const handleExport = () => {
-        if (!selectedRows.length) {
-            toast.error('Please select at least one record');
-            return;
-        }
-        //exportToExcel(selectedRows, 'Fee Consolidated-Report');
-    };
-
-    const handlePrint = () => {
-        if (!selectedRows.length) {
-            toast.error('Please select at least one record');
-            return;
-        }
-
-        const columns = [
-            'Sl No',
-            'Student Name',
-            'Adm.No',
-            'Class & Section',
-            'Paid Amount',
-            'Receipt No',
-            'Bank Name',
-            'Date',
-            'Cheque No',
-            'Cheque Date'
-        ];
-
-        const rowsToPrint = selectedRows.map((row, index) => ({
-            'Sl No': index + 1,
-            'Student Name': row.studentName,
-            'Adm.No': row.admNo,
-            'Class & Section': row.classSection,
-            'Paid Amount': row.paidAmount,
-            'Receipt No': row.receiptNo,
-            'Bank Name': row.bankName,
-            Date: row.chequeDate,
-            'Cheque No': row.chequeNo,
-            'Cheque Date': row.chequeDate
-        }));
-
-        // ✅ TOTAL ROW
-        const totalAmount = selectedRows.reduce((sum, row) => sum + (row.tuitionFee || 0), 0);
-
-        const totalRow = {
-            // 'Sl No': '',
-            // 'Student Name': 'TOTAL',
-            // 'Mobile No': '',
-            // 'Class/Section Name': '',
-            // 'Receipt Date': '',
-            // 'Receipt No': '',
-            // 'Payment Mode': '',
-            // 'DD/Cheque No': '',
-            // 'Tuition Fee': totalAmount.toLocaleString()
-        };
-
-        //printTable(columns, rowsToPrint, totalRow);
-    };
-
-    const pivotReportData = (data: any[]) => {
-        const grouped: Record<number, any> = {};
-
-        data.forEach((item) => {
-            const studentId = item.amsT_Id;
-
-            if (!grouped[studentId]) {
-                grouped[studentId] = {
-                    id: studentId,
-                    rollNo: item.amaY_RollNo,
-                    studentName: item.studentName?.trim(),
-                    className: item.className,
-                    sectionName: item.sectionName,
-                    installments: {}
-                };
-            }
-
-            grouped[studentId].installments[item.ftI_Id] = {
-                receiptNo: item.receiptNo,
-                date: item.date,
-                chequeNo: item.chequeNo,
-                amount: item.paid
-            };
+        selectedInstallmentData.forEach((inst: any) => {
+            const name = inst.ftI_InstallmentName;
+            cols.push(
+                `${name} Net`,
+                `${name} Paid`,
+                `${name} Balance`,
+                `${name} Concession`,
+                `${name} Fine`,
+                `${name} Waiver`,
+                `${name} Opening`,
+                `${name} Net 2`,
+                `${name} Paid 2`,
+                `${name} Balance 2`
+            );
         });
 
-        return Object.values(grouped);
+        return cols;
+    };
+
+    const getRows = () => {
+        // CONSOLIDATE
+        if (selectedCatg === 'Consolidate') {
+            return reportData.map((row: any) => ({
+                'Sl No': row.slNo,
+                'Terms Name': row.termsName,
+                'Today Paid Count': row.todayPaidCount,
+                'Today Collection': row.todayCollection,
+                'Still Now Paid Count': row.stillNowPaidCount,
+                'Still Now Collection': row.stillNowCollection,
+                'Total Strength': row.totalStrength,
+                Defaulters: row.defaulters
+            }));
+        }
+
+        // DETAILED
+        return reportData.map((row: any, index: number) => {
+            const data: any = {
+                'Sl No': index + 1,
+                'Roll No': row.rollNo,
+                'Student Name': row.studentName,
+                'Admission No': row.admNo,
+                Class: row.className,
+                Section: row.sectionName,
+                Balance: row.balance,
+                Total: row.total
+            };
+
+            selectedInstallmentData.forEach((inst: any) => {
+                const instData = row.installments?.[inst.ftI_Id] || {};
+                const name = inst.ftI_InstallmentName;
+
+                data[`${name} Net`] = instData.net || 0;
+                data[`${name} Paid`] = instData.paid || 0;
+                data[`${name} Balance`] = instData.balance || 0;
+                data[`${name} Concession`] = instData.concession || 0;
+                data[`${name} Fine`] = instData.fine || 0;
+                data[`${name} Waiver`] = instData.waiver || 0;
+                data[`${name} Opening`] = instData.opening || 0;
+                data[`${name} Net 2`] = instData.net2 || 0;
+                data[`${name} Paid 2`] = instData.paid2 || 0;
+                data[`${name} Balance 2`] = instData.balance2 || 0;
+            });
+
+            return data;
+        });
+    };
+
+    const handleExportAlltype = () => {
+        const rows = getRows();
+        exportToExcelInstallmentReport(rows, `${selectedCatg}_Fee_Report`);
+    };
+    const handlePrintAlltype = () => {
+        const columns = getColumns();
+        const rows = getRows();
+
+        printTableInstallmentReport(columns, rows);
     };
 
     const selectedCatg = watch('catg');
@@ -496,79 +496,434 @@ export default function FeeInstallemntReport() {
 
     const termwise = watch('termswise');
 
-    const toggleInstallment = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            installmentIds: prev.installmentIds.includes(id) ? prev.installmentIds.filter((x) => x !== id) : [...prev.installmentIds, id]
-        }));
+    // const toggleInstallment = (id: number) =>
+    //     setFilters((prev) => ({
+    //         ...prev,
+    //         installmentIds: prev.installmentIds.includes(id) ? prev.installmentIds.filter((x) => x !== id) : [...prev.installmentIds, id]
+    //     }));
 
-    const toggleHeads = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            headIds: prev.headIds.includes(id) ? prev.headIds.filter((x) => x !== id) : [...prev.headIds, id]
-        }));
+    const installmentIds = watch('installmentIds');
 
-    const toggleterms = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            termIds: prev.termIds.includes(id) ? prev.termIds.filter((x) => x !== id) : [...prev.termIds, id]
-        }));
+    const toggleInstallment = (id: number) => {
+        const current = installmentIds ?? [];
+
+        const updated = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
+
+        setValue('installmentIds', updated, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
+
+    const selectedInstallmentData = useMemo(
+        () => feeInstallments.filter((inst) => installmentIds?.includes(inst.ftI_Id)),
+        [installmentIds, feeInstallments]
+    );
+
+    //    const toggleHeads = (id: number) =>
+    //         setFilters((prev) => ({
+    //             ...prev,
+    //             headIds: prev.headIds.includes(id) ? prev.headIds.filter((x) => x !== id) : [...prev.headIds, id]
+    //         }));
+
+    const headIds = watch('headIds') ?? [];
+
+    const toggleHeads = (id: number) => {
+        const updated = headIds.includes(id) ? headIds.filter((x: number) => x !== id) : [...headIds, id];
+
+        setValue('headIds', updated, { shouldValidate: true });
+    };
+
+    // const toggleterms = (id: number) =>
+    //     setFilters((prev) => ({
+    //         ...prev,
+    //         termIds: prev.termIds.includes(id) ? prev.termIds.filter((x) => x !== id) : [...prev.termIds, id]
+    //     }));
+
+    const termIds = watch('termIds') ?? [];
+
+    const toggleterms = (id: number) => {
+        const updated = termIds.includes(id) ? termIds.filter((x) => x !== id) : [...termIds, id];
+
+        setValue('termIds', updated, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
 
     const allTermIds = feeTerms.map((t) => t.fmT_Id);
 
-    const isAllTermsSelected = feeTerms.length > 0 && filters.termIds.length === feeTerms.length;
+    //const isAllTermsSelected = feeTerms.length > 0 && filters.termIds.length === feeTerms.length;
+
+    const isAllTermsSelected = feeTerms.length > 0 && termIds.length === feeTerms.length;
+
+    // const toggleAllTerms = () => {
+    //     setFilters((prev) => ({
+    //         ...prev,
+    //         termIds: isAllTermsSelected ? [] : allTermIds
+    //     }));
+    // };
 
     const toggleAllTerms = () => {
-        setFilters((prev) => ({
-            ...prev,
-            termIds: isAllTermsSelected ? [] : allTermIds
-        }));
+        setValue('termIds', isAllTermsSelected ? [] : feeTerms.map((t) => t.fmT_Id), { shouldDirty: true, shouldValidate: true });
     };
-
     /////====
 
-    const togglegroups = (id: number) =>
-        setFilters((prev) => ({
-            ...prev,
-            groupIds: prev.groupIds.includes(id) ? prev.groupIds.filter((x) => x !== id) : [...prev.groupIds, id]
-        }));
+    // const togglegroups = (id: number) =>
+    //     setFilters((prev) => ({
+    //         ...prev,
+    //         groupIds: prev.groupIds.includes(id) ? prev.groupIds.filter((x) => x !== id) : [...prev.groupIds, id]
+    //     }));
+
+    const groupIds = watch('groupIds') ?? [];
+
+    const togglegroups = (id: number) => {
+        const updated = groupIds.includes(id) ? groupIds.filter((x) => x !== id) : [...groupIds, id];
+
+        setValue('groupIds', updated, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
+
+    const groupIdsnew = watch('groupIdsNew') ?? [];
+
+    const togglegroupsnew = (id: number) => {
+        const updated = groupIdsnew.includes(id) ? groupIdsnew.filter((x) => x !== id) : [...groupIdsnew, id];
+
+        setValue('groupIdsNew', updated, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
 
     const allGroupIds = feeGroups.map((t) => t.fmG_Id);
 
-    const isAllGroupsSelected = feeGroups.length > 0 && filters.groupIds.length === feeGroups.length;
+    //const isAllGroupsSelected = feeGroups.length > 0 && filters.groupIds.length === feeGroups.length;
+
+    const isAllGroupsSelected = feeGroups.length > 0 && groupIds.length === feeGroups.length;
+    // const toggleAllGroups = () => {
+    //     setFilters((prev) => ({
+    //         ...prev,
+    //         groupIds: isAllGroupsSelected ? [] : allGroupIds
+    //     }));
+    // };
 
     const toggleAllGroups = () => {
-        setFilters((prev) => ({
-            ...prev,
-            groupIds: isAllGroupsSelected ? [] : allGroupIds
-        }));
+        setValue('groupIds', isAllGroupsSelected ? [] : feeGroups.map((g) => g.fmG_Id), { shouldDirty: true, shouldValidate: true });
     };
+    const isAllGroupsSelectedNew = feeGroups.length > 0 && groupIdsnew.length === feeGroups.length;
+
+    const toggleAllGroupsnew = () => {
+        setValue('groupIdsNew', isAllGroupsSelectedNew ? [] : feeGroups.map((g) => g.fmG_Id), { shouldDirty: true, shouldValidate: true });
+    };
+
+    const staticReportData = [
+        {
+            id: 1,
+            rollNo: 1,
+            studentName: 'AAMINA MIN',
+            admNo: '2024-012',
+            className: 'LKG',
+            sectionName: 'A',
+            balance: 2047,
+            total: 4096,
+            installment1: {
+                net: 2009,
+                paid: 2049,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 2047,
+                net2: 2047, // Second net? (image has two 'Net' cols per installment)
+                paid2: 2047,
+                balance2: 0
+            },
+            installment2: {
+                net: 0, // Empty in image for II
+                paid: 0,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 0,
+                net2: 0,
+                paid2: 0,
+                balance2: 0
+            }
+        },
+        {
+            id: 2,
+            rollNo: 1,
+            studentName: 'ADREETA DEBNATH',
+            admNo: '2024-050',
+            className: 'LKG',
+            sectionName: 'D',
+            balance: 40054, // Image shows 40054, but likely 4005? Using as-is
+            total: 20049,
+            installment1: {
+                net: 2009,
+                paid: 2049,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 2047,
+                net2: 0,
+                paid2: 0,
+                balance2: 2047
+            },
+            installment2: {
+                net: 0,
+                paid: 0,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 0,
+                net2: 0,
+                paid2: 0,
+                balance2: 0
+            }
+        },
+        {
+            id: 3,
+            rollNo: 1,
+            studentName: 'BHU KHATRI', // Likely "BHUMI KHATRI" from image
+            admNo: '2024-065',
+            className: 'LKG',
+            sectionName: 'C',
+            balance: 2047,
+            total: 4096,
+            installment1: {
+                net: 2009,
+                paid: 2049,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 2047,
+                net2: 2047,
+                paid2: 2047,
+                balance2: 0
+            },
+            installment2: {
+                net: 0,
+                paid: 0,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 0,
+                net2: 0,
+                paid2: 0,
+                balance2: 0
+            }
+        },
+        {
+            id: 4,
+            rollNo: 1,
+            studentName: 'AJAB HUSEN GHEWALA', // Likely "AJAB HUSEN GHEWALA"
+            admNo: '2024-149',
+            className: 'UKG',
+            sectionName: 'C',
+            balance: 2047,
+            total: 4096,
+            installment1: {
+                net: 2009,
+                paid: 2049,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 2047,
+                net2: 2047,
+                paid2: 2047,
+                balance2: 0
+            },
+            installment2: {
+                net: 0,
+                paid: 0,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 0,
+                net2: 0,
+                paid2: 0,
+                balance2: 0
+            }
+        },
+        {
+            id: 5,
+            rollNo: 1,
+            studentName: 'SINCHANA M',
+            admNo: '2024-060',
+            className: 'UKG',
+            sectionName: 'D',
+            balance: 60143, // Image shows 60143 for balance
+            total: 0,
+            installment1: {
+                net: 2009,
+                paid: 0,
+                balance: 2049,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 2047,
+                net2: 2047,
+                paid2: 0,
+                balance2: 2047
+            },
+            installment2: {
+                net: 0,
+                paid: 0,
+                balance: 0,
+                concession: 0,
+                fine: 0,
+                waiver: 0,
+                opening: 0,
+                net2: 0,
+                paid2: 0,
+                balance2: 0
+            }
+        }
+    ];
+
+    // Installments data (for headers) - assuming 2 installments as per image
+    const staticInstallments = [
+        { ftI_Id: 1, ftI_Name: 'I Installment' },
+        { ftI_Id: 2, ftI_Name: 'II Installment' }
+    ];
+
+    const staticConsolidateData = [
+        {
+            id: 1,
+            slNo: 1,
+            termsName: 'I Installment',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 25,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 2161
+        },
+        {
+            id: 2,
+            slNo: 2,
+            termsName: 'II Installment',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 0,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 3041
+        },
+        {
+            id: 3,
+            slNo: 3,
+            termsName: 'III Installment',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 0,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 3107
+        },
+        {
+            id: 4,
+            slNo: 4,
+            termsName: 'IV Installment',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 0,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 0
+        },
+        {
+            id: 5,
+            slNo: 5,
+            termsName: 'Pending Fee(21)',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 0,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 0
+        },
+        {
+            id: 6,
+            slNo: 6,
+            termsName: 'Pending Fee(22)',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 0,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 0
+        },
+        {
+            id: 7,
+            slNo: 7,
+            termsName: 'Pending Fee(23)',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 0,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 0
+        },
+        {
+            id: 8,
+            slNo: 8,
+            termsName: 'Pending Fee(24)',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 0,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 0
+        },
+        {
+            id: 9,
+            slNo: 9,
+            termsName: 'Pending Fee(25)',
+            todayPaidCount: 0,
+            todayCollection: 0,
+            stillNowPaidCount: 0,
+            stillNowCollection: 0,
+            totalStrength: 3297,
+            defaulters: 0
+        }
+    ];
 
     // const handleSubmit = async () => {
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         setReportLoading(true);
         setShowReport(false);
 
-        await new Promise((resolve) => setTimeout(resolve, 1200));
+        // await new Promise((resolve) => setTimeout(resolve, 1200));
 
-        const response = await getFeeConsolidatedReportData(Number(data.academicYearId), data.classId, data.sectionId, filters.catg);
+        // const response = await getFeeConsolidatedReportData(Number(data.academicYearId), data.classId ? data.classId : 0, data.sectionId ? data.sectionId : 0, filters.catg);
 
-        console.log('responsedata', JSON.stringify(response));
+        // console.log('responsedata', JSON.stringify(response));
 
-        const mapIndiResponseToTable = (data: any[]) => {
-            return data.map((item, index) => ({
-                id: index + 1,
-                studentName: item.studentName?.trim(),
-                admNo: item.amaY_RollNo,
-                classSection: `${item.className} ${item.sectionName}`,
-                paidAmount: item.paid,
-                receiptNo: item.receiptNo,
-                bankName: item.fyP_Bank_Name || '',
-                date: item.date,
-                chequeNo: item.chequeNo || '',
-                chequeDate: item.fyP_DD_Cheque_Date || ''
-            }));
-        };
+        // const mapIndiResponseToTable = (data: any[]) => {
+        //     return data.map((item, index) => ({
+        //         id: index + 1,
+        //         studentName: item.studentName?.trim(),
+        //         admNo: item.amaY_RollNo,
+        //         classSection: `${item.className} ${item.sectionName}`,
+        //         paidAmount: item.paid,
+        //         receiptNo: item.receiptNo,
+        //         bankName: item.fyP_Bank_Name || '',
+        //         date: item.date,
+        //         chequeNo: item.chequeNo || '',
+        //         chequeDate: item.fyP_DD_Cheque_Date || ''
+        //     }));
+        // };
 
         // if (filters.userType === 'indi') {
         //     const mappedData = mapIndiResponseToTable(response?.data || []);
@@ -577,10 +932,15 @@ export default function FeeInstallemntReport() {
         //     const pivoted = pivotReportData(response?.data || []);
         //     setReportData(pivoted);
         // }
-        setReportData([]);
-        setShowReport(true);
-        setReportLoading(false);
-        setLoading(false);
+
+        // In onSubmit, set data based on catg:
+        if (selectedCatg === 'Consolidate') {
+            setReportData(staticConsolidateData);
+        } else {
+            setReportData(staticReportData); // Detailed
+        }
+
+        // setReportData(staticReportData);
         setShowReport(true);
         setReportLoading(false);
         setLoading(false);
@@ -763,7 +1123,8 @@ export default function FeeInstallemntReport() {
                                                 <Label className='w-36 text-right'>
                                                     Fee Head <span className='text-red-500'>*</span>
                                                 </Label>
-                                                <Card className='border bg-gray-50 p-4'>
+                                                <input type='hidden' {...register('headIds')} />
+                                                <Card className={cn('w-[420px] border bg-gray-50 p-4', errors.headIds)}>
                                                     <div className='max-h-64 space-y-3 overflow-y-auto'>
                                                         {/* <Label
                                                     htmlFor='installmentSelectAll'
@@ -793,7 +1154,8 @@ export default function FeeInstallemntReport() {
                                                                     className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
                                                                     <Checkbox
                                                                         id={`hd-${hd.fmH_Id}`}
-                                                                        checked={filters.installmentIds.includes(hd.fmH_Id)}
+                                                                        // checked={filters.headIds.includes(hd.fmH_Id)}
+                                                                        checked={headIds.includes(hd.fmH_Id)}
                                                                         onCheckedChange={() => toggleHeads(hd.fmH_Id)}
                                                                     />
                                                                     <span className='text-sm'>{hd.fmH_FeeName}</span>
@@ -804,6 +1166,7 @@ export default function FeeInstallemntReport() {
                                                         )}
                                                     </div>
                                                 </Card>
+                                                {errors.headIds && <FormError className='mt-1'>{errors.headIds.message}</FormError>}
                                             </>
                                         </div>
                                     )}
@@ -919,12 +1282,13 @@ export default function FeeInstallemntReport() {
                                 {selectedCatg === 'GroupWise' && (
                                     <div className='flex items-center gap-12'>
                                         <>
-                                            <Label className='w-36 text-right'>
+                                            {/* <Label className='w-36 text-right'>
                                                 Group <span className='text-red-500'>*</span>
                                             </Label>
+                                            <input type="hidden" {...register('groupIds')} />
                                             <Card className='border bg-gray-50 p-4'>
                                                 <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                                    {/* <Label
+                                                    <Label
                                                     htmlFor='installmentSelectAll'
                                                     className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
                                                     <Checkbox
@@ -940,7 +1304,7 @@ export default function FeeInstallemntReport() {
                                                         onCheckedChange={(checked: any) => selectAllInstallments(!!checked)}
                                                     />
                                                     <span>Select All</span>
-                                                </Label> */}
+                                                </Label>
 
                                                     {groupsloading ? (
                                                         <div className='py-6 text-center text-gray-500'>Loading...</div>
@@ -952,7 +1316,9 @@ export default function FeeInstallemntReport() {
                                                                 className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
                                                                 <Checkbox
                                                                     id={`groups-${grp.fmG_Id}`}
-                                                                    checked={filters.groupIds.includes(grp.fmG_Id)}
+                                                                    // checked={filters.groupIds.includes(grp.fmG_Id)}
+
+                                                                    checked={groupIds.includes(grp.fmG_Id)}
                                                                     onCheckedChange={() => toggleInstallment(grp.fmG_Id)}
                                                                 />
                                                                 <span className='text-sm'>{grp.fmg_groupname}</span>
@@ -962,7 +1328,47 @@ export default function FeeInstallemntReport() {
                                                         <div className='py-4 text-center text-gray-500'>No Groups</div>
                                                     )}
                                                 </div>
+                                            </Card> */}
+
+                                            <Label className='w-24 pt-2 text-right'>
+                                                Group <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <input type='hidden' {...register('groupIdsNew')} />
+                                            <Card className={cn('w-[360px] border bg-gray-50 p-4', errors.groupIdsNew)}>
+                                                <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                                    {feeGroups.length > 0 && (
+                                                        <Label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-100'>
+                                                            <Checkbox
+                                                                checked={isAllGroupsSelectedNew}
+                                                                onCheckedChange={toggleAllGroupsnew}
+                                                            />
+                                                            <span>Select All</span>
+                                                        </Label>
+                                                    )}
+                                                    {groupsloading ? (
+                                                        <div className='py-6 text-center text-gray-500'>Loading...</div>
+                                                    ) : feeGroups.length > 0 ? (
+                                                        feeGroups.map((grp) => (
+                                                            <Label
+                                                                key={grp.fmG_Id}
+                                                                htmlFor={`group-${grp.fmG_Id}`}
+                                                                className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                                <Checkbox
+                                                                    id={`group-${grp.fmG_Id}`}
+                                                                    //checked={filters.groupIds.includes(grp.fmG_Id)}
+
+                                                                    checked={groupIds.includes(grp.fmG_Id)}
+                                                                    onCheckedChange={() => togglegroupsnew(grp.fmG_Id)}
+                                                                />
+                                                                <span className='text-sm'>{grp.fmg_groupname}</span>
+                                                            </Label>
+                                                        ))
+                                                    ) : (
+                                                        <div className='py-4 text-center text-gray-500'>No Groups</div>
+                                                    )}
+                                                </div>
                                             </Card>
+                                            {errors.groupIdsNew && <FormError className='mt-1'>{errors.groupIdsNew.message}</FormError>}
                                         </>
                                     </div>
                                 )}
@@ -1073,7 +1479,7 @@ export default function FeeInstallemntReport() {
 
                                             <div className='flex-1'>
                                                 <Controller
-                                                    name='fmcc_id'
+                                                    name='busrouteid'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
@@ -1105,7 +1511,7 @@ export default function FeeInstallemntReport() {
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.academicYearId && <FormError>{errors.academicYearId.message}</FormError>}
+                                                {errors.busrouteid && <FormError>{errors.busrouteid.message}</FormError>}
                                             </div>
                                         </div>
                                     </div>
@@ -1114,34 +1520,45 @@ export default function FeeInstallemntReport() {
                                 {(selectedCatg === 'Class' || selectedCatg === 'Category') && termwise !== 1 && (
                                     <div className='mt-4 flex items-start gap-6'>
                                         {/* Label */}
-                                        <Label className='text-right'>
+                                        <Label className='w-40 text-right'>
                                             Installment Name <span className='text-red-500'>*</span>
                                         </Label>
 
-                                        {/* Dropdown */}
-                                        <Card className='w-[420px] border bg-gray-50 p-4'>
-                                            <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                                {feeInstallmentLoading ? (
-                                                    <div className='py-6 text-center text-gray-500'>Loading...</div>
-                                                ) : feeInstallments.length > 0 ? (
-                                                    feeInstallments.map((installment) => (
-                                                        <Label
-                                                            key={installment.ftI_Id}
-                                                            htmlFor={`installment-${installment.ftI_Id}`}
-                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
-                                                            <Checkbox
-                                                                id={`installment-${installment.ftI_Id}`}
-                                                                checked={filters.installmentIds.includes(installment.ftI_Id)}
-                                                                onCheckedChange={() => toggleInstallment(installment.ftI_Id)}
-                                                            />
-                                                            <span className='text-sm'>{installment.ftI_InstallmentName}</span>
-                                                        </Label>
-                                                    ))
-                                                ) : (
-                                                    <div className='py-4 text-center text-gray-500'>No installments</div>
-                                                )}
-                                            </div>
-                                        </Card>
+                                        {/* Card + Error (COLUMN) */}
+                                        <div className='flex flex-col'>
+                                            {/* Hidden register */}
+                                            <input type='hidden' {...register('installmentIds')} />
+
+                                            {/* Card */}
+                                            <Card className={cn('w-[420px] border bg-gray-50 p-4', errors.installmentIds)}>
+                                                <div className='max-h-64 space-y-3 overflow-y-auto'>
+                                                    {feeInstallmentLoading ? (
+                                                        <div className='py-6 text-center text-gray-500'>Loading...</div>
+                                                    ) : feeInstallments.length > 0 ? (
+                                                        feeInstallments.map((installment) => (
+                                                            <Label
+                                                                key={installment.ftI_Id}
+                                                                htmlFor={`installment-${installment.ftI_Id}`}
+                                                                className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
+                                                                <Checkbox
+                                                                    id={`installment-${installment.ftI_Id}`}
+                                                                    checked={watch('installmentIds')?.includes(installment.ftI_Id)}
+                                                                    onCheckedChange={() => toggleInstallment(installment.ftI_Id)}
+                                                                />
+                                                                <span className='text-sm'>{installment.ftI_InstallmentName}</span>
+                                                            </Label>
+                                                        ))
+                                                    ) : (
+                                                        <div className='py-4 text-center text-gray-500'>No installments</div>
+                                                    )}
+                                                </div>
+                                            </Card>
+
+                                            {/* Error BELOW */}
+                                            {errors.installmentIds && (
+                                                <FormError className='mt-1'>{errors.installmentIds.message}</FormError>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 
@@ -1152,8 +1569,9 @@ export default function FeeInstallemntReport() {
                                             <Label className='w-24 pt-2 text-right'>
                                                 Terms <span className='text-red-500'>*</span>
                                             </Label>
+                                            <input type='hidden' {...register('termIds')} />
 
-                                            <Card className='w-[360px] border bg-gray-50 p-4'>
+                                            <Card className={cn('w-[360px] border bg-gray-50 p-4', errors.termIds)}>
                                                 <div className='max-h-64 space-y-3 overflow-y-auto'>
                                                     {feeTerms.length > 0 && (
                                                         <Label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-100'>
@@ -1171,7 +1589,8 @@ export default function FeeInstallemntReport() {
                                                                 className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
                                                                 <Checkbox
                                                                     id={`term-${terms.fmT_Id}`}
-                                                                    checked={filters.termIds.includes(terms.fmT_Id)}
+                                                                    //checked={filters.termIds.includes(terms.fmT_Id)}
+                                                                    checked={termIds.includes(terms.fmT_Id)}
                                                                     onCheckedChange={() => toggleterms(terms.fmT_Id)}
                                                                 />
                                                                 <span className='text-sm'>{terms.fmT_Name}</span>
@@ -1182,6 +1601,7 @@ export default function FeeInstallemntReport() {
                                                     )}
                                                 </div>
                                             </Card>
+                                            {errors.termIds && <FormError className='mt-1'>{errors.termIds.message}</FormError>}
                                         </div>
 
                                         {/* GROUP */}
@@ -1189,8 +1609,8 @@ export default function FeeInstallemntReport() {
                                             <Label className='w-24 pt-2 text-right'>
                                                 Group <span className='text-red-500'>*</span>
                                             </Label>
-
-                                            <Card className='w-[360px] border bg-gray-50 p-4'>
+                                            <input type='hidden' {...register('groupIds')} />
+                                            <Card className={cn('w-[360px] border bg-gray-50 p-4', errors.groupIds)}>
                                                 <div className='max-h-64 space-y-3 overflow-y-auto'>
                                                     {feeGroups.length > 0 && (
                                                         <Label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-100'>
@@ -1208,17 +1628,20 @@ export default function FeeInstallemntReport() {
                                                                 className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'>
                                                                 <Checkbox
                                                                     id={`group-${grp.fmG_Id}`}
-                                                                    checked={filters.installmentIds.includes(grp.fmG_Id)}
+                                                                    //checked={filters.groupIds.includes(grp.fmG_Id)}
+
+                                                                    checked={groupIds.includes(grp.fmG_Id)}
                                                                     onCheckedChange={() => togglegroups(grp.fmG_Id)}
                                                                 />
                                                                 <span className='text-sm'>{grp.fmg_groupname}</span>
                                                             </Label>
                                                         ))
                                                     ) : (
-                                                        <div className='py-4 text-center text-gray-500'>No installments</div>
+                                                        <div className='py-4 text-center text-gray-500'>No Groups</div>
                                                     )}
                                                 </div>
                                             </Card>
+                                            {errors.groupIds && <FormError className='mt-1'>{errors.groupIds.message}</FormError>}
                                         </div>
                                     </div>
                                 )}
@@ -1232,213 +1655,269 @@ export default function FeeInstallemntReport() {
                                             {isSubmitting ? 'Generating...' : 'Report'}
                                         </Button>
                                     </div>
-
                                     {showReport && (
                                         <CollapsibleSection defaultOpen={true}>
                                             <div className='mt-10 rounded-lg border bg-white shadow-xl'>
-                                                {/* Header */}
-                                                <div className='flex items-center justify-between border-b bg-primary/5 px-8 py-6'>
-                                                    {/* <h2 className='font-bold text-blue-700 text-xl'>Fee Audit Report</h2> */}
-                                                    <div className='mb-6 text-center'>
-                                                        <h2 className='font-bold text-2xl text-primary'>Fee Consolidated Report</h2>
-                                                        {/* <div className="mt-1 text-sm text-gray-600">
-                                                    From {formatDate(fromDate)} To {formatDate(toDate)}
-                                                </div> */}
+                                                {/* Dynamic Sub-Header Based on Selection */}
+                                                <div className='flex items-center justify-between border-b bg-gray-50 px-8 py-4'>
+                                                    <h2 className='whitespace-nowrap font-bold text-2xl text-primary'>
+                                                        {selectedCatg === 'Consolidate'
+                                                            ? 'CONSOLIDATE REPORT'
+                                                            : `REPORT FOR ${
+                                                                  selectedCatg === 'Category'
+                                                                      ? categorydropdowndata?.data?.find(
+                                                                            (cat) => cat.fmcC_Id === watch('fmcc_id')
+                                                                        )?.fmcC_ClassCategoryName || ''
+                                                                      : classes.find((cls) => cls.asmcL_Id === watch('classId'))
+                                                                            ?.asmcL_ClassName || ''
+                                                              }${
+                                                                  watch('sectionId')
+                                                                      ? ` ${
+                                                                            sections.find((sec) => sec.asmS_Id === watch('sectionId'))
+                                                                                ?.asmC_SectionName || ''
+                                                                        }`
+                                                                      : ''
+                                                              }`}
+                                                    </h2>
+
+                                                    <div className='flex gap-2'>
+                                                        <Button size='sm' onClick={handleExportAlltype} className='h-8 px-3 text-xs'>
+                                                            Export Excel
+                                                        </Button>
+
+                                                        <Button
+                                                            size='sm'
+                                                            variant='outline'
+                                                            onClick={handlePrintAlltype}
+                                                            className='h-8 px-3 text-xs'>
+                                                            Export PDF
+                                                        </Button>
                                                     </div>
-                                                    {/* {filters.userType === 'indi' && (
-                                                        <div className='flex gap-3'>
-                                                            <div className='mb-4 flex justify-end gap-2'>
-                                                                <Button
-                                                                    size='sm'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handleExport}>
-                                                                    Export Excel
-                                                                </Button>
-
-                                                                <Button
-                                                                    size='sm'
-                                                                    variant='outline'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handlePrint}>
-                                                                    Print
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    )} */}
-
-                                                    {/* {filters.userType === 'All' && (
-                                                        <div className='flex gap-3'>
-                                                            <div className='mb-4 flex justify-end gap-2'>
-                                                                <Button
-                                                                    size='sm'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handleExportAlltype}>
-                                                                    Export Excel
-                                                                </Button>
-
-                                                                <Button
-                                                                    size='sm'
-                                                                    variant='outline'
-                                                                    className='h-8 w-auto px-3 text-xs'
-                                                                    onClick={handlePrintAlltype}>
-                                                                    Print
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    )} */}
                                                 </div>
 
-                                                {/* ================= INDIVIDUAL TABLE ================= */}
-                                                {/* {filters.userType === 'indi' && (
-                                                    <div className='overflow-x-auto'>
-                                                        <table className='w-full border-collapse text-sm'>
-                                                            <thead className='bg-primary text-white'>
-                                                                <tr>
-                                                                    <th className='border px-2 py-2 text-center'>
-                                                                        <input
-                                                                            type='checkbox'
-                                                                            checked={
-                                                                                selectedIds.length === reportData.length &&
-                                                                                reportData.length > 0
-                                                                            }
-                                                                            onChange={toggleAll}
-                                                                        />
-                                                                    </th>
-                                                                    <th className='border px-2 py-2'>Sl No</th>
-                                                                    <th className='border px-2 py-2'>Student Name</th>
-                                                                    <th className='border px-2 py-2'>Adm.No</th>
-                                                                    <th className='border px-2 py-2'>Class & Section</th>
-                                                                    <th className='border px-2 py-2'>Paid Amount</th>
-                                                                    <th className='border px-2 py-2'>Receipt No</th>
-                                                                    <th className='border px-2 py-2'>Bank Name</th>
-                                                                    <th className='border px-2 py-2'>Date</th>
-                                                                    <th className='border px-2 py-2'>Cheque No</th>
-                                                                    <th className='border px-2 py-2'>Cheque Date</th>
-                                                                </tr>
-                                                            </thead>
-
-                                                            <tbody>
-                                                                {reportData.map((row, index) => (
-                                                                    <tr
-                                                                        key={row.id ?? index}
-                                                                        className={
-                                                                            selectedIds.includes(row.id)
-                                                                                ? 'bg-blue-100'
-                                                                                : index % 2 === 0
-                                                                                  ? 'bg-white'
-                                                                                  : 'bg-gray-50'
-                                                                        }>
-                                                                        <td className='border px-2 py-2 text-center'>
-                                                                            <input
-                                                                                type='checkbox'
-                                                                                checked={selectedIds.includes(row.id)}
-                                                                                onChange={() => toggleRow(row.id)}
-                                                                            />
-                                                                        </td>
-                                                                        <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                                        <td className='border px-2 py-2'>{row.studentName}</td>
-                                                                        <td className='border px-2 py-2 text-center'>{row.admNo}</td>
-                                                                        <td className='border px-2 py-2 text-center'>{row.classSection}</td>
-                                                                        <td className='border px-2 py-2 text-right'>
-                                                                            {row.paidAmount?.toLocaleString()}
-                                                                        </td>
-                                                                        <td className='border px-2 py-2'>{row.receiptNo}</td>
-                                                                        <td className='border px-2 py-2'>{row.bankName}</td>
-                                                                        <td className='border px-2 py-2'>{row.date}</td>
-                                                                        <td className='border px-2 py-2'>{row.chequeNo}</td>
-                                                                        <td className='border px-2 py-2'>{row.chequeDate}</td>
-                                                                    </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                )} */}
-                                                {/* {filters.userType === 'All' && (
-                                                    <div className='overflow-x-auto'>
-                                                        <table className='w-full border-collapse text-sm'>
-                                                           
-                                                            <thead className='bg-primary text-white'>
-                                                              
-                                                                <tr>
-                                                                    <th rowSpan={2} className='border px-2 py-2 text-center'>
-                                                                        SLNO
-                                                                    </th>
-                                                                    <th rowSpan={2} className='border px-2 py-2 text-center'>
-                                                                        Roll No
-                                                                    </th>
-                                                                    <th rowSpan={2} className='border px-2 py-2'>
-                                                                        Student Name
-                                                                    </th>
-                                                                    <th rowSpan={2} className='border px-2 py-2 text-center'>
-                                                                        Class
-                                                                    </th>
-                                                                    <th rowSpan={2} className='border px-2 py-2 text-center'>
-                                                                        Section
-                                                                    </th>
-
-                                                                    {installments.map((inst) => (
+                                                {/* Detailed Student Table for Category/Class Wise (Non-Terms Wise) */}
+                                                {showReport &&
+                                                    (selectedCatg === 'Category' || selectedCatg === 'Class') &&
+                                                    termwise !== 1 &&
+                                                    selectedInstallmentData.length > 0 && (
+                                                        <div className='overflow-x-auto px-8 pb-8'>
+                                                            <table className='w-full border-collapse border border-gray-300 text-sm'>
+                                                                <thead className='bg-primary text-white'>
+                                                                    <tr>
                                                                         <th
-                                                                            key={inst.ftI_Id}
-                                                                            colSpan={4}
+                                                                            rowSpan={2}
                                                                             className='border px-2 py-2 text-center font-semibold'>
-                                                                            {inst.ftI_Name}
+                                                                            SLNO
                                                                         </th>
+                                                                        <th
+                                                                            rowSpan={2}
+                                                                            className='border px-2 py-2 text-center font-semibold'>
+                                                                            Roll No
+                                                                        </th>
+                                                                        <th
+                                                                            rowSpan={2}
+                                                                            className='border px-2 py-2 text-left font-semibold'>
+                                                                            Student Name
+                                                                        </th>
+                                                                        <th
+                                                                            rowSpan={2}
+                                                                            className='border px-2 py-2 text-center font-semibold'>
+                                                                            Admission no
+                                                                        </th>
+                                                                        <th
+                                                                            rowSpan={2}
+                                                                            className='border px-2 py-2 text-center font-semibold'>
+                                                                            Class
+                                                                        </th>
+                                                                        <th
+                                                                            rowSpan={2}
+                                                                            className='border px-2 py-2 text-center font-semibold'>
+                                                                            Sect.
+                                                                        </th>
+                                                                        <th
+                                                                            rowSpan={2}
+                                                                            className='border px-2 py-2 text-center font-semibold'>
+                                                                            Bala
+                                                                        </th>
+                                                                        <th
+                                                                            rowSpan={2}
+                                                                            className='border px-2 py-2 text-center font-semibold'>
+                                                                            total
+                                                                        </th>
+                                                                        {selectedInstallmentData.map((inst) => (
+                                                                            <th
+                                                                                key={inst.ftI_Id}
+                                                                                colSpan={10}
+                                                                                className='border px-2 py-2 text-center font-semibold'>
+                                                                                {inst.ftI_InstallmentName}
+                                                                            </th>
+                                                                        ))}
+                                                                    </tr>
+                                                                    <tr>
+                                                                        {selectedInstallmentData.map((inst) => (
+                                                                            <React.Fragment key={`${inst.ftI_Id}-sub`}>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Net
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Paid
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Bala
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Conc
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Fine
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Wav
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Ope
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Net
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Paid
+                                                                                </th>
+                                                                                <th className='border px-2 py-2 text-center font-semibold'>
+                                                                                    Bala
+                                                                                </th>
+                                                                            </React.Fragment>
+                                                                        ))}
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {reportData.map((row, index) => (
+                                                                        <tr
+                                                                            key={row.id}
+                                                                            className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                                            <td className='border px-2 py-2 text-center'>{index + 1}</td>
+                                                                            <td className='border px-2 py-2 text-center'>{row.rollNo}</td>
+                                                                            <td className='border px-2 py-2 text-left'>
+                                                                                {row.studentName}
+                                                                            </td>
+                                                                            <td className='border px-2 py-2 text-center'>{row.admNo}</td>
+                                                                            <td className='border px-2 py-2 text-center'>
+                                                                                {row.className}
+                                                                            </td>
+                                                                            <td className='border px-2 py-2 text-center'>
+                                                                                {row.sectionName}
+                                                                            </td>
+                                                                            <td className='border px-2 py-2 text-right'>
+                                                                                {row.balance?.toLocaleString() || '-'}
+                                                                            </td>
+                                                                            <td className='border px-2 py-2 text-right'>
+                                                                                {row.total?.toLocaleString() || '-'}
+                                                                            </td>
+                                                                            {selectedInstallmentData.map((inst) => {
+                                                                                const instData = row.installments?.[inst.ftI_Id];
+                                                                                return (
+                                                                                    <React.Fragment key={`${row.id}-${inst.ftI_Id}`}>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.net?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.paid?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.balance?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.concession?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.fine?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.waiver?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.opening?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.net2?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.paid2?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                        <td className='border px-2 py-2 text-right'>
+                                                                                            {instData?.balance2?.toLocaleString() || '-'}
+                                                                                        </td>
+                                                                                    </React.Fragment>
+                                                                                );
+                                                                            })}
+                                                                        </tr>
                                                                     ))}
-                                                                </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    )}
 
-                                                               
+                                                {/* Consolidate Summary Table */}
+                                                {showReport && selectedCatg === 'Consolidate' && (
+                                                    <div className='overflow-x-auto px-8 pb-8'>
+                                                        <table className='w-full border-collapse border border-gray-300 text-sm'>
+                                                            <thead className='bg-primary text-white'>
                                                                 <tr>
-                                                                    {installments.map((inst) => (
-                                                                        <React.Fragment key={`${inst.ftI_Id}-sub`}>
-                                                                            <th className='border px-2 py-2'>Receipt No</th>
-                                                                            <th className='border px-2 py-2'>Date</th>
-                                                                            <th className='border px-2 py-2'>Cheque No</th>
-                                                                            <th className='border px-2 py-2 text-right'>Amount</th>
-                                                                        </React.Fragment>
-                                                                    ))}
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>Sl No</th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Terms Name
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Today Paid Count
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Today Collection
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Still Now Paid Count
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Still Now Collection
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Total Strength
+                                                                    </th>
+                                                                    <th className='border px-2 py-2 text-center font-semibold'>
+                                                                        Defaulters
+                                                                    </th>
                                                                 </tr>
                                                             </thead>
-
-                                                           
                                                             <tbody>
                                                                 {reportData.map((row, index) => (
                                                                     <tr
                                                                         key={row.id}
                                                                         className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                                                        <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                                        <td className='border px-2 py-2 text-center'>{row.rollNo}</td>
-                                                                        <td className='border px-2 py-2'>{row.studentName}</td>
-                                                                        <td className='border px-2 py-2 text-center'>{row.className}</td>
-                                                                        <td className='border px-2 py-2 text-center'>{row.sectionName}</td>
-
-                                                                        {installments.map((inst) => {
-                                                                            const instData = row.installments?.[inst.ftI_Id];
-
-                                                                            return (
-                                                                                <React.Fragment key={`${row.id}-${inst.ftI_Id}`}>
-                                                                                    <td className='border px-2 py-2'>
-                                                                                        {instData?.receiptNo || '-'}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2'>
-                                                                                        {instData?.date || '-'}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2'>
-                                                                                        {instData?.chequeNo || '-'}
-                                                                                    </td>
-                                                                                    <td className='border px-2 py-2 text-right'>
-                                                                                        {instData?.amount
-                                                                                            ? instData.amount.toLocaleString()
-                                                                                            : '-'}
-                                                                                    </td>
-                                                                                </React.Fragment>
-                                                                            );
-                                                                        })}
+                                                                        <td className='border px-2 py-2 text-center'>{row.slNo}</td>
+                                                                        <td className='border px-2 py-2 text-left'>{row.termsName}</td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.todayPaidCount?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.todayCollection?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.stillNowPaidCount?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.stillNowCollection?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.totalStrength?.toLocaleString() || '-'}
+                                                                        </td>
+                                                                        <td className='border px-2 py-2 text-right'>
+                                                                            {row.defaulters?.toLocaleString() || '-'}
+                                                                        </td>
                                                                     </tr>
                                                                 ))}
                                                             </tbody>
                                                         </table>
                                                     </div>
-                                                )} */}
+                                                )}
                                             </div>
                                         </CollapsibleSection>
                                     )}

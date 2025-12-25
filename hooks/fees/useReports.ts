@@ -17,7 +17,7 @@ import {
     getFeeInstallmentReportTermDropdown
 } from '@/server/fees/reports/fee_installment_report';
 import { getfeeMonths } from '@/server/fees/reports/fee_monthendReport';
-import { getFeeReceiptReportHeadDropdown } from '@/server/fees/reports/fee_receipt_report';
+import { getFeeReceiptLogo } from '@/server/fees/reports/fee_receipt_report';
 import { getFeesInstallmentDropDown, getFeesTranasctionInstallmentDropDown } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import {
     getFeesTermDropDownforStudentTermWiseReport,
@@ -214,22 +214,22 @@ export const useMonthsDropdown = () => {
     };
 };
 
-export const feeReceiptReportHeadDROPDOWN = () => {
-    const queryClient = useQueryClient();
+// export const feeReceiptReportHeadDROPDOWN = () => {
+//     const queryClient = useQueryClient();
 
-    return {
-        ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_FEE_RECEIPT_REPORT_HEAD_DROPDOWN],
-            queryFn: async () => getFeeReceiptReportHeadDropdown(),
-            staleTime: 0
-        }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_FEE_RECEIPT_REPORT_HEAD_DROPDOWN]
-            });
-        }
-    };
-};
+//     return {
+//         ...useQuery({
+//             queryKey: [FEES_QUERY_KEYS.FEE_FEE_RECEIPT_REPORT_HEAD_DROPDOWN],
+//             queryFn: async () => getFeeReceiptReportHeadDropdown(),
+//             staleTime: 0
+//         }),
+//         refetchAll: () => {
+//             return queryClient.invalidateQueries({
+//                 queryKey: [FEES_QUERY_KEYS.FEE_FEE_RECEIPT_REPORT_HEAD_DROPDOWN]
+//             });
+//         }
+//     };
+// };
 
 export const useFeeInstallmentreporttermDropdown = () => {
     const queryClient = useQueryClient();
@@ -379,6 +379,23 @@ export const useFeeTermforStudentTermWiseReport = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_TERM_WISE_PAID_TERM_LIST]
+            });
+        }
+    };
+};
+
+export const feeReceiptLogo = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_FEE_RECEIPT_REPORT_LOGO],
+            queryFn: async () => getFeeReceiptLogo(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_FEE_RECEIPT_REPORT_LOGO]
             });
         }
     };

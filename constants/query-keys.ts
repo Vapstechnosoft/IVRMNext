@@ -241,7 +241,8 @@ export const FEES_QUERY_KEYS = {
     FEE_STUDENT_TERM_WISE_PAID_ACADEMIC_YEAR_DROP: 'fee_student_term_wise_paid_academic_drop',
     FEE_STUDENT_TERM_WISE_PAID_CLASS_YEAR_DROP: 'fee_student_term_wise_paid_class_drop',
     FEE_STUDENT_TERM_WISE_PAID_SECTION_YEAR_DROP: 'fee_student_term_wise_paid_section_drop',
-    FEE_STUDENT_TERM_WISE_PAID_TERM_LIST: 'fee_student_term_wise_paid_term_list'
+    FEE_STUDENT_TERM_WISE_PAID_TERM_LIST: 'fee_student_term_wise_paid_term_list',
+    FEE_FEE_RECEIPT_REPORT_LOGO: 'fee_fee_receipt_report_logo'
 };
 
 export const EXAM_QUERY_KEYS = {

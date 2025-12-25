@@ -959,3 +959,40 @@ export interface MasterModeofPayment {
     ivrmmoD_Flag: string;
     ivrmmoD_ModeOfPayment_Code: string;
 }
+
+export interface StudentPrintDetails {
+    amst_id: number;
+    fyp_id: number;
+    student_name: string;
+    fmh_id: number;
+    fmh_feename: string;
+    fti_id: number;
+    fti_name: string;
+    paid_amount: number;
+    concession_amount: number;
+    fine_amount: number;
+    to_be_paid: number;
+    fyp_date: string;
+    feeAmount: number;
+    asmay_Year: string;
+}
+
+export interface CurrentPaymentDetails {
+    ftP_Paid_Amt: number;
+    ftP_Concession_Amt: number;
+    fyP_Date: string;
+    fyP_Bank_Or_Cash: string;
+    fyP_DD_Cheque_No: string;
+    fyP_DD_Cheque_Date: string;
+    fyP_Bank_Name: string;
+    fyP_Remarks: string;
+    fyppM_TotalPaidAmount: number;
+    fyP_TransactionTypeFlag: string;
+    fyppM_BankName: string;
+    fyppM_DDChequeNo: string;
+    fyppM_DDChequeDate: string;
+    fyppM_TransactionId: string;
+    fyppM_PaymentReferenceId: string;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_Flag: string;
+}

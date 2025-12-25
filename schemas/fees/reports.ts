@@ -153,34 +153,176 @@ export const feeConsolidatedReportsSchema = z.object({
     userType: z.enum(['All', 'indi']).default('All')
 });
 
-export const feesInstallmentReportSchema = z.object({
-    catg: z.enum(['Category', 'Class', 'transport', 'Consolidate', 'GroupWise']).default('Category'),
-    academicYearId: z.number({ message: 'Academic Year is required' }),
-    fmcc_id: z.number({ message: 'Category is required' }),
-    classId: z
-        .number({ invalid_type_error: 'Class is required' })
-        .refine((v) => v !== undefined && v !== 0, { message: 'Class is required' }),
-    sectionId: z
-        .number({ invalid_type_error: 'Section is required' })
-        .refine((v) => v !== undefined && v !== 0, { message: 'Section is required' }),
-    termswise: z.number().optional(),
-    con: z.enum(['Datewise', 'Classwise']).default('Datewise'),
+export const feesInstallmentReportSchema = z
+    .object({
+        catg: z.enum(['Category', 'Class', 'transport', 'Consolidate', 'GroupWise']).default('Category'),
 
-    fmg_id: z.number({ message: 'Fee Group is required' })
-});
+        academicYearId: z.number().optional(),
 
-export const feeReceiptReportsSchema = z.object({
-    academicYearId: z.number({ message: 'Academic Year is required' }),
-    classId: z
-        .number({ invalid_type_error: 'Class is required' })
-        .refine((v) => v !== undefined && v !== 0, { message: 'Class is required' }),
-    sectionId: z
-        .number({ invalid_type_error: 'Section is required' })
-        .refine((v) => v !== undefined && v !== 0, { message: 'Section is required' }),
-    userType: z.enum(['All', 'indi']).default('All'),
-    studentid: z.number({ message: 'Select Student' }),
-    heads: z.array(z.string()).nonempty('Please select at least one Head')
-});
+        fmcc_id: z.number().optional(),
+        fmg_id: z.number().optional(),
+
+        classId: z.number().optional(),
+        sectionId: z.number().optional(),
+
+        termswise: z.number().optional(),
+        con: z.enum(['Datewise', 'Classwise']).default('Datewise'),
+
+        installmentIds: z.array(z.number()).optional(),
+        termIds: z.array(z.number()).optional(),
+        groupIds: z.array(z.number()).optional(),
+        busrouteid: z.number().optional(),
+        headIds: z.array(z.number()).optional(),
+        groupIdsNew: z.array(z.number()).optional()
+    })
+    .superRefine((data, ctx) => {
+        /* Academic Year */
+        if (!data.academicYearId) {
+            ctx.addIssue({
+                path: ['academicYearId'],
+                message: 'Academic Year is required',
+                code: z.ZodIssueCode.custom
+            });
+        }
+
+        /* Class + Section */
+        if (data.catg === 'Class') {
+            if (!data.classId || data.classId === 0) {
+                ctx.addIssue({
+                    path: ['classId'],
+                    message: 'Class is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+
+            if (!data.sectionId || data.sectionId === 0) {
+                ctx.addIssue({
+                    path: ['sectionId'],
+                    message: 'Section is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        /* Category */
+        if (data.catg === 'Category' && !data.fmcc_id) {
+            ctx.addIssue({
+                path: ['fmcc_id'],
+                message: 'Category is required',
+                code: z.ZodIssueCode.custom
+            });
+        }
+
+        /* Fee Group */
+        // if (data.catg === 'transport' && !data.fmg_id) {
+        //     ctx.addIssue({
+        //         path: ['fmg_id'],
+        //         message: 'Fee Group is required',
+        //         code: z.ZodIssueCode.custom
+        //     });
+        // }
+
+        if (data.catg === 'GroupWise') {
+            if (!data.groupIdsNew || data.groupIdsNew.length === 0) {
+                ctx.addIssue({
+                    path: ['groupIdsNew'],
+                    message: 'Fee Groups are required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        if (data.catg === 'transport') {
+            if (!data.fmg_id) {
+                ctx.addIssue({
+                    path: ['fmg_id'],
+                    message: 'Fee Group is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+            if (!data.busrouteid) {
+                ctx.addIssue({
+                    path: ['busrouteid'],
+                    message: 'Bus Route is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+            if (!data.headIds || data.headIds.length === 0) {
+                ctx.addIssue({
+                    path: ['headIds'],
+                    message: 'Fee Heads are required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        /* 🔥 Installment validation (THIS WAS YOUR ISSUE) */
+        if ((data.catg === 'Class' || data.catg === 'Category') && data.termswise !== 1) {
+            if (!data.installmentIds || data.installmentIds.length === 0) {
+                ctx.addIssue({
+                    path: ['installmentIds'],
+                    message: 'Installment Name is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        if ((data.catg === 'Class' || data.catg === 'Category') && data.termswise === 1) {
+            if (!data.termIds || data.termIds.length === 0) {
+                ctx.addIssue({
+                    path: ['termIds'],
+                    message: 'At least one Term is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+
+            if (!data.groupIds || data.groupIds.length === 0) {
+                ctx.addIssue({
+                    path: ['groupIds'],
+                    message: 'At least one Group is required',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });
+
+export const feeReceiptReportsSchema = z
+    .object({
+        academicYearId: z.number({ message: 'Academic Year is required' }),
+        classId: z
+            .number({ invalid_type_error: 'Class is required' })
+            .refine((v) => v !== undefined && v !== 0, { message: 'Class is required' }),
+        sectionId: z
+            .number({ invalid_type_error: 'Section is required' })
+            .refine((v) => v !== undefined && v !== 0, { message: 'Section is required' }),
+        userType: z.enum(['All', 'indi']).default('All'),
+        studentid: z.number({ message: 'Select Student' }),
+        heads: z.array(z.string()).optional(),
+        receipts: z.array(z.string()).optional()
+    })
+    .superRefine((data, ctx) => {
+        // 🔹 If userType === 'All' → receipts required
+        if (data.userType === 'All') {
+            if (!data.receipts || data.receipts.length === 0) {
+                ctx.addIssue({
+                    path: ['receipts'],
+                    message: 'Please select at least one Receipt',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+
+        // 🔹 If userType === 'indi' → heads required
+        if (data.userType === 'indi') {
+            if (!data.heads || data.heads.length === 0) {
+                ctx.addIssue({
+                    path: ['heads'],
+                    message: 'Please select at least one Head',
+                    code: z.ZodIssueCode.custom
+                });
+            }
+        }
+    });
 
 export const feeAccountsPositionReport = z
     .object({
