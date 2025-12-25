@@ -15,7 +15,19 @@ import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { exportToExcel, printTable } from './_components/export_toexcel';
+import {
+    exportToExcelforAmountEntry,
+    exportToExcelforClassCategory,
+    exportToExcelforCustomGroup,
+    exportToExcelforFeeGroup,
+    exportToExcelforFineSlab,
+    exportToExcelforInstallment,
+    exportToExcelforPrivileges,
+    exportToExcelforTerms,
+    exportToExcelforYearlyHead,
+    exportToExcelforfeeHead,
+    printTable
+} from './_components/export_toexcel';
 
 type FormFields = z.infer<typeof feesClassCategoryReportSchema.addOrUpdate>;
 
@@ -106,7 +118,25 @@ export default function ClassCategoryReport() {
             toast.error('Currently Data is not Available');
             return;
         }
-        exportToExcel(reportData, 'Class Category Report');
+        selectedOption === 'feeGroup'
+            ? exportToExcelforFeeGroup(reportData, 'Class Category Report')
+            : selectedOption === 'feeHead'
+              ? exportToExcelforfeeHead(reportData, 'Class Category Report')
+              : selectedOption === 'yearlyGroupHead'
+                ? exportToExcelforYearlyHead(reportData, 'Class Category Report')
+                : selectedOption === 'installment'
+                  ? exportToExcelforInstallment(reportData, 'Class Category Report')
+                  : selectedOption === 'fineslab'
+                    ? exportToExcelforFineSlab(reportData, 'Class Category Report')
+                    : selectedOption === 'classCategory'
+                      ? exportToExcelforClassCategory(reportData, 'Class Category Report')
+                      : selectedOption === 'privileges'
+                        ? exportToExcelforPrivileges(reportData, 'Class Category Report')
+                        : selectedOption === 'terms'
+                          ? exportToExcelforTerms(reportData, 'Class Category Report')
+                          : selectedOption === 'amountEntry'
+                            ? exportToExcelforAmountEntry(reportData, 'Class Category Report')
+                            : exportToExcelforCustomGroup(reportData, 'Class Category Report');
     };
 
     const handlePrintforFeeGroup = () => {

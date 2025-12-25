@@ -71,7 +71,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [studentDetails, SetStudentDetails] = useState<IStudentTDetails[]>([]);
     const [feeDetails, SetFeeDetails] = useState<IFeeTDetails[]>([]);
     const [studentUserNameDetails, SetStudentUserNameDetails] = useState<IFeeTDetails[]>([]);
-    const [studentAmountDetails, SetStudentAmountDetails] = useState<IFeeTDetails[]>([]);
+    // const [studentAmountDetails, SetStudentAmountDetails] = useState<IFeeTDetails[]>([]);
     const [feeHeads, setFeeHeads] = useState<IFeeTermDetails[]>([]);
     const [masternarration, setMasternarration] = useState<MasterNarration[]>([]);
     const [masterModeofPaymentList, setMasterModeofPaymentList] = useState<MasterModeofPayment[]>([]);
@@ -110,7 +110,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [Totalfine, setTotalFine] = useState<number>();
     const [TotalPaying, setTotalPaying] = useState<number>(0);
     const [fineAmount, setFineAmount] = useState<number>();
-    const [totalAmount, settotalAmount] = useState<number>(0);
+    // const [totalAmount, settotalAmount] = useState<number>(0);
     const [TotalOutStanding, setTotalOutStanding] = useState<number>();
     const [chequeNo, setChequeNo] = useState<{
         [key: number]: string;
@@ -266,12 +266,12 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                 const studentDetails = JSON.parse(JSON.stringify(termArray.fillstudents || []));
                 const feeDetails = JSON.parse(JSON.stringify(termArray.showstaticticsdetails || []));
                 const studentUserNameArray = JSON.parse(JSON.stringify(termArray.filusernames || []));
-                const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
+                // const studentAmountDetails = JSON.parse(JSON.stringify(termArray.fillstudentviewdetails || []));
                 setTerms(termList || []);
                 SetStudentDetails(studentDetails || []);
                 SetFeeDetails(feeDetails || []);
                 SetStudentUserNameDetails(studentUserNameArray || []);
-                SetStudentAmountDetails(studentAmountDetails || []);
+                // SetStudentAmountDetails(studentAmountDetails || []);
             } catch (error) {
                 console.error('Failed to fetch students:', error);
                 setTerms([]);
@@ -542,7 +542,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     : Number.parseFloat(amount[f.ivrmmoD_Id]?.toString() || '0') || 0;
                 return sum + amountr;
             }, 0);
-            settotalAmount(total);
+            // settotalAmount(total);
             // console.log('totalAmountSum', total);
 
             for (const payment of selectedPayments) {
@@ -598,7 +598,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                         fyppM_TotalPaidAmount: amount[selectedPayment.ivrmmoD_Id] || '0',
                         fyppM_TransactionTypeFlag: selectedPayment.ivrmmoD_Flag,
                         fyppM_BankName: selectedBanks[selectedPayment.ivrmmoD_Id],
-                        fyppM_DDChequeDate: chequedates[selectedPayment.ivrmmoD_Id],
+                        fyppM_DDChequeDate: chequedates[selectedPayment.ivrmmoD_Id] ?? new Date(),
                         fyppM_DDChequeNo: chequeNo[selectedPayment.ivrmmoD_Id],
                         ivrmmoD_ModeOfPayment_Code: selectedPayment.ivrmmoD_ModeOfPayment_Code,
                         fyppM_Id: 0
@@ -612,7 +612,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                         fyppM_TotalPaidAmount: amount[f.ivrmmoD_Id] || '0',
                         fyppM_TransactionTypeFlag: f.ivrmmoD_Flag,
                         fyppM_BankName: selectedBanks[f.ivrmmoD_Id] ?? '',
-                        fyppM_DDChequeDate: chequedates[f.ivrmmoD_Id] ?? '',
+                        fyppM_DDChequeDate: chequedates[f.ivrmmoD_Id] ?? new Date(),
                         fyppM_DDChequeNo: chequeNo[f.ivrmmoD_Id] ?? '',
                         ivrmmoD_ModeOfPayment_Code: f.ivrmmoD_ModeOfPayment_Code,
                         fyppM_Id: 0
@@ -671,12 +671,17 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             const response = await saveFeeTransaction(payload);
 
             if (response?.displaymessage) {
-                toast.success(response.message || 'Saved successfully');
+                toast.success(response.message || ' Transaction Saved successfully');
                 handleReset();
                 onSuccess?.();
                 refetchAll();
             } else {
-                toast.error(response?.message || 'Save failed');
+                const errorMessage = response?.returnval;
+                if (typeof errorMessage === 'string' && errorMessage.trim() !== '') {
+                    toast.error(errorMessage);
+                } else {
+                    toast.error('Save failed');
+                }
             }
         } catch (err: any) {
             console.error('API Error:', err);
@@ -1483,6 +1488,13 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                                                     if (value) {
                                                                         setCheckPayType((prev) => [...prev, f.ivrmmoD_ModeOfPayment]);
                                                                     } else {
+                                                                        if (
+                                                                            checkPayType.length === 1 &&
+                                                                            checkPayType.includes(f.ivrmmoD_ModeOfPayment)
+                                                                        ) {
+                                                                            toast.warning('At least one should be selected');
+                                                                            return;
+                                                                        }
                                                                         setCheckPayType((prev) =>
                                                                             prev.filter((b) => b !== f.ivrmmoD_ModeOfPayment)
                                                                         );
@@ -1649,9 +1661,9 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     <SelectItem value='sbi'>State Bank Of India</SelectItem>
-                                                                    <SelectItem value='canara'>Canara Bank</SelectItem>
-                                                                    <SelectItem value='ka'>Karnataka Bank</SelectItem>
-                                                                    <SelectItem value='hdfc'>HDFC</SelectItem>
+                                                                    <SelectItem value='canaraBank'>Canara Bank</SelectItem>
+                                                                    <SelectItem value='karnatakaBank'>Karnataka Bank</SelectItem>
+                                                                    <SelectItem value='hdfcbank'>HDFC</SelectItem>
                                                                     <SelectItem value='unionBank'>Union Bank</SelectItem>
                                                                 </SelectContent>
                                                             </Select>

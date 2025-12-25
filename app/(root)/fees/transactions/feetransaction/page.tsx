@@ -154,7 +154,7 @@ function FormSections({ asmayId }: { asmayId: number }) {
                 </div>
             )}
 
-            {isDetailsViewOpen && selectedRow && <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} />}
+            {isDetailsViewOpen && selectedRow && <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} asmayId={asmayId} />}
         </>
     );
 }

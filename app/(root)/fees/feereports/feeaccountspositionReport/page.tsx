@@ -101,6 +101,8 @@ export default function FeeAccountsPositionReport() {
     const [filterType, setFilterType] = useState('individual');
     const [selectedclassId, setSelectedClassId] = useState<number | null>(null);
     const [selectedSectionId, setSelectedSectionId] = useState<number | null>(null);
+    const [specialFlag, setSepecialFlag] = useState(false);
+    const [leftFlag, setLeftFlag] = useState(false);
     const selectedFilterValue = filterOptions.find((opt) => opt.value === filterType)?.value || '';
 
     useEffect(() => {
@@ -193,7 +195,7 @@ export default function FeeAccountsPositionReport() {
             'Collection as per Academic year',
             'Balance',
             'Last Year Due'
-        ].filter((col) => col !== ''); // Remove empty column names
+        ].filter((col) => col !== '');
 
         const printableRows = rowsToPrint.map((row, index) => ({
             'Sl No': index + 1,
@@ -782,39 +784,6 @@ export default function FeeAccountsPositionReport() {
                                             Fee Group <span className='text-red-500'>*</span>
                                         </Label>
                                         <Card className='border bg-gray-50 p-4'>
-                                            {/* <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                               
-                                                <label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                    <Checkbox
-                                                        checked={feeGroups.length > 0 && filters.feeGroupIds.length === feeGroups.length}
-                                                        indeterminate={
-                                                            filters.feeGroupIds.length > 0 && filters.feeGroupIds.length < feeGroups.length
-                                                        }
-                                                        onCheckedChange={(checked: any) => selectAllFeeGroups(!!checked)}
-                                                    />
-                                                    <span>Select All</span>
-                                                </label>
-
-                                                {loadingfeegroup ? (
-                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                ) : feeGroups.length > 0 ? (
-                                                    feeGroups.map((group) => (
-                                                        
-                                                        <label
-                                                            key={group.fmG_Id}
-                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'
-                                                        >
-                                                            <Checkbox
-                                                                checked={filters.feeGroupIds.includes(group.fmG_Id)}
-                                                                onCheckedChange={() => toggleFeeGroup(group.fmG_Id)}
-                                                            />
-                                                            <span className='text-sm'>{group.fmG_GroupName}</span>
-                                                        </label>
-                                                    ))
-                                                ) : (
-                                                    <div className='py-4 text-center text-gray-500'>No fee groups</div>
-                                                )}
-                                            </div> */}
                                             <Controller
                                                 name='feeGroupIds'
                                                 control={control}
@@ -897,38 +866,6 @@ export default function FeeAccountsPositionReport() {
                                             Term Name <span className='text-red-500'>*</span>
                                         </Label>
                                         <Card className='border bg-gray-50 p-4'>
-                                            {/* <div className='max-h-64 space-y-3 overflow-y-auto'>
-                                               
-                                                <label className='flex cursor-pointer items-center gap-3 rounded border-b bg-white px-2 py-2 font-medium hover:bg-gray-200'>
-                                                    <Checkbox
-                                                        checked={feeTerms.length > 0 && filters.termIds.length === feeTerms.length}
-                                                        indeterminate={filters.termIds.length > 0 && filters.termIds.length < feeTerms.length}
-                                                        onCheckedChange={(checked: any) => selectAllTerms(!!checked)}
-                                                    />
-                                                    <span>Select All</span>
-                                                </label>
-
-                                                {loadingfeeterm ? (
-                                                    <div className='py-4 text-center text-gray-500'>Loading...</div>
-                                                ) : feeTerms.length > 0 ? (
-                                                    feeTerms.map((term) => (
-                                                       
-                                                        <label
-                                                            key={term.fmT_Id}
-                                                            className='flex cursor-pointer items-center gap-3 rounded px-2 py-1 hover:bg-gray-100'
-                                                        >
-                                                            <Checkbox
-                                                                checked={filters.termIds.includes(term.fmT_Id)}
-                                                                onCheckedChange={() => toggleTerm(term.fmT_Id)}
-                                                            />
-                                                            <span className='text-sm'>{term.fmT_Name}</span>
-                                                        </label>
-                                                    ))
-                                                ) : (
-                                                    <div className='py-4 text-center text-gray-500'>No terms</div>
-                                                )}
-                                            </div> */}
-
                                             <Controller
                                                 name='termIds'
                                                 control={control}
@@ -1009,11 +946,14 @@ export default function FeeAccountsPositionReport() {
                                     <div className='flex flex-wrap items-center justify-between gap-6'>
                                         <div className='flex flex-wrap items-center gap-8'>
                                             <div className='flex items-center gap-3'>
-                                                <Checkbox checked={false} />
+                                                <Checkbox
+                                                    checked={specialFlag}
+                                                    onCheckedChange={(v: boolean) => setSepecialFlag(v === true)}
+                                                />
                                                 <Label className='cursor-pointer'>Special Fees</Label>
                                             </div>
                                             <div className='flex items-center gap-3'>
-                                                <Checkbox checked={false} />
+                                                <Checkbox checked={leftFlag} onCheckedChange={(v: boolean) => setLeftFlag(v === true)} />
                                                 <Label className='cursor-pointer'>Left</Label>
                                             </div>
                                             {filterType === 'individual' && (

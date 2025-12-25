@@ -1,8 +1,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { getStudentPrintDetails } from '@/server/fees/trasactions/fee_student_transaction';
 import { getPrintdetails } from '@/server/fees/trasactions/feepreadmissiontrasaction';
-import type { Ifeetransaction } from '@/types/fees/transactions/transactions';
+import type { CurrentPaymentDetails, Ifeetransaction, StudentPrintDetails } from '@/types/fees/transactions/transactions';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
@@ -13,32 +14,41 @@ interface IInstituteDetails {
 interface ReceiptViewPageProps {
     rowData: Ifeetransaction;
     onClose: () => void;
+    asmayId: number;
 }
 
-export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPageProps) {
+export default function ReceiptViewPage({ rowData, onClose, asmayId }: ReceiptViewPageProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
     const [institute, setInstitute] = useState<IInstituteDetails>({});
     const [loading, setLoading] = useState(true);
-
-    const receipt_no = rowData.fyP_Receipt_No || 'N/A';
-    const transaction_date = rowData.fyP_Date || '';
-    const student_name =
-        `${rowData?.amsT_FirstName || ''} ${rowData?.amsT_MiddleName || ''} ${rowData?.amsT_LastName || ''}`.trim() || 'N/A';
-    const reg_no = rowData.amsT_AdmNo || 'N/A';
-    const paid_amount = 0;
-    const mode_of_payment = rowData.fyP_Bank_Or_Cash || 'Cash';
-    const bank_name = mode_of_payment === 'Cash' ? '' : (rowData as any).bankName || '';
-    const cheque_no = mode_of_payment === 'Cash' ? '' : (rowData as any).chequeNo || '';
-    const class_name = (rowData as any).className || 'XI';
-    const academic_year = (rowData as any).academicYear || '2025-2026';
-    const fee_head_name = (rowData as any).feeHead || 'Registration Fee';
+    const [studentDetails, setStudentDetails] = useState<StudentPrintDetails[]>([]);
+    const [currentPaymentDetails, setCurrentPaymentDetails] = useState<CurrentPaymentDetails[]>([]);
 
     useEffect(() => {
+        const fetchStudentPrintDetails = async () => {
+            try {
+                const response = await getStudentPrintDetails({
+                    amst_Id: rowData.amst_Id,
+                    fyP_Id: rowData.fyP_Id,
+                    asmaY_Id: asmayId,
+                    minstall: '0'
+                });
+                const studentDetails = JSON.parse(JSON.stringify((response as any)?.printtermDTOs?.fee_receipt_ason_date_balances || []));
+                const currentPaymentDetails = JSON.parse(JSON.stringify((response as any)?.printtermDTOs?.currpaymentdetails || []));
+                // console.log("currentPaymentDetails",currentPaymentDetails)
+                setStudentDetails(studentDetails);
+                setCurrentPaymentDetails(currentPaymentDetails);
+            } catch (err) {
+                console.error('Failed to load institute logo', err);
+            } finally {
+                setLoading(false);
+            }
+        };
         const fetchInstituteDetails = async () => {
             try {
                 const preadmissionorprospectus = 'Preadmission';
-                const rawResponse = await getPrintdetails(rowData.fyP_Id, 231, preadmissionorprospectus, 0);
-                const response = typeof rawResponse === 'string' ? JSON.parse(rawResponse) : rawResponse;
+                const res = await getPrintdetails(rowData.fyP_Id, asmayId, preadmissionorprospectus, 0);
+                const response = typeof res === 'string' ? JSON.parse(res) : res;
                 const logoUrl = response?.data?.institute_logo || response?.institute_logo || '';
                 setInstitute({
                     institute_logo: logoUrl ? `${logoUrl}?t=${Date.now()}` : ''
@@ -47,23 +57,38 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                 console.error('Failed to load institute logo', err);
                 setInstitute({ institute_logo: '' });
             } finally {
-                setLoading(false);
+                // setLoading(false);
             }
         };
 
         fetchInstituteDetails();
-    }, []);
+
+        fetchStudentPrintDetails();
+    }, [rowData]);
+
+    const receipt_no = rowData.fyP_Receipt_No || 'N/A';
+    const transaction_date = rowData.fyP_Date || '';
+    const student_name =
+        `${rowData?.amsT_FirstName || ''} ${rowData?.amsT_MiddleName || ''} ${rowData?.amsT_LastName || ''}`.trim() || 'N/A';
+    const reg_no = rowData.amsT_AdmNo || 'N/A';
+    // const mode_of_payment = currentPaymentDetails[0]?.ivrmmoD_Flag;
+    // const bank_name = currentPaymentDetails[0]?.fyP_Bank_Name;
+    // const cheque_no = currentPaymentDetails[0]?.fyP_DD_Cheque_No;
+    const class_name = rowData.classname;
+    const academic_year = studentDetails[0]?.asmay_Year || '2025-2026';
+    const fee_head_name = studentDetails[0]?.fmh_feename;
+    const feeAmount = studentDetails[0]?.feeAmount;
+    const discountAmount = studentDetails[0]?.concession_amount;
+    const paidAmount = studentDetails[0]?.paid_amount;
+    const currentPaidAmount = currentPaymentDetails.reduce((sum, p) => {
+        return sum + p.ftP_Paid_Amt;
+    }, 0);
 
     const handlePrint = () => {
         if (!receiptRef.current) return;
-
         const printWindow = window.open('', '_blank', 'width=1200,height=900');
-
         if (printWindow) {
-            // Get the full HTML including all Tailwind classes
             const content = receiptRef.current.outerHTML;
-
-            // Include Tailwind CSS + your custom print styles
             printWindow.document.write(`
        <!DOCTYPE html>
        <html lang="en">
@@ -111,8 +136,6 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
 
             printWindow.document.close();
             printWindow.focus();
-
-            // Wait for images (especially logo) to load before printing
             printWindow.onload = () => {
                 setTimeout(() => {
                     printWindow.print();
@@ -122,26 +145,105 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
         }
     };
 
-    const convertNumberToWords = (num: number): string => {
-        if (num === 0) return 'Zero';
+    const convertNumberToWords = (num: number | undefined | null): string => {
+        if (num === undefined || num === null || Number.isNaN(num)) {
+            return 'Zero';
+        }
+        const numberValue = typeof num === 'string' ? Number.parseFloat(num) : num;
+        if (Number.isNaN(numberValue)) {
+            return 'Zero';
+        }
+        if (numberValue === 0) return 'Zero';
+        if (numberValue < 0) {
+            return `Negative ${convertNumberToWords(Math.abs(numberValue))}`;
+        }
+
         const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
         const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
         const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
         const convertLessThanThousand = (n: number): string => {
             if (n === 0) return '';
-            if (n < 10) return ones[n];
-            if (n < 20) return teens[n - 10];
-            if (n < 100) return `${tens[Math.floor(n / 10)]}${n % 10 !== 0 ? ` ${ones[n % 10]}` : ''}`;
-            return `${ones[Math.floor(n / 100)]} Hundred${n % 100 !== 0 ? ` ${convertLessThanThousand(n % 100)}` : ''}`;
+            let result = '';
+            let temp = n;
+            if (temp >= 100) {
+                const hundreds = Math.floor(temp / 100);
+                result += `${ones[hundreds]} Hundred`;
+                temp %= 100;
+                if (temp > 0) result += ' ';
+            }
+
+            if (temp >= 20) {
+                const tenDigit = Math.floor(temp / 10);
+                result += tens[tenDigit];
+                temp %= 10;
+                if (temp > 0) result += ` ${ones[temp]}`;
+            } else if (temp >= 10) {
+                result += teens[temp - 10];
+            } else if (temp > 0) {
+                result += ones[temp];
+            }
+            return result;
         };
 
-        if (num < 1000) return convertLessThanThousand(num);
-        if (num < 100000)
-            return `${convertLessThanThousand(Math.floor(num / 1000))} Thousand${num % 1000 !== 0 ? ` ${convertLessThanThousand(num % 1000)}` : ''}`;
-        if (num < 10000000)
-            return `${convertLessThanThousand(Math.floor(num / 100000))} Lakh${num % 100000 !== 0 ? ` ${convertNumberToWords(num % 100000)}` : ''}`;
-        return `${convertLessThanThousand(Math.floor(num / 10000000))} Crore${num % 10000000 !== 0 ? ` ${convertNumberToWords(num % 10000000)}` : ''}`;
+        const convertLessThanLakh = (n: number): string => {
+            if (n < 1000) {
+                return convertLessThanThousand(n);
+            }
+            const thousands = Math.floor(n / 1000);
+            const remainder = n % 1000;
+
+            const thousandPart = `${convertLessThanThousand(thousands)} Thousand`;
+            if (remainder === 0) return thousandPart;
+            return `${thousandPart} ${convertLessThanThousand(remainder)}`;
+        };
+
+        if (numberValue < 100000) {
+            return convertLessThanLakh(numberValue);
+        }
+        if (numberValue < 10000000) {
+            const lakhs = Math.floor(numberValue / 100000);
+            const remainder = numberValue % 100000;
+            const lakhPart = `${convertLessThanThousand(lakhs)} Lakh`;
+            if (remainder === 0) return lakhPart;
+            return `${lakhPart} ${convertLessThanLakh(remainder)}`;
+        }
+        const crores = Math.floor(numberValue / 10000000);
+        const remainder = numberValue % 10000000;
+
+        let crorePart = '';
+        if (crores < 1000) {
+            crorePart = `${convertLessThanThousand(crores)} Crore`;
+        } else if (crores < 100000) {
+            crorePart = `${convertLessThanLakh(crores)} Crore`;
+        } else if (crores < 10000000) {
+            const croreLakhs = Math.floor(crores / 100000);
+            const croreRemainder = crores % 100000;
+            crorePart = `${convertLessThanThousand(croreLakhs)} Lakh`;
+            if (croreRemainder > 0) {
+                crorePart += ` ${convertLessThanLakh(croreRemainder)}`;
+            }
+            crorePart += ' Crore';
+        } else {
+            return numberValue.toLocaleString('en-IN');
+        }
+        if (remainder === 0) return crorePart;
+
+        let remainderPart = '';
+        if (remainder < 100000) {
+            remainderPart = convertLessThanLakh(remainder);
+        } else if (remainder < 10000000) {
+            const remLakhs = Math.floor(remainder / 100000);
+            const remRemainder = remainder % 100000;
+            remainderPart = `${convertLessThanThousand(remLakhs)} Lakh`;
+            if (remRemainder > 0) {
+                remainderPart += ` ${convertLessThanLakh(remRemainder)}`;
+            }
+        } else {
+            remainderPart = remainder.toLocaleString('en-IN');
+        }
+
+        return `${crorePart} ${remainderPart}`.trim();
     };
 
     const formatDate = (dateString: string) => {
@@ -154,11 +256,6 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
         });
     };
 
-    const feeAmount = paid_amount;
-    const discountAmount = 0;
-    const paidAmount = paid_amount;
-
-    // Dynamic Logo Only Header (Used in Both Copies)
     const InstituteHeader = () => (
         <div className='mb-6 border-b-2 pb-4 text-center'>
             <div className='flex justify-center py-4'>
@@ -184,7 +281,6 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
             <div className='relative max-h-[90vh] w-full max-w-6xl overflow-auto rounded-lg bg-white shadow-2xl'>
                 <div ref={receiptRef} className='p-8'>
                     <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
-                        {/* School Copy */}
                         <div className='border-2 border-gray-300 p-6'>
                             <div className='mb-4 text-right'>
                                 <span className='font-bold text-violet-700'>SCHOOL COPY</span>
@@ -259,20 +355,22 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                                             <th className='border border-gray-400 p-2'>Date</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td className='border border-gray-400 p-2 text-center'>1</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                            <td className='border border-gray-400 p-2'>{bank_name}</td>
-                                            <td className='border border-gray-400 p-2'>{cheque_no}</td>
-                                            <td className='border border-gray-400 p-2'>{formatDate(transaction_date)}</td>
-                                        </tr>
-                                    </tbody>
+                                    {currentPaymentDetails.map((p, index) => (
+                                        <tbody key={p.ftP_Paid_Amt}>
+                                            <tr>
+                                                <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{p.ftP_Paid_Amt}</td>
+                                                <td className='border border-gray-400 p-2'>{p.fyP_Bank_Name}</td>
+                                                <td className='border border-gray-400 p-2'>{p.fyP_DD_Cheque_No}</td>
+                                                <td className='border border-gray-400 p-2'>{formatDate(p.fyP_Date)}</td>
+                                            </tr>
+                                        </tbody>
+                                    ))}
                                 </table>
                             </div>
 
                             <div className='mb-4 text-sm'>
-                                <strong>Amount Received (in Words):</strong> {convertNumberToWords(paidAmount)} Rupees Only/-
+                                <strong>Amount Received (in Words):</strong> {convertNumberToWords(currentPaidAmount)} Rupees Only/-
                             </div>
 
                             <div className='mb-4 text-xs'>
@@ -284,7 +382,6 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                             </div>
                         </div>
 
-                        {/* Parent Copy - Now Uses Dynamic Logo Only */}
                         <div className='border-2 border-gray-300 p-6'>
                             <div className='mb-4 text-right'>
                                 <span className='font-bold text-violet-700'>PARENT COPY</span>
@@ -359,20 +456,22 @@ export default function ReceiptViewPage({ rowData, onClose }: ReceiptViewPagePro
                                             <th className='border border-gray-400 p-2'>Date</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td className='border border-gray-400 p-2 text-center'>1</td>
-                                            <td className='border border-gray-400 p-2 text-right'>{paidAmount}</td>
-                                            <td className='border border-gray-400 p-2'>{bank_name}</td>
-                                            <td className='border border-gray-400 p-2'>{cheque_no}</td>
-                                            <td className='border border-gray-400 p-2'>{formatDate(transaction_date)}</td>
-                                        </tr>
-                                    </tbody>
+                                    {currentPaymentDetails.map((p, index) => (
+                                        <tbody key={p.ftP_Paid_Amt}>
+                                            <tr>
+                                                <td className='border border-gray-400 p-2 text-center'>{index + 1}</td>
+                                                <td className='border border-gray-400 p-2 text-right'>{p.ftP_Paid_Amt}</td>
+                                                <td className='border border-gray-400 p-2'>{p.fyP_Bank_Name}</td>
+                                                <td className='border border-gray-400 p-2'>{p.fyP_DD_Cheque_No}</td>
+                                                <td className='border border-gray-400 p-2'>{formatDate(p.fyP_Date)}</td>
+                                            </tr>
+                                        </tbody>
+                                    ))}
                                 </table>
                             </div>
 
                             <div className='mb-4 text-sm'>
-                                <strong>Amount Received (in Words):</strong> {convertNumberToWords(paidAmount)} Rupees Only/-
+                                <strong>Amount Received (in Words):</strong> {convertNumberToWords(currentPaidAmount)} Rupees Only/-
                             </div>
 
                             <div className='mb-4 text-xs'>
