@@ -173,7 +173,10 @@ export const feesInstallmentReportSchema = z
         groupIds: z.array(z.number()).optional(),
         busrouteid: z.number().optional(),
         headIds: z.array(z.number()).optional(),
-        groupIdsNew: z.array(z.number()).optional()
+        groupIdsNew: z.array(z.number()).optional(),
+        Active: z.number().optional(),
+        Deactive: z.number().optional(),
+        left: z.number().optional()
     })
     .superRefine((data, ctx) => {
         /* Academic Year */

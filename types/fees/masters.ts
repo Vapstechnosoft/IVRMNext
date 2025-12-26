@@ -232,3 +232,13 @@ export interface ICompanyGroupMappingGroupDropdownList {
     createdDate?: string;
     updatedDate?: string;
 }
+
+export interface IAcademicYearDataDetails {
+    asmaY_Id: number;
+    asmaY_Year: string;
+    mI_Id: number;
+    asmaY_From_Date: string;
+    asmaY_To_Date: string;
+    asmaY_Order: number;
+    is_Active: boolean;
+}

@@ -933,10 +933,263 @@ export default function FeeInstallemntReport() {
         //     setReportData(pivoted);
         // }
 
+        try {
+            let payload: any = {};
+            const albumNameArraygroupids: any[] = [];
+            const header_list: any[] = [];
+            const fillgrouparrayname: any[] = [];
+            let FMH_Ids: number[] = [];
+            let routename = '';
+
+            // Get user ID from context or default to 1
+            const userid = 1; // Get from your auth context
+
+            // Handle different category types based on AngularJS logic
+            switch (selectedCatg) {
+                case 'Category': {
+                    // Set header_list from selected installments
+                    if (termwise !== 1) {
+                        feeInstallments.forEach((inst) => {
+                            if (installmentIds?.includes(inst.ftI_Id)) {
+                                header_list.push(inst);
+                                albumNameArraygroupids.push({
+                                    columnID: inst.ftI_Id,
+                                    columnName: inst.ftI_InstallmentName
+                                });
+                            }
+                        });
+                    }
+
+                    // Get category name
+                    const category = categorydropdowndata?.data?.find((cat) => cat.fmcC_Id === data.fmcc_id);
+                    routename = category?.fmcC_ClassCategoryName || '';
+
+                    payload = {
+                        ASMAY_Id: Number(data.academicYearId),
+                        FTI_Id: 0, // Not clear from AngularJS, defaulting to 0
+                        ASMCL_Id: 0, // For category, class is 0
+                        ASMS_Id: 0, // For category, section is 0
+                        FMCC_Id: data.fmcc_id || 0,
+                        reporttype: selectedCatg,
+                        FMG_Id: 0,
+                        TRMR_Id: 0,
+                        temparrayinst1: albumNameArraygroupids,
+                        FMGG_Ids: FMH_Ids,
+                        termslistarray: termwise === 1 ? (data.termIds || []).map((termId) => ({ FMT_Id: termId })) : undefined,
+                        fillgrouparray:
+                            termwise === 1 ? (data.groupIds || []).map((groupId) => ({ FMG_Id: groupId, FMG_GroupName: '' })) : undefined,
+                        active: data.Active || 0,
+                        deactive: data.Deactive || 0,
+                        left: data.left || 0,
+                        termswise: termwise || 0,
+                        userid: userid
+                    };
+                    break;
+                }
+
+                case 'Class': {
+                    // Set header_list from all installments (arrlstinst1 in AngularJS)
+                    if (termwise !== 1) {
+                        feeInstallments.forEach((inst) => {
+                            header_list.push(inst);
+                        });
+                    }
+
+                    // Get class name
+                    const className = classes.find((cls) => cls.asmcL_Id === data.classId)?.asmcL_ClassName || '';
+                    routename = className;
+
+                    payload = {
+                        ASMAY_Id: Number(data.academicYearId),
+                        FTI_Id: 0,
+                        ASMCL_Id: data.classId || 0,
+                        ASMS_Id: data.sectionId || 0,
+                        FMCC_Id: 0,
+                        reporttype: selectedCatg,
+                        FMG_Id: 0,
+                        TRMR_Id: 0,
+                        temparrayinst1: albumNameArraygroupids,
+                        FMGG_Ids: FMH_Ids,
+                        termslistarray: termwise === 1 ? (data.termIds || []).map((termId) => ({ FMT_Id: termId })) : undefined,
+                        fillgrouparray:
+                            termwise === 1 ? (data.groupIds || []).map((groupId) => ({ FMG_Id: groupId, FMG_GroupName: '' })) : undefined,
+                        active: data.Active || 0,
+                        deactive: data.Deactive || 0,
+                        left: data.left || 0,
+                        termswise: termwise || 0,
+                        userid: userid
+                    };
+                    break;
+                }
+
+                case 'transport': {
+                    // Set header_list from all installments
+                    feeInstallments.forEach((inst) => {
+                        header_list.push(inst);
+                    });
+
+                    // Get selected heads (FMH_Ids)
+                    FMH_Ids = data.headIds || [];
+
+                    // Get route name
+                    const route = busroutedata?.data?.find((r) => r.trmR_Id === data.busrouteid);
+                    routename = route ? `${route.trmR_RouteNo} : ${route.trmR_RouteName}` : '';
+
+                    payload = {
+                        ASMAY_Id: Number(data.academicYearId),
+                        FTI_Id: 0,
+                        ASMCL_Id: 0,
+                        ASMS_Id: 0,
+                        FMCC_Id: 0,
+                        reporttype: selectedCatg,
+                        FMG_Id: data.fmg_id || 0,
+                        TRMR_Id: data.busrouteid || 0,
+                        temparrayinst1: albumNameArraygroupids,
+                        FMGG_Ids: FMH_Ids,
+                        termslistarray: undefined,
+                        fillgrouparray: undefined,
+                        active: 0,
+                        deactive: 0,
+                        left: 0,
+                        termswise: 0,
+                        userid: userid
+                    };
+                    break;
+                }
+
+                case 'GroupWise': {
+                    // Set fillgrouparrayname from selected groups
+                    feeGroups.forEach((group) => {
+                        if (data.groupIdsNew?.includes(group.fmG_Id)) {
+                            fillgrouparrayname.push({
+                                FMG_Id: group.fmG_Id,
+                                FMG_GroupName: group.fmg_groupname
+                            });
+                        }
+                    });
+
+                    payload = {
+                        ASMAY_Id: Number(data.academicYearId),
+                        FTI_Id: 0,
+                        ASMCL_Id: data.classId || 0,
+                        ASMS_Id: data.sectionId || 0,
+                        FMCC_Id: 0,
+                        reporttype: selectedCatg,
+                        FMG_Id: 0,
+                        TRMR_Id: 0,
+                        temparrayinst1: albumNameArraygroupids,
+                        FMGG_Ids: FMH_Ids,
+                        termslistarray: undefined,
+                        fillgrouparray: fillgrouparrayname,
+                        active: data.Active || 0,
+                        deactive: data.Deactive || 0,
+                        left: data.left || 0,
+                        termswise: 0,
+                        userid: userid
+                    };
+                    break;
+                }
+
+                case 'Consolidate': {
+                    // Handle classarray and sectionarray
+                    const classarray: { ASMCL_Id: number }[] = [];
+                    const sectionarray: { ASMS_Id: number }[] = [];
+
+                    if (!data.classId || data.classId === 0) {
+                        // Include all classes
+                        classes.forEach((cls) => {
+                            classarray.push({ ASMCL_Id: cls.asmcL_Id });
+                        });
+                    } else {
+                        classarray.push({ ASMCL_Id: data.classId });
+                    }
+
+                    if (!data.sectionId || data.sectionId === 0) {
+                        // Include all sections
+                        sections.forEach((sec) => {
+                            sectionarray.push({ ASMS_Id: sec.asmS_Id });
+                        });
+                    } else {
+                        sectionarray.push({ ASMS_Id: data.sectionId });
+                    }
+
+                    // Format dates
+                    const todate1 = filters.toDate.toISOString().split('T')[0];
+                    const fromdate1 = filters.fromDate.toISOString().split('T')[0];
+
+                    payload = {
+                        ASMAY_Id: Number(data.academicYearId),
+                        classarray: classarray,
+                        sectionarray: sectionarray,
+                        reporttype: selectedCatg,
+                        todate: todate1,
+                        fromdate: fromdate1,
+                        con: data.con,
+                        userid: userid
+                    };
+                    break;
+                }
+            }
+
+            console.log('Generated payload for', selectedCatg, ':', JSON.stringify(payload, null, 2));
+            console.log('Route name:', routename);
+
+            // Here you would make your API call with the payload
+            // For example:
+            // const response = await fetch('/api/fees/installment-report', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(payload)
+            // });
+            // const result = await response.json();
+
+            // For demo, use static data
+            if (selectedCatg === 'Consolidate') {
+                setReportData(staticConsolidateData);
+            } else {
+                setReportData(staticReportData);
+            }
+        } catch (error: any) {
+            console.error('Error generating report:', error);
+            toast.error(error.message || 'Failed to generate report');
+
+            // Fallback to demo data on error
+            if (selectedCatg === 'Consolidate') {
+                setReportData(staticConsolidateData);
+            } else {
+                setReportData(staticReportData);
+            }
+        } finally {
+            setShowReport(true);
+            setReportLoading(false);
+
+            toast.success('Report generated successfully');
+
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 100);
+        }
+
         // In onSubmit, set data based on catg:
         if (selectedCatg === 'Consolidate') {
             setReportData(staticConsolidateData);
         } else {
+            const payload = {
+                userid: 1, // Assuming user ID is 1, you might want to get this from context/auth
+                active: data.Active, // Assuming termswise checkbox indicates active
+                deactive: data.Deactive, // Adjust based on your logic
+                left: data.left,
+                termswise: watch('termswise') || 0,
+                ASMAY_Id: Number(data.academicYearId),
+                ASMCL_Id: data.classId || 0,
+                ASMS_Id: data.sectionId || 0,
+                termslistarray: (data.termIds || []).map((termId) => ({ fmT_Id: termId })),
+                fillgrouparray: (data.groupIds || []).map((groupId) => ({ fmG_Id: groupId })),
+                classarray: data.classId ? [{ asmcL_Id: data.classId }] : [{ asmcL_Id: 0 }]
+            };
+
+            console.log('payloaddatanotconsolidated', JSON.stringify(payload));
+
             setReportData(staticReportData); // Detailed
         }
 
@@ -1071,7 +1324,7 @@ export default function FeeInstallemntReport() {
                                         <>
                                             <div className='flex items-center gap-3'>
                                                 <Controller
-                                                    name='termswise'
+                                                    name='Active'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <input
@@ -1085,8 +1338,9 @@ export default function FeeInstallemntReport() {
                                                 <Label className='font-medium'>Active</Label>
                                             </div>
                                             <div className='flex items-center gap-3'>
+                                                <input type='hidden' {...register('headIds')} />
                                                 <Controller
-                                                    name='termswise'
+                                                    name='Deactive'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <input
@@ -1101,7 +1355,7 @@ export default function FeeInstallemntReport() {
                                             </div>
                                             <div className='flex items-center gap-3'>
                                                 <Controller
-                                                    name='termswise'
+                                                    name='left'
                                                     control={control}
                                                     render={({ field }) => (
                                                         <input

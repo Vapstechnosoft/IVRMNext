@@ -293,39 +293,6 @@ export default function DailyFeeCollectionReportForm() {
         };
 
         // // ===================================================
-        // // REPORT 1 → HEADWISE
-        // // ===================================================
-        // if (data.headwise === true && data.paymentwise === false) {
-        //     params.Headwise = true;
-        //     params.Paymentwise = false;
-
-        //     console.log('REPORT 1 (HEADWISE) PARAMS', params);
-        // }
-
-        // // ===================================================
-        // // REPORT 2 → PAYMENTWISE
-        // // ===================================================
-        // if (data.paymentwise === true) {
-        //     params.Paymentwise = true;
-        //     params.Headwise = false;
-
-        //     console.log('REPORT 2 (PAYMENTWISE) PARAMS', params);
-        // }
-
-        // // ===================================================
-        // // REPORT 3 → MULTIPLE PAYMENT (students only)
-        // // Trigger:
-        // // Fmc_allorsudentorother === "stud"
-        // // Fmc_allorcorddorop === "multiplepaymentmode"
-        // // ===================================================
-        // if (data.Fmc_allorsudentorother === 'stud' && data.Fmc_allorcorddorop === 'All') {
-        //     params.regornamedetails = 'students';
-        //     params.allorstdorothersflag = 'multiplepaymentmode';
-
-        //     console.log('REPORT 3 (MULTIPLE PAYMENT STUDENTS) PARAMS', params);
-        // }
-
-        // // ===================================================
         // // REPORT 4 → STUDENTS / ALL (NOT multiplepaymentmode)
         // // Trigger:
         // // Fmc_allorsudentorother = "stud" OR "All"
@@ -1090,22 +1057,7 @@ export default function DailyFeeCollectionReportForm() {
                         </div>
                         <div className='my-6 border-gray-300 border-t' />
 
-                        {/* 🔹 ACTION BUTTONS */}
-                        {/* <div className='mb-4 flex justify-end gap-2'>
-                        <Button size='sm' className='h-8 w-auto px-3 text-xs' onClick={handleExportExcel}>
-                            Export Excel
-                        </Button>
-
-                        <Button size='sm' variant='outline' className='h-8 w-auto px-3 text-xs' onClick={handlePrint}>
-                            Print
-                        </Button>
-                    </div> */}
-
                         <div className='flex items-center justify-between border-b bg-muted/40 px-8 py-4'>
-                            {/* <div className="font-semibold text-lg text-primary">
-                                                            Report Actions
-                                                        </div> */}
-
                             <div className='flex gap-3'>
                                 <Button variant='outline' onClick={handlePrint}>
                                     🖨 Print

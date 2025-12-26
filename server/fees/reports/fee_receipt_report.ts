@@ -2,6 +2,7 @@
 
 import { api } from '@/lib/apiService';
 import type {
+    FeeReceiptRecord,
     IFeeReceiptReportHeadDropdownList,
     ReceiptReportReceiptDropdownList,
     ReceiptReportStudentDropdownList
@@ -28,4 +29,9 @@ export async function getFeeReceiptReportReceiptDropdown(data: any) {
 export async function getFeeReceiptLogo() {
     const url = '/FeesCommon/get-institution-logo';
     return await api.get<any[]>('fees', url);
+}
+
+export async function getReceiptReportDetails(data: any) {
+    const url = '/feeitreport/get-it-receipt-report';
+    return await api.post<FeeReceiptRecord[]>('fees', url, data);
 }

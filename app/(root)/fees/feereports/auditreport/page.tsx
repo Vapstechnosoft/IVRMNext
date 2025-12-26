@@ -1,15 +1,14 @@
 // app/(root)/fees/feereports/feedefaulterreport/page.tsx
 'use client';
 
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
-import { useFeeCustomGroupDefaulterreport } from '@/hooks/fees/useReports';
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { useFeeCustomGroupDefaulterreport } from '@/hooks/fees/useReports';
 import { feeAuditSchema } from '@/schemas/fees/reports';
 import { getAuditReport } from '@/server/fees/reports/auditreport';
 import { zodResolver } from '@hookform/resolvers/zod/dist/zod.js';
@@ -50,8 +49,8 @@ export default function FeeDefaulterReport() {
             academicYearId: '',
 
             breakdown: 'ALL',
-            fromDate: undefined,
-            toDate: undefined
+            fromDate: new Date(), // Initialize with today's date
+            toDate: new Date() // Initialize with today's date
         }
     });
 
@@ -65,6 +64,10 @@ export default function FeeDefaulterReport() {
 
     const [selectedIds, setSelectedIds] = useState<number[]>([]);
     const [reportData, setReportData] = useState<auditreportow[]>([]);
+
+    const [fromDate, setFromDate] = useState<Date>(new Date());
+
+    const [toDate, setToDate] = useState<Date>(new Date());
 
     type auditreportow = {
         id: number;
@@ -176,6 +179,8 @@ export default function FeeDefaulterReport() {
             asmayId: data.academicYearId,
             fromDate: filters.fromDate.toISOString().split('T')[0],
             toDate: filters.toDate.toISOString().split('T')[0],
+            // fromDate: data.fromDate ? format(data.fromDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+            // toDate: data.toDate ? format(data.toDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
             flag: filters.breakdown
         };
 
@@ -323,12 +328,11 @@ export default function FeeDefaulterReport() {
 
                                 <div className='mt-4 flex items-center justify-center rounded border bg-gray-50 p-4 shadow-sm'>
                                     <div className='flex items-center gap-6'>
-                                        {/* From Date */}
                                         <div className='flex items-center gap-2'>
-                                            <label htmlFor='fromDate' className='font-medium'>
+                                            <Label htmlFor='fromDate' className='font-medium'>
                                                 From Date: <span className='text-red-500'>*</span>
-                                            </label>
-                                            <input
+                                            </Label>
+                                            <Input
                                                 id='fromDate'
                                                 type='date'
                                                 value={filters.fromDate.toISOString().split('T')[0]}
@@ -342,12 +346,11 @@ export default function FeeDefaulterReport() {
                                             />
                                         </div>
 
-                                        {/* To Date */}
                                         <div className='flex items-center gap-2'>
-                                            <label htmlFor='toDate' className='font-medium'>
+                                            <Label htmlFor='toDate' className='font-medium'>
                                                 To Date: <span className='text-red-500'>*</span>
-                                            </label>
-                                            <input
+                                            </Label>
+                                            <Input
                                                 id='toDate'
                                                 type='date'
                                                 value={filters.toDate.toISOString().split('T')[0]}
@@ -361,6 +364,89 @@ export default function FeeDefaulterReport() {
                                             />
                                         </div>
                                     </div>
+                                    {/* <div className="flex items-center gap-2">
+                                        <Label className="font-medium">
+                                            From Date: <span className="text-red-500">*</span>
+                                        </Label>
+
+                                        <Controller
+                                            name="fromDate"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            className="w-[180px] justify-start text-left font-normal"
+                                                        >
+                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                            {field.value
+                                                                ? format(field.value, 'dd/MM/yyyy')
+                                                                : 'From date'}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <CalendarYear
+                                                            mode="single"
+                                                            selected={field.value}
+                                                            onSelect={(date: Date | undefined) => {
+                                                                if (date) {
+                                                                    field.onChange(date);
+                                                                    setFilters(prev => ({ ...prev, fromDate: date }));
+                                                                }
+                                                            }}
+                                                            captionLayout="dropdown"
+                                                            fromYear={2000}
+                                                            toYear={2050}
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            )}
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <Label className="font-medium">
+                                            To Date: <span className="text-red-500">*</span>
+                                        </Label>
+
+                                        <Controller
+                                            name="toDate"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            className="w-[180px] justify-start text-left font-normal"
+                                                        >
+                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                            {field.value
+                                                                ? format(field.value, 'dd/MM/yyyy')
+                                                                : 'To date'}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <CalendarYear
+                                                            mode="single"
+                                                            selected={field.value}
+                                                            onSelect={(date: Date | undefined) => {
+                                                                if (date) {
+                                                                    field.onChange(date);
+                                                                    setFilters(prev => ({ ...prev, toDate: date }));
+                                                                }
+                                                            }}
+                                                            captionLayout="dropdown"
+                                                            fromYear={2000}
+                                                            toYear={2050}
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
+                                            )}
+                                        />
+                                    </div> */}
                                 </div>
 
                                 <div>

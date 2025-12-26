@@ -996,3 +996,8 @@ export interface CurrentPaymentDetails {
     ivrmmoD_ModeOfPayment: string;
     ivrmmoD_Flag: string;
 }
+
+export interface masterBankList {
+    fmbanK_Id: number;
+    fmbanK_BankName: string;
+}

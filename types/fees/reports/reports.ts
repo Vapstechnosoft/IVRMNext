@@ -318,3 +318,22 @@ export interface ReceiptReportReceiptDropdownList {
     fyp_id: number;
     fyp_receipt_no: string;
 }
+
+export interface FeeReceiptRecord {
+    fyP_Id: number;
+    amsT_Id: number;
+    asmaY_Id: number;
+    studentName: string;
+    amsT_FatherName: string;
+    amsT_RegistrationNo: string;
+    amsT_AdmNo: string;
+    asmcL_ClassName: string;
+    asmC_SectionName: string;
+    fyP_Receipt_No: string;
+    fyP_DOE: string;
+    fmH_FeeName: string;
+    fyP_TransactionTypeFlag: string;
+    amount: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+}
