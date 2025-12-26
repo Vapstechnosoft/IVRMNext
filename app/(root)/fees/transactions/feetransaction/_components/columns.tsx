@@ -95,7 +95,7 @@ function ActionButtonsCell({ rowData }: { rowData: Ifeetransaction }) {
             </button>
             <ActionButtons
                 rowData={rowData}
-                buttons={{ edit: false, toggle: false, delete: false }}
+                buttons={{ edit: true, toggle: false, delete: true }}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
             />
