@@ -907,3 +907,4 @@ export interface IFeeAdjustmentHeadDropDown {
     fsA_From_FMA_Id: number;
     fsS_RunningExcessAmount: number;
 }
+

@@ -59,6 +59,7 @@ export interface ILoginPrivilegeDetails {
     slno: number;
     classId: number;
     className: string;
+    asmcL_ClassName: string;
 
     sectionId: number;
     sectionName: string;
@@ -467,10 +468,10 @@ export interface IExamSubjectGroupDetails {
 
 export interface IStudentTransactionGrid {
     slNo: number;
-    studentId: number;
+    amsT_Id: number;
     studentName: string;
-    regNo: string;
-    rollNo: number;
+    regNumber: string;
+    rollNumber: number;
     score: number;
     checked?: boolean;
 }
@@ -751,3 +752,25 @@ export type IStudentMarksRow = {
     // selection
     selected?: boolean;
 };
+
+export interface GetStudentDetailsParams {
+    MI_Id?: number;
+    ASMAY_Id?: number;
+    ASMCL_Id?: number;
+    ASMS_Id?: number;
+    Skills?: string;
+    exam_termwise_flag?: string;
+    ECACT_Id?: number;
+    ECACTA_Id?: number;
+    ECS_Id?: number;
+    ECSA_Id?: number;
+}
+
+export interface IStudentTransaction {
+    amsT_Id: number,
+    studentName: string,
+    regNumber: number,
+    rollNumber: number,
+    score?: number
+}
+

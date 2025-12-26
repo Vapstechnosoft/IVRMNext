@@ -2,19 +2,31 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IExamLoginPrivileges, ILoginPrivilegeDetails } from '@/types/exam/exam-module/exam-mapping';
+import type {
+    IExamLoginPrivileges,
+    ILoginPrivilegeDetails
+} from '@/types/exam/exam-module/exam-mapping';
+
+/* ===================== LIST ===================== */
 
 export async function getExamLoginPrivileges(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `exam_login_privileges/30?${urlParams}`;
-    console.log(url);
     return await api.get<IExamLoginPrivileges>('exam', url);
 }
 
-export async function getLoginPrivilegesDetails(elp_id: number, asmcl_id: number, asms_id: number) {
+/* ===================== VIEW DETAILS ===================== */
+
+export async function getLoginPrivilegesDetails(
+    elp_id: number,
+    asmcl_id: number,
+    asms_id: number
+) {
     const url = `exam_login_privileges/exm_login_privilege_view_by_id/${elp_id}/${asmcl_id}/${asms_id}`;
+
     try {
         const response = await api.get<ILoginPrivilegeDetails[]>('exam', url);
+
         if (!response || !Array.isArray(response.data)) {
             throw new Error('Invalid API response');
         }
@@ -25,21 +37,22 @@ export async function getLoginPrivilegesDetails(elp_id: number, asmcl_id: number
             data: response.data
         };
     } catch (error) {
-        console.error('API Failed → Returning static fallback data', error);
-        const fallback: ILoginPrivilegeDetails[] = Array.from({ length: 10 }).map((_, i) => ({
+        console.error('View API failed → fallback used', error);
+
+        const fallback: ILoginPrivilegeDetails[] = Array.from({ length: 5 }).map((_, i) => ({
             slno: i + 1,
 
-            classId: 100 + i,
-            className: `Class ${i + 1}`,
+            asmcL_Id: 100 + i,
+            asmcL_ClassName: `Class ${i + 1}`,
 
-            sectionId: 200 + i,
-            sectionName: `Section ${String.fromCharCode(65 + (i % 5))}`,
+            asmS_Id: 200 + i,
+            asmS_SectionName: `Section ${String.fromCharCode(65 + i)}`,
 
-            subjectId: 300 + i,
-            subjectName: `Subject ${i + 1}`,
+            ismS_Id: 300 + i,
+            ismS_SubjectName: `Subject ${i + 1}`,
 
-            subSubjectId: 400 + i,
-            subSubjectName: `SubSubject ${i + 1}`
+            ismsS_Id: 400 + i,
+            ismsS_SubSubjectName: `SubSubject ${i + 1}`
         }));
 
         return {
@@ -50,7 +63,82 @@ export async function getLoginPrivilegesDetails(elp_id: number, asmcl_id: number
     }
 }
 
+/* ===================== EDIT DETAILS ===================== */
+
+export async function getExamLoginPrivilegesEditDetails(
+    elpId: number,
+    asmclId: number,
+    asmsId: number
+) {
+    const url = `exam_login_privileges/exm_login_privilege_edit_by_id/${elpId}/${asmclId}/${asmsId}`;
+
+    try {
+        const response = await api.get<ILoginPrivilegeDetails[]>('exam', url);
+
+        if (!response || !Array.isArray(response.data)) {
+            throw new Error('Invalid Edit API response');
+        }
+
+        return {
+            success: true,
+            message: 'Edit details fetched successfully',
+            data: response.data
+        };
+    } catch (error) {
+        console.error('Edit API failed → fallback used', error);
+
+        const fallback: ILoginPrivilegeDetails[] = [
+            {
+                slno: 1,
+
+                asmcL_Id: asmclId,
+                asmcL_ClassName: 'Class A',
+
+                asmS_Id: asmsId,
+                asmS_SectionName: 'Section A',
+
+                ismS_Id: 101,
+                ismS_SubjectName: 'Subject 1',
+
+                ismsS_Id: 201,
+                ismsS_SubSubjectName: 'SubSubject 1'
+            }
+        ];
+
+        return {
+            success: true,
+            message: 'Edit API failed, fallback data returned',
+            data: fallback
+        };
+    }
+}
+
+/* ===================== SAVE ===================== */
+
 export async function addorUpdateExamLoginPrivileges(data: any) {
-    const url = '/exam_master/add_or_update_exam_master_paper_type';
+    const url = '/exam_login_privileges';
     return await api.post<any>('exam', url, data);
+}
+
+/* ===================== DROPDOWNS ===================== */
+
+export async function getClassTeacherDropdwonList() {
+    return await api.get<any>(
+        'exam',
+        '/exam_login_privileges/exm_login_privilege_classteacher_list/30'
+    );
+}
+
+export async function getUserDropdwonList() {
+    return await api.get<any>(
+        'exam',
+        '/exam_login_privileges/exm_login_privilege_user_name/30'
+    );
+}
+
+export async function getEmployeeDropdwonList() {
+    return await api.get<any>(
+        'exam',
+        '/exam_login_privileges/exm_login_privilege_employee_list/30'
+    );
 }

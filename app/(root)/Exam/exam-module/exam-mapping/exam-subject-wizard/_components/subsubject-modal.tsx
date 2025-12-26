@@ -83,7 +83,7 @@ export default function SubSubjectModal({
             eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
             eycessS_MinMarks: l.eycessS_MinMarks ?? '',
             eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
-            EMGR_Id: l.EMGR_Id ?? '',
+            EMGR_Id: l.emgR_Id ?? '',
             eycessS_ExemptedFlg: !!l.eycessS_ExemptedFlg,
             eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
             eycessS_MarksDisplayFlg: !!l.eycessS_MarksDisplayFlg,

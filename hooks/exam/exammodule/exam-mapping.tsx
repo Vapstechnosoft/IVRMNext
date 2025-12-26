@@ -1,6 +1,6 @@
 import { EXAM_QUERY_KEYS } from '@/constants/query-keys';
 import { getCoScholasticActivityAreaMapping } from '@/server/exam/exam-module/exam-mapping/co-scholastic-activitiy-area-mapping';
-import { getExamLoginPrivileges, getLoginPrivilegesDetails } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
+import { getClassTeacherDropdwonList, getEmployeeDropdwonList, getExamLoginPrivileges, getLoginPrivilegesDetails, getUserDropdwonList } from '@/server/exam/exam-module/exam-mapping/exam-login-privilages';
 import { getExamMarksProcessCondition } from '@/server/exam/exam-module/exam-mapping/exam-marks-process-condition';
 import {
     getExamSubjectGroupMapping,
@@ -404,6 +404,62 @@ export const usePromotionalGroupMappedExams = (subjectId: number, searchParams?:
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS]
+            });
+        }
+    };
+};
+
+
+
+
+export const useClassTeacherDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.CLASS_TEACHER_DROPDOWN_LIST],
+            queryFn: async () => getClassTeacherDropdwonList(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.CLASS_TEACHER_DROPDOWN_LIST]
+            });
+        }
+    };
+};
+
+export const useUserDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.USER_DROPDOWN_LIST_KEY],
+            queryFn: async () => getUserDropdwonList(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.USER_DROPDOWN_LIST_KEY]
+            });
+        }
+    };
+};
+export const useEmployeeDropdownList = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [EXAM_QUERY_KEYS.EMPLOYEE_DROPDOWN_LIST],
+            queryFn: async () => getEmployeeDropdwonList(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.EMPLOYEE_DROPDOWN_LIST]
             });
         }
     };

@@ -32,13 +32,16 @@ export const StudentTransactionColumns = (onScoreUpdate: ScoreUpdateHandler): Co
         size: 40
     },
 
-    // SL.NO
     {
-        accessorKey: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
-        cell: ({ row }) => <div>{row.original.slNo}</div>,
+        accessorKey: 'slno',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='SL No' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div>{pageIndex * pageSize + row.index + 1}</div>;
+        },
         enableSorting: false,
-        size: 60
+        enableHiding: true
     },
 
     // STUDENT NAME
@@ -51,26 +54,26 @@ export const StudentTransactionColumns = (onScoreUpdate: ScoreUpdateHandler): Co
 
     // REG NO
     {
-        accessorKey: 'regNo',
+        accessorKey: 'regNumber',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Reg.No' />,
-        cell: ({ row }) => <div>{row.original.regNo}</div>,
+        cell: ({ row }) => <div>{row.getValue('regNumber')}</div>,
         size: 120
     },
 
     // ROLL NO
     {
-        accessorKey: 'rollNo',
+        accessorKey: 'rollNumber',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' />,
-        cell: ({ row }) => <div>{row.original.rollNo}</div>,
+        cell: ({ row }) => <div>{row.getValue('rollNumber')}</div>,
         size: 80
     },
 
     // ✅ SCORE — FIXED (NO FOCUS LOSS)
     {
         accessorKey: 'score',
-        header: ({ column }) => <DataTableColumnHeader column={column} className='text-left' title='Score' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} className='PL-4 text-left' title='Score' />,
         cell: ({ row }) => {
-            const { studentId, score } = row.original;
+            const { amsT_Id: studentId, score } = row.original;
 
             // ✅ Local state ONLY
             const [localValue, setLocalValue] = useState<string>(score !== null && score !== undefined ? score.toString() : '');
